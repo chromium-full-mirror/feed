@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -73,8 +72,6 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
 
   private void setLayoutParamsOnCell(
       ElementListAdapter cellAdapter, GridCell cell, FrameContext frameContext) {
-    View view = cellAdapter.getView();
-
     LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
     GridCellWidth gridCellWidth = null;
@@ -107,7 +104,7 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
         params.gravity = Gravity.NO_GRAVITY;
     }
 
-    view.setLayoutParams(params);
+    cellAdapter.setLayoutParams(params);
   }
 
   @Nullable
