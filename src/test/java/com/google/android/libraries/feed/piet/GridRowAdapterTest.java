@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
@@ -26,6 +27,7 @@ import android.content.Context;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.util.FrameContext;
@@ -34,6 +36,7 @@ import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.android.libraries.feed.piet.util.ViewUtils;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
@@ -103,6 +106,7 @@ public class GridRowAdapterTest {
     adapter.bindModel(gridRow, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
+    assertThat(adapter.childAdapters).hasSize(2);
   }
 
   @Test
@@ -120,6 +124,7 @@ public class GridRowAdapterTest {
     adapter.bindModel(gridRow, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(adapter.childAdapters).hasSize(1);
   }
 
   @Test
@@ -233,5 +238,62 @@ public class GridRowAdapterTest {
     assertThat(gridView.getOrientation()).isEqualTo(LinearLayout.HORIZONTAL);
     assertThat(gridView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
     assertThat(gridView.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
+  }
+
+  @Test
+  public void testUnbindModel() {
+    ElementListBindingRef listBinding =
+        ElementListBindingRef.newBuilder().setBindingId("meow").build();
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
+            .addCells(GridCell.newBuilder().setElementListBinding(listBinding))
+            .build();
+
+    when(frameContext.getElementListFromBinding(listBinding)).thenReturn(DEFAULT_CONTENTS);
+
+    adapter.bindModel(gridRow, frameContext);
+
+    adapter.unbindModel();
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
+  }
+
+  @Test
+  public void testGetModelFromElement() {
+    GridRow model =
+        GridRow.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("spacer"))
+            .build();
+
+    Element elementWithModel = Element.newBuilder().setGridRow(model).build();
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+
+    Element elementWithWrongModel =
+        Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(elementWithWrongModel);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing GridRow");
+
+    Element emptyElement = Element.getDefaultInstance();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(emptyElement);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing GridRow");
   }
 }

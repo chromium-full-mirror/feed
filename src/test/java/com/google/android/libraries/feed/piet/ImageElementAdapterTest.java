@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.android.libraries.feed.piet.util.ViewUtils;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
@@ -311,6 +312,44 @@ public class ImageElementAdapterTest {
         .isEqualTo(heightPx + PADDING.getTop() + PADDING.getBottom());
     assertThat(adapter.getComputedWidthPx())
         .isEqualTo(widthPx + PADDING.getStart() + PADDING.getEnd());
+  }
+
+  @Test
+  public void testGetModelFromElement() {
+    ImageElement model =
+        ImageElement.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("image"))
+            .build();
+
+    Element elementWithModel = Element.newBuilder().setImageElement(model).build();
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+
+    Element elementWithWrongModel =
+        Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(elementWithWrongModel);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing ImageElement");
+
+    Element emptyElement = Element.getDefaultInstance();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(emptyElement);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing ImageElement");
   }
 
   private void setStyle(@Nullable Integer height, @Nullable Integer width) {

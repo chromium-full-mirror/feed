@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
@@ -23,10 +24,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.SpacerElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
+import com.google.search.now.ui.piet.ElementsProto.CustomElement;
+import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Style;
@@ -117,5 +121,43 @@ public class SpacerElementAdapterTest {
     assertThat(v2.getLayoutParams().height).isEqualTo(10);
 
     assertThat(v2).isSameAs(v1);
+  }
+
+  @Test
+  public void testGetModelFromElement() {
+    SpacerElement model =
+        SpacerElement.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("spacer"))
+            .build();
+
+    Element elementWithModel = Element.newBuilder().setSpacerElement(model).build();
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+
+    Element elementWithWrongModel =
+        Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(elementWithWrongModel);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing SpacerElement");
+
+    Element emptyElement = Element.getDefaultInstance();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(emptyElement);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing SpacerElement");
   }
 }

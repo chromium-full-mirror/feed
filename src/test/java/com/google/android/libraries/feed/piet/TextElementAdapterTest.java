@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.GONE;
@@ -29,11 +30,14 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.ParameterizedTextEvaluator;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.CustomElement;
+import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
@@ -268,5 +272,43 @@ public class TextElementAdapterTest {
     ParameterizedText text = ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT).build();
     textElement.setParameterizedText(text);
     return textElement.build();
+  }
+
+  @Test
+  public void testGetModelFromElement() {
+    TextElement model =
+        TextElement.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("spacer"))
+            .build();
+
+    Element elementWithModel = Element.newBuilder().setTextElement(model).build();
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+
+    Element elementWithWrongModel =
+        Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(elementWithWrongModel);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing TextElement");
+
+    Element emptyElement = Element.getDefaultInstance();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(emptyElement);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing TextElement");
   }
 }

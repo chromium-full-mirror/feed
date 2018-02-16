@@ -48,6 +48,15 @@ public class TextElementAdapter
   }
 
   @Override
+  protected TextElement getModelFromElement(Element baseElement) {
+    if (!baseElement.hasTextElement()) {
+      throw new IllegalArgumentException(
+          String.format("Missing TextElement; has %s", baseElement.getElementsCase()));
+    }
+    return baseElement.getTextElement();
+  }
+
+  @Override
   public void onBindModel(TextElement textLine, Element baseElement, FrameContext frameContext) {
     initialBind(frameContext, textLine);
 

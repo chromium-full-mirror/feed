@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
@@ -29,6 +30,7 @@ import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.ElementListAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.util.FrameContext;
@@ -37,6 +39,8 @@ import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
@@ -256,6 +260,23 @@ public class ElementListAdapterTest {
   }
 
   @Test
+  public void testUnbindModel() {
+    ElementList listWithStyles =
+        ElementList.newBuilder()
+            .setStyleReferences(LIST_STYLES)
+            .addElements(ELEMENT_1)
+            .addElements(ELEMENT_1)
+            .addElements(ELEMENT_1)
+            .build();
+
+    adapter.bindModel(listWithStyles, frameContext);
+
+    adapter.unbindModel();
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
+  }
+
+  @Test
   public void testGetVerticalGravity() {
     ElementList listWithStyles =
         ElementList.newBuilder()
@@ -276,5 +297,59 @@ public class ElementListAdapterTest {
     adapter.bindModel(listWithStyles, frameContext);
 
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(LIST_STYLES);
+  }
+
+  @Test
+  public void testGetModelFromElement() {
+    ElementList model =
+        ElementList.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("spacer"))
+            .build();
+
+    Element elementWithModel = Element.newBuilder().setElementList(model).build();
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+
+    Element elementWithListBinding =
+        Element.newBuilder()
+            .setElementListBinding(ElementListBindingRef.newBuilder().setBindingId("binding"))
+            .build();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(elementWithListBinding);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing ElementList");
+
+    Element elementWithWrongModel =
+        Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(elementWithWrongModel);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing ElementList");
+
+    Element emptyElement = Element.getDefaultInstance();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(emptyElement);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing ElementList");
   }
 }

@@ -44,6 +44,15 @@ public class SpacerElementAdapter
   }
 
   @Override
+  protected SpacerElement getModelFromElement(Element baseElement) {
+    if (!baseElement.hasSpacerElement()) {
+      throw new IllegalArgumentException(
+          String.format("Missing SpacerElement; has %s", baseElement.getElementsCase()));
+    }
+    return baseElement.getSpacerElement();
+  }
+
+  @Override
   public void onBindModel(SpacerElement model, Element baseElement, FrameContext frameContext) {
     initialBind(frameContext, model);
     View view = checkNotNull(getBaseView());

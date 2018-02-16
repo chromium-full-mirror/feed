@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -22,14 +23,17 @@ import android.content.Context;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.Producers;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
@@ -263,11 +267,81 @@ public class TemplateInvocationAdapterTest {
   }
 
   @Test
+  public void testUnbindModel() {
+    TemplateInvocation templateInvocation =
+        TemplateInvocation.newBuilder()
+            .setTemplateId(TEMPLATE_ID)
+            .addBindingContexts(
+                BindingContext.newBuilder()
+                    .addBindingValues(
+                        BindingValue.newBuilder()
+                            .setBindingId(TEXT_BINDING_ID)
+                            .setParameterizedText(
+                                ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
+            .build();
+
+    adapter.bindModel(templateInvocation, frameContext);
+    LinearLayout templateView = adapter.getBaseView();
+    assertThat(templateView.getChildCount()).isEqualTo(1);
+    LinearLayout elementListView = (LinearLayout) templateView.getChildAt(0);
+
+    adapter.unbindModel();
+
+    assertThat(templateView.getChildCount()).isEqualTo(0);
+    assertThat(elementListView.getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
+  }
+
+  @Test
   public void testCreateViewGroup() {
     LinearLayout viewGroup = adapter.createViewGroup();
 
     assertThat(viewGroup.getOrientation()).isEqualTo(LinearLayout.VERTICAL);
     assertThat(viewGroup.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
     assertThat(viewGroup.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
+  }
+
+  @Test
+  public void testGetModelFromElement() {
+    Element elementWithModel =
+        Element.newBuilder().setTemplateBinding(TemplateBindingRef.getDefaultInstance()).build();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(elementWithModel);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Templates must be re-bound");
+
+    Element elementWithWrongModel =
+        Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(elementWithWrongModel);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Templates must be re-bound");
+
+    Element emptyElement = Element.getDefaultInstance();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(emptyElement);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Templates must be re-bound");
   }
 }

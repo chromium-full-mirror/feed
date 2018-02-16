@@ -148,6 +148,15 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_extractsModelFromElement() {
+    Element element = Element.getDefaultInstance();
+
+    adapter.bindModel(element, frameContext);
+
+    assertThat(adapter.getModel()).isEqualTo(TestElementAdapter.DEFAULT_MODEL);
+  }
+
+  @Test
   public void testBindModel_setsOverlays() {
     Element elementWithOverlays =
         Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
@@ -315,11 +324,18 @@ public class ElementAdapterTest {
   }
 
   // Dummy implementation
-  class TestElementAdapter extends ElementAdapter<View, Object, Object> {
+  static class TestElementAdapter extends ElementAdapter<View, Object, Object> {
+    static final String DEFAULT_MODEL = "MODEL";
+
     boolean bound = false;
 
     TestElementAdapter(Context context, AdapterParameters parameters) {
       super(context, parameters);
+    }
+
+    @Override
+    protected Object getModelFromElement(Element baseElement) {
+      return DEFAULT_MODEL;
     }
 
     @Override

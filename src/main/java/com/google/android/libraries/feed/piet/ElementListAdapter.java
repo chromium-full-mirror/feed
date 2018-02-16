@@ -41,6 +41,16 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
   }
 
   @Override
+  protected ElementList getModelFromElement(Element baseElement) {
+    // Will also throw for ElementListBindingRef; looking up bindings is not supported here.
+    if (!baseElement.hasElementList()) {
+      throw new IllegalArgumentException(
+          String.format("Missing ElementList; has %s", baseElement.getElementsCase()));
+    }
+    return baseElement.getElementList();
+  }
+
+  @Override
   public void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
     initialBind();
     bindLinesToLayout(model, frameContext);
@@ -84,6 +94,7 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
   private void bindLinesToLayout(ElementList list, FrameContext frameContext) {
     ViewGroup viewGroup = checkNotNull(getBaseView());
     for (Element line : list.getElementsList()) {
+      // TODO: reuse existing adapter from childAdapters if rebinding template.
       ElementAdapter<? extends View, ?, ?> adapter = getAdapterForChildElement(line, frameContext);
       if (adapter.getView() != null) {
         viewGroup.addView(adapter.getView());
@@ -109,6 +120,15 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
         adapter.getView().setLayoutParams(params);
       }
     }
+  }
+
+  private ElementAdapter<? extends View, ?, ?> getAdapterForChildElement(
+      Element contentLine, FrameContext frameContext) {
+    ElementAdapter<? extends View, ?, ?> adapter =
+        checkNotNull(
+            getParameters().adapterFactory.createAdapterForElement(contentLine, frameContext));
+    addChildAdapter(adapter);
+    return adapter;
   }
 
   @Override

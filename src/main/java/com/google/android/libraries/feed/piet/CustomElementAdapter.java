@@ -34,6 +34,15 @@ public class CustomElementAdapter extends ElementAdapter<View, CustomElement, Ke
   }
 
   @Override
+  protected CustomElement getModelFromElement(Element baseElement) {
+    if (!baseElement.hasCustomElement()) {
+      throw new IllegalArgumentException(
+          String.format("Missing CustomElement; has %s", baseElement.getElementsCase()));
+    }
+    return baseElement.getCustomElement();
+  }
+
+  @Override
   public void onBindModel(
       CustomElement customElement, Element baseElement, FrameContext frameContext) {
     CustomElementData customElementData;

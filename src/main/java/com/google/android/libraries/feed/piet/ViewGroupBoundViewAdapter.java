@@ -14,29 +14,22 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
-
 import android.content.Context;
+import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.search.now.ui.piet.ElementsProto.Element;
-import com.google.search.now.ui.piet.ElementsProto.ElementList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Container adapter that controls a ViewGroup of other elements. */
 public abstract class ViewGroupBoundViewAdapter<V extends ViewGroup, M, K>
     extends ElementAdapter<V, M, K> {
 
-  private final ElementAdapterFactory adapterFactory;
-
-  private final Set<ElementAdapter<? extends View, ?, ?>> childAdapters;
+  @VisibleForTesting final List<ElementAdapter<? extends View, ?, ?>> childAdapters;
 
   ViewGroupBoundViewAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
-    this.adapterFactory = parameters.adapterFactory;
-    childAdapters = new HashSet<>();
+    childAdapters = new ArrayList<>();
   }
 
   protected void initialBind() {
@@ -63,24 +56,8 @@ public abstract class ViewGroupBoundViewAdapter<V extends ViewGroup, M, K>
     }
   }
 
-  /** Create an Adapter for the {@code ElementList}. */
-  protected ElementListAdapter getAdapterForChildList(ElementList list, FrameContext frameContext) {
-    ElementListAdapter listAdapter =
-        checkNotNull(getParameters().adapterFactory.createElementListAdapter(list, frameContext));
-    addChildAdapter(listAdapter);
-    return listAdapter;
-  }
-
   protected void addChildAdapter(ElementAdapter<? extends View, ?, ?> adapter) {
     childAdapters.add(adapter);
-  }
-
-  protected ElementAdapter<? extends View, ?, ?> getAdapterForChildElement(
-      Element contentLine, FrameContext frameContext) {
-    ElementAdapter<? extends View, ?, ?> adapter =
-        checkNotNull(adapterFactory.createAdapterForElement(contentLine, frameContext));
-    addChildAdapter(adapter);
-    return adapter;
   }
 
   /** Creates the base ViewGroup for this adapter. */

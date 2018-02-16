@@ -46,6 +46,15 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
   }
 
   @Override
+  protected GridRow getModelFromElement(Element baseElement) {
+    if (!baseElement.hasGridRow()) {
+      throw new IllegalArgumentException(
+          String.format("Missing GridRow; has %s", baseElement.getElementsCase()));
+    }
+    return baseElement.getGridRow();
+  }
+
+  @Override
   public void onBindModel(GridRow gridRow, Element baseElement, FrameContext frameContext) {
     initialBind();
 
@@ -111,6 +120,7 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
   private ElementListAdapter getCellAdapter(GridCell cell, FrameContext frameContext) {
     ElementListAdapter adapter = null;
     if (cell.hasElementList() && cell.getElementList().getElementsCount() > 0) {
+      // TODO: get adapter from childAdapters if it exists.
       adapter = getCellFromElementList(cell, frameContext);
     } else if (cell.hasElementListBinding()) {
       adapter = getCellFromBinding(cell, frameContext);
@@ -143,6 +153,14 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
     }
 
     return getAdapterForChildList(list, frameContext);
+  }
+
+  /** Create an Adapter for the {@code ElementList}. */
+  private ElementListAdapter getAdapterForChildList(ElementList list, FrameContext frameContext) {
+    ElementListAdapter listAdapter =
+        checkNotNull(getParameters().adapterFactory.createElementListAdapter(list, frameContext));
+    addChildAdapter(listAdapter);
+    return listAdapter;
   }
 
   @Override

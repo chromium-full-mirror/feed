@@ -111,6 +111,11 @@ public abstract class ElementAdapter<V extends View, M, K> implements BoundViewA
     bindModel(model, Element.getDefaultInstance(), frameContext);
   }
 
+  /** Binds to an Element, allowing the subclass to pick out the relevant model from the oneof. */
+  public void bindModel(Element baseElement, FrameContext frameContext) {
+    bindModel(getModelFromElement(baseElement), baseElement, frameContext);
+  }
+
   /** Bind the model and initialize overlays. Calls child {@link #onBindModel()} methods. */
   void bindModel(M model, Element baseElement, FrameContext frameContext) {
     this.model = model;
@@ -126,6 +131,9 @@ public abstract class ElementAdapter<V extends View, M, K> implements BoundViewA
 
     initializeOverflow(baseElement);
   }
+
+  /** Extracts the relevant model from the Element oneof. Throws IllegalArgument if not found. */
+  protected abstract M getModelFromElement(Element baseElement);
 
   /** Child-adapter-specific binding behavior; please override. */
   protected void onBindModel(M model, Element baseElement, FrameContext frameContext) {}

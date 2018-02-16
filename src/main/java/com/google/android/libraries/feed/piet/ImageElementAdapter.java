@@ -41,6 +41,15 @@ public class ImageElementAdapter
   }
 
   @Override
+  protected ImageElement getModelFromElement(Element baseElement) {
+    if (!baseElement.hasImageElement()) {
+      throw new IllegalArgumentException(
+          String.format("Missing ImageElement; has %s", baseElement.getElementsCase()));
+    }
+    return baseElement.getImageElement();
+  }
+
+  @Override
   public void onBindModel(ImageElement model, Element baseElement, FrameContext frameContext) {
     initialBind();
 

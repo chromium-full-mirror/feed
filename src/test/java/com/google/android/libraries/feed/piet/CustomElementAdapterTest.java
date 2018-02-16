@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
@@ -23,12 +24,15 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.CustomElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
+import com.google.search.now.ui.piet.ElementsProto.Element;
+import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
@@ -96,5 +100,43 @@ public class CustomElementAdapterTest {
     adapter.unbindModel();
 
     verify(customElementProvider).releaseCustomView(customView);
+  }
+
+  @Test
+  public void testGetModelFromElement() {
+    CustomElement model =
+        CustomElement.newBuilder()
+            .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds("custom"))
+            .build();
+
+    Element elementWithModel = Element.newBuilder().setCustomElement(model).build();
+    assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
+
+    Element elementWithWrongModel =
+        Element.newBuilder().setTextElement(TextElement.getDefaultInstance()).build();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(elementWithWrongModel);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing CustomElement");
+
+    Element emptyElement = Element.getDefaultInstance();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.getModelFromElement(emptyElement);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Missing CustomElement");
   }
 }

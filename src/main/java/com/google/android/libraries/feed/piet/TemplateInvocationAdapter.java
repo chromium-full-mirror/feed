@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.Key;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Element;
+import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Template;
@@ -41,6 +42,12 @@ public class TemplateInvocationAdapter
 
   TemplateInvocationAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
+  }
+
+  @Override
+  protected TemplateInvocation getModelFromElement(Element baseElement) {
+    throw new IllegalArgumentException(
+        "Templates must be re-bound; cannot be extracted from an Element.");
   }
 
   @Override
@@ -76,6 +83,14 @@ public class TemplateInvocationAdapter
         }
       }
     }
+  }
+
+  /** Create an Adapter for the {@code ElementList}. */
+  private ElementListAdapter getAdapterForChildList(ElementList list, FrameContext frameContext) {
+    ElementListAdapter listAdapter =
+        checkNotNull(getParameters().adapterFactory.createElementListAdapter(list, frameContext));
+    addChildAdapter(listAdapter);
+    return listAdapter;
   }
 
   @Override
