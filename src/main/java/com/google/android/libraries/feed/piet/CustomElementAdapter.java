@@ -1,0 +1,88 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.piet;
+
+import android.content.Context;
+import android.view.View;
+import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
+import com.google.android.libraries.feed.piet.CustomElementAdapter.Key;
+import com.google.android.libraries.feed.piet.util.FrameContext;
+import com.google.search.now.ui.piet.ElementsProto.CustomElement;
+import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
+import com.google.search.now.ui.piet.ElementsProto.Element;
+
+/** Adapter that manages a custom view created by the host. */
+public class CustomElementAdapter extends ElementAdapter<View, CustomElement, Key> {
+  private static final String TAG = "CustomElementAdapter";
+  private static final CustomElementAdapter.Key SINGLETON_KEY = new CustomElementAdapter.Key();
+
+  public CustomElementAdapter(Context context, AdapterParameters parameters) {
+    super(context, parameters);
+  }
+
+  @Override
+  public void onBindModel(
+      CustomElement customElement, Element baseElement, FrameContext frameContext) {
+    CustomElementData customElementData;
+    switch (customElement.getContentCase()) {
+      case CUSTOM_ELEMENT_DATA:
+        customElementData = customElement.getCustomElementData();
+        break;
+      case CUSTOM_BINDING:
+        customElementData =
+            frameContext.getCustomElementFromBinding(customElement.getCustomBinding());
+        break;
+      default:
+        Logger.e(TAG, "Missing payload in CustomElement");
+        return;
+    }
+
+    View v = frameContext.getCustomElementProvider().createCustomElement(customElementData);
+    initializeAdapter(v, SINGLETON_KEY);
+  }
+
+  @Override
+  public void onUnbindModel() {
+    if (getView() != null) {
+      getFrameContext().getCustomElementProvider().releaseCustomView(getView());
+    }
+  }
+
+  static final class Key {}
+
+  static class KeySupplier
+      implements AdapterKeySupplier<CustomElementAdapter, CustomElement, CustomElementAdapter.Key> {
+    @Override
+    public String getAdapterTag() {
+      return TAG;
+    }
+
+    @Override
+    public CustomElementAdapter getAdapter(Context context, AdapterParameters parameters) {
+      return new CustomElementAdapter(context, parameters);
+    }
+
+    @Override
+    public CustomElementAdapter.Key getKey(FrameContext frameContext, CustomElement model) {
+      return SINGLETON_KEY;
+    }
+
+    @Override
+    public boolean isSingletonKey() {
+      return false;
+    }
+  }
+}

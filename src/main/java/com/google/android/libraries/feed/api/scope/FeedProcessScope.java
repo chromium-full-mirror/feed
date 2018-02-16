@@ -1,0 +1,236 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.api.scope;
+
+import com.google.android.libraries.feed.api.common.ConfigManager;
+import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.common.UiRunnableHandler;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.network.NetworkClient;
+import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
+import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
+import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
+import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
+import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
+import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
+import com.google.android.libraries.feed.host.logging.LoggingApi;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import javax.annotation.Nullable;
+
+/**
+ * Per-process instance of the feed library.
+ *
+ * <p>It's the host's responsibility to make sure there's only one instance of this per process, per
+ * user.
+ */
+public class FeedProcessScope {
+
+  public FeedStreamScope.Builder createFeedStreamScopeBuilder(ActionApi actionApi) {
+    return new FeedStreamScope.Builder(
+        actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager);
+  }
+
+  /** A builder that creates a {@link FeedProcessScope}. */
+  public static class Builder {
+
+    /** The APIs are all required to construct the scope. */
+    public Builder(
+        ConfigManager configManager,
+        ImageLoaderApi imageLoaderApi,
+        LoggingApi loggingApi,
+        NetworkClient networkClient,
+        SchedulerApi schedulerApi,
+        Store store) {
+      this.configManager = configManager;
+      this.imageLoaderApi = imageLoaderApi;
+      this.loggingApi = loggingApi;
+      this.networkClient = networkClient;
+      this.schedulerApi = schedulerApi;
+      this.store = store;
+    }
+
+    public Builder setProtocolAdapter(FeedProtocolAdapter protocolAdapter) {
+      this.protocolAdapter = protocolAdapter;
+      return this;
+    }
+
+    public Builder setRequestManager(RequestManager requestManager) {
+      this.requestManager = requestManager;
+      return this;
+    }
+
+    public Builder setSessionManager(SessionManager sessionManager) {
+      this.sessionManager = sessionManager;
+      return this;
+    }
+
+    public Builder setModelProviderFactory(ModelProviderFactory modelProviderFactory) {
+      this.modelProviderFactory = modelProviderFactory;
+      return this;
+    }
+
+    public Builder setUiRunnableHandler(UiRunnableHandler uiRunnableHandler) {
+      this.uiRunnableHandler = uiRunnableHandler;
+      return this;
+    }
+
+    public Builder setThreadUtils(ThreadUtils threadUtils) {
+      this.threadUtils = threadUtils;
+      return this;
+    }
+
+    public Builder setInternalProtocolUtils(InternalProtocolUtils internalProtocolUtils) {
+      this.internalProtocolUtils = internalProtocolUtils;
+      return this;
+    }
+
+    public Builder setProtoExtensionProvider(ProtoExtensionProvider protoExtensionProvider) {
+      this.protoExtensionProvider = protoExtensionProvider;
+      return this;
+    }
+
+    FeedProcessScope build() {
+      // Build default component instances if necessary.
+      TimingUtils timingUtils = new TimingUtils();
+      if (uiRunnableHandler == null) {
+        uiRunnableHandler = new UiRunnableHandlerImpl();
+      }
+      if (threadUtils == null) {
+        threadUtils = new ThreadUtils();
+      }
+      if (internalProtocolUtils == null) {
+        internalProtocolUtils = new InternalProtocolUtils();
+      }
+      if (protoExtensionProvider == null) {
+        // Return an empty list of extensions by default.
+        protoExtensionProvider = () -> new ArrayList<>();
+      }
+      if (protocolAdapter == null) {
+        protocolAdapter =
+            new FeedProtocolAdapter(sessionManager, timingUtils, internalProtocolUtils);
+      }
+      if (requestManager == null) {
+        requestManager =
+            new FeedRequestManager(
+                configManager,
+                networkClient,
+                protocolAdapter,
+                new FeedExtensionRegistry(protoExtensionProvider));
+      }
+      if (modelProviderFactory == null) {
+        modelProviderFactory =
+            new FeedModelProviderFactory(
+                threadUtils, timingUtils, internalProtocolUtils, uiRunnableHandler);
+      }
+      if (sessionManager == null) {
+        sessionManager =
+            new FeedSessionManager(
+                Executors.newSingleThreadExecutor(),
+                store,
+                modelProviderFactory,
+                timingUtils,
+                threadUtils);
+        ((FeedSessionManager) sessionManager).setRequestManager(requestManager);
+      }
+      if (sessionManager instanceof FeedSessionManager) {
+        ((FeedSessionManager) sessionManager).setProtocolAdapter(protocolAdapter);
+      }
+      if (modelProviderFactory instanceof FeedModelProviderFactory) {
+        ((FeedModelProviderFactory) modelProviderFactory).setSessionManager(sessionManager);
+      }
+      return new FeedProcessScope(
+          configManager,
+          imageLoaderApi,
+          loggingApi,
+          networkClient,
+          protocolAdapter,
+          requestManager,
+          schedulerApi,
+          sessionManager,
+          store);
+    }
+
+    // Required fields.
+    private final ConfigManager configManager;
+    private final ImageLoaderApi imageLoaderApi;
+    private final LoggingApi loggingApi;
+    private final NetworkClient networkClient;
+    private final SchedulerApi schedulerApi;
+    private final Store store;
+
+    // Optional fields - if they are not provided, we will use default implementations.
+    @Nullable private RequestManager requestManager = null;
+    @Nullable private SessionManager sessionManager = null;
+    @Nullable private ModelProviderFactory modelProviderFactory = null;
+    @Nullable private UiRunnableHandler uiRunnableHandler = null;
+    @Nullable private ThreadUtils threadUtils = null;
+    @Nullable private InternalProtocolUtils internalProtocolUtils = null;
+    @Nullable private FeedProtocolAdapter protocolAdapter = null;
+    @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
+  }
+
+  private FeedProcessScope(
+      ConfigManager configManager,
+      ImageLoaderApi imageLoaderApi,
+      LoggingApi loggingApi,
+      NetworkClient networkClient,
+      FeedProtocolAdapter protocolAdapter,
+      RequestManager requestManager,
+      SchedulerApi schedulerApi,
+      SessionManager sessionManager,
+      Store store) {
+    this.configManager = configManager;
+    this.imageLoaderApi = imageLoaderApi;
+    this.loggingApi = loggingApi;
+    this.networkClient = networkClient;
+    this.protocolAdapter = protocolAdapter;
+    this.requestManager = requestManager;
+    this.schedulerApi = schedulerApi;
+    this.sessionManager = sessionManager;
+    this.store = store;
+  }
+
+  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
+  private final ConfigManager configManager;
+
+  private final ImageLoaderApi imageLoaderApi;
+  private final LoggingApi loggingApi;
+
+  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
+  private final NetworkClient networkClient;
+
+  private final FeedProtocolAdapter protocolAdapter;
+
+  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
+  private final RequestManager requestManager;
+
+  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
+  private final SchedulerApi schedulerApi;
+
+  private final SessionManager sessionManager;
+
+  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
+  private final Store store;
+}

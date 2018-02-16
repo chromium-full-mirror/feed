@@ -1,0 +1,146 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.piet;
+
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.piet.TextElementAdapter.Key;
+import com.google.search.now.ui.piet.StylesProto.Font;
+import org.robolectric.RobolectricTestRunner;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.robolectric.annotation.Config;
+
+/** Tests of the {@link KeyedRecyclerPool} */
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
+public class KeyedRecyclerPoolTest {
+
+  private static final Key KEY1 = new Key(Font.newBuilder().setSize(1).build());
+  private static final Key KEY2 = new Key(Font.newBuilder().setSize(2).build());
+  private static final Key KEY3 = new Key(Font.newBuilder().setSize(3).build());
+  private static final int MAX_KEYS = 10;
+  private static final int CAPACITY = 11;
+
+  @Mock TextElementAdapter adapter;
+  @Mock TextElementAdapter adapter2;
+  @Mock TextElementAdapter adapter3;
+  @Mock TextElementAdapter adapter4;
+
+  @Before
+  public void setUp() {
+    initMocks(this);
+  }
+
+  @Test
+  public void testPutAndGetOneElement() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    pool.put(KEY1, adapter);
+    assertThat(pool.get(KEY1)).isEqualTo(adapter);
+  }
+
+  @Test
+  public void testGetFromEmptyPoolReturnsNull() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    assertThat(pool.get(KEY1)).isNull();
+  }
+
+  @Test
+  public void testGetFromEmptyPoolWithDifferentKeyReturnsNull() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    pool.put(KEY1, adapter);
+    assertThat(pool.get(KEY2)).isNull();
+  }
+
+  @Test
+  public void testPutAndGetElementsWithDifferentKeys() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    pool.put(KEY1, adapter);
+    pool.put(KEY2, adapter2);
+    assertThat(pool.get(KEY2)).isEqualTo(adapter2);
+    assertThat(pool.get(KEY1)).isEqualTo(adapter);
+  }
+
+  @Test
+  public void testPutNullElementFails() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    pool.put(KEY1, null);
+    assertThat(pool.get(KEY1)).isNull();
+  }
+
+  @Test
+  public void testPutNullKeyFails() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                pool.put(null, adapter);
+              }
+            })
+        .throwsAnExceptionOfType(NullPointerException.class)
+        .that()
+        .hasMessageThat()
+        .contains("null key for adapter");
+  }
+
+  @Test
+  public void testGetNullKeyReturnsNull() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    assertThat(pool.get(null)).isNull();
+  }
+
+  @Test
+  public void testCacheOverflowEjectsPool() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(2, CAPACITY);
+    pool.put(KEY1, adapter);
+    pool.put(KEY2, adapter2);
+    pool.put(KEY3, adapter3);
+    assertThat(pool.get(KEY1)).isNull();
+    assertThat(pool.get(KEY2)).isEqualTo(adapter2);
+    assertThat(pool.get(KEY3)).isEqualTo(adapter3);
+  }
+
+  @Test
+  public void testOverflowSinglePoolIgnoresLastElement() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, 2);
+    pool.put(KEY1, adapter);
+    pool.put(KEY1, adapter2);
+    pool.put(KEY1, adapter3);
+    assertThat(pool.get(KEY1)).isNotNull();
+    assertThat(pool.get(KEY1)).isNotNull();
+    assertThat(pool.get(KEY1)).isNull();
+  }
+
+  @Test
+  public void testFillAllPools() {
+    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(2, 2);
+    pool.put(KEY1, adapter);
+    pool.put(KEY1, adapter2);
+    pool.put(KEY2, adapter3);
+    pool.put(KEY2, adapter4);
+    assertThat(pool.get(KEY1)).isNotNull();
+    assertThat(pool.get(KEY1)).isNotNull();
+    assertThat(pool.get(KEY1)).isNull();
+    assertThat(pool.get(KEY2)).isNotNull();
+    assertThat(pool.get(KEY2)).isNotNull();
+    assertThat(pool.get(KEY2)).isNull();
+  }
+}

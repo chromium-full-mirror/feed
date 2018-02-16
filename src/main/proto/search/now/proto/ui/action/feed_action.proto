@@ -1,0 +1,62 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
+
+package search.now.ui.action;
+
+option optimize_for=LITE_RUNTIME;
+
+option java_package = "com.google.search.now.ui.action";
+option java_outer_classname = "FeedActionProto";
+
+// Specification of an action to be taken within the feed.
+message FeedAction {
+
+  // The metadata, which is used by the client to update the client UI in
+  // real-time.
+  optional FeedActionMetadata metadata = 1;
+
+  // The message to show the user when displaying a prompt that allows them to
+  // undo this action for a short time after executing it.
+  optional string undo_text = 2;
+}
+
+// Metadata needed by the host to handle the action.
+message FeedActionMetadata {
+  // The type of action, used by the host to perform any custom logic needed for
+  // a specific type of action.
+  enum Type {
+
+    UNKNOWN = 0;
+    OPEN_URL = 1;
+    OPEN_CONTEXT_MENU = 2;
+    DISMISS = 3;
+  }
+  optional Type type = 1;
+
+  oneof data {
+    // The data needed by the client to open the url.
+    OpenUrlData open_url_data = 2;
+  }
+}
+
+// Data needed by the host to handle an OPEN_URL action.
+message OpenUrlData {
+
+  // The Url to open.
+  optional string url = 1;
+  // Hosts should open the url in an incognito window if possible if true.
+  optional bool use_incognito = 2;
+}

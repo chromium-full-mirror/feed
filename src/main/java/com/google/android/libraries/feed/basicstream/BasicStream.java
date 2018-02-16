@@ -1,0 +1,190 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.basicstream;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
+import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
+import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.api.stream.CardConfiguration;
+import com.google.android.libraries.feed.api.stream.Stream;
+import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
+import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
+import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.piet.PietManager;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
+
+/**
+ * A basic implementation of a Feed {@link Stream} that is just able to render a vertical stream of
+ * cards.
+ */
+public class BasicStream implements Stream {
+
+  private static final String TAG = "BasicStream";
+
+  private final RecyclerView recyclerView;
+  private final CardConfiguration cardConfiguration;
+  private final ThreadUtils threadUtils;
+  private final StreamRecyclerViewAdapter adapter;
+  private final ViewHolderBindingObserver viewHolderBindingObserver;
+
+  @Nullable private ModelToken streamToken = null;
+  @Nullable private ModelProvider modelProvider;
+
+  public BasicStream(
+      Context context,
+      CardConfiguration cardConfiguration,
+      PietManager pietManager,
+      ThreadUtils threadUtils) {
+    this.cardConfiguration = cardConfiguration;
+    this.threadUtils = threadUtils;
+
+    recyclerView = new RecyclerView(context);
+    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+    viewHolderBindingObserver = initializeBindingObserver();
+    adapter =
+        new StreamRecyclerViewAdapter(
+            context, this.cardConfiguration, pietManager, viewHolderBindingObserver);
+    recyclerView.setAdapter(adapter);
+  }
+
+  public BasicStream(
+      Context context,
+      CardConfiguration cardConfiguration,
+      PietManager pietManager,
+      ThreadUtils threadUtils,
+      List<View> headers) {
+    this.cardConfiguration = cardConfiguration;
+    this.threadUtils = threadUtils;
+
+    viewHolderBindingObserver = initializeBindingObserver();
+    adapter =
+        new StreamRecyclerViewAdapter(
+            context, this.cardConfiguration, pietManager, viewHolderBindingObserver);
+    adapter.setHeaders(headers);
+    recyclerView = new RecyclerView(context);
+    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+    recyclerView.setAdapter(adapter);
+  }
+
+  private ViewHolderBindingObserver initializeBindingObserver() {
+    return () -> {
+      if (streamToken != null && modelProvider != null) {
+        // TODO: Show a Spinner until the observer is called
+        Logger.i(TAG, "Handle the continuation Token.");
+        streamToken.registerObserver(
+            change -> {
+              // Add the new cursor to the adapter.
+              threadUtils.checkMainThread();
+              List<ModelFeature> modelFeatures = processCursor(change.getCursor());
+              Logger.i(TAG, "TokenChangeObserver - added Features: %s", modelFeatures.size());
+              adapter.addModelFeatures(modelFeatures);
+            });
+        modelProvider.handleToken(streamToken);
+        streamToken = null;
+      }
+    };
+  }
+
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    // TODO: Implement save/restore.
+  }
+
+  @Override
+  public void onStart() {}
+
+  @Override
+  public void onStop() {}
+
+  @Override
+  public void onDestroy() {}
+
+  @Override
+  public Bundle getSavedInstanceState() {
+    // TODO: Implement save/restore.
+    return new Bundle();
+  }
+
+  @Override
+  public View getView() {
+    return recyclerView;
+  }
+
+  @Override
+  public void setHeaders(List<View> headers) {
+    adapter.setHeaders(headers);
+  }
+
+  @Override
+  public void setModelProvider(ModelProvider modelProvider) {
+    this.modelProvider = modelProvider;
+    modelProvider.registerObserver(
+        new ModelProviderObserver() {
+          @Override
+          public void onSessionStart() {
+            threadUtils.checkMainThread();
+            updateAdapter(modelProvider);
+          }
+
+          @Override
+          public void onSessionFinished() {
+            // TODO: Do we clear out the adapter?
+          }
+        });
+  }
+
+  private void updateAdapter(ModelProvider modelProvider) {
+    ModelFeature root = modelProvider.getRootFeature();
+    if (root == null) {
+      adapter.setModelFeatures(new ArrayList<>());
+      return;
+    }
+    List<ModelFeature> modelFeatures = processCursor(root.getCursor());
+    Logger.i(TAG, "updateAdapter - New Features: %s", modelFeatures.size());
+    adapter.setModelFeatures(modelFeatures);
+  }
+
+  private List<ModelFeature> processCursor(ModelCursor modelCursor) {
+    final List<ModelFeature> modelFeatures = new ArrayList<>();
+    while (modelCursor.advanceCursor(
+        (ModelChild child) -> {
+          Logger.i(TAG, "Advance Cursor");
+          if (child.getType() == Type.FEATURE) {
+            ModelFeature content = child.getModelFeature();
+            if (content == null) {
+              Logger.w(TAG, "Content not found");
+              return;
+            }
+
+            modelFeatures.add(content);
+          } else if (child.getType() == Type.TOKEN) {
+            streamToken = child.getModelToken();
+          }
+        })) {}
+    return modelFeatures;
+  }
+}

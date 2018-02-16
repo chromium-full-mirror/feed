@@ -1,0 +1,140 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.feedrequestmanager;
+
+import android.net.Uri;
+import com.google.android.libraries.feed.api.common.ConfigManager;
+import com.google.android.libraries.feed.api.common.ConfigManager.ConfigFlag;
+import com.google.android.libraries.feed.api.network.HttpRequest;
+import com.google.android.libraries.feed.api.network.HttpResponse;
+import com.google.android.libraries.feed.api.network.NetworkClient;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.protobuf.ByteString;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
+import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
+import com.google.search.now.wire.feed.RequestProto.Request;
+import com.google.search.now.wire.feed.ResponseProto.Response;
+import java.io.IOException;
+import javax.annotation.Nullable;
+
+/** Default implementation of RequestManager. */
+public class FeedRequestManager implements RequestManager {
+  private static final String TAG = "JardinRM";
+
+  private static final ConfigFlag<String> SERVICE_ENDPOINT_FLAG =
+      ConfigFlag.forString("feed_service_endpoint", null);
+
+  private final ConfigManager configManager;
+  private final NetworkClient networkClient;
+  private final ProtocolAdapter protocolAdapter;
+  private final FeedExtensionRegistry extensionRegistry;
+
+  public FeedRequestManager(
+      ConfigManager configManager,
+      NetworkClient networkClient,
+      ProtocolAdapter protocolAdapter,
+      FeedExtensionRegistry extensionRegistry) {
+    this.configManager = configManager;
+    this.networkClient = networkClient;
+    this.protocolAdapter = protocolAdapter;
+    this.extensionRegistry = extensionRegistry;
+  }
+
+  @Override
+  public void loadMore(ByteString pageToken) {
+    RequestBuilder request = newDefaultRequest().setPageToken(pageToken);
+    executeRequest(request);
+  }
+
+  @Override
+  public void triggerRefresh(RequestReason reason) {
+    RequestBuilder request = newDefaultRequest();
+    executeRequest(request);
+  }
+
+  @Override
+  public void handlePushedResponse(Response response) {
+    protocolAdapter.createModel(response, /* token */ null);
+  }
+
+  private RequestBuilder newDefaultRequest() {
+    return new RequestBuilder();
+  }
+
+  private void executeRequest(RequestBuilder requestBuilder) {
+    try {
+      Request request = requestBuilder.build();
+      String endpoint = configManager.getValue(SERVICE_ENDPOINT_FLAG);
+      HttpRequest httpRequest =
+          new HttpRequest.Builder()
+              .withAuthToken()
+              .setUri(Uri.parse(endpoint))
+              .setBody(request.toByteArray())
+              .build();
+      HttpResponse httpResponse = networkClient.execute(httpRequest);
+      if (httpResponse.getResponseCode() != 200) {
+        String errorBody = new String(httpResponse.getResponseBody(), "UTF-8");
+        Logger.e(TAG, "errorCode: %d", httpResponse.getResponseCode());
+        Logger.e(TAG, "errorResponse: %s", errorBody);
+        return;
+      }
+      // TODO:  Figure out a more scalable to parse extensions.
+      Response response =
+          Response.parseFrom(
+              httpResponse.getResponseBody(), extensionRegistry.getExtensionRegistry());
+      protocolAdapter.createModel(response, requestBuilder.getPageToken());
+    } catch (IOException e) {
+      Logger.e(TAG, e, "Network level error performing request");
+    }
+  }
+
+  // TODO: Populate ClientInfo
+  private static class RequestBuilder {
+
+    private ByteString token;
+
+    /**
+     * Sets the token used to tell the server which page of results we want in the response.
+     *
+     * @param token the token copied from FeedResponse.next_page_token.
+     */
+    RequestBuilder setPageToken(ByteString token) {
+      this.token = token;
+      return this;
+    }
+
+    @Nullable
+    ByteString getPageToken() {
+      return token;
+    }
+
+    public Request build() {
+
+      FeedQuery.Builder feedQuery = FeedQuery.newBuilder();
+      if (token != null) {
+        feedQuery.setPageToken(token);
+      }
+
+      return Request.newBuilder()
+          .setExtension(
+              FeedRequest.feedRequest, FeedRequest.newBuilder().setFeedQuery(feedQuery).build())
+          .build();
+    }
+  }
+}

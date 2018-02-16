@@ -1,0 +1,32 @@
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])  # Apache 2
+
+android_library(
+    name = "scope",
+    srcs = glob(["*.java"]),
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/actionhandler",
+        "//src/main/java/com/google/android/libraries/feed/api/common",
+        "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
+        "//src/main/java/com/google/android/libraries/feed/api/network",
+        "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
+        "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/api/store",
+        "//src/main/java/com/google/android/libraries/feed/api/stream",
+        "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
+        "//src/main/java/com/google/android/libraries/feed/feedmodelprovider",
+        "//src/main/java/com/google/android/libraries/feed/feedprotocoladapter",
+        "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",
+        "//src/main/java/com/google/android/libraries/feed/feedsessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/host/action",
+        "//src/main/java/com/google/android/libraries/feed/host/common",
+        "//src/main/java/com/google/android/libraries/feed/host/imageloader",
+        "//src/main/java/com/google/android/libraries/feed/host/logging",
+        "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/piet",
+        "@com_google_code_findbugs_jsr305//jar",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+    ],
+)

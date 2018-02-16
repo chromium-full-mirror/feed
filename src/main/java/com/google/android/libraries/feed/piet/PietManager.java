@@ -1,0 +1,62 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.piet;
+
+import android.content.Context;
+import android.support.annotation.VisibleForTesting;
+import android.view.ViewGroup;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.util.Producer;
+import javax.annotation.Nullable;
+
+/** Manages a top-level session of Piet. */
+public class PietManager {
+
+  private final ActionHandler actionHandler;
+  private final FrameModelBinder frameModelBinder;
+
+  @Nullable private AdapterParameters adapterParameters = null;
+
+  public PietManager(
+      PietStylesHelper pietStylesHelper,
+      AssetProvider assetProvider,
+      ActionHandler actionHandler,
+      CustomElementProvider customElementProvider) {
+    this.actionHandler = actionHandler;
+    this.frameModelBinder =
+        new FrameModelBinder(pietStylesHelper, assetProvider, customElementProvider);
+  }
+
+  public FrameAdapter createPietFrameAdapter(
+      Producer<ViewGroup> cardViewProducer, Context context) {
+    AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
+
+    return new FrameAdapter(context, parameters, frameModelBinder);
+  }
+
+  /**
+   * Return the {@link AdapterParameters}. If one doesn't exist this will create a new instance. The
+   * {@code AdapterParameters} is scoped to the {@code Context}.
+   */
+  @VisibleForTesting
+  AdapterParameters getAdapterParameters(Context context, Producer<ViewGroup> cardViewProducer) {
+    if (adapterParameters == null || adapterParameters.context != context) {
+      adapterParameters = new AdapterParameters(context, cardViewProducer, actionHandler);
+    }
+    return adapterParameters;
+  }
+}
