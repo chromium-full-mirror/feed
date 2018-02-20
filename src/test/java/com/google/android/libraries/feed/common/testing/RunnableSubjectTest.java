@@ -115,7 +115,7 @@ public class RunnableSubjectTest {
     assertThat(expectFailure.getFailure())
         .hasMessageThat()
         .contains(
-            "Unexpected message for java.io.IOException: "
+            "value of: throwable.getMessage(): "
                 + "expected:<[Expected message.]> but was:<[Wrong message!]>");
   }
 
