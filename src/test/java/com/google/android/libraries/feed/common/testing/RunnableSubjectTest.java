@@ -114,9 +114,7 @@ public class RunnableSubjectTest {
 
     assertThat(expectFailure.getFailure())
         .hasMessageThat()
-        .contains(
-            "value of: throwable.getMessage(): "
-                + "expected:<[Expected message.]> but was:<[Wrong message!]>");
+        .contains("expected:<[Expected message.]> but was:<[Wrong message!]>");
   }
 
   @Test
