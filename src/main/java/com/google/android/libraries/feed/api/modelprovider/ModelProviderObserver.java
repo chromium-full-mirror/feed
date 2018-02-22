@@ -30,4 +30,7 @@ public interface ModelProviderObserver {
    * invalidating all existing Cursors.
    */
   void onSessionFinished();
+
+  /** This event is triggered if the Root is set or reset after onSessionStart has been called. */
+  void onRootSet();
 }

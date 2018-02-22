@@ -154,6 +154,11 @@ public class BasicStream implements Stream {
           public void onSessionFinished() {
             // TODO: Do we clear out the adapter?
           }
+
+          @Override
+          public void onRootSet() {
+            // TODO: What do we do if the root is reset?
+          }
         });
   }
 

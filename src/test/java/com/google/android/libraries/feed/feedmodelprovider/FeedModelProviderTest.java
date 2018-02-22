@@ -343,6 +343,7 @@ public class FeedModelProviderTest {
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
     mutator.commit();
     verify(observer1).onSessionStart();
+    verify(observer1, never()).onRootSet();
 
     ModelProviderObserver observer2 = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer2);
@@ -355,6 +356,39 @@ public class FeedModelProviderTest {
     ModelProviderObserver observer3 = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer3);
     verify(observer3).onSessionFinished();
+  }
+
+  @Test
+  public void testObserverLifecycle_resetRoot() {
+    FeedModelProvider modelProvider =
+        new FeedModelProvider(
+            sessionManager,
+            threadUtils,
+            timingUtils,
+            internalProtocolUtils,
+            new UiRunnableHandlerImpl());
+    ModelProviderObserver observer = mock(ModelProviderObserver.class);
+    modelProvider.registerObserver(observer);
+    verify(observer, never()).onSessionStart();
+
+    ModelMutator mutator = modelProvider.edit();
+    StreamFeature rootStreamFeature = getRootFeature();
+    mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
+    mutator.commit();
+    verify(observer).onSessionStart();
+    verify(observer, never()).onRootSet();
+
+    mutator = modelProvider.edit();
+    StreamContentId anotherRootId =
+        StreamContentId.newBuilder()
+            .setContentDomain("stream_root")
+            .setId(100)
+            .setTable("feature")
+            .build();
+    rootStreamFeature = StreamFeature.newBuilder().setContentId(anotherRootId).build();
+    mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
+    mutator.commit();
+    verify(observer).onRootSet();
   }
 
   @Test

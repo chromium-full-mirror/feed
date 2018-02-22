@@ -327,6 +327,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             mutationHandler.preMutation();
 
             // process the structure changes
+            boolean rootChanged = false;
             String currentParentKey = null;
             ArrayList<UpdatableModelChild> childrenList = null;
             for (ChildMutation childMutation : structureChanges) {
@@ -337,7 +338,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                   continue;
                 }
                 if (!child.hasParentId()) {
-                  root = createRoot(child);
+                  rootChanged = createRoot(child);
                   contents.put(child.getContentIdAsKey(), child);
                   continue;
                 }
@@ -363,6 +364,20 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                 contents.remove(
                     protocolUtils.getContentIdKey(childMutation.removeChild.getContentId()));
               }
+            }
+
+            // check if we need to notify that the root was changed
+            if (rootChanged && currentState == State.READY) {
+              List<ModelProviderObserver> observers = getObserversToNotify();
+              uiRunnableHandler.post(
+                  TAG + " - onRootSet",
+                  () -> {
+                    // Always run the observers on the UI Thread
+                    threadUtils.checkMainThread();
+                    for (ModelProviderObserver observer : observers) {
+                      observer.onRootSet();
+                    }
+                  });
             }
 
             // The first mutation of an INITIALIZING model provider will cause the session to be
@@ -614,7 +629,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     }
   }
 
-  private ModelFeature createRoot(UpdatableModelChild child) {
+  // This method will return true if it sets/updates root
+  private boolean createRoot(UpdatableModelChild child) {
     synchronized (lock) {
       // this must be a root
       if (child.getType() == Type.FEATURE) {
@@ -626,11 +642,12 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
               child.getContentIdAsKey());
         }
         root = child.getModelFeature();
+        return true;
       } else {
         // continuation tokens can not be roots.
         Logger.e(TAG, "Invalid Root");
       }
-      return root;
+      return false;
     }
   }
 
