@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.api.modelprovider.TokenChangeObserver;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import java.util.List;
 
 /**
@@ -28,5 +28,5 @@ public interface UpdatableModelToken extends ModelToken {
    * Return a copy of the registered Observer enabling safe notification. Make a copy of the
    * observers, so the observers are not mutated while invoking callbacks.
    */
-  List<TokenChangeObserver> getObserversToNotify();
+  List<TokenCompletedObserver> getObserversToNotify();
 }

@@ -100,7 +100,7 @@ public class BasicStream implements Stream {
               // Add the new cursor to the adapter.
               threadUtils.checkMainThread();
               List<ModelFeature> modelFeatures = processCursor(change.getCursor());
-              Logger.i(TAG, "TokenChangeObserver - added Features: %s", modelFeatures.size());
+              Logger.i(TAG, "TokenCompletedObserver - added Features: %s", modelFeatures.size());
               adapter.addModelFeatures(modelFeatures);
             });
         modelProvider.handleToken(streamToken);

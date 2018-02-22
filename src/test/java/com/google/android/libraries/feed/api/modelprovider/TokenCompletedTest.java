@@ -14,19 +14,28 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-/** Defines a change to a continuation token. */
-public class TokenChange {
-  private final ModelCursor modelCursor;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.MockitoAnnotations.initMocks;
 
-  public TokenChange(ModelCursor modelCursor) {
-    this.modelCursor = modelCursor;
+import org.robolectric.RobolectricTestRunner;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+
+/** Tests of the {@link TokenCompleted} class. */
+@RunWith(RobolectricTestRunner.class)
+public class TokenCompletedTest {
+  @Mock private ModelCursor modelCursor;
+
+  @Before
+  public void setUp() {
+    initMocks(this);
   }
 
-  /**
-   * Return a cursor representing the continuation from the point in the stream the continuation
-   * token was found
-   */
-  public ModelCursor getCursor() {
-    return modelCursor;
+  @Test
+  public void testTokenChange() {
+    TokenCompleted tokenCompleted = new TokenCompleted(modelCursor);
+    assertThat(tokenCompleted.getCursor()).isEqualTo(modelCursor);
   }
 }

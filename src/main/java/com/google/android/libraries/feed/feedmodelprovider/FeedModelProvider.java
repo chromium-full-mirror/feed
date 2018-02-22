@@ -28,8 +28,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.StreamFeatureChange;
-import com.google.android.libraries.feed.api.modelprovider.TokenChange;
-import com.google.android.libraries.feed.api.modelprovider.TokenChangeObserver;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
@@ -476,7 +476,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   /**
    * This {@link MutationHandler} handles a mutation based upon a continuation token. For a token we
    * will not generate changes for the parent updated by the token. Instead, the new children are
-   * appended and a {@link TokenChange} will be triggered.
+   * appended and a {@link TokenCompleted} will be triggered.
    */
   @VisibleForTesting
   class TokenMutation implements MutationHandler {
@@ -521,15 +521,15 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     public void postMutation() {
       ModelCursorImpl cursor =
           new ModelCursorImpl(token.location.listIterator(newCursorStart), threadUtils);
-      TokenChange tokenChange = new TokenChange(cursor);
-      List<TokenChangeObserver> observers = token.tokenChild.getObserversToNotify();
+      TokenCompleted tokenCompleted = new TokenCompleted(cursor);
+      List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
       uiRunnableHandler.post(
           TAG + " - onTokenChange",
           () -> {
             // Always run the observers on the UI Thread
             threadUtils.checkMainThread();
-            for (TokenChangeObserver observer : observers) {
-              observer.onChange(tokenChange);
+            for (TokenCompletedObserver observer : observers) {
+              observer.onChange(tokenCompleted);
             }
           });
     }

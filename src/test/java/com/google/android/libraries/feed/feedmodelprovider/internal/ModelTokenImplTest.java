@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.modelprovider.TokenChangeObserver;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import org.robolectric.RobolectricTestRunner;
 import java.util.List;
@@ -29,7 +29,7 @@ import org.mockito.Mock;
 /** Tests of {@link ModelTokenImpl}. */
 @RunWith(RobolectricTestRunner.class)
 public class ModelTokenImplTest {
-  @Mock private TokenChangeObserver changeObserver;
+  @Mock private TokenCompletedObserver changeObserver;
 
   @Before
   public void setUp() {
@@ -48,7 +48,7 @@ public class ModelTokenImplTest {
     StreamToken token = StreamToken.newBuilder().build();
     ModelTokenImpl modelToken = new ModelTokenImpl(token);
     modelToken.registerObserver(changeObserver);
-    List<TokenChangeObserver> observers = modelToken.getObserversToNotify();
+    List<TokenCompletedObserver> observers = modelToken.getObserversToNotify();
     assertThat(observers.size()).isEqualTo(1);
     assertThat(observers.get(0)).isEqualTo(changeObserver);
   }

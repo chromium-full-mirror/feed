@@ -20,10 +20,10 @@ android_local_test(
 )
 
 android_local_test(
-    name = "TokenChangeTest",
+    name = "TokenCompletedTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["TokenChangeTest.java"],
+    srcs = ["TokenCompletedTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

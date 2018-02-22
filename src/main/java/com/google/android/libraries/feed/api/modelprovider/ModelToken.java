@@ -21,9 +21,9 @@ public interface ModelToken {
   /** Returns the {@link StreamToken} proto instance. */
   StreamToken getStreamToken();
 
-  /** Register a {@link TokenChangeObserver} for changes on this continuation token. */
-  void registerObserver(TokenChangeObserver observer);
+  /** Register a {@link TokenCompletedObserver} for completion of this continuation token. */
+  void registerObserver(TokenCompletedObserver observer);
 
   /** Remove a registered observer */
-  void unregisterObserver(TokenChangeObserver observer);
+  void unregisterObserver(TokenCompletedObserver observer);
 }

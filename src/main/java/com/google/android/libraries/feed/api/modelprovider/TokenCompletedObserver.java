@@ -14,28 +14,9 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.MockitoAnnotations.initMocks;
-
-import org.robolectric.RobolectricTestRunner;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-
-/** Tests of the {@link TokenChange} class. */
-@RunWith(RobolectricTestRunner.class)
-public class TokenChangeTest {
-  @Mock private ModelCursor modelCursor;
-
-  @Before
-  public void setUp() {
-    initMocks(this);
-  }
-
-  @Test
-  public void testTokenChange() {
-    TokenChange tokenChange = new TokenChange(modelCursor);
-    assertThat(tokenChange.getCursor()).isEqualTo(modelCursor);
-  }
+/**
+ * Observes for when the Token fetch completes, producing a new cursor.
+ */
+public interface TokenCompletedObserver {
+  void onChange(TokenCompleted tokenCompleted);
 }

@@ -16,13 +16,13 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import android.database.Observable;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.api.modelprovider.TokenChangeObserver;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
 import java.util.List;
 
 /** Implementation of the {@link ModelToken}. */
-class ModelTokenImpl extends Observable<TokenChangeObserver> implements UpdatableModelToken {
+class ModelTokenImpl extends Observable<TokenCompletedObserver> implements UpdatableModelToken {
   private final StreamToken token;
 
   ModelTokenImpl(StreamToken token) {
@@ -35,7 +35,7 @@ class ModelTokenImpl extends Observable<TokenChangeObserver> implements Updatabl
   }
 
   @Override
-  public List<TokenChangeObserver> getObserversToNotify() {
+  public List<TokenCompletedObserver> getObserversToNotify() {
     synchronized (mObservers) {
       return new ArrayList<>(mObservers);
     }

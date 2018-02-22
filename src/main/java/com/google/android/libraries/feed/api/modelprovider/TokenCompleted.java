@@ -14,10 +14,19 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-/**
- * Defines an interface which observes changes to Continuation Tokens. The primary change is the
- * Token fetch completing producing a new cursor.
- */
-public interface TokenChangeObserver {
-  void onChange(TokenChange change);
+/** Defines completion of a continuation token initiated request. */
+public class TokenCompleted {
+  private final ModelCursor modelCursor;
+
+  public TokenCompleted(ModelCursor modelCursor) {
+    this.modelCursor = modelCursor;
+  }
+
+  /**
+   * Returns a cursor representing the continuation from the point in the stream the continuation
+   * token was found.
+   */
+  public ModelCursor getCursor() {
+    return modelCursor;
+  }
 }

@@ -34,8 +34,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.api.modelprovider.TokenChange;
-import com.google.android.libraries.feed.api.modelprovider.TokenChangeObserver;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.TimingUtils;
@@ -498,14 +498,14 @@ public class FeedModelProviderTest {
     tokens = modelProvider.getTokensForTest();
     assertThat(tokens).hasSize(0);
 
-    TokenChangeObserver tokenChangeObserver =
-        new TokenChangeObserver() {
+    TokenCompletedObserver tokenCompletedObserver =
+        new TokenCompletedObserver() {
           @Override
-          public void onChange(TokenChange change) {
+          public void onChange(TokenCompleted change) {
             assertThat(change).isNotNull();
           }
         };
-    continuationToken.getModelToken().registerObserver(tokenChangeObserver);
+    continuationToken.getModelToken().registerObserver(tokenCompletedObserver);
     tokenMutation.postMutation();
   }
 
