@@ -14,11 +14,16 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.Validators.checkState;
+
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
+import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
@@ -27,6 +32,7 @@ import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import javax.annotation.Nullable;
 
 /** A {@link BoundViewAdapter} which manages {@code ImageLine} slices. */
 public class ImageElementAdapter
@@ -35,6 +41,7 @@ public class ImageElementAdapter
   private static final ImageElementAdapter.Key SINGLETON_KEY = new ImageElementAdapter.Key();
 
   private ImageView imageView = null;
+  @Nullable private LoadImageCallback currentlyLoadingImage = null;
 
   private ImageElementAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
@@ -123,15 +130,23 @@ public class ImageElementAdapter
   // TODO: After the AssetProvider returns Drawable instead of ImageView, make the base
   // view be ImageView and get rid of the FrameLayout.
   private void initializeImageView(Image model) {
-    imageView = getFrameContext().getAssetProvider().getImage(model);
+    imageView = new ImageView(getContext());
+    imageView.setScaleType(ScaleType.CENTER_CROP);
     FrameLayout frameLayout = getBaseView();
     if (frameLayout != null) {
       frameLayout.addView(imageView);
     }
+    checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
+    currentlyLoadingImage = new LoadImageCallback(imageView);
+    getFrameContext().getAssetProvider().getImage(model, currentlyLoadingImage);
   }
 
   @Override
   protected void onUnbindModel() {
+    if (currentlyLoadingImage != null) {
+      currentlyLoadingImage.cancelled = true;
+      currentlyLoadingImage = null;
+    }
     if (getBaseView() != null) {
       getBaseView().removeAllViews();
     }
@@ -153,6 +168,23 @@ public class ImageElementAdapter
   private int getPaddingHeightPx(Context context, StyleProvider style) {
     return (int)
         ViewUtils.dpToPx(style.getPadding().getTop() + style.getPadding().getBottom(), context);
+  }
+
+  private static class LoadImageCallback implements Callback<Drawable> {
+    private final ImageView imageView;
+    boolean cancelled = false;
+
+    LoadImageCallback(ImageView imageView) {
+      this.imageView = imageView;
+    }
+
+    @Override
+    public void handleResult(Drawable drawable) {
+      if (!cancelled) {
+        imageView.setImageDrawable(drawable);
+        imageView.setScaleType(ScaleType.CENTER_CROP);
+      }
+    }
   }
 
   static class KeySupplier

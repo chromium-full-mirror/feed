@@ -14,16 +14,17 @@
 
 package com.google.android.libraries.feed.piet.host;
 
-import android.widget.ImageView;
+import android.graphics.drawable.Drawable;
+import com.google.android.libraries.feed.host.common.Callback;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 
 /** Provide Assets from the host */
 public interface AssetProvider {
   /**
-   * Given an {@link Image} return an {@code ImageView}. This may be a subclass of ImageView, to
-   * support rounded corners, etc.
+   * Given an {@link Image}, asynchronously load the {@link Drawable} and return via a {@link
+   * Callback}.
    */
-  ImageView getImage(Image image);
+  void getImage(Image image, Callback<Drawable> callback);
 
   /** Return a relative elapsed time string such as "8 minutes ago" or "1 day ago". */
   String getRelativeElapsedString(long elapsedTimeMillis);

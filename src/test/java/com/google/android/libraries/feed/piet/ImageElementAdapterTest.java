@@ -18,17 +18,22 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.view.Gravity;
-import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.Key;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -48,6 +53,8 @@ import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
@@ -71,10 +78,13 @@ public class ImageElementAdapterTest {
   @Mock private AssetProvider assetProvider;
   @Mock private StyleProvider styleProvider;
 
+  @Captor ArgumentCaptor<Callback<Drawable>> callbackCaptor;
+
   private Context context;
   private int heightPx;
   private int widthPx;
   private ImageView imageView;
+  private final Drawable defaultDrawable = new ColorDrawable(Color.BLUE);
 
   private ImageElementAdapter adapter;
 
@@ -82,7 +92,6 @@ public class ImageElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    imageView = new ImageView(context);
     heightPx = (int) ViewUtils.dpToPx(HEIGHT_DP, context);
     widthPx = (int) ViewUtils.dpToPx(WIDTH_DP, context);
     AdapterParameters parameters = new AdapterParameters(context, null, null, null, adapterFactory);
@@ -93,8 +102,6 @@ public class ImageElementAdapterTest {
     when(frameContextWithStyle.getAssetProvider()).thenReturn(assetProvider);
     when(frameContextWithStyle.getCurrentStyle()).thenReturn(styleProvider);
     when(styleProvider.getPadding()).thenReturn(PADDING);
-    when(assetProvider.getImage(any())).thenReturn(new ImageView(context));
-    when(assetProvider.getImage(DEFAULT_IMAGE)).thenReturn(imageView);
 
     adapter = new KeySupplier().getAdapter(context, parameters);
   }
@@ -112,7 +119,10 @@ public class ImageElementAdapterTest {
 
     adapter.bindModel(model, Element.getDefaultInstance(), frameContext);
 
-    assertThat(adapter.getBaseView().getChildAt(0)).isEqualTo(imageView);
+    imageView = getImageView();
+    assertDrawableSet(imageView);
+    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
+
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(styles);
   }
 
@@ -124,7 +134,7 @@ public class ImageElementAdapterTest {
 
     adapter.bindModel(model, Element.getDefaultInstance(), frameContext);
 
-    assertThat(adapter.getBaseView().getChildAt(0)).isEqualTo(imageView);
+    assertDrawableSet(getImageView());
   }
 
   @Test
@@ -165,19 +175,15 @@ public class ImageElementAdapterTest {
 
   @Test
   public void testBindModel() {
-    // Set some layout params we expect to be overridden
-    FrameLayout.LayoutParams pastLayoutParams = new FrameLayout.LayoutParams(555, 444);
-    pastLayoutParams.gravity = Gravity.BOTTOM;
-    imageView.setLayoutParams(pastLayoutParams);
-
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
     assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL);
 
     assertThat(adapter.getView()).isNotNull();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(adapter.getBaseView().getChildAt(0)).isSameAs(imageView);
 
+    imageView = getImageView();
+    assertDrawableSet(imageView);
     assertThat(imageView.getLayoutParams().height).isEqualTo(heightPx);
     assertThat(imageView.getLayoutParams().width).isEqualTo(widthPx);
     assertThat(((LayoutParams) imageView.getLayoutParams()).gravity)
@@ -191,44 +197,48 @@ public class ImageElementAdapterTest {
 
   @Test
   public void testBindModel_again() {
+    // Bind a model, then unbind it.
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
-
+    imageView = getImageView();
     Key key1 = adapter.getKey();
     adapter.unbindModel();
 
+    // Bind a different model
     setStyle(WIDTH_DP, HEIGHT_DP);
     ImageElement model2 = ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build();
     adapter.bindModel(model2, frameContext);
+    verify(assetProvider).getImage(eq(Image.getDefaultInstance()), callbackCaptor.capture());
 
     Key key2 = adapter.getKey();
     assertThat(key1).isSameAs(key2);
-
     assertThat(adapter.getModel()).isSameAs(model2);
-
     assertThat(adapter.getView()).isNotNull();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    View imageView2 = adapter.getBaseView().getChildAt(0);
+
+    Drawable drawable2 = new ColorDrawable(Color.RED);
+    callbackCaptor.getValue().handleResult(drawable2);
+
+    ImageView imageView2 = (ImageView) adapter.getBaseView().getChildAt(0);
+
     assertThat(imageView2).isNotSameAs(imageView);
+    assertThat(imageView2.getDrawable()).isEqualTo(drawable2);
     assertThat(imageView2.getLayoutParams().height).isEqualTo(widthPx);
     assertThat(imageView2.getLayoutParams().width).isEqualTo(heightPx);
   }
 
   @Test
   public void testBindModel_emptyModel() {
-    int imageWidth = 999;
-    int imageHeight = 111;
-
-    imageView.setLayoutParams(new LayoutParams(imageWidth, imageHeight));
     setStyle(null, null);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
     assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL);
 
     assertThat(adapter.getView()).isNotNull();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(adapter.getBaseView().getChildAt(0)).isSameAs(imageView);
 
     // Assert that width and height are set to the defaults
+    imageView = getImageView();
+    assertDrawableSet(imageView);
     assertThat(imageView.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
     assertThat(imageView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
 
@@ -245,9 +255,9 @@ public class ImageElementAdapterTest {
 
     assertThat(adapter.getView()).isNotNull();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(adapter.getBaseView().getChildAt(0)).isSameAs(imageView);
 
     // Width defaults to MATCH_PARENT
+    imageView = getImageView();
     assertThat(imageView.getLayoutParams().height).isEqualTo(heightPx);
     assertThat(imageView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
 
@@ -265,9 +275,9 @@ public class ImageElementAdapterTest {
 
     assertThat(adapter.getView()).isNotNull();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(adapter.getBaseView().getChildAt(0)).isSameAs(imageView);
 
     // Image defaults to a square.
+    imageView = getImageView();
     assertThat(imageView.getLayoutParams().height).isEqualTo(widthPx);
     assertThat(imageView.getLayoutParams().width).isEqualTo(widthPx);
 
@@ -275,6 +285,25 @@ public class ImageElementAdapterTest {
         .isEqualTo(widthPx + PADDING.getTop() + PADDING.getBottom());
     assertThat(adapter.getComputedWidthPx())
         .isEqualTo(widthPx + PADDING.getStart() + PADDING.getEnd());
+  }
+
+  @Test
+  public void testBindModel_bindingTwiceThrowsException() {
+    setStyle(HEIGHT_DP, WIDTH_DP);
+
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(DEFAULT_MODEL, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("An image loading callback exists");
   }
 
   @Test
@@ -295,6 +324,50 @@ public class ImageElementAdapterTest {
     adapter.unbindModel();
 
     assertThat(adapter.getView()).isNull();
+  }
+
+  @Test
+  public void testUnbind_cancelsCallback() {
+    setStyle(HEIGHT_DP, WIDTH_DP);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+
+    imageView = getImageView();
+
+    adapter.unbindModel();
+    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
+    callbackCaptor.getValue().handleResult(defaultDrawable);
+
+    // The drawable was not set by the callback because the model had already been unbound.
+    assertThat(imageView.getDrawable()).isEqualTo(null);
+  }
+
+  @Test
+  public void testUnbind_cancelsCallback2() {
+    setStyle(HEIGHT_DP, WIDTH_DP);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+
+    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
+
+    adapter.unbindModel();
+
+    // Bind a new model before the callback has completed
+    Image model2 = Image.newBuilder().setTintColor(5).build();
+    adapter.bindModel(ImageElement.newBuilder().setImage(model2).build(), frameContext);
+
+    // Callback now completes
+    callbackCaptor.getValue().handleResult(defaultDrawable);
+
+    // But has no effect
+    imageView = getImageView();
+    assertThat(imageView.getDrawable()).isEqualTo(null);
+
+    // And now the callback for the second model completes
+    Drawable drawable2 = new ColorDrawable(Color.RED);
+    verify(assetProvider).getImage(eq(model2), callbackCaptor.capture());
+    callbackCaptor.getValue().handleResult(drawable2);
+
+    // The image has the second drawable as expected.
+    assertThat(imageView.getDrawable()).isEqualTo(drawable2);
   }
 
   @Test
@@ -367,5 +440,17 @@ public class ImageElementAdapterTest {
       when(styleProvider.hasWidth()).thenReturn(false);
       when(styleProvider.getWidth()).thenReturn(0);
     }
+  }
+
+  private ImageView getImageView() {
+    assertThat(adapter.getBaseView().getChildAt(0)).isInstanceOf(ImageView.class);
+    return (ImageView) adapter.getBaseView().getChildAt(0);
+  }
+
+  private void assertDrawableSet(ImageView imageView) {
+    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
+    callbackCaptor.getValue().handleResult(defaultDrawable);
+    assertThat(imageView.getDrawable()).isEqualTo(defaultDrawable);
+    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
   }
 }
