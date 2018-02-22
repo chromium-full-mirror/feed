@@ -143,26 +143,26 @@ public class SessionImpl implements FeedSession, Dumpable {
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
         if (contentInSession.contains(contentKey)) {
           // this is an update operation so we can ignore it
-          // TODO: We need to indicates updates in the ModelProvider
+          Logger.i(TAG, "Found update to content in session");
+          modelMutator.updateChild(streamStructure);
           updateCnt++;
-          continue;
+        } else {
+          sessionMutation.add(streamStructure);
+          contentInSession.add(contentKey);
+          modelMutator.addChild(streamStructure);
+          addFeatureCnt++;
         }
-        sessionMutation.add(streamStructure);
-        contentInSession.add(contentKey);
-        modelMutator.addChild(streamStructure);
-        addFeatureCnt++;
-        continue;
       } else if (streamStructure.getOperation() == Operation.REMOVE) {
         sessionMutation.add(streamStructure);
         contentInSession.remove(contentKey);
         modelMutator.removeChild(streamStructure);
-        continue;
       } else if (streamStructure.getOperation() == Operation.CLEAR_ALL) {
         // Sessions are never cleared.
         // TODO: Defined the behavior for sessions when $HEAD is cleared
-        continue;
+        Logger.i(TAG, "CLEAR_ALL not support on this session type");
+      } else {
+        Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
       }
-      Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
     }
     // Commit the Model Provider mutation after the store is updated.
     SessionMutationResults result = sessionMutation.commit();

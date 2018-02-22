@@ -43,6 +43,8 @@ import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.InitializeModel;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.TokenMutation;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.TokenTracking;
+import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelChild;
+import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -275,8 +277,8 @@ public class FeedModelProviderTest {
 
   @Test
   public void testTokenTracking() {
-    ModelChild continuationToken = mock(ModelChild.class);
-    ArrayList<ModelChild> location = new ArrayList<>();
+    UpdatableModelToken continuationToken = mock(UpdatableModelToken.class);
+    ArrayList<UpdatableModelChild> location = new ArrayList<>();
     TokenTracking tokenTracking = new TokenTracking(continuationToken, location);
     assertThat(tokenTracking.tokenChild).isEqualTo(continuationToken);
     assertThat(tokenTracking.location).isEqualTo(location);

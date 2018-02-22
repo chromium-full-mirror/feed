@@ -15,18 +15,11 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import java.util.List;
 
 /** Defines the behavior of a Continuation Token. */
 public interface ModelToken {
   /** Returns the {@link StreamToken} proto instance. */
   StreamToken getStreamToken();
-
-  /**
-   * Return a copy of the registered Observer enabling safe notification. Make a copy of the
-   * observers, so the observers are not mutated while invoking callbacks.
-   */
-  List<TokenChangeObserver> getObserversToNotify();
 
   /** Register a {@link TokenChangeObserver} for changes on this continuation token. */
   void registerObserver(TokenChangeObserver observer);

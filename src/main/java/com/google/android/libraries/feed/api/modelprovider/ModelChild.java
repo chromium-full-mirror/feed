@@ -47,18 +47,6 @@ public interface ModelChild {
   boolean hasParentId();
 
   /**
-   * Bind a {@link ModelFeature} to the child. This can only be called when if the ModelChild is
-   * currently {@code UNBOUND}, otherwise it throws an {@link IllegalStateException}.
-   */
-  void bindFeature(ModelFeature modelFeature);
-
-  /**
-   * Bind a {@link ModelToken} to the child. This can only be called when if the ModelChild is
-   * currently {@code UNBOUND}, otherwise it throws an {@link IllegalStateException}.
-   */
-  void bindToken(ModelToken modelToken);
-
-  /**
    * Returns the parent contentId of the child, this may return {@link
    * StreamContentId#getDefaultInstance()} if the child is a root.
    */

@@ -20,12 +20,14 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /** Implementation of the {@link ModelFeature} */
-class ModelFeatureImpl extends Observable<ModelChangeObserver> implements ModelFeature {
+class ModelFeatureImpl extends Observable<ModelChangeObserver> implements UpdatableModelFeature {
 
-  private final StreamFeature streamFeature;
+  private StreamFeature streamFeature;
   private final CursorProvider cursorProvider;
 
   ModelFeatureImpl(StreamFeature streamFeature, CursorProvider cursorProvider) {
@@ -48,5 +50,17 @@ class ModelFeatureImpl extends Observable<ModelChangeObserver> implements ModelF
   public ModelCursor getDirectionalCursor(
       boolean forward, @Nullable StreamContentId startingChild) {
     return null;
+  }
+
+  @Override
+  public List<ModelChangeObserver> getObserversToNotify() {
+    synchronized (mObservers) {
+      return new ArrayList<>(mObservers);
+    }
+  }
+
+  @Override
+  public void setFeatureValue(StreamFeature streamFeature) {
+    this.streamFeature = streamFeature;
   }
 }

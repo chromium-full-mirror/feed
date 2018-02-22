@@ -28,6 +28,9 @@ public interface ModelMutator {
   /** Remove the model child defined by the structural information */
   ModelMutator removeChild(StreamStructure streamStructure);
 
+  /** Content for a child was updated. */
+  ModelMutator updateChild(StreamStructure streamStructure);
+
   /** StreamToken which is the source of the response */
   ModelMutator setMutationSourceToken(StreamToken mutationSourceToken);
 

@@ -34,12 +34,12 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
 
   @Nullable
   @GuardedBy("lock")
-  private Iterator<ModelChild> iterator;
+  private Iterator<UpdatableModelChild> iterator;
 
   @GuardedBy("lock")
   private boolean isInvalid = false;
 
-  public ModelCursorImpl(Iterator<ModelChild> iterator, ThreadUtils threadUtils) {
+  public ModelCursorImpl(Iterator<UpdatableModelChild> iterator, ThreadUtils threadUtils) {
     Validators.checkNotNull(iterator);
     this.iterator = iterator;
     this.threadUtils = threadUtils;

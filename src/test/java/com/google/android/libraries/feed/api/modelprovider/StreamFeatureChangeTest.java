@@ -15,45 +15,55 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import org.robolectric.RobolectricTestRunner;
-import java.util.ArrayList;
-import java.util.List;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 
 /** Tests of the {@link com.google.android.libraries.feed.api.modelprovider.StreamFeatureChange}. */
 @RunWith(RobolectricTestRunner.class)
 public class StreamFeatureChangeTest {
 
-  @Test
-  public void testStreamFeatureChange() {
-    StreamContentId contentId = StreamContentId.getDefaultInstance();
-    StreamFeature streamFeature = StreamFeature.getDefaultInstance();
-    List<ModelChild> appendChildren = new ArrayList<>();
-    List<ModelChild> removeChildren = new ArrayList<>();
-    StreamFeatureChange.ChildChange childChange =
-        new StreamFeatureChange.ChildChange(appendChildren, removeChildren);
-    StreamFeatureChange streamFeatureChange =
-        new StreamFeatureChange(contentId, streamFeature, childChange);
+  @Mock private ModelFeature modelFeature;
 
-    assertThat(streamFeatureChange.getContentId()).isEqualTo(contentId);
-    assertThat(streamFeatureChange.getUpdatedStreamFeature()).isEqualTo(streamFeature);
-    assertThat(streamFeatureChange.getNewChildren()).isEqualTo(appendChildren);
-    assertThat(streamFeatureChange.getRemovedChildren()).isEqualTo(removeChildren);
+  private StreamContentId modelContentId;
+  private ContentIdGenerators idGenerators = new ContentIdGenerators();
+
+  @Before
+  public void setup() {
+    initMocks(this);
+    modelContentId = idGenerators.createFeatureStreamContentId(1);
+    StreamFeature streamFeature = StreamFeature.newBuilder().setContentId(modelContentId).build();
+    when(modelFeature.getStreamFeature()).thenReturn(streamFeature);
   }
 
   @Test
-  public void testNullLists() {
-    StreamContentId contentId = StreamContentId.getDefaultInstance();
-    StreamFeature streamFeature = StreamFeature.getDefaultInstance();
-    StreamFeatureChange.ChildChange childChange = new StreamFeatureChange.ChildChange(null, null);
-    StreamFeatureChange streamFeatureChange =
-        new StreamFeatureChange(contentId, streamFeature, childChange);
+  public void testStreamFeatureChange() {
+    StreamFeatureChange streamFeatureChange = new StreamFeatureChange(modelFeature);
 
-    assertThat(streamFeatureChange.getNewChildren()).isEmpty();
-    assertThat(streamFeatureChange.getRemovedChildren()).isEmpty();
+    assertThat(streamFeatureChange.getModelFeature()).isEqualTo(modelFeature);
+    assertThat(streamFeatureChange.getContentId()).isEqualTo(modelContentId);
+    assertThat(streamFeatureChange.getChildChanges().getAppendedChildren()).isEmpty();
+    assertThat(streamFeatureChange.isFeatureChanged()).isFalse();
+
+    streamFeatureChange.setFeatureChange(true);
+    assertThat(streamFeatureChange.isFeatureChanged()).isTrue();
+  }
+
+  @Test
+  public void testAppendChild() {
+    ModelChild modelChild = mock(ModelChild.class);
+    StreamFeatureChange streamFeatureChange = new StreamFeatureChange(modelFeature);
+    streamFeatureChange.getChildChanges().addAppendChild(modelChild);
+    assertThat(streamFeatureChange.getChildChanges().getAppendedChildren()).hasSize(1);
+    assertThat(streamFeatureChange.getChildChanges().getAppendedChildren()).contains(modelChild);
   }
 }

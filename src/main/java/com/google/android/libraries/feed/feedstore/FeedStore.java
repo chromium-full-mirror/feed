@@ -202,6 +202,10 @@ public class FeedStore implements Store, Dumpable {
 
   private SessionMutationResults commitSessionMutation(
       StreamSession streamSession, List<StreamStructure> streamStructures) {
+    if (streamStructures.isEmpty()) {
+      Logger.i(TAG, "No StreamStructures found to add");
+      return new SessionResults(CommitResult.SUCCESS);
+    }
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     JournalMutation.Builder mutation = new JournalMutation.Builder(streamSession.getSessionId());

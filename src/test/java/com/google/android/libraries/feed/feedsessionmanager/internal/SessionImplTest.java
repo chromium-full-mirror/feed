@@ -235,6 +235,7 @@ public class SessionImplTest {
   private static class FakeModelMutator implements ModelMutator {
     final List<StreamStructure> addedChildren = new ArrayList<>();
     final List<StreamStructure> removedChildren = new ArrayList<>();
+    final List<StreamStructure> updateChildren = new ArrayList<>();
     StreamToken token;
     boolean commitCalled = false;
 
@@ -247,6 +248,12 @@ public class SessionImplTest {
     @Override
     public ModelMutator removeChild(StreamStructure streamStructure) {
       removedChildren.add(streamStructure);
+      return this;
+    }
+
+    @Override
+    public ModelMutator updateChild(StreamStructure streamStructure) {
+      updateChildren.add(streamStructure);
       return this;
     }
 

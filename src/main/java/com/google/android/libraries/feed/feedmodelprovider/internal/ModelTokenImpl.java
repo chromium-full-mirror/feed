@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Implementation of the {@link ModelToken}. */
-class ModelTokenImpl extends Observable<TokenChangeObserver> implements ModelToken {
+class ModelTokenImpl extends Observable<TokenChangeObserver> implements UpdatableModelToken {
   private final StreamToken token;
 
   ModelTokenImpl(StreamToken token) {

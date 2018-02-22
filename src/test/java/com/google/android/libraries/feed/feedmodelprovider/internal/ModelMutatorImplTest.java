@@ -17,12 +17,14 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ModelMutatorCommitter;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import org.robolectric.RobolectricTestRunner;
+import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +42,7 @@ public class ModelMutatorImplTest {
   @Before
   public void setup() {
     initMocks(this);
-    modelChildFactory = new ModelChildFactory();
+    modelChildFactory = new ModelChildFactory(new InternalProtocolUtils());
   }
 
   @Test
@@ -52,7 +54,8 @@ public class ModelMutatorImplTest {
     assertThat(modelMutator.streamChildList.size()).isEqualTo(1);
     modelMutator.commit();
     Mockito.verify(modelChildBinder)
-        .bindAndCommit(modelMutatorCommitter, modelMutator.streamChildList, null);
+        .bindAndCommit(
+            modelMutatorCommitter, modelMutator.streamChildList, new ArrayList<>(), null);
   }
 
   @Test
@@ -64,7 +67,8 @@ public class ModelMutatorImplTest {
     assertThat(modelMutator.streamChildList.size()).isEqualTo(1);
     modelMutator.commit();
     Mockito.verify(modelChildBinder)
-        .bindAndCommit(modelMutatorCommitter, modelMutator.streamChildList, null);
+        .bindAndCommit(
+            modelMutatorCommitter, modelMutator.streamChildList, new ArrayList<>(), null);
   }
 
   @Test
@@ -76,7 +80,8 @@ public class ModelMutatorImplTest {
     assertThat(modelMutator.streamChildList.size()).isEqualTo(0);
     modelMutator.commit();
     Mockito.verify(modelChildBinder)
-        .bindAndCommit(modelMutatorCommitter, modelMutator.streamChildList, streamToken);
+        .bindAndCommit(
+            modelMutatorCommitter, modelMutator.streamChildList, new ArrayList<>(), streamToken);
   }
 
   @Test

@@ -14,41 +14,58 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
+import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.common.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
+import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import javax.annotation.Nullable;
 
 /** Factory for creating children found in the Stream. */
 public class ModelChildFactory {
-  ModelChild createUnboundChild(
-      StreamContentId contentId, @Nullable StreamContentId parentContentId) {
-    return new ModelChildImpl(contentId, parentContentId);
+  private final InternalProtocolUtils protocolUtils;
+
+  public ModelChildFactory(InternalProtocolUtils protocolUtils) {
+    this.protocolUtils = protocolUtils;
   }
 
-  private static class ModelChildImpl implements ModelChild {
+  UpdatableModelChild createUnboundChild(
+      StreamContentId contentId, @Nullable StreamContentId parentContentId) {
+    return new ModelChildImpl(contentId, parentContentId, protocolUtils);
+  }
+
+  /** Internal implementation of a {@link ModelChild}. */
+  private static class ModelChildImpl implements UpdatableModelChild {
+    private static final String TAG = "ModelChildImpl";
+
     private final StreamContentId contentId;
     @Nullable private final StreamContentId parentContentId;
+    private final InternalProtocolUtils protocolUtils;
 
     private ModelChild.Type type = Type.UNBOUND;
-    private ModelFeature modelFeature;
-    private ModelToken modelToken;
+    private UpdatableModelFeature modelFeature;
+    private UpdatableModelToken modelToken;
 
-    ModelChildImpl(StreamContentId contentId, @Nullable StreamContentId parentContentId) {
+    ModelChildImpl(
+        StreamContentId contentId,
+        @Nullable StreamContentId parentContentId,
+        InternalProtocolUtils protocolUtils) {
       this.contentId = contentId;
       this.parentContentId = parentContentId;
+      this.protocolUtils = protocolUtils;
     }
 
     @Override
-    public void bindFeature(ModelFeature modelFeature) {
+    public void bindFeature(UpdatableModelFeature modelFeature) {
       validateType(Type.UNBOUND);
       this.modelFeature = modelFeature;
       type = Type.FEATURE;
     }
 
     @Override
-    public void bindToken(ModelToken modelToken) {
+    public void bindToken(UpdatableModelToken modelToken) {
       validateType(Type.UNBOUND);
       this.modelToken = modelToken;
       type = Type.TOKEN;
@@ -66,6 +83,35 @@ public class ModelChildFactory {
     public ModelToken getModelToken() {
       validateType(Type.TOKEN);
       return modelToken;
+    }
+
+    @Override
+    public UpdatableModelToken getUpdatableModelToken() {
+      validateType(Type.TOKEN);
+      return modelToken;
+    }
+
+    @Override
+    public String getContentIdAsKey() {
+      return protocolUtils.getContentIdKey(contentId);
+    }
+
+    @Override
+    public void updateFeature(StreamPayload payload) {
+      switch (type) {
+        case FEATURE:
+          if (payload.hasStreamFeature()) {
+            modelFeature.setFeatureValue(payload.getStreamFeature());
+          } else {
+            Logger.e(TAG, "Attempting to update a ModelFeature without providing a feature");
+          }
+          break;
+        case TOKEN:
+          Logger.e(TAG, "Updated called for TOKEN is unsupported");
+          break;
+        default:
+          Logger.e(TAG, "Updated called for unsupported type: %s", type);
+      }
     }
 
     @Override

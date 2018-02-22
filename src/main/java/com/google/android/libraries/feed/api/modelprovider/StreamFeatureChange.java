@@ -14,62 +14,77 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
+import android.support.annotation.VisibleForTesting;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
-import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * Class defining the specific changes made to feature nodes within the model. This is passed to the
- * observer to handle model changes.
+ * observer to handle model changes. There are a few types of changes described here:
  *
- * <p>TODO: This is very much still prototype and needs to be designed
+ * <ol>
+ *   <li>if {@link #isFeatureChanged()} returns {@code true}, then the ModelFeature was changed
+ *   <li>{@link #getChildChanges()} returns a list of features either, appended, prepended, or
+ *       removed from a parent
+ * </ol>
  */
 public class StreamFeatureChange {
-  private final StreamContentId streamContentId;
-  private final StreamFeature streamFeature;
-  private final ChildChange childChange;
+  private final ModelFeature modelFeature;
+  private final ChildChanges childChanges;
+  private boolean featureChanged = false;
 
-  public StreamFeatureChange(
-      StreamContentId contentId, StreamFeature streamFeature, ChildChange childChange) {
-    this.streamContentId = contentId;
-    this.streamFeature = streamFeature;
-    this.childChange = childChange;
+  public StreamFeatureChange(ModelFeature modelFeature) {
+    this.modelFeature = modelFeature;
+    this.childChanges = new ChildChanges();
   }
 
+  /** Returns the {@link StreamContentId} of the ModelFeature which was changed. */
   public StreamContentId getContentId() {
-    return streamContentId;
+    return modelFeature.getStreamFeature().getContentId();
   }
 
-  /** Returns the updated {@link StreamFeature} */
-  @Nullable
-  public StreamFeature getUpdatedStreamFeature() {
-    return streamFeature;
+  /** This is called to indicate the Content changed for this ModelFeature. */
+  public void setFeatureChange(boolean value) {
+    featureChanged = value;
   }
 
-  /**
-   * Returns a list of new children, order is important, these will be appended to to end of the
-   * children for this container
-   */
-  public List<ModelChild> getNewChildren() {
-    return childChange.appendChildren;
+  /** Returns {@code true} if the ModelFeature changed. */
+  public boolean isFeatureChanged() {
+    return featureChanged;
   }
 
-  /** Returns a list of children which should be removed */
-  public List<ModelChild> getRemovedChildren() {
-    return childChange.removeChildren;
+  /** Returns the ModelFeature that was changed. */
+  public ModelFeature getModelFeature() {
+    return modelFeature;
+  }
+
+  /** Returns the structural changes to the ModelFeature. */
+  public ChildChanges getChildChanges() {
+    return childChanges;
   }
 
   /** Structure used to define the children changes. */
-  public static class ChildChange {
-    private List<ModelChild> appendChildren;
-    private List<ModelChild> removeChildren;
+  public static class ChildChanges {
+    // TODO: Need to support both remove and prepend
+    private final List<ModelChild> appendChildren;
 
-    ChildChange(
-        @Nullable List<ModelChild> appendChildren, @Nullable List<ModelChild> removeChildren) {
-      this.appendChildren = (appendChildren != null) ? appendChildren : new ArrayList<>();
-      this.removeChildren = (removeChildren != null) ? removeChildren : new ArrayList<>();
+    @VisibleForTesting
+    ChildChanges() {
+      this.appendChildren = new ArrayList<>();
+    }
+
+    /**
+     * Returns a List of the children added to this ModelFeature. These children are in the same
+     * order they would be displayed in the stream.
+     */
+    public List<ModelChild> getAppendedChildren() {
+      return appendChildren;
+    }
+
+    /** Add a child to be appended to the ModelFeature children List. */
+    public void addAppendChild(ModelChild child) {
+      appendChildren.add(child);
     }
   }
 }

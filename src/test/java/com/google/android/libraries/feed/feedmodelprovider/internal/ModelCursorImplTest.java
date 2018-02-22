@@ -35,7 +35,7 @@ public class ModelCursorImplTest {
 
   @Mock ThreadUtils threadUtils;
 
-  private List<ModelChild> modelChildren;
+  private List<UpdatableModelChild> modelChildren;
   private int childCount = 0;
 
   @Before
@@ -53,7 +53,7 @@ public class ModelCursorImplTest {
 
   @Test
   public void testReleaseCursor() {
-    modelChildren.add(mock(ModelChild.class));
+    modelChildren.add(mock(UpdatableModelChild.class));
     ModelCursorImpl cursor = new ModelCursorImpl(modelChildren.iterator(), threadUtils);
     assertThat(cursor.isInvalid()).isFalse();
     assertThat(cursor.isAtEnd()).isFalse();
@@ -77,7 +77,7 @@ public class ModelCursorImplTest {
   public void testIteration() {
     int childrenToAdd = 3;
     for (int i = 0; i < childrenToAdd; i++) {
-      modelChildren.add(mock(ModelChild.class));
+      modelChildren.add(mock(UpdatableModelChild.class));
     }
     ModelCursorImpl cursor = new ModelCursorImpl(modelChildren.iterator(), threadUtils);
     childCount = 0;

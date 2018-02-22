@@ -23,10 +23,12 @@ import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ChildMutation;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ChildUpdateMutation;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ModelMutatorCommitter;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayloadWithId;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
@@ -41,59 +43,71 @@ public class ModelChildBinder {
   private final SessionManager sessionManager;
   private final CursorProvider cursorProvider;
   private final TimingUtils timingUtils;
-  private final InternalProtocolUtils internalProtocolUtils;
+  private final InternalProtocolUtils protocolUtils;
 
   public ModelChildBinder(
       SessionManager sessionManager,
       CursorProvider cursorProvider,
       TimingUtils timingUtils,
-      InternalProtocolUtils internalProtocolUtils) {
+      InternalProtocolUtils protocolUtils) {
     this.sessionManager = sessionManager;
     this.cursorProvider = cursorProvider;
     this.timingUtils = timingUtils;
-    this.internalProtocolUtils = internalProtocolUtils;
+    this.protocolUtils = protocolUtils;
   }
 
   void bindAndCommit(
       ModelMutatorCommitter committer,
-      List<ChildMutation> streamChildList,
+      List<ChildMutation> streamChildrenList,
+      List<StreamStructure> updateChildrenList,
       StreamToken mutationSourceToken) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    Map<String, ModelChild> unboundChildren = new HashMap<>();
+    Map<String, UpdatableModelChild> unboundChildren = new HashMap<>();
     List<StreamContentId> contentIds = new ArrayList<>();
-    for (ChildMutation childMutation : streamChildList) {
+    for (ChildMutation childMutation : streamChildrenList) {
       if (childMutation.operation == Operation.UPDATE_OR_APPEND) {
         Validators.checkNotNull(childMutation.addChild);
         if (childMutation.addChild.getType() == Type.UNBOUND) {
-          String key = internalProtocolUtils.getContentIdKey(childMutation.addChild.getContentId());
+          String key = childMutation.addChild.getContentIdAsKey();
           unboundChildren.put(key, childMutation.addChild);
           contentIds.add(childMutation.addChild.getContentId());
         }
       }
     }
+    Map<String, StreamStructure> updateChildren = new HashMap<>();
+    for (StreamStructure updateChild : updateChildrenList) {
+      contentIds.add(updateChild.getContentId());
+      updateChildren.put(protocolUtils.getContentIdKey(updateChild.getContentId()), updateChild);
+    }
     sessionManager.getStreamFeatures(
         contentIds,
         payloads -> {
+          List<ChildUpdateMutation> updates = new ArrayList<>();
           for (StreamPayloadWithId childPayload : payloads) {
-            String key = internalProtocolUtils.getContentIdKey(childPayload.getContentId());
-            ModelChild child = unboundChildren.get(key);
-            StreamPayload payload = childPayload.getPayload();
-            if (child != null && payload != null) {
-              if (payload.hasStreamFeature()) {
-                child.bindFeature(new ModelFeatureImpl(payload.getStreamFeature(), cursorProvider));
-              } else if (payload.hasStreamToken()) {
-                child.bindToken(new ModelTokenImpl(payload.getStreamToken()));
-              }
-            } else {
-              if (child == null) {
-                Logger.e(TAG, "Didn't find a child to set a Payload on");
+            String key = protocolUtils.getContentIdKey(childPayload.getContentId());
+            UpdatableModelChild child = unboundChildren.get(key);
+            if (child != null) {
+              StreamPayload payload = childPayload.getPayload();
+              if (payload != null) {
+                if (payload.hasStreamFeature()) {
+                  child.bindFeature(
+                      new ModelFeatureImpl(payload.getStreamFeature(), cursorProvider));
+                } else if (payload.hasStreamToken()) {
+                  child.bindToken(new ModelTokenImpl(payload.getStreamToken()));
+                }
               } else {
                 Logger.e(TAG, "Payload not provided in the StreamPayloadWithId");
+              }
+            } else {
+              Logger.i(TAG, "Found Updated Content %s", key);
+              StreamStructure structure = updateChildren.get(key);
+              if (structure != null) {
+                updates.add(new ChildUpdateMutation(structure, childPayload.getPayload()));
               }
             }
           }
           timeTracker.stop("", "bindingChildren", "unboundChildren", unboundChildren.size());
-          committer.commit(streamChildList, mutationSourceToken);
+          committer.commit(streamChildrenList, updates, mutationSourceToken);
         });
   }
 }

@@ -19,7 +19,7 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.api.modelprovider.StreamFeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.TokenChange;
 import com.google.android.libraries.feed.api.modelprovider.TokenChangeObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -42,9 +43,12 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildFa
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ChildMutation;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ChildUpdateMutation;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ModelMutatorCommitter;
+import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelChild;
+import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelFeature;
+import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -53,10 +57,12 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -65,7 +71,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     implements ModelProvider, Dumpable {
 
   private static final String TAG = "FeedModelProvider";
-  private static final List<ModelChild> EMPTY_LIST =
+  private static final List<UpdatableModelChild> EMPTY_LIST =
       Collections.unmodifiableList(new ArrayList<>());
 
   private final Object lock = new Object();
@@ -73,10 +79,13 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   @GuardedBy("lock")
   private ModelFeature root = null;
 
-  // The tree is model as a parent with an list of children.  container is created for every
+  // The tree is model as a parent with an list of children.  A container is created for every
   // ModelChild with a child.
   @GuardedBy("lock")
-  private final Map<String, ArrayList<ModelChild>> containers = new HashMap<>();
+  private final Map<String, ArrayList<UpdatableModelChild>> containers = new HashMap<>();
+
+  @GuardedBy("lock")
+  private final Map<String, UpdatableModelChild> contents = new HashMap<>();
 
   @GuardedBy("lock")
   private final Map<ByteString, TokenTracking> tokens = new HashMap<>();
@@ -90,7 +99,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   // #dump() operation counts
   private int removedChildrenCount = 0;
   private int removeScanCount = 0;
-  private int updateCount = 0;
+  private int commitCount = 0;
+  private int commitTokenCount = 0;
+  private int commitUpdateCount = 0;
 
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
@@ -112,11 +123,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     this.protocolUtils = protocolUtils;
     this.uiRunnableHandler = uiRunnableHandler;
 
-    modelChildFactory = new ModelChildFactory();
+    modelChildFactory = new ModelChildFactory(protocolUtils);
     CursorProvider cursorProvider =
         parentId -> {
           synchronized (lock) {
-            ArrayList<ModelChild> children =
+            ArrayList<UpdatableModelChild> children =
                 containers.get(protocolUtils.getContentIdKey(parentId));
             if (children == null) {
               Logger.i(TAG, "No children found for Cursor");
@@ -210,11 +221,14 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     synchronized (lock) {
       dumper.title(TAG);
       dumper.forKey("currentState").value(currentState.ordinal());
+      dumper.forKey("contentCount").value(contents.size()).compactPrevious();
       dumper.forKey("containers").value(containers.size()).compactPrevious();
       dumper.forKey("tokens").value(tokens.size()).compactPrevious();
       dumper.forKey("observers").value(mObservers.size()).compactPrevious();
-      dumper.forKey("updateCount").value(updateCount);
-      dumper.forKey("removeCount").value(removedChildrenCount).compactPrevious();
+      dumper.forKey("commitCount").value(commitCount);
+      dumper.forKey("commitTokenCount").value(commitTokenCount).compactPrevious();
+      dumper.forKey("commitUpdateCount").value(commitUpdateCount).compactPrevious();
+      dumper.forKey("removeCount").value(removedChildrenCount);
       dumper.forKey("removeScanCount").value(removeScanCount).compactPrevious();
       if (root != null
           && root.getStreamFeature() != null
@@ -225,7 +239,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       } else {
         dumper.forKey("root").value("[UNDEFINED]");
       }
-      for (Entry<String, ArrayList<ModelChild>> entry : containers.entrySet()) {
+      for (Entry<String, ArrayList<UpdatableModelChild>> entry : containers.entrySet()) {
         Dumper childDumper = dumper.getChildDumper();
         childDumper.title("container");
         childDumper.forKey("parent").value(entry.getKey());
@@ -253,10 +267,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
    * current model state and the contents of the mutation. We define mutation handlers for the
    * initialization, for a mutation based upon a continuation token response, and then a standard
    * update mutation.
-   *
-   * <p>TODO: Need to define the update version
-   *
-   * <p>TODO: We'll need a visit() method here to track individual changes / updates
    */
   interface MutationHandler {
 
@@ -265,6 +275,12 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
      * before new children are added.
      */
     void preMutation();
+
+    /** Append a child to a parent */
+    void appendChild(String parentKey, UpdatableModelChild child);
+
+    /** Remove a child from a parent */
+    void removeChild(String parentKey, UpdatableModelChild child);
 
     /**
      * This is called after the model has been updated. Typically this will notify observers of the
@@ -277,94 +293,115 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final ModelMutatorCommitter committer =
       new ModelMutatorCommitter() {
         @Override
-        public void commit(List<ChildMutation> streamChildList, StreamToken mutationSourceToken) {
+        public void commit(
+            List<ChildMutation> structureChanges,
+            List<ChildUpdateMutation> updates,
+            StreamToken mutationSourceToken) {
+          Logger.i(
+              TAG,
+              "commit mutation - Structure changes %s, Updates %s, Token %s",
+              structureChanges.size(),
+              updates.size(),
+              mutationSourceToken != null);
+
           threadUtils.checkNotMainThread();
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-          updateCount++;
+          commitCount++;
 
           synchronized (lock) {
-            MutationHandler tokenMutation;
+            MutationHandler mutationHandler;
             if (currentState == State.INITIALIZING) {
               Validators.checkState(
                   mutationSourceToken == null,
                   "Initializing the Model Provider from a Continuation Token");
-              tokenMutation = new InitializeModel();
+              mutationHandler = new InitializeModel();
             } else if (mutationSourceToken != null) {
-              tokenMutation = new TokenMutation(mutationSourceToken);
+              mutationHandler = new TokenMutation(mutationSourceToken);
+              commitTokenCount++;
             } else {
-              // TODO: This would be a standard model mutation
-              Logger.w(TAG, "Unknown mutation type, tokenMutation is null");
-              tokenMutation = null;
+              mutationHandler = new UpdateMutation(updates);
+              commitUpdateCount++;
             }
 
+            // Processing before the structural mutation
+            mutationHandler.preMutation();
+
+            // process the structure changes
             String currentParentKey = null;
-            ArrayList<ModelChild> childrenList = null;
-
-            // Remove the existing token from the parent child list
-            if (tokenMutation != null) {
-              tokenMutation.preMutation();
-            }
-
-            for (ChildMutation childMutation : streamChildList) {
+            ArrayList<UpdatableModelChild> childrenList = null;
+            for (ChildMutation childMutation : structureChanges) {
               if (childMutation.operation == Operation.UPDATE_OR_APPEND) {
-                ModelChild child = Validators.checkNotNull(childMutation.addChild);
+                UpdatableModelChild child = Validators.checkNotNull(childMutation.addChild);
                 if (child.getType() == Type.UNBOUND) {
-                  Logger.e(TAG, "Unbound Child Found");
+                  Logger.e(TAG, "Unbound Child Found %s", child.getContentIdAsKey());
+                  continue;
                 }
-                StreamContentId parent = child.getParentId();
                 if (!child.hasParentId()) {
                   root = createRoot(child);
+                  contents.put(child.getContentIdAsKey(), child);
                   continue;
                 }
 
-                String parentKey = protocolUtils.getContentIdKey(parent);
+                String parentKey = protocolUtils.getContentIdKey(child.getParentId());
                 if (!parentKey.equals(currentParentKey)) {
-                  childrenList = getChildList(protocolUtils.getContentIdKey(parent));
+                  childrenList = getChildList(parentKey);
                   currentParentKey = parentKey;
                 }
                 childrenList.add(child);
+                contents.put(child.getContentIdAsKey(), child);
+                mutationHandler.appendChild(parentKey, child);
 
                 if (child.getType() == Type.TOKEN) {
-                  TokenTracking tokenTracking = new TokenTracking(child, childrenList);
+                  TokenTracking tokenTracking =
+                      new TokenTracking(child.getUpdatableModelToken(), childrenList);
                   tokens.put(
                       child.getModelToken().getStreamToken().getNextPageToken(), tokenTracking);
                 }
               } else {
                 Validators.checkNotNull(childMutation.removeChild);
-                handleRemoveOperation(childMutation.removeChild);
+                handleRemoveOperation(mutationHandler, childMutation.removeChild);
+                contents.remove(
+                    protocolUtils.getContentIdKey(childMutation.removeChild.getContentId()));
               }
             }
 
             // The first mutation of an INITIALIZING model provider will cause the session to be
             // started
-            if (tokenMutation != null) {
-              tokenMutation.postMutation();
-            }
+            mutationHandler.postMutation();
           }
-          timeTracker.stop("", "modelMutation", "updates", streamChildList.size());
+          timeTracker.stop("", "modelMutation", "updates", structureChanges.size());
         }
       };
 
-  private void handleRemoveOperation(StreamStructure removeChild) {
+  private void handleRemoveOperation(MutationHandler mutationHandler, StreamStructure removeChild) {
     // remove everything from the remove list first
     String parentKey = protocolUtils.getContentIdKey(removeChild.getParentContentId());
     synchronized (lock) {
-      List<ModelChild> childList = containers.get(parentKey);
+      List<UpdatableModelChild> childList = containers.get(parentKey);
       if (childList == null) {
         Logger.w(TAG, "Parent of removed item is not found");
         return;
       }
-      String targetChild = protocolUtils.getContentIdKey(removeChild.getContentId());
+
+      // For FEATURE children, add the remove to the mutation handler to create the
+      // StreamFeatureChange.  We skip this for TOKENS.
+      String childKey = protocolUtils.getContentIdKey(removeChild.getContentId());
+      UpdatableModelChild targetChild = contents.get(childKey);
+      Validators.checkNotNull(targetChild, "Child not found in the ModelProvider contents");
+      if (targetChild.getType() == Type.FEATURE) {
+        Logger.i(TAG, "Removing a child");
+        mutationHandler.removeChild(parentKey, targetChild);
+      }
 
       // This walks the child list backwards because the most common removal item is a
-      // token which is alway the last item in the list.  removeScanCount tracks if we are
+      // token which is always the last item in the list.  removeScanCount tracks if we are
       // walking the list too much
-      ListIterator<ModelChild> li = childList.listIterator(childList.size());
-      ModelChild removed = null;
+      ListIterator<UpdatableModelChild> li = childList.listIterator(childList.size());
+      UpdatableModelChild removed = null;
       while (li.hasPrevious()) {
         removeScanCount++;
-        ModelChild child = li.previous();
-        if (protocolUtils.getContentIdKey(child.getContentId()).equals(targetChild)) {
+        UpdatableModelChild child = li.previous();
+        if (child.getContentIdAsKey().equals(childKey)) {
           removed = child;
           break;
         }
@@ -389,6 +426,18 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     @Override
     public void preMutation() {
       // no-op
+    }
+
+    @Override
+    public void appendChild(String parentKey, UpdatableModelChild child) {
+      // During initialization, all children added are not tracked, the consumer will get
+      // an initial cursor for the children.
+    }
+
+    @Override
+    public void removeChild(String parentKey, UpdatableModelChild child) {
+      // During initialization, all children removed are not tracked, the consumer will get
+      // an initial cursor for the children.
     }
 
     @Override
@@ -443,11 +492,22 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     }
 
     @Override
+    public void appendChild(String parentKey, UpdatableModelChild child) {
+      // The children added will be accessed through a new cursor.
+      // TODO: Do we support adding children to more than the parent with the token?
+    }
+
+    @Override
+    public void removeChild(String parentKey, UpdatableModelChild child) {
+      // The children added will be accessed through a new cursor.
+    }
+
+    @Override
     public void postMutation() {
       ModelCursorImpl cursor =
           new ModelCursorImpl(token.location.listIterator(newCursorStart), threadUtils);
       TokenChange tokenChange = new TokenChange(cursor);
-      List<TokenChangeObserver> observers = token.tokenChild.getModelToken().getObserversToNotify();
+      List<TokenChangeObserver> observers = token.tokenChild.getObserversToNotify();
       uiRunnableHandler.post(
           TAG + " - onTokenChange",
           () -> {
@@ -460,7 +520,101 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     }
   }
 
-  private ModelFeature createRoot(ModelChild child) {
+  /**
+   * {@code MutationHandler} which handles updates. All changes are tracked for the UI through
+   * {@link StreamFeatureChange}. One will be created for each {@link ModelFeature} that changed.
+   * There are two types of changes, the content and changes to the children (structure).
+   */
+  @VisibleForTesting
+  class UpdateMutation implements MutationHandler {
+
+    private final List<ChildUpdateMutation> updates;
+    private final Map<String, StreamFeatureChange> changes = new HashMap<>();
+    private final Set<String> newParents = new HashSet<>();
+
+    UpdateMutation(List<ChildUpdateMutation> updates) {
+      this.updates = updates;
+    }
+
+    @Override
+    public void preMutation() {
+      Logger.i(TAG, "Updating %s items", updates.size());
+      // Walk all the updates and update the values, creating changes to track these
+      for (ChildUpdateMutation update : updates) {
+        String contentKey = protocolUtils.getContentIdKey(update.updateChild.getContentId());
+        UpdatableModelChild updatableModelChild;
+        synchronized (lock) {
+          updatableModelChild = contents.get(contentKey);
+        }
+        if (updatableModelChild == null) {
+          Logger.w(TAG, "Didn't find feature being updated for %s", contentKey);
+          continue;
+        }
+        updatableModelChild.updateFeature(update.payload);
+        StreamFeatureChange change = getChange(contentKey);
+        if (change != null) {
+          change.setFeatureChange(true);
+        }
+      }
+    }
+
+    @Override
+    public void removeChild(String parentKey, UpdatableModelChild child) {
+      // TODO: Need to implement this
+      Logger.w(TAG, "Remove is not yet implemented", parentKey);
+    }
+
+    @Override
+    public void appendChild(String parentKey, UpdatableModelChild child) {
+      // Is this a child of a node that is new to the model?  We only report changes
+      // to existing ModelFeatures.
+      String childKey = child.getContentIdAsKey();
+      if (newParents.contains(parentKey)) {
+        // Don't create a change the child of a new child
+        newParents.add(childKey);
+        return;
+      }
+
+      newParents.add(childKey);
+      StreamFeatureChange change = getChange(parentKey);
+      if (change != null) {
+        Logger.i(TAG, "Add child %s to a parent %s", childKey, parentKey);
+        change.getChildChanges().addAppendChild(child);
+      }
+    }
+
+    @Override
+    public void postMutation() {
+      for (StreamFeatureChange change : changes.values()) {
+        // TODO: This cast is because StreamFeatureChange is part of the API, cleanup?
+        List<ModelChangeObserver> observers =
+            ((UpdatableModelFeature) change.getModelFeature()).getObserversToNotify();
+        for (ModelChangeObserver observer : observers) {
+          observer.onChange(change);
+        }
+      }
+    }
+
+    @Nullable
+    private StreamFeatureChange getChange(String contentIdKey) {
+      StreamFeatureChange change = changes.get(contentIdKey);
+      if (change == null) {
+        UpdatableModelChild modelChild;
+        synchronized (lock) {
+          modelChild = contents.get(contentIdKey);
+        }
+        if (modelChild == null) {
+          Logger.e(TAG, "Didn't find '%s' in content", contentIdKey);
+          return null;
+        }
+        change = new StreamFeatureChange(modelChild.getModelFeature());
+        changes.put(contentIdKey, change);
+      }
+      return change;
+    }
+  }
+
+  private ModelFeature createRoot(UpdatableModelChild child) {
     synchronized (lock) {
       // this must be a root
       if (child.getType() == Type.FEATURE) {
@@ -469,7 +623,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           Logger.e(
               TAG,
               "Found multiple roots, this will overwrite the previous definition: %s",
-              protocolUtils.printContentId(child.getContentId()));
+              child.getContentIdAsKey());
         }
         root = child.getModelFeature();
       } else {
@@ -481,7 +635,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   // Lazy creation of containers
-  private ArrayList<ModelChild> getChildList(String parentKey) {
+  private ArrayList<UpdatableModelChild> getChildList(String parentKey) {
     synchronized (lock) {
       if (!containers.containsKey(parentKey)) {
         containers.put(parentKey, new ArrayList<>());
@@ -493,10 +647,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   /** Track the continuation token location and model */
   @VisibleForTesting
   static class TokenTracking {
-    final ModelChild tokenChild;
-    final ArrayList<ModelChild> location;
+    final UpdatableModelToken tokenChild;
+    final ArrayList<UpdatableModelChild> location;
 
-    TokenTracking(ModelChild tokenChild, ArrayList<ModelChild> location) {
+    TokenTracking(UpdatableModelToken tokenChild, ArrayList<UpdatableModelChild> location) {
       this.tokenChild = tokenChild;
       this.location = location;
     }
