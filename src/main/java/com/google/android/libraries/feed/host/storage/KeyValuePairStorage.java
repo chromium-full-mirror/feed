@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.host.storage;
 
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 /**
@@ -33,7 +33,7 @@ public interface KeyValuePairStorage {
   Future<byte[]> get(String key);
 
   /** Asynchronously requests all key/value pairs from storage with a matching key prefix. */
-  Future<List<KeyValuePair>> getAll(String prefix);
+  Future<Map<String, byte[]>> getAll(String prefix);
 
   /**
    * Commits the operations in the {@link StorageMutation} in order and asynchronously reports the

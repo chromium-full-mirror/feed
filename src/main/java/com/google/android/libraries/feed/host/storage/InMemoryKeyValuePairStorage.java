@@ -14,14 +14,13 @@
 
 package com.google.android.libraries.feed.host.storage;
 
+
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.storage.StorageOperation.Upsert;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
@@ -48,12 +47,12 @@ public class InMemoryKeyValuePairStorage implements KeyValuePairStorage, Dumpabl
   }
 
   @Override
-  public Future<List<KeyValuePair>> getAll(String prefix) {
+  public Future<Map<String, byte[]>> getAll(String prefix) {
     getAllCount++;
-    List<KeyValuePair> results = new ArrayList<>();
+    Map<String, byte[]> results = new HashMap<>();
     for (Entry<String, byte[]> entry : store.entrySet()) {
       if (entry.getKey().startsWith(prefix)) {
-        results.add(new KeyValuePair(entry.getKey(), entry.getValue()));
+        results.put(entry.getKey(), entry.getValue());
       }
     }
     return executor.submit(() -> results);

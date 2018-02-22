@@ -14,12 +14,11 @@
 
 package com.google.android.libraries.feed.host.storage;
 
+
 import static com.google.common.truth.Truth.assertThat;
 
 import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,13 +74,9 @@ public class InMemoryKeyValuePairStorageTest {
         .commit(new StorageMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build())
         .get();
 
-    List<KeyValuePair> values = storage.getAll(KEY).get();
+    Map<String, byte[]> values = storage.getAll(KEY).get();
 
-    Map<String, byte[]> map = new HashMap<>();
-    for (KeyValuePair value : values) {
-      map.put(value.getKey(), value.getValue());
-    }
-    assertThat(map.get(KEY_0)).isEqualTo(DATA_0);
-    assertThat(map.get(KEY_1)).isEqualTo(DATA_1);
+    assertThat(values.get(KEY_0)).isEqualTo(DATA_0);
+    assertThat(values.get(KEY_1)).isEqualTo(DATA_1);
   }
 }
