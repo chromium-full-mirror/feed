@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import android.database.Observable;
-import com.google.android.libraries.feed.api.modelprovider.ModelChangeObserver;
+import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
@@ -25,7 +25,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 /** Implementation of the {@link ModelFeature} */
-class ModelFeatureImpl extends Observable<ModelChangeObserver> implements UpdatableModelFeature {
+class ModelFeatureImpl extends Observable<FeatureChangeObserver> implements UpdatableModelFeature {
 
   private StreamFeature streamFeature;
   private final CursorProvider cursorProvider;
@@ -53,7 +53,7 @@ class ModelFeatureImpl extends Observable<ModelChangeObserver> implements Updata
   }
 
   @Override
-  public List<ModelChangeObserver> getObserversToNotify() {
+  public List<FeatureChangeObserver> getObserversToNotify() {
     synchronized (mObservers) {
       return new ArrayList<>(mObservers);
     }

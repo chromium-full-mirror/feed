@@ -14,9 +14,7 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-import android.support.annotation.VisibleForTesting;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,62 +27,27 @@ import java.util.List;
  *       removed from a parent
  * </ol>
  */
-public class StreamFeatureChange {
-  private final ModelFeature modelFeature;
-  private final ChildChanges childChanges;
-  private boolean featureChanged = false;
-
-  public StreamFeatureChange(ModelFeature modelFeature) {
-    this.modelFeature = modelFeature;
-    this.childChanges = new ChildChanges();
-  }
+public interface FeatureChange {
 
   /** Returns the {@link StreamContentId} of the ModelFeature which was changed. */
-  public StreamContentId getContentId() {
-    return modelFeature.getStreamFeature().getContentId();
-  }
-
-  /** This is called to indicate the Content changed for this ModelFeature. */
-  public void setFeatureChange(boolean value) {
-    featureChanged = value;
-  }
+  StreamContentId getContentId();
 
   /** Returns {@code true} if the ModelFeature changed. */
-  public boolean isFeatureChanged() {
-    return featureChanged;
-  }
+  boolean isFeatureChanged();
 
   /** Returns the ModelFeature that was changed. */
-  public ModelFeature getModelFeature() {
-    return modelFeature;
-  }
+  ModelFeature getModelFeature();
 
   /** Returns the structural changes to the ModelFeature. */
-  public ChildChanges getChildChanges() {
-    return childChanges;
-  }
+  ChildChanges getChildChanges();
 
-  /** Structure used to define the children changes. */
-  public static class ChildChanges {
+  /** Class describing changes to the children. */
+  interface ChildChanges {
     // TODO: Need to support both remove and prepend
-    private final List<ModelChild> appendChildren;
-
-    @VisibleForTesting
-    ChildChanges() {
-      this.appendChildren = new ArrayList<>();
-    }
-
     /**
      * Returns a List of the children added to this ModelFeature. These children are in the same
      * order they would be displayed in the stream.
      */
-    public List<ModelChild> getAppendedChildren() {
-      return appendChildren;
-    }
-
-    /** Add a child to be appended to the ModelFeature children List. */
-    public void addAppendChild(ModelChild child) {
-      appendChildren.add(child);
-    }
+    List<ModelChild> getAppendedChildren();
   }
 }

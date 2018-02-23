@@ -16,9 +16,9 @@ package com.google.android.libraries.feed.api.modelprovider;
 
 /**
  * Defines an interface which observes changes features within the stream model. The {@link
- * #onChange(StreamFeatureChange)} is called when a feature changes.
+ * #onChange(FeatureChange)} is called when a feature changes.
  */
-public interface ModelChangeObserver {
+public interface FeatureChangeObserver {
   /** Called when children of the feature or the underlying payload proto instance change. */
-  void onChange(StreamFeatureChange change);
+  void onChange(FeatureChange change);
 }

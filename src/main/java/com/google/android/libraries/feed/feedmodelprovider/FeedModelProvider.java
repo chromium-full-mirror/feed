@@ -19,7 +19,8 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
-import com.google.android.libraries.feed.api.modelprovider.ModelChangeObserver;
+import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
+import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
@@ -27,7 +28,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.api.modelprovider.StreamFeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -38,6 +38,7 @@ import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.feedmodelprovider.internal.CursorProvider;
+import com.google.android.libraries.feed.feedmodelprovider.internal.FeatureChangeImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildBinder;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildFactory;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl;
@@ -537,14 +538,14 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   /**
    * {@code MutationHandler} which handles updates. All changes are tracked for the UI through
-   * {@link StreamFeatureChange}. One will be created for each {@link ModelFeature} that changed.
-   * There are two types of changes, the content and changes to the children (structure).
+   * {@link FeatureChange}. One will be created for each {@link ModelFeature} that changed. There
+   * are two types of changes, the content and changes to the children (structure).
    */
   @VisibleForTesting
   class UpdateMutation implements MutationHandler {
 
     private final List<ChildUpdateMutation> updates;
-    private final Map<String, StreamFeatureChange> changes = new HashMap<>();
+    private final Map<String, FeatureChangeImpl> changes = new HashMap<>();
     private final Set<String> newParents = new HashSet<>();
 
     UpdateMutation(List<ChildUpdateMutation> updates) {
@@ -566,9 +567,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           continue;
         }
         updatableModelChild.updateFeature(update.payload);
-        StreamFeatureChange change = getChange(contentKey);
+        FeatureChangeImpl change = getChange(contentKey);
         if (change != null) {
-          change.setFeatureChange(true);
+          change.setFeatureChanged(true);
         }
       }
     }
@@ -591,28 +592,28 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       }
 
       newParents.add(childKey);
-      StreamFeatureChange change = getChange(parentKey);
+      FeatureChangeImpl change = getChange(parentKey);
       if (change != null) {
         Logger.i(TAG, "Add child %s to a parent %s", childKey, parentKey);
-        change.getChildChanges().addAppendChild(child);
+        change.getChildChangesImpl().addAppendChild(child);
       }
     }
 
     @Override
     public void postMutation() {
-      for (StreamFeatureChange change : changes.values()) {
+      for (FeatureChangeImpl change : changes.values()) {
         // TODO: This cast is because StreamFeatureChange is part of the API, cleanup?
-        List<ModelChangeObserver> observers =
+        List<FeatureChangeObserver> observers =
             ((UpdatableModelFeature) change.getModelFeature()).getObserversToNotify();
-        for (ModelChangeObserver observer : observers) {
+        for (FeatureChangeObserver observer : observers) {
           observer.onChange(change);
         }
       }
     }
 
     @Nullable
-    private StreamFeatureChange getChange(String contentIdKey) {
-      StreamFeatureChange change = changes.get(contentIdKey);
+    private FeatureChangeImpl getChange(String contentIdKey) {
+      FeatureChangeImpl change = changes.get(contentIdKey);
       if (change == null) {
         UpdatableModelChild modelChild;
         synchronized (lock) {
@@ -622,7 +623,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           Logger.e(TAG, "Didn't find '%s' in content", contentIdKey);
           return null;
         }
-        change = new StreamFeatureChange(modelChild.getModelFeature());
+        change = new FeatureChangeImpl(modelChild.getModelFeature());
         changes.put(contentIdKey, change);
       }
       return change;

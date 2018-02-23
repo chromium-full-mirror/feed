@@ -47,11 +47,11 @@ public interface ModelFeature {
   ModelCursor getDirectionalCursor(boolean forward, @Nullable StreamContentId startingChild);
 
   /**
-   * Register a {@link ModelChangeObserver} for changes on this feature. The types of changes would
-   * include adding or removing children or updates to the payload.
+   * Register a {@link FeatureChangeObserver} for changes on this feature. The types of changes
+   * would include adding or removing children or updates to the payload.
    */
-  void registerObserver(ModelChangeObserver observer);
+  void registerObserver(FeatureChangeObserver observer);
 
   /** Remove a registered observer */
-  void unregisterObserver(ModelChangeObserver observer);
+  void unregisterObserver(FeatureChangeObserver observer);
 }

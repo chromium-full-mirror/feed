@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
-import com.google.android.libraries.feed.api.modelprovider.ModelChangeObserver;
+import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import java.util.List;
@@ -27,6 +27,6 @@ public interface UpdatableModelFeature extends ModelFeature {
   /** Set the {@link StreamFeature} value for this {@link ModelFeature}. */
   void setFeatureValue(StreamFeature streamFeature);
 
-  /** Returns a list of {@link ModelChangeObserver} to notify when a change is made. */
-  List<ModelChangeObserver> getObserversToNotify();
+  /** Returns a list of {@link FeatureChangeObserver} to notify when a change is made. */
+  List<FeatureChangeObserver> getObserversToNotify();
 }
