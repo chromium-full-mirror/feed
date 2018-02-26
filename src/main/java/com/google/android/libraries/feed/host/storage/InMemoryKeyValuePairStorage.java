@@ -41,7 +41,7 @@ public class InMemoryKeyValuePairStorage implements KeyValuePairStorage, Dumpabl
 
   @Override
   public Future<byte[]> get(String key) {
-    // TODO: once ListenableFutures are allowed, populate a failure reason here.
+    // TODO: once Callback allows it, populate a failure reason here.
     getCount++;
     return executor.submit(() -> store.get(key));
   }

@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
@@ -38,6 +37,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.ManagedSess
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.SessionMutationCommitter;
+import com.google.android.libraries.feed.host.common.Callback;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -194,8 +194,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   @Override
   public void getStreamFeatures(
-      List<StreamContentId> contentIds, Consumer<List<StreamPayloadWithId>> callback) {
-    callback.accept(store.getPayloads(contentIds));
+      List<StreamContentId> contentIds, Callback<List<StreamPayloadWithId>> callback) {
+    callback.handleResult(store.getPayloads(contentIds));
   }
 
   @Override
