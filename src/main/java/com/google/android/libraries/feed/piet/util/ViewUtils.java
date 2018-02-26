@@ -65,10 +65,13 @@ public class ViewUtils {
     setOnClickActions(actions, view, handler, frameContext);
   }
 
-  /** Clears any listeners set by the setOnClickActions method. */
+  /** Sets clickability to false. */
   public static void clearOnClickActions(@Nullable View view) {
     if (view != null) {
-      view.setOnClickListener(null);
+      if (view.hasOnClickListeners()) {
+        view.setOnClickListener(null);
+      }
+      view.setClickable(false);
     }
   }
 

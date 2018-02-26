@@ -97,7 +97,7 @@ public class ViewUtilsTest {
 
     ViewUtils.setOnClickActions((Actions) null, view, mockActionHandler, mockFrameContext);
 
-    assertThat(view.hasOnClickListeners()).isFalse();
+    assertViewNotClickable();
   }
 
   @Test
@@ -108,7 +108,7 @@ public class ViewUtilsTest {
     ViewUtils.setOnClickActions(
         (ActionsBindingRef) null, view, mockActionHandler, mockFrameContext);
 
-    assertThat(view.hasOnClickListeners()).isFalse();
+    assertViewNotClickable();
   }
 
   @Test
@@ -124,7 +124,7 @@ public class ViewUtilsTest {
     ViewUtils.setOnClickActions(
         Actions.getDefaultInstance(), view, mockActionHandler, mockFrameContext);
 
-    assertThat(view.hasOnClickListeners()).isFalse();
+    assertViewNotClickable();
   }
 
   @Test
@@ -134,7 +134,12 @@ public class ViewUtilsTest {
 
     ViewUtils.clearOnClickActions(view);
 
+    assertViewNotClickable();
+  }
+
+  private void assertViewNotClickable() {
     assertThat(view.hasOnClickListeners()).isFalse();
+    assertThat(view.isClickable()).isFalse();
   }
 
   @Test
