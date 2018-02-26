@@ -32,8 +32,8 @@ import android.view.Gravity;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
-import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.Key;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -78,7 +78,7 @@ public class ImageElementAdapterTest {
   @Mock private AssetProvider assetProvider;
   @Mock private StyleProvider styleProvider;
 
-  @Captor ArgumentCaptor<Consumer<Drawable>> callbackCaptor;
+  @Captor ArgumentCaptor<Callback<Drawable>> callbackCaptor;
 
   private Context context;
   private int heightPx;
@@ -217,7 +217,7 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
 
     Drawable drawable2 = new ColorDrawable(Color.RED);
-    callbackCaptor.getValue().accept(drawable2);
+    callbackCaptor.getValue().handleResult(drawable2);
 
     ImageView imageView2 = (ImageView) adapter.getBaseView().getChildAt(0);
 
@@ -335,7 +335,7 @@ public class ImageElementAdapterTest {
 
     adapter.unbindModel();
     verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
-    callbackCaptor.getValue().accept(defaultDrawable);
+    callbackCaptor.getValue().handleResult(defaultDrawable);
 
     // The drawable was not set by the callback because the model had already been unbound.
     assertThat(imageView.getDrawable()).isEqualTo(null);
@@ -355,7 +355,7 @@ public class ImageElementAdapterTest {
     adapter.bindModel(ImageElement.newBuilder().setImage(model2).build(), frameContext);
 
     // Callback now completes
-    callbackCaptor.getValue().accept(defaultDrawable);
+    callbackCaptor.getValue().handleResult(defaultDrawable);
 
     // But has no effect
     imageView = getImageView();
@@ -364,7 +364,7 @@ public class ImageElementAdapterTest {
     // And now the callback for the second model completes
     Drawable drawable2 = new ColorDrawable(Color.RED);
     verify(assetProvider).getImage(eq(model2), callbackCaptor.capture());
-    callbackCaptor.getValue().accept(drawable2);
+    callbackCaptor.getValue().handleResult(drawable2);
 
     // The image has the second drawable as expected.
     assertThat(imageView.getDrawable()).isEqualTo(drawable2);
@@ -449,7 +449,7 @@ public class ImageElementAdapterTest {
 
   private void assertDrawableSet(ImageView imageView) {
     verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
-    callbackCaptor.getValue().accept(defaultDrawable);
+    callbackCaptor.getValue().handleResult(defaultDrawable);
     assertThat(imageView.getDrawable()).isEqualTo(defaultDrawable);
     assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
   }

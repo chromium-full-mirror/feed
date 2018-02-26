@@ -23,7 +23,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
-import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
@@ -170,7 +170,7 @@ public class ImageElementAdapter
         ViewUtils.dpToPx(style.getPadding().getTop() + style.getPadding().getBottom(), context);
   }
 
-  private static class LoadImageCallback implements Consumer<Drawable> {
+  private static class LoadImageCallback implements Callback<Drawable> {
     private final ImageView imageView;
     boolean cancelled = false;
 
@@ -179,7 +179,7 @@ public class ImageElementAdapter
     }
 
     @Override
-    public void accept(Drawable drawable) {
+    public void handleResult(Drawable drawable) {
       if (!cancelled) {
         imageView.setImageDrawable(drawable);
         imageView.setScaleType(ScaleType.CENTER_CROP);
