@@ -15,16 +15,16 @@
 package com.google.android.libraries.feed.piet.host;
 
 import android.graphics.drawable.Drawable;
-import com.google.android.libraries.feed.host.common.Callback;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 
 /** Provide Assets from the host */
 public interface AssetProvider {
   /**
    * Given an {@link Image}, asynchronously load the {@link Drawable} and return via a {@link
-   * Callback}.
+   * Consumer}.
    */
-  void getImage(Image image, Callback<Drawable> callback);
+  void getImage(Image image, Consumer<Drawable> callback);
 
   /** Return a relative elapsed time string such as "8 minutes ago" or "1 day ago". */
   String getRelativeElapsedString(long elapsedTimeMillis);

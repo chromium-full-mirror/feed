@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.api.sessionmanager;
 
-import com.google.android.libraries.feed.host.common.Callback;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayloadWithId;
@@ -57,7 +57,7 @@ public interface SessionManager {
    * both the payload and the content id of the payload.
    */
   void getStreamFeatures(
-      List<StreamContentId> contentIds, Callback<List<StreamPayloadWithId>> callback);
+      List<StreamContentId> contentIds, Consumer<List<StreamPayloadWithId>> callback);
 
   /**
    * Return the shared state. This operation will be fast, so it can be called on the UI Thread.
