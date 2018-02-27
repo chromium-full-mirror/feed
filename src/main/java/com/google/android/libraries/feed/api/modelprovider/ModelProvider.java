@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
+import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import javax.annotation.Nullable;
@@ -39,6 +40,10 @@ public interface ModelProvider {
    */
   @Nullable
   ModelFeature getRootFeature();
+
+  /** Return a ModelChild for a {@link StreamContentId} */
+  @Nullable
+  ModelChild getModelChild(StreamContentId contentId);
 
   /**
    * Returns a {@code StreamSharedState} containing shared state such as the Piet shard state.

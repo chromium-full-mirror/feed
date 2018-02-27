@@ -106,7 +106,7 @@ public class EmptyStreamTest {
 
     WireProtocolInfo protocolInfo = responseBuilder.getWireProtocolInfo();
     // No features added
-    assertThat(protocolInfo.featureCount).isEqualTo(0);
+    assertThat(protocolInfo.featuresAdded).hasSize(0);
     assertThat(protocolInfo.hasClearOperation).isFalse();
   }
 }

@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.common.testing;
 
+import com.google.protobuf.ByteString;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation.Operation;
@@ -22,14 +24,29 @@ import com.google.search.now.wire.feed.FeatureProto.Feature.RenderableUnit;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
 import com.google.search.now.wire.feed.PayloadMetadataProto.PayloadMetadata;
 import com.google.search.now.wire.feed.ResponseProto.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Builder making creation of wire protocol Response object easier. */
 public class WireProtocolResponseBuilder {
   public static final ContentId ROOT_CONTENT_ID =
       ContentId.newBuilder().setContentDomain("root-feature").setId(1).setTable("feature").build();
+  public static final ContentId PIET_SHARED_STATE =
+      ContentId.newBuilder()
+          .setContentDomain("piet-shared-state")
+          .setId(1)
+          .setTable("feature")
+          .build();
+  private static final int CONTENT_ID_CARD_INCREMENT = 100;
+
+  public static ContentId createFeatureContentId(int id) {
+    return ContentId.newBuilder().setContentDomain("feature").setId(id).setTable("feature").build();
+  }
 
   private final WireProtocolInfo wireProtocolInfo = new WireProtocolInfo();
   private final FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
+
+  private ByteString token = null;
 
   /** Add a CLEAR_ALL data operation to the response */
   public WireProtocolResponseBuilder addClearOperation() {
@@ -39,11 +56,30 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
+  public WireProtocolResponseBuilder addStreamToken(ByteString token) {
+    this.token = token;
+    return this;
+  }
+
+  public WireProtocolResponseBuilder addPietSharedState() {
+    PayloadMetadata payloadMetadata =
+        PayloadMetadata.newBuilder().setContentId(PIET_SHARED_STATE).build();
+    feedResponseBuilder.addDataOperation(
+        DataOperation.newBuilder()
+            .setOperation(Operation.UPDATE_OR_APPEND)
+            .setPietSharedState(PietSharedState.getDefaultInstance())
+            .setMetadata(payloadMetadata)
+            .build());
+    return this;
+  }
+
   /** Add a data operation for a feature that represents the Root of the Stream. */
   public WireProtocolResponseBuilder addRootFeature() {
-    wireProtocolInfo.featureCount++;
-    PayloadMetadata payloadMetadata =
-        PayloadMetadata.newBuilder().setContentId(ROOT_CONTENT_ID).build();
+    return addRootFeature(ROOT_CONTENT_ID);
+  }
+
+  public WireProtocolResponseBuilder addRootFeature(ContentId contentId) {
+    PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
     Feature feature = Feature.newBuilder().setRenderableUnit(RenderableUnit.STREAM).build();
 
     feedResponseBuilder.addDataOperation(
@@ -52,10 +88,47 @@ public class WireProtocolResponseBuilder {
             .setFeature(feature)
             .setMetadata(payloadMetadata)
             .build());
+    wireProtocolInfo.featuresAdded.add(contentId);
+    return this;
+  }
+
+  public WireProtocolResponseBuilder addCard(ContentId contentId, ContentId parentId) {
+    // Create a Card
+    PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
+    Feature feature =
+        Feature.newBuilder().setRenderableUnit(RenderableUnit.CARD).setParentId(parentId).build();
+    feedResponseBuilder.addDataOperation(
+        DataOperation.newBuilder()
+            .setOperation(Operation.UPDATE_OR_APPEND)
+            .setFeature(feature)
+            .setMetadata(payloadMetadata)
+            .build());
+    wireProtocolInfo.featuresAdded.add(contentId);
+
+    // Create content within the Card
+    payloadMetadata =
+        PayloadMetadata.newBuilder()
+            .setContentId(createNewContentId(contentId, CONTENT_ID_CARD_INCREMENT))
+            .build();
+    feature =
+        Feature.newBuilder()
+            .setRenderableUnit(RenderableUnit.CONTENT)
+            .setParentId(contentId)
+            .build();
+    feedResponseBuilder.addDataOperation(
+        DataOperation.newBuilder()
+            .setOperation(Operation.UPDATE_OR_APPEND)
+            .setFeature(feature)
+            .setMetadata(payloadMetadata)
+            .build());
+    wireProtocolInfo.featuresAdded.add(payloadMetadata.getContentId());
     return this;
   }
 
   public Response build() {
+    if (token != null) {
+      feedResponseBuilder.setNextPageToken(token);
+    }
     return Response.newBuilder()
         .setExtension(FeedResponse.feedResponse, feedResponseBuilder.build())
         .build();
@@ -68,6 +141,12 @@ public class WireProtocolResponseBuilder {
   /** Captures information about the wire protocol that was created. */
   public static class WireProtocolInfo {
     public boolean hasClearOperation = false;
-    public int featureCount = 0;
+    public List<ContentId> featuresAdded = new ArrayList<>();
+  }
+
+  private ContentId createNewContentId(ContentId contentId, int idIncrement) {
+    ContentId.Builder builder = contentId.toBuilder();
+    builder.setId(contentId.getId() + idIncrement);
+    return builder.build();
   }
 }

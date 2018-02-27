@@ -22,19 +22,12 @@ import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import com.google.search.now.ui.piet.PietProto.PietSharedState;
-import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
-import com.google.search.now.wire.feed.DataOperationProto.DataOperation.Operation;
-import com.google.search.now.wire.feed.FeatureProto.Feature;
-import com.google.search.now.wire.feed.FeatureProto.Feature.RenderableUnit;
-import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
-import com.google.search.now.wire.feed.PayloadMetadataProto.PayloadMetadata;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
@@ -48,28 +41,26 @@ import org.mockito.Mock;
 /** Tests of the {@link FeedProtocolAdapter} class. */
 @RunWith(RobolectricTestRunner.class)
 public class FeedProtocolAdapterTest {
-  private final ContentId rootContentId =
-      ContentId.newBuilder().setContentDomain("stream_root").setId(0).setTable("feature").build();
-
   @Mock private SessionManager sessionManager;
 
   private final InternalProtocolUtils protocolUtils = new InternalProtocolUtils();
   private final TimingUtils timingUtils = new TimingUtils();
   private FakeSessionMutation sessionMutation;
+  private WireProtocolResponseBuilder responseBuilder;
 
   @Before
   public void init() {
     initMocks(this);
     sessionMutation = new FakeSessionMutation();
     when(sessionManager.edit()).thenReturn(sessionMutation);
+    responseBuilder = new WireProtocolResponseBuilder();
   }
 
   @Test
   public void testConvertContentId() {
     FeedProtocolAdapter protocolAdapter =
         new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
-    ContentId contentId =
-        ContentId.newBuilder().setContentDomain("domain").setId(13).setTable("table").build();
+    ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
     StreamContentId streamContentId = protocolAdapter.getStreamContentId(contentId);
     assertThat(streamContentId).isNotNull();
     assertThat(streamContentId.getContentDomain()).isEqualTo(contentId.getContentDomain());
@@ -84,9 +75,8 @@ public class FeedProtocolAdapterTest {
     ByteString token = ByteString.copyFromUtf8("token");
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
     protocolAdapter.streamTokens.put(token.hashCode(), streamToken);
-    FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
-    feedResponseBuilder.addDataOperation(getClearOperation());
-    Response response = createResponse(feedResponseBuilder.build());
+
+    Response response = responseBuilder.addClearOperation().build();
     protocolAdapter.createModel(response, token);
     assertThat(sessionMutation.streamToken.getNextPageToken()).isEqualTo(token);
     assertThat(sessionMutation.operations).hasSize(1);
@@ -96,9 +86,8 @@ public class FeedProtocolAdapterTest {
   public void testSimpleResponse_feature() {
     FeedProtocolAdapter protocolAdapter =
         new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
-    FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
-    feedResponseBuilder.addDataOperation(getWireDataOperation());
-    Response response = createResponse(feedResponseBuilder.build());
+    Response response = responseBuilder.addRootFeature().build();
+
     protocolAdapter.createModel(response, null);
     assertThat(sessionMutation.streamToken).isNull();
     assertThat(sessionMutation.operations).hasSize(1);
@@ -107,16 +96,15 @@ public class FeedProtocolAdapterTest {
     assertThat(sdo.getStreamPayload().hasStreamFeature()).isTrue();
     assertThat(sdo.hasStreamStructure()).isTrue();
     assertThat(sdo.getStreamStructure().hasContentId()).isTrue();
-    assertThat(sdo.getStreamStructure().hasParentContentId()).isTrue();
+    // Added the root
+    assertThat(sdo.getStreamStructure().hasParentContentId()).isFalse();
   }
 
   @Test
   public void testPietSharedState() {
     FeedProtocolAdapter protocolAdapter =
         new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
-    FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
-    feedResponseBuilder.addDataOperation(getPietDataOperation());
-    Response response = createResponse(feedResponseBuilder.build());
+    Response response = responseBuilder.addPietSharedState().build();
     protocolAdapter.createModel(response, null);
     assertThat(sessionMutation.streamToken).isNull();
     assertThat(sessionMutation.operations).hasSize(1);
@@ -131,11 +119,9 @@ public class FeedProtocolAdapterTest {
   public void testContinuationToken_nextPageToken() {
     FeedProtocolAdapter protocolAdapter =
         new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
-    FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
-    feedResponseBuilder.setNextPageToken(tokenForMutation);
+    Response response = responseBuilder.addStreamToken(tokenForMutation).build();
 
-    Response response = createResponse(feedResponseBuilder.build());
     protocolAdapter.createModel(response, tokenForMutation);
     assertThat(sessionMutation.operations).hasSize(1);
     StreamDataOperation sdo = sessionMutation.operations.get(0);
@@ -147,55 +133,13 @@ public class FeedProtocolAdapterTest {
   public void testContinuationToken_responseFromToken() {
     FeedProtocolAdapter protocolAdapter =
         new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
-    FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
+    Response response = responseBuilder.addStreamToken(tokenForMutation).build();
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(tokenForMutation).build();
     protocolAdapter.streamTokens.put(tokenForMutation.hashCode(), streamToken);
 
-    Response response = createResponse(feedResponseBuilder.build());
     protocolAdapter.createModel(response, tokenForMutation);
     assertThat(sessionMutation.streamToken.getNextPageToken()).isEqualTo(tokenForMutation);
-  }
-
-  private DataOperation getClearOperation() {
-    return DataOperation.newBuilder().setOperation(Operation.CLEAR_ALL).build();
-  }
-
-  private DataOperation getWireDataOperation() {
-    ContentId contentId =
-        ContentId.newBuilder().setContentDomain("feature").setId(1).setTable("feature").build();
-    PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
-    Feature feature =
-        Feature.newBuilder()
-            .setParentId(rootContentId)
-            .setRenderableUnit(RenderableUnit.CARD)
-            .setExtension(Card.cardExtension, Card.getDefaultInstance())
-            .build();
-
-    return DataOperation.newBuilder()
-        .setOperation(Operation.UPDATE_OR_APPEND)
-        .setFeature(feature)
-        .setMetadata(payloadMetadata)
-        .build();
-  }
-
-  private DataOperation getPietDataOperation() {
-    ContentId contentId =
-        ContentId.newBuilder()
-            .setContentDomain("piet-shared-state")
-            .setId(1)
-            .setTable("feature")
-            .build();
-    PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
-    return DataOperation.newBuilder()
-        .setOperation(Operation.UPDATE_OR_APPEND)
-        .setPietSharedState(PietSharedState.getDefaultInstance())
-        .setMetadata(payloadMetadata)
-        .build();
-  }
-
-  private Response createResponse(FeedResponse feedResponse) {
-    return Response.newBuilder().setExtension(FeedResponse.feedResponse, feedResponse).build();
   }
 
   private static class FakeSessionMutation implements SessionMutation {

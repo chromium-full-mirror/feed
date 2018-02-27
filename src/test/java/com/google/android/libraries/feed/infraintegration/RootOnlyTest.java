@@ -15,11 +15,15 @@
 package com.google.android.libraries.feed.infraintegration;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -28,6 +32,7 @@ import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,30 +62,48 @@ public class RootOnlyTest {
   }
 
   @Test
-  public void rootOnlyResponse_beforeSession() {
-    // ModelProvider is created from $HEAD
+  public void rootOnlyResponse_beforeSessionWithLifecycle() {
+    // ModelProvider is created from $HEAD containing content
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
     protocolAdapter.createModel(responseBuilder.build(), null);
     ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
 
+    ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
+    modelProvider.registerObserver(changeObserver);
+    verify(changeObserver).onSessionStart();
+    verify(changeObserver, never()).onRootSet();
+    verify(changeObserver, never()).onSessionFinished();
+
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     modelValidator.assertRoot(modelProvider);
 
     WireProtocolInfo protocolInfo = responseBuilder.getWireProtocolInfo();
     // 1 root
-    assertThat(protocolInfo.featureCount).isEqualTo(1);
+    assertThat(protocolInfo.featuresAdded).hasSize(1);
     assertThat(protocolInfo.hasClearOperation).isTrue();
+
+    modelProvider.invalidate();
+    verify(changeObserver).onSessionFinished();
   }
 
   @Test
-  public void rootOnlyResponse_afterSession() {
+  public void rootOnlyResponse_afterSessionWithLifecycle() {
     // ModelProvider created from empty $HEAD, followed by a response adding head
+    // Verify the observer lifecycle is correctly called
+    ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
     ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    modelProvider.registerObserver(changeObserver);
+    verify(changeObserver).onSessionStart();
+    verify(changeObserver, never()).onRootSet();
+    verify(changeObserver, never()).onSessionFinished();
+
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addRootFeature();
     protocolAdapter.createModel(responseBuilder.build(), null);
+    verify(changeObserver).onRootSet();
+    verify(changeObserver, never()).onSessionFinished();
 
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -88,7 +111,35 @@ public class RootOnlyTest {
 
     WireProtocolInfo protocolInfo = responseBuilder.getWireProtocolInfo();
     // 1 root
-    assertThat(protocolInfo.featureCount).isEqualTo(1);
+    assertThat(protocolInfo.featuresAdded).hasSize(1);
     assertThat(protocolInfo.hasClearOperation).isFalse();
+
+    modelProvider.invalidate();
+    verify(changeObserver).onSessionFinished();
+  }
+
+  @Test
+  public void rootOnlyResponse_setSecondRoot() {
+    // Set the root in two different responses, verify the lifecycle is called correctly
+    // and the root is replaced
+    ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
+    WireProtocolResponseBuilder responseBuilder =
+        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    protocolAdapter.createModel(responseBuilder.build(), null);
+    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    modelProvider.registerObserver(changeObserver);
+    verify(changeObserver, never()).onRootSet();
+    modelValidator.assertRoot(modelProvider);
+
+    ContentId anotherRoot =
+        ContentId.newBuilder()
+            .setContentDomain("root-feature")
+            .setId(2)
+            .setTable("feature")
+            .build();
+    responseBuilder = new WireProtocolResponseBuilder().addRootFeature(anotherRoot);
+    protocolAdapter.createModel(responseBuilder.build(), null);
+    verify(changeObserver).onRootSet();
+    modelValidator.assertRoot(modelProvider, anotherRoot);
   }
 }

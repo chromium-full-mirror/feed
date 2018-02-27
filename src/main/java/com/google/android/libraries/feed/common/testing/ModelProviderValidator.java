@@ -15,12 +15,19 @@
 package com.google.android.libraries.feed.common.testing;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
+import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Helper class providing validation method for a ModelProvider. */
 public class ModelProviderValidator {
@@ -32,15 +39,41 @@ public class ModelProviderValidator {
   }
 
   public void assertRoot(ModelProvider modelProvider) {
+    assertRoot(modelProvider, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+  }
+
+  public void assertRoot(ModelProvider modelProvider, ContentId contentId) {
     ModelFeature modelFeature = modelProvider.getRootFeature();
     assertThat(modelFeature).isNotNull();
     assertStreamContentId(
         modelFeature.getStreamFeature().getContentId(),
-        protocolAdapter.getStreamContentId(WireProtocolResponseBuilder.ROOT_CONTENT_ID));
+        protocolAdapter.getStreamContentId(contentId));
   }
 
   public void assertStreamContentId(StreamContentId contentId, StreamContentId expectedContentId) {
     assertThat(protocolUtils.getContentIdKey(contentId))
         .isEqualTo(protocolUtils.getContentIdKey(expectedContentId));
+  }
+
+  public void verifyContent(ModelProvider modelProvider, List<ContentId> features) {
+    for (ContentId contentId : features) {
+      StreamContentId streamContentId = protocolAdapter.getStreamContentId(contentId);
+      if (modelProvider.getModelChild(streamContentId) == null) {
+        fail("Feature was not found for " + protocolUtils.getContentIdKey(streamContentId));
+      }
+    }
+  }
+
+  public void assertCardStructure(ModelChild modelChild) {
+    AtomicInteger cursorCount = new AtomicInteger();
+    assertThat(modelChild.getType()).isEqualTo(Type.FEATURE);
+    ModelFeature feature = modelChild.getModelFeature();
+    ModelCursor cursor = feature.getCursor();
+    while (cursor.advanceCursor(
+        child -> {
+          cursorCount.incrementAndGet();
+          assertThat(child.getType()).isEqualTo(Type.FEATURE);
+        })) {}
+    assertThat(cursorCount.get()).isEqualTo(1);
   }
 }
