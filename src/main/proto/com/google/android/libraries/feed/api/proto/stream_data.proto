@@ -15,7 +15,6 @@
 syntax = "proto2";
 
 import "src/main/proto/search/now/proto/ui/stream/stream_structure.proto";
-import "src/main/proto/search/now/proto/wire/feed/card_metadata.proto";
 import "src/main/proto/search/now/proto/wire/feed/piet_shared_state_item.proto";
 
 package search.now.feed.client;
@@ -69,9 +68,6 @@ message StreamFeature {
 
   // Define the payloads for the various types of nodes present in the tree.
   oneof feature_payload {
-    // Content defined through Piet.
-    search.now.proto.wire.feed.CardMetadata card_metadata = 3;
-
     // Stream structure which defines how a stream will work and look.
     search.now.ui.stream.Stream stream = 4;
 
