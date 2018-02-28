@@ -111,13 +111,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testMinimalModelProvider() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INITIALIZING);
 
     // Add a root to the model provider
@@ -143,13 +137,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testEmptyStream() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
 
     ModelMutator mutator = modelProvider.edit();
     mutator.commit();
@@ -159,13 +147,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testCursor() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     ModelMutator mutator = getRootedModelMutator(modelProvider);
     int featureCnt = 2;
     for (int i = 0; i < featureCnt; i++) {
@@ -188,13 +170,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testRemove() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     ModelMutator mutator = getRootedModelMutator(modelProvider);
     int featureCnt = 2;
     for (int i = 0; i < featureCnt; i++) {
@@ -214,13 +190,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testMultiLevelCursors() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     ModelMutator mutator = getRootedModelMutator(modelProvider);
 
     int featureCnt = 3;
@@ -265,13 +235,7 @@ public class FeedModelProviderTest {
     StreamSharedState streamSharedState = StreamSharedState.getDefaultInstance();
     when(sessionManager.getSharedState(contentId)).thenReturn(streamSharedState);
 
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     assertThat(modelProvider.getSharedState(contentId)).isEqualTo(streamSharedState);
   }
 
@@ -290,13 +254,7 @@ public class FeedModelProviderTest {
     ModelToken modelToken = mock(ModelToken.class);
     when(modelToken.getStreamToken()).thenReturn(streamToken);
 
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     modelProvider.handleToken(modelToken);
     verify(sessionManager).handleToken(streamToken);
   }
@@ -304,13 +262,7 @@ public class FeedModelProviderTest {
   @Test
   public void testInvalidate() {
     // Create a valid model
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     ModelMutator mutator = modelProvider.edit();
     StreamFeature rootStreamFeature = getRootFeature();
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
@@ -327,13 +279,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testObserverLifecycle() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     ModelProviderObserver observer1 = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer1);
     verify(observer1, never()).onSessionStart();
@@ -360,13 +306,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testObserverLifecycle_resetRoot() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
     verify(observer, never()).onSessionStart();
@@ -393,13 +333,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testObserverList() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
 
@@ -410,13 +344,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testInitializationModelMutationHandler() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INITIALIZING);
@@ -429,13 +357,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testTokens() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
 
     int featureCnt = 3;
     StreamToken streamToken = initializeStreamWithToken(modelProvider, featureCnt);
@@ -461,13 +383,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testTokenMutation() {
-    FeedModelProvider modelProvider =
-        new FeedModelProvider(
-            sessionManager,
-            threadUtils,
-            timingUtils,
-            internalProtocolUtils,
-            new UiRunnableHandlerImpl());
+    FeedModelProvider modelProvider = createFeedModelProvider();
 
     int featureCnt = 3;
     StreamToken streamToken = initializeStreamWithToken(modelProvider, featureCnt);
@@ -523,6 +439,15 @@ public class FeedModelProviderTest {
     mutator.commit();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     return streamToken;
+  }
+
+  private FeedModelProvider createFeedModelProvider() {
+    return new FeedModelProvider(
+        sessionManager,
+        threadUtils,
+        timingUtils,
+        internalProtocolUtils,
+        new UiRunnableHandlerImpl());
   }
 
   private StreamFeature createFeature(int i, StreamContentId parentContentId) {
