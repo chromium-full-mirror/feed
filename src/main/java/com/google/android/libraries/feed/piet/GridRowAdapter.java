@@ -129,7 +129,7 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
   }
 
   private ElementListAdapter getCellFromElementList(GridCell cell, FrameContext frameContext) {
-    ElementList list = checkNotNull(cell.getElementList());
+    ElementList list = cell.getElementList();
 
     // Most GridCells will only contain a single element in their list. We could consider an
     // optimization where we omit the list and just insert the single element's view. But this has
@@ -158,7 +158,7 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
   /** Create an Adapter for the {@code ElementList}. */
   private ElementListAdapter getAdapterForChildList(ElementList list, FrameContext frameContext) {
     ElementListAdapter listAdapter =
-        checkNotNull(getParameters().adapterFactory.createElementListAdapter(list, frameContext));
+        getParameters().adapterFactory.createElementListAdapter(list, frameContext);
     addChildAdapter(listAdapter);
     return listAdapter;
   }

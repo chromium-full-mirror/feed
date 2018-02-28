@@ -96,10 +96,11 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
     for (Element line : list.getElementsList()) {
       // TODO: reuse existing adapter from childAdapters if rebinding template.
       ElementAdapter<? extends View, ?, ?> adapter = getAdapterForChildElement(line, frameContext);
-      if (adapter.getView() != null) {
-        viewGroup.addView(adapter.getView());
+      View adapterView = adapter.getView();
+      if (adapterView != null) {
+        viewGroup.addView(adapterView);
         LinearLayout.LayoutParams params =
-            new LinearLayout.LayoutParams(adapter.getView().getLayoutParams());
+            new LinearLayout.LayoutParams(adapterView.getLayoutParams());
 
         adapter.getElementStyle().setMargins(getContext(), params);
 
@@ -117,7 +118,7 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
             params.gravity = Gravity.NO_GRAVITY;
         }
 
-        adapter.getView().setLayoutParams(params);
+        adapterView.setLayoutParams(params);
       }
     }
   }
@@ -125,8 +126,7 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
   private ElementAdapter<? extends View, ?, ?> getAdapterForChildElement(
       Element contentLine, FrameContext frameContext) {
     ElementAdapter<? extends View, ?, ?> adapter =
-        checkNotNull(
-            getParameters().adapterFactory.createAdapterForElement(contentLine, frameContext));
+        getParameters().adapterFactory.createAdapterForElement(contentLine, frameContext);
     addChildAdapter(adapter);
     return adapter;
   }
