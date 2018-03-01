@@ -17,17 +17,15 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.view.View;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
-import com.google.android.libraries.feed.piet.CustomElementAdapter.Key;
+import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 
 /** Adapter that manages a custom view created by the host. */
-public class CustomElementAdapter extends ElementAdapter<View, CustomElement, Key> {
+public class CustomElementAdapter extends ElementAdapter<View, CustomElement> {
   private static final String TAG = "CustomElementAdapter";
-  private static final CustomElementAdapter.Key SINGLETON_KEY = new CustomElementAdapter.Key();
 
   public CustomElementAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
@@ -60,7 +58,7 @@ public class CustomElementAdapter extends ElementAdapter<View, CustomElement, Ke
     }
 
     View v = frameContext.getCustomElementProvider().createCustomElement(customElementData);
-    initializeAdapter(v, SINGLETON_KEY);
+    initializeAdapter(v, KeySupplier.SINGLETON_KEY);
   }
 
   @Override
@@ -72,8 +70,7 @@ public class CustomElementAdapter extends ElementAdapter<View, CustomElement, Ke
 
   static final class Key {}
 
-  static class KeySupplier
-      implements AdapterKeySupplier<CustomElementAdapter, CustomElement, CustomElementAdapter.Key> {
+  static class KeySupplier extends SingletonKeySupplier<CustomElementAdapter, CustomElement> {
     @Override
     public String getAdapterTag() {
       return TAG;
@@ -82,16 +79,6 @@ public class CustomElementAdapter extends ElementAdapter<View, CustomElement, Ke
     @Override
     public CustomElementAdapter getAdapter(Context context, AdapterParameters parameters) {
       return new CustomElementAdapter(context, parameters);
-    }
-
-    @Override
-    public CustomElementAdapter.Key getKey(FrameContext frameContext, CustomElement model) {
-      return SINGLETON_KEY;
-    }
-
-    @Override
-    public boolean isSingletonKey() {
-      return false;
     }
   }
 }

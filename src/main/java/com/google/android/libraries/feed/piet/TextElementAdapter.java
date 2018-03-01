@@ -39,8 +39,7 @@ import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import javax.annotation.Nullable;
 
 /** A {@link BoundViewAdapter} which manages {@code TextLine} slices. */
-public class TextElementAdapter
-    extends ElementAdapter<TextView, TextElement, TextElementAdapter.Key> {
+public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
   private static final String TAG = "TextElementAdapter";
 
   TextElementAdapter(Context context, AdapterParameters parameters) {
@@ -205,7 +204,7 @@ public class TextElementAdapter
     return textView;
   }
 
-  static class KeySupplier implements AdapterKeySupplier<TextElementAdapter, TextElement, Key> {
+  static class KeySupplier implements AdapterKeySupplier<TextElementAdapter, TextElement> {
     @Override
     public String getAdapterTag() {
       return TAG;
@@ -221,37 +220,18 @@ public class TextElementAdapter
       StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences(), true);
       return new Key(styleProvider.getFont());
     }
-
-    @Override
-    public boolean isSingletonKey() {
-      return false;
-    }
   }
 
   /** We will Key TextViews off of the Ellipsizing, Font Size and FontWeight, and Italics. */
-  static class Key {
+  static class Key extends RecyclerKey {
     private int size;
-
     private FontWeight fontWeight;
-
     private boolean italic;
 
     Key(Font font) {
       size = font.getSize();
       fontWeight = font.getWeight();
       italic = font.getItalic();
-    }
-
-    public int getSize() {
-      return size;
-    }
-
-    public FontWeight getFontWeight() {
-      return fontWeight;
-    }
-
-    public boolean isItalic() {
-      return italic;
     }
 
     @Override

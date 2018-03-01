@@ -22,9 +22,9 @@ import javax.annotation.Nullable;
  *
  * <p>TODO: This should be made real so it supports control of the pool size
  */
-public class KeyedRecyclerPool<K, A extends BoundViewAdapter<?, K>> implements RecyclerPool<K, A> {
+public class KeyedRecyclerPool<A extends BoundViewAdapter<?>> implements RecyclerPool<A> {
 
-  private final LruCache<K, SingleKeyRecyclerPool<K, A>> poolMap;
+  private final LruCache<RecyclerKey, SingleKeyRecyclerPool<A>> poolMap;
   private final int capacityPerPool;
 
   KeyedRecyclerPool(int maxKeys, int capacityPerPool) {
@@ -34,11 +34,11 @@ public class KeyedRecyclerPool<K, A extends BoundViewAdapter<?, K>> implements R
 
   @Override
   @Nullable
-  public A get(K key) {
+  public A get(RecyclerKey key) {
     if (key == null) {
       return null;
     }
-    SingleKeyRecyclerPool<K, A> pool = poolMap.get(key);
+    SingleKeyRecyclerPool<A> pool = poolMap.get(key);
     if (pool == null) {
       return null;
     } else {
@@ -47,11 +47,11 @@ public class KeyedRecyclerPool<K, A extends BoundViewAdapter<?, K>> implements R
   }
 
   @Override
-  public void put(K key, A adapter) {
+  public void put(RecyclerKey key, A adapter) {
     if (key == null) {
       throw new NullPointerException(String.format("null key for %s", adapter));
     }
-    SingleKeyRecyclerPool<K, A> pool = poolMap.get(key);
+    SingleKeyRecyclerPool<A> pool = poolMap.get(key);
     if (pool == null) {
       pool = new SingleKeyRecyclerPool<>(key, capacityPerPool);
       poolMap.put(key, pool);

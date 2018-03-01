@@ -105,7 +105,7 @@ public class FrameAdapterTest {
   public void testGetBoundAdapterForSlice() {
     Slice slice = getBaseSlice();
 
-    ElementAdapter<?, ?, ?> viewAdapter = frameAdapter.getBoundAdapterForSlice(slice, frameContext);
+    ElementAdapter<?, ?> viewAdapter = frameAdapter.getBoundAdapterForSlice(slice, frameContext);
     assertThat(viewAdapter).isSameAs(elementListAdapter);
 
     slice = Slice.newBuilder().setTemplateSlice(TemplateInvocation.getDefaultInstance()).build();

@@ -18,14 +18,15 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
+import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import java.util.ArrayList;
 import java.util.List;
 
 /** Container adapter that controls a ViewGroup of other elements. */
-public abstract class ViewGroupBoundViewAdapter<V extends ViewGroup, M, K>
-    extends ElementAdapter<V, M, K> {
+public abstract class ViewGroupBoundViewAdapter<V extends ViewGroup, M>
+    extends ElementAdapter<V, M> {
 
-  @VisibleForTesting final List<ElementAdapter<? extends View, ?, ?>> childAdapters;
+  @VisibleForTesting final List<ElementAdapter<? extends View, ?>> childAdapters;
 
   ViewGroupBoundViewAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
@@ -51,18 +52,23 @@ public abstract class ViewGroupBoundViewAdapter<V extends ViewGroup, M, K>
   }
 
   protected void releaseChildren() {
-    for (ElementAdapter<?, ?, ?> childAdapter : childAdapters) {
+    for (ElementAdapter<?, ?> childAdapter : childAdapters) {
       getParameters().adapterFactory.releaseAdapter(childAdapter);
     }
   }
 
-  protected void addChildAdapter(ElementAdapter<? extends View, ?, ?> adapter) {
+  protected void addChildAdapter(ElementAdapter<? extends View, ?> adapter) {
     childAdapters.add(adapter);
   }
 
   /** Creates the base ViewGroup for this adapter. */
   protected abstract V createViewGroup();
 
-  /** Creates a recycler pool key for this adapter based on the model (or returns SINGLETON_KEY). */
-  protected abstract K createKey();
+  /**
+   * Creates a {@link RecyclerKey} for this adapter based on the model (or returns SINGLETON_KEY if
+   * all adapters of this type are compatible for recycling).
+   */
+  protected RecyclerKey createKey() {
+    return SingletonKeySupplier.SINGLETON_KEY;
+  }
 }

@@ -28,23 +28,16 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
-import com.google.search.now.ui.piet.ImagesProto.Image;
 
 /** Provides methods to create various adapter types based on bindings. */
 class ElementAdapterFactory {
-  private final AdapterFactory<CustomElementAdapter, CustomElement, CustomElementAdapter.Key>
-      customElementFactory;
-  private final AdapterFactory<TextElementAdapter, TextElement, TextElementAdapter.Key>
-      textElementFactory;
-  private final AdapterFactory<ImageElementAdapter, ImageElement, ImageElementAdapter.Key>
-      imageElementFactory;
-  private final AdapterFactory<SpacerElementAdapter, SpacerElement, SpacerElementAdapter.Key>
-      spacerElementFactory;
-  private final AdapterFactory<GridRowAdapter, GridRow, GridRowAdapter.Key> gridRowFactory;
-  private final AdapterFactory<ElementListAdapter, ElementList, ElementListAdapter.Key>
-      elementListFactory;
-  private final AdapterFactory<
-          TemplateInvocationAdapter, TemplateInvocation, TemplateInvocationAdapter.Key>
+  private final AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory;
+  private final AdapterFactory<TextElementAdapter, TextElement> textElementFactory;
+  private final AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory;
+  private final AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory;
+  private final AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
+  private final AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
+  private final AdapterFactory<TemplateInvocationAdapter, TemplateInvocation>
       templateInvocationFactory;
 
   ElementAdapterFactory(Context context, AdapterParameters parameters) {
@@ -66,17 +59,13 @@ class ElementAdapterFactory {
   /** Testing-only constructor for mocking the factories. */
   @VisibleForTesting
   ElementAdapterFactory(
-      AdapterFactory<CustomElementAdapter, CustomElement, CustomElementAdapter.Key>
-          customElementFactory,
-      AdapterFactory<TextElementAdapter, TextElement, TextElementAdapter.Key> textElementFactory,
-      AdapterFactory<ImageElementAdapter, ImageElement, ImageElementAdapter.Key>
-          imageElementFactory,
-      AdapterFactory<SpacerElementAdapter, SpacerElement, SpacerElementAdapter.Key>
-          spacerElementFactory,
-      AdapterFactory<GridRowAdapter, GridRow, GridRowAdapter.Key> gridRowFactory,
-      AdapterFactory<ElementListAdapter, ElementList, ElementListAdapter.Key> elementListFactory,
-      AdapterFactory<TemplateInvocationAdapter, TemplateInvocation, TemplateInvocationAdapter.Key>
-          templateInvocationFactory) {
+      AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory,
+      AdapterFactory<TextElementAdapter, TextElement> textElementFactory,
+      AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory,
+      AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory,
+      AdapterFactory<GridRowAdapter, GridRow> gridRowFactory,
+      AdapterFactory<ElementListAdapter, ElementList> elementListFactory,
+      AdapterFactory<TemplateInvocationAdapter, TemplateInvocation> templateInvocationFactory) {
     this.customElementFactory = customElementFactory;
     this.textElementFactory = textElementFactory;
     this.imageElementFactory = imageElementFactory;
@@ -86,7 +75,7 @@ class ElementAdapterFactory {
     this.templateInvocationFactory = templateInvocationFactory;
   }
 
-  ElementAdapter<? extends View, ?, ?> createAdapterForElement(
+  ElementAdapter<? extends View, ?> createAdapterForElement(
       Element element, FrameContext frameContext) {
     switch (element.getElementsCase()) {
       case CUSTOM_ELEMENT:
@@ -135,7 +124,7 @@ class ElementAdapterFactory {
     return templateInvocationFactory.get(templateInvocation, frameContext);
   }
 
-  void releaseAdapter(ElementAdapter<? extends View, ?, ?> adapter) {
+  void releaseAdapter(ElementAdapter<? extends View, ?> adapter) {
     if (adapter instanceof CustomElementAdapter) {
       customElementFactory.release((CustomElementAdapter) adapter);
     } else if (adapter instanceof TextElementAdapter) {

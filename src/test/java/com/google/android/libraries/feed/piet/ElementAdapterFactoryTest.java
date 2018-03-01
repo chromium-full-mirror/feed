@@ -38,7 +38,6 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
-import com.google.search.now.ui.piet.ImagesProto.Image;
 import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,34 +63,21 @@ public class ElementAdapterFactoryTest {
   @Mock private ElementListAdapter elementListAdapter;
   @Mock private TemplateInvocationAdapter templateAdapter;
 
-  @Mock
-  private AdapterFactory<CustomElementAdapter, CustomElement, CustomElementAdapter.Key>
-      customElementFactory;
+  @Mock private AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory;
 
-  @Mock
-  private AdapterFactory<TextElementAdapter, TextElement, TextElementAdapter.Key>
-      textElementFactory;
+  @Mock private AdapterFactory<TextElementAdapter, TextElement> textElementFactory;
 
-  @Mock
-  private AdapterFactory<ImageElementAdapter, ImageElement, ImageElementAdapter.Key>
-      imageElementFactory;
+  @Mock private AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory;
 
-  @Mock
-  private AdapterFactory<SpacerElementAdapter, SpacerElement, SpacerElementAdapter.Key>
-      spacerElementFactory;
+  @Mock private AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory;
 
-  @Mock private AdapterFactory<GridRowAdapter, GridRow, GridRowAdapter.Key> gridRowFactory;
+  @Mock private AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
 
-  @Mock
-  private AdapterFactory<ElementListAdapter, ElementList, ElementListAdapter.Key>
-      elementListFactory;
+  @Mock private AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
 
-  @Mock
-  private AdapterFactory<
-          TemplateInvocationAdapter, TemplateInvocation, TemplateInvocationAdapter.Key>
-      templateFactory;
+  @Mock private AdapterFactory<TemplateInvocationAdapter, TemplateInvocation> templateFactory;
 
-  private final List<AdapterFactory<?, ?, ?>> adapterFactories = new ArrayList<>();
+  private final List<AdapterFactory<?, ?>> adapterFactories = new ArrayList<>();
 
   private ElementAdapterFactory adapterFactory;
 
@@ -197,7 +183,7 @@ public class ElementAdapterFactoryTest {
         ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
     BindingValue bindingValue = BindingValue.newBuilder().setElementList(elementList).build();
     when(frameContext.getElementListBindingValue(bindingRef)).thenReturn(bindingValue);
-    ElementAdapter<?, ?, ?> adapter = adapterFactory.createAdapterForElement(element, frameContext);
+    ElementAdapter<?, ?> adapter = adapterFactory.createAdapterForElement(element, frameContext);
     ArgumentCaptor<ElementList> captor = ArgumentCaptor.forClass(ElementList.class);
     verify(elementListFactory).get(captor.capture(), eq(element), eq(frameContext));
     assertThat(adapter).isSameAs(elementListAdapter);
@@ -213,7 +199,7 @@ public class ElementAdapterFactoryTest {
         TemplateInvocation.newBuilder().setTemplateId("potato").build();
     when(frameContext.getTemplateInvocationFromBinding(bindingRef)).thenReturn(templateInvocation);
 
-    ElementAdapter<?, ?, ?> adapter = adapterFactory.createAdapterForElement(element, frameContext);
+    ElementAdapter<?, ?> adapter = adapterFactory.createAdapterForElement(element, frameContext);
 
     verify(templateFactory).get(templateInvocation, element, frameContext);
     assertThat(adapter).isSameAs(templateAdapter);
@@ -309,7 +295,7 @@ public class ElementAdapterFactoryTest {
   }
 
   private void testNoOtherFactoryInteractions() {
-    for (AdapterFactory<?, ?, ?> adapterFactory : adapterFactories) {
+    for (AdapterFactory<?, ?> adapterFactory : adapterFactories) {
       verifyNoMoreInteractions(adapterFactory);
     }
   }

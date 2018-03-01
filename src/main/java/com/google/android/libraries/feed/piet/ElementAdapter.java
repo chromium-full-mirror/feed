@@ -44,11 +44,8 @@ import javax.annotation.Nullable;
  * @param <V> A subclass of an Android View. This is the root level view the adapter is responsible
  *     for creating. Once created, it should have the same lifetime as the adapter.
  * @param <M> The model. This is the model type which is bound to the view by the adapter.
- * @param <K> A Key object which identifies the adapter instance. This allows support for recycling
- *     Views (and adapter) based upon how they are created initially when the first Model is bound
- *     to them. A Model may have multiple different types of adapter instances.
  */
-public abstract class ElementAdapter<V extends View, M, K> implements BoundViewAdapter<M, K> {
+public abstract class ElementAdapter<V extends View, M> implements BoundViewAdapter<M> {
   private static final String TAG = "ElementAdapter";
 
   // Singleton default UiElement that we can share among all instances (since protos are immutable)
@@ -60,7 +57,7 @@ public abstract class ElementAdapter<V extends View, M, K> implements BoundViewA
   @Nullable private V view;
   @Nullable private M model;
   private Element baseElement = DEFAULT_ELEMENT;
-  private K key;
+  private RecyclerKey key;
   private FrameContext frameContext;
 
   @Nullable private FrameLayout overlayView = null;
@@ -250,13 +247,13 @@ public abstract class ElementAdapter<V extends View, M, K> implements BoundViewA
    * by the Adapter and the Key based upon the Model type. All Views will have a Tag point to their
    * Adapter.
    */
-  void initializeAdapter(V view, K key) {
+  void initializeAdapter(V view, RecyclerKey key) {
     this.view = view;
     this.key = key;
   }
 
   @Override
-  public K getKey() {
+  public RecyclerKey getKey() {
     // There are Adapters which don't hold on to their views.  How do we want to mark them?
     return key;
   }

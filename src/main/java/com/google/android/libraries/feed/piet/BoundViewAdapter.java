@@ -24,11 +24,8 @@ import javax.annotation.Nullable;
  * on unbind.
  *
  * @param <M> The model. This is the model type which is bound to the view by the adapter.
- * @param <K> A Key object which identifies the adapter instance. This allows support for recycling
- *     Views (and adapter) based upon how they are created initially when the first Model is bound
- *     to them. A Model may have multiple different types of adapter instances.
  */
-public interface BoundViewAdapter<M, K> {
+public interface BoundViewAdapter<M> {
   /**
    * Value returned by getComputed[Height/Width]Px when an explicit value for the dimension has not
    * been computed, and it should be set by the parent instead.
@@ -56,7 +53,7 @@ public interface BoundViewAdapter<M, K> {
   void unbindModel();
 
   /** Returns a Key which represents an instance of a Model based upon a type. */
-  K getKey();
+  RecyclerKey getKey();
 
   /** Sets the layout parameters on this adapter's view. */
   void setLayoutParams(LayoutParams layoutParams);

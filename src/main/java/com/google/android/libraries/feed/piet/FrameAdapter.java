@@ -48,7 +48,7 @@ public class FrameAdapter {
 
   private final FrameModelBinder frameModelBinder;
 
-  private final Set<ElementAdapter<?, ?, ?>> childAdapters;
+  private final Set<ElementAdapter<?, ?>> childAdapters;
 
   private final Context context;
   private final AdapterParameters parameters;
@@ -78,7 +78,7 @@ public class FrameAdapter {
       for (Slice slice : frame.getSlicesList()) {
         // For Slice we will create the lower level slice instead to remove the extra
         // level.
-        ElementAdapter<?, ?, ?> adapter = getBoundAdapterForSlice(slice, frameContext);
+        ElementAdapter<?, ?> adapter = getBoundAdapterForSlice(slice, frameContext);
         if (adapter == null) {
           continue;
         }
@@ -115,14 +115,14 @@ public class FrameAdapter {
 
   public void unbindModel() {
     LinearLayout view = checkNotNull(this.view);
-    for (ElementAdapter<?, ?, ?> child : childAdapters) {
+    for (ElementAdapter<?, ?> child : childAdapters) {
       parameters.adapterFactory.releaseAdapter(child);
     }
     childAdapters.clear();
     view.removeAllViews();
   }
 
-  protected void setLayoutParamsOnChild(ElementAdapter<?, ?, ?> childAdapter) {
+  protected void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
     int width = childAdapter.getComputedWidthPx();
     width = width == BoundViewAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
     int height = childAdapter.getComputedHeightPx();
@@ -142,7 +142,7 @@ public class FrameAdapter {
 
   @VisibleForTesting
   @Nullable
-  ElementAdapter<?, ?, ?> getBoundAdapterForSlice(Slice slice, FrameContext frameContext) {
+  ElementAdapter<?, ?> getBoundAdapterForSlice(Slice slice, FrameContext frameContext) {
     switch (slice.getSliceInstanceCase()) {
       case INLINE_SLICE:
         return parameters.adapterFactory.createElementListAdapter(
@@ -188,7 +188,4 @@ public class FrameAdapter {
     linearLayout.setLayoutParams(layoutParams);
     return linearLayout;
   }
-
-  /** The static key. */
-  static class Key {}
 }

@@ -33,9 +33,9 @@ import org.robolectric.annotation.Config;
 @Config(manifest = Config.NONE)
 public class KeyedRecyclerPoolTest {
 
-  private static final Key KEY1 = new Key(Font.newBuilder().setSize(1).build());
-  private static final Key KEY2 = new Key(Font.newBuilder().setSize(2).build());
-  private static final Key KEY3 = new Key(Font.newBuilder().setSize(3).build());
+  private static final RecyclerKey KEY1 = new Key(Font.newBuilder().setSize(1).build());
+  private static final RecyclerKey KEY2 = new Key(Font.newBuilder().setSize(2).build());
+  private static final RecyclerKey KEY3 = new Key(Font.newBuilder().setSize(3).build());
   private static final int MAX_KEYS = 10;
   private static final int CAPACITY = 11;
 
@@ -51,27 +51,27 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testPutAndGetOneElement() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     pool.put(KEY1, adapter);
     assertThat(pool.get(KEY1)).isEqualTo(adapter);
   }
 
   @Test
   public void testGetFromEmptyPoolReturnsNull() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     assertThat(pool.get(KEY1)).isNull();
   }
 
   @Test
   public void testGetFromEmptyPoolWithDifferentKeyReturnsNull() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     pool.put(KEY1, adapter);
     assertThat(pool.get(KEY2)).isNull();
   }
 
   @Test
   public void testPutAndGetElementsWithDifferentKeys() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     pool.put(KEY1, adapter);
     pool.put(KEY2, adapter2);
     assertThat(pool.get(KEY2)).isEqualTo(adapter2);
@@ -80,14 +80,14 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testPutNullElementFails() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     pool.put(KEY1, null);
     assertThat(pool.get(KEY1)).isNull();
   }
 
   @Test
   public void testPutNullKeyFails() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     assertThatRunnable(
             new ThrowingRunnable() {
               @Override
@@ -103,13 +103,13 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testGetNullKeyReturnsNull() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     assertThat(pool.get(null)).isNull();
   }
 
   @Test
   public void testCacheOverflowEjectsPool() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(2, CAPACITY);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(2, CAPACITY);
     pool.put(KEY1, adapter);
     pool.put(KEY2, adapter2);
     pool.put(KEY3, adapter3);
@@ -120,7 +120,7 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testOverflowSinglePoolIgnoresLastElement() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, 2);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, 2);
     pool.put(KEY1, adapter);
     pool.put(KEY1, adapter2);
     pool.put(KEY1, adapter3);
@@ -131,7 +131,7 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testFillAllPools() {
-    KeyedRecyclerPool<Key, TextElementAdapter> pool = new KeyedRecyclerPool<>(2, 2);
+    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(2, 2);
     pool.put(KEY1, adapter);
     pool.put(KEY1, adapter2);
     pool.put(KEY2, adapter3);

@@ -34,7 +34,6 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.common.Callback;
-import com.google.android.libraries.feed.piet.ImageElementAdapter.Key;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.util.FrameContext;
@@ -201,7 +200,7 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
     imageView = getImageView();
-    Key key1 = adapter.getKey();
+    RecyclerKey key1 = adapter.getKey();
     adapter.unbindModel();
 
     // Bind a different model
@@ -210,7 +209,7 @@ public class ImageElementAdapterTest {
     adapter.bindModel(model2, frameContext);
     verify(assetProvider).getImage(eq(Image.getDefaultInstance()), callbackCaptor.capture());
 
-    Key key2 = adapter.getKey();
+    RecyclerKey key2 = adapter.getKey();
     assertThat(key1).isSameAs(key2);
     assertThat(adapter.getModel()).isSameAs(model2);
     assertThat(adapter.getView()).isNotNull();

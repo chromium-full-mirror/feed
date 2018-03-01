@@ -24,7 +24,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.host.common.Callback;
-import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
+import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.android.libraries.feed.piet.util.ViewUtils;
@@ -35,10 +35,8 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import javax.annotation.Nullable;
 
 /** A {@link BoundViewAdapter} which manages {@code ImageLine} slices. */
-public class ImageElementAdapter
-    extends ElementAdapter<FrameLayout, ImageElement, ImageElementAdapter.Key> {
+public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
   private static final String TAG = "ImageElementAdapter";
-  private static final ImageElementAdapter.Key SINGLETON_KEY = new ImageElementAdapter.Key();
 
   private ImageView imageView = null;
   @Nullable private LoadImageCallback currentlyLoadingImage = null;
@@ -124,7 +122,7 @@ public class ImageElementAdapter
       return;
     }
     FrameLayout frameLayout = new FrameLayout(getContext());
-    initializeAdapter(frameLayout, SINGLETON_KEY);
+    initializeAdapter(frameLayout, KeySupplier.SINGLETON_KEY);
   }
 
   // TODO: After the AssetProvider returns Drawable instead of ImageView, make the base
@@ -187,8 +185,7 @@ public class ImageElementAdapter
     }
   }
 
-  static class KeySupplier
-      implements AdapterKeySupplier<ImageElementAdapter, ImageElement, ImageElementAdapter.Key> {
+  static class KeySupplier extends SingletonKeySupplier<ImageElementAdapter, ImageElement> {
     @Override
     public String getAdapterTag() {
       return TAG;
@@ -198,17 +195,5 @@ public class ImageElementAdapter
     public ImageElementAdapter getAdapter(Context context, AdapterParameters parameters) {
       return new ImageElementAdapter(context, parameters);
     }
-
-    @Override
-    public ImageElementAdapter.Key getKey(FrameContext frameContext, ImageElement model) {
-      return SINGLETON_KEY;
-    }
-
-    @Override
-    public boolean isSingletonKey() {
-      return false;
-    }
   }
-
-  static class Key {}
 }

@@ -19,15 +19,16 @@ import javax.annotation.Nullable;
 /**
  * Interface defining a simple Pool of Adapters.
  *
- * @param <A> The adapter being managed by the {@code RecyclerPool}
- * @param <K> The Key identifying the adapter.
+ * @param <A> The adapter being managed by the {@link RecyclerPool}
  */
-interface RecyclerPool<K, A extends BoundViewAdapter<?, K>> {
+interface RecyclerPool<A extends BoundViewAdapter<?>> {
 
-  /** Return an {@link BoundViewAdapter} matching the {@code Key} or null if one isn't found. */
+  /**
+   * Return an {@link BoundViewAdapter} matching the {@link RecyclerKey} or null if one isn't found.
+   */
   @Nullable
-  A get(K key);
+  A get(RecyclerKey key);
 
-  /** Put a {@link BoundViewAdapter} with a {@code Key} into the pool. */
-  void put(K key, A adapter);
+  /** Put a {@link BoundViewAdapter} with a {@link RecyclerKey} into the pool. */
+  void put(RecyclerKey key, A adapter);
 }

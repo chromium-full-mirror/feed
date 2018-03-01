@@ -18,21 +18,20 @@ import android.support.v4.util.Pools.SimplePool;
 import javax.annotation.Nullable;
 
 /** A very simple, single pool version of a {@link RecyclerPool} */
-public class SingleKeyRecyclerPool<K, A extends BoundViewAdapter<?, K>>
-    implements RecyclerPool<K, A> {
+public class SingleKeyRecyclerPool<A extends BoundViewAdapter<?>> implements RecyclerPool<A> {
   private final SimplePool<A> pool;
 
   private static final String KEY_ERROR_MESSAGE = "Given key %s does not match singleton key %s";
-  private final K singletonKey;
+  private final RecyclerKey singletonKey;
 
-  SingleKeyRecyclerPool(K key, int capacity) {
+  SingleKeyRecyclerPool(RecyclerKey key, int capacity) {
     singletonKey = key;
     pool = new SimplePool<>(capacity);
   }
 
   @Nullable
   @Override
-  public A get(K key) {
+  public A get(RecyclerKey key) {
     if (!singletonKey.equals(key)) {
       throw new IllegalArgumentException(String.format(KEY_ERROR_MESSAGE, key, singletonKey));
     }
@@ -40,7 +39,7 @@ public class SingleKeyRecyclerPool<K, A extends BoundViewAdapter<?, K>>
   }
 
   @Override
-  public void put(K key, A adapter) {
+  public void put(RecyclerKey key, A adapter) {
     if (key == null) {
       throw new NullPointerException(String.format("null key for %s", adapter));
     }

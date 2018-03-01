@@ -42,7 +42,7 @@ public class SingleKeyRecyclerPoolTest {
   @Mock TextElementAdapter adapter2;
   @Mock TextElementAdapter adapter3;
 
-  SingleKeyRecyclerPool<Key, TextElementAdapter> pool;
+  SingleKeyRecyclerPool<TextElementAdapter> pool;
 
   @Before
   public void setUp() throws Exception {

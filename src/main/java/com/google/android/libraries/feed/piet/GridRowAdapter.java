@@ -23,7 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
-import com.google.android.libraries.feed.piet.GridRowAdapter.Key;
+import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.FrameContext.ErrorType;
 import com.google.android.libraries.feed.piet.util.ViewUtils;
@@ -36,10 +36,8 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import javax.annotation.Nullable;
 
 /** A {@link BoundViewAdapter} which manages {@code GridLine} slices. */
-public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, GridRow, Key> {
-
+public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, GridRow> {
   private static final String TAG = "GridRowAdapter";
-  private static final GridRowAdapter.Key SINGLETON_KEY = new GridRowAdapter.Key();
 
   private GridRowAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
@@ -172,13 +170,8 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
     return viewGroup;
   }
 
-  @Override
-  protected Key createKey() {
-    return SINGLETON_KEY;
-  }
-
   /** A {@link AdapterKeySupplier} for the {@link GridRowAdapter}. */
-  static class KeySupplier implements AdapterKeySupplier<GridRowAdapter, GridRow, Key> {
+  static class KeySupplier extends SingletonKeySupplier<GridRowAdapter, GridRow> {
     @Override
     public String getAdapterTag() {
       return TAG;
@@ -188,18 +181,5 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
     public GridRowAdapter getAdapter(Context context, AdapterParameters parameters) {
       return new GridRowAdapter(context, parameters);
     }
-
-    @Override
-    public GridRowAdapter.Key getKey(FrameContext frameContext, GridRow model) {
-      return SINGLETON_KEY;
-    }
-
-    @Override
-    public boolean isSingletonKey() {
-      return true;
-    }
   }
-
-  /** Static class representing the key for recycling {@link GridRowAdapter} views */
-  public static class Key {}
 }

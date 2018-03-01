@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier.SINGLETON_KEY;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -24,6 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.ParameterizedTextEvaluator;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
@@ -52,8 +54,7 @@ public class TextElementAdapterFactoryTest {
   private AdapterParameters adapterParameters;
   private Context context;
 
-  private AdapterFactory<TextElementAdapter, TextElement, TextElementAdapter.Key>
-      textElementFactory;
+  private AdapterFactory<TextElementAdapter, TextElement> textElementFactory;
 
   @Before
   public void setUp() throws Exception {
@@ -69,8 +70,10 @@ public class TextElementAdapterFactoryTest {
   public void testKeySupplier() {
     TextElementAdapter.KeySupplier keySupplier = new TextElementAdapter.KeySupplier();
     assertThat(keySupplier.getAdapterTag()).isEqualTo("TextElementAdapter");
-    assertThat(keySupplier.isSingletonKey()).isFalse();
     assertThat(keySupplier.getAdapter(context, adapterParameters)).isNotNull();
+    assertThat(keySupplier).isNotInstanceOf(SingletonKeySupplier.class);
+    assertThat(keySupplier.getKey(frameContext, getBaseTextElement(null)))
+        .isNotSameAs(SINGLETON_KEY);
     // TODO: When we finish Font support we need to test the getKey()
   }
 

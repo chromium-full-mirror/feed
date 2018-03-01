@@ -22,8 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
-import com.google.android.libraries.feed.piet.ElementListAdapter.Key;
+import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.ViewUtils;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -32,9 +31,8 @@ import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** A {@link ViewGroupBoundViewAdapter} which manages vertical lists of elements. */
-public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, ElementList, Key> {
+public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, ElementList> {
   private static final String TAG = "ElementListAdapter";
-  private static final Key SINGLETON_KEY = new Key();
 
   private ElementListAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
@@ -95,7 +93,7 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
     ViewGroup viewGroup = checkNotNull(getBaseView());
     for (Element line : list.getElementsList()) {
       // TODO: reuse existing adapter from childAdapters if rebinding template.
-      ElementAdapter<? extends View, ?, ?> adapter = getAdapterForChildElement(line, frameContext);
+      ElementAdapter<? extends View, ?> adapter = getAdapterForChildElement(line, frameContext);
       View adapterView = adapter.getView();
       if (adapterView != null) {
         viewGroup.addView(adapterView);
@@ -123,9 +121,9 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
     }
   }
 
-  private ElementAdapter<? extends View, ?, ?> getAdapterForChildElement(
+  private ElementAdapter<? extends View, ?> getAdapterForChildElement(
       Element contentLine, FrameContext frameContext) {
-    ElementAdapter<? extends View, ?, ?> adapter =
+    ElementAdapter<? extends View, ?> adapter =
         getParameters().adapterFactory.createAdapterForElement(contentLine, frameContext);
     addChildAdapter(adapter);
     return adapter;
@@ -140,13 +138,7 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
     return viewGroup;
   }
 
-  @Override
-  protected Key createKey() {
-    return SINGLETON_KEY;
-  }
-
-  static class KeySupplier
-      implements AdapterKeySupplier<ElementListAdapter, ElementList, ElementListAdapter.Key> {
+  static class KeySupplier extends SingletonKeySupplier<ElementListAdapter, ElementList> {
     @Override
     public String getAdapterTag() {
       return TAG;
@@ -156,17 +148,5 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
     public ElementListAdapter getAdapter(Context context, AdapterParameters parameters) {
       return new ElementListAdapter(context, parameters);
     }
-
-    @Override
-    public ElementListAdapter.Key getKey(FrameContext frameContext, ElementList model) {
-      return SINGLETON_KEY;
-    }
-
-    @Override
-    public boolean isSingletonKey() {
-      return false;
-    }
   }
-
-  static class Key {}
 }

@@ -21,8 +21,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
-import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.Key;
+import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -34,11 +33,9 @@ import javax.annotation.Nullable;
 
 /** A {@link ViewGroupBoundViewAdapter} which manages {@code TemplateInvocation} slices. */
 public class TemplateInvocationAdapter
-    extends ViewGroupBoundViewAdapter<LinearLayout, TemplateInvocation, Key> {
+    extends ViewGroupBoundViewAdapter<LinearLayout, TemplateInvocation> {
 
   private static final String TAG = "TemplateInvocationAdapter";
-
-  private static final Key SINGLETON_KEY = new Key();
 
   TemplateInvocationAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
@@ -103,12 +100,13 @@ public class TemplateInvocationAdapter
     return viewGroup;
   }
 
+  // TODO: Create a unique key based on the template.
   @Override
-  protected Key createKey() {
-    return SINGLETON_KEY;
+  protected RecyclerKey createKey() {
+    return KeySupplier.SINGLETON_KEY;
   }
 
-  protected void setLayoutParamsOnChild(BoundViewAdapter<?, ?> childAdapter) {
+  protected void setLayoutParamsOnChild(BoundViewAdapter<?> childAdapter) {
     int width = childAdapter.getComputedWidthPx();
     width = width == BoundViewAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
     int height = childAdapter.getComputedHeightPx();
@@ -117,9 +115,12 @@ public class TemplateInvocationAdapter
     childAdapter.setLayoutParams(new LinearLayout.LayoutParams(width, height));
   }
 
+  // TODO: Create some kind of key which determines whether a TemplateInvocationAdapter
+  // can be recycled and rebound to a given model. This could be tricky because different frames
+  // could have templates with the same id, and the shared state can be updated with new templates
+  // that share an ID.
   static class KeySupplier
-      implements AdapterKeySupplier<
-          TemplateInvocationAdapter, TemplateInvocation, TemplateInvocationAdapter.Key> {
+      extends SingletonKeySupplier<TemplateInvocationAdapter, TemplateInvocation> {
     @Override
     public String getAdapterTag() {
       return TAG;
@@ -129,22 +130,5 @@ public class TemplateInvocationAdapter
     public TemplateInvocationAdapter getAdapter(Context context, AdapterParameters parameters) {
       return new TemplateInvocationAdapter(context, parameters);
     }
-
-    @Override
-    public TemplateInvocationAdapter.Key getKey(
-        FrameContext frameContext, TemplateInvocation model) {
-      return SINGLETON_KEY;
-    }
-
-    @Override
-    public boolean isSingletonKey() {
-      return false;
-    }
   }
-
-  // TODO: Create some kind of key which determines whether a TemplateInvocationAdapter
-  // can be recycled and rebound to a given model. This could be tricky because different frames
-  // could have templates with the same id, and the shared state can be updated with new templates
-  // that share an ID.
-  static class Key {}
 }

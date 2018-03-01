@@ -26,11 +26,8 @@ import com.google.search.now.ui.piet.ElementsProto.Element;
  *
  * @param <A> A subclass of {@link ElementAdapter} which this factory is managing.
  * @param <M> The model. This is the model type which is bound to the view by the adapter.
- * @param <K> A Key object which identifies the adapter instance. This allows support for recycling
- *     Views (and adapter) based upon how they are created initially when the first Model is bound
- *     to them. A Model may have multiple different types of adapter instances.
  */
-public class AdapterFactory<A extends ElementAdapter<?, M, K>, M, K> {
+public class AdapterFactory<A extends ElementAdapter<?, M>, M> {
   private static final String TAG = "AdapterFactory";
 
   // TODO: Make these configurable instead of constants.
@@ -39,12 +36,12 @@ public class AdapterFactory<A extends ElementAdapter<?, M, K>, M, K> {
 
   private final Context context;
   private final AdapterParameters parameters;
-  private final AdapterKeySupplier<A, M, K> keySupplier;
+  private final AdapterKeySupplier<A, M> keySupplier;
   private final Statistics statistics;
-  private final RecyclerPool<K, A> recyclingPool;
+  private final RecyclerPool<A> recyclingPool;
 
   /** Provides Adapter class level details to the factory. */
-  interface AdapterKeySupplier<A extends ElementAdapter<?, M, K>, M, K> {
+  interface AdapterKeySupplier<A extends ElementAdapter<?, M>, M> {
 
     /** Returns a String tag for the Adapter. This will be used in messages and developer logging */
     String getAdapterTag();
@@ -53,24 +50,32 @@ public class AdapterFactory<A extends ElementAdapter<?, M, K>, M, K> {
     A getAdapter(Context context, AdapterParameters parameters);
 
     /** Returns the Key based upon the model. */
-    K getKey(FrameContext frameContext, M model);
+    RecyclerKey getKey(FrameContext frameContext, M model);
+  }
 
-    /** Returns true if the Adapter only supports a single key. */
-    boolean isSingletonKey();
+  /** Key supplier with a singleton key. */
+  abstract static class SingletonKeySupplier<A extends ElementAdapter<?, M>, M>
+      implements AdapterKeySupplier<A, M> {
+    public static final RecyclerKey SINGLETON_KEY = new RecyclerKey();
+
+    @Override
+    public RecyclerKey getKey(FrameContext frameContext, M model) {
+      return SINGLETON_KEY;
+    }
   }
 
   // SuppressWarnings for various errors. We don't want to have to import checker framework and
   // checker doesn't like generic assignments.
   @SuppressWarnings("nullness")
   AdapterFactory(
-      Context context, AdapterParameters parameters, AdapterKeySupplier<A, M, K> keySupplier) {
+      Context context, AdapterParameters parameters, AdapterKeySupplier<A, M> keySupplier) {
     this.context = context;
     this.parameters = parameters;
     this.keySupplier = keySupplier;
     this.statistics = new Statistics(keySupplier.getAdapterTag());
-    if (keySupplier.isSingletonKey()) {
+    if (keySupplier instanceof SingletonKeySupplier) {
       recyclingPool =
-          new SingleKeyRecyclerPool<>(keySupplier.getKey(null, null), DEFAULT_POOL_SIZE);
+          new SingleKeyRecyclerPool<>(SingletonKeySupplier.SINGLETON_KEY, DEFAULT_POOL_SIZE);
     } else {
       recyclingPool = new KeyedRecyclerPool<>(DEFAULT_NUM_POOLS, DEFAULT_POOL_SIZE);
     }

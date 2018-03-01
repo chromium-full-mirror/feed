@@ -23,7 +23,7 @@ import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
-import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
+import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.android.libraries.feed.piet.util.ViewUtils;
@@ -33,10 +33,8 @@ import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** A {@link BoundViewAdapter} which manages {@code SpacerElement} slices. */
-public class SpacerElementAdapter
-    extends ElementAdapter<View, SpacerElement, SpacerElementAdapter.Key> {
+public class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
   private static final String TAG = "SpacerElementAdapter";
-  private static final SpacerElementAdapter.Key SINGLETON_KEY = new SpacerElementAdapter.Key();
 
   @VisibleForTesting
   SpacerElementAdapter(Context context, AdapterParameters parameters) {
@@ -117,11 +115,10 @@ public class SpacerElementAdapter
     View v =
         new DividerView(
             getContext(), styleProvider.getColor(), model.getHeight(), styleProvider.getPadding());
-    initializeAdapter(v, SINGLETON_KEY);
+    initializeAdapter(v, KeySupplier.SINGLETON_KEY);
   }
 
-  static class KeySupplier
-      implements AdapterKeySupplier<SpacerElementAdapter, SpacerElement, SpacerElementAdapter.Key> {
+  static class KeySupplier extends SingletonKeySupplier<SpacerElementAdapter, SpacerElement> {
     @Override
     public String getAdapterTag() {
       return TAG;
@@ -131,17 +128,5 @@ public class SpacerElementAdapter
     public SpacerElementAdapter getAdapter(Context context, AdapterParameters parameters) {
       return new SpacerElementAdapter(context, parameters);
     }
-
-    @Override
-    public SpacerElementAdapter.Key getKey(FrameContext frameContext, SpacerElement model) {
-      return SINGLETON_KEY;
-    }
-
-    @Override
-    public boolean isSingletonKey() {
-      return false;
-    }
   }
-
-  static class Key {}
 }

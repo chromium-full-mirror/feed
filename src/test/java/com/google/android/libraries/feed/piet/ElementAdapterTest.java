@@ -324,7 +324,7 @@ public class ElementAdapterTest {
   }
 
   // Dummy implementation
-  static class TestElementAdapter extends ElementAdapter<View, Object, Object> {
+  static class TestElementAdapter extends ElementAdapter<View, Object> {
     static final String DEFAULT_MODEL = "MODEL";
 
     boolean bound = false;
