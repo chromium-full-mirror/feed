@@ -145,11 +145,16 @@ public class FrameAdapter {
   ElementAdapter<?, ?> getBoundAdapterForSlice(Slice slice, FrameContext frameContext) {
     switch (slice.getSliceInstanceCase()) {
       case INLINE_SLICE:
-        return parameters.adapterFactory.createElementListAdapter(
-            slice.getInlineSlice(), frameContext);
+        ElementListAdapter inlineSliceAdapter =
+            parameters.adapterFactory.createElementListAdapter(
+                slice.getInlineSlice(), frameContext);
+        inlineSliceAdapter.bindModel(slice.getInlineSlice(), frameContext);
+        return inlineSliceAdapter;
       case TEMPLATE_SLICE:
-        return parameters.adapterFactory.createTemplateAdapter(
-            slice.getTemplateSlice(), frameContext);
+        TemplateInvocationAdapter templateAdapter =
+            parameters.adapterFactory.createTemplateAdapter(slice.getTemplateSlice(), frameContext);
+        templateAdapter.bindModel(slice.getTemplateSlice(), frameContext);
+        return templateAdapter;
       default:
         Logger.wtf(TAG, "Unsupported Slice type");
         return null;

@@ -17,6 +17,9 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -29,6 +32,7 @@ import com.google.android.libraries.feed.piet.SpacerElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
+import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
@@ -75,7 +79,7 @@ public class SpacerElementAdapterTest {
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
     when(mockStyleProvider.getPadding()).thenReturn(padding);
 
-    adapter.bindModel(spacerElement, frameContext);
+    adapter.createAdapter(spacerElement, frameContext);
     View v = adapter.getView();
     assertThat(v).isNotNull();
     verify(mockStyleProvider).setElementStyles(context, frameContext, v);
@@ -95,6 +99,8 @@ public class SpacerElementAdapterTest {
     StyleProvider styleProvider = new StyleProviderImpl(style);
     when(frameContext.makeStyleFor(styleStack1)).thenReturn(styleProvider);
 
+    adapter.createAdapter(spacerElement, frameContext);
+
     adapter.bindModel(spacerElement, frameContext);
 
     View v1 = adapter.getView();
@@ -104,8 +110,13 @@ public class SpacerElementAdapterTest {
     adapter.unbindModel();
 
     // Bind adapter with different height and check that view is reused, but height is changes.
+    // Ensure there is a StyleBindingRef so that we actually recreate the spacer.
     int padding2 = 4;
-    StyleIdsStack styleStack2 = StyleIdsStack.newBuilder().addStyleIds("2").build();
+    StyleIdsStack styleStack2 =
+        StyleIdsStack.newBuilder()
+            .addStyleIds("2")
+            .setStyleBinding(StyleBindingRef.getDefaultInstance())
+            .build();
     SpacerElement spacerElement2 =
         SpacerElement.newBuilder().setHeight(2).setStyleReferences(styleStack2).build();
     Style style2 =
@@ -121,6 +132,51 @@ public class SpacerElementAdapterTest {
     assertThat(v2.getLayoutParams().height).isEqualTo(10);
 
     assertThat(v2).isSameAs(v1);
+  }
+
+  @Test
+  public void testBindOnlyChangesOnStyleBindings() {
+    StyleIdsStack styles1 = StyleIdsStack.newBuilder().addStyleIds("style1").build();
+    SpacerElement defaultElement =
+        SpacerElement.newBuilder().setStyleReferences(styles1).setHeight(1).build();
+
+    StyleIdsStack styles2 = StyleIdsStack.newBuilder().addStyleIds("style2").build();
+    StyleProvider mockStyleProvider2 = mock(StyleProvider.class);
+    SpacerElement otherElementWithStyleRefs =
+        SpacerElement.newBuilder().setStyleReferences(styles2).setHeight(2).build();
+
+    StyleIdsStack styles3 =
+        StyleIdsStack.newBuilder()
+            .addStyleIds("style3")
+            .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("styleBinding"))
+            .build();
+    StyleProvider mockStyleProvider3 = mock(StyleProvider.class);
+    SpacerElement otherElementWithStyleBindings =
+        SpacerElement.newBuilder().setStyleReferences(styles3).setHeight(3).build();
+
+    when(frameContext.makeStyleFor(styles1)).thenReturn(mockStyleProvider);
+    when(frameContext.makeStyleFor(styles2)).thenReturn(mockStyleProvider2);
+    when(frameContext.makeStyleFor(styles3)).thenReturn(mockStyleProvider3);
+    when(mockStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(mockStyleProvider2.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(mockStyleProvider3.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+
+    adapter.createAdapter(defaultElement, frameContext);
+    verify(frameContext, times(2)).makeStyleFor(styles1);
+    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(1);
+
+    adapter.unbindModel();
+
+    adapter.bindModel(otherElementWithStyleRefs, frameContext);
+    // Height should not change
+    verify(frameContext, never()).makeStyleFor(styles2);
+    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(1);
+
+    adapter.unbindModel();
+
+    adapter.bindModel(otherElementWithStyleBindings, frameContext);
+    verify(frameContext).makeStyleFor(styles3);
+    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(3);
   }
 
   @Test

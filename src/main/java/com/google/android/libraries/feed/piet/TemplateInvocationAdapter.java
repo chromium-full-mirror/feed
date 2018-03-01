@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.view.ViewGroup;
@@ -33,7 +34,7 @@ import javax.annotation.Nullable;
 
 /** A {@link ViewGroupBoundViewAdapter} which manages {@code TemplateInvocation} slices. */
 public class TemplateInvocationAdapter
-    extends ViewGroupBoundViewAdapter<LinearLayout, TemplateInvocation> {
+    extends ViewGroupBoundViewAdapter<LinearLayout, ElementListAdapter, TemplateInvocation> {
 
   private static final String TAG = "TemplateInvocationAdapter";
 
@@ -48,16 +49,10 @@ public class TemplateInvocationAdapter
   }
 
   @Override
-  public void onBindModel(
+  public void onCreateAdapter(
       TemplateInvocation model, Element baseElement, FrameContext frameContext) {
-    onBindModel(model, frameContext, null);
-  }
+    initialCreate();
 
-  public void onBindModel(
-      TemplateInvocation model,
-      FrameContext frameContext,
-      @Nullable ShardingControl shardingControl) {
-    initialBind();
     Template template = frameContext.getTemplate(model.getTemplateId());
     if (template == null) {
       // TODO: How do we handle errors
@@ -78,6 +73,38 @@ public class TemplateInvocationAdapter
         if (listAdapter.getView() != null) {
           viewGroup.addView(listAdapter.getView());
         }
+      }
+    }
+  }
+
+  @Override
+  public void onBindModel(
+      TemplateInvocation model, Element baseElement, FrameContext frameContext) {
+    onBindModel(model, frameContext, null);
+  }
+
+  public void onBindModel(
+      TemplateInvocation model,
+      FrameContext frameContext,
+      @Nullable ShardingControl shardingControl) {
+    Template template = frameContext.getTemplate(model.getTemplateId());
+    if (template == null) {
+      // TODO: How do we handle errors
+      Logger.e(TAG, "Template was not found: %s", model.getTemplateId());
+      return;
+    }
+
+    // TODO: Need to support Sharding.
+    if (model.getBindingContextsCount() > 0 && template.hasElementList()) {
+      checkState(
+          model.getBindingContextsCount() == childAdapters.size(),
+          "Number of binding contexts mismatch: got %s bcs, had %s adapters",
+          model.getBindingContextsCount(),
+          childAdapters.size());
+      for (int i = 0; i < model.getBindingContextsCount(); i++) {
+        BindingContext bindingContext = model.getBindingContexts(i);
+        FrameContext localFrameContext = frameContext.bindTemplate(template, bindingContext);
+        childAdapters.get(i).bindModel(template.getElementList(), localFrameContext);
       }
     }
   }

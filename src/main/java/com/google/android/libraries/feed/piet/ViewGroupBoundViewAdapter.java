@@ -23,17 +23,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Container adapter that controls a ViewGroup of other elements. */
-public abstract class ViewGroupBoundViewAdapter<V extends ViewGroup, M>
+public abstract class ViewGroupBoundViewAdapter<
+        V extends ViewGroup, ChildAdapterT extends ElementAdapter<? extends View, ?>, M>
     extends ElementAdapter<V, M> {
 
-  @VisibleForTesting final List<ElementAdapter<? extends View, ?>> childAdapters;
+  @VisibleForTesting final List<ChildAdapterT> childAdapters;
 
   ViewGroupBoundViewAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
     childAdapters = new ArrayList<>();
   }
 
-  protected void initialBind() {
+  protected void initialCreate() {
     if (getBaseView() != null) {
       return;
     }
@@ -43,21 +44,24 @@ public abstract class ViewGroupBoundViewAdapter<V extends ViewGroup, M>
   /** Unbind the model and release child adapters. Be sure to call this in any overrides. */
   @Override
   public void onUnbindModel() {
-    if (getBaseView() != null) {
-      getBaseView().removeAllViews();
+    for (ElementAdapter<?, ?> childAdapter : childAdapters) {
+      childAdapter.unbindModel();
     }
-    releaseChildren();
-    childAdapters.clear();
     super.onUnbindModel();
   }
 
-  protected void releaseChildren() {
+  @Override
+  public void onReleaseAdapter() {
+    if (getBaseView() != null) {
+      getBaseView().removeAllViews();
+    }
     for (ElementAdapter<?, ?> childAdapter : childAdapters) {
       getParameters().adapterFactory.releaseAdapter(childAdapter);
     }
+    childAdapters.clear();
   }
 
-  protected void addChildAdapter(ElementAdapter<? extends View, ?> adapter) {
+  protected void addChildAdapter(ChildAdapterT adapter) {
     childAdapters.add(adapter);
   }
 

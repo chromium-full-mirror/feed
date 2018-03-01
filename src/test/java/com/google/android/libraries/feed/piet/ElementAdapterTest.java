@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
@@ -31,6 +32,8 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.ParameterizedTextEvaluator;
@@ -79,9 +82,8 @@ public class ElementAdapterTest {
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
-    adapter = new TestElementAdapter(context, parameters);
     view = new RelativeLayout(context);
-    adapter.initializeAdapter(view, null);
+    adapter = new TestElementAdapter(context, parameters, view);
   }
 
   @Test
@@ -94,7 +96,7 @@ public class ElementAdapterTest {
     Frame frame = Frame.newBuilder().setTag("FRAME").build();
     when(frameContext.getFrame()).thenReturn(frame);
 
-    adapter.bindModel(defaultElement, defaultElement, frameContext);
+    adapter.createAdapter(defaultElement, defaultElement, frameContext);
 
     assertThat(adapter.getContext()).isSameAs(context);
     assertThat(adapter.getModel()).isSameAs(defaultElement);
@@ -110,6 +112,7 @@ public class ElementAdapterTest {
 
   @Test
   public void testSetLayoutParams() {
+    adapter.initializeAdapter(view, null);
     adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));
 
     assertThat(view.getLayoutParams().width).isEqualTo(WIDTH);
@@ -122,6 +125,30 @@ public class ElementAdapterTest {
 
     // Should not throw NPE.
     adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));
+  }
+
+  @Test
+  public void testSetLayoutParams_overlay() {
+    Element elementWithOverlays =
+        Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
+
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
+
+    adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));
+
+    assertThat(adapter.getBaseView()).isNotEqualTo(adapter.getView());
+    assertThat(adapter.getView().getLayoutParams().width).isEqualTo(WIDTH);
+    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(HEIGHT);
+    assertThat(adapter.getBaseView().getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
+    assertThat(adapter.getBaseView().getLayoutParams().height).isEqualTo(LayoutParams.MATCH_PARENT);
+
+    adapter.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+    assertThat(adapter.getBaseView()).isNotEqualTo(adapter.getView());
+    assertThat(adapter.getView().getLayoutParams().width).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(adapter.getBaseView().getLayoutParams().width).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(adapter.getBaseView().getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
   }
 
   @Test
@@ -139,29 +166,29 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_callsOnBindModel() {
+  public void testCreateAdapter_callsOnCreateAdapter() {
     Element defaultElement = Element.getDefaultInstance();
 
-    adapter.bindModel(defaultElement, defaultElement, frameContext);
+    adapter.createAdapter(defaultElement, defaultElement, frameContext);
 
-    assertThat(adapter.bound).isTrue();
+    assertThat(adapter.created).isTrue();
   }
 
   @Test
-  public void testBindModel_extractsModelFromElement() {
+  public void testCreateAdapter_extractsModelFromElement() {
     Element element = Element.getDefaultInstance();
 
-    adapter.bindModel(element, frameContext);
+    adapter.createAdapter(element, frameContext);
 
     assertThat(adapter.getModel()).isEqualTo(TestElementAdapter.DEFAULT_MODEL);
   }
 
   @Test
-  public void testBindModel_setsOverlays() {
+  public void testCreateAdapter_createsOverlays() {
     Element elementWithOverlays =
         Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
 
-    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
 
     assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
     assertThat(adapter.getView()).isInstanceOf(FrameLayout.class);
@@ -174,14 +201,14 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_setsOverlaysWithGravity() {
+  public void testCreateAdapter_createsOverlaysWithGravity() {
     Element elementWithOverlays =
         Element.newBuilder()
             .addOverlayElements(
                 ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE))
             .build();
 
-    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
 
     assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
     assertThat(adapter.getView()).isInstanceOf(FrameLayout.class);
@@ -194,7 +221,7 @@ public class ElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_setsOverlayLayoutParams() {
+  public void testCreateAdapter_setsOverlayLayoutParams() {
     Element elementWithOverlays =
         Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
 
@@ -214,11 +241,9 @@ public class ElementAdapterTest {
             actionHandler,
             new ParameterizedTextEvaluator(),
             mockFactory);
-    adapter = new TestElementAdapter(context, parameters);
-    view = new RelativeLayout(context);
-    adapter.initializeAdapter(view, null);
+    adapter = new TestElementAdapter(context, parameters, view);
 
-    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
 
     assertThat((((FrameLayout) adapter.getView()).getChildAt(1))).isSameAs(overlayView);
     ArgumentCaptor<LayoutParams> layoutParamsCaptor = ArgumentCaptor.forClass(LayoutParams.class);
@@ -229,12 +254,64 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_callsOnBindModel() {
+    Element defaultElement = Element.getDefaultInstance();
+
+    adapter.initializeAdapter(view, null);
+    adapter.bindModel(defaultElement, defaultElement, frameContext);
+
+    assertThat(adapter.bound).isTrue();
+  }
+
+  @Test
+  public void testBindModel_extractsModelFromElement() {
+    Element element = Element.getDefaultInstance();
+
+    adapter.initializeAdapter(view, null);
+    adapter.bindModel(element, frameContext);
+
+    assertThat(adapter.getModel()).isEqualTo(TestElementAdapter.DEFAULT_MODEL);
+  }
+
+  @Test
+  public void testBindModel_failsBeforeCreateAdapter() {
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(Element.getDefaultInstance(), frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(NullPointerException.class)
+        .that()
+        .hasMessageThat()
+        .contains("View is null");
+  }
+
+  @Test
+  public void testBindModel_bindsOverlays() {
+    ElementList overlayModel =
+        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+    Element elementWithOverlays = Element.newBuilder().addOverlayElements(overlayModel).build();
+
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
+    assertThat(adapter.overlays.get(0)).isInstanceOf(ElementListAdapter.class);
+
+    ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
+    adapter.overlays.set(0, mockOverlayAdapter);
+
+    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
+    verify(mockOverlayAdapter).bindModel(overlayModel, frameContext);
+  }
+
+  @Test
   public void testBindModel_setsActions() {
     Element elementWithActions =
         Element.newBuilder()
             .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
             .build();
 
+    adapter.initializeAdapter(view, null);
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
   }
@@ -247,6 +324,7 @@ public class ElementAdapterTest {
     when(frameContext.getActionsFromBinding(actionsBinding))
         .thenReturn(Actions.newBuilder().setOnClick(Action.getDefaultInstance()).build());
 
+    adapter.initializeAdapter(view, null);
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
   }
@@ -259,6 +337,7 @@ public class ElementAdapterTest {
             .build();
     Element elementWithoutActions = Element.getDefaultInstance();
 
+    adapter.initializeAdapter(view, null);
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
 
@@ -267,9 +346,37 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_failsWithIncompatibleOverlays() {
+    ElementList overlayModel =
+        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+    Element elementWithOverlays =
+        Element.newBuilder()
+            .addOverlayElements(overlayModel)
+            .addOverlayElements(overlayModel)
+            .build();
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
+
+    Element elementWithFewerOverlays =
+        Element.newBuilder().addOverlayElements(overlayModel).build();
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(elementWithFewerOverlays, elementWithFewerOverlays, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Overlay count mismatch");
+  }
+
+  @Test
   public void testUnbindModel_callsOnUnbindModel() {
     Element defaultElement = Element.getDefaultInstance();
 
+    adapter.createAdapter(defaultElement, defaultElement, frameContext);
     adapter.bindModel(defaultElement, defaultElement, frameContext);
     assertThat(adapter.bound).isTrue();
 
@@ -281,26 +388,12 @@ public class ElementAdapterTest {
   public void testUnbindModel_unsetsModel() {
     Element element = Element.getDefaultInstance();
 
+    adapter.createAdapter(element, element, frameContext);
     adapter.bindModel(element, element, frameContext);
     assertThat(adapter.getModel()).isEqualTo(element);
 
     adapter.unbindModel();
     assertThat(adapter.getRawModel()).isNull();
-  }
-
-  @Test
-  public void testUnbindModel_removesOverlays() {
-    Element elementWithOverlays =
-        Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
-
-    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-    View adapterView = adapter.getBaseView();
-    FrameLayout overlayView = (FrameLayout) adapter.getView();
-    adapter.unbindModel();
-
-    assertThat(adapter.getView()).isSameAs(adapterView);
-    assertThat(adapter.getView()).isSameAs(adapter.getBaseView());
-    assertThat(overlayView.getChildCount()).isEqualTo(0);
   }
 
   @Test
@@ -313,6 +406,8 @@ public class ElementAdapterTest {
             .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
             .build();
 
+    adapter.createAdapter(
+        elementWithOverlaysAndActions, elementWithOverlaysAndActions, frameContext);
     adapter.bindModel(elementWithOverlaysAndActions, elementWithOverlaysAndActions, frameContext);
     View adapterView = adapter.getBaseView();
     View overlayView = adapter.getView();
@@ -323,19 +418,78 @@ public class ElementAdapterTest {
     assertThat(overlayView.hasOnClickListeners()).isFalse();
   }
 
+  @Test
+  public void testUnbindModel_unbindsOverlayAdapters() {
+    ElementList overlayModel =
+        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+    Element elementWithOverlays = Element.newBuilder().addOverlayElements(overlayModel).build();
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
+    assertThat(adapter.overlays.get(0)).isInstanceOf(ElementListAdapter.class);
+    ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
+    adapter.overlays.set(0, mockOverlayAdapter);
+    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
+
+    adapter.unbindModel();
+
+    verify(mockOverlayAdapter).unbindModel();
+  }
+
+  @Test
+  public void testReleaseAdapter_callsOnReleaseAdapter() {
+    Element defaultElement = Element.getDefaultInstance();
+
+    adapter.createAdapter(defaultElement, defaultElement, frameContext);
+    assertThat(adapter.created).isTrue();
+
+    adapter.releaseAdapter();
+    assertThat(adapter.created).isFalse();
+  }
+
+  @Test
+  public void testReleaseAdapter_removesOverlays() {
+    Element elementWithOverlays =
+        Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
+
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
+    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
+    View adapterView = adapter.getBaseView();
+    FrameLayout overlayView = (FrameLayout) adapter.getView();
+
+    ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
+    when(mockOverlayAdapter.getKey()).thenReturn(SingletonKeySupplier.SINGLETON_KEY);
+    adapter.overlays.set(0, mockOverlayAdapter);
+
+    adapter.releaseAdapter();
+
+    assertThat(adapter.getView()).isSameAs(adapterView);
+    assertThat(adapter.getView()).isSameAs(adapter.getBaseView());
+    assertThat(overlayView.getChildCount()).isEqualTo(0);
+    verify(mockOverlayAdapter).releaseAdapter();
+  }
+
   // Dummy implementation
   static class TestElementAdapter extends ElementAdapter<View, Object> {
     static final String DEFAULT_MODEL = "MODEL";
 
+    boolean created = false;
     boolean bound = false;
 
-    TestElementAdapter(Context context, AdapterParameters parameters) {
+    View adapterView;
+
+    TestElementAdapter(Context context, AdapterParameters parameters, View adapterView) {
       super(context, parameters);
+      this.adapterView = adapterView;
     }
 
     @Override
     protected Object getModelFromElement(Element baseElement) {
       return DEFAULT_MODEL;
+    }
+
+    @Override
+    protected void onCreateAdapter(Object model, Element baseElement, FrameContext frameContext) {
+      created = true;
+      initializeAdapter(adapterView, null);
     }
 
     @Override
@@ -346,6 +500,11 @@ public class ElementAdapterTest {
     @Override
     protected void onUnbindModel() {
       bound = false;
+    }
+
+    @Override
+    protected void onReleaseAdapter() {
+      created = false;
     }
 
     public void setDims(int width, int height) {

@@ -56,11 +56,33 @@ public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
   }
 
   @Override
+  public void onCreateAdapter(
+      TextElement textLine, Element baseElement, FrameContext frameContext) {
+    initialCreate(frameContext, textLine);
+
+    // Setup the layout of the text lines.
+    updateTextStyle(textLine.getStyleReferences(), frameContext, getContext());
+  }
+
+  private void updateTextStyle(
+      StyleIdsStack styleIdsStack, FrameContext frameContext, Context context) {
+    TextView textView = checkNotNull(getBaseView());
+    StyleProvider textStyle = frameContext.makeStyleFor(styleIdsStack);
+    textStyle.setElementStyles(context, frameContext, textView);
+    textView.setTextColor(textStyle.getColor());
+    if (textStyle.getMaxLines() > 0) {
+      textView.setMaxLines(textStyle.getMaxLines());
+      textView.setEllipsize(TextUtils.TruncateAt.END);
+    } else {
+      // MAX_VALUE is the value used in the Android implementation for the default
+      textView.setMaxLines(Integer.MAX_VALUE);
+    }
+  }
+
+  @Override
   public void onBindModel(TextElement textLine, Element baseElement, FrameContext frameContext) {
-    initialBind(frameContext, textLine);
 
     // Set the initial state for the TextView
-    Context context = getContext();
     TextView textView = checkNotNull(getBaseView());
     if (textLine.hasParameterizedTextBinding()) {
       BindingValue bindingValue =
@@ -108,16 +130,8 @@ public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
           textLine.hasParameterizedText() ? textLine.getParameterizedText() : null);
     }
 
-    // Setup the layout of the text lines.
-    StyleProvider textStyle = frameContext.makeStyleFor(textLine.getStyleReferences());
-    textStyle.setElementStyles(context, frameContext, textView);
-    textView.setTextColor(textStyle.getColor());
-    if (textStyle.getMaxLines() > 0) {
-      textView.setMaxLines(textStyle.getMaxLines());
-      textView.setEllipsize(TextUtils.TruncateAt.END);
-    } else {
-      // MAX_VALUE is the value used in the Android implementation for the default
-      textView.setMaxLines(Integer.MAX_VALUE);
+    if (textLine.getStyleReferences().hasStyleBinding()) {
+      updateTextStyle(textLine.getStyleReferences(), frameContext, getContext());
     }
   }
 
@@ -150,19 +164,19 @@ public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
     textView.setVisibility(View.VISIBLE);
   }
 
-  private void initialBind(FrameContext frameContext, TextElement textLine) {
+  private void initialCreate(FrameContext frameContext, TextElement textLine) {
     if (getBaseView() != null) {
       return;
     }
     // Don't report errors, we will report them when we bind the model to the View.
     StyleProvider styleProvider = frameContext.makeStyleFor(textLine.getStyleReferences(), true);
     Key k = new Key(styleProvider.getFont());
-    TextView v = createTextView(textLine, styleProvider.getFont());
+    TextView v = createTextView(styleProvider.getFont());
     initializeAdapter(v, k);
   }
 
   @VisibleForTesting
-  TextView createTextView(TextElement textElement, Font font) {
+  TextView createTextView(Font font) {
     // TODO: Line Height is currently not supported.
     // TODO: Implement typefaces
     TextView textView = new TextView(getContext());

@@ -55,27 +55,8 @@ public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElemen
   }
 
   @Override
-  public void onBindModel(ImageElement model, Element baseElement, FrameContext frameContext) {
+  public void onCreateAdapter(ImageElement model, Element baseElement, FrameContext frameContext) {
     initialBind();
-
-    Image image;
-    switch (model.getContentCase()) {
-      case IMAGE:
-        image = model.getImage();
-        break;
-      case IMAGE_BINDING:
-        image = frameContext.getImageFromBinding(model.getImageBinding());
-        if (image == null) {
-          throw new IllegalStateException(
-              String.format("Image binding not found for %s", model.getImageBinding()));
-        }
-        break;
-      default:
-        throw new IllegalStateException(
-            String.format(
-                "Unsupported or missing content in ImageElement: %s", model.getContentCase()));
-    }
-    initializeImageView(image);
 
     StyleProvider style = getElementStyle();
 
@@ -117,26 +98,51 @@ public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElemen
     style.setElementStyles(getContext(), getFrameContext(), getBaseView());
   }
 
+  @Override
+  public void onBindModel(ImageElement model, Element baseElement, FrameContext frameContext) {
+    Image image;
+    switch (model.getContentCase()) {
+      case IMAGE:
+        image = model.getImage();
+        break;
+      case IMAGE_BINDING:
+        image = frameContext.getImageFromBinding(model.getImageBinding());
+        if (image == null) {
+          throw new IllegalStateException(
+              String.format("Image binding not found for %s", model.getImageBinding()));
+        }
+        break;
+      default:
+        throw new IllegalStateException(
+            String.format(
+                "Unsupported or missing content in ImageElement: %s", model.getContentCase()));
+    }
+    checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
+    currentlyLoadingImage = new LoadImageCallback(imageView);
+    getFrameContext().getAssetProvider().getImage(image, currentlyLoadingImage);
+
+    if (model.getStyleReferences().hasStyleBinding()) {
+      getElementStyle().setElementStyles(getContext(), getFrameContext(), getBaseView());
+    }
+  }
+
   private void initialBind() {
     if (getBaseView() != null) {
       return;
     }
     FrameLayout frameLayout = new FrameLayout(getContext());
     initializeAdapter(frameLayout, KeySupplier.SINGLETON_KEY);
+    initializeImageView();
   }
 
   // TODO: After the AssetProvider returns Drawable instead of ImageView, make the base
   // view be ImageView and get rid of the FrameLayout.
-  private void initializeImageView(Image model) {
+  private void initializeImageView() {
     imageView = new ImageView(getContext());
-    imageView.setScaleType(ScaleType.CENTER_CROP);
     FrameLayout frameLayout = getBaseView();
     if (frameLayout != null) {
       frameLayout.addView(imageView);
     }
-    checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
-    currentlyLoadingImage = new LoadImageCallback(imageView);
-    getFrameContext().getAssetProvider().getImage(model, currentlyLoadingImage);
   }
 
   @Override
@@ -145,13 +151,15 @@ public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElemen
       currentlyLoadingImage.cancelled = true;
       currentlyLoadingImage = null;
     }
-    if (getBaseView() != null) {
-      getBaseView().removeAllViews();
+    if (imageView != null) {
+      imageView.setImageDrawable(null);
     }
-    imageView = null;
     widthPx = DIMENSION_NOT_SET;
     heightPx = DIMENSION_NOT_SET;
   }
+
+  @Override
+  protected void onReleaseAdapter() {}
 
   @Override
   protected StyleIdsStack getElementStyleIdsStack() {

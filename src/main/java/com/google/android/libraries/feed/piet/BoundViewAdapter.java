@@ -40,10 +40,13 @@ public interface BoundViewAdapter<M> {
   View getView();
 
   /**
-   * Bind a Model to the Adapter. Once this is called, the {@link #getView()} and {@link #getKey()}
-   * are legally called. This method must not be called if a Model is currently bound to the
-   * Adapter, you must call {@link #unbindModel()}.
+   * Sets up an adapter, but does not bind data. Once this is called, the {@link #getView()} and
+   * {@link #getKey()} are legally called. This method must not be called if a Model is currently
+   * bound to the Adapter, you must call {@link #unbindModel()}.
    */
+  void createAdapter(M model, FrameContext frameContext);
+
+  /** Binds data from a Model to the Adapter, without changing child views or styles. */
   void bindModel(M model, FrameContext frameContext);
 
   /**
@@ -51,6 +54,9 @@ public interface BoundViewAdapter<M> {
    * recursively.
    */
   void unbindModel();
+
+  /** Unbinds the current Model, and releases all child adapters to recycler pools. */
+  void releaseAdapter();
 
   /** Returns a Key which represents an instance of a Model based upon a type. */
   RecyclerKey getKey();

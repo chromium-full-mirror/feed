@@ -19,6 +19,7 @@ import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_S
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -40,6 +41,7 @@ import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
@@ -100,7 +102,7 @@ public class ElementListAdapterTest {
   }
 
   @Test
-  public void testOnBindModel_makesList() {
+  public void testOnCreateAdapter_makesList() {
     ElementList listWithStyles =
         ElementList.newBuilder()
             .setStyleReferences(LIST_STYLES)
@@ -109,20 +111,64 @@ public class ElementListAdapterTest {
             .addElements(ELEMENT_1)
             .build();
 
-    adapter.bindModel(listWithStyles, frameContext);
+    adapter.createAdapter(listWithStyles, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
     assertThat(adapter.getBaseView().getOrientation()).isEqualTo(LinearLayout.VERTICAL);
   }
 
   @Test
-  public void testOnBindModel_setsStyles() {
+  public void testOnCreateAdapter_setsStyles() {
     ElementList listWithStyles =
         ElementList.newBuilder().setStyleReferences(LIST_STYLES).addElements(ELEMENT_1).build();
 
-    adapter.bindModel(listWithStyles, frameContext);
+    adapter.createAdapter(listWithStyles, frameContext);
 
     verify(styleProvider).setElementStyles(context, frameContext, adapter.getView());
+  }
+
+  @Test
+  public void testOnCreateAdapter_setsMargins() {
+    String marginsStyleId = "spacecat";
+    StyleIdsStack marginsStyles = StyleIdsStack.newBuilder().addStyleIds(marginsStyleId).build();
+    Element elementWithMargins =
+        Element.newBuilder()
+            .setSpacerElement(SpacerElement.newBuilder().setStyleReferences(marginsStyles))
+            .build();
+    ElementList listWithStyles = ElementList.newBuilder().addElements(elementWithMargins).build();
+    when(frameContext.makeStyleFor(marginsStyles)).thenReturn(DEFAULT_STYLE_PROVIDER);
+    when(frameContext.bindNewStyle(marginsStyles)).thenReturn(childFrameContext);
+    when(childFrameContext.getCurrentStyle()).thenReturn(childStyleProvider);
+
+    adapter.createAdapter(listWithStyles, frameContext);
+
+    // Assert that setMargins is called on the child's layout params
+    ArgumentCaptor<MarginLayoutParams> capturedLayoutParams =
+        ArgumentCaptor.forClass(MarginLayoutParams.class);
+    verify(childStyleProvider).setMargins(eq(context), capturedLayoutParams.capture());
+
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(MarginLayoutParams.class);
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isSameAs(capturedLayoutParams.getValue());
+  }
+
+  @Test
+  public void testOnCreateAdapter_setsGravity() {
+    ElementList listWithStyles =
+        ElementList.newBuilder()
+            .addElements(
+                ELEMENT_1.toBuilder().setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER))
+            .build();
+
+    adapter.createAdapter(listWithStyles, frameContext);
+
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(LinearLayout.LayoutParams.class);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).gravity)
+        .isEqualTo(Gravity.CENTER_HORIZONTAL);
   }
 
   @Test
@@ -134,6 +180,7 @@ public class ElementListAdapterTest {
             .setActions(Actions.newBuilder().setOnClick(action))
             .build();
 
+    adapter.createAdapter(listWithActions, frameContext);
     adapter.bindModel(listWithActions, frameContext);
     adapter.getView().callOnClick();
 
@@ -154,6 +201,7 @@ public class ElementListAdapterTest {
     when(frameContext.getActionsFromBinding(actionsBindingRef))
         .thenReturn(Actions.newBuilder().setOnClick(action).build());
 
+    adapter.createAdapter(listWithActions, frameContext);
     adapter.bindModel(listWithActions, frameContext);
     adapter.getView().callOnClick();
 
@@ -162,7 +210,7 @@ public class ElementListAdapterTest {
   }
 
   @Test
-  public void testBind_ElementDoesntOverrideListActions() {
+  public void testOnBindModel_ElementDoesntOverrideListActions() {
     ElementList baseListElement =
         ElementList.newBuilder()
             .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
@@ -172,6 +220,7 @@ public class ElementListAdapterTest {
     ElementListAdapter listAdapter =
         new ElementListAdapter.KeySupplier().getAdapter(context, adapterParameters);
 
+    listAdapter.createAdapter(baseListElement, listElementWithActions, frameContext);
     listAdapter.bindModel(baseListElement, listElementWithActions, frameContext);
     listAdapter.getView().callOnClick();
 
@@ -181,7 +230,7 @@ public class ElementListAdapterTest {
   }
 
   @Test
-  public void testBind_fallsBackToElementActions() {
+  public void testOnBindModel_fallsBackToElementActions() {
     ElementList baseListElement = ElementList.getDefaultInstance();
     Element listElementWithActions =
         Element.newBuilder()
@@ -192,12 +241,80 @@ public class ElementListAdapterTest {
     ElementListAdapter listAdapter =
         new ElementListAdapter.KeySupplier().getAdapter(context, adapterParameters);
 
+    listAdapter.createAdapter(baseListElement, listElementWithActions, frameContext);
     listAdapter.bindModel(baseListElement, listElementWithActions, frameContext);
     listAdapter.getView().callOnClick();
 
     assertThat(listAdapter.getView().hasOnClickListeners()).isTrue();
     verify(actionHandler)
         .handleAction(eq(Action.getDefaultInstance()), any(Frame.class), any(String.class));
+  }
+
+  @Test
+  public void testOnBindModel_setsStylesOnlyIfBindingIsDefined() {
+    ElementList listWithStyles =
+        ElementList.newBuilder().setStyleReferences(LIST_STYLES).addElements(ELEMENT_1).build();
+
+    adapter.createAdapter(listWithStyles, frameContext);
+    verify(frameContext).makeStyleFor(LIST_STYLES);
+
+    // Binding an element with a different style will not apply the new style
+    StyleIdsStack otherStyles = StyleIdsStack.newBuilder().addStyleIds("bobcat").build();
+    ElementList otherListWithStyles =
+        ElementList.newBuilder().setStyleReferences(otherStyles).addElements(ELEMENT_1).build();
+
+    adapter.bindModel(otherListWithStyles, frameContext);
+    verify(frameContext, never()).makeStyleFor(otherStyles);
+
+    // But binding an element with a style binding will re-apply the style
+    StyleIdsStack otherStylesWithBinding =
+        StyleIdsStack.newBuilder()
+            .addStyleIds("bobcat")
+            .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("lynx"))
+            .build();
+    ElementList otherListWithStyleBindings =
+        ElementList.newBuilder()
+            .setStyleReferences(otherStylesWithBinding)
+            .addElements(ELEMENT_1)
+            .build();
+    when(frameContext.makeStyleFor(otherStylesWithBinding)).thenReturn(styleProvider);
+
+    adapter.bindModel(otherListWithStyleBindings, frameContext);
+    verify(frameContext).makeStyleFor(otherStylesWithBinding);
+  }
+
+  @Test
+  public void testOnBindModel_failsWithIncompatibleModel() {
+    ElementList listWithThreeElements =
+        ElementList.newBuilder()
+            .setStyleReferences(LIST_STYLES)
+            .addElements(ELEMENT_1)
+            .addElements(ELEMENT_1)
+            .addElements(ELEMENT_1)
+            .build();
+
+    adapter.createAdapter(listWithThreeElements, frameContext);
+    adapter.bindModel(listWithThreeElements, frameContext);
+    adapter.unbindModel();
+
+    ElementList listWithTwoElements =
+        ElementList.newBuilder()
+            .setStyleReferences(LIST_STYLES)
+            .addElements(ELEMENT_1)
+            .addElements(ELEMENT_1)
+            .build();
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(listWithTwoElements, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Number of elements mismatch");
   }
 
   @Test
@@ -208,6 +325,7 @@ public class ElementListAdapterTest {
             .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
             .build();
 
+    adapter.createAdapter(listWithActions, frameContext);
     adapter.bindModel(listWithActions, frameContext);
     View view = adapter.getView();
     adapter.unbindModel();
@@ -216,51 +334,7 @@ public class ElementListAdapterTest {
   }
 
   @Test
-  public void testOnBindModel_setsMargins() {
-    String marginsStyleId = "spacecat";
-    StyleIdsStack marginsStyles = StyleIdsStack.newBuilder().addStyleIds(marginsStyleId).build();
-    Element elementWithMargins =
-        Element.newBuilder()
-            .setSpacerElement(SpacerElement.newBuilder().setStyleReferences(marginsStyles))
-            .build();
-    ElementList listWithStyles = ElementList.newBuilder().addElements(elementWithMargins).build();
-    when(frameContext.makeStyleFor(marginsStyles)).thenReturn(DEFAULT_STYLE_PROVIDER);
-    when(frameContext.bindNewStyle(marginsStyles)).thenReturn(childFrameContext);
-    when(childFrameContext.getCurrentStyle()).thenReturn(childStyleProvider);
-
-    adapter.bindModel(listWithStyles, frameContext);
-
-    // Assert that setMargins is called on the child's layout params
-    ArgumentCaptor<MarginLayoutParams> capturedLayoutParams =
-        ArgumentCaptor.forClass(MarginLayoutParams.class);
-    verify(childStyleProvider).setMargins(eq(context), capturedLayoutParams.capture());
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
-        .isInstanceOf(MarginLayoutParams.class);
-    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
-        .isSameAs(capturedLayoutParams.getValue());
-  }
-
-  @Test
-  public void testOnBindModel_setsGravity() {
-    ElementList listWithStyles =
-        ElementList.newBuilder()
-            .addElements(
-                ELEMENT_1.toBuilder().setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER))
-            .build();
-
-    adapter.bindModel(listWithStyles, frameContext);
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
-        .isInstanceOf(LinearLayout.LayoutParams.class);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).gravity)
-        .isEqualTo(Gravity.CENTER_HORIZONTAL);
-  }
-
-  @Test
-  public void testUnbindModel() {
+  public void testReleaseAdapter() {
     ElementList listWithStyles =
         ElementList.newBuilder()
             .setStyleReferences(LIST_STYLES)
@@ -269,9 +343,10 @@ public class ElementListAdapterTest {
             .addElements(ELEMENT_1)
             .build();
 
+    adapter.createAdapter(listWithStyles, frameContext);
     adapter.bindModel(listWithStyles, frameContext);
 
-    adapter.unbindModel();
+    adapter.releaseAdapter();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
     assertThat(adapter.childAdapters).isEmpty();
   }
@@ -284,7 +359,7 @@ public class ElementListAdapterTest {
             .addElements(ELEMENT_1)
             .build();
 
-    adapter.bindModel(listWithStyles, frameContext);
+    adapter.createAdapter(listWithStyles, frameContext);
 
     assertThat(adapter.getVerticalGravity()).isEqualTo(GravityVertical.GRAVITY_MIDDLE);
   }
@@ -294,7 +369,7 @@ public class ElementListAdapterTest {
     ElementList listWithStyles =
         ElementList.newBuilder().setStyleReferences(LIST_STYLES).addElements(ELEMENT_1).build();
 
-    adapter.bindModel(listWithStyles, frameContext);
+    adapter.createAdapter(listWithStyles, frameContext);
 
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(LIST_STYLES);
   }

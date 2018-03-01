@@ -86,7 +86,7 @@ public class AdapterFactory<A extends ElementAdapter<?, M>, M> {
     return get(model, Element.getDefaultInstance(), frameContext);
   }
 
-  /** Returns an adapter with the model bound to the view. */
+  /** Returns an adapter suitable for binding the given model. */
   public A get(M model, Element baseElement, FrameContext frameContext) {
     statistics.getCalls++;
     A a = recyclingPool.get(keySupplier.getKey(frameContext, model));
@@ -96,7 +96,7 @@ public class AdapterFactory<A extends ElementAdapter<?, M>, M> {
     } else {
       statistics.poolHit++;
     }
-    a.bindModel(model, baseElement, frameContext);
+    a.createAdapter(model, baseElement, frameContext);
     return a;
   }
 
@@ -104,6 +104,7 @@ public class AdapterFactory<A extends ElementAdapter<?, M>, M> {
   public void release(A a) {
     statistics.releaseCalls++;
     a.unbindModel();
+    a.releaseAdapter();
     recyclingPool.put(a.getKey(), a);
   }
 

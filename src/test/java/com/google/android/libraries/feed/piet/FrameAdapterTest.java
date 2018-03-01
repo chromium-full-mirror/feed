@@ -199,6 +199,7 @@ public class FrameAdapterTest {
         Frame.newBuilder().addSlices(Slice.newBuilder().setInlineSlice(inlineSlice)).build();
     frameAdapter.bindModel(inlineSliceFrame, (ShardingControl) null);
     verify(adapterFactory).createElementListAdapter(inlineSlice, frameContext);
+    verify(elementListAdapter).bindModel(inlineSlice, frameContext);
 
     frameAdapter.unbindModel();
     verify(adapterFactory).releaseAdapter(elementListAdapter);
@@ -212,6 +213,7 @@ public class FrameAdapterTest {
         Frame.newBuilder().addSlices(Slice.newBuilder().setTemplateSlice(templateSlice)).build();
     frameAdapter.bindModel(templateSliceFrame, (ShardingControl) null);
     verify(adapterFactory).createTemplateAdapter(templateSlice, frameContext);
+    verify(templateAdapter).bindModel(templateSlice, frameContext);
 
     frameAdapter.unbindModel();
     verify(adapterFactory).releaseAdapter(templateAdapter);

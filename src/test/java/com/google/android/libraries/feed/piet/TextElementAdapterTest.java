@@ -21,6 +21,7 @@ import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibilit
 import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.INVISIBLE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -35,6 +36,7 @@ import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.ParameterizedTextEvaluator;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -87,8 +89,55 @@ public class TextElementAdapterTest {
   }
 
   @Test
+  public void testCreateTextView_default() {
+    Font font = Font.getDefaultInstance();
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
+        .thenReturn(mockStyleProvider);
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
+    when(mockStyleProvider.getFont()).thenReturn(font);
+
+    TextView textView = adapter.createTextView(font);
+    assertThat(textView).isNotNull();
+  }
+
+  @Test
+  public void testCreateTextView_boldFont() {
+    Font.Builder font = Font.newBuilder();
+    font.setWeight(FontWeight.BOLD);
+
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
+        .thenReturn(mockStyleProvider);
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
+    when(mockStyleProvider.getFont()).thenReturn(font.build());
+
+    TextView textView = adapter.createTextView(font.build());
+    Typeface typeface = textView.getTypeface();
+    // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
+    assertThat(typeface.getStyle() & Typeface.BOLD).isGreaterThan(0);
+    assertThat(typeface.getStyle() & Typeface.ITALIC).isEqualTo(0);
+  }
+
+  @Test
+  public void testCreateTextView_italics() {
+    Font.Builder font = Font.newBuilder();
+    font.setItalic(true);
+
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
+        .thenReturn(mockStyleProvider);
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
+    when(mockStyleProvider.getFont()).thenReturn(font.build());
+
+    TextView textView = adapter.createTextView(font.build());
+    Typeface typeface = textView.getTypeface();
+    // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
+    assertThat(typeface.getStyle() & Typeface.BOLD).isEqualTo(0);
+    assertThat(typeface.getStyle() & Typeface.ITALIC).isGreaterThan(0);
+  }
+
+  @Test
   public void testBindModel_basic() {
     TextElement textElement = getBaseTextElement();
+    adapter.createAdapter(textElement, frameContext);
     adapter.bindModel(textElement, frameContext);
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
@@ -106,6 +155,7 @@ public class TextElementAdapterTest {
         .thenReturn(bindingValue);
 
     TextElement textElement = getBindingTextElement(null);
+    adapter.createAdapter(textElement, frameContext);
     adapter.bindModel(textElement, frameContext);
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
@@ -118,6 +168,7 @@ public class TextElementAdapterTest {
     when(frameContext.getTextBindingValue(any(ParameterizedTextBindingRef.class))).thenReturn(null);
 
     TextElement textElement = getBindingTextElement(null);
+    adapter.createAdapter(textElement, frameContext);
     adapter.bindModel(textElement, frameContext);
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
@@ -132,6 +183,7 @@ public class TextElementAdapterTest {
         .thenReturn(bindingValue);
 
     TextElement textElement = getBindingTextElement(null /* StyleProvider*/);
+    adapter.createAdapter(textElement, frameContext);
     adapter.bindModel(textElement, frameContext);
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
@@ -146,11 +198,44 @@ public class TextElementAdapterTest {
         .thenReturn(bindingValue);
 
     TextElement textElement = getBindingTextElement(null /* StyleProvider*/);
+    adapter.createAdapter(textElement, frameContext);
     adapter.bindModel(textElement, frameContext);
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
     assertThat(textView.getVisibility()).isEqualTo(View.INVISIBLE);
+  }
+
+  @Test
+  public void testBind_setsStylesOnlyIfBindingIsDefined() {
+    int maxLines = 2;
+    Style style = Style.newBuilder().setMaxLines(maxLines).build();
+    StyleProvider styleProvider = new StyleProviderImpl(style);
+    TextElement textElement = getBaseTextElement(styleProvider);
+    adapter.createAdapter(textElement, frameContext);
+    adapter.bindModel(textElement, frameContext);
+    assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
+
+    // Styles should not change on a re-bind
+    adapter.unbindModel();
+    StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
+    textElement = getBaseTextElement().toBuilder().setStyleReferences(otherStyle).build();
+    adapter.bindModel(textElement, frameContext);
+
+    assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
+    verify(frameContext, never()).makeStyleFor(otherStyle);
+
+    // Styles only change if new model has style bindings
+    adapter.unbindModel();
+    StyleIdsStack otherStyleWithBinding =
+        StyleIdsStack.newBuilder()
+            .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("prionailurus"))
+            .build();
+    textElement =
+        getBaseTextElement().toBuilder().setStyleReferences(otherStyleWithBinding).build();
+    adapter.bindModel(textElement, frameContext);
+
+    verify(frameContext).makeStyleFor(otherStyleWithBinding);
   }
 
   @Test
@@ -166,85 +251,11 @@ public class TextElementAdapterTest {
 
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
 
-    adapter.bindModel(textElement, frameContext);
+    adapter.createAdapter(textElement, frameContext);
     assertThat(adapter.getView()).isNotNull();
     verify(mockStyleProvider).setElementStyles(context, frameContext, adapter.getView());
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
-  }
-
-  @Test
-  public void testStyles_unbindView() {
-    int maxLines = 2;
-    Style style =
-        Style.newBuilder()
-            .setMaxLines(maxLines)
-            .build();
-    StyleProvider styleProvider = new StyleProviderImpl(style);
-    TextElement textElement = getBaseTextElement(styleProvider);
-    adapter.bindModel(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getMaxLines()).isEqualTo(maxLines);
-
-    // Max sure that no styles overrides are still set.
-    adapter.unbindModel();
-    textElement = getBaseTextElement();
-    adapter.bindModel(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getMaxLines()).isEqualTo(Integer.MAX_VALUE);
-  }
-
-  @Test
-  public void testCreateTextView_default() {
-    Font font = Font.getDefaultInstance();
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
-        .thenReturn(mockStyleProvider);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
-    when(mockStyleProvider.getFont()).thenReturn(font);
-    TextElement textElement = TextElement.getDefaultInstance();
-
-    TextView textView = adapter.createTextView(textElement, font);
-    assertThat(textView).isNotNull();
-  }
-
-  @Test
-  public void testCreateTextView_boldFont() {
-    Font.Builder font = Font.newBuilder();
-    font.setWeight(FontWeight.BOLD);
-
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
-        .thenReturn(mockStyleProvider);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
-    when(mockStyleProvider.getFont()).thenReturn(font.build());
-
-    TextElement textElement = TextElement.getDefaultInstance();
-    TextView textView = adapter.createTextView(textElement, font.build());
-    Typeface typeface = textView.getTypeface();
-    // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
-    assertThat(typeface.getStyle() & Typeface.BOLD).isGreaterThan(0);
-    assertThat(typeface.getStyle() & Typeface.ITALIC).isEqualTo(0);
-  }
-
-  @Test
-  public void testCreateTextView_italics() {
-    Font.Builder font = Font.newBuilder();
-    font.setItalic(true);
-
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
-        .thenReturn(mockStyleProvider);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
-    when(mockStyleProvider.getFont()).thenReturn(font.build());
-
-    TextElement textElement = TextElement.getDefaultInstance();
-    TextView textView = adapter.createTextView(textElement, font.build());
-    Typeface typeface = textView.getTypeface();
-    // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
-    assertThat(typeface.getStyle() & Typeface.BOLD).isEqualTo(0);
-    assertThat(typeface.getStyle() & Typeface.ITALIC).isGreaterThan(0);
   }
 
   private TextElement getBindingTextElement(@Nullable StyleProvider styleProvider) {

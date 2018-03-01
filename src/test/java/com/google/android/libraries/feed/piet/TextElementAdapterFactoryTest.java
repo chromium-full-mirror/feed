@@ -15,20 +15,24 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier.SINGLETON_KEY;
+import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import android.view.View;
-import android.widget.TextView;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.TextElementAdapter.Key;
 import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.ParameterizedTextEvaluator;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
+import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
@@ -50,6 +54,9 @@ public class TextElementAdapterFactoryTest {
   private static final String TEXT_LINE_CONTENT = "Content";
 
   @Mock private FrameContext frameContext;
+  @Mock TextElementAdapter.KeySupplier keySupplier;
+  @Mock TextElementAdapter adapter;
+  @Mock TextElementAdapter adapter2;
 
   private AdapterParameters adapterParameters;
   private Context context;
@@ -62,8 +69,9 @@ public class TextElementAdapterFactoryTest {
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
         new AdapterParameters(null, null, null, new ParameterizedTextEvaluator(), null);
-    textElementFactory =
-        new AdapterFactory<>(context, adapterParameters, new TextElementAdapter.KeySupplier());
+    when(keySupplier.getAdapter(context, adapterParameters))
+        .thenReturn(adapter)
+        .thenReturn(adapter2);
   }
 
   @Test
@@ -78,42 +86,50 @@ public class TextElementAdapterFactoryTest {
   }
 
   @Test
-  public void testBaseCreate() {
+  public void testGetAdapterFromFactory() {
+    textElementFactory = new AdapterFactory<>(context, adapterParameters, keySupplier);
     TextElement textElement = getBaseTextElement(null);
+
     TextElementAdapter textElementAdapter = textElementFactory.get(textElement, frameContext);
-    assertThat(textElementAdapter).isNotNull();
-    View view = textElementAdapter.getView();
-    assertThat(view).isInstanceOf(TextView.class);
-    TextView textView = textElementAdapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textElementAdapter.getModel()).isNotNull();
-    assertThat(textView.getText()).isEqualTo(TEXT_LINE_CONTENT);
+
+    // Verify we get the adapter from the KeySupplier, and we create but not bind it.
+    assertThat(textElementAdapter).isSameAs(adapter);
+    verify(adapter).createAdapter(textElement, Element.getDefaultInstance(), frameContext);
+    verify(adapter, never()).bindModel(any(), any(), any());
   }
 
   @Test
-  public void testRelease() {
+  public void testReleaseAndRecycling() {
+    textElementFactory = new AdapterFactory<>(context, adapterParameters, keySupplier);
     TextElement textElement = getBaseTextElement(null);
+    Key adapterKey = new Key(DEFAULT_STYLE_PROVIDER.getFont());
+    when(adapter.getKey()).thenReturn(adapterKey);
+    when(keySupplier.getKey(frameContext, textElement)).thenReturn(adapterKey);
+
     TextElementAdapter textElementAdapter = textElementFactory.get(textElement, frameContext);
-    View view = textElementAdapter.getView();
-    assertThat(view).isInstanceOf(TextView.class);
-    TextView textView = textElementAdapter.getBaseView();
-    assertThat(textView).isNotNull();
+    assertThat(textElementAdapter).isSameAs(adapter);
 
+    // Ensure that releasing in the factory unbinds and releases the adapter.
     textElementFactory.release(textElementAdapter);
-    assertThat(textElementAdapter.getRawModel()).isNull();
-    assertThat(textElementAdapter.getView()).isNotNull();
+    verify(adapter).unbindModel();
+    verify(adapter).releaseAdapter();
 
-    // Verify we get the same item when we create it again
+    // Verify we get the same item when we create it again.
     TextElementAdapter textElementAdapter2 = textElementFactory.get(textElement, frameContext);
-    assertThat(textElementAdapter).isEqualTo(textElementAdapter2);
-    assertThat(textView).isEqualTo(textElementAdapter2.getView());
-    assertThat(textElementAdapter.getRawModel()).isNotNull();
-    assertThat(textElementAdapter.getView()).isNotNull();
+    assertThat(textElementAdapter2).isSameAs(adapter);
+    assertThat(textElementAdapter2).isEqualTo(textElementAdapter);
+    verify(adapter, times(2))
+        .createAdapter(textElement, Element.getDefaultInstance(), frameContext);
+    verify(adapter, never()).bindModel(any(), any(), any());
+
+    // Verify we get a new item when we create another.
+    TextElementAdapter textElementAdapter3 = textElementFactory.get(textElement, frameContext);
+    assertThat(textElementAdapter3).isSameAs(adapter2);
+    assertThat(textElementAdapter3).isNotSameAs(textElementAdapter);
   }
 
   private TextElement getBaseTextElement(@Nullable StyleProvider styleProvider) {
-    StyleProvider sp =
-        styleProvider != null ? styleProvider : StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
+    StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean())).thenReturn(sp);
     when(frameContext.getCurrentStyle()).thenReturn(sp);

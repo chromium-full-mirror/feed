@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -61,7 +62,7 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
   private FrameContext frameContext;
 
   @Nullable private FrameLayout overlayView = null;
-  private final List<ElementListAdapter> overlays = new ArrayList<>();
+  @VisibleForTesting final List<ElementListAdapter> overlays = new ArrayList<>();
 
   /**
    * Desired width of this element. {@link #DIMENSION_NOT_SET} indicates no explicit width; let the
@@ -99,6 +100,31 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     return view;
   }
 
+  @Override
+  public void createAdapter(M model, FrameContext frameContext) {
+    createAdapter(model, Element.getDefaultInstance(), frameContext);
+  }
+
+  public void createAdapter(Element baseElement, FrameContext frameContext) {
+    M model = getModelFromElement(baseElement);
+    createAdapter(model, baseElement, frameContext);
+  }
+
+  public void createAdapter(M model, Element baseElement, FrameContext frameContext) {
+    this.model = model;
+    this.baseElement = baseElement;
+    this.frameContext = frameContext.bindNewStyle(getElementStyleIdsStack());
+
+    onCreateAdapter(model, baseElement, frameContext);
+
+    checkNotNull(view, "View is null; call initializeAdapter first!");
+    initializeOverlays(frameContext);
+
+    initializeOverflow(baseElement);
+  }
+
+  protected void onCreateAdapter(M model, Element baseElement, FrameContext frameContext) {}
+
   /**
    * Sets the model and initializes Element-level features (ex. overlays). Do not override; override
    * {@link #onBindModel()} instead.
@@ -122,11 +148,9 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     onBindModel(model, baseElement, frameContext);
 
     checkNotNull(view, "View is null; call initializeAdapter first!");
-    initializeOverlays(frameContext);
+    bindOverlays(frameContext);
 
-    initializeActions(frameContext);
-
-    initializeOverflow(baseElement);
+    bindActions(frameContext);
   }
 
   /** Extracts the relevant model from the Element oneof. Throws IllegalArgument if not found. */
@@ -167,7 +191,20 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     }
   }
 
-  protected void initializeActions(FrameContext frameContext) {
+  private void bindOverlays(FrameContext frameContext) {
+    if (baseElement.getOverlayElementsCount() > 0) {
+      checkState(
+          baseElement.getOverlayElementsCount() == overlays.size(),
+          "Overlay count mismatch: %s overlay adapters, %s overlays defined",
+          overlays.size(),
+          baseElement.getOverlayElementsCount());
+      for (int i = 0; i < baseElement.getOverlayElementsCount(); i++) {
+        overlays.get(i).bindModel(baseElement.getOverlayElements(i), frameContext);
+      }
+    }
+  }
+
+  protected void bindActions(FrameContext frameContext) {
     // Set up actions
     switch (baseElement.getActionsDataCase()) {
       case ACTIONS:
@@ -229,6 +266,17 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
       ViewUtils.clearOnClickActions(getBaseView());
     }
 
+    for (ElementListAdapter overlayAdapter : overlays) {
+      overlayAdapter.unbindModel();
+    }
+  }
+
+  protected void onUnbindModel() {}
+
+  @Override
+  public void releaseAdapter() {
+    onReleaseAdapter();
+
     // Destroy overlays
     if (overlayView != null) {
       overlayView.removeAllViews();
@@ -240,7 +288,7 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     overlays.clear();
   }
 
-  protected void onUnbindModel() {};
+  protected void onReleaseAdapter() {}
 
   /**
    * Subclasses will call this method when they are first bound to a Model to set the View created
@@ -282,6 +330,16 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
       return;
     }
     getView().setLayoutParams(layoutParams);
+    if (getBaseView() != getView()) {
+      getBaseView().getLayoutParams().height =
+          layoutParams.height == LayoutParams.WRAP_CONTENT
+              ? LayoutParams.WRAP_CONTENT
+              : LayoutParams.MATCH_PARENT;
+      getBaseView().getLayoutParams().width =
+          layoutParams.width == LayoutParams.WRAP_CONTENT
+              ? LayoutParams.WRAP_CONTENT
+              : LayoutParams.MATCH_PARENT;
+    }
   }
 
   protected AdapterParameters getParameters() {

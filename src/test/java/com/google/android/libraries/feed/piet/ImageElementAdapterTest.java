@@ -19,6 +19,8 @@ import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_S
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -40,6 +42,7 @@ import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.android.libraries.feed.piet.util.ViewUtils;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
@@ -111,78 +114,15 @@ public class ImageElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_image() {
-    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
-    ImageElement model =
-        ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build();
-
-    adapter.bindModel(model, Element.getDefaultInstance(), frameContext);
-
-    imageView = getImageView();
-    assertDrawableSet(imageView);
-    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
-
-    assertThat(adapter.getElementStyleIdsStack()).isEqualTo(styles);
-  }
-
-  @Test
-  public void testBindModel_imageBinding() {
-    ImageBindingRef imageBinding = ImageBindingRef.newBuilder().setBindingId("feline").build();
-    ImageElement model = ImageElement.newBuilder().setImageBinding(imageBinding).build();
-    when(frameContext.getImageFromBinding(imageBinding)).thenReturn(DEFAULT_IMAGE);
-
-    adapter.bindModel(model, Element.getDefaultInstance(), frameContext);
-
-    assertDrawableSet(getImageView());
-  }
-
-  @Test
-  public void testBindModel_notFound() {
-    ImageBindingRef imageBinding = ImageBindingRef.newBuilder().setBindingId("INVALID").build();
-    ImageElement model = ImageElement.newBuilder().setImageBinding(imageBinding).build();
-    when(frameContext.getImageFromBinding(imageBinding)).thenReturn(null);
-
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(model, Element.getDefaultInstance(), frameContext);
-              }
-            })
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Image binding not found");
-  }
-
-  @Test
-  public void testBindModel_noContent() {
-    ImageElement model = ImageElement.getDefaultInstance();
-
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(model, Element.getDefaultInstance(), frameContext);
-              }
-            })
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Unsupported or missing content");
-  }
-
-  @Test
-  public void testBindModel() {
+  public void testCreateAdapter() {
     setStyle(HEIGHT_DP, WIDTH_DP);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
     assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL);
 
     assertThat(adapter.getView()).isNotNull();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
 
     imageView = getImageView();
-    assertDrawableSet(imageView);
     assertThat(imageView.getLayoutParams().height).isEqualTo(heightPx);
     assertThat(imageView.getLayoutParams().width).isEqualTo(widthPx);
     assertThat(((LayoutParams) imageView.getLayoutParams()).gravity)
@@ -195,41 +135,10 @@ public class ImageElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_again() {
-    // Bind a model, then unbind it.
-    setStyle(HEIGHT_DP, WIDTH_DP);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
-    imageView = getImageView();
-    RecyclerKey key1 = adapter.getKey();
-    adapter.unbindModel();
-
-    // Bind a different model
-    setStyle(WIDTH_DP, HEIGHT_DP);
-    ImageElement model2 = ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build();
-    adapter.bindModel(model2, frameContext);
-    verify(assetProvider).getImage(eq(Image.getDefaultInstance()), callbackCaptor.capture());
-
-    RecyclerKey key2 = adapter.getKey();
-    assertThat(key1).isSameAs(key2);
-    assertThat(adapter.getModel()).isSameAs(model2);
-    assertThat(adapter.getView()).isNotNull();
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-
-    Drawable drawable2 = new ColorDrawable(Color.RED);
-    callbackCaptor.getValue().handleResult(drawable2);
-
-    ImageView imageView2 = (ImageView) adapter.getBaseView().getChildAt(0);
-
-    assertThat(imageView2).isNotSameAs(imageView);
-    assertThat(imageView2.getDrawable()).isEqualTo(drawable2);
-    assertThat(imageView2.getLayoutParams().height).isEqualTo(widthPx);
-    assertThat(imageView2.getLayoutParams().width).isEqualTo(heightPx);
-  }
-
-  @Test
-  public void testBindModel_emptyModel() {
+  public void testCreateAdapter_noDimensionsSet() {
     setStyle(null, null);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+
     assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL);
 
     assertThat(adapter.getView()).isNotNull();
@@ -237,7 +146,6 @@ public class ImageElementAdapterTest {
 
     // Assert that width and height are set to the defaults
     imageView = getImageView();
-    assertDrawableSet(imageView);
     assertThat(imageView.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
     assertThat(imageView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
 
@@ -246,9 +154,9 @@ public class ImageElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_heightOnly() {
+  public void testCreateAdapter_heightOnly() {
     setStyle(HEIGHT_DP, null);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
     assertThat(adapter.getModel()).isEqualTo(DEFAULT_MODEL);
 
@@ -266,9 +174,9 @@ public class ImageElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_widthOnly() {
+  public void testCreateAdapter_widthOnly() {
     setStyle(null, WIDTH_DP);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
     assertThat(adapter.getModel()).isEqualTo(DEFAULT_MODEL);
 
@@ -287,9 +195,110 @@ public class ImageElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_image() {
+    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
+    ImageElement model =
+        ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build();
+
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    imageView = getImageView();
+    assertDrawableSet(imageView);
+    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
+
+    assertThat(adapter.getModel()).isSameAs(model);
+    assertThat(adapter.getElementStyleIdsStack()).isEqualTo(styles);
+  }
+
+  @Test
+  public void testBindModel_imageBinding() {
+    ImageBindingRef imageBinding = ImageBindingRef.newBuilder().setBindingId("feline").build();
+    ImageElement model = ImageElement.newBuilder().setImageBinding(imageBinding).build();
+    when(frameContext.getImageFromBinding(imageBinding)).thenReturn(DEFAULT_IMAGE);
+
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    assertDrawableSet(getImageView());
+    assertThat(adapter.getModel()).isSameAs(model);
+  }
+
+  @Test
+  public void testBindModel_notFound() {
+    ImageBindingRef imageBinding = ImageBindingRef.newBuilder().setBindingId("INVALID").build();
+    ImageElement model = ImageElement.newBuilder().setImageBinding(imageBinding).build();
+    when(frameContext.getImageFromBinding(imageBinding)).thenReturn(null);
+
+    adapter.createAdapter(model, frameContext);
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(model, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Image binding not found");
+  }
+
+  @Test
+  public void testBindModel_noContent() {
+    ImageElement model = ImageElement.getDefaultInstance();
+
+    adapter.createAdapter(model, frameContext);
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(model, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Unsupported or missing content");
+  }
+
+  @Test
+  public void testBindModel_again() {
+    // Bind a model, then unbind it.
+    setStyle(HEIGHT_DP, WIDTH_DP);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    imageView = getImageView();
+    RecyclerKey key1 = adapter.getKey();
+    adapter.unbindModel();
+
+    // Bind a different model
+    ImageElement model2 = ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build();
+    adapter.bindModel(model2, frameContext);
+    verify(assetProvider).getImage(eq(Image.getDefaultInstance()), callbackCaptor.capture());
+
+    RecyclerKey key2 = adapter.getKey();
+    assertThat(key1).isSameAs(key2);
+    assertThat(adapter.getModel()).isSameAs(model2);
+    assertThat(adapter.getView()).isNotNull();
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+
+    Drawable drawable2 = new ColorDrawable(Color.RED);
+    callbackCaptor.getValue().handleResult(drawable2);
+
+    ImageView imageView2 = (ImageView) adapter.getBaseView().getChildAt(0);
+
+    assertThat(imageView2).isSameAs(imageView);
+    assertThat(imageView2.getDrawable()).isEqualTo(drawable2);
+  }
+
+  @Test
   public void testBindModel_bindingTwiceThrowsException() {
     setStyle(HEIGHT_DP, WIDTH_DP);
 
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
 
     assertThatRunnable(
@@ -306,13 +315,57 @@ public class ImageElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_setsStylesOnlyIfBindingIsDefined() {
+    // Create an adapter with a default style
+    setStyle(HEIGHT_DP, WIDTH_DP);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+
+    verify(frameContextWithStyle).getCurrentStyle();
+
+    // Styles do not change when a different model is bound
+    StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
+    ImageElement imageWithOtherStyle =
+        ImageElement.newBuilder()
+            .setStyleReferences(otherStyle)
+            .setImage(Image.getDefaultInstance())
+            .build();
+    FrameContext frameContextWithOtherStyle = mock(FrameContext.class);
+    when(frameContext.bindNewStyle(otherStyle)).thenReturn(frameContextWithOtherStyle);
+    when(frameContextWithOtherStyle.getAssetProvider()).thenReturn(assetProvider);
+    adapter.bindModel(imageWithOtherStyle, frameContext);
+    adapter.unbindModel();
+
+    verify(frameContextWithOtherStyle, never()).getCurrentStyle();
+
+    // Styles do change when a model with a style binding is bound
+    StyleIdsStack boundStyle =
+        StyleIdsStack.newBuilder()
+            .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("tuna"))
+            .build();
+    ImageElement imageWithBoundStyle =
+        ImageElement.newBuilder()
+            .setStyleReferences(boundStyle)
+            .setImage(Image.getDefaultInstance())
+            .build();
+    FrameContext frameContextWithBoundStyle = mock(FrameContext.class);
+    when(frameContext.bindNewStyle(boundStyle)).thenReturn(frameContextWithBoundStyle);
+    when(frameContextWithBoundStyle.getAssetProvider()).thenReturn(assetProvider);
+    when(frameContextWithBoundStyle.getCurrentStyle()).thenReturn(DEFAULT_STYLE_PROVIDER);
+    adapter.bindModel(imageWithBoundStyle, frameContext);
+
+    verify(frameContextWithBoundStyle).getCurrentStyle();
+  }
+
+  @Test
   public void testUnbind() {
     setStyle(HEIGHT_DP, WIDTH_DP);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
     adapter.unbindModel();
 
     assertThat(adapter.getView()).isNotNull();
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(getImageView().getDrawable()).isNull();
 
     assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
@@ -328,6 +381,7 @@ public class ImageElementAdapterTest {
   @Test
   public void testUnbind_cancelsCallback() {
     setStyle(HEIGHT_DP, WIDTH_DP);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
 
     imageView = getImageView();
@@ -343,6 +397,7 @@ public class ImageElementAdapterTest {
   @Test
   public void testUnbind_cancelsCallback2() {
     setStyle(HEIGHT_DP, WIDTH_DP);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
 
     verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
@@ -378,7 +433,7 @@ public class ImageElementAdapterTest {
   @Test
   public void testComputedDimensions_bound() {
     setStyle(HEIGHT_DP, WIDTH_DP);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
     assertThat(adapter.getComputedHeightPx())
         .isEqualTo(heightPx + PADDING.getTop() + PADDING.getBottom());

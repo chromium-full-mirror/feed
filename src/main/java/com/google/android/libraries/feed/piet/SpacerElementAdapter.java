@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -51,24 +50,33 @@ public class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
   }
 
   @Override
-  public void onBindModel(SpacerElement model, Element baseElement, FrameContext frameContext) {
-    initialBind(frameContext, model);
-    View view = checkNotNull(getBaseView());
+  public void onCreateAdapter(SpacerElement model, Element baseElement, FrameContext frameContext) {
+    initialCreate(frameContext, model);
+    setSpacerStyles(frameContext);
+  }
 
-    StyleProvider spacerStyle = frameContext.makeStyleFor(model.getStyleReferences());
+  @Override
+  public void onBindModel(SpacerElement model, Element baseElement, FrameContext frameContext) {
+    if (model.getStyleReferences().hasStyleBinding()) {
+      setSpacerStyles(frameContext);
+    }
+  }
+
+  private void setSpacerStyles(FrameContext frameContext) {
+    StyleProvider spacerStyle = frameContext.makeStyleFor(getModel().getStyleReferences());
     EdgeWidths padding = spacerStyle.getPadding();
 
-    int height = padding.getTop() + padding.getBottom() + model.getHeight();
+    int height = padding.getTop() + padding.getBottom() + getModel().getHeight();
     height = (int) ViewUtils.dpToPx(height, getContext());
 
-    LayoutParams params = view.getLayoutParams();
+    LayoutParams params = getBaseView().getLayoutParams();
     if (params != null) {
       params.height = height;
     } else {
       params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, height);
     }
-    view.setLayoutParams(params);
-    spacerStyle.setElementStyles(getContext(), frameContext, view);
+    getBaseView().setLayoutParams(params);
+    spacerStyle.setElementStyles(getContext(), frameContext, getBaseView());
   }
 
   @Override
@@ -107,7 +115,7 @@ public class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
     }
   }
 
-  private void initialBind(FrameContext frameContext, SpacerElement model) {
+  private void initialCreate(FrameContext frameContext, SpacerElement model) {
     if (getBaseView() != null) {
       return;
     }

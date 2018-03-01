@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.view.Gravity;
@@ -31,7 +32,9 @@ import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** A {@link ViewGroupBoundViewAdapter} which manages vertical lists of elements. */
-public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, ElementList> {
+public class ElementListAdapter
+    extends ViewGroupBoundViewAdapter<
+        LinearLayout, ElementAdapter<? extends View, ?>, ElementList> {
   private static final String TAG = "ElementListAdapter";
 
   private ElementListAdapter(Context context, AdapterParameters parameters) {
@@ -49,16 +52,40 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
   }
 
   @Override
-  public void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
-    initialBind();
-    bindLinesToLayout(model, frameContext);
+  public void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
+    initialCreate();
+
+    createLayout(model, frameContext);
+
     frameContext
         .makeStyleFor(model.getStyleReferences())
         .setElementStyles(getContext(), frameContext, getView());
   }
 
   @Override
-  protected void initializeActions(FrameContext frameContext) {
+  public void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
+    // TODO: When onCreateAdapter skips creating some adapters (ex. due to binding
+    // issues),
+    // this check will fail; if we support silently ignoring some elements in onCreateAdapter, we
+    // should also support it here (or it should be an error both places).
+    checkState(
+        model.getElementsCount() == childAdapters.size(),
+        "Number of elements mismatch: got %s elements, had %s adapters",
+        model.getElementsCount(),
+        childAdapters.size());
+    for (int i = 0; i < model.getElementsCount(); i++) {
+      childAdapters.get(i).bindModel(model.getElements(i), frameContext);
+    }
+
+    if (model.getStyleReferences().hasStyleBinding()) {
+      frameContext
+          .makeStyleFor(model.getStyleReferences())
+          .setElementStyles(getContext(), frameContext, getView());
+    }
+  }
+
+  @Override
+  protected void bindActions(FrameContext frameContext) {
     switch (getModel().getActionsDataCase()) {
       case ACTIONS:
         ViewUtils.setOnClickActions(
@@ -69,7 +96,7 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
             getModel().getActionsBinding(), getView(), getParameters().actionHandler, frameContext);
         break;
       default:
-        super.initializeActions(frameContext);
+        super.bindActions(frameContext);
     }
   }
 
@@ -89,16 +116,26 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
   }
 
   /** Creates each ui element in {@code list} and adds them to {@code views}. */
-  private void bindLinesToLayout(ElementList list, FrameContext frameContext) {
+  private void createLayout(ElementList list, FrameContext frameContext) {
     ViewGroup viewGroup = checkNotNull(getBaseView());
     for (Element line : list.getElementsList()) {
       // TODO: reuse existing adapter from childAdapters if rebinding template.
       ElementAdapter<? extends View, ?> adapter = getAdapterForChildElement(line, frameContext);
-      View adapterView = adapter.getView();
-      if (adapterView != null) {
-        viewGroup.addView(adapterView);
-        LinearLayout.LayoutParams params =
-            new LinearLayout.LayoutParams(adapterView.getLayoutParams());
+      if (adapter.getView() != null) {
+        viewGroup.addView(adapter.getView());
+
+        int width = adapter.getComputedWidthPx();
+        width =
+            width == BoundViewAdapter.DIMENSION_NOT_SET
+                ? ViewGroup.LayoutParams.MATCH_PARENT
+                : width;
+        int height = adapter.getComputedHeightPx();
+        height =
+            height == BoundViewAdapter.DIMENSION_NOT_SET
+                ? ViewGroup.LayoutParams.WRAP_CONTENT
+                : height;
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
 
         adapter.getElementStyle().setMargins(getContext(), params);
 
@@ -113,10 +150,10 @@ public class ElementListAdapter extends ViewGroupBoundViewAdapter<LinearLayout, 
             params.gravity = Gravity.END;
             break;
           default:
-            params.gravity = Gravity.NO_GRAVITY;
+            params.gravity = Gravity.START;
         }
 
-        adapterView.setLayoutParams(params);
+        adapter.setLayoutParams(params);
       }
     }
   }

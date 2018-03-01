@@ -121,6 +121,40 @@ public class TemplateInvocationAdapterTest {
   }
 
   @Test
+  public void testOnCreateAdapter_templateNotFound() {
+    TemplateInvocation templateInvocation =
+        TemplateInvocation.newBuilder()
+            .setTemplateId("NOT_A_REAL_ID")
+            .addBindingContexts(
+                BindingContext.newBuilder()
+                    .addBindingValues(
+                        BindingValue.newBuilder()
+                            .setBindingId(TEXT_BINDING_ID)
+                            .setParameterizedText(
+                                ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
+            .build();
+
+    adapter.createAdapter(templateInvocation, frameContext);
+
+    // No children have been added because the template was not found.
+    LinearLayout templateView = adapter.getBaseView();
+    assertThat(templateView.getChildCount()).isEqualTo(0);
+    // TODO: make this a more visible error on dev/alpha builds.
+  }
+
+  @Test
+  public void testOnCreateAdapter_noBindingContexts() {
+    TemplateInvocation templateInvocation =
+        TemplateInvocation.newBuilder().setTemplateId(TEMPLATE_ID).build();
+
+    adapter.createAdapter(templateInvocation, frameContext);
+
+    // No children have been added because there were no binding contexts.
+    LinearLayout templateView = adapter.getBaseView();
+    assertThat(templateView.getChildCount()).isEqualTo(0);
+  }
+
+  @Test
   public void testOnBindModel_singleInstanceWithFrameStyle() {
     TemplateInvocation templateInvocation =
         TemplateInvocation.newBuilder()
@@ -134,9 +168,9 @@ public class TemplateInvocationAdapterTest {
                                 ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
             .build();
 
-    adapter.bindModel(templateInvocation, frameContext);
+    adapter.createAdapter(templateInvocation, frameContext);
 
-    // Assert that all child views have been created and that text is set.
+    // Assert that all child views have been created
     LinearLayout templateView = adapter.getBaseView();
     assertThat(templateView.getChildCount()).isEqualTo(1);
 
@@ -146,13 +180,19 @@ public class TemplateInvocationAdapterTest {
     assertThat(elementListView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
     assertThat(elementListView.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
 
-    // Check that text view has text from binding.
+    // Check for child element
     assertThat(elementListView.getChildCount()).isEqualTo(1);
     TextView textElementView = (TextView) elementListView.getChildAt(0);
-    assertThat(textElementView.getText().toString()).isEqualTo(TEXT_CONTENTS);
 
     // Text style comes from the Frame stylesheet.
     assertThat(textElementView.getTextColors().getDefaultColor()).isEqualTo(FRAME_COLOR);
+
+    // No text before binding
+    assertThat(textElementView.getText().toString()).isEmpty();
+
+    // Binding sets text.
+    adapter.bindModel(templateInvocation, frameContext);
+    assertThat(textElementView.getText().toString()).isEqualTo(TEXT_CONTENTS);
   }
 
   @Test
@@ -180,16 +220,22 @@ public class TemplateInvocationAdapterTest {
                                 ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
             .build();
 
-    adapter.bindModel(templateInvocation, frameContext);
+    adapter.createAdapter(templateInvocation, frameContext);
 
     // Assert that all child views have been created and that text is set.
     LinearLayout templateView = adapter.getBaseView();
     LinearLayout elementListView = (LinearLayout) templateView.getChildAt(0);
     TextView textElementView = (TextView) elementListView.getChildAt(0);
-    assertThat(textElementView.getText().toString()).isEqualTo(TEXT_CONTENTS);
 
     // Text style comes from the Template stylesheet.
     assertThat(textElementView.getTextColors().getDefaultColor()).isEqualTo(TEMPLATE_COLOR);
+
+    // Text is not populated yet
+    assertThat(textElementView.getText().toString()).isEmpty();
+
+    // Text is populated after binding.
+    adapter.bindModel(templateInvocation, frameContext);
+    assertThat(textElementView.getText().toString()).isEqualTo(TEXT_CONTENTS);
   }
 
   @Test
@@ -213,61 +259,43 @@ public class TemplateInvocationAdapterTest {
                                 ParameterizedText.newBuilder().setText(TEXT_CONTENTS_2))))
             .build();
 
-    adapter.bindModel(templateInvocation, frameContext);
+    adapter.createAdapter(templateInvocation, frameContext);
 
     // Assert that all child views have been created and that text is set.
     LinearLayout templateView = adapter.getBaseView();
+
     assertThat(templateView.getChildCount()).isEqualTo(2);
+    assertThat(((LinearLayout) templateView.getChildAt(0)).getChildCount()).isEqualTo(1);
+    assertThat(((LinearLayout) templateView.getChildAt(1)).getChildCount()).isEqualTo(1);
+
+    // Check that text is not yet set.
+    assertThat(
+            ((TextView) ((LinearLayout) templateView.getChildAt(0)).getChildAt(0))
+                .getText()
+                .toString())
+        .isEmpty();
+    assertThat(
+            ((TextView) ((LinearLayout) templateView.getChildAt(1)).getChildAt(0))
+                .getText()
+                .toString())
+        .isEmpty();
+
+    // Bind and check child models.
+    adapter.bindModel(templateInvocation, frameContext);
 
     // First instance has TEXT_CONTENTS
     LinearLayout elementListView = (LinearLayout) templateView.getChildAt(0);
-    assertThat(elementListView.getChildCount()).isEqualTo(1);
     TextView textElementView = (TextView) elementListView.getChildAt(0);
     assertThat(textElementView.getText().toString()).isEqualTo(TEXT_CONTENTS);
 
     // Second instance has TEXT_CONTENTS_2
     elementListView = (LinearLayout) templateView.getChildAt(1);
-    assertThat(elementListView.getChildCount()).isEqualTo(1);
     textElementView = (TextView) elementListView.getChildAt(0);
     assertThat(textElementView.getText().toString()).isEqualTo(TEXT_CONTENTS_2);
   }
 
   @Test
-  public void testOnBindModel_templateNotFound() {
-    TemplateInvocation templateInvocation =
-        TemplateInvocation.newBuilder()
-            .setTemplateId("NOT_A_REAL_ID")
-            .addBindingContexts(
-                BindingContext.newBuilder()
-                    .addBindingValues(
-                        BindingValue.newBuilder()
-                            .setBindingId(TEXT_BINDING_ID)
-                            .setParameterizedText(
-                                ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
-            .build();
-
-    adapter.bindModel(templateInvocation, frameContext);
-
-    // No children have been added because the template was not found.
-    LinearLayout templateView = adapter.getBaseView();
-    assertThat(templateView.getChildCount()).isEqualTo(0);
-    // TODO: make this a more visible error on dev/alpha builds.
-  }
-
-  @Test
-  public void testOnBindModel_noBindingContexts() {
-    TemplateInvocation templateInvocation =
-        TemplateInvocation.newBuilder().setTemplateId(TEMPLATE_ID).build();
-
-    adapter.bindModel(templateInvocation, frameContext);
-
-    // No children have been added because there were no binding contexts.
-    LinearLayout templateView = adapter.getBaseView();
-    assertThat(templateView.getChildCount()).isEqualTo(0);
-  }
-
-  @Test
-  public void testUnbindModel() {
+  public void testReleaseAdapter() {
     TemplateInvocation templateInvocation =
         TemplateInvocation.newBuilder()
             .setTemplateId(TEMPLATE_ID)
@@ -280,12 +308,15 @@ public class TemplateInvocationAdapterTest {
                                 ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
             .build();
 
+    adapter.createAdapter(templateInvocation, frameContext);
     adapter.bindModel(templateInvocation, frameContext);
     LinearLayout templateView = adapter.getBaseView();
     assertThat(templateView.getChildCount()).isEqualTo(1);
     LinearLayout elementListView = (LinearLayout) templateView.getChildAt(0);
+    assertThat(((TextView) elementListView.getChildAt(0)).getText().toString())
+        .isEqualTo(TEXT_CONTENTS);
 
-    adapter.unbindModel();
+    adapter.releaseAdapter();
 
     assertThat(templateView.getChildCount()).isEqualTo(0);
     assertThat(elementListView.getChildCount()).isEqualTo(0);

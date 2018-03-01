@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.view.Gravity;
@@ -36,7 +37,9 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import javax.annotation.Nullable;
 
 /** A {@link BoundViewAdapter} which manages {@code GridLine} slices. */
-public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, GridRow> {
+public class GridRowAdapter
+    extends ViewGroupBoundViewAdapter<LinearLayout, ElementListAdapter, GridRow> {
+
   private static final String TAG = "GridRowAdapter";
 
   private GridRowAdapter(Context context, AdapterParameters parameters) {
@@ -53,8 +56,8 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
   }
 
   @Override
-  public void onBindModel(GridRow gridRow, Element baseElement, FrameContext frameContext) {
-    initialBind();
+  public void onCreateAdapter(GridRow gridRow, Element baseElement, FrameContext frameContext) {
+    initialCreate();
 
     // Set the padding on the LinearLayout representing the grid line.
     ViewGroup viewGroup = checkNotNull(getBaseView());
@@ -69,6 +72,32 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
         viewGroup.addView(cellAdapter.getView());
         setLayoutParamsOnCell(cellAdapter, cell, frameContext);
       }
+    }
+  }
+
+  @Override
+  public void onBindModel(GridRow gridRow, Element baseElement, FrameContext frameContext) {
+    // Populate the LinearLayout with cells.
+    // TODO: When onCreateAdapter skips creating some adapters (ex. due to binding
+    // issues),
+    // this check will fail; if we support silently ignoring some elements in onCreateAdapter, we
+    // should also support it here (or it should be an error both places).
+    checkState(
+        gridRow.getCellsCount() == childAdapters.size(),
+        "Number of cells mismatch: got %s cells, had %s adapters",
+        gridRow.getCellsCount(),
+        childAdapters.size());
+    for (int i = 0; i < gridRow.getCellsCount(); i++) {
+      childAdapters
+          .get(i)
+          .bindModel(getElementListFromCell(gridRow.getCells(i), frameContext), frameContext);
+    }
+
+    // Reapply styles if we have style bindings.
+    if (gridRow.getStyleReferences().hasStyleBinding()) {
+      frameContext
+          .makeStyleFor(gridRow.getStyleReferences())
+          .setElementStyles(getContext(), frameContext, getBaseView());
     }
   }
 
@@ -116,30 +145,22 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
 
   @Nullable
   private ElementListAdapter getCellAdapter(GridCell cell, FrameContext frameContext) {
-    ElementListAdapter adapter = null;
-    if (cell.hasElementList() && cell.getElementList().getElementsCount() > 0) {
+    ElementListAdapter adapter;
+    if (cell.hasElementList()) {
       // TODO: get adapter from childAdapters if it exists.
-      adapter = getCellFromElementList(cell, frameContext);
+      adapter = getAdapterForChildList(getElementListFromCell(cell, frameContext), frameContext);
     } else if (cell.hasElementListBinding()) {
-      adapter = getCellFromBinding(cell, frameContext);
+      adapter = getAdapterFromBinding(cell, frameContext);
+    } else {
+      throw new IllegalArgumentException(
+          String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
     }
     return adapter;
   }
 
-  private ElementListAdapter getCellFromElementList(GridCell cell, FrameContext frameContext) {
-    ElementList list = cell.getElementList();
-
-    // Most GridCells will only contain a single element in their list. We could consider an
-    // optimization where we omit the list and just insert the single element's view. But this has
-    // a number of complexities with backgrounds, paddings, and debugging the layout in general, so
-    // we omit this behavior for now.
-
-    return getAdapterForChildList(list, frameContext);
-  }
-
   @Nullable
-  private ElementListAdapter getCellFromBinding(GridCell cell, FrameContext frameContext) {
-    ElementList list = frameContext.getElementListFromBinding(cell.getElementListBinding());
+  private ElementListAdapter getAdapterFromBinding(GridCell cell, FrameContext frameContext) {
+    ElementList list = getElementListFromCell(cell, frameContext);
 
     if (list == null) {
       Logger.e(
@@ -153,8 +174,27 @@ public class GridRowAdapter extends ViewGroupBoundViewAdapter<LinearLayout, Grid
     return getAdapterForChildList(list, frameContext);
   }
 
+  @Nullable
+  private ElementList getElementListFromCell(GridCell cell, FrameContext frameContext) {
+    switch (cell.getCellContentCase()) {
+      case ELEMENT_LIST:
+        return cell.getElementList();
+      case ELEMENT_LIST_BINDING:
+        return frameContext.getElementListFromBinding(cell.getElementListBinding());
+      default:
+        throw new IllegalArgumentException(
+            String.format("Cell has no recognized content; has %s", cell.getCellContentCase()));
+    }
+  }
+
   /** Create an Adapter for the {@code ElementList}. */
   private ElementListAdapter getAdapterForChildList(ElementList list, FrameContext frameContext) {
+
+    // Most GridCells will only contain a single element in their list. We could consider an
+    // optimization where we omit the list and just insert the single element's view. But this has
+    // a number of complexities with backgrounds, paddings, and debugging the layout in general, so
+    // we omit this behavior for now.
+
     ElementListAdapter listAdapter =
         getParameters().adapterFactory.createElementListAdapter(list, frameContext);
     addChildAdapter(listAdapter);
