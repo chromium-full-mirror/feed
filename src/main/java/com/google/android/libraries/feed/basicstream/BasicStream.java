@@ -190,6 +190,7 @@ public class BasicStream implements Stream {
             streamToken = child.getModelToken();
           }
         })) {}
+    modelCursor.release();
     return modelFeatures;
   }
 }

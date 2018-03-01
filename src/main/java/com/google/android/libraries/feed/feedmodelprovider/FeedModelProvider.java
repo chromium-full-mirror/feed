@@ -23,7 +23,6 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -57,6 +56,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -94,7 +94,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final Map<ByteString, TokenTracking> tokens = new HashMap<>();
 
   @GuardedBy("lock")
-  private final List<ModelCursorImpl> cursors = new ArrayList<>();
+  private final List<WeakReference<ModelCursorImpl>> cursors = new ArrayList<>();
 
   @GuardedBy("lock")
   private State currentState = State.INITIALIZING;
@@ -135,11 +135,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             if (children == null) {
               Logger.i(TAG, "No children found for Cursor");
               ModelCursorImpl cursor = new ModelCursorImpl(EMPTY_LIST.listIterator(), threadUtils);
-              cursors.add(cursor);
+              cursors.add(new WeakReference<>(cursor));
               return cursor;
             }
             ModelCursorImpl cursor = new ModelCursorImpl(children.listIterator(), threadUtils);
-            cursors.add(cursor);
+            cursors.add(new WeakReference<>(cursor));
             return cursor;
           }
         };
@@ -208,8 +208,12 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     Logger.i(TAG, "Invalidating the current ModelProvider");
     synchronized (lock) {
       currentState = State.INVALIDATED;
-      for (ModelCursor cursor : cursors) {
-        cursor.release();
+      for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
+        ModelCursorImpl cursor = cursorRef.get();
+        if (cursor != null) {
+          cursor.release();
+          cursorRef.clear();
+        }
       }
       cursors.clear();
       tokens.clear();
@@ -258,8 +262,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         childDumper.forKey("children").value(entry.getValue().size()).compactPrevious();
       }
       dumper.forKey("cursors").value(cursors.size());
-      for (ModelCursorImpl cursor : cursors) {
-        dumper.dump(cursor);
+      for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
+        ModelCursorImpl cursor = cursorRef.get();
+        if (cursor != null) {
+          dumper.dump(cursor);
+        }
       }
     }
   }
