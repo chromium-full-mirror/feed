@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
  *
  * @param <A> The adapter being managed by the {@link RecyclerPool}
  */
-interface RecyclerPool<A extends BoundViewAdapter<?>> {
+interface RecyclerPool<A extends ElementAdapter<?, ?>> {
 
   /**
    * Return an {@link BoundViewAdapter} matching the {@link RecyclerKey} or null if one isn't found.

@@ -42,18 +42,20 @@ import javax.annotation.Nullable;
  *     for creating. Once created, it should have the same lifetime as the adapter.
  * @param <M> The model. This is the model type which is bound to the view by the adapter.
  */
-public abstract class ElementAdapter<V extends View, M> implements BoundViewAdapter<M> {
+public abstract class ElementAdapter<V extends View, M> {
   private static final String TAG = "ElementAdapter";
 
-  // Singleton default UiElement that we can share among all instances (since protos are immutable)
-  // This has no parameters set, so should act like not having an associated UiElement.
-  private static final Element DEFAULT_ELEMENT = Element.getDefaultInstance();
+  /**
+   * Value returned by getComputed[Height/Width]Px when an explicit value for the dimension has not
+   * been computed, and it should be set by the parent instead.
+   */
+  public static final int DIMENSION_NOT_SET = -1;
 
   private final Context context;
   private final AdapterParameters parameters;
   @Nullable private V view;
   @Nullable private M model;
-  private Element baseElement = DEFAULT_ELEMENT;
+  private Element baseElement = Element.getDefaultInstance();
   private RecyclerKey key;
   private FrameContext frameContext;
 
@@ -76,8 +78,10 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     this.parameters = parameters;
   }
 
-  /** Returns a view for external use, such as adding to a layout. */
-  @Override
+  /**
+   * Returns the View bound to the Adapter, for external use, such as adding to a layout. This is
+   * not a valid call until the first Model has been bound to the Adapter.
+   */
   @Nullable
   public View getView() {
     if (overlayView != null) {
@@ -96,16 +100,33 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     return view;
   }
 
-  @Override
+  /**
+   * Sets up an adapter, but does not bind data. After this, the {@link #getView()} and {@link
+   * #getKey()} can be called. This method must not be called if a Model is currently bound to the
+   * Adapter; call {@link #releaseAdapter()} first. Do not override; override {@link
+   * #onCreateAdapter} instead.
+   */
   public void createAdapter(M model, FrameContext frameContext) {
     createAdapter(model, Element.getDefaultInstance(), frameContext);
   }
 
+  /**
+   * Sets up an adapter, but does not bind data. After this, the {@link #getView()} and {@link
+   * #getKey()} can be called. This method must not be called if a Model is currently bound to the
+   * Adapter; call {@link #releaseAdapter()} first. Do not override; override {@link
+   * #onCreateAdapter} instead.
+   */
   public void createAdapter(Element baseElement, FrameContext frameContext) {
     M model = getModelFromElement(baseElement);
     createAdapter(model, baseElement, frameContext);
   }
 
+  /**
+   * Sets up an adapter, but does not bind data. After this, the {@link #getView()} and {@link
+   * #getKey()} can be called. This method must not be called if a Model is currently bound to the
+   * Adapter; call {@link #releaseAdapter()} first. Do not override; override {@link
+   * #onCreateAdapter} instead.
+   */
   public void createAdapter(M model, Element baseElement, FrameContext frameContext) {
     this.model = model;
     this.baseElement = baseElement;
@@ -119,23 +140,27 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     initializeOverflow(baseElement);
   }
 
+  /** Performs child-class-specific adapter creation; to be overridden. */
   protected void onCreateAdapter(M model, Element baseElement, FrameContext frameContext) {}
 
   /**
-   * Sets the model and initializes Element-level features (ex. overlays). Do not override; override
-   * {@link #onBindModel()} instead.
+   * Binds data from a Model to the Adapter, without changing child views or styles. Do not
+   * override; override {@link #onBindModel} instead.
    */
-  @Override
   public void bindModel(M model, FrameContext frameContext) {
     bindModel(model, Element.getDefaultInstance(), frameContext);
   }
 
-  /** Binds to an Element, allowing the subclass to pick out the relevant model from the oneof. */
+  /**
+   * Binds data from a Model to the Adapter, without changing child views or styles. Do not
+   * override; override {@link #onBindModel} instead. Binds to an Element, allowing the subclass to
+   * pick out the relevant model from the oneof.
+   */
   public void bindModel(Element baseElement, FrameContext frameContext) {
     bindModel(getModelFromElement(baseElement), baseElement, frameContext);
   }
 
-  /** Bind the model and initialize overlays. Calls child {@link #onBindModel()} methods. */
+  /** Bind the model and initialize overlays. Calls child {@link #onBindModel} methods. */
   void bindModel(M model, Element baseElement, FrameContext frameContext) {
     this.model = model;
     this.baseElement = baseElement;
@@ -152,7 +177,7 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
   /** Extracts the relevant model from the Element oneof. Throws IllegalArgument if not found. */
   protected abstract M getModelFromElement(Element baseElement);
 
-  /** Child-adapter-specific binding behavior; please override. */
+  /** Performs child-adapter-specific binding logic; to be overridden. */
   protected void onBindModel(M model, Element baseElement, FrameContext frameContext) {}
 
   private void initializeOverlays(FrameContext frameContext) {
@@ -249,12 +274,14 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     return StyleIdsStack.getDefaultInstance();
   }
 
-  /** Unsets the model. Do not override; override onUnbindModel instead. */
-  @Override
+  /**
+   * Unbinds the current Model from the Adapter. The Adapter will unbind all contained Adapters
+   * recursively. Do not override; override {@link #onUnbindModel} instead.
+   */
   public void unbindModel() {
     onUnbindModel();
     model = null;
-    baseElement = DEFAULT_ELEMENT;
+    baseElement = Element.getDefaultInstance();
 
     // Unset actions
     ViewUtils.clearOnClickActions(getView());
@@ -267,9 +294,13 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     }
   }
 
+  /** Performs child-adapter-specific unbind logic; to be overridden. */
   protected void onUnbindModel() {}
 
-  @Override
+  /**
+   * Releases all child adapters to recycler pools. Do not override; override {@link
+   * #onReleaseAdapter} instead.
+   */
   public void releaseAdapter() {
     onReleaseAdapter();
 
@@ -284,6 +315,7 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     overlays.clear();
   }
 
+  /** Performs child-adapter-specific release logic; to be overridden. */
   protected void onReleaseAdapter() {}
 
   /**
@@ -296,7 +328,7 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
     this.key = key;
   }
 
-  @Override
+  /** Returns a {@link RecyclerKey} which represents an instance of a Model based upon a type. */
   public RecyclerKey getKey() {
     // There are Adapters which don't hold on to their views.  How do we want to mark them?
     return key;
@@ -306,7 +338,6 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
    * Returns the desired width of the adapter, computed from the model at bind time, or {@link
    * #DIMENSION_NOT_SET} which implies that the parent can choose the width.
    */
-  @Override
   public int getComputedWidthPx() {
     return widthPx;
   }
@@ -315,12 +346,11 @@ public abstract class ElementAdapter<V extends View, M> implements BoundViewAdap
    * Returns the desired height of the adapter, computed from the model at bind time, or {@link
    * #DIMENSION_NOT_SET} which implies that the parent can choose the height.
    */
-  @Override
   public int getComputedHeightPx() {
     return heightPx;
   }
 
-  @Override
+  /** Sets the layout parameters on this adapter's view. */
   public void setLayoutParams(LayoutParams layoutParams) {
     if (getView() == null) {
       return;

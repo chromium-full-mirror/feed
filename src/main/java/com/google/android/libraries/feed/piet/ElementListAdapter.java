@@ -124,12 +124,10 @@ public class ElementListAdapter
 
         int width = adapter.getComputedWidthPx();
         width =
-            width == BoundViewAdapter.DIMENSION_NOT_SET
-                ? ViewGroup.LayoutParams.MATCH_PARENT
-                : width;
+            width == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.MATCH_PARENT : width;
         int height = adapter.getComputedHeightPx();
         height =
-            height == BoundViewAdapter.DIMENSION_NOT_SET
+            height == ElementAdapter.DIMENSION_NOT_SET
                 ? ViewGroup.LayoutParams.WRAP_CONTENT
                 : height;
 

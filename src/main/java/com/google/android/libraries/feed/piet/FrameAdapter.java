@@ -122,9 +122,9 @@ public class FrameAdapter {
 
   protected void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
     int width = childAdapter.getComputedWidthPx();
-    width = width == BoundViewAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
+    width = width == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
     int height = childAdapter.getComputedHeightPx();
-    height = height == BoundViewAdapter.DIMENSION_NOT_SET ? LayoutParams.WRAP_CONTENT : height;
+    height = height == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.WRAP_CONTENT : height;
 
     childAdapter.setLayoutParams(new FrameLayout.LayoutParams(width, height));
   }

@@ -132,11 +132,11 @@ public class TemplateInvocationAdapter
     return KeySupplier.SINGLETON_KEY;
   }
 
-  protected void setLayoutParamsOnChild(BoundViewAdapter<?> childAdapter) {
+  protected void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
     int width = childAdapter.getComputedWidthPx();
-    width = width == BoundViewAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
+    width = width == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
     int height = childAdapter.getComputedHeightPx();
-    height = height == BoundViewAdapter.DIMENSION_NOT_SET ? LayoutParams.WRAP_CONTENT : height;
+    height = height == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.WRAP_CONTENT : height;
 
     childAdapter.setLayoutParams(new LinearLayout.LayoutParams(width, height));
   }

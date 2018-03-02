@@ -150,8 +150,8 @@ public class ElementAdapterTest {
 
   @Test
   public void testGetComputedDimensions_defaults() {
-    assertThat(adapter.getComputedWidthPx()).isEqualTo(BoundViewAdapter.DIMENSION_NOT_SET);
-    assertThat(adapter.getComputedHeightPx()).isEqualTo(BoundViewAdapter.DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
   }
 
   @Test

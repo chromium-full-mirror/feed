@@ -114,8 +114,8 @@ public class FrameAdapterTest {
   public void testBindModel_defaultDimensions() {
     Slice slice = getBaseSlice();
     Frame frame = Frame.newBuilder().addSlices(slice).build();
-    when(elementListAdapter.getComputedWidthPx()).thenReturn(BoundViewAdapter.DIMENSION_NOT_SET);
-    when(elementListAdapter.getComputedHeightPx()).thenReturn(BoundViewAdapter.DIMENSION_NOT_SET);
+    when(elementListAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+    when(elementListAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
 
     frameAdapter.bindModel(frame, (ShardingControl) null);
 
