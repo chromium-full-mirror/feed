@@ -44,11 +44,11 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-/** */
+/** Tests which update content within an existing model. */
 @RunWith(RobolectricTestRunner.class)
 public class ContentUpdateTest {
   @Mock private ThreadUtils threadUtils;
-  @Mock private RequestManager requstManager;
+  @Mock private RequestManager requestManager;
 
   private ProtocolAdapter protocolAdapter;
   private SessionManager sessionManager;
@@ -59,7 +59,7 @@ public class ContentUpdateTest {
     initMocks(this);
     InfrastructureIntegrationScope scope =
         new InfrastructureIntegrationScope.Builder(
-                threadUtils, requstManager, MoreExecutors.newDirectExecutorService())
+                threadUtils, requestManager, MoreExecutors.newDirectExecutorService())
             .build();
     protocolAdapter = scope.getProtocolAdapter();
     sessionManager = scope.getSessionManager();

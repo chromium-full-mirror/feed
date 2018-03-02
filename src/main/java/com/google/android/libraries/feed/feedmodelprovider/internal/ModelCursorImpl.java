@@ -53,6 +53,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
     ModelChild nextChild;
     synchronized (lock) {
       if (isInvalid || iterator == null || !iterator.hasNext()) {
+        // TODO: Should we release the cursor state if we get to the end?
         return false;
       }
       nextChild = iterator.next();

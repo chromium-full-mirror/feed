@@ -76,4 +76,10 @@ public class ModelProviderValidator {
         })) {}
     assertThat(cursorCount.get()).isEqualTo(1);
   }
+
+  public void assertCursorSize(ModelCursor cursor, int expectedSize) {
+    AtomicInteger size = new AtomicInteger(0);
+    while (cursor.advanceCursor(child -> size.incrementAndGet())) {}
+    assertThat(size.get()).isEqualTo(expectedSize);
+  }
 }
