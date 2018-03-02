@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -32,10 +32,7 @@ import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.Producers;
-import com.google.android.libraries.feed.piet.util.StyleProvider;
-import com.google.android.libraries.feed.piet.util.ViewUtils;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;

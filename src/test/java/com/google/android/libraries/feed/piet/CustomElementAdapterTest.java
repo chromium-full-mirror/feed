@@ -27,7 +27,6 @@ import android.view.View;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.CustomElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;

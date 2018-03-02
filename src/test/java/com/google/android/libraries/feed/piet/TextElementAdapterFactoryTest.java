@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier.SINGLETON_KEY;
-import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -29,9 +29,6 @@ import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.TextElementAdapter.Key;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.ParameterizedTextEvaluator;
-import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;

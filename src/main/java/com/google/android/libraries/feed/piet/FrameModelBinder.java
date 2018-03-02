@@ -14,14 +14,12 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.FrameContext.ErrorType;
-import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import java.util.ArrayList;
@@ -31,10 +29,10 @@ import java.util.Map;
 
 /**
  * Gets a {@link Frame}'s style information to create a {@link FrameContext}. This class will
- * provide the binding of {@code StyleProvider} through the {@link BoundFrameContext}. It also
- * defines the default style provider which acts as the root style. {@see DEFAULT_STYLE_PROVIDER)}
- * The {@link BoundFrameContext} contains all of the style information to theme a card, as well as
- * the host's {@link AssetProvider} to retrieve images and other host-specific resources.
+ * provide the binding of {@code StyleProvider} through the {@link FrameContext}. It also defines
+ * the default style provider which acts as the root style. {@see DEFAULT_STYLE_PROVIDER)} The
+ * {@link FrameContext} contains all of the style information to theme a card, as well as the host's
+ * {@link AssetProvider} to retrieve images and other host-specific resources.
  */
 class FrameModelBinder {
 
@@ -88,14 +86,12 @@ class FrameModelBinder {
       }
     }
     StyleProvider styleProvider =
-        (frameStyle != null)
-            ? new StyleProviderImpl(frameStyle)
-            : StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
+        (frameStyle != null) ? new StyleProvider(frameStyle) : StyleProvider.DEFAULT_STYLE_PROVIDER;
     if (stylesheetMap == null) {
       stylesheetMap = new HashMap<>();
     }
     FrameContext frameContext =
-        new BoundFrameContext(
+        new FrameContext(
             frame,
             stylesheetMap,
             DEFAULT_STYLE,

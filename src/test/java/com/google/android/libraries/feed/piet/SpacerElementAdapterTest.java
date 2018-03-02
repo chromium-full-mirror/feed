@@ -30,8 +30,6 @@ import android.view.View;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.SpacerElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -96,7 +94,7 @@ public class SpacerElementAdapterTest {
         Style.newBuilder()
             .setPadding(EdgeWidths.newBuilder().setTop(padding).setBottom(padding).build())
             .build();
-    StyleProvider styleProvider = new StyleProviderImpl(style);
+    StyleProvider styleProvider = new StyleProvider(style);
     when(frameContext.makeStyleFor(styleStack1)).thenReturn(styleProvider);
 
     adapter.createAdapter(spacerElement, frameContext);
@@ -123,7 +121,7 @@ public class SpacerElementAdapterTest {
         Style.newBuilder()
             .setPadding(EdgeWidths.newBuilder().setTop(padding2).setBottom(padding2).build())
             .build();
-    StyleProvider styleProvider2 = new StyleProviderImpl(style2);
+    StyleProvider styleProvider2 = new StyleProvider(style2);
     when(frameContext.makeStyleFor(styleStack2)).thenReturn(styleProvider2);
 
     adapter.bindModel(spacerElement2, frameContext);

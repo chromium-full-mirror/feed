@@ -1,26 +1,6 @@
 licenses(["notice"])  # Apache 2
 
 android_local_test(
-    name = "BoundFrameContextTest",
-    size = "small",
-    timeout = "moderate",
-    srcs = ["BoundFrameContextTest.java"],
-    manifest = "AndroidManifest.xml",
-    deps = [
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "//src/main/java/com/google/android/libraries/feed/common/testing",
-        "//src/main/java/com/google/android/libraries/feed/piet",
-        "//src/main/java/com/google/android/libraries/feed/piet/host",
-        "//src/main/java/com/google/android/libraries/feed/piet/ui",
-        "//src/main/java/com/google/android/libraries/feed/piet/util",
-        "//src/main/proto/search/now/proto/ui/piet:piet_java_proto_lite",
-        "@bazel_android//:robolectric",
-        "@com_google_truth_truth//jar",
-        "@org_mockito_mockito_all//jar",
-    ],
-)
-
-android_local_test(
     name = "CustomElementAdapterTest",
     size = "small",
     timeout = "moderate",
@@ -134,6 +114,26 @@ android_local_test(
 )
 
 android_local_test(
+    name = "FrameContextTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["FrameContextTest.java"],
+    manifest = "AndroidManifest.xml",
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/piet",
+        "//src/main/java/com/google/android/libraries/feed/piet/host",
+        "//src/main/java/com/google/android/libraries/feed/piet/ui",
+        "//src/main/java/com/google/android/libraries/feed/piet/util",
+        "//src/main/proto/search/now/proto/ui/piet:piet_java_proto_lite",
+        "@bazel_android//:robolectric",
+        "@com_google_truth_truth//jar",
+        "@org_mockito_mockito_all//jar",
+    ],
+)
+
+android_local_test(
     name = "FrameModelBinderTest",
     size = "small",
     timeout = "moderate",
@@ -200,6 +200,24 @@ android_local_test(
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/piet",
+        "//src/main/java/com/google/android/libraries/feed/piet/host",
+        "//src/main/java/com/google/android/libraries/feed/piet/util",
+        "//src/main/proto/search/now/proto/ui/piet:piet_java_proto_lite",
+        "@bazel_android//:robolectric",
+        "@com_google_truth_truth//jar",
+        "@org_mockito_mockito_all//jar",
+    ],
+)
+
+android_local_test(
+    name = "ParameterizedTextEvaluatorTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["ParameterizedTextEvaluatorTest.java"],
+    manifest = "AndroidManifest.xml",
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/util",
@@ -285,10 +303,10 @@ android_local_test(
 )
 
 android_local_test(
-    name = "StyleProviderImplTest",
+    name = "StyleProviderTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["StyleProviderImplTest.java"],
+    srcs = ["StyleProviderTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -354,6 +372,24 @@ android_local_test(
         "//src/main/proto/search/now/proto/ui/piet:piet_java_proto_lite",
         "@bazel_android//:robolectric",
         "@com_google_code_findbugs_jsr305//jar",
+        "@com_google_truth_truth//jar",
+        "@org_mockito_mockito_all//jar",
+    ],
+)
+
+android_local_test(
+    name = "ViewUtilsTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["ViewUtilsTest.java"],
+    manifest = "AndroidManifest.xml",
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/piet",
+        "//src/main/java/com/google/android/libraries/feed/piet/host",
+        "//src/main/java/com/google/android/libraries/feed/piet/util",
+        "//src/main/proto/search/now/proto/ui/piet:piet_java_proto_lite",
+        "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
     ],

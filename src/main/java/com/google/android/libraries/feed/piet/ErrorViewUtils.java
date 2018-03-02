@@ -21,7 +21,6 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import com.google.android.libraries.feed.piet.util.ViewUtils;
 import java.util.List;
 
 /** Utility class for creating an error view. */

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.piet.util;
+package com.google.android.libraries.feed.piet;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
@@ -34,9 +34,7 @@ import org.mockito.Mock;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-/**
- * Tests of the {@link ViewUtils}.
- */
+/** Tests of the {@link ViewUtils}. */
 @RunWith(RobolectricTestRunner.class)
 @Config(
   manifest = "AndroidManifest.xml"

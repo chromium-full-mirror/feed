@@ -25,8 +25,6 @@ import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.ViewUtils;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
@@ -41,16 +39,16 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 
-/** TODO: Test remaining methods of StyleProviderImpl. */
+/** TODO: Test remaining methods of StyleProvider. */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
-public class StyleProviderImplTest {
+public class StyleProviderTest {
 
   @Mock private AssetProvider mockAssetProvider;
   @Mock private CustomElementProvider mockCustomElementProvider;
   @Mock private PietStylesHelper mockStylesHelper;
 
-  private BoundFrameContext frameContext;
+  private FrameContext frameContext;
 
   private Context context;
 
@@ -61,8 +59,8 @@ public class StyleProviderImplTest {
     FrameModelBinder frameBinder =
         new FrameModelBinder(mockStylesHelper, mockAssetProvider, mockCustomElementProvider);
     FrameContext frameContextTemp = frameBinder.bindFrame(Frame.getDefaultInstance());
-    assertThat(frameContextTemp).isInstanceOf(BoundFrameContext.class);
-    frameContext = (BoundFrameContext) frameContextTemp;
+    assertThat(frameContextTemp).isInstanceOf(FrameContext.class);
+    frameContext = frameContextTemp;
   }
 
   @Test
@@ -79,7 +77,7 @@ public class StyleProviderImplTest {
             .setWidth(8)
             .build();
 
-    StyleProviderImpl styleProvider = new StyleProviderImpl(style);
+    StyleProvider styleProvider = new StyleProvider(style);
 
     assertThat(styleProvider.getColor()).isEqualTo(style.getColor());
     assertThat(styleProvider.getBackground()).isEqualTo(style.getBackground());
@@ -97,7 +95,7 @@ public class StyleProviderImplTest {
   public void testGetters_withEmptyStyleDefined() {
     Style style = Style.getDefaultInstance();
 
-    StyleProviderImpl styleProvider = new StyleProviderImpl(style);
+    StyleProvider styleProvider = new StyleProvider(style);
 
     assertThat(styleProvider.getColor()).isEqualTo(style.getColor());
     assertThat(styleProvider.getBackground()).isEqualTo(style.getBackground());
@@ -116,7 +114,7 @@ public class StyleProviderImplTest {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     View view = new View(context);
-    new StyleProviderImpl(Style.getDefaultInstance()).setPadding(context, view, padding);
+    new StyleProvider(Style.getDefaultInstance()).setPadding(context, view, padding);
     verifyPadding(view, padding);
   }
 
@@ -129,7 +127,7 @@ public class StyleProviderImplTest {
     MarginLayoutParams params =
         new MarginLayoutParams(MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.WRAP_CONTENT);
 
-    new StyleProviderImpl(marginStyle).setMargins(context, params);
+    new StyleProvider(marginStyle).setMargins(context, params);
     verifyMargins(params, margins);
   }
 
@@ -140,7 +138,7 @@ public class StyleProviderImplTest {
     Style paddingStyle = Style.newBuilder().setPadding(padding).build();
     View view = new View(context);
 
-    new StyleProviderImpl(paddingStyle).setElementStyles(context, frameContext, view);
+    new StyleProvider(paddingStyle).setElementStyles(context, frameContext, view);
     verifyPadding(view, padding);
   }
 
@@ -159,7 +157,7 @@ public class StyleProviderImplTest {
             .setRoundedCorners(corners)
             .build();
 
-    StyleProviderImpl styleProvider = new StyleProviderImpl(style);
+    StyleProvider styleProvider = new StyleProvider(style);
     styleProvider.setElementStyles(context, frameContext, view);
 
     Drawable drawable = frameContext.createBackground(styleProvider, context);
@@ -172,7 +170,7 @@ public class StyleProviderImplTest {
     View view = new View(context);
     view.setBackground(new ColorDrawable(0xffff0000));
 
-    new StyleProviderImpl(Style.getDefaultInstance()).setElementStyles(context, frameContext, view);
+    new StyleProvider(Style.getDefaultInstance()).setElementStyles(context, frameContext, view);
     assertThat(view.getBackground()).isNull();
   }
 
@@ -183,7 +181,7 @@ public class StyleProviderImplTest {
 
     Style style = Style.newBuilder().setBackground(Fill.getDefaultInstance()).build();
 
-    new StyleProviderImpl(style).setElementStyles(context, frameContext, view);
+    new StyleProvider(style).setElementStyles(context, frameContext, view);
 
     assertThat(view.getBackground()).isNull();
   }
@@ -194,7 +192,7 @@ public class StyleProviderImplTest {
     Style heightStyle = Style.newBuilder().setMinHeight(minHeight).build();
     View view = new View(context);
 
-    new StyleProviderImpl(heightStyle).setElementStyles(context, frameContext, view);
+    new StyleProvider(heightStyle).setElementStyles(context, frameContext, view);
 
     assertThat(view.getMinimumHeight()).isEqualTo(minHeight);
   }
@@ -205,7 +203,7 @@ public class StyleProviderImplTest {
     View view = new View(context);
     view.setMinimumHeight(12345);
 
-    new StyleProviderImpl(noHeightStyle).setElementStyles(context, frameContext, view);
+    new StyleProvider(noHeightStyle).setElementStyles(context, frameContext, view);
 
     assertThat(view.getMinimumHeight()).isEqualTo(0);
   }

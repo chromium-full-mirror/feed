@@ -23,7 +23,6 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
-import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;

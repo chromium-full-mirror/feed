@@ -18,7 +18,6 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.util.ParameterizedTextEvaluator;
 import com.google.android.libraries.feed.piet.util.Producer;
 
 /**

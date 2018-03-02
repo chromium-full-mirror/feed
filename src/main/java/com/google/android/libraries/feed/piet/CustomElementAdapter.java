@@ -18,7 +18,6 @@ import android.content.Context;
 import android.view.View;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
-import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;

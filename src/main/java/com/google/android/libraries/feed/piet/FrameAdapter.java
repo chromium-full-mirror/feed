@@ -25,9 +25,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.FrameContext.ErrorType;
-import com.google.android.libraries.feed.piet.util.StyleProvider;
+import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
 import com.google.search.now.ui.piet.ElementsProto.Slice;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -36,10 +34,10 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
- * An adapter which manages {@code Frame} instances. Frames will contain one or more slices. This
+ * An adapter which manages {@link Frame} instances. Frames will contain one or more slices. This
  * class has additional public methods to support host access to the primary view of the frame
  * before the model is bound to the frame. A frame is basically a vertical LinearLayout of slice
- * Views which are created by BaseBoundViewAdapters. This Adapter is not created through a Factory
+ * Views which are created by {@link ElementAdapter}. This Adapter is not created through a Factory
  * and is managed by the host.
  */
 public class FrameAdapter {

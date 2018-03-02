@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.piet;
 
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import com.google.android.libraries.feed.piet.util.FrameContext;
 import javax.annotation.Nullable;
 
 /**

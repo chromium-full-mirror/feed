@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.GONE;
 import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.INVISIBLE;
@@ -32,9 +32,6 @@ import android.graphics.Typeface;
 import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.ParameterizedTextEvaluator;
-import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -210,7 +207,7 @@ public class TextElementAdapterTest {
   public void testBind_setsStylesOnlyIfBindingIsDefined() {
     int maxLines = 2;
     Style style = Style.newBuilder().setMaxLines(maxLines).build();
-    StyleProvider styleProvider = new StyleProviderImpl(style);
+    StyleProvider styleProvider = new StyleProvider(style);
     TextElement textElement = getBaseTextElement(styleProvider);
     adapter.createAdapter(textElement, frameContext);
     adapter.bindModel(textElement, frameContext);

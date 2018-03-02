@@ -14,15 +14,14 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE;
-import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
@@ -72,35 +71,35 @@ public class FrameModelBinderTest {
   @Test
   public void testError_noStylesheet() {
     Frame frame = Frame.getDefaultInstance();
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
-    assertThat(boundFrameContext).isNotNull();
-    assertThat(boundFrameContext.errors.size()).isEqualTo(1);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
+    assertThat(frameContext).isNotNull();
+    assertThat(frameContext.errors.size()).isEqualTo(1);
   }
 
   @Test
   public void testError_stylesheetNotFound() {
     Frame frame = getBaseFrame();
     when(stylesHelper.getStylesheet(STYLESHEET_ID)).thenReturn(null);
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
-    assertThat(boundFrameContext).isNotNull();
-    assertThat(boundFrameContext.errors.size()).isEqualTo(1);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
+    assertThat(frameContext).isNotNull();
+    assertThat(frameContext.errors.size()).isEqualTo(1);
   }
 
   @Test
   public void testError_styleNotFound() {
     Frame frame = getBaseFrame();
     when(stylesHelper.getStylesheet(STYLESHEET_ID)).thenReturn(new HashMap<>());
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
-    assertThat(boundFrameContext).isNotNull();
-    assertThat(boundFrameContext.errors.size()).isEqualTo(1);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
+    assertThat(frameContext).isNotNull();
+    assertThat(frameContext.errors.size()).isEqualTo(1);
   }
 
   @Test
   public void testCreateWithoutError() {
     Frame frame = getWorkingFrame();
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
-    assertThat(boundFrameContext).isNotNull();
-    assertThat(boundFrameContext.errors.size()).isEqualTo(0);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
+    assertThat(frameContext).isNotNull();
+    assertThat(frameContext.errors.size()).isEqualTo(0);
   }
 
   @Test
@@ -110,11 +109,11 @@ public class FrameModelBinderTest {
     stylesheet.put(FRAME_STYLE_ID, FRAME_STYLE);
     when(stylesHelper.getStylesheet(STYLESHEET_ID)).thenReturn(stylesheet);
 
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
 
     // The style is not currently bound, but available from the stylesheet.
-    assertThat(boundFrameContext.getCurrentStyle().getColor()).isNotEqualTo(FRAME_COLOR);
-    assertThat(boundFrameContext.makeStyleFor(FRAME_STYLE_IDS).getColor()).isEqualTo(FRAME_COLOR);
+    assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(FRAME_COLOR);
+    assertThat(frameContext.makeStyleFor(FRAME_STYLE_IDS).getColor()).isEqualTo(FRAME_COLOR);
   }
 
   @Test
@@ -122,11 +121,11 @@ public class FrameModelBinderTest {
     Frame frame =
         Frame.newBuilder().setStylesheet(Stylesheet.newBuilder().addStyles(FRAME_STYLE)).build();
 
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
 
     // The style is not currently bound, but available from the stylesheet.
-    assertThat(boundFrameContext.getCurrentStyle().getColor()).isNotEqualTo(FRAME_COLOR);
-    assertThat(boundFrameContext.makeStyleFor(FRAME_STYLE_IDS).getColor()).isEqualTo(FRAME_COLOR);
+    assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(FRAME_COLOR);
+    assertThat(frameContext.makeStyleFor(FRAME_STYLE_IDS).getColor()).isEqualTo(FRAME_COLOR);
   }
 
   @Test
@@ -137,9 +136,9 @@ public class FrameModelBinderTest {
             .setStyleReferences(FRAME_STYLE_IDS)
             .build();
 
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
 
-    assertThat(boundFrameContext.getCurrentStyle().getColor()).isEqualTo(FRAME_COLOR);
+    assertThat(frameContext.getCurrentStyle().getColor()).isEqualTo(FRAME_COLOR);
   }
 
   @Test
@@ -147,9 +146,9 @@ public class FrameModelBinderTest {
     Frame frame =
         Frame.newBuilder().setStylesheet(Stylesheet.newBuilder().addStyles(FRAME_STYLE)).build();
 
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
 
-    assertThat(boundFrameContext.getCurrentStyle()).isSameAs(DEFAULT_STYLE_PROVIDER);
+    assertThat(frameContext.getCurrentStyle()).isSameAs(DEFAULT_STYLE_PROVIDER);
   }
 
   @Test
@@ -166,10 +165,9 @@ public class FrameModelBinderTest {
             .build();
 
     // Set up a frame with a color applied to the frame.
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
     StyleProvider baseStyleWithHeight =
-        boundFrameContext.makeStyleFor(
-            StyleIdsStack.newBuilder().addStyleIds(heightStyleId).build());
+        frameContext.makeStyleFor(StyleIdsStack.newBuilder().addStyleIds(heightStyleId).build());
 
     // Make a style for something that doesn't override color, and check that the base color is a
     // default, not the frame color.
@@ -212,14 +210,14 @@ public class FrameModelBinderTest {
     stylesheet.put(styleId2, style2);
     when(stylesHelper.getStylesheet(STYLESHEET_ID)).thenReturn(stylesheet);
 
-    BoundFrameContext boundFrameContext = (BoundFrameContext) frameModelBinder.bindFrame(frame);
+    FrameContext frameContext = frameModelBinder.bindFrame(frame);
 
-    assertThat(boundFrameContext.getCurrentStyle().getColor()).isEqualTo(12345);
-    assertThat(boundFrameContext.getCurrentStyle().getMaxLines()).isEqualTo(22222);
-    assertThat(boundFrameContext.getCurrentStyle().getMinHeight()).isEqualTo(33333);
-    assertThat(boundFrameContext.getCurrentStyle().getFont())
+    assertThat(frameContext.getCurrentStyle().getColor()).isEqualTo(12345);
+    assertThat(frameContext.getCurrentStyle().getMaxLines()).isEqualTo(22222);
+    assertThat(frameContext.getCurrentStyle().getMinHeight()).isEqualTo(33333);
+    assertThat(frameContext.getCurrentStyle().getFont())
         .isEqualTo(Font.newBuilder().setSize(13).setWeight(FontWeight.MEDIUM).build());
-    assertThat(boundFrameContext.getCurrentStyle().getBackground())
+    assertThat(frameContext.getCurrentStyle().getBackground())
         .isEqualTo(
             Fill.newBuilder()
                 .setLinearGradient(
@@ -227,18 +225,16 @@ public class FrameModelBinderTest {
                         .addStops(ColorStop.newBuilder().setColor(1234))
                         .setDirectionDeg(321))
                 .build());
-    assertThat(boundFrameContext.errors.size()).isEqualTo(0);
+    assertThat(frameContext.errors.size()).isEqualTo(0);
   }
 
   @Test
   public void testError_bindingTemplate() {
-    BoundFrameContext boundFrameContext =
-        (BoundFrameContext) frameModelBinder.bindFrame(getWorkingFrame());
+    FrameContext frameContext = frameModelBinder.bindFrame(getWorkingFrame());
     Template template = Template.getDefaultInstance();
-    BoundFrameContext boundCardContext2 =
-        (BoundFrameContext) boundFrameContext.bindTemplate(template, null);
-    assertThat(boundCardContext2).isEqualTo(boundFrameContext);
-    assertThat(boundFrameContext.errors.size()).isEqualTo(1);
+    FrameContext boundCardContext2 = frameContext.bindTemplate(template, null);
+    assertThat(boundCardContext2).isEqualTo(frameContext);
+    assertThat(frameContext.errors.size()).isEqualTo(1);
   }
 
   private Frame getWorkingFrame() {

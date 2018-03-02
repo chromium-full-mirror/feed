@@ -24,8 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.FrameContext.ErrorType;
+import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;

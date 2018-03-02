@@ -15,20 +15,18 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
-import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE;
-import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.StyleProvider;
-import com.google.android.libraries.feed.piet.util.ViewUtils;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
@@ -65,8 +63,15 @@ import javax.annotation.Nullable;
  * map of {@code BindingValues} and a {@code StyleProvider}.
  */
 @VisibleForTesting
-class BoundFrameContext implements FrameContext {
-  private static final String TAG = "BoundFrameContext";
+class FrameContext {
+  private static final String TAG = "FrameContext";
+
+  /** What kind of error are we reporting when calling {@link #reportError(ErrorType, String)}. */
+  @IntDef({ErrorType.ERROR, ErrorType.WARNING})
+  @interface ErrorType {
+    int ERROR = 1;
+    int WARNING = 2;
+  }
 
   private final PietStylesHelper stylesHelper;
   private final AssetProvider assetProvider;
@@ -90,7 +95,7 @@ class BoundFrameContext implements FrameContext {
   // The base / default style; inherited from the template or frame.
   private final Style baseStyle;
 
-  BoundFrameContext(
+  FrameContext(
       Frame frame,
       Map<String, Style> stylesheet,
       Style baseStyle,
@@ -109,7 +114,7 @@ class BoundFrameContext implements FrameContext {
         customElementProvider);
   }
 
-  BoundFrameContext(
+  FrameContext(
       Frame frame,
       Map<String, Style> stylesheet,
       @Nullable Map<String, BindingValue> bindingValues,
@@ -134,30 +139,30 @@ class BoundFrameContext implements FrameContext {
     }
   }
 
-  @Override
   public AssetProvider getAssetProvider() {
     return assetProvider;
   }
 
-  @Override
   public CustomElementProvider getCustomElementProvider() {
     return customElementProvider;
   }
 
-  @Override
   public Frame getFrame() {
     return currentFrame;
   }
 
   @Nullable
-  @Override
   public Template getTemplate(String templateId) {
     Template template = frameTemplates.get(templateId);
     return (template != null) ? template : stylesHelper.getTemplate(templateId);
   }
 
+  /**
+   * Creates a new FrameContext which is scoped properly for the Template. If a Template defines a
+   * Stylesheet, it overrides the Frame defined Stylesheet. In addition, a Template can define a
+   * root level Style.
+   */
   // TODO: Why do we allow bindingContext to be null if it's an error?
-  @Override
   public FrameContext bindTemplate(Template template, @Nullable BindingContext bindingContext) {
     if (bindingContext == null) {
       Logger.w(TAG, reportError(ErrorType.WARNING, "Template BindingContext was not provided"));
@@ -183,12 +188,12 @@ class BoundFrameContext implements FrameContext {
       templateBaseStyle =
           PietStylesHelper.mergeStyleIdsStack(
               DEFAULT_STYLE, template.getChildDefaultStyleIds(), localStylesheet, this, false);
-      templateStyleProvider = new StyleProviderImpl(templateBaseStyle);
+      templateStyleProvider = new StyleProvider(templateBaseStyle);
     } else {
       templateBaseStyle = DEFAULT_STYLE;
       templateStyleProvider = DEFAULT_STYLE_PROVIDER;
     }
-    return new BoundFrameContext(
+    return new FrameContext(
         currentFrame,
         localStylesheet,
         binding,
@@ -199,14 +204,17 @@ class BoundFrameContext implements FrameContext {
         customElementProvider);
   }
 
-  @Override
+  /**
+   * Creates a new FrameContext from the existing FrameContext using {@code styleId} to lookup the
+   * new Style.
+   */
   public FrameContext bindNewStyle(StyleIdsStack styles) {
     if (styles.getStyleIdsList().isEmpty()) {
       return this;
     }
     StyleProvider styleProvider = makeStyleFor(styles);
     return styleProvider != null
-        ? new BoundFrameContext(
+        ? new FrameContext(
             currentFrame,
             stylesheet,
             bindingValues,
@@ -218,17 +226,17 @@ class BoundFrameContext implements FrameContext {
         : this;
   }
 
-  @Override
+  /** Return the current {@link StyleProvider}. */
   public StyleProvider getCurrentStyle() {
     return currentStyleProvider;
   }
 
-  @Override
+  /** Return a {@link StyleProvider} for the style. */
   public StyleProvider makeStyleFor(StyleIdsStack styles) {
     return makeStyleFor(styles, false);
   }
 
-  @Override
+  /** Return a {@link StyleProvider} for the style, and allow errors to be suppressed */
   public StyleProvider makeStyleFor(StyleIdsStack styles, boolean suppressErrors) {
     if (styles.getStyleIdsList().isEmpty()) {
       return currentStyleProvider;
@@ -246,11 +254,14 @@ class BoundFrameContext implements FrameContext {
       }
       return currentStyleProvider;
     }
-    return new StyleProviderImpl(style);
+    return new StyleProvider(style);
   }
 
+  /**
+   * Return a {@link Drawable} with the fill and rounded corners defined on the style; returns
+   * {@code null} if the background has no color defined.
+   */
   @Nullable
-  @Override
   public Drawable createBackground(StyleProvider style, Context context) {
     Fill background = style.getBackground();
     if (!background.hasColor()) {
@@ -271,23 +282,34 @@ class BoundFrameContext implements FrameContext {
     return bgDrawable;
   }
 
-  @Override
+  /**
+   * Return a {@link Image} for the binding if there is one defined; otherwise returns {@code null}.
+   */
   public Image getImageFromBinding(ImageBindingRef binding) {
     return getImageBindingValue(binding).getImage();
   }
 
-  @Override
+  /**
+   * Return a {@link ElementList} for the binding if there is one defined; otherwise returns {@code
+   * null}.
+   */
   public ElementList getElementListFromBinding(ElementListBindingRef binding) {
     return getElementListBindingValue(binding).getElementList();
   }
 
-  @Override
+  /**
+   * Return a {@link ParameterizedText} for the binding if there is one defined; otherwise returns
+   * {@code null}.
+   */
   public ParameterizedText getTextFromBinding(ParameterizedTextBindingRef binding) {
     return getTextBindingValue(binding).getParameterizedText();
   }
 
+  /**
+   * Return a {@link GridCellWidth} for the binding if there is one defined; otherwise returns
+   * {@code null}.
+   */
   @Nullable
-  @Override
   public GridCellWidth getGridCellWidthFromBinding(GridCellWidthBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasCellWidth()
@@ -295,15 +317,21 @@ class BoundFrameContext implements FrameContext {
         : bindingValue.getCellWidth();
   }
 
+  /**
+   * Return an {@link Actions} for the binding if there is one defined; otherwise returns {@code
+   * null}.
+   */
   @Nullable
-  @Override
   public Actions getActionsFromBinding(ActionsBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasActions() ? null : bindingValue.getActions();
   }
 
+  /**
+   * Return a {@link CustomElementData} for the binding if there is one defined; otherwise returns
+   * {@code null}.
+   */
   @Nullable
-  @Override
   public CustomElementData getCustomElementFromBinding(CustomBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasCustomElementData()
@@ -311,8 +339,11 @@ class BoundFrameContext implements FrameContext {
         : bindingValue.getCustomElementData();
   }
 
+  /**
+   * Return a {@link BoundStyle} for the binding if there is one defined; otherwise returns {@code
+   * null}.
+   */
   @Nullable
-  @Override
   public BoundStyle getStyleFromBinding(StyleBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasBoundStyle()
@@ -320,8 +351,11 @@ class BoundFrameContext implements FrameContext {
         : bindingValue.getBoundStyle();
   }
 
+  /**
+   * Return a {@link TemplateInvocation} for the binding if there is one defined; otherwise returns
+   * {@code null}.
+   */
   @Nullable
-  @Override
   public TemplateInvocation getTemplateInvocationFromBinding(TemplateBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasTemplateInvocation()
@@ -329,7 +363,10 @@ class BoundFrameContext implements FrameContext {
         : bindingValue.getTemplateInvocation();
   }
 
-  @Override
+  /**
+   * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
+   * does not point to a text resource.
+   */
   public BindingValue getTextBindingValue(ParameterizedTextBindingRef binding) {
     checkBindingValuesInitialized(binding.getBindingId());
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
@@ -343,7 +380,10 @@ class BoundFrameContext implements FrameContext {
     }
   }
 
-  @Override
+  /**
+   * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
+   * does not point to a image resource.
+   */
   public BindingValue getImageBindingValue(ImageBindingRef binding) {
     checkBindingValuesInitialized(binding.getBindingId());
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
@@ -356,7 +396,10 @@ class BoundFrameContext implements FrameContext {
     }
   }
 
-  @Override
+  /**
+   * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
+   * does not point to a ElementList.
+   */
   public BindingValue getElementListBindingValue(ElementListBindingRef binding) {
     checkBindingValuesInitialized(binding.getBindingId());
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
@@ -370,8 +413,11 @@ class BoundFrameContext implements FrameContext {
     }
   }
 
-  @Override
-  public String reportError(ErrorType errorType, String error) {
+  /**
+   * Report user errors in frames. This will return the fully formed error so it can be logged at
+   * the site of the error.
+   */
+  public String reportError(@ErrorType int errorType, String error) {
     String e =
         String.format(
             "[%s] %s - %s", currentFrame.getTag(), errorType == ErrorType.ERROR ? "E" : "W", error);
@@ -379,7 +425,10 @@ class BoundFrameContext implements FrameContext {
     return e;
   }
 
-  @Override
+  /**
+   * Create a Linear Layout with all of the errors reported by {@link #reportError(String)}. This
+   * will return {@code null} if the View shouldn't be displayed.
+   */
   @Nullable
   public View getErrorView(Context context) {
     // TODO: This needs to be controlled by a DEBUG flag, this should always return

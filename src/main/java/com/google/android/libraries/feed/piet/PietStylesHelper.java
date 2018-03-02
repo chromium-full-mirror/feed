@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.piet.util.FrameContext;
 import com.google.android.libraries.feed.piet.util.Producer;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;

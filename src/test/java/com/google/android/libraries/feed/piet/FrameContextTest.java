@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.StyleProviderImpl.DEFAULT_STYLE_PROVIDER;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -28,8 +28,6 @@ import com.google.android.libraries.feed.common.testing.RunnableSubject.Throwing
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.StyleProvider;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
@@ -70,7 +68,7 @@ import org.robolectric.annotation.Config;
 /** Tests of the {@link BoundFrameContext}. */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
-public class BoundFrameContextTest {
+public class FrameContextTest {
   private static final String DEFAULT_TEMPLATE_ID = "TEMPLATE_ID";
   private static final Template DEFAULT_TEMPLATE =
       Template.newBuilder().setTemplateId(DEFAULT_TEMPLATE_ID).build();
@@ -94,7 +92,7 @@ public class BoundFrameContextTest {
   private final Map<String, Style> defaultStylesheet = new HashMap<>();
   private Context context;
 
-  private BoundFrameContext frameContext;
+  private FrameContext frameContext;
 
   @Before
   public void setUp() throws Exception {
@@ -107,7 +105,7 @@ public class BoundFrameContextTest {
   @Test
   public void testGetters() {
     frameContext =
-        new BoundFrameContext(
+        new FrameContext(
             DEFAULT_FRAME,
             defaultStylesheet,
             DEFAULT_STYLE,
@@ -132,7 +130,7 @@ public class BoundFrameContextTest {
 
   @Test
   public void testBindTemplate_lotsOfStuff() {
-    frameContext = defaultBoundFrameContext();
+    frameContext = defaultFrameContext();
 
     // null binding context returns the same frame context.
     assertThat(frameContext.bindTemplate(DEFAULT_TEMPLATE, null)).isEqualTo(frameContext);
@@ -187,7 +185,7 @@ public class BoundFrameContextTest {
 
   @Test
   public void testBindNewStyle() {
-    frameContext = defaultBoundFrameContext();
+    frameContext = defaultFrameContext();
 
     assertThat(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance()))
         .isEqualTo(frameContext);
@@ -200,7 +198,7 @@ public class BoundFrameContextTest {
 
   @Test
   public void testMakeStyleFor() {
-    frameContext = defaultBoundFrameContext();
+    frameContext = defaultFrameContext();
 
     // Returns current style provider if there are no styles defined
     assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
@@ -224,7 +222,7 @@ public class BoundFrameContextTest {
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadius(4321).build();
     when(styleProvider.getRoundedCorners()).thenReturn(roundedCorners);
 
-    frameContext = defaultBoundFrameContext();
+    frameContext = defaultFrameContext();
 
     when(styleProvider.getBackground()).thenReturn(Fill.getDefaultInstance());
     assertThat(frameContext.createBackground(styleProvider, context)).isNull();
@@ -246,7 +244,7 @@ public class BoundFrameContextTest {
     ParameterizedTextBindingRef textBindingRef =
         ParameterizedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build();
 
-    frameContext = makeBoundFrameContextWithBinding(imageBindingValue);
+    frameContext = makeFrameContextWithBinding(imageBindingValue);
 
     // Succeed in looking up binding
     assertThat(frameContext.getTextFromBinding(textBindingRef)).isEqualTo(text);
@@ -273,7 +271,7 @@ public class BoundFrameContextTest {
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                makeBoundFrameContextWithEmptyBinding().getTextBindingValue(textBindingRef);
+                makeFrameContextWithEmptyBinding().getTextBindingValue(textBindingRef);
               }
             })
         .throwsAnExceptionOfType(IllegalStateException.class)
@@ -283,8 +281,7 @@ public class BoundFrameContextTest {
 
     // No image, but visibility is GONE, so succeed
     assertThat(
-            makeBoundFrameContextWithBinding(
-                    defaultBinding().setVisibility(Visibility.GONE).build())
+            makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
                 .getTextFromBinding(textBindingRef))
         .isEqualTo(ParameterizedText.getDefaultInstance());
 
@@ -293,7 +290,7 @@ public class BoundFrameContextTest {
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                makeBoundFrameContextWithNoBindings().getTextBindingValue(textBindingRef);
+                makeFrameContextWithNoBindings().getTextBindingValue(textBindingRef);
               }
             })
         .throwsAnExceptionOfType(NullPointerException.class)
@@ -308,7 +305,7 @@ public class BoundFrameContextTest {
     BindingValue imageBindingValue = defaultBinding().setImage(image).build();
     ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(BINDING_ID).build();
 
-    frameContext = makeBoundFrameContextWithBinding(imageBindingValue);
+    frameContext = makeFrameContextWithBinding(imageBindingValue);
 
     // Succeed in looking up binding
     assertThat(frameContext.getImageFromBinding(imageBindingRef)).isEqualTo(image);
@@ -333,7 +330,7 @@ public class BoundFrameContextTest {
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                makeBoundFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRef);
+                makeFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRef);
               }
             })
         .throwsAnExceptionOfType(IllegalStateException.class)
@@ -343,8 +340,7 @@ public class BoundFrameContextTest {
 
     // No image, but visibility is GONE, so succeed
     assertThat(
-            makeBoundFrameContextWithBinding(
-                    defaultBinding().setVisibility(Visibility.GONE).build())
+            makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
                 .getImageFromBinding(imageBindingRef))
         .isEqualTo(Image.getDefaultInstance());
 
@@ -353,7 +349,7 @@ public class BoundFrameContextTest {
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                makeBoundFrameContextWithNoBindings().getImageBindingValue(imageBindingRef);
+                makeFrameContextWithNoBindings().getImageBindingValue(imageBindingRef);
               }
             })
         .throwsAnExceptionOfType(NullPointerException.class)
@@ -370,7 +366,7 @@ public class BoundFrameContextTest {
     ElementListBindingRef listBindingRef =
         ElementListBindingRef.newBuilder().setBindingId(BINDING_ID).build();
 
-    frameContext = makeBoundFrameContextWithBinding(listBindingValue);
+    frameContext = makeFrameContextWithBinding(listBindingValue);
 
     // Succeed in looking up binding
     assertThat(frameContext.getElementListFromBinding(listBindingRef)).isEqualTo(list);
@@ -395,7 +391,7 @@ public class BoundFrameContextTest {
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                makeBoundFrameContextWithEmptyBinding().getElementListBindingValue(listBindingRef);
+                makeFrameContextWithEmptyBinding().getElementListBindingValue(listBindingRef);
               }
             })
         .throwsAnExceptionOfType(IllegalStateException.class)
@@ -405,8 +401,7 @@ public class BoundFrameContextTest {
 
     // No image, but visibility is GONE, so succeed
     assertThat(
-            makeBoundFrameContextWithBinding(
-                    defaultBinding().setVisibility(Visibility.GONE).build())
+            makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
                 .getElementListFromBinding(listBindingRef))
         .isEqualTo(ElementList.getDefaultInstance());
 
@@ -415,7 +410,7 @@ public class BoundFrameContextTest {
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                makeBoundFrameContextWithNoBindings().getElementListBindingValue(listBindingRef);
+                makeFrameContextWithNoBindings().getElementListBindingValue(listBindingRef);
               }
             })
         .throwsAnExceptionOfType(NullPointerException.class)
@@ -427,8 +422,7 @@ public class BoundFrameContextTest {
   @Test
   public void testGetGridCellWidthFromBinding() {
     GridCellWidth cellWidth = GridCellWidth.newBuilder().setWeight(123).build();
-    frameContext =
-        makeBoundFrameContextWithBinding(defaultBinding().setCellWidth(cellWidth).build());
+    frameContext = makeFrameContextWithBinding(defaultBinding().setCellWidth(cellWidth).build());
     assertThat(
             frameContext.getGridCellWidthFromBinding(
                 GridCellWidthBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
@@ -438,7 +432,7 @@ public class BoundFrameContextTest {
                 GridCellWidthBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .isNull();
 
-    frameContext = makeBoundFrameContextWithEmptyBinding();
+    frameContext = makeFrameContextWithEmptyBinding();
     assertThat(
             frameContext.getGridCellWidthFromBinding(
                 GridCellWidthBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
@@ -448,7 +442,7 @@ public class BoundFrameContextTest {
   @Test
   public void testGetActionsFromBinding() {
     frameContext =
-        makeBoundFrameContextWithBinding(
+        makeFrameContextWithBinding(
             defaultBinding().setActions(Actions.getDefaultInstance()).build());
     assertThat(
             frameContext.getActionsFromBinding(
@@ -459,7 +453,7 @@ public class BoundFrameContextTest {
                 ActionsBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .isNull();
 
-    frameContext = makeBoundFrameContextWithEmptyBinding();
+    frameContext = makeFrameContextWithEmptyBinding();
     assertThat(
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
@@ -469,7 +463,7 @@ public class BoundFrameContextTest {
   @Test
   public void testGetCustomElementFromBinding() {
     frameContext =
-        makeBoundFrameContextWithBinding(
+        makeFrameContextWithBinding(
             defaultBinding().setCustomElementData(CustomElementData.getDefaultInstance()).build());
     assertThat(
             frameContext.getCustomElementFromBinding(
@@ -480,7 +474,7 @@ public class BoundFrameContextTest {
                 CustomBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .isNull();
 
-    frameContext = makeBoundFrameContextWithEmptyBinding();
+    frameContext = makeFrameContextWithEmptyBinding();
     assertThat(
             frameContext.getCustomElementFromBinding(
                 CustomBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
@@ -490,8 +484,7 @@ public class BoundFrameContextTest {
   @Test
   public void testGetStyleFromBinding() {
     BoundStyle boundStyle = BoundStyle.newBuilder().setColor(12345).build();
-    frameContext =
-        makeBoundFrameContextWithBinding(defaultBinding().setBoundStyle(boundStyle).build());
+    frameContext = makeFrameContextWithBinding(defaultBinding().setBoundStyle(boundStyle).build());
     assertThat(
             frameContext.getStyleFromBinding(
                 StyleBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
@@ -501,7 +494,7 @@ public class BoundFrameContextTest {
                 StyleBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .isNull();
 
-    frameContext = makeBoundFrameContextWithEmptyBinding();
+    frameContext = makeFrameContextWithEmptyBinding();
     assertThat(
             frameContext.getStyleFromBinding(
                 StyleBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
@@ -513,7 +506,7 @@ public class BoundFrameContextTest {
     TemplateInvocation templateInvocation =
         TemplateInvocation.newBuilder().setTemplateId("carboncopy").build();
     frameContext =
-        makeBoundFrameContextWithBinding(
+        makeFrameContextWithBinding(
             defaultBinding().setTemplateInvocation(templateInvocation).build());
     assertThat(
             frameContext.getTemplateInvocationFromBinding(
@@ -524,19 +517,19 @@ public class BoundFrameContextTest {
                 TemplateBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .isNull();
 
-    frameContext = makeBoundFrameContextWithEmptyBinding();
+    frameContext = makeFrameContextWithEmptyBinding();
     assertThat(
             frameContext.getTemplateInvocationFromBinding(
                 TemplateBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
         .isNull();
   }
 
-  private BoundFrameContext defaultBoundFrameContext() {
-    return makeBoundFrameContextWithNoBindings();
+  private FrameContext defaultFrameContext() {
+    return makeFrameContextWithNoBindings();
   }
 
-  private BoundFrameContext makeBoundFrameContextWithNoBindings() {
-    return new BoundFrameContext(
+  private FrameContext makeFrameContextWithNoBindings() {
+    return new FrameContext(
         DEFAULT_FRAME,
         defaultStylesheet,
         DEFAULT_STYLE,
@@ -546,10 +539,10 @@ public class BoundFrameContextTest {
         customElementProvider);
   }
 
-  private BoundFrameContext makeBoundFrameContextWithBinding(BindingValue bindingValue) {
+  private FrameContext makeFrameContextWithBinding(BindingValue bindingValue) {
     Map<String, BindingValue> bindingValueMap = new HashMap<>();
     bindingValueMap.put(BINDING_ID, bindingValue);
-    return new BoundFrameContext(
+    return new FrameContext(
         DEFAULT_FRAME,
         defaultStylesheet,
         bindingValueMap,
@@ -560,10 +553,10 @@ public class BoundFrameContextTest {
         customElementProvider);
   }
 
-  private BoundFrameContext makeBoundFrameContextWithEmptyBinding() {
+  private FrameContext makeFrameContextWithEmptyBinding() {
     Map<String, BindingValue> bindingValueMap = new HashMap<>();
     bindingValueMap.put(BINDING_ID, BindingValue.getDefaultInstance());
-    return new BoundFrameContext(
+    return new FrameContext(
         DEFAULT_FRAME,
         defaultStylesheet,
         bindingValueMap,

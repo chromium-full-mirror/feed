@@ -23,8 +23,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
-import com.google.android.libraries.feed.piet.util.FrameContext;
-import com.google.android.libraries.feed.piet.util.ViewUtils;
 import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.List;
