@@ -32,7 +32,13 @@ import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.action.ActionParser;
+import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.piet.PietManager;
+import com.google.android.libraries.feed.piet.PietStylesHelper;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -50,6 +56,7 @@ public class BasicStream implements Stream {
   private final ThreadUtils threadUtils;
   private final StreamRecyclerViewAdapter adapter;
   private final ViewHolderBindingObserver viewHolderBindingObserver;
+  private final PietManager pietManager;
 
   @Nullable private ModelToken streamToken = null;
   @Nullable private ModelProvider modelProvider;
@@ -57,36 +64,42 @@ public class BasicStream implements Stream {
   public BasicStream(
       Context context,
       CardConfiguration cardConfiguration,
-      PietManager pietManager,
-      ThreadUtils threadUtils) {
-    this.cardConfiguration = cardConfiguration;
-    this.threadUtils = threadUtils;
-
-    recyclerView = new RecyclerView(context);
-    recyclerView.setLayoutManager(new LinearLayoutManager(context));
-    viewHolderBindingObserver = initializeBindingObserver();
-    adapter =
-        new StreamRecyclerViewAdapter(
-            context, this.cardConfiguration, pietManager, viewHolderBindingObserver);
-    recyclerView.setAdapter(adapter);
-  }
-
-  public BasicStream(
-      Context context,
-      CardConfiguration cardConfiguration,
-      PietManager pietManager,
+      PietStylesHelper pietStylesHelper,
+      AssetProvider assetProvider,
+      ActionParser actionParser,
+      ActionApi actionApi,
+      CustomElementProvider customElementProvider,
       ThreadUtils threadUtils,
       List<View> headers) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
+    this.pietManager =
+        new PietManager(
+            pietStylesHelper,
+            assetProvider,
+            (action, frame, veLoggingToken) ->
+                actionParser.parseAction(
+                    action,
+                    new StreamActionApi() {
+                      @Override
+                      public void openUrl(String url) {
+                        actionApi.openUrl(url);
+                      }
 
+                      @Override
+                      public boolean canOpenUrl() {
+                        return actionApi.canOpenUrl();
+                      }
+                    },
+                    veLoggingToken),
+            customElementProvider);
+    recyclerView = new RecyclerView(context);
+    recyclerView.setLayoutManager(new LinearLayoutManager(context));
     viewHolderBindingObserver = initializeBindingObserver();
     adapter =
         new StreamRecyclerViewAdapter(
             context, this.cardConfiguration, pietManager, viewHolderBindingObserver);
     adapter.setHeaders(headers);
-    recyclerView = new RecyclerView(context);
-    recyclerView.setLayoutManager(new LinearLayoutManager(context));
     recyclerView.setAdapter(adapter);
   }
 

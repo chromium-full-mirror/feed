@@ -14,5 +14,23 @@
 
 package com.google.android.libraries.feed.host.action;
 
-/** A placeholder API to report and log user actions. */
-public interface ActionApi {}
+/**
+ * The actions API allows the Feed to query the host as to what actions can be performed and
+ * instruct the host to perform such actions. In the case that an action is triggered that is not
+ * enabled the host has one of two options:
+ *
+ * <ol>
+ *   <li>The host can ignore the action.
+ *   <li>The host can throw an exception which the Stream will not catch, crashing the app.
+ * </ol>
+ *
+ * <p>The host is free to log any incorrectly triggered actions.
+ */
+public interface ActionApi {
+
+  /** Opens the given URL. */
+  void openUrl(String url);
+
+  /** Whether the host can open a URL. */
+  boolean canOpenUrl();
+}
