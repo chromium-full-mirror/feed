@@ -15,12 +15,16 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
-import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.common.Logger;
+import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -29,8 +33,12 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   private static final String TAG = "ModelCursorImpl";
 
   private final Object lock = new Object();
-
   private final ThreadUtils threadUtils;
+
+  private final StreamContentId parentContentId;
+
+  @GuardedBy("lock")
+  private List<UpdatableModelChild> childList;
 
   @Nullable
   @GuardedBy("lock")
@@ -39,10 +47,36 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   @GuardedBy("lock")
   private boolean isInvalid = false;
 
-  public ModelCursorImpl(Iterator<UpdatableModelChild> iterator, ThreadUtils threadUtils) {
-    Validators.checkNotNull(iterator);
-    this.iterator = iterator;
+  /**
+   * Create a new ModelCursorImpl. The {@code childList} needs to be a copy of the original list to
+   * prevent {@link java.util.ConcurrentModificationException} for changes to the Model. The cursor
+   * is informed of changes through the {@link #updateIterator(FeatureChange featureChang)}.
+   */
+  public ModelCursorImpl(
+      StreamContentId parentContentId,
+      List<UpdatableModelChild> childList,
+      ThreadUtils threadUtils) {
+    this.parentContentId = parentContentId;
+    this.childList = childList;
+    this.iterator = new CursorIterator();
     this.threadUtils = threadUtils;
+  }
+
+  public StreamContentId getParentContentId() {
+    return parentContentId;
+  }
+
+  public void updateIterator(FeatureChange featureChange) {
+    synchronized (lock) {
+      // TODO: We will need to support remove
+      for (ModelChild modelChild : featureChange.getChildChanges().getAppendedChildren()) {
+        if (modelChild instanceof UpdatableModelChild) {
+          childList.add(((UpdatableModelChild) modelChild));
+        } else {
+          Logger.e(TAG, "non-UpdateableModelChild found, ignored");
+        }
+      }
+    }
   }
 
   @Override
@@ -82,6 +116,27 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   public boolean isAtEnd() {
     synchronized (lock) {
       return iterator == null || !this.iterator.hasNext();
+    }
+  }
+
+  private class CursorIterator implements Iterator<UpdatableModelChild> {
+    private int cursor = 0;
+
+    @Override
+    public boolean hasNext() {
+      synchronized (lock) {
+        return cursor < childList.size();
+      }
+    }
+
+    @Override
+    public UpdatableModelChild next() {
+      synchronized (lock) {
+        if (cursor >= childList.size()) {
+          throw new NoSuchElementException();
+        }
+        return childList.get(cursor++);
+      }
     }
   }
 

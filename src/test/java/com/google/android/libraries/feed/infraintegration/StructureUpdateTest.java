@@ -23,6 +23,8 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -113,5 +115,52 @@ public class StructureUpdateTest {
       modelValidator.assertStreamContentId(
           appendedChild.getContentId(), protocolAdapter.getStreamContentId(appendedCards[i++]));
     }
+  }
+
+  @Test
+  public void appendChildren_concurrentModification() {
+    // Test which verifies the root can be updated while we advance a cursor (without
+    // a ConcurrentModificationException
+    // Create a simple stream with a root and two features
+    ContentId[] startingCards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(1),
+          WireProtocolResponseBuilder.createFeatureContentId(2)
+        };
+    // Define two features to be appended to the root
+    ContentId[] appendedCards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(3),
+          WireProtocolResponseBuilder.createFeatureContentId(4)
+        };
+
+    WireProtocolResponseBuilder responseBuilder =
+        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    for (ContentId contentId : startingCards) {
+      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+    }
+    protocolAdapter.createModel(responseBuilder.build(), null);
+    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+
+    ModelFeature root = modelProvider.getRootFeature();
+    assertThat(root).isNotNull();
+    FeatureChangeObserver rootObserver = mock(FeatureChangeObserver.class);
+    root.registerObserver(rootObserver);
+    ModelCursor cursor = root.getCursor();
+    cursor.advanceCursor(
+        new ProcessNextChild() {
+          @Override
+          public void processNextChild(ModelChild child) {
+            // ignore, just moving things forward by one.
+          }
+        });
+
+    // Now append additional children to the stream (and cursor)
+    responseBuilder = new WireProtocolResponseBuilder();
+    for (ContentId contentId : appendedCards) {
+      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+    }
+    protocolAdapter.createModel(responseBuilder.build(), null);
+    modelValidator.assertCursorSize(cursor, 3);
   }
 }

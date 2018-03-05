@@ -243,8 +243,10 @@ public class FeedModelProviderTest {
   public void testTokenTracking() {
     UpdatableModelToken continuationToken = mock(UpdatableModelToken.class);
     ArrayList<UpdatableModelChild> location = new ArrayList<>();
-    TokenTracking tokenTracking = new TokenTracking(continuationToken, location);
+    StreamContentId parentContentId = StreamContentId.getDefaultInstance();
+    TokenTracking tokenTracking = new TokenTracking(continuationToken, parentContentId, location);
     assertThat(tokenTracking.tokenChild).isEqualTo(continuationToken);
+    assertThat(tokenTracking.parentContentId).isEqualTo(parentContentId);
     assertThat(tokenTracking.location).isEqualTo(location);
   }
 

@@ -21,6 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
+import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,16 +38,18 @@ public class ModelCursorImplTest {
 
   private List<UpdatableModelChild> modelChildren;
   private int childCount = 0;
+  private StreamContentId parentContentId;
 
   @Before
   public void setup() {
     initMocks(this);
     modelChildren = new ArrayList<>();
+    parentContentId = StreamContentId.getDefaultInstance();
   }
 
   @Test
   public void testEmptyCursor() {
-    ModelCursorImpl cursor = new ModelCursorImpl(modelChildren.iterator(), threadUtils);
+    ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren, threadUtils);
     assertThat(cursor.isInvalid()).isFalse();
     assertThat(cursor.isAtEnd()).isTrue();
   }
@@ -54,7 +57,7 @@ public class ModelCursorImplTest {
   @Test
   public void testReleaseCursor() {
     modelChildren.add(mock(UpdatableModelChild.class));
-    ModelCursorImpl cursor = new ModelCursorImpl(modelChildren.iterator(), threadUtils);
+    ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren, threadUtils);
     assertThat(cursor.isInvalid()).isFalse();
     assertThat(cursor.isAtEnd()).isFalse();
 
@@ -79,7 +82,7 @@ public class ModelCursorImplTest {
     for (int i = 0; i < childrenToAdd; i++) {
       modelChildren.add(mock(UpdatableModelChild.class));
     }
-    ModelCursorImpl cursor = new ModelCursorImpl(modelChildren.iterator(), threadUtils);
+    ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren, threadUtils);
     childCount = 0;
     for (int i = 0; i < childrenToAdd; i++) {
       assertThat(cursor.advanceCursor(incrementChildCountProcessor())).isTrue();

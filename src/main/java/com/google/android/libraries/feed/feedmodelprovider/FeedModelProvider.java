@@ -105,6 +105,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private int commitCount = 0;
   private int commitTokenCount = 0;
   private int commitUpdateCount = 0;
+  private int cursorsRemoved = 0;
 
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
@@ -130,15 +131,16 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     CursorProvider cursorProvider =
         parentId -> {
           synchronized (lock) {
-            ArrayList<UpdatableModelChild> children =
-                containers.get(protocolUtils.getContentIdKey(parentId));
+            String childKey = protocolUtils.getContentIdKey(parentId);
+            ArrayList<UpdatableModelChild> children = containers.get(childKey);
             if (children == null) {
               Logger.i(TAG, "No children found for Cursor");
-              ModelCursorImpl cursor = new ModelCursorImpl(EMPTY_LIST.listIterator(), threadUtils);
+              ModelCursorImpl cursor = new ModelCursorImpl(parentId, EMPTY_LIST, threadUtils);
               cursors.add(new WeakReference<>(cursor));
               return cursor;
             }
-            ModelCursorImpl cursor = new ModelCursorImpl(children.listIterator(), threadUtils);
+            ModelCursorImpl cursor =
+                new ModelCursorImpl(parentId, new ArrayList<>(children), threadUtils);
             cursors.add(new WeakReference<>(cursor));
             return cursor;
           }
@@ -262,6 +264,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         childDumper.forKey("children").value(entry.getValue().size()).compactPrevious();
       }
       dumper.forKey("cursors").value(cursors.size());
+      dumper.forKey("cursorsRemoved").value(cursorsRemoved).compactPrevious();
       for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
         ModelCursorImpl cursor = cursorRef.get();
         if (cursor != null) {
@@ -373,7 +376,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
                 if (child.getType() == Type.TOKEN) {
                   TokenTracking tokenTracking =
-                      new TokenTracking(child.getUpdatableModelToken(), childrenList);
+                      new TokenTracking(
+                          child.getUpdatableModelToken(), child.getParentId(), childrenList);
                   tokens.put(
                       child.getModelToken().getStreamToken().getNextPageToken(), tokenTracking);
                 }
@@ -539,7 +543,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     @Override
     public void postMutation() {
       ModelCursorImpl cursor =
-          new ModelCursorImpl(token.location.listIterator(newCursorStart), threadUtils);
+          new ModelCursorImpl(
+              token.parentContentId,
+              token.location.subList(newCursorStart, token.location.size()),
+              threadUtils);
       TokenCompleted tokenCompleted = new TokenCompleted(cursor);
       List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
       uiRunnableHandler.post(
@@ -619,15 +626,41 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
     @Override
     public void postMutation() {
-      for (FeatureChangeImpl change : changes.values()) {
-        // TODO: This cast is because StreamFeatureChange is part of the API, cleanup?
-        List<FeatureChangeObserver> observers =
-            ((UpdatableModelFeature) change.getModelFeature()).getObserversToNotify();
-        for (FeatureChangeObserver observer : observers) {
-          observer.onChange(change);
+      synchronized (lock) {
+        // Update the cursors before we notify the UI
+        List<WeakReference<ModelCursorImpl>> removeList = new ArrayList<>();
+        for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
+          ModelCursorImpl cursor = cursorRef.get();
+          if (cursor != null) {
+            FeatureChange change =
+                changes.get(protocolUtils.getContentIdKey(cursor.getParentContentId()));
+            if (change != null) {
+              cursor.updateIterator(change);
+            }
+          } else {
+            removeList.add(cursorRef);
+          }
         }
+        cursorsRemoved += removeList.size();
+        cursors.removeAll(removeList);
       }
+
+      // Update the Observers on the UI Thread
+      uiRunnableHandler.post(
+          TAG + " - onFeatureChange",
+          () -> {
+            for (FeatureChangeImpl change : changes.values()) {
+              // TODO: This cast is because StreamFeatureChange is part of the API, cleanup?
+              List<FeatureChangeObserver> observers =
+                  ((UpdatableModelFeature) change.getModelFeature()).getObserversToNotify();
+              for (FeatureChangeObserver observer : observers) {
+                observer.onChange(change);
+              }
+            }
+          });
     }
+
+
 
     @Nullable
     private FeatureChangeImpl getChange(String contentIdKey) {
@@ -684,10 +717,15 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   @VisibleForTesting
   static class TokenTracking {
     final UpdatableModelToken tokenChild;
+    final StreamContentId parentContentId;
     final ArrayList<UpdatableModelChild> location;
 
-    TokenTracking(UpdatableModelToken tokenChild, ArrayList<UpdatableModelChild> location) {
+    TokenTracking(
+        UpdatableModelToken tokenChild,
+        StreamContentId parentContentId,
+        ArrayList<UpdatableModelChild> location) {
       this.tokenChild = tokenChild;
+      this.parentContentId = parentContentId;
       this.location = location;
     }
   }

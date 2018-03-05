@@ -43,7 +43,7 @@ import java.util.List;
 
 /** A RecyclerView adapter which can show Piet Stream features. */
 public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
-  private static final String TAG = "StreamRecyclerViewAdapter";
+  private static final String TAG = "StreamRecyclerViewAdapt";
 
   private final Context context;
   private final CardConfiguration cardConfiguration;
