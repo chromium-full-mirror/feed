@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-/** Tests of the {@link ModelFeatureImpl}. */
+/** Tests of the {@link UpdatableModelFeature}. */
 @RunWith(RobolectricTestRunner.class)
 public class ModelFeatureImplTest {
 
@@ -46,7 +46,7 @@ public class ModelFeatureImplTest {
 
   @Test
   public void testBase() {
-    ModelFeatureImpl modelFeature = new ModelFeatureImpl(streamFeature, cursorProvider);
+    UpdatableModelFeature modelFeature = new UpdatableModelFeature(streamFeature, cursorProvider);
     assertThat(modelFeature.getStreamFeature()).isEqualTo(streamFeature);
     assertThat(modelFeature.getCursor()).isEqualTo(modelCursor);
   }

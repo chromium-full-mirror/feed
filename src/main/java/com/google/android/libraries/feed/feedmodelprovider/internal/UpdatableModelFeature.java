@@ -14,19 +14,52 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
+import android.database.Observable;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
+import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
-/**
- * This is the internal representation of a {@link ModelFeature} used by {@link
- * com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider}.
- */
-public interface UpdatableModelFeature extends ModelFeature {
-  /** Set the {@link StreamFeature} value for this {@link ModelFeature}. */
-  void setFeatureValue(StreamFeature streamFeature);
+/** Implementation of the {@link ModelFeature} */
+public class UpdatableModelFeature extends Observable<FeatureChangeObserver>
+    implements ModelFeature {
 
-  /** Returns a list of {@link FeatureChangeObserver} to notify when a change is made. */
-  List<FeatureChangeObserver> getObserversToNotify();
+  private StreamFeature streamFeature;
+  private final CursorProvider cursorProvider;
+
+  UpdatableModelFeature(StreamFeature streamFeature, CursorProvider cursorProvider) {
+    this.streamFeature = streamFeature;
+    this.cursorProvider = cursorProvider;
+  }
+
+  @Override
+  public StreamFeature getStreamFeature() {
+    return streamFeature;
+  }
+
+  @Override
+  public ModelCursor getCursor() {
+    return cursorProvider.getCursor(streamFeature.getContentId());
+  }
+
+  @Override
+  @Nullable
+  public ModelCursor getDirectionalCursor(
+      boolean forward, @Nullable StreamContentId startingChild) {
+    return null;
+  }
+
+  public List<FeatureChangeObserver> getObserversToNotify() {
+    synchronized (mObservers) {
+      return new ArrayList<>(mObservers);
+    }
+  }
+
+  public void setFeatureValue(StreamFeature streamFeature) {
+    this.streamFeature = streamFeature;
+  }
 }

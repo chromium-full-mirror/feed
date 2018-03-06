@@ -14,19 +14,29 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
+import android.database.Observable;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Interface support the internal implemenation of {@link ModelToken} and supporting the
- * implementation.
- */
-public interface UpdatableModelToken extends ModelToken {
+/** Implementation of the {@link ModelToken}. */
+public class UpdatableModelToken extends Observable<TokenCompletedObserver> implements ModelToken {
+  private final StreamToken token;
 
-  /**
-   * Return a copy of the registered Observer enabling safe notification. Make a copy of the
-   * observers, so the observers are not mutated while invoking callbacks.
-   */
-  List<TokenCompletedObserver> getObserversToNotify();
+  UpdatableModelToken(StreamToken token) {
+    this.token = token;
+  }
+
+  @Override
+  public StreamToken getStreamToken() {
+    return token;
+  }
+
+  public List<TokenCompletedObserver> getObserversToNotify() {
+    synchronized (mObservers) {
+      return new ArrayList<>(mObservers);
+    }
+  }
 }

@@ -91,9 +91,9 @@ public class ModelChildBinder {
               if (payload != null) {
                 if (payload.hasStreamFeature()) {
                   child.bindFeature(
-                      new ModelFeatureImpl(payload.getStreamFeature(), cursorProvider));
+                      new UpdatableModelFeature(payload.getStreamFeature(), cursorProvider));
                 } else if (payload.hasStreamToken()) {
-                  child.bindToken(new ModelTokenImpl(payload.getStreamToken()));
+                  child.bindToken(new UpdatableModelToken(payload.getStreamToken()));
                 }
               } else {
                 Logger.e(TAG, "Payload not provided in the StreamPayloadWithId");

@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-/** Tests of {@link ModelTokenImpl}. */
+/** Tests of {@link UpdatableModelToken}. */
 @RunWith(RobolectricTestRunner.class)
 public class ModelTokenImplTest {
   @Mock private TokenCompletedObserver changeObserver;
@@ -39,14 +39,14 @@ public class ModelTokenImplTest {
   @Test
   public void testFeature() {
     StreamToken token = StreamToken.newBuilder().build();
-    ModelTokenImpl modelToken = new ModelTokenImpl(token);
+    UpdatableModelToken modelToken = new UpdatableModelToken(token);
     assertThat(modelToken.getStreamToken()).isEqualTo(token);
   }
 
   @Test
   public void testChangeObserverList() {
     StreamToken token = StreamToken.newBuilder().build();
-    ModelTokenImpl modelToken = new ModelTokenImpl(token);
+    UpdatableModelToken modelToken = new UpdatableModelToken(token);
     modelToken.registerObserver(changeObserver);
     List<TokenCompletedObserver> observers = modelToken.getObserversToNotify();
     assertThat(observers.size()).isEqualTo(1);
