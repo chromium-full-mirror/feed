@@ -507,12 +507,44 @@ message BindingValue {
   }
 
   // Sets the visibility of the UI element corresponding to this binding.
-  optional Visibility visibility = 12 [default = VISIBLE];
+  optional Visibility visibility = 13 [default = VISIBLE];
+
+  // Data to provide a host in order for host to fulfill a binding for Piet.
+  // When Piet binds a value it will first look to see if there is a
+  // HostBindingData set. If there is one, then Piet asks the host for a new
+  // BindingValue to use. The host will be given this BindingValue from which it
+  // can use HostBindingData to determine how to create a new BindingValue. This
+  // allows the host to selectively alter the server specified BindingValue. If
+  // the BindingValue returned by the host has HostBindingData set it will be
+  // ignored. If there is no binding provided in the oneof then an error will be
+  // raised.  See [INTERNAL LINK] for a list of possible errors that could be
+  // raised.
+  //
+  // Piet will use the binding reference and ask the host for a specific
+  // binding based on that reference type. As an example, Piet will request the
+  // host for an Image when ImageBindingRef is specified.
+  //
+  // An example usage of a host binding would be to check if something has
+  // been stored on the device and signaling with icons whether content is
+  // there or not.  The server can specify where this element will appear and
+  // the host can determine what to show or even if the element should be
+  // shown.
+  optional HostBindingData host_binding_data = 14;
 }
 
 // Data to be displayed in a CustomElement. Clients using Piet should add
 // extensions to this proto to pass their custom data to CustomElements.
 message CustomElementData {
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+
+// Data which is accompanied with BindingValue in order for a host to determine
+// the information it needs to provide the correct BindingValue to fulfill a
+// binding reference.  Client using Piet should add extensions to this proto to
+// pass their host specific data needed to fulfill the binding reference.
+message HostBindingData {
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
