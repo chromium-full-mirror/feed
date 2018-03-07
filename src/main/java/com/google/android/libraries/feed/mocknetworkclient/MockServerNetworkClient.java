@@ -71,6 +71,7 @@ public class MockServerNetworkClient implements NetworkClient {
 
   /** Called to shutdown the Looper providing support for Mock Updates */
   public void quitSafely() {
+    looper.getHandler().removeCallbacks(null);
     looper.quitSafely();
     hasQuit = true;
   }
