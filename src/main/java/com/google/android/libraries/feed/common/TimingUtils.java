@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.common;
 
+import android.text.TextUtils;
 import android.util.LongSparseArray;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import java.util.ArrayDeque;
@@ -177,6 +178,26 @@ public class TimingUtils implements Dumpable {
       }
       stack.pop();
       if (stack.isEmpty()) {
+        StringBuilder sb = new StringBuilder();
+        TrackerState ts = trackerStates.get(trackerStates.size() - 1);
+        for (int i = 0; i < ts.args.length; i++) {
+          String key = ts.args[i++].toString();
+          Object value = (i < ts.args.length) ? ts.args[i] : "";
+          if (!TextUtils.isEmpty(key)) {
+            sb.append(String.format("%s : %s", key, value));
+          } else {
+            sb.append(value);
+          }
+          if ((i + 1) < ts.args.length) {
+            sb.append(" | ");
+          }
+        }
+        Logger.i(
+            TAG,
+            "Task Timing %3sms, thread %s | %s",
+            ((tracker.endTime - tracker.startTime) / 1000000),
+            tracker.threadStack.name,
+            sb);
         synchronized (lock) {
           if (threadDumps.size() == MAX_TO_DUMP) {
             // Before adding a new tracker state, remove the oldest one.
@@ -209,6 +230,7 @@ public class TimingUtils implements Dumpable {
   private static class TrackerState {
     final long duration;
     final String source;
+    // TODO: Should we convert this to Pair?
     final Object[] args;
     final int indent;
 
