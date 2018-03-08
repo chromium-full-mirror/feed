@@ -35,6 +35,8 @@ message DataOperation {
     CLEAR_ALL = 1;
     // Update content if it exists, else append to the bottom of the feed
     UPDATE_OR_APPEND = 2;
+    // Remove the item from the stream
+    REMOVE = 3;
   }
 
   // The operation to perform on the data.

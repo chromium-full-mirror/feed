@@ -74,23 +74,36 @@ public class FeatureChangeImpl implements FeatureChange {
   /** Structure used to define the children changes. */
   public static class ChildChangesImpl implements ChildChanges {
     private final List<ModelChild> appendChildren;
+    private final List<ModelChild> removedChildren;
 
     @VisibleForTesting
     ChildChangesImpl() {
       this.appendChildren = new ArrayList<>();
+      this.removedChildren = new ArrayList<>();
     }
 
     /**
      * Returns a List of the children added to this ModelFeature. These children are in the same
      * order they would be displayed in the stream.
      */
+    @Override
     public List<ModelChild> getAppendedChildren() {
       return appendChildren;
+    }
+
+    @Override
+    public List<ModelChild> getRemovedChildren() {
+      return removedChildren;
     }
 
     /** Add a child to be appended to the ModelFeature children List. */
     public void addAppendChild(ModelChild child) {
       appendChildren.add(child);
+    }
+
+    /** Remove a child from the ModelFeature children List. */
+    public void removeChild(ModelChild child) {
+      removedChildren.add(child);
     }
   }
 }

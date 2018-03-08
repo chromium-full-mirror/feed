@@ -43,11 +43,13 @@ public interface FeatureChange {
 
   /** Class describing changes to the children. */
   interface ChildChanges {
-    // TODO: Need to support both remove and prepend
     /**
      * Returns a List of the children added to this ModelFeature. These children are in the same
      * order they would be displayed in the stream.
      */
     List<ModelChild> getAppendedChildren();
+
+    /** Returns a List of the children removed from this ModelFeature. */
+    List<ModelChild> getRemovedChildren();
   }
 }

@@ -99,6 +99,7 @@ public class HeadSessionImpl implements ManagedSession, Dumpable {
         addFeatureCnt++;
         continue;
       } else if (streamStructure.getOperation() == Operation.REMOVE) {
+        Logger.i(TAG, "Removing Item from HEAD");
         String contentKey = protocolUtils.getContentIdKey(streamStructure.getContentId());
         if (contentInSession.contains(contentKey)) {
           sessionMutation.add(streamStructure);
@@ -106,6 +107,7 @@ public class HeadSessionImpl implements ManagedSession, Dumpable {
         } else {
           Logger.w(TAG, "Remove operation content not found in $HEAD");
         }
+        continue;
       } else if (streamStructure.getOperation() == Operation.CLEAR_ALL) {
         contentInSession.clear();
         cleared = true;

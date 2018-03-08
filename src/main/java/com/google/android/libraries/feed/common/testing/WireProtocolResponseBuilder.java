@@ -125,6 +125,20 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
+  public WireProtocolResponseBuilder removeFeature(ContentId contentId, ContentId parentId) {
+    PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
+    Feature feature =
+        Feature.newBuilder().setRenderableUnit(RenderableUnit.CARD).setParentId(parentId).build();
+    feedResponseBuilder.addDataOperation(
+        DataOperation.newBuilder()
+            .setOperation(Operation.REMOVE)
+            .setFeature(feature)
+            .setMetadata(payloadMetadata)
+            .build());
+    wireProtocolInfo.featuresAdded.add(contentId);
+    return this;
+  }
+
   public Response build() {
     if (token != null) {
       feedResponseBuilder.setNextPageToken(token);

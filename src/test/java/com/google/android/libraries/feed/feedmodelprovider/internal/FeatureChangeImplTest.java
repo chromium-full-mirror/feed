@@ -54,6 +54,7 @@ public class FeatureChangeImplTest {
     assertThat(featureChange.getModelFeature()).isEqualTo(modelFeature);
     assertThat(featureChange.getContentId()).isEqualTo(modelContentId);
     assertThat(featureChange.getChildChanges().getAppendedChildren()).isEmpty();
+    assertThat(featureChange.getChildChanges().getRemovedChildren()).isEmpty();
     assertThat(featureChange.isFeatureChanged()).isFalse();
 
     featureChange.setFeatureChanged(true);
@@ -67,5 +68,14 @@ public class FeatureChangeImplTest {
     featureChange.getChildChangesImpl().addAppendChild(modelChild);
     assertThat(featureChange.getChildChanges().getAppendedChildren()).hasSize(1);
     assertThat(featureChange.getChildChanges().getAppendedChildren()).contains(modelChild);
+  }
+
+  @Test
+  public void testRemoveChild() {
+    ModelChild modelChild = mock(ModelChild.class);
+    FeatureChangeImpl featureChange = new FeatureChangeImpl(modelFeature);
+    featureChange.getChildChangesImpl().removeChild(modelChild);
+    assertThat(featureChange.getChildChanges().getRemovedChildren()).hasSize(1);
+    assertThat(featureChange.getChildChanges().getRemovedChildren()).contains(modelChild);
   }
 }

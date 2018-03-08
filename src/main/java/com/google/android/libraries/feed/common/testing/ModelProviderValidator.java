@@ -55,6 +55,12 @@ public class ModelProviderValidator {
         .isEqualTo(protocolUtils.getContentIdKey(expectedContentId));
   }
 
+  public void assertStreamContentId(StreamContentId contentId, ContentId expectedContentId) {
+    assertThat(protocolUtils.getContentIdKey(contentId))
+        .isEqualTo(
+            protocolUtils.getContentIdKey(protocolAdapter.getStreamContentId(expectedContentId)));
+  }
+
   public void verifyContent(ModelProvider modelProvider, List<ContentId> features) {
     for (ContentId contentId : features) {
       StreamContentId streamContentId = protocolAdapter.getStreamContentId(contentId);
@@ -81,5 +87,15 @@ public class ModelProviderValidator {
     AtomicInteger size = new AtomicInteger(0);
     while (cursor.advanceCursor(child -> size.incrementAndGet())) {}
     assertThat(size.get()).isEqualTo(expectedSize);
+  }
+
+  public void assertCursorContents(ModelCursor cursor, ContentId... args) {
+    AtomicInteger size = new AtomicInteger(0);
+    while (cursor.advanceCursor(
+        child -> {
+          int pos = size.getAndIncrement();
+          assertStreamContentId(child.getContentId(), args[pos]);
+        })) {}
+    assertThat(cursor.isAtEnd()).isTrue();
   }
 }

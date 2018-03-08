@@ -135,12 +135,14 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             ArrayList<UpdatableModelChild> children = containers.get(childKey);
             if (children == null) {
               Logger.i(TAG, "No children found for Cursor");
-              ModelCursorImpl cursor = new ModelCursorImpl(parentId, EMPTY_LIST, threadUtils);
+              ModelCursorImpl cursor =
+                  new ModelCursorImpl(parentId, EMPTY_LIST, protocolUtils, threadUtils);
               cursors.add(new WeakReference<>(cursor));
               return cursor;
             }
             ModelCursorImpl cursor =
-                new ModelCursorImpl(parentId, new ArrayList<>(children), threadUtils);
+                new ModelCursorImpl(
+                    parentId, new ArrayList<>(children), protocolUtils, threadUtils);
             cursors.add(new WeakReference<>(cursor));
             return cursor;
           }
@@ -546,6 +548,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           new ModelCursorImpl(
               token.parentContentId,
               token.location.subList(newCursorStart, token.location.size()),
+              protocolUtils,
               threadUtils);
       TokenCompleted tokenCompleted = new TokenCompleted(cursor);
       List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
@@ -601,8 +604,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
     @Override
     public void removeChild(String parentKey, UpdatableModelChild child) {
-      // TODO: Need to implement this
-      Logger.w(TAG, "Remove is not yet implemented", parentKey);
+      Logger.i(TAG, "Removing child %s from %s", child.getContentIdAsKey(), parentKey);
+      FeatureChangeImpl change = getChange(parentKey);
+      if (change != null) {
+        change.getChildChangesImpl().removeChild(child);
+      }
     }
 
     @Override
@@ -659,8 +665,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             }
           });
     }
-
-
 
     @Nullable
     private FeatureChangeImpl getChange(String contentIdKey) {

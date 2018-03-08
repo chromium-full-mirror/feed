@@ -153,6 +153,7 @@ public class SessionImpl implements FeedSession, Dumpable {
           addFeatureCnt++;
         }
       } else if (streamStructure.getOperation() == Operation.REMOVE) {
+        Logger.i(TAG, "Removing Item from session %s", streamSession.getSessionId());
         sessionMutation.add(streamStructure);
         contentInSession.remove(contentKey);
         modelMutator.removeChild(streamStructure);

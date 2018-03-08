@@ -16,11 +16,16 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl.CursorIterator;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
@@ -39,6 +44,8 @@ public class ModelCursorImplTest {
   private List<UpdatableModelChild> modelChildren;
   private int childCount = 0;
   private StreamContentId parentContentId;
+  private final InternalProtocolUtils protocolUtils = new InternalProtocolUtils();
+  private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
 
   @Before
   public void setup() {
@@ -49,7 +56,8 @@ public class ModelCursorImplTest {
 
   @Test
   public void testEmptyCursor() {
-    ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren, threadUtils);
+    ModelCursorImpl cursor =
+        new ModelCursorImpl(parentContentId, modelChildren, protocolUtils, threadUtils);
     assertThat(cursor.isInvalid()).isFalse();
     assertThat(cursor.isAtEnd()).isTrue();
   }
@@ -57,7 +65,8 @@ public class ModelCursorImplTest {
   @Test
   public void testReleaseCursor() {
     modelChildren.add(mock(UpdatableModelChild.class));
-    ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren, threadUtils);
+    ModelCursorImpl cursor =
+        new ModelCursorImpl(parentContentId, modelChildren, protocolUtils, threadUtils);
     assertThat(cursor.isInvalid()).isFalse();
     assertThat(cursor.isAtEnd()).isFalse();
 
@@ -82,7 +91,8 @@ public class ModelCursorImplTest {
     for (int i = 0; i < childrenToAdd; i++) {
       modelChildren.add(mock(UpdatableModelChild.class));
     }
-    ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren, threadUtils);
+    ModelCursorImpl cursor =
+        new ModelCursorImpl(parentContentId, modelChildren, protocolUtils, threadUtils);
     childCount = 0;
     for (int i = 0; i < childrenToAdd; i++) {
       assertThat(cursor.advanceCursor(incrementChildCountProcessor())).isTrue();
@@ -90,6 +100,59 @@ public class ModelCursorImplTest {
     assertThat(cursor.advanceCursor(incrementChildCountProcessor())).isFalse();
     assertThat(cursor.isAtEnd()).isTrue();
     assertThat(childCount).isEqualTo(childrenToAdd);
+  }
+
+  @Test
+  public void testUpdateIterator_append() {
+    int childrenToAdd = 3;
+    for (int i = 0; i < childrenToAdd; i++) {
+      modelChildren.add(mock(UpdatableModelChild.class));
+    }
+    ModelCursorImpl cursor =
+        new ModelCursorImpl(parentContentId, modelChildren, protocolUtils, threadUtils);
+    ModelFeature modelFeature = mock(ModelFeature.class);
+    FeatureChangeImpl featureChange = new FeatureChangeImpl(modelFeature);
+    UpdatableModelChild newChild = mock(UpdatableModelChild.class);
+    featureChange.getChildChangesImpl().addAppendChild(newChild);
+    cursor.updateIterator(featureChange);
+    List<UpdatableModelChild> children = cursor.getChildListForTesting();
+    assertThat(children).hasSize(4);
+    assertThat(children.get(3)).isEqualTo(newChild);
+  }
+
+  @Test
+  public void testUpdateIterator_remove() {
+    int childrenToAdd = 3;
+    for (int i = 0; i < childrenToAdd; i++) {
+      UpdatableModelChild child = mock(UpdatableModelChild.class);
+      StreamContentId contentId = contentIdGenerators.createFeatureStreamContentId(i);
+      when(child.getContentId()).thenReturn(contentId);
+      when(child.getContentIdAsKey()).thenReturn(protocolUtils.getContentIdKey(contentId));
+      modelChildren.add(child);
+    }
+    ModelCursorImpl cursor =
+        new ModelCursorImpl(parentContentId, modelChildren, protocolUtils, threadUtils);
+    ModelFeature modelFeature = mock(ModelFeature.class);
+    FeatureChangeImpl featureChange = new FeatureChangeImpl(modelFeature);
+    featureChange.getChildChangesImpl().removeChild(modelChildren.get(1));
+    cursor.updateIterator(featureChange);
+    List<UpdatableModelChild> children = cursor.getChildListForTesting();
+    assertThat(children).hasSize(2);
+  }
+
+  @Test
+  public void testCursorIterator() {
+    int childrenToAdd = 3;
+    for (int i = 0; i < childrenToAdd; i++) {
+      modelChildren.add(mock(UpdatableModelChild.class));
+    }
+    CursorIterator cursorIterator =
+        new ModelCursorImpl(parentContentId, modelChildren, protocolUtils, threadUtils)
+        .new CursorIterator();
+    assertThat(cursorIterator.getPosition()).isEqualTo(0);
+    assertThat(cursorIterator.hasNext()).isTrue();
+    assertThat(cursorIterator.next()).isEqualTo(modelChildren.get(0));
+    assertThat(cursorIterator.getPosition()).isEqualTo(1);
   }
 
   private ProcessNextChild incrementChildCountProcessor() {

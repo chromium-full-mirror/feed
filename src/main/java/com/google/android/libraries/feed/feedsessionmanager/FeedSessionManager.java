@@ -307,6 +307,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             Logger.e(TAG, "Unsupported UPDATE_OR_APPEND payload");
           }
           continue;
+        } else if (operation == Operation.REMOVE) {
+          // We don't update the content for REMOVED items, content will be garbage collected.
+          // This is required because a session may not remove the item.
+          // Add the Remove to the structure changes
+          streamStructures.add(dataOperation.getStreamStructure());
+          continue;
         }
         Logger.e(
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());

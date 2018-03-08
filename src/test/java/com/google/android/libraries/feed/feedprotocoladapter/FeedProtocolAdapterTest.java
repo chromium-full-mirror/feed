@@ -101,6 +101,19 @@ public class FeedProtocolAdapterTest {
   }
 
   @Test
+  public void testResponse_remove() {
+    FeedProtocolAdapter protocolAdapter =
+        new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
+    Response response =
+        responseBuilder
+            .removeFeature(ContentId.getDefaultInstance(), ContentId.getDefaultInstance())
+            .build();
+    protocolAdapter.createModel(response, null);
+    assertThat(sessionMutation.streamToken).isNull();
+    assertThat(sessionMutation.operations).hasSize(1);
+  }
+
+  @Test
   public void testPietSharedState() {
     FeedProtocolAdapter protocolAdapter =
         new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);

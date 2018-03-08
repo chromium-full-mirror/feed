@@ -103,6 +103,20 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       if (streamOperation == Operation.CLEAR_ALL) {
         sessionMutation.addOperation(createDataOperation(Operation.CLEAR_ALL, null, null).build());
         continue;
+      } else if (streamOperation == Operation.REMOVE) {
+        if (operation.getMetadata().hasContentId()) {
+          contentId = internalProtocolUtils.createContentId(operation.getMetadata().getContentId());
+          StreamContentId parentId = null;
+          if (operation.getFeature().hasParentId()) {
+            parentId = internalProtocolUtils.createContentId(operation.getFeature().getParentId());
+          }
+          sessionMutation.addOperation(
+              createDataOperation(Operation.REMOVE, contentId, parentId).build());
+
+        } else {
+          Logger.w(TAG, "REMOVE defined without a ContentId identifying the item to remove");
+        }
+        continue;
       } else if (operation.getMetadata().hasContentId()) {
         contentId = internalProtocolUtils.createContentId(operation.getMetadata().getContentId());
       } else {
