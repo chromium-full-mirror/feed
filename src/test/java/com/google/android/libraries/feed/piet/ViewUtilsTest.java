@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -46,10 +47,12 @@ public class ViewUtilsTest {
   private static final Action DEFAULT_ACTION = Action.getDefaultInstance();
   private static final Actions DEFAULT_ACTIONS =
       Actions.newBuilder().setOnClick(DEFAULT_ACTION).build();
-
+  private static final Actions LONG_CLICK_ACTIONS =
+      Actions.newBuilder().setOnLongClick(DEFAULT_ACTION).build();
   @Mock private ActionHandler mockActionHandler;
   @Mock private FrameContext mockFrameContext;
   @Mock private View.OnClickListener mockListener;
+  @Mock private View.OnLongClickListener mockLongClickListener;
 
   private final View view = new View(context);
 
@@ -75,6 +78,14 @@ public class ViewUtilsTest {
   }
 
   @Test
+  public void testSetOnLongClickActions_success() {
+    ViewUtils.setOnClickActions(LONG_CLICK_ACTIONS, view, mockActionHandler, mockFrameContext);
+
+    view.performLongClick();
+    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, null);
+  }
+
+  @Test
   public void testSetOnClickActions_successBinding() {
     ActionsBindingRef actionsBinding =
         ActionsBindingRef.newBuilder().setBindingId("ACTION!").build();
@@ -89,6 +100,18 @@ public class ViewUtilsTest {
   }
 
   @Test
+  public void testSetOnLongClickActions_successBinding() {
+    ActionsBindingRef actionsBinding =
+        ActionsBindingRef.newBuilder().setBindingId("ACTION!").build();
+    when(mockFrameContext.getActionsFromBinding(actionsBinding)).thenReturn(LONG_CLICK_ACTIONS);
+
+    ViewUtils.setOnClickActions(actionsBinding, view, mockActionHandler, mockFrameContext);
+
+    view.performLongClick();
+    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, null);
+  }
+
+  @Test
   public void testSetOnClickActions_nullActionsClearsActions() {
     view.setOnClickListener(mockListener);
     assertThat(view.hasOnClickListeners()).isTrue();
@@ -96,6 +119,18 @@ public class ViewUtilsTest {
     ViewUtils.setOnClickActions((Actions) null, view, mockActionHandler, mockFrameContext);
 
     assertViewNotClickable();
+  }
+
+  @Test
+  public void testSetOnClickActions_nullActionsClearsLongActions() {
+    when(mockLongClickListener.onLongClick(any())).thenReturn(true);
+    view.setOnLongClickListener(mockLongClickListener);
+
+    assertThat(view.isLongClickable()).isTrue();
+
+    ViewUtils.setOnClickActions((Actions) null, view, mockActionHandler, mockFrameContext);
+
+    assertThat(view.isLongClickable()).isFalse();
   }
 
   @Test
@@ -107,6 +142,17 @@ public class ViewUtilsTest {
         (ActionsBindingRef) null, view, mockActionHandler, mockFrameContext);
 
     assertViewNotClickable();
+  }
+
+  @Test
+  public void testSetOnClickActions_nullActionsBindingClearsLongActions() {
+    view.setOnLongClickListener(mockLongClickListener);
+    assertThat(view.isLongClickable()).isTrue();
+
+    ViewUtils.setOnClickActions(
+        (ActionsBindingRef) null, view, mockActionHandler, mockFrameContext);
+
+    assertThat(view.isLongClickable()).isFalse();
   }
 
   @Test
@@ -126,6 +172,17 @@ public class ViewUtilsTest {
   }
 
   @Test
+  public void testSetOnClickActions_noOnLongClickActionsDefinedClearsActions() {
+    view.setOnLongClickListener(mockLongClickListener);
+    assertThat(view.isLongClickable()).isTrue();
+
+    ViewUtils.setOnClickActions(
+        Actions.getDefaultInstance(), view, mockActionHandler, mockFrameContext);
+
+    assertThat(view.isLongClickable()).isFalse();
+  }
+
+  @Test
   public void testClearOnClickActions_success() {
     view.setOnClickListener(mockListener);
     assertThat(view.hasOnClickListeners()).isTrue();
@@ -135,13 +192,30 @@ public class ViewUtilsTest {
     assertViewNotClickable();
   }
 
-  private void assertViewNotClickable() {
-    assertThat(view.hasOnClickListeners()).isFalse();
-    assertThat(view.isClickable()).isFalse();
+  @Test
+  public void testClearOnLongClickActions_success() {
+    view.setOnLongClickListener(mockLongClickListener);
+    assertThat(view.isLongClickable()).isTrue();
+
+    ViewUtils.clearOnLongClickActions(view);
+
+    assertThat(view.isLongClickable()).isFalse();
   }
 
   @Test
   public void testClearOnClickActions_nullViewDoesNothing() {
+    // Checks that clearing the click actions of a null view does not crash.
     ViewUtils.clearOnClickActions(null);
+  }
+
+  @Test
+  public void testClearOnLongClickActions_nullViewDoesNothing() {
+    // Checks that clearing the long click actions of a null view does not crash.
+    ViewUtils.clearOnLongClickActions(null);
+  }
+
+  private void assertViewNotClickable() {
+    assertThat(view.hasOnClickListeners()).isFalse();
+    assertThat(view.isClickable()).isFalse();
   }
 }

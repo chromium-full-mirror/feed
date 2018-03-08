@@ -39,6 +39,15 @@ public class ViewUtils {
       @Nullable View view,
       ActionHandler handler,
       FrameContext frameContext) {
+    if (actions != null && actions.hasOnLongClick() && view != null) {
+      view.setOnLongClickListener(
+          v -> {
+            handler.handleAction(actions.getOnLongClick(), frameContext.getFrame(), null);
+            return true;
+          });
+    } else {
+      clearOnLongClickActions(view);
+    }
     if (actions != null && actions.hasOnClick() && view != null) {
       view.setOnClickListener(
           v -> {
@@ -59,10 +68,18 @@ public class ViewUtils {
       FrameContext frameContext) {
     if (actionsBindingRef == null) {
       clearOnClickActions(view);
+      clearOnLongClickActions(view);
       return;
     }
     Actions actions = frameContext.getActionsFromBinding(actionsBindingRef);
     setOnClickActions(actions, view, handler, frameContext);
+  }
+
+  public static void clearOnLongClickActions(@Nullable View view) {
+    if (view != null) {
+      view.setOnLongClickListener(null);
+      view.setLongClickable(false);
+    }
   }
 
   /** Sets clickability to false. */
@@ -71,6 +88,7 @@ public class ViewUtils {
       if (view.hasOnClickListeners()) {
         view.setOnClickListener(null);
       }
+
       view.setClickable(false);
     }
   }

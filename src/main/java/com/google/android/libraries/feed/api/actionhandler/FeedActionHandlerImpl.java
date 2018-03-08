@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.api.actionhandler;
 
 import com.google.android.libraries.feed.common.Logger;
-import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
+import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import javax.annotation.Nullable;
@@ -28,17 +28,17 @@ public class FeedActionHandlerImpl implements FeedActionHandler {
   public FeedActionHandlerImpl() {}
 
   /**
-   * Gets the feed action metadata from a Piet Action.
+   * Gets the feed action from a Piet Action.
    *
    * @param action the Piet Action to pull the feed action metadata out of.
    */
   @Override
-  public FeedActionMetadata getFeedActionMetadata(Action action) {
+  public FeedAction getFeedAction(Action action) {
     @Nullable
     PietFeedAction feedActionExtension =
         action.getExtension(PietFeedAction.pietFeedActionExtension);
     if (feedActionExtension != null && feedActionExtension.hasFeedAction()) {
-      return feedActionExtension.getFeedAction().getMetadata();
+      return feedActionExtension.getFeedAction();
     }
     Logger.e(TAG, "FeedActionExtension was null");
     return null;

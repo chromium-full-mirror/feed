@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.host.action;
 
+import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import javax.annotation.Nullable;
 
@@ -21,4 +22,6 @@ import javax.annotation.Nullable;
 public interface ActionParser {
 
   void parseAction(Action action, StreamActionApi streamActionApi, @Nullable String veLoggingToken);
+
+  void parseFeedAction(FeedAction feedActionMetadata, StreamActionApi streamActionApi);
 }

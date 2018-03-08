@@ -29,12 +29,12 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.api.stream.Stream;
+import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.ActionParser;
-import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.PietStylesHelper;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -80,17 +80,7 @@ public class BasicStream implements Stream {
             (action, frame, veLoggingToken) ->
                 actionParser.parseAction(
                     action,
-                    new StreamActionApi() {
-                      @Override
-                      public void openUrl(String url) {
-                        actionApi.openUrl(url);
-                      }
-
-                      @Override
-                      public boolean canOpenUrl() {
-                        return actionApi.canOpenUrl();
-                      }
-                    },
+                    new StreamActionApiImpl(context, actionApi, actionParser),
                     veLoggingToken),
             customElementProvider);
     recyclerView = new RecyclerView(context);

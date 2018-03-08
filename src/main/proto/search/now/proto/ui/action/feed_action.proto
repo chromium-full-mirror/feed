@@ -49,6 +49,9 @@ message FeedActionMetadata {
   oneof data {
     // The data needed by the client to open the url.
     OpenUrlData open_url_data = 2;
+
+    // The data needed by the Stream to open a context menu.
+    OpenContextMenuData open_context_menu_data = 3;
   }
 }
 
@@ -59,4 +62,15 @@ message OpenUrlData {
   optional string url = 1;
   // Hosts should open the url in an incognito window if possible if true.
   optional bool use_incognito = 2;
+}
+
+// Data needed by Stream to open a context menu.
+message OpenContextMenuData {
+  repeated LabelledFeedActionData context_menu_data = 1;
+}
+
+// FeedActionMetadata with a label to show in a context menu.
+message LabelledFeedActionData {
+  optional string label = 1;
+  optional FeedAction feed_action = 2;
 }

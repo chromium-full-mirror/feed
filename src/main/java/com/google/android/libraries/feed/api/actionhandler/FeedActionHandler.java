@@ -14,16 +14,16 @@
 
 package com.google.android.libraries.feed.api.actionhandler;
 
-import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
+import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 
 /** Handles actions for the feed. */
 public interface FeedActionHandler {
 
   /**
-   * Gets the feed action metadata from a Piet Action.
+   * Gets the feed action from a Piet Action.
    *
    * @param action the Piet Action to pull the feed action metadata out of.
    */
-  FeedActionMetadata getFeedActionMetadata(Action action);
+  FeedAction getFeedAction(Action action);
 }
