@@ -115,26 +115,31 @@ public class PietStylesHelper {
   }
 
   // Make sure the data is all current
+  @SuppressWarnings("ReferenceEquality")
   private void checkCurrent() {
-    PietSharedState pietShareState = pietSharedStateSupplier.get();
-    if (pietShareState == null) {
-      Logger.e(TAG, "No Stylesheet is defined");
+    PietSharedState pietSharedState = pietSharedStateSupplier.get();
+    if (pietSharedState == null) {
+      Logger.e(TAG, "Got null PietSharedState from supplier");
       return;
     }
-    if (!pietShareState.equals(currentPietSharedState)) {
+    // If the new pietSharedState is .equals() but not ==, we do an expensive proto equality
+    // calculation every time we call this method, and set ourselves up for more of these .equals
+    // on our Stylesheets and Templates. Better to update everything to the new instance.
+    // TODO: Maybe change this strategy; compare content ID or something.
+    if (pietSharedState != currentPietSharedState) {
       stylesheetScopes.clear();
       stylesheets.clear();
-      if (pietShareState.getStylesheetsCount() > 0) {
-        for (Stylesheet stylesheet : pietShareState.getStylesheetsList()) {
+      if (pietSharedState.getStylesheetsCount() > 0) {
+        for (Stylesheet stylesheet : pietSharedState.getStylesheetsList()) {
           stylesheets.put(stylesheet.getStylesheetId(), stylesheet);
         }
       }
 
       templates.clear();
-      for (Template template : pietShareState.getTemplatesList()) {
+      for (Template template : pietSharedState.getTemplatesList()) {
         templates.put(template.getTemplateId(), template);
       }
-      currentPietSharedState = pietShareState;
+      currentPietSharedState = pietSharedState;
     }
   }
 }

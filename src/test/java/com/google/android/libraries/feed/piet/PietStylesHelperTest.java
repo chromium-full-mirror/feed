@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -138,6 +139,30 @@ public class PietStylesHelperTest {
     // And the old data is gone
     assertThat(helper.getTemplate(TEMPLATE_ID)).isNull();
     assertThat(helper.getStylesheet(STYLESHEET_ID)).isNull();
+  }
+
+  @Test
+  public void testUpdatesProtos() {
+    String templateId = "same";
+    Template template = Template.newBuilder().setTemplateId(templateId).build();
+    Template sameTemplate = Template.newBuilder().setTemplateId(templateId).build();
+    assertThat(template).isEqualTo(sameTemplate);
+
+    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template).build();
+    PietSharedState sameSharedState =
+        PietSharedState.newBuilder().addTemplates(sameTemplate).build();
+    assertThat(sharedState).isEqualTo(sameSharedState);
+
+    reset(sharedStateProducer);
+    when(sharedStateProducer.get()).thenReturn(sharedState).thenReturn(sameSharedState);
+
+    // checkCurrent sets up templates from "sharedState" and returns "template"
+    Template fetchTemplate = helper.getTemplate(templateId);
+    assertThat(fetchTemplate).isSameAs(template);
+
+    // checkCurrent updates templates from "sameSharedState" and returns "sameTemplate"
+    Template fetchSameTemplate = helper.getTemplate(templateId);
+    assertThat(fetchSameTemplate).isSameAs(sameTemplate);
   }
 
   @Test
