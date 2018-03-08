@@ -14,5 +14,23 @@
 
 package com.google.android.libraries.feed.host.imageloader;
 
-/** A placeholder API to load images. */
-public interface ImageLoaderApi {}
+import android.graphics.drawable.Drawable;
+import com.google.android.libraries.feed.host.common.Callback;
+import java.util.List;
+
+/** Feed Host API to load images. */
+public interface ImageLoaderApi {
+  /**
+   * Asks host to load an image from the web, a bundled asset, or some other type of drawable like a
+   * monogram if supported.
+   *
+   * <p>Feed will not cache any images, so if caching is desired, it should be done on the host
+   * side.
+   *
+   * @param urls A list of urls, tried in order until a load succeeds. Urls may be bundled.
+   * @param consumer Callback to return the Drawable to if one of the urls provided is successful.
+   *     {@literal null} if no Drawable is found (or could not be loaded) after trying all possible
+   *     urls.
+   */
+  void loadDrawable(List<String> urls, Callback<Drawable> consumer);
+}
