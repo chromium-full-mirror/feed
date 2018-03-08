@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -27,7 +28,6 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutator
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ModelMutatorCommitter;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayloadWithId;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -83,11 +83,11 @@ public class ModelChildBinder {
         contentIds,
         payloads -> {
           List<ChildUpdateMutation> updates = new ArrayList<>();
-          for (StreamPayloadWithId childPayload : payloads) {
-            String key = protocolUtils.getContentIdKey(childPayload.getContentId());
+          for (PayloadWithId childPayload : payloads) {
+            String key = protocolUtils.getContentIdKey(childPayload.contentId);
             UpdatableModelChild child = unboundChildren.get(key);
             if (child != null) {
-              StreamPayload payload = childPayload.getPayload();
+              StreamPayload payload = childPayload.payload;
               if (payload != null) {
                 if (payload.hasStreamFeature()) {
                   child.bindFeature(
@@ -96,13 +96,13 @@ public class ModelChildBinder {
                   child.bindToken(new UpdatableModelToken(payload.getStreamToken()));
                 }
               } else {
-                Logger.e(TAG, "Payload not provided in the StreamPayloadWithId");
+                Logger.e(TAG, "Payload not provided in the PayloadWithId");
               }
             } else {
               Logger.i(TAG, "Found Updated Content %s", key);
               StreamStructure structure = updateChildren.get(key);
               if (structure != null) {
-                updates.add(new ChildUpdateMutation(structure, childPayload.getPayload()));
+                updates.add(new ChildUpdateMutation(structure, childPayload.payload));
               }
             }
           }

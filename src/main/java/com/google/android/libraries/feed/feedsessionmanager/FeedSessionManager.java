@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedsessionmanager;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -41,7 +42,6 @@ import com.google.android.libraries.feed.host.common.Callback;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayloadWithId;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -194,7 +194,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   @Override
   public void getStreamFeatures(
-      List<StreamContentId> contentIds, Callback<List<StreamPayloadWithId>> callback) {
+      List<StreamContentId> contentIds, Callback<List<PayloadWithId>> callback) {
     callback.handleResult(store.getPayloads(contentIds));
   }
 

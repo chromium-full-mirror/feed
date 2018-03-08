@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedstore;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
@@ -32,7 +33,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload.Builder;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayloadWithId;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -187,7 +187,7 @@ public class FeedStoreTest {
     List<StreamContentId> contentIds = new ArrayList<>();
     contentIds.add(PAYLOAD_CONTENT_ID);
 
-    List<StreamPayloadWithId> results = store.getPayloads(contentIds);
+    List<PayloadWithId> results = store.getPayloads(contentIds);
     assertThat(results).isEmpty();
   }
 

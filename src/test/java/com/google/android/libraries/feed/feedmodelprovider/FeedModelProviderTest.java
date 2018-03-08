@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
@@ -49,7 +50,6 @@ import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayloadWithId;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -88,7 +88,7 @@ public class FeedModelProviderTest {
   private TimingUtils timingUtils = new TimingUtils();
   private InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
 
-  private List<StreamPayloadWithId> childBindings = new ArrayList<>();
+  private List<PayloadWithId> childBindings = new ArrayList<>();
 
   @Before
   public void setUp() {
@@ -99,8 +99,8 @@ public class FeedModelProviderTest {
               @Override
               public Void answer(InvocationOnMock invocation) throws Throwable {
                 @SuppressWarnings("unchecked")
-                Callback<List<StreamPayloadWithId>> callback =
-                    (Callback<List<StreamPayloadWithId>>) invocation.getArguments()[1];
+                Callback<List<PayloadWithId>> callback =
+                    (Callback<List<PayloadWithId>>) invocation.getArguments()[1];
                 callback.handleResult(childBindings);
                 return null;
               }
@@ -506,31 +506,17 @@ public class FeedModelProviderTest {
         .build();
   }
 
-  /**
-   * This has the side affect of populating {@code childBindings} with a {@code
-   * StreamPayloadWithId}.
-   */
+  /** This has the side affect of populating {@code childBindings} with a {@code PayloadWithId}. */
   private StreamStructure createStreamStructureAndBinding(StreamFeature feature) {
     StreamPayload payload = StreamPayload.newBuilder().setStreamFeature(feature).build();
-    childBindings.add(
-        StreamPayloadWithId.newBuilder()
-            .setPayload(payload)
-            .setContentId(feature.getContentId())
-            .build());
+    childBindings.add(new PayloadWithId(feature.getContentId(), payload));
     return createStreamStructureFromFeature(feature);
   }
 
-  /**
-   * This has the side affect of populating {@code childBindings} with a {@code
-   * StreamPayloadWithId}.
-   */
+  /** This has the side affect of populating {@code childBindings} with a {@code PayloadWithId}. */
   private StreamStructure createStreamStructureAndBinding(StreamToken token) {
     StreamPayload payload = StreamPayload.newBuilder().setStreamToken(token).build();
-    childBindings.add(
-        StreamPayloadWithId.newBuilder()
-            .setPayload(payload)
-            .setContentId(token.getContentId())
-            .build());
+    childBindings.add(new PayloadWithId(token.getContentId(), payload));
     return createStreamStructureFromToken(token);
   }
 

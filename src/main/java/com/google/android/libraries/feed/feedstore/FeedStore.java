@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedstore;
 
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
@@ -37,7 +38,6 @@ import com.google.android.libraries.feed.host.storage.StorageMutation.Builder;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayloadWithId;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -79,9 +79,9 @@ public class FeedStore implements Store, Dumpable {
   }
 
   @Override
-  public List<StreamPayloadWithId> getPayloads(List<StreamContentId> contentIds) {
+  public List<PayloadWithId> getPayloads(List<StreamContentId> contentIds) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<StreamPayloadWithId> payloads = new ArrayList<>();
+    List<PayloadWithId> payloads = new ArrayList<>();
     for (StreamContentId contentId : contentIds) {
       String contentKey = internalProtocolUtils.getContentIdKey(contentId);
       try {
@@ -89,11 +89,7 @@ public class FeedStore implements Store, Dumpable {
         if (content != null) {
           StreamPayload streamPayload =
               StreamPayload.parseFrom(content, extensionRegistry.getExtensionRegistry());
-          payloads.add(
-              StreamPayloadWithId.newBuilder()
-                  .setContentId(contentId)
-                  .setPayload(streamPayload)
-                  .build());
+          payloads.add(new PayloadWithId(contentId, streamPayload));
         } else {
           Logger.e(TAG, "Didn't find Content for %s", contentKey);
         }
@@ -212,7 +208,7 @@ public class FeedStore implements Store, Dumpable {
     for (StreamStructure streamStructure : streamStructures) {
       mutation.append(streamStructure.toByteArray());
     }
-    CommitResult result = CommitResult.FAILURE;
+    CommitResult result;
     try {
       result = sessionStorage.commit(mutation.build()).get();
     } catch (InterruptedException | ExecutionException e) {
@@ -229,17 +225,17 @@ public class FeedStore implements Store, Dumpable {
     return new SessionResults(result);
   }
 
-  private ContentMutationResults commitContentMutation(List<StreamPayloadWithId> mutations) {
+  private ContentMutationResults commitContentMutation(List<PayloadWithId> mutations) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
     List<StreamContentId> contentAdded = new ArrayList<>();
     List<StreamContentId> contentUpdated = new ArrayList<>();
     List<StreamContentId> sharedStateAdded = new ArrayList<>();
-    for (StreamPayloadWithId mutation : mutations) {
-      String payloadId = internalProtocolUtils.getContentIdKey(mutation.getContentId());
-      StreamPayload payload = mutation.getPayload();
-      StreamContentId contentId = mutation.getContentId();
-      if (mutation.getPayload().hasStreamSharedState()) {
+    for (PayloadWithId mutation : mutations) {
+      String payloadId = internalProtocolUtils.getContentIdKey(mutation.contentId);
+      StreamPayload payload = mutation.payload;
+      StreamContentId contentId = mutation.contentId;
+      if (mutation.payload.hasStreamSharedState()) {
         StreamSharedState prevValue = sharedStates.put(payloadId, payload.getStreamSharedState());
         // TODO: Do we need to track SharedState Updates?
         if (prevValue == null) {

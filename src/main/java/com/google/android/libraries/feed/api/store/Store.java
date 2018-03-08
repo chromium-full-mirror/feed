@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.api.store;
 
+import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayloadWithId;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -32,10 +32,10 @@ import java.util.List;
  */
 public interface Store {
   /**
-   * Returns an {@code List} of the {@link StreamPayloadWithId}s for the {@link StreamContentId}s
-   * passed in through {@code contentIds}.
+   * Returns an {@code List} of the {@link PayloadWithId}s for the {@link StreamContentId}s passed
+   * in through {@code contentIds}.
    */
-  List<StreamPayloadWithId> getPayloads(List<StreamContentId> contentIds);
+  List<PayloadWithId> getPayloads(List<StreamContentId> contentIds);
 
   /** Get the {@link StreamSharedState}s stored as content. */
   List<StreamSharedState> getSharedStates();

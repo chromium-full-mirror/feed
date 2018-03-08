@@ -147,16 +147,6 @@ message StreamPayload {
   }
 }
 
-// This message is used by the Store to return a StreamPayload along with
-// the StreamContentId used to query for it.
-message StreamPayloadWithId {
-  // The Content Id used to query for the payload.
-  optional StreamContentId content_id = 1;
-
-  // The Payload
-  optional StreamPayload payload = 2;
-}
-
 // This message allows a Cursor to be serialized.
 message StreamCursor {
 
