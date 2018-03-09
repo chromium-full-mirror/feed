@@ -60,6 +60,7 @@ public class FeedProcessScope implements Dumpable {
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.dump(protocolAdapter);
+    dumper.dump(timingUtils);
     if (sessionManager instanceof Dumpable) {
       dumper.dump((Dumpable) sessionManager);
     }
@@ -81,14 +82,12 @@ public class FeedProcessScope implements Dumpable {
         ImageLoaderApi imageLoaderApi,
         LoggingApi loggingApi,
         NetworkClient networkClient,
-        SchedulerApi schedulerApi,
-        TimingUtils timingUtils) {
+        SchedulerApi schedulerApi) {
       this.configManager = configManager;
       this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
       this.schedulerApi = schedulerApi;
-      this.timingUtils = timingUtils;
     }
 
     public Builder setProtocolAdapter(FeedProtocolAdapter protocolAdapter) {
@@ -141,6 +140,7 @@ public class FeedProcessScope implements Dumpable {
         extensionRegistry = new FeedExtensionRegistry(protoExtensionProvider);
       }
       InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
+      TimingUtils timingUtils = new TimingUtils();
       // TODO: use keyvalue/journal storage apis
       FeedStore store = new FeedStore(timingUtils, internalProtocolUtils, extensionRegistry);
 
@@ -200,7 +200,6 @@ public class FeedProcessScope implements Dumpable {
     private final LoggingApi loggingApi;
     private final NetworkClient networkClient;
     private final SchedulerApi schedulerApi;
-    private final TimingUtils timingUtils;
 
     // Optional fields - if they are not provided, we will use default implementations.
     @Nullable private RequestManager requestManager = null;

@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
@@ -57,7 +56,6 @@ public class FeedProcessScopeTest {
   @Mock private RequestManager requestManager;
   @Mock private SessionManager sessionManager;
   @Mock private ModelProviderFactory modelProviderFactory;
-  @Mock private TimingUtils timingUtils;
 
   private UiRunnableHandler uiRunnableHandler;
   private ThreadUtils threadUtils;
@@ -82,9 +80,7 @@ public class FeedProcessScopeTest {
   public void testBasicBuild() {
     // No crash should happen.
     FeedProcessScope processScope =
-        new Builder(
-                configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, timingUtils)
-            .build();
+        new Builder(configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi).build();
   }
 
   @Test
@@ -92,7 +88,7 @@ public class FeedProcessScopeTest {
     // No crash should happen.
     FeedProcessScope processScope =
         new FeedProcessScope.Builder(
-                configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, timingUtils)
+                configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi)
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)
