@@ -156,9 +156,3 @@ message StreamCursor {
   // This is the ContentId of the last accessed Child in the cursor.
   optional StreamContentId last_accessed_content = 2;
 }
-
-// This is an identifier which uniquely identifies a Session in the storage
-// layer.
-message StreamSession {
-  optional string session_id = 1;
-}

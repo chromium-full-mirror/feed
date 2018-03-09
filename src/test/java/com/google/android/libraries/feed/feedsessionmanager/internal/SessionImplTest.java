@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
@@ -33,7 +34,6 @@ import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutati
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import org.robolectric.RobolectricTestRunner;
@@ -47,10 +47,8 @@ import org.mockito.Mock;
 /** Tests of the {@link SessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class SessionImplTest {
-  private static final StreamSession HEAD =
-      StreamSession.newBuilder().setSessionId("$HEAD").build();
-  private static final StreamSession TEST_SESSION =
-      StreamSession.newBuilder().setSessionId("TEST$1").build();
+  private static final StreamSession HEAD = new StreamSession("$HEAD");
+  private static final StreamSession TEST_SESSION = new StreamSession("TEST$1");
 
   @Mock private Store store;
   @Mock private SessionMutationResults sessionMutationResults;

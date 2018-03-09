@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
@@ -33,7 +34,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload.Builder;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import org.robolectric.RobolectricTestRunner;
@@ -197,7 +197,7 @@ public class FeedStoreTest {
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                store.removeSession(StreamSession.newBuilder().setSessionId("$HEAD").build());
+                store.removeSession(new StreamSession("$HEAD"));
               }
             })
         .throwsAnExceptionOfType(IllegalStateException.class);

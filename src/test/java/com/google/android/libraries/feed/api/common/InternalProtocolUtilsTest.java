@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.api.common;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Test;
@@ -52,15 +51,6 @@ public class InternalProtocolUtilsTest {
     InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
     String key = internalProtocolUtils.printContentId(streamContentId);
     assertStringContents(key, streamContentId);
-  }
-
-  @Test
-  public void testGetStreamSessionkey() {
-    String sessionKey = "session-key";
-    StreamSession streamSession = StreamSession.newBuilder().setSessionId(sessionKey).build();
-    InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
-    String key = internalProtocolUtils.getStreamSessionKey(streamSession);
-    assertThat(key).isEqualTo(streamSession.getSessionId());
   }
 
   private StreamContentId getStreamContentId() {

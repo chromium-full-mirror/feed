@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.common;
 
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import javax.annotation.Nullable;
 
@@ -35,11 +34,6 @@ public class InternalProtocolUtils {
         .setId(contentId.getId())
         .setTable(contentId.getTable())
         .build();
-  }
-
-  /** Returns a key for a {@link StreamSession}. */
-  public String getStreamSessionKey(StreamSession streamSession) {
-    return streamSession.getSessionId();
   }
 
   /**

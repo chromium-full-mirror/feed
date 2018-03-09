@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedstore;
 
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
@@ -38,7 +39,6 @@ import com.google.android.libraries.feed.host.storage.StorageMutation.Builder;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
@@ -54,8 +54,7 @@ import java.util.concurrent.ExecutionException;
 public class FeedStore implements Store, Dumpable {
 
   private static final String TAG = "FeedStore";
-  private static final StreamSession HEAD =
-      StreamSession.newBuilder().setSessionId("$HEAD").build();
+  private static final StreamSession HEAD = new StreamSession("$HEAD");
 
   private final TimingUtils timingUtils;
   private final InternalProtocolUtils internalProtocolUtils;
@@ -113,8 +112,7 @@ public class FeedStore implements Store, Dumpable {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamStructure> streamStructures = new ArrayList<>();
     try {
-      List<byte[]> operations =
-          sessionStorage.read(internalProtocolUtils.getStreamSessionKey(session)).get();
+      List<byte[]> operations = sessionStorage.read(session.streamToken).get();
       for (byte[] bytes : operations) {
         streamStructures.add(StreamStructure.parseFrom(bytes));
       }
@@ -129,22 +127,19 @@ public class FeedStore implements Store, Dumpable {
   public StreamSession createNewSession() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     int newSessionId = sessionId++;
-    StreamSession streamSession =
-        StreamSession.newBuilder().setSessionId("_session:" + newSessionId).build();
+    StreamSession streamSession = new StreamSession("_session:" + newSessionId);
     try {
       SessionState session = new SessionState(streamSession);
       session.addAll(getStreamStructures(HEAD));
       sessionStorage
           .commit(
-              new JournalMutation.Builder(HEAD.getSessionId())
-                  .copy(streamSession.getSessionId())
-                  .build())
+              new JournalMutation.Builder(HEAD.streamToken).copy(streamSession.streamToken).build())
           .get();
     } catch (InterruptedException | ExecutionException e) {
       Logger.e(TAG, "Unable to write new session %s", newSessionId);
       throw new IllegalStateException("Unable to write new session", e);
     }
-    tracker.stop("createNewSession", streamSession.getSessionId());
+    tracker.stop("createNewSession", streamSession.streamToken);
     return streamSession;
   }
 
@@ -156,29 +151,25 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public void removeSession(StreamSession session) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    if (internalProtocolUtils
-        .getStreamSessionKey(session)
-        .equals(internalProtocolUtils.getStreamSessionKey(HEAD))) {
+    if (session.streamToken.equals(HEAD.streamToken)) {
       // TODO: What type of exception should this throw?
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
     try {
       sessionStorage
-          .commit(new JournalMutation.Builder(session.getSessionId()).delete().build())
+          .commit(new JournalMutation.Builder(session.streamToken).delete().build())
           .get();
     } catch (InterruptedException | ExecutionException e) {
       throw new IllegalStateException("Unable to delete session", e);
     }
-    tracker.stop("removeSession", session.getSessionId());
+    tracker.stop("removeSession", session.streamToken);
   }
 
   @Override
   public void clearHead() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     try {
-      sessionStorage
-          .commit(new JournalMutation.Builder(HEAD.getSessionId()).delete().build())
-          .get();
+      sessionStorage.commit(new JournalMutation.Builder(HEAD.streamToken).delete().build()).get();
     } catch (InterruptedException | ExecutionException e) {
       throw new IllegalStateException("Unable to clear $HEAD");
     }
@@ -204,7 +195,7 @@ public class FeedStore implements Store, Dumpable {
     }
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    JournalMutation.Builder mutation = new JournalMutation.Builder(streamSession.getSessionId());
+    JournalMutation.Builder mutation = new JournalMutation.Builder(streamSession.streamToken);
     for (StreamStructure streamStructure : streamStructures) {
       mutation.append(streamStructure.toByteArray());
     }
@@ -220,7 +211,7 @@ public class FeedStore implements Store, Dumpable {
         TAG,
         "commitSessionMutation - Success %s, Update Session %s, stream structures %s",
         result == CommitResult.SUCCESS,
-        streamSession.getSessionId(),
+        streamSession.streamToken,
         streamStructures.size());
     return new SessionResults(result);
   }

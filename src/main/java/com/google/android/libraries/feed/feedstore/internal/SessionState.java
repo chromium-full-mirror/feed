@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
+import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +47,6 @@ public class SessionState {
   @Override
   public String toString() {
     return String.format(
-        "[%s] - operations %s", streamSession.getSessionId(), streamStructures.size());
+        "[%s] - operations %s", streamSession.streamToken, streamStructures.size());
   }
 }

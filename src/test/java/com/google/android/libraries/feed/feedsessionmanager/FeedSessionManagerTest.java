@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
@@ -50,7 +51,6 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -78,8 +78,7 @@ public class FeedSessionManagerTest {
           .setId(0)
           .setTable("feature")
           .build();
-  private static final StreamSession HEAD =
-      StreamSession.newBuilder().setSessionId("$HEAD").build();
+  private static final StreamSession HEAD = new StreamSession("$HEAD");
 
   @Mock private UiRunnableHandler uiRunnableHandler;
   @Mock private ThreadUtils threadUtils;
@@ -155,8 +154,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
     Map<String, ManagedSession> sessions = sessionManager.getSessionsMapForTest();
-    String headKey = internalProtocolUtils.getStreamSessionKey(HEAD);
-    ManagedSession head = sessions.get(headKey);
+    ManagedSession head = sessions.get(HEAD.streamToken);
     assertThat(head).isInstanceOf(HeadSessionImpl.class);
     String itemKey = internalProtocolUtils.getContentIdKey(StreamContentId.getDefaultInstance());
     Set<String> content = ((HeadSessionImpl) head).getContentInSessionForTest();
