@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package third_party.feed.src.main.java.com.google.android.libraries.feed.hostimpl.logging;
+package com.google.android.libraries.feed.hostimpl.logging;
 
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 
