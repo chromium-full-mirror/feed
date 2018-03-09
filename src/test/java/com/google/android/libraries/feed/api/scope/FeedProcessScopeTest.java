@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ConfigManager;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -26,12 +25,10 @@ import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
-import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
@@ -62,10 +59,8 @@ public class FeedProcessScopeTest {
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private TimingUtils timingUtils;
 
-  private Store store;
   private UiRunnableHandler uiRunnableHandler;
   private ThreadUtils threadUtils;
-  private InternalProtocolUtils internalProtocolUtils;
   private final ProtoExtensionProvider protoExtensionProvider =
       new ProtoExtensionProvider() {
         @Override
@@ -81,15 +76,14 @@ public class FeedProcessScopeTest {
     initMocks(this);
     uiRunnableHandler = new UiRunnableHandlerImpl();
     threadUtils = new ThreadUtils();
-    internalProtocolUtils = new InternalProtocolUtils();
-    store = new FeedStore(timingUtils, internalProtocolUtils, extensionRegistry);
   }
 
   @Test
   public void testBasicBuild() {
     // No crash should happen.
     FeedProcessScope processScope =
-        new Builder(configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, store)
+        new Builder(
+                configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, timingUtils)
             .build();
   }
 
@@ -98,14 +92,13 @@ public class FeedProcessScopeTest {
     // No crash should happen.
     FeedProcessScope processScope =
         new FeedProcessScope.Builder(
-                configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, store)
+                configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, timingUtils)
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)
             .setModelProviderFactory(modelProviderFactory)
             .setUiRunnableHandler(uiRunnableHandler)
             .setThreadUtils(threadUtils)
-            .setInternalProtocolUtils(internalProtocolUtils)
             .setExtensionRegistry(extensionRegistry)
             .setProtoExtensionProvider(protoExtensionProvider)
             .build();

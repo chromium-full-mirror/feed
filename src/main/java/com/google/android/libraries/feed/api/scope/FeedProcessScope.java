@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFact
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
+import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
@@ -81,13 +82,13 @@ public class FeedProcessScope implements Dumpable {
         LoggingApi loggingApi,
         NetworkClient networkClient,
         SchedulerApi schedulerApi,
-        Store store) {
+        TimingUtils timingUtils) {
       this.configManager = configManager;
       this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
       this.schedulerApi = schedulerApi;
-      this.store = store;
+      this.timingUtils = timingUtils;
     }
 
     public Builder setProtocolAdapter(FeedProtocolAdapter protocolAdapter) {
@@ -120,11 +121,6 @@ public class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    public Builder setInternalProtocolUtils(InternalProtocolUtils internalProtocolUtils) {
-      this.internalProtocolUtils = internalProtocolUtils;
-      return this;
-    }
-
     public Builder setProtoExtensionProvider(ProtoExtensionProvider protoExtensionProvider) {
       this.protoExtensionProvider = protoExtensionProvider;
       return this;
@@ -137,20 +133,23 @@ public class FeedProcessScope implements Dumpable {
 
     public FeedProcessScope build() {
       // Build default component instances if necessary.
-      TimingUtils timingUtils = new TimingUtils();
+      if (protoExtensionProvider == null) {
+        // Return an empty list of extensions by default.
+        protoExtensionProvider = () -> new ArrayList<>();
+      }
+      if (extensionRegistry == null) {
+        extensionRegistry = new FeedExtensionRegistry(protoExtensionProvider);
+      }
+      InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
+      // TODO: use keyvalue/journal storage apis
+      FeedStore store = new FeedStore(timingUtils, internalProtocolUtils, extensionRegistry);
+
       // TODO: require to build
       if (uiRunnableHandler == null) {
         uiRunnableHandler = new UiRunnableHandlerImpl();
       }
       if (threadUtils == null) {
         threadUtils = new ThreadUtils();
-      }
-      if (internalProtocolUtils == null) {
-        internalProtocolUtils = new InternalProtocolUtils();
-      }
-      if (protoExtensionProvider == null) {
-        // Return an empty list of extensions by default.
-        protoExtensionProvider = () -> new ArrayList<>();
       }
       if (modelProviderFactory == null) {
         modelProviderFactory =
@@ -169,9 +168,6 @@ public class FeedProcessScope implements Dumpable {
       if (protocolAdapter == null) {
         protocolAdapter =
             new FeedProtocolAdapter(sessionManager, timingUtils, internalProtocolUtils);
-      }
-      if (extensionRegistry == null) {
-        extensionRegistry = new FeedExtensionRegistry(protoExtensionProvider);
       }
       if (requestManager == null) {
         requestManager =
@@ -194,7 +190,8 @@ public class FeedProcessScope implements Dumpable {
           requestManager,
           schedulerApi,
           sessionManager,
-          store);
+          store,
+          timingUtils);
     }
 
     // Required fields.
@@ -203,7 +200,7 @@ public class FeedProcessScope implements Dumpable {
     private final LoggingApi loggingApi;
     private final NetworkClient networkClient;
     private final SchedulerApi schedulerApi;
-    private final Store store;
+    private final TimingUtils timingUtils;
 
     // Optional fields - if they are not provided, we will use default implementations.
     @Nullable private RequestManager requestManager = null;
@@ -211,7 +208,6 @@ public class FeedProcessScope implements Dumpable {
     @Nullable private ModelProviderFactory modelProviderFactory = null;
     @Nullable private UiRunnableHandler uiRunnableHandler = null;
     @Nullable private ThreadUtils threadUtils = null;
-    @Nullable private InternalProtocolUtils internalProtocolUtils = null;
     @Nullable private FeedProtocolAdapter protocolAdapter = null;
     @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
     @Nullable private FeedExtensionRegistry extensionRegistry = null;
@@ -226,7 +222,8 @@ public class FeedProcessScope implements Dumpable {
       RequestManager requestManager,
       SchedulerApi schedulerApi,
       SessionManager sessionManager,
-      Store store) {
+      Store store,
+      TimingUtils timingUtils) {
     this.configManager = configManager;
     this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
@@ -236,6 +233,7 @@ public class FeedProcessScope implements Dumpable {
     this.schedulerApi = schedulerApi;
     this.sessionManager = sessionManager;
     this.store = store;
+    this.timingUtils = timingUtils;
   }
 
   private final ConfigManager configManager;
@@ -247,6 +245,7 @@ public class FeedProcessScope implements Dumpable {
   private final SchedulerApi schedulerApi;
   private final SessionManager sessionManager;
   private final Store store;
+  private final TimingUtils timingUtils;
 
   public FeedProtocolAdapter getProtocolAdapter() {
     return protocolAdapter;
