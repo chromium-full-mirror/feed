@@ -89,6 +89,11 @@ public class MockServerNetworkClient implements NetworkClient {
     return createHttpResponse(config.getDefaultResponse());
   }
 
+  @Override
+  public void onDestroy() {
+    quitSafely();
+  }
+
   @VisibleForTesting
   void handleUpdate(Response response) {
     Validators.checkNotNull(requestManager);

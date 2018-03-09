@@ -19,4 +19,6 @@ import java.io.IOException;
 /** Defines an interface for sending an {@link HttpRequest}. */
 public interface NetworkClient {
   HttpResponse execute(HttpRequest request) throws IOException;
+
+  void onDestroy();
 }
