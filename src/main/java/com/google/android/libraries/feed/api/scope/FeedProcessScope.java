@@ -23,6 +23,8 @@ import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.Dumpable;
+import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -45,11 +47,28 @@ import javax.annotation.Nullable;
  * <p>It's the host's responsibility to make sure there's only one instance of this per process, per
  * user.
  */
-public class FeedProcessScope {
+public class FeedProcessScope implements Dumpable {
+  private static final String TAG = "FeedProcessScope";
 
   public FeedStreamScope.Builder createFeedStreamScopeBuilder(ActionApi actionApi) {
     return new FeedStreamScope.Builder(
         actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager);
+  }
+
+  @Override
+  public void dump(Dumper dumper) {
+    dumper.title(TAG);
+    dumper.dump(protocolAdapter);
+    if (sessionManager instanceof Dumpable) {
+      dumper.dump((Dumpable) sessionManager);
+    }
+    if (store instanceof Dumpable) {
+      dumper.dump((Dumpable) store);
+    }
+  }
+
+  public void onDestroy() {
+    networkClient.onDestroy();
   }
 
   /** A builder that creates a {@link FeedProcessScope}. */
@@ -111,9 +130,15 @@ public class FeedProcessScope {
       return this;
     }
 
-    FeedProcessScope build() {
+    public Builder setExtensionRegistry(FeedExtensionRegistry extensionRegistry) {
+      this.extensionRegistry = extensionRegistry;
+      return this;
+    }
+
+    public FeedProcessScope build() {
       // Build default component instances if necessary.
       TimingUtils timingUtils = new TimingUtils();
+      // TODO: require to build
       if (uiRunnableHandler == null) {
         uiRunnableHandler = new UiRunnableHandlerImpl();
       }
@@ -126,18 +151,6 @@ public class FeedProcessScope {
       if (protoExtensionProvider == null) {
         // Return an empty list of extensions by default.
         protoExtensionProvider = () -> new ArrayList<>();
-      }
-      if (protocolAdapter == null) {
-        protocolAdapter =
-            new FeedProtocolAdapter(sessionManager, timingUtils, internalProtocolUtils);
-      }
-      if (requestManager == null) {
-        requestManager =
-            new FeedRequestManager(
-                configManager,
-                networkClient,
-                protocolAdapter,
-                new FeedExtensionRegistry(protoExtensionProvider));
       }
       if (modelProviderFactory == null) {
         modelProviderFactory =
@@ -152,10 +165,22 @@ public class FeedProcessScope {
                 modelProviderFactory,
                 timingUtils,
                 threadUtils);
-        ((FeedSessionManager) sessionManager).setRequestManager(requestManager);
+      }
+      if (protocolAdapter == null) {
+        protocolAdapter =
+            new FeedProtocolAdapter(sessionManager, timingUtils, internalProtocolUtils);
+      }
+      if (extensionRegistry == null) {
+        extensionRegistry = new FeedExtensionRegistry(protoExtensionProvider);
+      }
+      if (requestManager == null) {
+        requestManager =
+            new FeedRequestManager(
+                configManager, networkClient, protocolAdapter, extensionRegistry);
       }
       if (sessionManager instanceof FeedSessionManager) {
         ((FeedSessionManager) sessionManager).setProtocolAdapter(protocolAdapter);
+        ((FeedSessionManager) sessionManager).setRequestManager(requestManager);
       }
       if (modelProviderFactory instanceof FeedModelProviderFactory) {
         ((FeedModelProviderFactory) modelProviderFactory).setSessionManager(sessionManager);
@@ -189,6 +214,7 @@ public class FeedProcessScope {
     @Nullable private InternalProtocolUtils internalProtocolUtils = null;
     @Nullable private FeedProtocolAdapter protocolAdapter = null;
     @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
+    @Nullable private FeedExtensionRegistry extensionRegistry = null;
   }
 
   private FeedProcessScope(
@@ -212,25 +238,25 @@ public class FeedProcessScope {
     this.store = store;
   }
 
-  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
   private final ConfigManager configManager;
-
   private final ImageLoaderApi imageLoaderApi;
   private final LoggingApi loggingApi;
-
-  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
   private final NetworkClient networkClient;
-
   private final FeedProtocolAdapter protocolAdapter;
-
-  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
   private final RequestManager requestManager;
-
-  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
   private final SchedulerApi schedulerApi;
-
   private final SessionManager sessionManager;
-
-  @SuppressWarnings("unused") // Will be used when we integrate scopes into the Feed.
   private final Store store;
+
+  public FeedProtocolAdapter getProtocolAdapter() {
+    return protocolAdapter;
+  }
+
+  public RequestManager getRequestManager() {
+    return requestManager;
+  }
+
+  public SessionManager getSessionManager() {
+    return sessionManager;
+  }
 }

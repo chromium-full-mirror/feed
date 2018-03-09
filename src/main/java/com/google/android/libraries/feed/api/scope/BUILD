@@ -20,6 +20,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/feedprotocoladapter",
         "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/feedstore",
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/common",
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",

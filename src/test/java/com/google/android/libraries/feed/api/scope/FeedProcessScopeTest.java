@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.scope;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ConfigManager;
@@ -23,6 +24,7 @@ import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
@@ -64,14 +66,15 @@ public class FeedProcessScopeTest {
   private UiRunnableHandler uiRunnableHandler;
   private ThreadUtils threadUtils;
   private InternalProtocolUtils internalProtocolUtils;
+  private final ProtoExtensionProvider protoExtensionProvider =
+      new ProtoExtensionProvider() {
+        @Override
+        public List<GeneratedExtension<?, ?>> getProtoExtensions() {
+          return new ArrayList<>();
+        }
+      };
   private final FeedExtensionRegistry extensionRegistry =
-      new FeedExtensionRegistry(
-          new ProtoExtensionProvider() {
-            @Override
-            public List<GeneratedExtension<?, ?>> getProtoExtensions() {
-              return new ArrayList<>();
-            }
-          });
+      new FeedExtensionRegistry(protoExtensionProvider);
 
   @Before
   public void setUp() {
@@ -84,26 +87,31 @@ public class FeedProcessScopeTest {
 
   @Test
   public void testBasicBuild() {
-    new FeedProcessScope.Builder(
-            configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, store)
-        .build();
-
     // No crash should happen.
+    FeedProcessScope processScope =
+        new Builder(configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, store)
+            .build();
   }
 
   @Test
   public void testComplexBuild() {
-    new FeedProcessScope.Builder(
-            configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, store)
-        .setProtocolAdapter(protocolAdapter)
-        .setRequestManager(requestManager)
-        .setSessionManager(sessionManager)
-        .setModelProviderFactory(modelProviderFactory)
-        .setUiRunnableHandler(uiRunnableHandler)
-        .setThreadUtils(threadUtils)
-        .setInternalProtocolUtils(internalProtocolUtils)
-        .build();
-
     // No crash should happen.
+    FeedProcessScope processScope =
+        new FeedProcessScope.Builder(
+                configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi, store)
+            .setProtocolAdapter(protocolAdapter)
+            .setRequestManager(requestManager)
+            .setSessionManager(sessionManager)
+            .setModelProviderFactory(modelProviderFactory)
+            .setUiRunnableHandler(uiRunnableHandler)
+            .setThreadUtils(threadUtils)
+            .setInternalProtocolUtils(internalProtocolUtils)
+            .setExtensionRegistry(extensionRegistry)
+            .setProtoExtensionProvider(protoExtensionProvider)
+            .build();
+
+    assertThat(processScope.getProtocolAdapter()).isEqualTo(protocolAdapter);
+    assertThat(processScope.getRequestManager()).isEqualTo(requestManager);
+    assertThat(processScope.getSessionManager()).isEqualTo(sessionManager);
   }
 }

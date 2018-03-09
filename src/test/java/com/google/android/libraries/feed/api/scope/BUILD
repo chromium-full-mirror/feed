@@ -24,6 +24,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "@bazel_android//:robolectric",
+        "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
     ],
 )
