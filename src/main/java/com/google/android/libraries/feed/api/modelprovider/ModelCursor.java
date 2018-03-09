@@ -49,17 +49,6 @@ public interface ModelCursor {
   boolean advanceCursor(ProcessNextChild processor);
 
   /**
-   * This can be called by the UI to invalidate the Cursor and release any resources managed by it.
-   */
-  void release();
-
-  /**
-   * This will return true if the Cursor is no longer valid. When the cursor is invalidated it will
-   * always return {@code false} from advanceCursor.
-   */
-  boolean isInvalid();
-
-  /**
    * Boolean indicating the Cursor is at the end. When the cursor is at the end it will always
    * return {@code false} from advanceCursor. If the cursor has been released this this will return
    * {@code true}.

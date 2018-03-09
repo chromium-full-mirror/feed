@@ -58,7 +58,6 @@ public class ModelCursorImplTest {
   public void testEmptyCursor() {
     ModelCursorImpl cursor =
         new ModelCursorImpl(parentContentId, modelChildren, protocolUtils, threadUtils);
-    assertThat(cursor.isInvalid()).isFalse();
     assertThat(cursor.isAtEnd()).isTrue();
   }
 
@@ -67,11 +66,9 @@ public class ModelCursorImplTest {
     modelChildren.add(mock(UpdatableModelChild.class));
     ModelCursorImpl cursor =
         new ModelCursorImpl(parentContentId, modelChildren, protocolUtils, threadUtils);
-    assertThat(cursor.isInvalid()).isFalse();
     assertThat(cursor.isAtEnd()).isFalse();
 
     cursor.release();
-    assertThat(cursor.isInvalid()).isTrue();
     assertThat(cursor.isAtEnd()).isTrue();
 
     assertThat(

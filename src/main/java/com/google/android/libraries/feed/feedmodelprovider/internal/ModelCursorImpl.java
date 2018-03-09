@@ -50,9 +50,6 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   @GuardedBy("lock")
   private CursorIterator iterator;
 
-  @GuardedBy("lock")
-  private boolean isInvalid = false;
-
   // #dump() operation counts
   private int updatesAtEnd = 0;
   private int appendCount = 0;
@@ -141,29 +138,26 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
 
     ModelChild nextChild;
     synchronized (lock) {
-      if (isInvalid || iterator == null || !iterator.hasNext()) {
-        // TODO: Should we release the cursor state if we get to the end?
+      if (iterator == null || !iterator.hasNext()) {
+        release();
         return false;
       }
       nextChild = iterator.next();
+      // If we just hit the last element in the iterator, free all the resources for this cursor.
+      if (!iterator.hasNext()) {
+        release();
+      }
     }
     processor.processNextChild(nextChild);
     return true;
   }
 
-  @Override
+  /** Release all the state assocated with this cursor */
   public void release() {
     // This could be called on a background thread.
     synchronized (lock) {
-      isInvalid = true;
+      childList = null;
       iterator = null;
-    }
-  }
-
-  @Override
-  public boolean isInvalid() {
-    synchronized (lock) {
-      return isInvalid;
     }
   }
 
@@ -211,7 +205,6 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("atEnd").value(isAtEnd());
-    dumper.forKey("isInvalid").value(isInvalid()).compactPrevious();
     dumper.forKey("updatesPostAtEnd").value(updatesAtEnd).compactPrevious();
     dumper.forKey("appendCount").value(appendCount).compactPrevious();
     dumper.forKey("removeCount").value(removeCount).compactPrevious();

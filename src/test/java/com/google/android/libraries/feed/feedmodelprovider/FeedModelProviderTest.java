@@ -132,7 +132,6 @@ public class FeedModelProviderTest {
     ModelCursor modelCursor = rootFeature.getCursor();
     assertThat(modelCursor).isNotNull();
     assertThat(modelCursor.isAtEnd()).isTrue();
-    assertThat(modelCursor.isInvalid()).isFalse();
   }
 
   @Test
@@ -159,13 +158,11 @@ public class FeedModelProviderTest {
     ModelCursor modelCursor = rootFeature.getCursor();
     assertThat(modelCursor).isNotNull();
     assertThat(modelCursor.isAtEnd()).isFalse();
-    assertThat(modelCursor.isInvalid()).isFalse();
 
     cursorCount = 0;
     while (modelCursor.advanceCursor(incrementChildCountProcessor())) ;
     assertThat(cursorCount).isEqualTo(featureCnt);
     assertThat(modelCursor.isAtEnd()).isTrue();
-    assertThat(modelCursor.isInvalid()).isFalse();
   }
 
   @Test
@@ -208,7 +205,6 @@ public class FeedModelProviderTest {
     ModelCursor modelCursor = rootFeature.getCursor();
     assertThat(modelCursor).isNotNull();
     assertThat(modelCursor.isAtEnd()).isFalse();
-    assertThat(modelCursor.isInvalid()).isFalse();
 
     cursorCount = 0;
     while (modelCursor.advanceCursor(
@@ -276,7 +272,7 @@ public class FeedModelProviderTest {
 
     modelProvider.invalidate();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
-    assertThat(modelCursor.isInvalid()).isTrue();
+    assertThat(modelCursor.isAtEnd()).isTrue();
   }
 
   @Test

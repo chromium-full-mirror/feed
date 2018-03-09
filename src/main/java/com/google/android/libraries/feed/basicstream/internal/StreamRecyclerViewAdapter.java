@@ -209,7 +209,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
                 "Expected Piet content for feature");
             pietContents.add(content.getExtension(PietContent.pietContentExtension));
           })) {}
-      cardCursor.release();
     }
     notifyDataSetChanged();
   }
