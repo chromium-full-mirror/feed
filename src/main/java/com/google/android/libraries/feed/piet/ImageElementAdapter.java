@@ -31,7 +31,7 @@ import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import javax.annotation.Nullable;
 
-/** A {@link BoundViewAdapter} which manages {@code ImageLine} slices. */
+/** An {@link ElementAdapter} for {@code ImageElement} elements. */
 public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
   private static final String TAG = "ImageElementAdapter";
 

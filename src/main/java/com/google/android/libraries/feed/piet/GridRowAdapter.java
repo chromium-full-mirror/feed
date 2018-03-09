@@ -34,9 +34,9 @@ import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import javax.annotation.Nullable;
 
-/** A {@link BoundViewAdapter} which manages {@code GridLine} slices. */
+/** An {@link ElementContainerAdapter} which manages {@code GridRow} slices. */
 public class GridRowAdapter
-    extends ViewGroupBoundViewAdapter<LinearLayout, ElementListAdapter, GridRow> {
+    extends ElementContainerAdapter<LinearLayout, ElementListAdapter, GridRow> {
 
   private static final String TAG = "GridRowAdapter";
 

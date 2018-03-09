@@ -36,7 +36,7 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import javax.annotation.Nullable;
 
-/** A {@link BoundViewAdapter} which manages {@code TextLine} slices. */
+/** An {@link ElementAdapter} for {@code TextElement} elements. */
 public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
   private static final String TAG = "TextElementAdapter";
 

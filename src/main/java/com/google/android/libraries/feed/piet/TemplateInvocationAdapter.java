@@ -31,9 +31,9 @@ import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Template;
 import javax.annotation.Nullable;
 
-/** A {@link ViewGroupBoundViewAdapter} which manages {@code TemplateInvocation} slices. */
+/** A {@link ElementContainerAdapter} which manages {@code TemplateInvocation} slices. */
 public class TemplateInvocationAdapter
-    extends ViewGroupBoundViewAdapter<LinearLayout, ElementListAdapter, TemplateInvocation> {
+    extends ElementContainerAdapter<LinearLayout, ElementListAdapter, TemplateInvocation> {
 
   private static final String TAG = "TemplateInvocationAdapter";
 

@@ -22,14 +22,18 @@ import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplie
 import java.util.ArrayList;
 import java.util.List;
 
-/** Container adapter that controls a ViewGroup of other elements. */
-public abstract class ViewGroupBoundViewAdapter<
+/**
+ * Base class for adapters that act as containers for other adapters, such as ElementList and
+ * GridRow. Ensures that lifecycle methods are called on child adapters when the parent class binds,
+ * unbinds, or releases.
+ */
+public abstract class ElementContainerAdapter<
         V extends ViewGroup, ChildAdapterT extends ElementAdapter<? extends View, ?>, M>
     extends ElementAdapter<V, M> {
 
   @VisibleForTesting final List<ChildAdapterT> childAdapters;
 
-  ViewGroupBoundViewAdapter(Context context, AdapterParameters parameters) {
+  ElementContainerAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
     childAdapters = new ArrayList<>();
   }

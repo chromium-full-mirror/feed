@@ -29,10 +29,9 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
-/** A {@link ViewGroupBoundViewAdapter} which manages vertical lists of elements. */
+/** An {@link ElementContainerAdapter} which manages vertical lists of elements. */
 public class ElementListAdapter
-    extends ViewGroupBoundViewAdapter<
-        LinearLayout, ElementAdapter<? extends View, ?>, ElementList> {
+    extends ElementContainerAdapter<LinearLayout, ElementAdapter<? extends View, ?>, ElementList> {
   private static final String TAG = "ElementListAdapter";
 
   private ElementListAdapter(Context context, AdapterParameters parameters) {

@@ -28,7 +28,7 @@ import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
-/** A {@link BoundViewAdapter} which manages {@code SpacerElement} slices. */
+/** An {@link ElementAdapter} for {@code SpacerElement} elements. */
 public class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
   private static final String TAG = "SpacerElementAdapter";
 
