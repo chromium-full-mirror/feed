@@ -53,6 +53,9 @@ message StyleIdsStack {
   // Optional style binding that override the styles in the given style_ids.
   // See message comment for exact use.
   optional StyleBindingRef style_binding = 2;
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
 }
 
 // A collection of attributes describing an element’s visual properties.

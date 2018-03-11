@@ -74,6 +74,21 @@ message InlineStyle {
   }
 }
 
+// Information for easier embeding of styles from StylesIdsStack.
+message StyleIdsStackHelper {
+
+  // Whether The element that holds this StyleIdsStack should be rendered, but
+  // not visible (opacity == 0).
+  optional bool is_invisible = 1;
+
+  // The BoundStyle that is bound to the StyleIdsStack
+  optional BoundStyle bound_style = 2;
+
+  extend StyleIdsStack {
+    optional StyleIdsStackHelper style_ids_stack_helper = 183958037;
+  }
+}
+
 // Information for easier creation of CSS styles from the definitions in the
 // Style message.
 message CssStyleHelper {
