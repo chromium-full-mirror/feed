@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
+import javax.annotation.Nullable;
 
 /**
  * Abstract Interface defining a Child of a feature which may be returned by a {@link ModelCursor}.
@@ -41,16 +41,16 @@ public interface ModelChild {
   Type getType();
 
   /** Returns the ContentId of the child, all children will have a Content ID. */
-  StreamContentId getContentId();
+  String getContentId();
 
   /** Returns true there is a parent to this child; false if this is a root. */
   boolean hasParentId();
 
   /**
-   * Returns the parent contentId of the child, this may return {@link
-   * StreamContentId#getDefaultInstance()} if the child is a root.
+   * Returns the parent contentId of the child, this may return {@code Null} if the child is a root.
    */
-  StreamContentId getParentId();
+  @Nullable
+  String getParentId();
 
   /**
    * Returns a the {@link ModelFeature}. This will throw an {@link IllegalStateException} if the

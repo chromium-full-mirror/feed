@@ -96,7 +96,6 @@ public class FeedStreamScope {
                 sessionManager,
                 threadUtils,
                 new TimingUtils(),
-                internalProtocolUtils,
                 uiRunnableHandler);
       }
       // TODO: if pietManager == null, assign a PietManager to pietManager.

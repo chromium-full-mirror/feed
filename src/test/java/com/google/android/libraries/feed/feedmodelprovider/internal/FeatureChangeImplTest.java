@@ -22,7 +22,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
@@ -36,13 +35,13 @@ public class FeatureChangeImplTest {
 
   @Mock private ModelFeature modelFeature;
 
-  private StreamContentId modelContentId;
+  private String modelContentId;
   private ContentIdGenerators idGenerators = new ContentIdGenerators();
 
   @Before
   public void setup() {
     initMocks(this);
-    modelContentId = idGenerators.createFeatureStreamContentId(1);
+    modelContentId = idGenerators.createFeatureContentId(1);
     StreamFeature streamFeature = StreamFeature.newBuilder().setContentId(modelContentId).build();
     when(modelFeature.getStreamFeature()).thenReturn(streamFeature);
   }

@@ -17,14 +17,12 @@ package com.google.android.libraries.feed.common.testing;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 /** Helper class providing validation method for a ModelProvider. */
 public class ModelProviderValidator {
   private final ProtocolAdapter protocolAdapter;
-  private final InternalProtocolUtils protocolUtils = new InternalProtocolUtils();
 
   public ModelProviderValidator(ProtocolAdapter protocolAdapter) {
     this.protocolAdapter = protocolAdapter;
@@ -50,22 +47,19 @@ public class ModelProviderValidator {
         protocolAdapter.getStreamContentId(contentId));
   }
 
-  public void assertStreamContentId(StreamContentId contentId, StreamContentId expectedContentId) {
-    assertThat(protocolUtils.getContentIdKey(contentId))
-        .isEqualTo(protocolUtils.getContentIdKey(expectedContentId));
+  public void assertStreamContentId(String contentId, String expectedContentId) {
+    assertThat(contentId).isEqualTo(expectedContentId);
   }
 
-  public void assertStreamContentId(StreamContentId contentId, ContentId expectedContentId) {
-    assertThat(protocolUtils.getContentIdKey(contentId))
-        .isEqualTo(
-            protocolUtils.getContentIdKey(protocolAdapter.getStreamContentId(expectedContentId)));
+  public void assertStreamContentId(String contentId, ContentId expectedContentId) {
+    assertThat(contentId).isEqualTo(protocolAdapter.getStreamContentId(expectedContentId));
   }
 
   public void verifyContent(ModelProvider modelProvider, List<ContentId> features) {
     for (ContentId contentId : features) {
-      StreamContentId streamContentId = protocolAdapter.getStreamContentId(contentId);
+      String streamContentId = protocolAdapter.getStreamContentId(contentId);
       if (modelProvider.getModelChild(streamContentId) == null) {
-        fail("Feature was not found for " + protocolUtils.getContentIdKey(streamContentId));
+        fail("Feature was not found for " + streamContentId);
       }
     }
   }

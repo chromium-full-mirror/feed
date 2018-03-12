@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.store.Store;
@@ -28,19 +27,16 @@ public class SessionFactory {
   private final Store store;
   private final ModelProviderFactory modelProviderFactory;
   private final TimingUtils timingUtils;
-  private final InternalProtocolUtils internalProtocolUtils;
   private final ThreadUtils threadUtils;
 
   public SessionFactory(
       Store store,
       ModelProviderFactory modelProviderFactory,
       TimingUtils timingUtils,
-      InternalProtocolUtils internalProtocolUtils,
       ThreadUtils threadUtils) {
     this.store = store;
     this.modelProviderFactory = modelProviderFactory;
     this.timingUtils = timingUtils;
-    this.internalProtocolUtils = internalProtocolUtils;
     this.threadUtils = threadUtils;
   }
 
@@ -49,11 +45,10 @@ public class SessionFactory {
         modelProviderFactory,
         store,
         timingUtils,
-        internalProtocolUtils,
         threadUtils);
   }
 
   public ManagedSession getHeadSession() {
-    return new HeadSessionImpl(store, timingUtils, internalProtocolUtils);
+    return new HeadSessionImpl(store, timingUtils);
   }
 }

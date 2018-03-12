@@ -24,7 +24,6 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -61,11 +60,11 @@ public class FeedProtocolAdapterTest {
     FeedProtocolAdapter protocolAdapter =
         new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
     ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
-    StreamContentId streamContentId = protocolAdapter.getStreamContentId(contentId);
+    String streamContentId = protocolAdapter.getStreamContentId(contentId);
     assertThat(streamContentId).isNotNull();
-    assertThat(streamContentId.getContentDomain()).isEqualTo(contentId.getContentDomain());
-    assertThat(streamContentId.getId()).isEqualTo(contentId.getId());
-    assertThat(streamContentId.getTable()).isEqualTo(contentId.getTable());
+    assertThat(streamContentId).contains(contentId.getContentDomain());
+    assertThat(streamContentId).contains(Long.toString(contentId.getId()));
+    assertThat(streamContentId).contains(contentId.getTable());
   }
 
   @Test

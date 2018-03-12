@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
@@ -26,7 +25,6 @@ import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -43,7 +41,6 @@ public class HeadSessionImpl implements ManagedSession, Dumpable {
 
   private final StreamSession streamSession;
   private final Store store;
-  private final InternalProtocolUtils protocolUtils;
   private final TimingUtils timingUtils;
 
   @VisibleForTesting final Set<String> contentInSession = new HashSet<>();
@@ -52,11 +49,10 @@ public class HeadSessionImpl implements ManagedSession, Dumpable {
   private int updateCount = 0;
   private int storeMutationFailures = 0;
 
-  HeadSessionImpl(Store store, TimingUtils timingUtils, InternalProtocolUtils protocolUtils) {
+  HeadSessionImpl(Store store, TimingUtils timingUtils) {
     this.streamSession = store.getHeadSession();
     this.store = store;
     this.timingUtils = timingUtils;
-    this.protocolUtils = protocolUtils;
   }
 
   @Override
@@ -67,16 +63,13 @@ public class HeadSessionImpl implements ManagedSession, Dumpable {
 
     if (mutationSourceToken != null) {
       // Make sure that mutationSourceToken is a token in this session, if not, ignore it
-      StreamContentId contentId = mutationSourceToken.getContentId();
+      String contentId = mutationSourceToken.getContentId();
       if (contentId == null) {
         // TODO: What do we do if there isnt' a ContentId?
         Logger.e(TAG, "Found a StreamToken without a ContentId");
       }
-      if (!contentInSession.contains(protocolUtils.getContentIdKey(contentId))) {
-        Logger.i(
-            TAG,
-            "Session without a Continuation Token %s, ignoring update",
-            protocolUtils.getContentIdKey(contentId));
+      if (!contentInSession.contains(contentId)) {
+        Logger.i(TAG, "Session without a Continuation Token %s, ignoring update", contentId);
         return;
       }
     }
@@ -87,7 +80,7 @@ public class HeadSessionImpl implements ManagedSession, Dumpable {
     SessionMutation sessionMutation = store.editSession(streamSession);
     for (StreamStructure streamStructure : streamStructures) {
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
-        String contentKey = protocolUtils.getContentIdKey(streamStructure.getContentId());
+        String contentKey = streamStructure.getContentId();
         if (contentInSession.contains(contentKey)) {
           // this is an update operation so we can ignore it
           updateCnt++;
@@ -100,7 +93,7 @@ public class HeadSessionImpl implements ManagedSession, Dumpable {
         continue;
       } else if (streamStructure.getOperation() == Operation.REMOVE) {
         Logger.i(TAG, "Removing Item from HEAD");
-        String contentKey = protocolUtils.getContentIdKey(streamStructure.getContentId());
+        String contentKey = streamStructure.getContentId();
         if (contentInSession.contains(contentKey)) {
           sessionMutation.add(streamStructure);
           contentInSession.remove(contentKey);

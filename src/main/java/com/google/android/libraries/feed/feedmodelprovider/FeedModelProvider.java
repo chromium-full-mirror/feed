@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedmodelprovider;
 
 import android.database.Observable;
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
@@ -50,7 +49,6 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelFeature;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -109,7 +107,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
-  private final InternalProtocolUtils protocolUtils;
   private final UiRunnableHandler uiRunnableHandler;
   private final ModelChildFactory modelChildFactory;
   private final ModelChildBinder modelChildBinder;
@@ -119,36 +116,30 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       SessionManager sessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
-      InternalProtocolUtils protocolUtils,
       UiRunnableHandler uiRunnableHandler) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
-    this.protocolUtils = protocolUtils;
     this.uiRunnableHandler = uiRunnableHandler;
 
-    modelChildFactory = new ModelChildFactory(protocolUtils);
+    modelChildFactory = new ModelChildFactory();
     CursorProvider cursorProvider =
         parentId -> {
           synchronized (lock) {
-            String childKey = protocolUtils.getContentIdKey(parentId);
-            ArrayList<UpdatableModelChild> children = containers.get(childKey);
+            ArrayList<UpdatableModelChild> children = containers.get(parentId);
             if (children == null) {
               Logger.i(TAG, "No children found for Cursor");
-              ModelCursorImpl cursor =
-                  new ModelCursorImpl(parentId, EMPTY_LIST, protocolUtils, threadUtils);
+              ModelCursorImpl cursor = new ModelCursorImpl(parentId, EMPTY_LIST, threadUtils);
               cursors.add(new WeakReference<>(cursor));
               return cursor;
             }
             ModelCursorImpl cursor =
-                new ModelCursorImpl(
-                    parentId, new ArrayList<>(children), protocolUtils, threadUtils);
+                new ModelCursorImpl(parentId, new ArrayList<>(children), threadUtils);
             cursors.add(new WeakReference<>(cursor));
             return cursor;
           }
         };
-    modelChildBinder =
-        new ModelChildBinder(sessionManager, cursorProvider, timingUtils, protocolUtils);
+    modelChildBinder = new ModelChildBinder(sessionManager, cursorProvider, timingUtils);
   }
 
   @Override
@@ -164,10 +155,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   @Nullable
-  public ModelChild getModelChild(StreamContentId contentId) {
-    String key = protocolUtils.getContentIdKey(contentId);
+  public ModelChild getModelChild(String contentId) {
     synchronized (lock) {
-      return contents.get(key);
+      return contents.get(contentId);
     }
   }
 
@@ -253,9 +243,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       if (root != null
           && root.getStreamFeature() != null
           && root.getStreamFeature().hasContentId()) {
-        dumper
-            .forKey("root")
-            .value(protocolUtils.getContentIdKey(root.getStreamFeature().getContentId()));
+        dumper.forKey("root").value(root.getStreamFeature().getContentId());
       } else {
         dumper.forKey("root").value("[UNDEFINED]");
       }
@@ -367,7 +355,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                   continue;
                 }
 
-                String parentKey = protocolUtils.getContentIdKey(child.getParentId());
+                String parentKey = child.getParentId();
                 if (!parentKey.equals(currentParentKey)) {
                   childrenList = getChildList(parentKey);
                   currentParentKey = parentKey;
@@ -386,8 +374,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
               } else {
                 Validators.checkNotNull(childMutation.removeChild);
                 handleRemoveOperation(mutationHandler, childMutation.removeChild);
-                contents.remove(
-                    protocolUtils.getContentIdKey(childMutation.removeChild.getContentId()));
+                contents.remove(childMutation.removeChild.getContentId());
               }
             }
 
@@ -415,7 +402,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   private void handleRemoveOperation(MutationHandler mutationHandler, StreamStructure removeChild) {
     // remove everything from the remove list first
-    String parentKey = protocolUtils.getContentIdKey(removeChild.getParentContentId());
+    String parentKey = removeChild.getParentContentId();
     synchronized (lock) {
       List<UpdatableModelChild> childList = containers.get(parentKey);
       if (childList == null) {
@@ -425,7 +412,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
       // For FEATURE children, add the remove to the mutation handler to create the
       // StreamFeatureChange.  We skip this for TOKENS.
-      String childKey = protocolUtils.getContentIdKey(removeChild.getContentId());
+      String childKey = removeChild.getContentId();
       UpdatableModelChild targetChild = contents.get(childKey);
       Validators.checkNotNull(targetChild, "Child not found in the ModelProvider contents");
       if (targetChild.getType() == Type.FEATURE) {
@@ -548,7 +535,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           new ModelCursorImpl(
               token.parentContentId,
               token.location.subList(newCursorStart, token.location.size()),
-              protocolUtils,
               threadUtils);
       TokenCompleted tokenCompleted = new TokenCompleted(cursor);
       List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
@@ -585,7 +571,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       Logger.i(TAG, "Updating %s items", updates.size());
       // Walk all the updates and update the values, creating changes to track these
       for (ChildUpdateMutation update : updates) {
-        String contentKey = protocolUtils.getContentIdKey(update.updateChild.getContentId());
+        String contentKey = update.updateChild.getContentId();
         UpdatableModelChild updatableModelChild;
         synchronized (lock) {
           updatableModelChild = contents.get(contentKey);
@@ -638,8 +624,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
           ModelCursorImpl cursor = cursorRef.get();
           if (cursor != null) {
-            FeatureChange change =
-                changes.get(protocolUtils.getContentIdKey(cursor.getParentContentId()));
+            FeatureChange change = changes.get(cursor.getParentContentId());
             if (change != null) {
               cursor.updateIterator(change);
             }
@@ -721,12 +706,12 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   @VisibleForTesting
   static class TokenTracking {
     final UpdatableModelToken tokenChild;
-    final StreamContentId parentContentId;
+    final String parentContentId;
     final ArrayList<UpdatableModelChild> location;
 
     TokenTracking(
         UpdatableModelToken tokenChild,
-        StreamContentId parentContentId,
+        String parentContentId,
         ArrayList<UpdatableModelChild> location) {
       this.tokenChild = tokenChild;
       this.parentContentId = parentContentId;

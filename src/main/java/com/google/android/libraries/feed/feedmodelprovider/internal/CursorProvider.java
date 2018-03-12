@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 
 /** Interface which provides a {@link ModelCursor} */
 public interface CursorProvider {
@@ -24,5 +23,5 @@ public interface CursorProvider {
    * Create a {@link ModelCursor} for the parent, this will iterate against all the children
    * currently contained by the parent container.
    */
-  ModelCursor getCursor(StreamContentId parentId);
+  ModelCursor getCursor(String parentId);
 }

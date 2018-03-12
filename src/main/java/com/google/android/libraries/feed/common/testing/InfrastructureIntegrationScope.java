@@ -49,9 +49,9 @@ public class InfrastructureIntegrationScope {
     UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
-    FeedStore store = new FeedStore(timingUtils, protocolUtils, extensionRegistry);
+    FeedStore store = new FeedStore(timingUtils, extensionRegistry);
     FeedModelProviderFactory modelProviderFactory =
-        new FeedModelProviderFactory(threadUtils, timingUtils, protocolUtils, uiRunnableHandler);
+        new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
     feedSessionManager =
         new FeedSessionManager(
             executorService, store, modelProviderFactory, timingUtils, threadUtils);

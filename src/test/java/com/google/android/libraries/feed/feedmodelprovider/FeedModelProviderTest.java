@@ -22,9 +22,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
@@ -47,7 +47,6 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
 import com.google.android.libraries.feed.host.common.Callback;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -73,12 +72,8 @@ import org.mockito.stubbing.Answer;
 @RunWith(RobolectricTestRunner.class)
 public class FeedModelProviderTest {
 
-  private StreamContentId rootContentId =
-      StreamContentId.newBuilder()
-          .setContentDomain("stream_root")
-          .setId(0)
-          .setTable("feature")
-          .build();
+  private final ContentIdGenerators idGenerators = new ContentIdGenerators();
+  private final String rootContentId = idGenerators.createRootContentId(0);
 
   @Mock private SessionManager sessionManager;
   @Mock private ThreadUtils threadUtils;
@@ -86,7 +81,6 @@ public class FeedModelProviderTest {
   private int cursorCount = 0;
   private ModelChild continuationToken = null;
   private TimingUtils timingUtils = new TimingUtils();
-  private InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
 
   private List<PayloadWithId> childBindings = new ArrayList<>();
 
@@ -155,12 +149,13 @@ public class FeedModelProviderTest {
     mutator.commit();
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
+    assertThat(rootFeature).isNotNull();
     ModelCursor modelCursor = rootFeature.getCursor();
     assertThat(modelCursor).isNotNull();
     assertThat(modelCursor.isAtEnd()).isFalse();
 
     cursorCount = 0;
-    while (modelCursor.advanceCursor(incrementChildCountProcessor())) ;
+    while (modelCursor.advanceCursor(incrementChildCountProcessor())) {}
     assertThat(cursorCount).isEqualTo(featureCnt);
     assertThat(modelCursor.isAtEnd()).isTrue();
   }
@@ -177,6 +172,7 @@ public class FeedModelProviderTest {
     mutator.commit();
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
+    assertThat(rootFeature).isNotNull();
     ModelCursor modelCursor = rootFeature.getCursor();
 
     // Verify that one of the features was removed by a the last operation
@@ -194,7 +190,7 @@ public class FeedModelProviderTest {
     for (int i = 0; i < featureCnt; i++) {
       mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
     }
-    StreamContentId featureParent = createFeatureContentId(2);
+    String featureParent = createFeatureContentId(2);
     for (int i = 0; i < featureCnt; i++) {
       mutator.addChild(
           createStreamStructureAndBinding(createFeature(i + 1 + featureCnt, featureParent)));
@@ -202,6 +198,7 @@ public class FeedModelProviderTest {
     mutator.commit();
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
+    assertThat(rootFeature).isNotNull();
     ModelCursor modelCursor = rootFeature.getCursor();
     assertThat(modelCursor).isNotNull();
     assertThat(modelCursor.isAtEnd()).isFalse();
@@ -239,7 +236,7 @@ public class FeedModelProviderTest {
   public void testTokenTracking() {
     UpdatableModelToken continuationToken = mock(UpdatableModelToken.class);
     ArrayList<UpdatableModelChild> location = new ArrayList<>();
-    StreamContentId parentContentId = StreamContentId.getDefaultInstance();
+    String parentContentId = "parent.content.id";
     TokenTracking tokenTracking = new TokenTracking(continuationToken, parentContentId, location);
     assertThat(tokenTracking.tokenChild).isEqualTo(continuationToken);
     assertThat(tokenTracking.parentContentId).isEqualTo(parentContentId);
@@ -268,6 +265,7 @@ public class FeedModelProviderTest {
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
+    assertThat(rootFeature).isNotNull();
     ModelCursor modelCursor = rootFeature.getCursor();
 
     modelProvider.invalidate();
@@ -317,12 +315,7 @@ public class FeedModelProviderTest {
     verify(observer, never()).onRootSet();
 
     mutator = modelProvider.edit();
-    StreamContentId anotherRootId =
-        StreamContentId.newBuilder()
-            .setContentDomain("stream_root")
-            .setId(100)
-            .setTable("feature")
-            .build();
+    String anotherRootId = idGenerators.createRootContentId(100);
     rootStreamFeature = StreamFeature.newBuilder().setContentId(anotherRootId).build();
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
     mutator.commit();
@@ -361,6 +354,7 @@ public class FeedModelProviderTest {
     StreamToken streamToken = initializeStreamWithToken(modelProvider, featureCnt);
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
+    assertThat(rootFeature).isNotNull();
     ModelCursor modelCursor = rootFeature.getCursor();
     cursorCount = 0;
     continuationToken = null;
@@ -389,6 +383,7 @@ public class FeedModelProviderTest {
     assertThat(tokens).hasSize(1);
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
+    assertThat(rootFeature).isNotNull();
     ModelCursor modelCursor = rootFeature.getCursor();
     continuationToken = null;
     while (modelCursor.advanceCursor(
@@ -444,11 +439,10 @@ public class FeedModelProviderTest {
         sessionManager,
         threadUtils,
         timingUtils,
-        internalProtocolUtils,
         new UiRunnableHandlerImpl());
   }
 
-  private StreamFeature createFeature(int i, StreamContentId parentContentId) {
+  private StreamFeature createFeature(int i, String parentContentId) {
     return StreamFeature.newBuilder()
         .setParentId(parentContentId)
         .setContentId(createFeatureContentId(i))
@@ -456,12 +450,8 @@ public class FeedModelProviderTest {
         .build();
   }
 
-  private StreamContentId createFeatureContentId(int i) {
-    return StreamContentId.newBuilder()
-        .setContentDomain("feature")
-        .setId(i)
-        .setTable("feature")
-        .build();
+  private String createFeatureContentId(int i) {
+    return idGenerators.createFeatureContentId(i);
   }
 
   private ModelMutator getRootedModelMutator(ModelProvider modelProvider) {
@@ -494,7 +484,7 @@ public class FeedModelProviderTest {
     return builder.build();
   }
 
-  private StreamStructure createRemove(StreamContentId parentContentId, StreamContentId contentId) {
+  private StreamStructure createRemove(String parentContentId, String contentId) {
     return StreamStructure.newBuilder()
         .setContentId(contentId)
         .setParentContentId(parentContentId)

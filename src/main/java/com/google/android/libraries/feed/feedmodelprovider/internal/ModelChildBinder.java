@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
@@ -26,7 +25,6 @@ import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ChildMutation;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ChildUpdateMutation;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ModelMutatorCommitter;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -43,17 +41,12 @@ public class ModelChildBinder {
   private final SessionManager sessionManager;
   private final CursorProvider cursorProvider;
   private final TimingUtils timingUtils;
-  private final InternalProtocolUtils protocolUtils;
 
   public ModelChildBinder(
-      SessionManager sessionManager,
-      CursorProvider cursorProvider,
-      TimingUtils timingUtils,
-      InternalProtocolUtils protocolUtils) {
+      SessionManager sessionManager, CursorProvider cursorProvider, TimingUtils timingUtils) {
     this.sessionManager = sessionManager;
     this.cursorProvider = cursorProvider;
     this.timingUtils = timingUtils;
-    this.protocolUtils = protocolUtils;
   }
 
   void bindAndCommit(
@@ -63,7 +56,7 @@ public class ModelChildBinder {
       StreamToken mutationSourceToken) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     Map<String, UpdatableModelChild> unboundChildren = new HashMap<>();
-    List<StreamContentId> contentIds = new ArrayList<>();
+    List<String> contentIds = new ArrayList<>();
     for (ChildMutation childMutation : streamChildrenList) {
       if (childMutation.operation == Operation.UPDATE_OR_APPEND) {
         Validators.checkNotNull(childMutation.addChild);
@@ -77,14 +70,14 @@ public class ModelChildBinder {
     Map<String, StreamStructure> updateChildren = new HashMap<>();
     for (StreamStructure updateChild : updateChildrenList) {
       contentIds.add(updateChild.getContentId());
-      updateChildren.put(protocolUtils.getContentIdKey(updateChild.getContentId()), updateChild);
+      updateChildren.put(updateChild.getContentId(), updateChild);
     }
     sessionManager.getStreamFeatures(
         contentIds,
         payloads -> {
           List<ChildUpdateMutation> updates = new ArrayList<>();
           for (PayloadWithId childPayload : payloads) {
-            String key = protocolUtils.getContentIdKey(childPayload.contentId);
+            String key = childPayload.contentId;
             UpdatableModelChild child = unboundChildren.get(key);
             if (child != null) {
               StreamPayload payload = childPayload.payload;

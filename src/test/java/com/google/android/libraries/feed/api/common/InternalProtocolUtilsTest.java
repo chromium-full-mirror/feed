@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.api.common;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Test;
@@ -28,42 +27,13 @@ public class InternalProtocolUtilsTest {
 
   @Test
   public void testGetContentIdKey() {
-    StreamContentId streamContentId = getStreamContentId();
-    InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
-    String key = internalProtocolUtils.getContentIdKey(streamContentId);
-    assertStringContents(key, streamContentId);
-  }
-
-  @Test
-  public void testCreateContentId() {
+    InternalProtocolUtils protocolUtils = new InternalProtocolUtils();
     ContentId contentId =
-        ContentId.newBuilder().setContentDomain("content-id").setId(13).setTable("table").build();
-    InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
-    StreamContentId streamContentId = internalProtocolUtils.createContentId(contentId);
-    assertThat(streamContentId.getContentDomain()).isEqualTo(contentId.getContentDomain());
-    assertThat(streamContentId.getId()).isEqualTo(contentId.getId());
-    assertThat(streamContentId.getTable()).isEqualTo(contentId.getTable());
-  }
-
-  @Test
-  public void testPrintContentIdKey() {
-    StreamContentId streamContentId = getStreamContentId();
-    InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
-    String key = internalProtocolUtils.printContentId(streamContentId);
-    assertStringContents(key, streamContentId);
-  }
-
-  private StreamContentId getStreamContentId() {
-    return StreamContentId.newBuilder()
-        .setContentDomain("content-domain")
-        .setId(17)
-        .setTable("table")
-        .build();
-  }
-
-  private void assertStringContents(String value, StreamContentId streamContentId) {
-    assertThat(value.contains(streamContentId.getContentDomain())).isTrue();
-    assertThat(value.contains(streamContentId.getTable())).isTrue();
-    assertThat(value.contains(Long.toString(streamContentId.getId()))).isTrue();
+        ContentId.newBuilder().setContentDomain("contentId").setId(13).setTable("table").build();
+    String streamContentId = protocolUtils.createContentId(contentId);
+    assertThat(streamContentId).contains(contentId.getContentDomain());
+    assertThat(streamContentId).contains(Long.toString(contentId.getId()));
+    assertThat(streamContentId).contains(contentId.getTable());
+    assertThat(streamContentId).startsWith(contentId.getTable());
   }
 }

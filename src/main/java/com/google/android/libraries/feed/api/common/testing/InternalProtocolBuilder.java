@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.common.testing;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -27,22 +26,18 @@ import java.util.List;
 
 /** This is a builder class for creating internal protocol elements. */
 public class InternalProtocolBuilder {
-  public static final StreamContentId ROOT_CONTENT_ID =
-      StreamContentId.newBuilder()
-          .setContentDomain("stream_root")
-          .setId(0)
-          .setTable("feature")
-          .build();
 
+  private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private List<StreamDataOperation> dataOperations = new ArrayList<>();
 
   /** This adds a Root Feature into the Stream of data operations */
   public InternalProtocolBuilder addRootFeature() {
-    StreamFeature streamFeature = StreamFeature.newBuilder().setContentId(ROOT_CONTENT_ID).build();
+    StreamFeature streamFeature =
+        StreamFeature.newBuilder().setContentId(idGenerators.createRootContentId(0)).build();
     StreamStructure streamStructure =
         StreamStructure.newBuilder()
             .setOperation(Operation.UPDATE_OR_APPEND)
-            .setContentId(ROOT_CONTENT_ID)
+            .setContentId(idGenerators.createRootContentId(0))
             .build();
     StreamPayload streamPayload =
         StreamPayload.newBuilder().setStreamFeature(streamFeature).build();
@@ -62,7 +57,7 @@ public class InternalProtocolBuilder {
     return this;
   }
 
-  public InternalProtocolBuilder addSharedState(StreamContentId contentId) {
+  public InternalProtocolBuilder addSharedState(String contentId) {
     StreamSharedState streamSharedState =
         StreamSharedState.newBuilder().setContentId(contentId).build();
     StreamStructure streamStructure =
@@ -80,7 +75,7 @@ public class InternalProtocolBuilder {
     return this;
   }
 
-  public InternalProtocolBuilder addToken(StreamContentId contentId) {
+  public InternalProtocolBuilder addToken(String contentId) {
     StreamToken streamToken = StreamToken.newBuilder().setContentId(contentId).build();
     StreamStructure streamStructure =
         StreamStructure.newBuilder()
@@ -96,7 +91,7 @@ public class InternalProtocolBuilder {
     return this;
   }
 
-  public InternalProtocolBuilder addFeature(StreamContentId contentId, StreamContentId parentId) {
+  public InternalProtocolBuilder addFeature(String contentId, String parentId) {
     StreamFeature streamFeature =
         StreamFeature.newBuilder().setContentId(contentId).setParentId(parentId).build();
     StreamStructure streamStructure =
@@ -115,8 +110,7 @@ public class InternalProtocolBuilder {
     return this;
   }
 
-  public InternalProtocolBuilder removeFeature(
-      StreamContentId contentId, StreamContentId parentId) {
+  public InternalProtocolBuilder removeFeature(String contentId, String parentId) {
     StreamStructure streamStructure =
         StreamStructure.newBuilder()
             .setOperation(Operation.REMOVE)

@@ -20,7 +20,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
@@ -57,7 +56,6 @@ public class SessionImplTest {
   @Mock private ThreadUtils threadUtils;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
-  private final InternalProtocolUtils protocolUtils = new InternalProtocolUtils();
 
   private FakeSessionMutation fakeSessionMutation;
   private FakeModelMutator fakeModelMutator;
@@ -76,16 +74,14 @@ public class SessionImplTest {
 
   @Test
   public void testMinimalSessionManager() {
-    SessionImpl session =
-        new SessionImpl(modelProviderFactory, store, timingUtils, protocolUtils, threadUtils);
+    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
     verify(modelProviderFactory).create();
     assertThat(session.getModelProvider()).isEqualTo(modelProvider);
   }
 
   @Test
   public void testPopulateModelProvider_notFullyInitialized() {
-    SessionImpl session =
-        new SessionImpl(modelProviderFactory, store, timingUtils, protocolUtils, threadUtils);
+    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
     assertThatRunnable(
             new ThrowingRunnable() {
               @Override
@@ -98,8 +94,7 @@ public class SessionImplTest {
 
   @Test
   public void testPopulateModelProvider_features() {
-    SessionImpl session =
-        new SessionImpl(modelProviderFactory, store, timingUtils, protocolUtils, threadUtils);
+    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -112,16 +107,12 @@ public class SessionImplTest {
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
     assertThat(fakeModelMutator.commitCalled).isTrue();
     assertThat(session.contentInSession).hasSize(featureCnt);
-    assertThat(
-            session.contentInSession.contains(
-                protocolUtils.getContentIdKey(contentIdGenerators.createFeatureStreamContentId(1))))
-        .isTrue();
+    assertThat(session.contentInSession).contains(contentIdGenerators.createFeatureContentId(1));
   }
 
   @Test
   public void testUpdateSession_notFullyInitialized() {
-    SessionImpl session =
-        new SessionImpl(modelProviderFactory, store, timingUtils, protocolUtils, threadUtils);
+    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
     assertThatRunnable(
             new ThrowingRunnable() {
               @Override
@@ -134,8 +125,7 @@ public class SessionImplTest {
 
   @Test
   public void testUpdateSession_features() {
-    SessionImpl session =
-        new SessionImpl(modelProviderFactory, store, timingUtils, protocolUtils, threadUtils);
+    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
@@ -148,16 +138,12 @@ public class SessionImplTest {
     assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
     assertThat(session.contentInSession).hasSize(featureCnt);
-    assertThat(
-            session.contentInSession.contains(
-                protocolUtils.getContentIdKey(contentIdGenerators.createFeatureStreamContentId(1))))
-        .isTrue();
+    assertThat(session.contentInSession).contains(contentIdGenerators.createFeatureContentId(1));
   }
 
   @Test
   public void testUpdateFromToken() {
-    SessionImpl session =
-        new SessionImpl(modelProviderFactory, store, timingUtils, protocolUtils, threadUtils);
+    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -167,15 +153,14 @@ public class SessionImplTest {
     StreamToken token =
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
     // The token needs to be in the session
-    session.contentInSession.add(protocolUtils.getContentIdKey(token.getContentId()));
+    session.contentInSession.add(token.getContentId());
     session.updateSession(streamStructures, token);
     assertThat(fakeModelMutator.token).isEqualTo(token);
   }
 
   @Test
   public void testUpdateFromToken_notInSession() {
-    SessionImpl session =
-        new SessionImpl(modelProviderFactory, store, timingUtils, protocolUtils, threadUtils);
+    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -192,8 +177,7 @@ public class SessionImplTest {
 
   @Test
   public void testStorageFailure() {
-    SessionImpl session =
-        new SessionImpl(modelProviderFactory, store, timingUtils, protocolUtils, threadUtils);
+    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -207,15 +191,13 @@ public class SessionImplTest {
 
   @Test
   public void testRemove() {
-    SessionImpl session =
-        new SessionImpl(modelProviderFactory, store, timingUtils, protocolUtils, threadUtils);
+    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     int featureCnt = 2;
     addFeatures(protocolBuilder, featureCnt, 1);
     protocolBuilder.removeFeature(
-        contentIdGenerators.createFeatureStreamContentId(1),
-        InternalProtocolBuilder.ROOT_CONTENT_ID);
+        contentIdGenerators.createFeatureContentId(1), contentIdGenerators.createRootContentId(0));
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
     session.updateSession(streamStructures, null);
     assertThat(fakeModelMutator.removedChildren).hasSize(1);
@@ -225,8 +207,8 @@ public class SessionImplTest {
   private void addFeatures(InternalProtocolBuilder protocolBuilder, int featureCnt, int startId) {
     for (int i = 0; i < featureCnt; i++) {
       protocolBuilder.addFeature(
-          contentIdGenerators.createFeatureStreamContentId(startId++),
-          InternalProtocolBuilder.ROOT_CONTENT_ID);
+          contentIdGenerators.createFeatureContentId(startId++),
+          contentIdGenerators.createRootContentId(0));
     }
   }
 

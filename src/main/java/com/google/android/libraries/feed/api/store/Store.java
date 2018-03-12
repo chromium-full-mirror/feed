@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.api.store;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.StreamSession;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -25,17 +24,17 @@ import java.util.List;
 /**
  * Interface defining the Store API used by the feed library to persist the internal proto objects
  * into a an underlying store. The store is divided into content and structure portions. Content is
- * retrieved using {@link StreamContentId}s. The structure is defined through a set of {@link
- * StreamDataOperation} which define the structure of the stream. $HEAD defines the full set of
- * {@code StreamDataOperation}s defining the full stream. A {@link StreamSession} represents an
- * instance of the stream defined by a possible subset of $HEAD.
+ * retrieved using String representing the {@code ContentId}. The structure is defined through a set
+ * of {@link StreamDataOperation} which define the structure of the stream. $HEAD defines the full
+ * set of {@code StreamDataOperation}s defining the full stream. A {@link StreamSession} represents
+ * an instance of the stream defined by a possible subset of $HEAD.
  */
 public interface Store {
   /**
-   * Returns an {@code List} of the {@link PayloadWithId}s for the {@link StreamContentId}s passed
-   * in through {@code contentIds}.
+   * Returns an {@code List} of the {@link PayloadWithId}s for the ContentId Strings passed in
+   * through {@code contentIds}.
    */
-  List<PayloadWithId> getPayloads(List<StreamContentId> contentIds);
+  List<PayloadWithId> getPayloads(List<String> contentIds);
 
   /** Get the {@link StreamSharedState}s stored as content. */
   List<StreamSharedState> getSharedStates();

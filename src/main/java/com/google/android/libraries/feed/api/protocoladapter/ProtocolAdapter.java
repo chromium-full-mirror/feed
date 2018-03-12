@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.protocoladapter;
 
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 
@@ -29,6 +28,6 @@ public interface ProtocolAdapter {
    */
   void createModel(Response response, ByteString token);
 
-  /** Convert a wire protocol ContentId into a {@link StreamContentId}. */
-  StreamContentId getStreamContentId(ContentId contentId);
+  /** Convert a wire protocol ContentId into the {@code String} version used in Jardin. */
+  String getStreamContentId(ContentId contentId);
 }

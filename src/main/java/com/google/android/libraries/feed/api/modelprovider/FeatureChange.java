@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import java.util.List;
 
 /**
@@ -29,8 +28,8 @@ import java.util.List;
  */
 public interface FeatureChange {
 
-  /** Returns the {@link StreamContentId} of the ModelFeature which was changed. */
-  StreamContentId getContentId();
+  /** Returns the contentId of the ModelFeature which was changed. */
+  String getContentId();
 
   /** Returns {@code true} if the ModelFeature changed. */
   boolean isFeatureChanged();

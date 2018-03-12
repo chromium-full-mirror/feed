@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
@@ -32,7 +31,6 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -47,7 +45,6 @@ public class SessionImpl implements FeedSession, Dumpable {
 
   private final ModelProvider modelProvider;
   private final Store store;
-  private final InternalProtocolUtils protocolUtils;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
 
@@ -63,11 +60,9 @@ public class SessionImpl implements FeedSession, Dumpable {
       ModelProviderFactory modelProviderFactory,
       Store store,
       TimingUtils timingUtils,
-      InternalProtocolUtils protocolUtils,
       ThreadUtils threadUtils) {
     this.store = store;
     this.timingUtils = timingUtils;
-    this.protocolUtils = protocolUtils;
     this.threadUtils = threadUtils;
     this.modelProvider = modelProviderFactory.create();
   }
@@ -88,15 +83,12 @@ public class SessionImpl implements FeedSession, Dumpable {
     // Walk through head and add all the DataOperations to the session.
     for (StreamStructure streamStructure : head) {
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
-        String contentKey = protocolUtils.getContentIdKey(streamStructure.getContentId());
-        if (contentInSession.contains(contentKey)) {
+        if (contentInSession.contains(streamStructure.getContentId())) {
           Logger.w(
-              TAG,
-              "Updated operation stored in $HEAD, Item %s",
-              protocolUtils.printContentId(streamStructure.getContentId()));
+              TAG, "Updated operation stored in $HEAD, Item %s", streamStructure.getContentId());
           continue;
         } else {
-          contentInSession.add(contentKey);
+          contentInSession.add(streamStructure.getContentId());
           modelMutator.addChild(streamStructure);
         }
         continue;
@@ -116,16 +108,13 @@ public class SessionImpl implements FeedSession, Dumpable {
 
     if (mutationSourceToken != null) {
       // Make sure that mutationSourceToken is a token in this session, if not, ignore it
-      StreamContentId contentId = mutationSourceToken.getContentId();
+      String contentId = mutationSourceToken.getContentId();
       if (contentId == null) {
         // TODO: What do we do if there isnt' a ContentId?
         Logger.e(TAG, "Found a StreamToken without a ContentId");
       }
-      if (!contentInSession.contains(protocolUtils.getContentIdKey(contentId))) {
-        Logger.i(
-            TAG,
-            "Session without a Continuation Token %s, ignoring update",
-            protocolUtils.getContentIdKey(contentId));
+      if (!contentInSession.contains(contentId)) {
+        Logger.i(TAG, "Session without a Continuation Token %s, ignoring update", contentId);
         return;
       }
     }
@@ -139,7 +128,7 @@ public class SessionImpl implements FeedSession, Dumpable {
     int addFeatureCnt = 0;
     SessionMutation sessionMutation = store.editSession(streamSession);
     for (StreamStructure streamStructure : streamStructures) {
-      String contentKey = protocolUtils.getContentIdKey(streamStructure.getContentId());
+      String contentKey = streamStructure.getContentId();
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
         if (contentInSession.contains(contentKey)) {
           // this is an update operation so we can ignore it

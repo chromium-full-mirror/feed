@@ -14,30 +14,34 @@
 
 package com.google.android.libraries.feed.api.common.testing;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
+import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 
-/** Test support class which creates {@link StreamContentId}s. */
+/** Test support class which creates Jardin content ids. */
 public class ContentIdGenerators {
-  private static final StreamContentId FEATURE_CONTENT_ID =
-      StreamContentId.newBuilder().setContentDomain("feature").setId(0).setTable("feature").build();
-  private static final StreamContentId TOKEN_ID =
-      StreamContentId.newBuilder().setContentDomain("token").setId(0).setTable("feature").build();
-  private static final StreamContentId SHARED_STATE_CONTENT_ID =
-      StreamContentId.newBuilder()
-          .setContentDomain("shared-state")
-          .setId(0)
-          .setTable("feature")
-          .build();
+  private static final String FEATURE = "feature";
+  private static final ContentId FEATURE_CONTENT_ID =
+      ContentId.newBuilder().setContentDomain(FEATURE).setId(0).setTable(FEATURE).build();
+  private static final ContentId TOKEN_ID =
+      ContentId.newBuilder().setContentDomain("token").setId(0).setTable(FEATURE).build();
+  private static final ContentId SHARED_STATE_CONTENT_ID =
+      ContentId.newBuilder().setContentDomain("shared-state").setId(0).setTable(FEATURE).build();
+  private final InternalProtocolUtils protocolUtils = new InternalProtocolUtils();
 
-  public StreamContentId createFeatureStreamContentId(int id) {
-    return FEATURE_CONTENT_ID.toBuilder().setId(id).build();
+  public String createFeatureContentId(long id) {
+    return protocolUtils.createContentId(FEATURE_CONTENT_ID.toBuilder().setId(id).build());
   }
 
-  public StreamContentId createTokenContentId(int id) {
-    return TOKEN_ID.toBuilder().setId(id).build();
+  public String createTokenContentId(long id) {
+    return protocolUtils.createContentId(TOKEN_ID.toBuilder().setId(id).build());
   }
 
-  public StreamContentId createSharedStateStreamContentId(int id) {
-    return SHARED_STATE_CONTENT_ID.toBuilder().setId(id).build();
+  public String createSharedStateContentId(long id) {
+    return protocolUtils.createContentId(SHARED_STATE_CONTENT_ID.toBuilder().setId(id).build());
+  }
+
+  public String createRootContentId(int id) {
+    return protocolUtils.createContentId(
+        ContentId.newBuilder().setContentDomain("stream_root").setId(id).setTable(FEATURE).build());
   }
 }

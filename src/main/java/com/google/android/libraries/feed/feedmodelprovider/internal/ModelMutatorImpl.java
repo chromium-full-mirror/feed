@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -86,12 +85,11 @@ public class ModelMutatorImpl implements ModelMutator {
 
   @Override
   public ModelMutator addChild(StreamStructure streamStructure) {
-    StreamContentId parentId =
-        streamStructure.hasParentContentId() ? streamStructure.getParentContentId() : null;
     streamChildList.add(
         new ChildMutation(
             Operation.UPDATE_OR_APPEND,
-            modelChildFactory.createUnboundChild(streamStructure.getContentId(), parentId),
+            modelChildFactory.createUnboundChild(
+                streamStructure.getContentId(), streamStructure.getParentContentId()),
             null));
     return this;
   }

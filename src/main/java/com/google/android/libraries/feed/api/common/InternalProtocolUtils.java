@@ -14,38 +14,13 @@
 
 package com.google.android.libraries.feed.api.common;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import javax.annotation.Nullable;
 
 /** Utility class defining methods which manage the internal protocol. */
+// TODO: Move this into the protocol adapter.
 public class InternalProtocolUtils {
-
-  /** Returns a key for a {@link StreamContentId}. */
-  public String getContentIdKey(StreamContentId contentId) {
+  public String createContentId(ContentId contentId) {
     return String.format(
-        "%s::%s::%s", contentId.getContentDomain(), contentId.getId(), contentId.getTable());
-  }
-
-  /** Create a {@link StreamContentId} from a {@link ContentId}. */
-  public StreamContentId createContentId(ContentId contentId) {
-    return StreamContentId.newBuilder()
-        .setContentDomain(contentId.getContentDomain())
-        .setId(contentId.getId())
-        .setTable(contentId.getTable())
-        .build();
-  }
-
-  /**
-   * Returns a String representation of a {@link StreamContentId which can be used
-   * in Log messages.
-   */
-  public String printContentId(@Nullable StreamContentId contentId) {
-    if (contentId == null) {
-      return "NULL ContentID";
-    }
-    return String.format(
-        "ContentId - Domain: %s, id: %s, table: %s",
-        contentId.getContentDomain(), contentId.getId(), contentId.getTable());
+        "%s::%s::%s", contentId.getTable(), contentId.getContentDomain(), contentId.getId());
   }
 }

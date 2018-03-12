@@ -14,18 +14,17 @@
 
 package com.google.android.libraries.feed.api.common;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 
 /**
- * Structure style class which binds a {@link StreamContentId} with a {@link StreamPayload}. The
- * class is immutable and provides access to the fields directly.
+ * Structure style class which binds a String contentId with a {@link StreamPayload}. The class is
+ * immutable and provides access to the fields directly.
  */
 public class PayloadWithId {
-  public final StreamContentId contentId;
+  public final String contentId;
   public final StreamPayload payload;
 
-  public PayloadWithId(StreamContentId contentId, StreamPayload payload) {
+  public PayloadWithId(String contentId, StreamPayload payload) {
     this.contentId = contentId;
     this.payload = payload;
   }

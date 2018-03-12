@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.store.ContentMutation;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +39,7 @@ public class FeedContentMutation implements ContentMutation {
   }
 
   @Override
-  public ContentMutation add(StreamContentId contentId, StreamPayload payload) {
+  public ContentMutation add(String contentId, StreamPayload payload) {
     mutations.add(new PayloadWithId(contentId, payload));
     return this;
   }

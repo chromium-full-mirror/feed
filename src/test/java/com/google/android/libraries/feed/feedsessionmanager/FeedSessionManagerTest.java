@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
@@ -49,7 +48,6 @@ import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -72,12 +70,8 @@ import org.mockito.Mock;
 @RunWith(RobolectricTestRunner.class)
 public class FeedSessionManagerTest {
 
-  private StreamContentId rootContentId =
-      StreamContentId.newBuilder()
-          .setContentDomain("stream_root")
-          .setId(0)
-          .setTable("feature")
-          .build();
+  private final ContentIdGenerators idGenerators = new ContentIdGenerators();
+  private final String rootContentId = idGenerators.createRootContentId(0);
   private static final StreamSession HEAD = new StreamSession("$HEAD");
 
   @Mock private UiRunnableHandler uiRunnableHandler;
@@ -87,7 +81,6 @@ public class FeedSessionManagerTest {
 
   private int cursorCount = 0;
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
-  private final InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
   private final TimingUtils timingUtils = new TimingUtils();
   private final FeedExtensionRegistry extensionRegistry =
       new FeedExtensionRegistry(
@@ -103,8 +96,7 @@ public class FeedSessionManagerTest {
   public void setUp() {
     initMocks(this);
     modelProviderFactory =
-        new FeedModelProviderFactory(
-            threadUtils, timingUtils, new InternalProtocolUtils(), uiRunnableHandler);
+        new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
   }
 
   @Test
@@ -120,7 +112,7 @@ public class FeedSessionManagerTest {
     Store store = mock(Store.class);
     StreamSharedState sharedState =
         StreamSharedState.newBuilder()
-            .setContentId(StreamContentId.getDefaultInstance())
+            .setContentId(idGenerators.createFeatureContentId(0))
             .setPietSharedStateItem(PietSharedStateItem.getDefaultInstance())
             .build();
     List<StreamSharedState> sharedStates = new ArrayList<>();
@@ -131,7 +123,7 @@ public class FeedSessionManagerTest {
     List<StreamStructure> streamStructures = new ArrayList<>();
     StreamStructure operation =
         StreamStructure.newBuilder()
-            .setContentId(StreamContentId.getDefaultInstance())
+            .setContentId(idGenerators.createFeatureContentId(0))
             .setOperation(StreamStructure.Operation.UPDATE_OR_APPEND)
             .build();
     streamStructures.add(operation);
@@ -156,7 +148,7 @@ public class FeedSessionManagerTest {
     Map<String, ManagedSession> sessions = sessionManager.getSessionsMapForTest();
     ManagedSession head = sessions.get(HEAD.streamToken);
     assertThat(head).isInstanceOf(HeadSessionImpl.class);
-    String itemKey = internalProtocolUtils.getContentIdKey(StreamContentId.getDefaultInstance());
+    String itemKey = idGenerators.createFeatureContentId(0);
     Set<String> content = ((HeadSessionImpl) head).getContentInSessionForTest();
     assertThat(content).contains(itemKey);
     assertThat(content).hasSize(streamStructures.size());
@@ -173,6 +165,7 @@ public class FeedSessionManagerTest {
 
     ModelProvider modelProvider = session.getModelProvider();
     assertThat(modelProvider).isNotNull();
+    assertThat(modelProvider.getRootFeature()).isNotNull();
     ModelCursor cursor = modelProvider.getRootFeature().getCursor();
     cursorCount = 0;
     while (cursor.advanceCursor(incrementChildCountProcessor())) ;
@@ -211,12 +204,7 @@ public class FeedSessionManagerTest {
   @Test
   public void testGetSharedState() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
-    StreamContentId sharedStateId =
-        StreamContentId.newBuilder()
-            .setContentDomain(GLOBAL_SHARED_STATE.getContentDomain())
-            .setId(GLOBAL_SHARED_STATE.getId())
-            .setTable(GLOBAL_SHARED_STATE.getTable())
-            .build();
+    String sharedStateId = idGenerators.createSharedStateContentId(0);
 
     populateSession(sessionManager, 3, 1, true, sharedStateId);
     when(protocolAdapter.getStreamContentId(GLOBAL_SHARED_STATE)).thenReturn(sharedStateId);
@@ -229,12 +217,8 @@ public class FeedSessionManagerTest {
             .setId(5)
             .setTable("shared-states")
             .build();
-    StreamContentId undefinedStreamSharedStateId =
-        StreamContentId.newBuilder()
-            .setContentDomain(undefinedSharedStateId.getContentDomain())
-            .setId(undefinedSharedStateId.getId())
-            .setTable(undefinedSharedStateId.getTable())
-            .build();
+    String undefinedStreamSharedStateId =
+        idGenerators.createSharedStateContentId(undefinedSharedStateId.getId());
     when(protocolAdapter.getStreamContentId(undefinedSharedStateId))
         .thenReturn(undefinedStreamSharedStateId);
     assertThat(sessionManager.getSharedState(undefinedSharedStateId)).isNull();
@@ -245,7 +229,7 @@ public class FeedSessionManagerTest {
       int featureCnt,
       int idStart,
       boolean reset,
-      @Nullable StreamContentId sharedStateId) {
+      @Nullable String sharedStateId) {
     int operationCount = 0;
 
     InternalProtocolBuilder internalProtocolBuilder = new InternalProtocolBuilder();
@@ -255,8 +239,8 @@ public class FeedSessionManagerTest {
     }
     for (int i = 0; i < featureCnt; i++) {
       internalProtocolBuilder.addFeature(
-          contentIdGenerators.createFeatureStreamContentId(idStart++),
-          InternalProtocolBuilder.ROOT_CONTENT_ID);
+          contentIdGenerators.createFeatureContentId(idStart++),
+          idGenerators.createRootContentId(0));
       operationCount++;
     }
     if (sharedStateId != null) {
@@ -272,7 +256,7 @@ public class FeedSessionManagerTest {
   }
 
   private FeedSessionManager getInitializedSessionManager() {
-    FeedStore store = new FeedStore(timingUtils, internalProtocolUtils, extensionRegistry);
+    FeedStore store = new FeedStore(timingUtils, extensionRegistry);
     FeedSessionManager sessionManager =
         new FeedSessionManager(
             MoreExecutors.newDirectExecutorService(),

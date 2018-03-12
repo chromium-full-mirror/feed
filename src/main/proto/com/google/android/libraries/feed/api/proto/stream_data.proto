@@ -24,34 +24,6 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.feed.client";
 option java_outer_classname = "StreamDataProto";
 
-// This is the internal representation used by Jardin, at the moment
-// this is still a prototype of the base design. See
-// https://docs.google.com/document/d/1PNFC4o_ICpUfSODd-EtgjcbsVSi7UUI4Bf1Dp0CuYX8/edit#heading=h.b6rasxa61lz9
-// for more information.
-
-// ContentId makes something addressable.  This means it can be updated
-// dynamically and supports an Observer pattern for updates.
-message StreamContentId {
-
-  // The "domain" to which this content belongs. A domain specifies the party
-  // responsible for generating the content, and this owner promises to specify
-  // IDs (below) that match the owner's expectations of uniqueness.  The domain
-  // differs from the table because multiple parties can create content which
-  // are stored in the same table.
-  optional string content_domain = 1;
-
-  // In value to make the ContentId unique within the content_domain.
-  optional fixed64 id = 2;
-
-  // This represents namespace for the nodes found in the wire protocol.  The
-  // storage architecture shares the wire protocol based upon the Table
-  // (namespace).  The storage will be sharded into multiple Tables where
-  // related content is stored within a single Table.  For example, Features
-  // define the Structure and Content of the Stream and are stored in a single
-  // table.  Notifications would be stored in their own table.
-  optional string table = 3;
-}
-
 // A StreamFeature represents a node within the tree forming the Stream.  The
 // stream contains structure and content at multiple levels.  This
 // structure is represented as a tree of features.  These features include
@@ -60,11 +32,11 @@ message StreamContentId {
 message StreamFeature {
 
   // The content id of this feature.
-  optional StreamContentId content_id = 1;
+  optional string content_id = 1;
 
   // The parent feature if defined.  Most features will have a parent, the root
   // feature is the exception.
-  optional StreamContentId parent_id = 2;
+  optional string parent_id = 2;
 
   // Define the payloads for the various types of nodes present in the tree.
   oneof feature_payload {
@@ -83,11 +55,11 @@ message StreamFeature {
 message StreamToken {
 
   // The content id of this feature.
-  optional StreamContentId content_id = 1;
+  optional string content_id = 1;
 
   // The parent feature if defined.  Most features will have a parent, the root
   // feature is the exception.
-  optional StreamContentId parent_id = 2;
+  optional string parent_id = 2;
 
   optional bytes next_page_token = 3;
 }
@@ -95,7 +67,7 @@ message StreamToken {
 // This represents a shared state item.
 message StreamSharedState {
 
-  optional StreamContentId content_id = 1;
+  optional string content_id = 1;
   oneof share_state {
     // A Piet shared state item.
     search.now.proto.wire.feed.PietSharedStateItem piet_shared_state_item = 2;
@@ -118,8 +90,8 @@ message StreamStructure {
     REMOVE = 3;
   }
   optional Operation operation = 1;
-  optional StreamContentId content_id = 2;
-  optional StreamContentId parent_content_id = 3;
+  optional string content_id = 2;
+  optional string parent_content_id = 3;
 }
 
 // The internal version of a DataOperation.
@@ -151,8 +123,8 @@ message StreamPayload {
 message StreamCursor {
 
   // The Parent of the cursor.
-  optional StreamContentId parent_content_id = 1;
+  optional string parent_content_id = 1;
 
   // This is the ContentId of the last accessed Child in the cursor.
-  optional StreamContentId last_accessed_content = 2;
+  optional string last_accessed_content = 2;
 }

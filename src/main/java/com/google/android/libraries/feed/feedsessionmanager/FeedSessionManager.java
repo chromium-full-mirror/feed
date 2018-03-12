@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import android.text.TextUtils;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -40,7 +40,6 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFact
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.SessionMutationCommitter;
 import com.google.android.libraries.feed.host.common.Callback;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -78,7 +77,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final ExecutorService sessionManagerExecutor;
   private final Store store;
   private final ThreadUtils threadUtils;
-  private final InternalProtocolUtils protocolUtils;
   private final TimingUtils timingUtils;
 
   private Thread executorThread = null;
@@ -101,9 +99,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
 
-    protocolUtils = new InternalProtocolUtils();
-    sessionFactory =
-        new SessionFactory(store, modelProviderFactory, timingUtils, protocolUtils, threadUtils);
+    sessionFactory = new SessionFactory(store, modelProviderFactory, timingUtils, threadUtils);
     sessionManagerExecutor.execute(
         () -> timingUtils.pinThread(Thread.currentThread(), "SessionManager"));
     sessionManagerExecutor.execute(
@@ -124,8 +120,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     List<StreamSharedState> sharedStates = store.getSharedStates();
     synchronized (lock) {
       for (StreamSharedState sharedState : sharedStates) {
-        sharedStateCache.put(
-            protocolUtils.getContentIdKey(sharedState.getContentId()), sharedState);
+        sharedStateCache.put(sharedState.getContentId(), sharedState);
       }
     }
 
@@ -177,7 +172,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @Override
   public void handleToken(StreamToken streamToken) {
     // TODO: This should only create the request once.
-    Logger.i(TAG, "HandleToken %s", protocolUtils.getContentIdKey(streamToken.getContentId()));
+    Logger.i(TAG, "HandleToken %s", streamToken.getContentId());
     threadUtils.checkMainThread();
     handleTokenCount++;
     @SuppressLint("StaticFieldLeak")
@@ -193,8 +188,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
-  public void getStreamFeatures(
-      List<StreamContentId> contentIds, Callback<List<PayloadWithId>> callback) {
+  public void getStreamFeatures(List<String> contentIds, Callback<List<PayloadWithId>> callback) {
     callback.handleResult(store.getPayloads(contentIds));
   }
 
@@ -202,8 +196,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @Nullable
   public StreamSharedState getSharedState(ContentId contentId) {
     threadUtils.checkMainThread();
-    String sharedStateId =
-        protocolUtils.getContentIdKey(protocolAdapter.getStreamContentId(contentId));
+    String sharedStateId = protocolAdapter.getStreamContentId(contentId);
     StreamSharedState state;
     synchronized (lock) {
       state = sharedStateCache.get(sharedStateId);
@@ -282,13 +275,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             continue;
           }
           StreamPayload payload = dataOperation.getStreamPayload();
-          StreamContentId contentId = dataOperation.getStreamStructure().getContentId();
+          String contentId = dataOperation.getStreamStructure().getContentId();
           if (payload.hasStreamSharedState()) {
             contentMutation.add(contentId, payload);
             synchronized (lock) {
               // cache the shared state here
               sharedStateCache.put(
-                  protocolUtils.getContentIdKey(dataOperation.getStreamStructure().getContentId()),
+                  dataOperation.getStreamStructure().getContentId(),
                   payload.getStreamSharedState());
             }
           } else if (payload.hasStreamFeature() || payload.hasStreamToken()) {
@@ -297,10 +290,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             contentMutation.add(contentId, payload);
             if (payload.hasStreamToken()) {
               // Track the tokens so we can create the remove operations in a future response
-              String tokenId =
-                  protocolUtils.getContentIdKey(payload.getStreamToken().getContentId());
               synchronized (lock) {
-                tokenMap.put(tokenId, dataOperation);
+                tokenMap.put(payload.getStreamToken().getContentId(), dataOperation);
               }
             }
           } else {
@@ -363,8 +354,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         Logger.e(TAG, "Invalid StreamDataOperation - payload or streamStructure not defined");
         return false;
       }
-      StreamContentId contentId = dataOperation.getStreamStructure().getContentId();
-      if (contentId == null) {
+      String contentId = dataOperation.getStreamStructure().getContentId();
+      if (TextUtils.isEmpty(contentId)) {
         Logger.i(TAG, "Invalid StreamDataOperation - No ID Found");
         return false;
       }
@@ -374,7 +365,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     @Nullable
     private StreamStructure addTokenRemoveOperation(StreamToken token) {
       // We need to add a mutation to remove the stream token from the structure.
-      String tokenId = protocolUtils.getContentIdKey(token.getContentId());
+      String tokenId = token.getContentId();
       synchronized (lock) {
         StreamDataOperation dataOperation = tokenMap.get(tokenId);
         if (dataOperation != null) {

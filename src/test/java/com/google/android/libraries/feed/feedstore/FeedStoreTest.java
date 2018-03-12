@@ -16,9 +16,9 @@ package com.google.android.libraries.feed.feedstore;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.StreamSession;
+import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.common.testing.RunnableSubject;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -48,22 +47,22 @@ import org.junit.runner.RunWith;
 public class FeedStoreTest {
 
   private Store store;
-  private static final long PAYLOAD_ID = 12345;
-  private static final long OPERATION_ID = 67890;
-  private static final StreamContentId PAYLOAD_CONTENT_ID =
-      StreamContentId.newBuilder().setId(PAYLOAD_ID).build();
-  private static final StreamContentId OPERATION_CONTENT_ID =
-      StreamContentId.newBuilder().setId(OPERATION_ID).build();
+  private static final ContentIdGenerators idGenerators = new ContentIdGenerators();
+  private static final int PAYLOAD_ID = 12345;
+  private static final int OPERATION_ID = 67890;
+  private static final String PAYLOAD_CONTENT_ID = idGenerators.createFeatureContentId(PAYLOAD_ID);
+  private static final String OPERATION_CONTENT_ID =
+      idGenerators.createFeatureContentId(OPERATION_ID);
   private static final Builder STREAM_PAYLOAD =
       StreamPayload.newBuilder()
           .setStreamFeature(
               StreamFeature.newBuilder()
                   .setContentId(PAYLOAD_CONTENT_ID)
-                  .setParentId(StreamContentId.getDefaultInstance()));
+                  .setParentId(idGenerators.createRootContentId(0)));
   private static final StreamStructure STREAM_STRUCTURE =
       StreamStructure.newBuilder()
           .setContentId(OPERATION_CONTENT_ID)
-          .setParentContentId(StreamContentId.getDefaultInstance())
+          .setParentContentId(idGenerators.createRootContentId(0))
           .setOperation(Operation.UPDATE_OR_APPEND)
           .build();
   private static final StreamDataOperation STREAM_DATA_OPERATION =
@@ -72,7 +71,6 @@ public class FeedStoreTest {
           .setStreamPayload(STREAM_PAYLOAD)
           .build();
 
-  private final InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
   private final TimingUtils timingUtils = new TimingUtils();
   private final FeedExtensionRegistry extensionRegistry =
       new FeedExtensionRegistry(
@@ -86,18 +84,18 @@ public class FeedStoreTest {
   @Before
   public void setUp() throws Exception {
     // TODO: update the test to work with the old and new feed stores.
-    store = new FeedStore(timingUtils, internalProtocolUtils, extensionRegistry);
+    store = new FeedStore(timingUtils, extensionRegistry);
   }
 
   @Test
   public void testMinimalStore() {
-    FeedStore feedStore = new FeedStore(timingUtils, internalProtocolUtils, extensionRegistry);
+    FeedStore feedStore = new FeedStore(timingUtils, extensionRegistry);
     assertThat(feedStore.getHeadSession()).isNotNull();
   }
 
   @Test
   public void testContentMutation() {
-    FeedStore feedStore = new FeedStore(timingUtils, internalProtocolUtils, extensionRegistry);
+    FeedStore feedStore = new FeedStore(timingUtils, extensionRegistry);
     ContentMutation contentMutation = feedStore.editContent();
     assertThat(contentMutation).isNotNull();
   }
@@ -143,7 +141,7 @@ public class FeedStoreTest {
     List<StreamStructure> results = store.getStreamStructures(session);
     assertThat(results).hasSize(1);
     StreamStructure streamStructure = results.get(0);
-    assertThat(streamStructure.getContentId().getId()).isEqualTo(OPERATION_ID);
+    assertThat(streamStructure.getContentId()).contains(Integer.toString(OPERATION_ID));
   }
 
   @Test
@@ -184,7 +182,7 @@ public class FeedStoreTest {
 
   @Test
   public void getPayloads_noPayload() throws Exception {
-    List<StreamContentId> contentIds = new ArrayList<>();
+    List<String> contentIds = new ArrayList<>();
     contentIds.add(PAYLOAD_CONTENT_ID);
 
     List<PayloadWithId> results = store.getPayloads(contentIds);

@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.store;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.List;
 
@@ -26,17 +25,17 @@ public interface ContentMutation {
   /** Defines the results of a Content mutation */
   interface ContentMutationResults {
     /** Content Ids of the items added */
-    List<StreamContentId> getContentAdded();
+    List<String> getContentAdded();
 
     /** Content Ids of the items updated */
-    List<StreamContentId> getContentUpdated();
+    List<String> getContentUpdated();
 
     /** Content Ids of the SharedState added */
-    List<StreamContentId> getSharedStateAdded();
+    List<String> getSharedStateAdded();
   }
 
   /** Add a new Mutation to the Store */
-  ContentMutation add(StreamContentId contentId, StreamPayload payload);
+  ContentMutation add(String contentId, StreamPayload payload);
 
   /** Commit the mutations to the backing store */
   ContentMutationResults commit();

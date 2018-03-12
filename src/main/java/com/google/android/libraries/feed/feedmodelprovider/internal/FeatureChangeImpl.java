@@ -18,7 +18,6 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,8 +41,9 @@ public class FeatureChangeImpl implements FeatureChange {
     this.childChanges = new ChildChangesImpl();
   }
 
-  /** Returns the {@link StreamContentId} of the ModelFeature which was changed. */
-  public StreamContentId getContentId() {
+  /** Returns the String ContentId of the ModelFeature which was changed. */
+  @Override
+  public String getContentId() {
     return modelFeature.getStreamFeature().getContentId();
   }
 

@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -36,7 +35,6 @@ public class FeedModelProviderFactoryTest {
 
   @Mock private ThreadUtils threadUtils;
   @Mock private TimingUtils timingUtils;
-  @Mock private InternalProtocolUtils internalProtocolUtils;
   @Mock private UiRunnableHandler uiRunnableHandler;
   @Mock private SessionManager sessionManager;
 
@@ -48,8 +46,7 @@ public class FeedModelProviderFactoryTest {
   @Test
   public void testModelProviderFactory() {
     FeedModelProviderFactory factory =
-        new FeedModelProviderFactory(
-            threadUtils, timingUtils, internalProtocolUtils, uiRunnableHandler);
+        new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
     factory.setSessionManager(sessionManager);
     assertThat(factory.create()).isNotNull();
   }
@@ -57,8 +54,7 @@ public class FeedModelProviderFactoryTest {
   @Test
   public void testModelProviderFactory_noSession() {
     FeedModelProviderFactory factory =
-        new FeedModelProviderFactory(
-            threadUtils, timingUtils, internalProtocolUtils, uiRunnableHandler);
+        new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
     assertThatRunnable(
             new ThrowingRunnable() {
               @Override

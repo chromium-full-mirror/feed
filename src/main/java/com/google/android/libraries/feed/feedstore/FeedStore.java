@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedstore;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.store.ContentMutation;
@@ -37,7 +36,6 @@ import com.google.android.libraries.feed.host.storage.InMemoryKeyValuePairStorag
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.StorageMutation.Builder;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -57,7 +55,6 @@ public class FeedStore implements Store, Dumpable {
   private static final StreamSession HEAD = new StreamSession("$HEAD");
 
   private final TimingUtils timingUtils;
-  private final InternalProtocolUtils internalProtocolUtils;
   private final FeedExtensionRegistry extensionRegistry;
   private final InMemoryKeyValuePairStorage payloadStorage = new InMemoryKeyValuePairStorage();
   private final InMemoryJournalStorage sessionStorage = new InMemoryJournalStorage();
@@ -70,32 +67,29 @@ public class FeedStore implements Store, Dumpable {
 
   public FeedStore(
       TimingUtils timingUtils,
-      InternalProtocolUtils internalProtocolUtils,
       FeedExtensionRegistry extensionRegistry) {
     this.timingUtils = timingUtils;
-    this.internalProtocolUtils = internalProtocolUtils;
     this.extensionRegistry = extensionRegistry;
   }
 
   @Override
-  public List<PayloadWithId> getPayloads(List<StreamContentId> contentIds) {
+  public List<PayloadWithId> getPayloads(List<String> contentIds) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<PayloadWithId> payloads = new ArrayList<>();
-    for (StreamContentId contentId : contentIds) {
-      String contentKey = internalProtocolUtils.getContentIdKey(contentId);
+    for (String contentId : contentIds) {
       try {
-        byte[] content = payloadStorage.get(contentKey).get();
+        byte[] content = payloadStorage.get(contentId).get();
         if (content != null) {
           StreamPayload streamPayload =
               StreamPayload.parseFrom(content, extensionRegistry.getExtensionRegistry());
           payloads.add(new PayloadWithId(contentId, streamPayload));
         } else {
-          Logger.e(TAG, "Didn't find Content for %s", contentKey);
+          Logger.e(TAG, "Didn't find Content for %s", contentId);
         }
       } catch (InvalidProtocolBufferException e) {
-        Logger.e(TAG, "Couldn't parse content proto for %s", contentKey);
+        Logger.e(TAG, "Couldn't parse content proto for %s", contentId);
       } catch (ExecutionException | InterruptedException e) {
-        Logger.e(TAG, e, "Exception getting payload for %s", contentKey);
+        Logger.e(TAG, e, "Exception getting payload for %s", contentId);
       }
     }
     tracker.stop("", "getPayloads", "items", contentIds.size());
@@ -219,18 +213,18 @@ public class FeedStore implements Store, Dumpable {
   private ContentMutationResults commitContentMutation(List<PayloadWithId> mutations) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    List<StreamContentId> contentAdded = new ArrayList<>();
-    List<StreamContentId> contentUpdated = new ArrayList<>();
-    List<StreamContentId> sharedStateAdded = new ArrayList<>();
+    List<String> contentAdded = new ArrayList<>();
+    List<String> contentUpdated = new ArrayList<>();
+    List<String> sharedStateAdded = new ArrayList<>();
     for (PayloadWithId mutation : mutations) {
-      String payloadId = internalProtocolUtils.getContentIdKey(mutation.contentId);
+      String payloadId = mutation.contentId;
       StreamPayload payload = mutation.payload;
-      StreamContentId contentId = mutation.contentId;
       if (mutation.payload.hasStreamSharedState()) {
-        StreamSharedState prevValue = sharedStates.put(payloadId, payload.getStreamSharedState());
+        StreamSharedState prevValue =
+            sharedStates.put(mutation.contentId, payload.getStreamSharedState());
         // TODO: Do we need to track SharedState Updates?
         if (prevValue == null) {
-          sharedStateAdded.add(contentId);
+          sharedStateAdded.add(mutation.contentId);
         }
       } else {
         // Block waiting for the response from storage, to make this method synchronous.
@@ -243,9 +237,9 @@ public class FeedStore implements Store, Dumpable {
                   .get();
           if (commitResult == CommitResult.SUCCESS) {
             if (payloadBytes != null) {
-              contentUpdated.add(contentId);
+              contentUpdated.add(payloadId);
             } else {
-              contentAdded.add(contentId);
+              contentAdded.add(payloadId);
             }
           }
         } catch (ExecutionException | InterruptedException e) {
@@ -268,14 +262,12 @@ public class FeedStore implements Store, Dumpable {
   }
 
   private static class StoreResults implements ContentMutationResults {
-    private final List<StreamContentId> contentAdded;
-    private final List<StreamContentId> contentUpdated;
-    private final List<StreamContentId> sharedStateAdded;
+    private final List<String> contentAdded;
+    private final List<String> contentUpdated;
+    private final List<String> sharedStateAdded;
 
     StoreResults(
-        List<StreamContentId> contentAdded,
-        List<StreamContentId> contentUpdated,
-        List<StreamContentId> sharedStateAdded) {
+        List<String> contentAdded, List<String> contentUpdated, List<String> sharedStateAdded) {
       this.contentAdded = contentAdded;
       this.contentUpdated = contentUpdated;
       this.sharedStateAdded = sharedStateAdded;
@@ -289,17 +281,17 @@ public class FeedStore implements Store, Dumpable {
     }
 
     @Override
-    public List<StreamContentId> getContentAdded() {
+    public List<String> getContentAdded() {
       return contentAdded;
     }
 
     @Override
-    public List<StreamContentId> getContentUpdated() {
+    public List<String> getContentUpdated() {
       return contentUpdated;
     }
 
     @Override
-    public List<StreamContentId> getSharedStateAdded() {
+    public List<String> getSharedStateAdded() {
       return sharedStateAdded;
     }
   }

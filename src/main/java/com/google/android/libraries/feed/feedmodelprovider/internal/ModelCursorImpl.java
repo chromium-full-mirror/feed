@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange.ChildChanges;
@@ -25,7 +24,6 @@ import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Validators;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -40,8 +38,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   private final Object lock = new Object();
   private final ThreadUtils threadUtils;
 
-  private final StreamContentId parentContentId;
-  private final InternalProtocolUtils protocolUtils;
+  private final String parentContentId;
 
   @GuardedBy("lock")
   private List<UpdatableModelChild> childList;
@@ -61,18 +58,14 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
    * is informed of changes through the {@link #updateIterator(FeatureChange featureChang)}.
    */
   public ModelCursorImpl(
-      StreamContentId parentContentId,
-      List<UpdatableModelChild> childList,
-      InternalProtocolUtils protocolUtils,
-      ThreadUtils threadUtils) {
+      String parentContentId, List<UpdatableModelChild> childList, ThreadUtils threadUtils) {
     this.parentContentId = parentContentId;
-    this.protocolUtils = protocolUtils;
     this.childList = childList;
     this.iterator = new CursorIterator();
     this.threadUtils = threadUtils;
   }
 
-  public StreamContentId getParentContentId() {
+  public String getParentContentId() {
     return parentContentId;
   }
 
@@ -115,7 +108,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
       int currentPosition = iterator.getPosition();
       List<UpdatableModelChild> realRemoves = new ArrayList<>();
       for (ModelChild modelChild : children) {
-        String childKey = protocolUtils.getContentIdKey(modelChild.getContentId());
+        String childKey = modelChild.getContentId();
         // This assumes removes are rare so we can walk the list for each deleted child.
         for (int i = currentPosition; i < childList.size(); i++) {
           UpdatableModelChild child = childList.get(i);

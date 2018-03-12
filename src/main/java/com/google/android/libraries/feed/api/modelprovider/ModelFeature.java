@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import javax.annotation.Nullable;
 
@@ -44,7 +43,7 @@ public interface ModelFeature {
    * the child list.
    */
   @Nullable
-  ModelCursor getDirectionalCursor(boolean forward, @Nullable StreamContentId startingChild);
+  ModelCursor getDirectionalCursor(boolean forward, @Nullable String startingChild);
 
   /**
    * Register a {@link FeatureChangeObserver} for changes on this feature. The types of changes

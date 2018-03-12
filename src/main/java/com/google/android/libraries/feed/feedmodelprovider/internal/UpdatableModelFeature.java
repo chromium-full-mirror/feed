@@ -18,7 +18,6 @@ import android.database.Observable;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +47,7 @@ public class UpdatableModelFeature extends Observable<FeatureChangeObserver>
 
   @Override
   @Nullable
-  public ModelCursor getDirectionalCursor(
-      boolean forward, @Nullable StreamContentId startingChild) {
+  public ModelCursor getDirectionalCursor(boolean forward, @Nullable String startingChild) {
     return null;
   }
 
@@ -59,7 +57,7 @@ public class UpdatableModelFeature extends Observable<FeatureChangeObserver>
     }
   }
 
-  public void setFeatureValue(StreamFeature streamFeature) {
+  void setFeatureValue(StreamFeature streamFeature) {
     this.streamFeature = streamFeature;
   }
 }

@@ -14,12 +14,11 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
+import android.text.TextUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import javax.annotation.Nullable;
 
@@ -27,21 +26,16 @@ import javax.annotation.Nullable;
 public class UpdatableModelChild implements ModelChild {
   private static final String TAG = "UpdatableModelChild";
 
-  private final StreamContentId contentId;
-  @Nullable private final StreamContentId parentContentId;
-  private final InternalProtocolUtils protocolUtils;
+  private final String contentId;
+  @Nullable private final String parentContentId;
 
   private ModelChild.Type type = Type.UNBOUND;
   private UpdatableModelFeature modelFeature;
   private UpdatableModelToken modelToken;
 
-  UpdatableModelChild(
-      StreamContentId contentId,
-      @Nullable StreamContentId parentContentId,
-      InternalProtocolUtils protocolUtils) {
+  UpdatableModelChild(String contentId, @Nullable String parentContentId) {
     this.contentId = contentId;
     this.parentContentId = parentContentId;
-    this.protocolUtils = protocolUtils;
   }
 
   void bindFeature(UpdatableModelFeature modelFeature) {
@@ -76,7 +70,7 @@ public class UpdatableModelChild implements ModelChild {
   }
 
   public String getContentIdAsKey() {
-    return protocolUtils.getContentIdKey(contentId);
+    return contentId;
   }
 
   public void updateFeature(StreamPayload payload) {
@@ -102,18 +96,19 @@ public class UpdatableModelChild implements ModelChild {
   }
 
   @Override
-  public StreamContentId getContentId() {
+  public String getContentId() {
     return contentId;
   }
 
+  @Nullable
   @Override
-  public StreamContentId getParentId() {
+  public String getParentId() {
     return parentContentId;
   }
 
   @Override
   public boolean hasParentId() {
-    return parentContentId != null;
+    return !TextUtils.isEmpty(parentContentId);
   }
 
   private void validateType(ModelChild.Type type) {

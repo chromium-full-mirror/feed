@@ -19,7 +19,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
@@ -31,7 +30,6 @@ import org.mockito.Mock;
 @RunWith(RobolectricTestRunner.class)
 public class ModelFeatureImplTest {
 
-  private StreamContentId contentId;
   private StreamFeature streamFeature;
   @Mock private CursorProvider cursorProvider;
   @Mock private ModelCursor modelCursor;
@@ -39,7 +37,7 @@ public class ModelFeatureImplTest {
   @Before
   public void setup() {
     initMocks(this);
-    contentId = StreamContentId.newBuilder().build();
+    String contentId = "content-id";
     streamFeature = StreamFeature.newBuilder().setContentId(contentId).build();
     when(cursorProvider.getCursor(contentId)).thenReturn(modelCursor);
   }

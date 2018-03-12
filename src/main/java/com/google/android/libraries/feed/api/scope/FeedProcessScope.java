@@ -137,7 +137,7 @@ public class FeedProcessScope implements Dumpable {
       InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
       TimingUtils timingUtils = new TimingUtils();
       // TODO: use keyvalue/journal storage apis
-      FeedStore store = new FeedStore(timingUtils, internalProtocolUtils, extensionRegistry);
+      FeedStore store = new FeedStore(timingUtils, extensionRegistry);
 
       // TODO: require to build
       if (uiRunnableHandler == null) {
@@ -146,8 +146,7 @@ public class FeedProcessScope implements Dumpable {
       ThreadUtils threadUtils = new ThreadUtils();
       if (modelProviderFactory == null) {
         modelProviderFactory =
-            new FeedModelProviderFactory(
-                threadUtils, timingUtils, internalProtocolUtils, uiRunnableHandler);
+            new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
       }
       if (sessionManager == null) {
         sessionManager =

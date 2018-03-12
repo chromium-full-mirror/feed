@@ -17,34 +17,30 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 
 /** Tests of the {@link ModelChildFactory}. */
 @RunWith(RobolectricTestRunner.class)
 public class ModelChildFactoryTest {
-  @Mock private InternalProtocolUtils internalProtocolUtils;
 
-  private StreamContentId contentId = null;
-  private StreamContentId parentId = null;
+  private String contentId = null;
+  private String parentId = null;
 
   @Before
   public void setup() {
     initMocks(this);
-    contentId = StreamContentId.newBuilder().build();
-    parentId = StreamContentId.newBuilder().build();
+    contentId = "content-id";
+    parentId = "parent-content-id";
   }
 
   @Test
   public void testCreateChild() {
-    ModelChildFactory modelChildFactory = new ModelChildFactory(internalProtocolUtils);
+    ModelChildFactory modelChildFactory = new ModelChildFactory();
     ModelChild modelChild = modelChildFactory.createUnboundChild(contentId, parentId);
     assertThat(modelChild).isNotNull();
     assertThat(modelChild.getType()).isEqualTo(Type.UNBOUND);

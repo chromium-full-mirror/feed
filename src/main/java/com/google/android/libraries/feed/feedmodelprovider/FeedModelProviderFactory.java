@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedmodelprovider;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -30,7 +29,6 @@ import com.google.android.libraries.feed.common.Validators;
 public class FeedModelProviderFactory implements ModelProviderFactory {
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
-  private final InternalProtocolUtils internalProtocolUtils;
   private final UiRunnableHandler uiRunnableHandler;
 
   private SessionManager sessionManager;
@@ -38,11 +36,9 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   public FeedModelProviderFactory(
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
-      InternalProtocolUtils internalProtocolUtils,
       UiRunnableHandler uiRunnableHandler) {
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
-    this.internalProtocolUtils = internalProtocolUtils;
     this.uiRunnableHandler = uiRunnableHandler;
   }
 
@@ -54,7 +50,6 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   @Override
   public ModelProvider create() {
     Validators.checkNotNull(sessionManager);
-    return new FeedModelProvider(
-        sessionManager, threadUtils, timingUtils, internalProtocolUtils, uiRunnableHandler);
+    return new FeedModelProvider(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
   }
 }

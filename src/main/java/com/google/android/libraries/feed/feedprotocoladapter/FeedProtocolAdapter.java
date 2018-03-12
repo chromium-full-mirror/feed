@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -59,7 +58,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   private static final String TAG = "FeedProtocolAdapter";
 
   private final SessionManager sessionManager;
-  private final InternalProtocolUtils internalProtocolUtils;
+  private final InternalProtocolUtils protocolUtils;
   private final TimingUtils timingUtils;
   private int nextTokenId = 1;
 
@@ -70,12 +69,10 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   private int convertContentIdCount = 0;
 
   public FeedProtocolAdapter(
-      SessionManager sessionManager,
-      TimingUtils timingUtils,
-      InternalProtocolUtils internalProtocolUtils) {
+      SessionManager sessionManager, TimingUtils timingUtils, InternalProtocolUtils protocolUtils) {
     this.sessionManager = sessionManager;
     this.timingUtils = timingUtils;
-    this.internalProtocolUtils = internalProtocolUtils;
+    this.protocolUtils = protocolUtils;
   }
 
   /** Create the internal protocol based upon the FeedStream definition. */
@@ -99,16 +96,16 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       // The operations defined in stream_data.proto and data_operation.proto have the same
       // integer value
       Operation streamOperation = Operation.forNumber(operation.getOperation().getNumber());
-      StreamContentId contentId;
+      String contentId;
       if (streamOperation == Operation.CLEAR_ALL) {
         sessionMutation.addOperation(createDataOperation(Operation.CLEAR_ALL, null, null).build());
         continue;
       } else if (streamOperation == Operation.REMOVE) {
         if (operation.getMetadata().hasContentId()) {
-          contentId = internalProtocolUtils.createContentId(operation.getMetadata().getContentId());
-          StreamContentId parentId = null;
+          contentId = protocolUtils.createContentId(operation.getMetadata().getContentId());
+          String parentId = null;
           if (operation.getFeature().hasParentId()) {
-            parentId = internalProtocolUtils.createContentId(operation.getFeature().getParentId());
+            parentId = protocolUtils.createContentId(operation.getFeature().getParentId());
           }
           sessionMutation.addOperation(
               createDataOperation(Operation.REMOVE, contentId, parentId).build());
@@ -118,7 +115,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
         }
         continue;
       } else if (operation.getMetadata().hasContentId()) {
-        contentId = internalProtocolUtils.createContentId(operation.getMetadata().getContentId());
+        contentId = protocolUtils.createContentId(operation.getMetadata().getContentId());
       } else {
         // This is an error state, every card should have a content id
         Logger.e(TAG, "ContentId not defined for DataOperation");
@@ -128,9 +125,9 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       if (operation.hasFeature()) {
         StreamFeature.Builder streamFeature = StreamFeature.newBuilder();
         streamFeature.setContentId(contentId);
-        StreamContentId parentId = null;
+        String parentId = null;
         if (operation.getFeature().hasParentId()) {
-          parentId = internalProtocolUtils.createContentId(operation.getFeature().getParentId());
+          parentId = protocolUtils.createContentId(operation.getFeature().getParentId());
           streamFeature.setParentId(parentId);
         }
         switch (operation.getFeature().getRenderableUnit()) {
@@ -168,12 +165,13 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     ByteString continuationToken =
         response.getExtension(FeedResponse.feedResponse).getNextPageToken();
     if (continuationToken != null && !continuationToken.isEmpty()) {
-      StreamContentId contentId =
-          StreamContentId.newBuilder()
-              .setContentDomain("token")
-              .setId(nextTokenId++)
-              .setTable("feature")
-              .build();
+      String contentId =
+          protocolUtils.createContentId(
+              ContentId.newBuilder()
+                  .setContentDomain("token")
+                  .setId(nextTokenId++)
+                  .setTable("feature")
+                  .build());
       StreamToken streamToken =
           Validators.checkNotNull(createStreamToken(contentId, continuationToken));
       streamTokens.put(continuationToken.hashCode(), streamToken);
@@ -185,17 +183,18 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   }
 
   @Nullable
-  private StreamToken createStreamToken(StreamContentId tokenId, ByteString continuationToken) {
+  private StreamToken createStreamToken(String tokenId, ByteString continuationToken) {
     if (continuationToken.isEmpty()) {
       return null;
     }
     StreamToken.Builder tokenBuilder = StreamToken.newBuilder();
-    StreamContentId rootContentId =
-        StreamContentId.newBuilder()
-            .setContentDomain("stream_root")
-            .setId(0)
-            .setTable("feature")
-            .build();
+    String rootContentId =
+        protocolUtils.createContentId(
+            ContentId.newBuilder()
+                .setContentDomain("stream_root")
+                .setId(0)
+                .setTable("feature")
+                .build());
     tokenBuilder.setParentId(rootContentId);
     tokenBuilder.setContentId(tokenId);
     tokenBuilder.setNextPageToken(continuationToken);
@@ -203,15 +202,15 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   }
 
   @Override
-  public StreamContentId getStreamContentId(ContentId contentId) {
+  public String getStreamContentId(ContentId contentId) {
     convertContentIdCount++;
-    return internalProtocolUtils.createContentId(contentId);
+    return protocolUtils.createContentId(contentId);
   }
 
   private StreamDataOperation.Builder createFeatureDataOperation(
       Operation operation,
-      @Nullable StreamContentId contentId,
-      @Nullable StreamContentId parentId,
+      @Nullable String contentId,
+      @Nullable String parentId,
       StreamFeature streamFeature) {
     StreamDataOperation.Builder dataOperation = createDataOperation(operation, contentId, parentId);
     dataOperation.setStreamPayload(StreamPayload.newBuilder().setStreamFeature(streamFeature));
@@ -219,18 +218,14 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   }
 
   private StreamDataOperation.Builder createSharedStateDataOperation(
-      Operation operation,
-      @Nullable StreamContentId contentId,
-      StreamSharedState sharedState) {
+      Operation operation, @Nullable String contentId, StreamSharedState sharedState) {
     StreamDataOperation.Builder dataOperation = createDataOperation(operation, contentId, null);
     dataOperation.setStreamPayload(StreamPayload.newBuilder().setStreamSharedState(sharedState));
     return dataOperation;
   }
 
   private StreamDataOperation.Builder createTokenDataOperation(
-      @Nullable StreamContentId contentId,
-      @Nullable StreamContentId parentId,
-      StreamToken streamToken) {
+      @Nullable String contentId, @Nullable String parentId, StreamToken streamToken) {
     StreamDataOperation.Builder dataOperation =
         createDataOperation(Operation.UPDATE_OR_APPEND, contentId, parentId);
     dataOperation.setStreamPayload(StreamPayload.newBuilder().setStreamToken(streamToken));
@@ -238,9 +233,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   }
 
   private StreamDataOperation.Builder createDataOperation(
-      Operation operation,
-      @Nullable StreamContentId contentId,
-      @Nullable StreamContentId parentId) {
+      Operation operation, @Nullable String contentId, @Nullable String parentId) {
     StreamDataOperation.Builder streamDataOperation = StreamDataOperation.newBuilder();
     StreamStructure.Builder streamStructure = StreamStructure.newBuilder();
     streamStructure.setOperation(operation);

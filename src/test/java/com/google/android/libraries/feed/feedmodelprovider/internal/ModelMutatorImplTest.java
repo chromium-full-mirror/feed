@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ModelMutatorCommitter;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -42,7 +41,7 @@ public class ModelMutatorImplTest {
   @Before
   public void setup() {
     initMocks(this);
-    modelChildFactory = new ModelChildFactory(new InternalProtocolUtils());
+    modelChildFactory = new ModelChildFactory();
   }
 
   @Test

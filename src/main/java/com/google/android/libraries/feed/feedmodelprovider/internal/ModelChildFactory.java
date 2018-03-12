@@ -14,20 +14,11 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
-import com.google.search.now.feed.client.StreamDataProto.StreamContentId;
 import javax.annotation.Nullable;
 
 /** Factory for creating children found in the Stream. */
 public class ModelChildFactory {
-  private final InternalProtocolUtils protocolUtils;
-
-  public ModelChildFactory(InternalProtocolUtils protocolUtils) {
-    this.protocolUtils = protocolUtils;
-  }
-
-  UpdatableModelChild createUnboundChild(
-      StreamContentId contentId, @Nullable StreamContentId parentContentId) {
-    return new UpdatableModelChild(contentId, parentContentId, protocolUtils);
+  UpdatableModelChild createUnboundChild(String contentId, @Nullable String parentContentId) {
+    return new UpdatableModelChild(contentId, parentContentId);
   }
 }
