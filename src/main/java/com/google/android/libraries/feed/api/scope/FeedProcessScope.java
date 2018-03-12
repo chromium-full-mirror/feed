@@ -115,11 +115,6 @@ public class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    public Builder setThreadUtils(ThreadUtils threadUtils) {
-      this.threadUtils = threadUtils;
-      return this;
-    }
-
     public Builder setProtoExtensionProvider(ProtoExtensionProvider protoExtensionProvider) {
       this.protoExtensionProvider = protoExtensionProvider;
       return this;
@@ -148,9 +143,7 @@ public class FeedProcessScope implements Dumpable {
       if (uiRunnableHandler == null) {
         uiRunnableHandler = new UiRunnableHandlerImpl();
       }
-      if (threadUtils == null) {
-        threadUtils = new ThreadUtils();
-      }
+      ThreadUtils threadUtils = new ThreadUtils();
       if (modelProviderFactory == null) {
         modelProviderFactory =
             new FeedModelProviderFactory(
@@ -191,7 +184,8 @@ public class FeedProcessScope implements Dumpable {
           schedulerApi,
           sessionManager,
           store,
-          timingUtils);
+          timingUtils,
+          threadUtils);
     }
 
     // Required fields.
@@ -206,7 +200,6 @@ public class FeedProcessScope implements Dumpable {
     @Nullable private SessionManager sessionManager = null;
     @Nullable private ModelProviderFactory modelProviderFactory = null;
     @Nullable private UiRunnableHandler uiRunnableHandler = null;
-    @Nullable private ThreadUtils threadUtils = null;
     @Nullable private FeedProtocolAdapter protocolAdapter = null;
     @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
     @Nullable private FeedExtensionRegistry extensionRegistry = null;
@@ -222,7 +215,8 @@ public class FeedProcessScope implements Dumpable {
       SchedulerApi schedulerApi,
       SessionManager sessionManager,
       Store store,
-      TimingUtils timingUtils) {
+      TimingUtils timingUtils,
+      ThreadUtils threadUtils) {
     this.configManager = configManager;
     this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
@@ -233,6 +227,7 @@ public class FeedProcessScope implements Dumpable {
     this.sessionManager = sessionManager;
     this.store = store;
     this.timingUtils = timingUtils;
+    this.threadUtils = threadUtils;
   }
 
   private final ConfigManager configManager;
@@ -245,6 +240,7 @@ public class FeedProcessScope implements Dumpable {
   private final SessionManager sessionManager;
   private final Store store;
   private final TimingUtils timingUtils;
+  private final ThreadUtils threadUtils;
 
   public FeedProtocolAdapter getProtocolAdapter() {
     return protocolAdapter;

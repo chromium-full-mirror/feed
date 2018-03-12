@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ConfigManager;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.network.NetworkClient;
@@ -58,7 +57,6 @@ public class FeedProcessScopeTest {
   @Mock private ModelProviderFactory modelProviderFactory;
 
   private UiRunnableHandler uiRunnableHandler;
-  private ThreadUtils threadUtils;
   private final ProtoExtensionProvider protoExtensionProvider =
       new ProtoExtensionProvider() {
         @Override
@@ -73,7 +71,6 @@ public class FeedProcessScopeTest {
   public void setUp() {
     initMocks(this);
     uiRunnableHandler = new UiRunnableHandlerImpl();
-    threadUtils = new ThreadUtils();
   }
 
   @Test
@@ -81,6 +78,10 @@ public class FeedProcessScopeTest {
     // No crash should happen.
     FeedProcessScope processScope =
         new Builder(configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi).build();
+
+    assertThat(processScope.getProtocolAdapter()).isNotNull();
+    assertThat(processScope.getRequestManager()).isNotNull();
+    assertThat(processScope.getSessionManager()).isNotNull();
   }
 
   @Test
@@ -94,7 +95,6 @@ public class FeedProcessScopeTest {
             .setSessionManager(sessionManager)
             .setModelProviderFactory(modelProviderFactory)
             .setUiRunnableHandler(uiRunnableHandler)
-            .setThreadUtils(threadUtils)
             .setExtensionRegistry(extensionRegistry)
             .setProtoExtensionProvider(protoExtensionProvider)
             .build();
