@@ -28,6 +28,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.stream.CardConfiguration;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
@@ -118,10 +120,16 @@ public class BasicStream implements Stream {
   }
 
   @Override
-  public void onStart() {}
+  public void onShow() {}
 
   @Override
-  public void onStop() {}
+  public void onActive() {}
+
+  @Override
+  public void onInactive() {}
+
+  @Override
+  public void onHide() {}
 
   @Override
   public void onDestroy() {}
@@ -138,9 +146,41 @@ public class BasicStream implements Stream {
   }
 
   @Override
-  public void setHeaders(List<View> headers) {
+  public void setHeaderViews(List<View> headers) {
     adapter.setHeaders(headers);
   }
+
+  @Override
+  public void setStreamContentVisibility(boolean visible) {}
+
+  @Override
+  public void trim() {}
+
+  @Override
+  public void smoothScrollBy(int dx, int dy) {}
+
+  @Override
+  public int getChildTopAt(int position) {
+    return POSITION_NOT_KNOWN;
+  }
+
+  @Override
+  public boolean isChildAtPositionVisible(int position) {
+    return recyclerView.getLayoutManager().findViewByPosition(position).getVisibility()
+        == View.VISIBLE;
+  }
+
+  @Override
+  public void addScrollListener(ScrollListener listener) {}
+
+  @Override
+  public void removeScrollListener(ScrollListener listener) {}
+
+  @Override
+  public void addOnContentChangedListener(ContentChangedListener listener) {}
+
+  @Override
+  public void removeOnContentChangedListener(ContentChangedListener listener) {}
 
   @Override
   public void setModelProvider(ModelProvider modelProvider) {
