@@ -275,30 +275,30 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   /**
-   * Interface used by the {@code ModelMutatorCommitter} to modify the model state based upon the
-   * current model state and the contents of the mutation. We define mutation handlers for the
+   * Abstract class used by the {@code ModelMutatorCommitter} to modify the model state based upon
+   * the current model state and the contents of the mutation. We define mutation handlers for the
    * initialization, for a mutation based upon a continuation token response, and then a standard
-   * update mutation.
+   * update mutation. The default implementation is a no-op.
    */
-  interface MutationHandler {
+  abstract static class MutationHandler {
 
     /**
      * Called before processing the children of the mutation. This allows the model to be cleaned up
      * before new children are added.
      */
-    void preMutation();
+    void preMutation() {}
 
     /** Append a child to a parent */
-    void appendChild(String parentKey, UpdatableModelChild child);
+    void appendChild(String parentKey, UpdatableModelChild child) {}
 
     /** Remove a child from a parent */
-    void removeChild(String parentKey, UpdatableModelChild child);
+    void removeChild(String parentKey, UpdatableModelChild child) {}
 
     /**
      * This is called after the model has been updated. Typically this will notify observers of the
      * changes made during the mutation.
      */
-    void postMutation();
+    void postMutation() {}
   }
 
   /** This is the {@code ModelMutatorCommitter} which updates the model */
@@ -448,25 +448,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
    * events are triggered. When the model is updated, we trigger a Session Started event.
    */
   @VisibleForTesting
-  class InitializeModel implements MutationHandler {
-
-    @Override
-    public void preMutation() {
-      // no-op
-    }
-
-    @Override
-    public void appendChild(String parentKey, UpdatableModelChild child) {
-      // During initialization, all children added are not tracked, the consumer will get
-      // an initial cursor for the children.
-    }
-
-    @Override
-    public void removeChild(String parentKey, UpdatableModelChild child) {
-      // During initialization, all children removed are not tracked, the consumer will get
-      // an initial cursor for the children.
-    }
-
+  class InitializeModel extends MutationHandler {
     @Override
     public void postMutation() {
       synchronized (lock) {
@@ -491,7 +473,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
    * appended and a {@link TokenCompleted} will be triggered.
    */
   @VisibleForTesting
-  class TokenMutation implements MutationHandler {
+  class TokenMutation extends MutationHandler {
     private final StreamToken mutationSourceToken;
     TokenTracking token = null;
     int newCursorStart = -1;
@@ -516,17 +498,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         }
         newCursorStart = token.location.size();
       }
-    }
-
-    @Override
-    public void appendChild(String parentKey, UpdatableModelChild child) {
-      // The children added will be accessed through a new cursor.
-      // TODO: Do we support adding children to more than the parent with the token?
-    }
-
-    @Override
-    public void removeChild(String parentKey, UpdatableModelChild child) {
-      // The children added will be accessed through a new cursor.
     }
 
     @Override
@@ -556,7 +527,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
    * are two types of changes, the content and changes to the children (structure).
    */
   @VisibleForTesting
-  class UpdateMutation implements MutationHandler {
+  class UpdateMutation extends MutationHandler {
 
     private final List<ChildUpdateMutation> updates;
     private final Map<String, FeatureChangeImpl> changes = new HashMap<>();
