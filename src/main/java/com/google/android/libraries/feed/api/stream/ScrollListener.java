@@ -18,7 +18,7 @@ import android.support.annotation.IntDef;
 
 /** Interface users can implement to be told about changes to scrolling in the Stream. */
 public interface ScrollListener {
-  void onScrollStateChanged(ScrollState state);
+  void onScrollStateChanged(@ScrollState int state);
 
   void onScrolled(int dx, int dy);
 
