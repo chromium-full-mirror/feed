@@ -19,37 +19,44 @@ import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
-import com.google.android.libraries.feed.common.Validators;
 
 /**
  * Factory for creating instances of {@link ModelProviderFactory} using the {@link
  * FeedModelProvider}.
  */
 public class FeedModelProviderFactory implements ModelProviderFactory {
+  private static final String TAG = "FeedModelProviderFactory";
+
+  private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final UiRunnableHandler uiRunnableHandler;
 
-  private SessionManager sessionManager;
-
   public FeedModelProviderFactory(
+      SessionManager sessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
       UiRunnableHandler uiRunnableHandler) {
+    this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.uiRunnableHandler = uiRunnableHandler;
   }
 
-  /** Set the SessionManager. {@link #create} will fail if the session manager is not set. */
-  public void setSessionManager(SessionManager sessionManager) {
-    this.sessionManager = sessionManager;
+  @Override
+  public ModelProvider create(String sessionId) {
+    // TODO: Need to support this
+    Logger.e(TAG, "create currently not supported");
+    return null;
   }
 
   @Override
-  public ModelProvider create() {
-    Validators.checkNotNull(sessionManager);
-    return new FeedModelProvider(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+  public ModelProvider createNew() {
+    FeedModelProvider modelProvider =
+        new FeedModelProvider(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+    sessionManager.getNewSession(modelProvider);
+    return modelProvider;
   }
 }

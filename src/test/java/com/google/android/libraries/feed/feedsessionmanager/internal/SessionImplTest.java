@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -26,7 +25,6 @@ import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults.Status;
@@ -51,7 +49,6 @@ public class SessionImplTest {
 
   @Mock private Store store;
   @Mock private SessionMutationResults sessionMutationResults;
-  @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private ModelProvider modelProvider;
   @Mock private ThreadUtils threadUtils;
 
@@ -67,34 +64,13 @@ public class SessionImplTest {
     when(store.getHeadSession()).thenReturn(HEAD);
     fakeSessionMutation = new FakeSessionMutation();
     when(store.editSession(TEST_SESSION)).thenReturn(fakeSessionMutation);
-    when(modelProviderFactory.create()).thenReturn(modelProvider);
     fakeModelMutator = new FakeModelMutator();
     when(modelProvider.edit()).thenReturn(fakeModelMutator);
   }
 
   @Test
-  public void testMinimalSessionManager() {
-    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
-    verify(modelProviderFactory).create();
-    assertThat(session.getModelProvider()).isEqualTo(modelProvider);
-  }
-
-  @Test
-  public void testPopulateModelProvider_notFullyInitialized() {
-    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                session.populateModelProvider(new ArrayList<>());
-              }
-            })
-        .throwsAnExceptionOfType(NullPointerException.class);
-  }
-
-  @Test
   public void testPopulateModelProvider_features() {
-    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
+    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -112,7 +88,7 @@ public class SessionImplTest {
 
   @Test
   public void testUpdateSession_notFullyInitialized() {
-    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
+    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
     assertThatRunnable(
             new ThrowingRunnable() {
               @Override
@@ -125,7 +101,7 @@ public class SessionImplTest {
 
   @Test
   public void testUpdateSession_features() {
-    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
+    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
@@ -143,7 +119,7 @@ public class SessionImplTest {
 
   @Test
   public void testUpdateFromToken() {
-    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
+    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -160,7 +136,7 @@ public class SessionImplTest {
 
   @Test
   public void testUpdateFromToken_notInSession() {
-    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
+    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -177,7 +153,7 @@ public class SessionImplTest {
 
   @Test
   public void testStorageFailure() {
-    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
+    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -191,7 +167,7 @@ public class SessionImplTest {
 
   @Test
   public void testRemove() {
-    SessionImpl session = new SessionImpl(modelProviderFactory, store, timingUtils, threadUtils);
+    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
     session.setStreamSession(TEST_SESSION);
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     int featureCnt = 2;

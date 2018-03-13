@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedmodelprovider;
 
-import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -22,7 +21,6 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.TimingUtils;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,22 +44,7 @@ public class FeedModelProviderFactoryTest {
   @Test
   public void testModelProviderFactory() {
     FeedModelProviderFactory factory =
-        new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
-    factory.setSessionManager(sessionManager);
-    assertThat(factory.create()).isNotNull();
-  }
-
-  @Test
-  public void testModelProviderFactory_noSession() {
-    FeedModelProviderFactory factory =
-        new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                factory.create();
-              }
-            })
-        .throwsAnExceptionOfType(NullPointerException.class);
+        new FeedModelProviderFactory(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+    assertThat(factory.createNew()).isNotNull();
   }
 }

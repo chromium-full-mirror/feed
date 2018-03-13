@@ -21,10 +21,8 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.api.sessionmanager.Session;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
@@ -91,7 +89,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   public FeedSessionManager(
       ExecutorService sessionManagerExecutor,
       Store store,
-      ModelProviderFactory modelProviderFactory,
       TimingUtils timingUtils,
       ThreadUtils threadUtils) {
     this.sessionManagerExecutor = sessionManagerExecutor;
@@ -99,7 +96,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
 
-    sessionFactory = new SessionFactory(store, modelProviderFactory, timingUtils, threadUtils);
+    sessionFactory = new SessionFactory(store, timingUtils, threadUtils);
     sessionManagerExecutor.execute(
         () -> timingUtils.pinThread(Thread.currentThread(), "SessionManager"));
     sessionManagerExecutor.execute(
@@ -145,9 +142,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
-  public Session getNewSession() {
+  public void getNewSession(ModelProvider modelProvider) {
     threadUtils.checkMainThread();
-    FeedSession session = sessionFactory.getSession();
+    FeedSession session = sessionFactory.getSession(modelProvider);
 
     // Task which populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
@@ -166,7 +163,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           timeTracker.stop("task", "New Session");
           newSessionCount++;
         });
-    return session;
   }
 
   @Override

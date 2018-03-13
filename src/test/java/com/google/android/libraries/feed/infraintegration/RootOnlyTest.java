@@ -23,10 +23,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
@@ -43,21 +43,21 @@ import org.mockito.Mock;
 @RunWith(RobolectricTestRunner.class)
 public class RootOnlyTest {
   @Mock private ThreadUtils threadUtils;
-  @Mock private RequestManager requstManager;
+  @Mock private RequestManager requestManager;
 
   private ProtocolAdapter protocolAdapter;
-  private SessionManager sessionManager;
   private ModelProviderValidator modelValidator;
+  private ModelProviderFactory modelProviderFactory;
 
   @Before
   public void setUp() {
     initMocks(this);
     InfrastructureIntegrationScope scope =
         new InfrastructureIntegrationScope.Builder(
-                threadUtils, requstManager, MoreExecutors.newDirectExecutorService())
+                threadUtils, requestManager, MoreExecutors.newDirectExecutorService())
             .build();
     protocolAdapter = scope.getProtocolAdapter();
-    sessionManager = scope.getSessionManager();
+    modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(protocolAdapter);
   }
 
@@ -67,7 +67,7 @@ public class RootOnlyTest {
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
     protocolAdapter.createModel(responseBuilder.build(), null);
-    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    ModelProvider modelProvider = modelProviderFactory.createNew();
 
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(changeObserver);
@@ -93,7 +93,7 @@ public class RootOnlyTest {
     // ModelProvider created from empty $HEAD, followed by a response adding head
     // Verify the observer lifecycle is correctly called
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
-    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    ModelProvider modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(changeObserver);
     verify(changeObserver).onSessionStart();
     verify(changeObserver, never()).onRootSet();
@@ -126,7 +126,7 @@ public class RootOnlyTest {
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
     protocolAdapter.createModel(responseBuilder.build(), null);
-    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    ModelProvider modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(changeObserver);
     verify(changeObserver, never()).onRootSet();
     modelValidator.assertRoot(modelProvider);

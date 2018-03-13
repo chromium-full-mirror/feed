@@ -31,9 +31,9 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.api.sessionmanager.Session;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults.Status;
@@ -90,21 +90,10 @@ public class FeedSessionManagerTest {
               return new ArrayList<>();
             }
           });
-  private FeedModelProviderFactory modelProviderFactory;
 
   @Before
   public void setUp() {
     initMocks(this);
-    modelProviderFactory =
-        new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
-  }
-
-  @Test
-  public void testMinimalSessionManager() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
-    Session session = sessionManager.getNewSession();
-    assertThat(session).isNotNull();
-    assertThat(session.getModelProvider()).isNotNull();
   }
 
   @Test
@@ -139,7 +128,6 @@ public class FeedSessionManagerTest {
         new FeedSessionManager(
             MoreExecutors.newDirectExecutorService(),
             store,
-            modelProviderFactory,
             timingUtils,
             threadUtils);
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
@@ -160,10 +148,11 @@ public class FeedSessionManagerTest {
     int featureCnt = 3;
     populateSession(sessionManager, featureCnt, 1, true, null);
 
-    Session session = sessionManager.getNewSession();
-    assertThat(session).isNotNull();
+    ModelProviderFactory modelProviderFactory =
+        new FeedModelProviderFactory(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+    ModelProvider modelProvider = modelProviderFactory.createNew();
+    assertThat(modelProvider).isNotNull();
 
-    ModelProvider modelProvider = session.getModelProvider();
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getRootFeature()).isNotNull();
     ModelCursor cursor = modelProvider.getRootFeature().getCursor();
@@ -261,12 +250,10 @@ public class FeedSessionManagerTest {
         new FeedSessionManager(
             MoreExecutors.newDirectExecutorService(),
             store,
-            modelProviderFactory,
             timingUtils,
             threadUtils);
     sessionManager.setProtocolAdapter(protocolAdapter);
     sessionManager.setRequestManager(requestManager);
-    modelProviderFactory.setSessionManager(sessionManager);
     return sessionManager;
   }
 

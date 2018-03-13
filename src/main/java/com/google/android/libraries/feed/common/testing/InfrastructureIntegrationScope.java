@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.common.testing;
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -41,6 +42,7 @@ public class InfrastructureIntegrationScope {
 
   private final FeedSessionManager feedSessionManager;
   private final FeedProtocolAdapter feedProtocolAdapter;
+  private final FeedModelProviderFactory modelProviderFactory;
 
   InfrastructureIntegrationScope(
       ThreadUtils threadUtils, RequestManager mockRequestManager, ExecutorService executorService) {
@@ -50,13 +52,11 @@ public class InfrastructureIntegrationScope {
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     FeedStore store = new FeedStore(timingUtils, extensionRegistry);
-    FeedModelProviderFactory modelProviderFactory =
-        new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
-    feedSessionManager =
-        new FeedSessionManager(
-            executorService, store, modelProviderFactory, timingUtils, threadUtils);
+    feedSessionManager = new FeedSessionManager(executorService, store, timingUtils, threadUtils);
+    modelProviderFactory =
+        new FeedModelProviderFactory(
+            feedSessionManager, threadUtils, timingUtils, uiRunnableHandler);
     feedProtocolAdapter = new FeedProtocolAdapter(feedSessionManager, timingUtils, protocolUtils);
-    modelProviderFactory.setSessionManager(feedSessionManager);
     feedSessionManager.setProtocolAdapter(feedProtocolAdapter);
     feedSessionManager.setRequestManager(mockRequestManager);
   }
@@ -67,6 +67,10 @@ public class InfrastructureIntegrationScope {
 
   public SessionManager getSessionManager() {
     return feedSessionManager;
+  }
+
+  public ModelProviderFactory getModelProviderFactory() {
+    return modelProviderFactory;
   }
 
   private static class ExtensionProvider implements ProtoExtensionProvider {

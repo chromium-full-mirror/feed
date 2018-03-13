@@ -18,7 +18,6 @@ import com.google.android.libraries.feed.api.common.ConfigManager;
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
-import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -28,7 +27,6 @@ import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
-import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
@@ -51,7 +49,7 @@ import javax.annotation.Nullable;
 public class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
-  public FeedStreamScope.Builder createFeedStreamScopeBuilder(ActionApi actionApi) {
+  FeedStreamScope.Builder createFeedStreamScopeBuilder(ActionApi actionApi) {
     return new FeedStreamScope.Builder(
         actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager);
   }
@@ -105,11 +103,6 @@ public class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    public Builder setModelProviderFactory(ModelProviderFactory modelProviderFactory) {
-      this.modelProviderFactory = modelProviderFactory;
-      return this;
-    }
-
     public Builder setUiRunnableHandler(UiRunnableHandler uiRunnableHandler) {
       this.uiRunnableHandler = uiRunnableHandler;
       return this;
@@ -144,16 +137,11 @@ public class FeedProcessScope implements Dumpable {
         uiRunnableHandler = new UiRunnableHandlerImpl();
       }
       ThreadUtils threadUtils = new ThreadUtils();
-      if (modelProviderFactory == null) {
-        modelProviderFactory =
-            new FeedModelProviderFactory(threadUtils, timingUtils, uiRunnableHandler);
-      }
       if (sessionManager == null) {
         sessionManager =
             new FeedSessionManager(
                 Executors.newSingleThreadExecutor(),
                 store,
-                modelProviderFactory,
                 timingUtils,
                 threadUtils);
       }
@@ -170,9 +158,6 @@ public class FeedProcessScope implements Dumpable {
         ((FeedSessionManager) sessionManager).setProtocolAdapter(protocolAdapter);
         ((FeedSessionManager) sessionManager).setRequestManager(requestManager);
       }
-      if (modelProviderFactory instanceof FeedModelProviderFactory) {
-        ((FeedModelProviderFactory) modelProviderFactory).setSessionManager(sessionManager);
-      }
       return new FeedProcessScope(
           configManager,
           imageLoaderApi,
@@ -184,7 +169,8 @@ public class FeedProcessScope implements Dumpable {
           sessionManager,
           store,
           timingUtils,
-          threadUtils);
+          threadUtils,
+          uiRunnableHandler);
     }
 
     // Required fields.
@@ -197,7 +183,6 @@ public class FeedProcessScope implements Dumpable {
     // Optional fields - if they are not provided, we will use default implementations.
     @Nullable private RequestManager requestManager = null;
     @Nullable private SessionManager sessionManager = null;
-    @Nullable private ModelProviderFactory modelProviderFactory = null;
     @Nullable private UiRunnableHandler uiRunnableHandler = null;
     @Nullable private FeedProtocolAdapter protocolAdapter = null;
     @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
@@ -215,7 +200,8 @@ public class FeedProcessScope implements Dumpable {
       SessionManager sessionManager,
       Store store,
       TimingUtils timingUtils,
-      ThreadUtils threadUtils) {
+      ThreadUtils threadUtils,
+      UiRunnableHandler uiRunnableHandler) {
     this.configManager = configManager;
     this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
@@ -227,6 +213,7 @@ public class FeedProcessScope implements Dumpable {
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    this.uiRunnableHandler = uiRunnableHandler;
   }
 
   private final ConfigManager configManager;
@@ -240,6 +227,7 @@ public class FeedProcessScope implements Dumpable {
   private final Store store;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
+  private final UiRunnableHandler uiRunnableHandler;
 
   public FeedProtocolAdapter getProtocolAdapter() {
     return protocolAdapter;
@@ -251,5 +239,15 @@ public class FeedProcessScope implements Dumpable {
 
   public SessionManager getSessionManager() {
     return sessionManager;
+  }
+
+  // TODO: These are required to create the FeedModelProviderFactory, these probably only
+  // need to be package private once the StreamScope is used in Audrey2
+  public TimingUtils getTimingUtils() {
+    return timingUtils;
+  }
+
+  public UiRunnableHandler getUiRunnableHandler() {
+    return uiRunnableHandler;
   }
 }

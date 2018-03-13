@@ -93,7 +93,6 @@ public class FeedProcessScopeTest {
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)
-            .setModelProviderFactory(modelProviderFactory)
             .setUiRunnableHandler(uiRunnableHandler)
             .setExtensionRegistry(extensionRegistry)
             .setProtoExtensionProvider(protoExtensionProvider)

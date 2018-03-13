@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.sessionmanager;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.host.common.Callback;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -42,7 +43,7 @@ public interface SessionManager {
    * the stream. It will also decide which changes should be made to existing sessions and the life
    * time of existing sessions.
    */
-  Session getNewSession();
+  void getNewSession(ModelProvider modelProvider);
 
   /**
    * Method which causes a request to be created for the next page of content based upon the

@@ -355,7 +355,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                   continue;
                 }
 
-                String parentKey = child.getParentId();
+                String parentKey = Validators.checkNotNull(child.getParentId());
                 if (!parentKey.equals(currentParentKey)) {
                   childrenList = getChildList(parentKey);
                   currentParentKey = parentKey;

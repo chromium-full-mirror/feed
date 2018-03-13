@@ -19,7 +19,6 @@ import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.Session;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
@@ -57,14 +56,11 @@ public class SessionImpl implements FeedSession, Dumpable {
   private int storeMutationFailures = 0;
 
   SessionImpl(
-      ModelProviderFactory modelProviderFactory,
-      Store store,
-      TimingUtils timingUtils,
-      ThreadUtils threadUtils) {
+      Store store, ModelProvider modelProvider, TimingUtils timingUtils, ThreadUtils threadUtils) {
     this.store = store;
+    this.modelProvider = modelProvider;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    this.modelProvider = modelProviderFactory.create();
   }
 
   @Override

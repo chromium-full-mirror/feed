@@ -23,10 +23,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
@@ -44,7 +44,7 @@ public class EmptyStreamTest {
   @Mock private RequestManager requstManager;
 
   private ProtocolAdapter protocolAdapter;
-  private SessionManager sessionManager;
+  private ModelProviderFactory modelProviderFactory;
 
   @Before
   public void setUp() {
@@ -53,14 +53,14 @@ public class EmptyStreamTest {
         new InfrastructureIntegrationScope.Builder(
                 threadUtils, requstManager, MoreExecutors.newDirectExecutorService())
             .build();
+    modelProviderFactory = scope.getModelProviderFactory();
     protocolAdapter = scope.getProtocolAdapter();
-    sessionManager = scope.getSessionManager();
   }
 
   @Test
   public void emptyStream_observable() {
     // ModelProvider will be initialized from empty $HEAD
-    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     assertThat(modelProvider.getRootFeature()).isNull();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
@@ -71,7 +71,7 @@ public class EmptyStreamTest {
   @Test
   public void emptyStream_observableInvalidate() {
     // Verify both ModelProviderObserver events are called
-    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
@@ -83,7 +83,7 @@ public class EmptyStreamTest {
   @Test
   public void emptyStream_unregisterObservable() {
     // Verify unregister works, so the ModelProviderObserver is not called for invalidate
-    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
@@ -98,7 +98,7 @@ public class EmptyStreamTest {
     // Create an empty stream through a response
     WireProtocolResponseBuilder responseBuilder = new WireProtocolResponseBuilder();
     protocolAdapter.createModel(responseBuilder.build(), null);
-    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    ModelProvider modelProvider = modelProviderFactory.createNew();
 
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);

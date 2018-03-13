@@ -16,6 +16,9 @@ package com.google.android.libraries.feed.api.modelprovider;
 
 /** Factory method for creating {@link ModelProvider} instances. */
 public interface ModelProviderFactory {
-  /** Returns a new instance of a {@link ModelProvider}. */
-  ModelProvider create();
+  /** Returns a new instance of a {@link ModelProvider} from an existing session. */
+  ModelProvider create(String sessionId);
+
+  /** Returns a new instance of a {@link ModelProvider} from $HEAD. */
+  ModelProvider createNew();
 }

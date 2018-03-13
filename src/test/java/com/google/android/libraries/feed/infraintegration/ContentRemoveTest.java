@@ -27,9 +27,9 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
@@ -50,7 +50,7 @@ public class ContentRemoveTest {
   @Mock private RequestManager requestManager;
 
   private ProtocolAdapter protocolAdapter;
-  private SessionManager sessionManager;
+  private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
 
   @Before
@@ -61,7 +61,7 @@ public class ContentRemoveTest {
                 threadUtils, requestManager, MoreExecutors.newDirectExecutorService())
             .build();
     protocolAdapter = scope.getProtocolAdapter();
-    sessionManager = scope.getSessionManager();
+    modelProviderFactory = scope.getModelProviderFactory();
     modelValidator = new ModelProviderValidator(protocolAdapter);
   }
 
@@ -81,7 +81,7 @@ public class ContentRemoveTest {
       responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
     }
     protocolAdapter.createModel(responseBuilder.build(), null);
-    ModelProvider modelProvider = sessionManager.getNewSession().getModelProvider();
+    ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider.getRootFeature()).isNotNull();
     ModelFeature rootFeature = modelProvider.getRootFeature();
     FeatureChangeObserver observer = mock(FeatureChangeObserver.class);
