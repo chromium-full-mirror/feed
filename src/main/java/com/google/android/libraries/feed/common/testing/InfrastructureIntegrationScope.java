@@ -29,6 +29,10 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.storage.InMemoryJournalStorage;
+import com.google.android.libraries.feed.host.storage.InMemoryKeyValuePairStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.KeyValuePairStorage;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +55,10 @@ public class InfrastructureIntegrationScope {
     UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
-    FeedStore store = new FeedStore(timingUtils, extensionRegistry);
+    KeyValuePairStorage keyValuePairStorage = new InMemoryKeyValuePairStorage();
+    JournalStorage journalStorage = new InMemoryJournalStorage();
+    FeedStore store =
+        new FeedStore(timingUtils, extensionRegistry, keyValuePairStorage, journalStorage);
     feedSessionManager = new FeedSessionManager(executorService, store, timingUtils, threadUtils);
     modelProviderFactory =
         new FeedModelProviderFactory(

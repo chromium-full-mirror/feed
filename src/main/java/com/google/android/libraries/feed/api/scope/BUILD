@@ -26,6 +26,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",

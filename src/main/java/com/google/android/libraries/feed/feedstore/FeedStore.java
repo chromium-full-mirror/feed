@@ -34,6 +34,8 @@ import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.host.storage.InMemoryKeyValuePairStorage;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
+import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.KeyValuePairStorage;
 import com.google.android.libraries.feed.host.storage.StorageMutation.Builder;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -56,8 +58,8 @@ public class FeedStore implements Store, Dumpable {
 
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
-  private final InMemoryKeyValuePairStorage payloadStorage = new InMemoryKeyValuePairStorage();
-  private final InMemoryJournalStorage sessionStorage = new InMemoryJournalStorage();
+  private final KeyValuePairStorage keyValuePairStorage;
+  private final JournalStorage journalStorage;
 
   // TODO: We need to synchronize access to these states
   private int sessionId = 1;
@@ -67,9 +69,13 @@ public class FeedStore implements Store, Dumpable {
 
   public FeedStore(
       TimingUtils timingUtils,
-      FeedExtensionRegistry extensionRegistry) {
+      FeedExtensionRegistry extensionRegistry,
+      KeyValuePairStorage keyValuePairStorage,
+      JournalStorage journalStorage) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
+    this.keyValuePairStorage = keyValuePairStorage;
+    this.journalStorage = journalStorage;
   }
 
   @Override
@@ -78,7 +84,7 @@ public class FeedStore implements Store, Dumpable {
     List<PayloadWithId> payloads = new ArrayList<>();
     for (String contentId : contentIds) {
       try {
-        byte[] content = payloadStorage.get(contentId).get();
+        byte[] content = keyValuePairStorage.get(contentId).get();
         if (content != null) {
           StreamPayload streamPayload =
               StreamPayload.parseFrom(content, extensionRegistry.getExtensionRegistry());
@@ -106,7 +112,7 @@ public class FeedStore implements Store, Dumpable {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamStructure> streamStructures = new ArrayList<>();
     try {
-      List<byte[]> operations = sessionStorage.read(session.streamToken).get();
+      List<byte[]> operations = journalStorage.read(session.streamToken).get();
       for (byte[] bytes : operations) {
         streamStructures.add(StreamStructure.parseFrom(bytes));
       }
@@ -125,7 +131,7 @@ public class FeedStore implements Store, Dumpable {
     try {
       SessionState session = new SessionState(streamSession);
       session.addAll(getStreamStructures(HEAD));
-      sessionStorage
+      journalStorage
           .commit(
               new JournalMutation.Builder(HEAD.streamToken).copy(streamSession.streamToken).build())
           .get();
@@ -150,7 +156,7 @@ public class FeedStore implements Store, Dumpable {
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
     try {
-      sessionStorage
+      journalStorage
           .commit(new JournalMutation.Builder(session.streamToken).delete().build())
           .get();
     } catch (InterruptedException | ExecutionException e) {
@@ -163,7 +169,7 @@ public class FeedStore implements Store, Dumpable {
   public void clearHead() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     try {
-      sessionStorage.commit(new JournalMutation.Builder(HEAD.streamToken).delete().build()).get();
+      journalStorage.commit(new JournalMutation.Builder(HEAD.streamToken).delete().build()).get();
     } catch (InterruptedException | ExecutionException e) {
       throw new IllegalStateException("Unable to clear $HEAD");
     }
@@ -195,7 +201,7 @@ public class FeedStore implements Store, Dumpable {
     }
     CommitResult result;
     try {
-      result = sessionStorage.commit(mutation.build()).get();
+      result = journalStorage.commit(mutation.build()).get();
     } catch (InterruptedException | ExecutionException e) {
       tracker.stop("", "commitSessionMutationFailure");
       throw new IllegalStateException("Unable to mutate session", e);
@@ -230,9 +236,9 @@ public class FeedStore implements Store, Dumpable {
         // Block waiting for the response from storage, to make this method synchronous.
         try {
           // Check whether the payload is already in storage.
-          byte[] payloadBytes = payloadStorage.get(payloadId).get();
+          byte[] payloadBytes = keyValuePairStorage.get(payloadId).get();
           CommitResult commitResult =
-              payloadStorage
+              keyValuePairStorage
                   .commit(new Builder().upsert(payloadId, payload.toByteArray()).build())
                   .get();
           if (commitResult == CommitResult.SUCCESS) {
@@ -257,8 +263,12 @@ public class FeedStore implements Store, Dumpable {
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("nextSessionId").value(sessionId);
-    dumper.dump(payloadStorage);
-    dumper.dump(sessionStorage);
+    if (keyValuePairStorage instanceof Dumpable) {
+      dumper.dump((Dumpable) keyValuePairStorage);
+    }
+    if (journalStorage instanceof Dumpable) {
+      dumper.dump((Dumpable) journalStorage);
+    }
   }
 
   private static class StoreResults implements ContentMutationResults {

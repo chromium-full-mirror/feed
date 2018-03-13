@@ -16,6 +16,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/feedstore",
         "//src/main/java/com/google/android/libraries/feed/host/common",
+        "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "@bazel_android//:robolectric",
         "@com_google_code_findbugs_jsr305//jar",
