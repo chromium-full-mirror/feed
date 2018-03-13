@@ -14,12 +14,15 @@
 
 package com.google.android.libraries.feed.api.scope;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.actionhandler.FeedActionHandler;
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
@@ -47,6 +50,7 @@ public class FeedStreamScopeTest {
   @Mock private SessionManager sessionManager;
   @Mock private FeedActionHandler feedActionHandler;
   @Mock private Stream stream;
+  @Mock private ModelProviderFactory modelProviderFactory;
 
   private UiRunnableHandler uiRunnableHandler;
   private ThreadUtils threadUtils;
@@ -62,26 +66,24 @@ public class FeedStreamScopeTest {
 
   @Test
   public void testBasicBuild() {
-    new FeedStreamScope.Builder(
-            actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager)
-        .build()
-        .getStream();
-
-    // No crash should happen.
+    FeedStreamScope streamScope =
+        new Builder(actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager).build();
+    // TODO: add Stream nonnull check
+    assertThat(streamScope.getModelProviderFactory()).isNotNull();
   }
 
   @Test
   public void testComplexBuild() {
-    new FeedStreamScope.Builder(
-            actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager)
-        .setFeedActionHandler(feedActionHandler)
-        .setStream(stream)
-        .setThreadUtils(threadUtils)
-        .setInternalProtocolUtils(internalProtocolUtils)
-        .setUiRunnableHandler(uiRunnableHandler)
-        .build()
-        .getStream();
-
-    // No crash should happen.
+    FeedStreamScope streamScope =
+        new Builder(actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager)
+            .setFeedActionHandler(feedActionHandler)
+            .setStream(stream)
+            .setThreadUtils(threadUtils)
+            .setInternalProtocolUtils(internalProtocolUtils)
+            .setUiRunnableHandler(uiRunnableHandler)
+            .setModelProviderFactory(modelProviderFactory)
+            .build();
+    assertThat(streamScope.getStream()).isNotNull();
+    assertThat(streamScope.getModelProviderFactory()).isNotNull();
   }
 }

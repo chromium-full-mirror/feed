@@ -19,12 +19,12 @@ import com.google.android.libraries.feed.api.actionhandler.FeedActionHandlerImpl
 import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
-import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider;
+import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
@@ -38,6 +38,10 @@ public class FeedStreamScope {
   public Stream getStream() {
     return stream;
   };
+
+  public ModelProviderFactory getModelProviderFactory() {
+    return modelProviderFactory;
+  }
 
   /** A builder that creates a {@link FeedStreamScope}. */
   public static class Builder {
@@ -83,6 +87,11 @@ public class FeedStreamScope {
       return this;
     }
 
+    public Builder setModelProviderFactory(ModelProviderFactory modelProviderFactory) {
+      this.modelProviderFactory = modelProviderFactory;
+      return this;
+    }
+
     public FeedStreamScope build() {
       if (feedActionHandler == null) {
         feedActionHandler = new FeedActionHandlerImpl();
@@ -93,13 +102,11 @@ public class FeedStreamScope {
       if (uiRunnableHandler == null) {
         uiRunnableHandler = new UiRunnableHandlerImpl();
       }
-      if (modelProvider == null) {
-        modelProvider =
-            new FeedModelProvider(
-                sessionManager,
-                threadUtils,
-                new TimingUtils(),
-                uiRunnableHandler);
+      if (modelProviderFactory == null) {
+        modelProviderFactory =
+            new FeedModelProviderFactory(
+                // TODO: use timingUtil from ProcessScope
+                sessionManager, threadUtils, new TimingUtils(), uiRunnableHandler);
       }
       // TODO: if pietManager == null, assign a PietManager to pietManager.
       // TODO: if stream == null, assign a BasicStream to stream.
@@ -110,7 +117,8 @@ public class FeedStreamScope {
           imageLoaderApi,
           loggingApi,
           sessionManager,
-          stream);
+          stream,
+          modelProviderFactory);
     }
 
     // Required external dependencies.
@@ -125,7 +133,7 @@ public class FeedStreamScope {
     @Nullable private ThreadUtils threadUtils = null;
     @Nullable private InternalProtocolUtils internalProtocolUtils = null;
     @Nullable private UiRunnableHandler uiRunnableHandler = null;
-    @Nullable private ModelProvider modelProvider = null;
+    @Nullable private ModelProviderFactory modelProviderFactory = null;
     @Nullable private PietManager pietManager = null;
     @Nullable private Stream stream = null;
   }
@@ -137,7 +145,8 @@ public class FeedStreamScope {
       ImageLoaderApi imageLoaderApi,
       LoggingApi loggingApi,
       SessionManager sessionManager,
-      Stream stream) {
+      Stream stream,
+      ModelProviderFactory modelProviderFactory) {
     this.feedActionHandler = feedActionHandler;
     this.actionApi = actionApi;
     this.feedProtocolAdapter = feedProtocolAdapter;
@@ -145,6 +154,7 @@ public class FeedStreamScope {
     this.loggingApi = loggingApi;
     this.sessionManager = sessionManager;
     this.stream = stream;
+    this.modelProviderFactory = modelProviderFactory;
   }
 
   private final ActionApi actionApi;
@@ -154,4 +164,5 @@ public class FeedStreamScope {
   private final FeedProtocolAdapter feedProtocolAdapter;
   private final SessionManager sessionManager;
   private final Stream stream;
+  private final ModelProviderFactory modelProviderFactory;
 }
