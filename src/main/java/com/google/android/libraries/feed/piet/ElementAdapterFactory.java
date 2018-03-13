@@ -31,7 +31,9 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 /** Provides methods to create various adapter types based on bindings. */
 class ElementAdapterFactory {
   private final AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory;
-  private final AdapterFactory<TextElementAdapter, TextElement> textElementFactory;
+  private final AdapterFactory<ChunkedTextElementAdapter, TextElement> chunkedTextElementFactory;
+  private final AdapterFactory<ParameterizedTextElementAdapter, TextElement>
+      parameterizedTextElementFactory;
   private final AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory;
   private final AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory;
   private final AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
@@ -42,8 +44,11 @@ class ElementAdapterFactory {
   ElementAdapterFactory(Context context, AdapterParameters parameters) {
     customElementFactory =
         new AdapterFactory<>(context, parameters, new CustomElementAdapter.KeySupplier());
-    textElementFactory =
-        new AdapterFactory<>(context, parameters, new TextElementAdapter.KeySupplier());
+    chunkedTextElementFactory =
+        new AdapterFactory<>(context, parameters, new ChunkedTextElementAdapter.KeySupplier());
+    parameterizedTextElementFactory =
+        new AdapterFactory<>(
+            context, parameters, new ParameterizedTextElementAdapter.KeySupplier());
     imageElementFactory =
         new AdapterFactory<>(context, parameters, new ImageElementAdapter.KeySupplier());
     spacerElementFactory =
@@ -59,14 +64,16 @@ class ElementAdapterFactory {
   @VisibleForTesting
   ElementAdapterFactory(
       AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory,
-      AdapterFactory<TextElementAdapter, TextElement> textElementFactory,
+      AdapterFactory<ChunkedTextElementAdapter, TextElement> chunkedTextElementFactory,
+      AdapterFactory<ParameterizedTextElementAdapter, TextElement> parameterizedTextElementFactory,
       AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory,
       AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory,
       AdapterFactory<GridRowAdapter, GridRow> gridRowFactory,
       AdapterFactory<ElementListAdapter, ElementList> elementListFactory,
       AdapterFactory<TemplateInvocationAdapter, TemplateInvocation> templateInvocationFactory) {
     this.customElementFactory = customElementFactory;
-    this.textElementFactory = textElementFactory;
+    this.chunkedTextElementFactory = chunkedTextElementFactory;
+    this.parameterizedTextElementFactory = parameterizedTextElementFactory;
     this.imageElementFactory = imageElementFactory;
     this.spacerElementFactory = spacerElementFactory;
     this.gridRowFactory = gridRowFactory;
@@ -80,7 +87,19 @@ class ElementAdapterFactory {
       case CUSTOM_ELEMENT:
         return customElementFactory.get(element.getCustomElement(), element, frameContext);
       case TEXT_ELEMENT:
-        return textElementFactory.get(element.getTextElement(), element, frameContext);
+        switch (element.getTextElement().getContentCase()) {
+          case CHUNKED_TEXT:
+          case CHUNKED_TEXT_BINDING:
+            return chunkedTextElementFactory.get(element.getTextElement(), element, frameContext);
+          case PARAMETERIZED_TEXT:
+          case PARAMETERIZED_TEXT_BINDING:
+            return parameterizedTextElementFactory.get(
+                element.getTextElement(), element, frameContext);
+          default:
+            throw new IllegalArgumentException(
+                String.format(
+                    "Unsupported TextElement type: %s", element.getTextElement().getContentCase()));
+        }
       case IMAGE_ELEMENT:
         return imageElementFactory.get(element.getImageElement(), element, frameContext);
       case SPACER_ELEMENT:
@@ -118,6 +137,11 @@ class ElementAdapterFactory {
     return elementListFactory.get(elementList, frameContext);
   }
 
+  ParameterizedTextElementAdapter createAdapterForParameterizedText(
+      TextElement textLine, Element baseElement, FrameContext frameContext) {
+    return parameterizedTextElementFactory.get(textLine, baseElement, frameContext);
+  }
+
   TemplateInvocationAdapter createTemplateAdapter(
       TemplateInvocation templateInvocation, FrameContext frameContext) {
     return templateInvocationFactory.get(templateInvocation, frameContext);
@@ -126,8 +150,10 @@ class ElementAdapterFactory {
   void releaseAdapter(ElementAdapter<? extends View, ?> adapter) {
     if (adapter instanceof CustomElementAdapter) {
       customElementFactory.release((CustomElementAdapter) adapter);
-    } else if (adapter instanceof TextElementAdapter) {
-      textElementFactory.release((TextElementAdapter) adapter);
+    } else if (adapter instanceof ChunkedTextElementAdapter) {
+      chunkedTextElementFactory.release((ChunkedTextElementAdapter) adapter);
+    } else if (adapter instanceof ParameterizedTextElementAdapter) {
+      parameterizedTextElementFactory.release((ParameterizedTextElementAdapter) adapter);
     } else if (adapter instanceof ImageElementAdapter) {
       imageElementFactory.release((ImageElementAdapter) adapter);
     } else if (adapter instanceof SpacerElementAdapter) {

@@ -24,20 +24,16 @@ import android.support.v4.widget.TextViewCompat;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
-import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
-import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import com.google.search.now.ui.piet.TextProto.ParameterizedText;
-import javax.annotation.Nullable;
 
-/** An {@link ElementAdapter} for {@code TextElement} elements. */
-public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
+/**
+ * Base {@link ElementAdapter} to extend to manage {@code ChunkedText} and {@code ParameterizedText}
+ * elements.
+ */
+abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
   private static final String TAG = "TextElementAdapter";
 
   TextElementAdapter(Context context, AdapterParameters parameters) {
@@ -81,52 +77,8 @@ public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
   public void onBindModel(TextElement textLine, Element baseElement, FrameContext frameContext) {
 
     // Set the initial state for the TextView
-    TextView textView = checkNotNull(getBaseView());
-    if (textLine.hasParameterizedTextBinding()) {
-      BindingValue bindingValue =
-          frameContext.getTextBindingValue(textLine.getParameterizedTextBinding());
-      if (bindingValue == null) {
-        // If no binding is specified, raise an error and hide the corresponding UI element.
-        Logger.e(
-            TAG,
-            frameContext.reportError(
-                ErrorType.ERROR,
-                String.format(
-                    "TextElement Binding not found for %s",
-                    textLine.getParameterizedTextBinding())));
-        textView.setVisibility(View.GONE);
-
-      } else {
-        if (bindingValue.hasVisibility()) {
-          switch (bindingValue.getVisibility()) {
-            case INVISIBLE:
-              textView.setVisibility(View.INVISIBLE);
-              break;
-            case GONE:
-              textView.setVisibility(View.GONE);
-              break;
-            case VISIBLE:
-              // Nothing to do for default: visible. Included here for completeness.
-              break;
-            default:
-              // Intentionally keeping the error string short, because all debug strings will be
-              // included in the binary.
-              throw new AssertionError("Unhandled");
-          }
-        }
-
-        // If text is provided, or is null, set it even if visibility is set to GONE or INVISIBLE,
-        // in case a later optimistic update operation changes the visibility but wants to retain
-        // the previously-set text.
-        setTextOnView(frameContext, textView, bindingValue.getParameterizedText());
-      }
-    } else {
-      // No bindings found, so use the inlined value (or empty if not set)
-      setTextOnView(
-          frameContext,
-          textView,
-          textLine.hasParameterizedText() ? textLine.getParameterizedText() : null);
-    }
+    // No bindings found, so use the inlined value (or empty if not set)
+    setTextOnView(frameContext, textLine);
 
     if (textLine.getStyleReferences().hasStyleBinding()) {
       updateTextStyle(textLine.getStyleReferences(), frameContext, getContext());
@@ -138,20 +90,7 @@ public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
     return getModel().getStyleReferences();
   }
 
-  private void setTextOnView(
-      FrameContext frameContext, TextView textView, @Nullable ParameterizedText parameterizedText) {
-    if (parameterizedText == null) {
-      Logger.e(
-          TAG,
-          frameContext.reportError(
-              ErrorType.ERROR,
-              "ParameterizedText missing for TextElement, setting to empty String"));
-      textView.setText("");
-      return;
-    }
-
-    textView.setText(getTemplatedStringEvaluator().evaluate(frameContext, parameterizedText));
-  }
+  abstract void setTextOnView(FrameContext frameContext, TextElement textElement);
 
   @Override
   public void onUnbindModel() {
@@ -160,6 +99,7 @@ public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
       textView.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
     }
     textView.setVisibility(View.VISIBLE);
+    textView.setText("");
   }
 
   private void initialCreate(FrameContext frameContext, TextElement textLine) {
@@ -168,10 +108,12 @@ public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
     }
     // Don't report errors, we will report them when we bind the model to the View.
     StyleProvider styleProvider = frameContext.makeStyleFor(textLine.getStyleReferences(), true);
-    Key k = new Key(styleProvider.getFont());
+    RecyclerKey k = createKey(styleProvider.getFont());
     TextView v = createTextView(styleProvider.getFont());
     initializeAdapter(v, k);
   }
+
+  abstract RecyclerKey createKey(Font font);
 
   @VisibleForTesting
   TextView createTextView(Font font) {
@@ -214,63 +156,5 @@ public class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
       }
     }
     return textView;
-  }
-
-  static class KeySupplier implements AdapterKeySupplier<TextElementAdapter, TextElement> {
-    @Override
-    public String getAdapterTag() {
-      return TAG;
-    }
-
-    @Override
-    public TextElementAdapter getAdapter(Context context, AdapterParameters parameters) {
-      return new TextElementAdapter(context, parameters);
-    }
-
-    @Override
-    public Key getKey(FrameContext frameContext, TextElement model) {
-      StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences(), true);
-      return new Key(styleProvider.getFont());
-    }
-  }
-
-  /** We will Key TextViews off of the Ellipsizing, Font Size and FontWeight, and Italics. */
-  static class Key extends RecyclerKey {
-    private int size;
-    private FontWeight fontWeight;
-    private boolean italic;
-
-    Key(Font font) {
-      size = font.getSize();
-      fontWeight = font.getWeight();
-      italic = font.getItalic();
-    }
-
-    @Override
-    public int hashCode() {
-      // Can't use Objects.hash() as it is only available in KK+ and can't use Guava's impl either.
-      int result = size;
-      result = 31 * result + fontWeight.getNumber();
-      result = 31 * result + (italic ? 1 : 0);
-      return result;
-    }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-      if (obj == this) {
-        return true;
-      }
-
-      if (!(obj instanceof Key)) {
-        return false;
-      }
-
-      if (obj == null) {
-        return false;
-      }
-
-      Key key = (Key) obj;
-      return key.size == size && key.fontWeight == fontWeight && key.italic == italic;
-    }
   }
 }

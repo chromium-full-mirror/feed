@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
@@ -51,6 +52,7 @@ import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -301,8 +303,8 @@ class FrameContext {
    * Return a {@link ParameterizedText} for the binding if there is one defined; otherwise returns
    * {@code null}.
    */
-  public ParameterizedText getTextFromBinding(ParameterizedTextBindingRef binding) {
-    return getTextBindingValue(binding).getParameterizedText();
+  public ParameterizedText getParameterizedTextFromBinding(ParameterizedTextBindingRef binding) {
+    return getParameterizedTextBindingValue(binding).getParameterizedText();
   }
 
   /**
@@ -363,11 +365,19 @@ class FrameContext {
         : bindingValue.getTemplateInvocation();
   }
 
+  @Nullable
+  public ChunkedText getChunkedTextFromBinding(ChunkedTextBindingRef binding) {
+    BindingValue bindingValue = bindingValues.get(binding.getBindingId());
+    return bindingValue == null || !bindingValue.hasBoundStyle()
+        ? null
+        : bindingValue.getChunkedText();
+  }
+
   /**
    * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
    * does not point to a text resource.
    */
-  public BindingValue getTextBindingValue(ParameterizedTextBindingRef binding) {
+  public BindingValue getParameterizedTextBindingValue(ParameterizedTextBindingRef binding) {
     checkBindingValuesInitialized(binding.getBindingId());
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
     if (returnValue == null

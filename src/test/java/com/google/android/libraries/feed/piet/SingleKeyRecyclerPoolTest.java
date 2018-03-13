@@ -18,10 +18,10 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.view.View;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.android.libraries.feed.piet.TextElementAdapter.Key;
-import com.google.search.now.ui.piet.StylesProto.Font;
 import org.robolectric.RobolectricTestRunner;
+import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,16 +33,15 @@ import org.robolectric.annotation.Config;
 @Config(manifest = Config.NONE)
 public class SingleKeyRecyclerPoolTest {
 
-  public static final Key DEFAULT_KEY = new TextElementAdapter.Key(Font.getDefaultInstance());
-  public static final Key INVALID_KEY =
-      new TextElementAdapter.Key(Font.newBuilder().setSize(999).build());
+  public static final TestRecyclerKey DEFAULT_KEY = new TestRecyclerKey("HappyKey");
+  public static final TestRecyclerKey INVALID_KEY = new TestRecyclerKey("INVALID");
   public static final int DEFAULT_CAPACITY = 2;
 
-  @Mock TextElementAdapter adapter;
-  @Mock TextElementAdapter adapter2;
-  @Mock TextElementAdapter adapter3;
+  @Mock ElementAdapter<View, Object> adapter;
+  @Mock ElementAdapter<View, Object> adapter2;
+  @Mock ElementAdapter<View, Object> adapter3;
 
-  SingleKeyRecyclerPool<TextElementAdapter> pool;
+  SingleKeyRecyclerPool<ElementAdapter<View, Object>> pool;
 
   @Before
   public void setUp() throws Exception {
@@ -154,5 +153,36 @@ public class SingleKeyRecyclerPoolTest {
     assertThat(pool.get(DEFAULT_KEY)).isNotNull();
     assertThat(pool.get(DEFAULT_KEY)).isNotNull();
     assertThat(pool.get(DEFAULT_KEY)).isNull();
+  }
+
+  private static class TestRecyclerKey extends RecyclerKey {
+    private final String key;
+
+    TestRecyclerKey(String key) {
+      this.key = key;
+    }
+
+    @Override
+    public int hashCode() {
+      return key.hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (obj == this) {
+        return true;
+      }
+
+      if (obj == null) {
+        return false;
+      }
+
+      if (!(obj instanceof TestRecyclerKey)) {
+        return false;
+      }
+
+      TestRecyclerKey otherKey = (TestRecyclerKey) obj;
+      return otherKey.key.equals(this.key);
+    }
   }
 }

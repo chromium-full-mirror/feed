@@ -15,10 +15,9 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier.SINGLETON_KEY;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.GONE;
-import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.INVISIBLE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.never;
@@ -28,13 +27,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.text.TextUtils.TruncateAt;
 import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
@@ -42,7 +41,6 @@ import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import org.robolectric.RobolectricTestRunner;
 import javax.annotation.Nullable;
 import org.junit.Before;
@@ -58,9 +56,6 @@ import org.robolectric.annotation.Config;
   manifest = "AndroidManifest.xml"
 )
 public class TextElementAdapterTest {
-  private static final String TEXT_LINE_CONTENT = "Content";
-  private static final String BINDING = "binding";
-
   @Mock private FrameContext frameContext;
   @Mock private StyleProvider mockStyleProvider;
 
@@ -77,12 +72,24 @@ public class TextElementAdapterTest {
     adapterParameters =
         new AdapterParameters(null, null, null, new ParameterizedTextEvaluator(), null);
 
-    adapter = new TextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);
+    adapter = new TestTextElementAdapter(context, adapterParameters);
   }
 
   @Test
-  public void testCreate() {
-    assertThat(adapter).isNotNull();
+  public void testCreateAdapter_setsStyles() {
+    TextElement textElement = getBaseTextElement(mockStyleProvider);
+    int color = Color.RED;
+    int maxLines = 72;
+    when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
+    when(mockStyleProvider.getColor()).thenReturn(color);
+    when(mockStyleProvider.getMaxLines()).thenReturn(maxLines);
+
+    adapter.createAdapter(textElement, frameContext);
+
+    verify(mockStyleProvider).setElementStyles(context, frameContext, adapter.getBaseView());
+    assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
+    assertThat(adapter.getBaseView().getEllipsize()).isEqualTo(TruncateAt.END);
+    assertThat(adapter.getBaseView().getCurrentTextColor()).isEqualTo(color);
   }
 
   @Test
@@ -132,78 +139,6 @@ public class TextElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_basic() {
-    TextElement textElement = getBaseTextElement();
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getText()).isEqualTo(TEXT_LINE_CONTENT);
-  }
-
-  @Test
-  public void testBindModel_withBinding_someText() {
-    ParameterizedText parameterizedText =
-        ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT).build();
-    BindingValue bindingValue =
-        BindingValue.newBuilder().setParameterizedText(parameterizedText).build();
-    when(frameContext.getTextBindingValue(any(ParameterizedTextBindingRef.class)))
-        .thenReturn(bindingValue);
-
-    TextElement textElement = getBindingTextElement(null);
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getText()).isEqualTo(TEXT_LINE_CONTENT);
-  }
-
-  @Test
-  public void testBindModel_withBinding_noBinding() {
-    when(frameContext.getTextBindingValue(any(ParameterizedTextBindingRef.class))).thenReturn(null);
-
-    TextElement textElement = getBindingTextElement(null);
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getText()).isEqualTo("");
-  }
-
-  @Test
-  public void testBindModel_withBinding_visibilityGone() {
-    BindingValue bindingValue = BindingValue.newBuilder().setVisibility(GONE).build();
-    when(frameContext.getTextBindingValue(any(ParameterizedTextBindingRef.class)))
-        .thenReturn(bindingValue);
-
-    TextElement textElement = getBindingTextElement(null /* StyleProvider*/);
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getVisibility()).isEqualTo(View.GONE);
-  }
-
-  @Test
-  public void testBindModel_withBinding_visibilityInvisible() {
-    BindingValue bindingValue = BindingValue.newBuilder().setVisibility(INVISIBLE).build();
-    when(frameContext.getTextBindingValue(any(ParameterizedTextBindingRef.class)))
-        .thenReturn(bindingValue);
-
-    TextElement textElement = getBindingTextElement(null /* StyleProvider*/);
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getVisibility()).isEqualTo(View.INVISIBLE);
-  }
-
-  @Test
   public void testBind_setsStylesOnlyIfBindingIsDefined() {
     int maxLines = 2;
     Style style = Style.newBuilder().setMaxLines(maxLines).build();
@@ -236,50 +171,34 @@ public class TextElementAdapterTest {
   }
 
   @Test
-  public void testStyles_padding() {
+  public void testUnbind() {
+    TextElement textElement = getBaseTextElement(null);
+    adapter.createAdapter(textElement, frameContext);
+    adapter.bindModel(textElement, frameContext);
 
-    TextElement textElement =
-        TextElement.newBuilder().setStyleReferences(StyleIdsStack.getDefaultInstance()).build();
+    TextView adapterView = adapter.getBaseView();
+    adapterView.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+    adapterView.setVisibility(View.GONE);
+    adapterView.setText("OLD TEXT");
 
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
-        .thenReturn(mockStyleProvider);
-    when(frameContext.getCurrentStyle()).thenReturn(mockStyleProvider);
+    adapter.unbindModel();
 
+    assertThat(adapter.getBaseView()).isSameAs(adapterView);
+    assertThat(adapterView.getTextAlignment()).isEqualTo(View.TEXT_ALIGNMENT_GRAVITY);
+    assertThat(adapterView.getVisibility()).isEqualTo(View.VISIBLE);
+    assertThat(adapterView.getText().toString()).isEmpty();
+  }
+
+  @Test
+  public void testGetStyles() {
+    StyleIdsStack elementStyles = StyleIdsStack.newBuilder().addStyleIds("hair").build();
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
+    TextElement textElement =
+        getBaseTextElement(mockStyleProvider).toBuilder().setStyleReferences(elementStyles).build();
 
     adapter.createAdapter(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    verify(mockStyleProvider).setElementStyles(context, frameContext, adapter.getView());
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-  }
 
-  private TextElement getBindingTextElement(@Nullable StyleProvider styleProvider) {
-    StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean())).thenReturn(sp);
-    when(frameContext.getCurrentStyle()).thenReturn(sp);
-    return TextElement.newBuilder()
-        .setParameterizedTextBinding(
-            ParameterizedTextBindingRef.newBuilder().setBindingId(BINDING).build())
-        .build();
-  }
-
-  private TextElement getBaseTextElement() {
-    return getBaseTextElement(null);
-  }
-
-  private TextElement getBaseTextElement(@Nullable StyleProvider styleProvider) {
-    StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean())).thenReturn(sp);
-    when(frameContext.getCurrentStyle()).thenReturn(sp);
-
-    TextElement.Builder textElement = TextElement.newBuilder();
-    ParameterizedText text = ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT).build();
-    textElement.setParameterizedText(text);
-    return textElement.build();
+    assertThat(adapter.getElementStyleIdsStack()).isSameAs(elementStyles);
   }
 
   @Test
@@ -318,5 +237,35 @@ public class TextElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Missing TextElement");
+  }
+
+  private TextElement getBaseTextElement() {
+    return getBaseTextElement(null);
+  }
+
+  private TextElement getBaseTextElement(@Nullable StyleProvider styleProvider) {
+    StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean())).thenReturn(sp);
+    when(frameContext.getCurrentStyle()).thenReturn(sp);
+
+    TextElement.Builder textElement = TextElement.newBuilder();
+    return textElement.build();
+  }
+
+  private static class TestTextElementAdapter extends TextElementAdapter {
+    TestTextElementAdapter(Context context, AdapterParameters parameters) {
+      super(context, parameters);
+    }
+
+    @Override
+    void setTextOnView(FrameContext frameContext, TextElement textElement) {
+      return;
+    }
+
+    @Override
+    RecyclerKey createKey(Font font) {
+      return SINGLETON_KEY;
+    }
   }
 }

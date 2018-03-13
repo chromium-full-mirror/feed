@@ -25,7 +25,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
+import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
@@ -37,6 +39,8 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.TextProto.ChunkedText;
+import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +59,8 @@ public class ElementAdapterFactoryTest {
   @Mock private FrameContext frameContext;
 
   @Mock private CustomElementAdapter customElementAdapter;
-  @Mock private TextElementAdapter textElementAdapter;
+  @Mock private ChunkedTextElementAdapter chunkedTextElementAdapter;
+  @Mock private ParameterizedTextElementAdapter parameterizedTextElementAdapter;
   @Mock private ImageElementAdapter imageElementAdapter;
   @Mock private SpacerElementAdapter spacerElementAdapter;
   @Mock private GridRowAdapter gridRowAdapter;
@@ -64,7 +69,11 @@ public class ElementAdapterFactoryTest {
 
   @Mock private AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory;
 
-  @Mock private AdapterFactory<TextElementAdapter, TextElement> textElementFactory;
+  @Mock private AdapterFactory<ChunkedTextElementAdapter, TextElement> chunkedTextElementFactory;
+
+  @Mock
+  private AdapterFactory<ParameterizedTextElementAdapter, TextElement>
+      parameterizedTextElementFactory;
 
   @Mock private AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory;
 
@@ -86,7 +95,8 @@ public class ElementAdapterFactoryTest {
     adapterFactory =
         new ElementAdapterFactory(
             customElementFactory,
-            textElementFactory,
+            chunkedTextElementFactory,
+            parameterizedTextElementFactory,
             imageElementFactory,
             spacerElementFactory,
             gridRowFactory,
@@ -94,8 +104,10 @@ public class ElementAdapterFactoryTest {
             templateFactory);
     when(customElementFactory.get(any(CustomElement.class), any(), eq(frameContext)))
         .thenReturn(customElementAdapter);
-    when(textElementFactory.get(any(TextElement.class), any(), eq(frameContext)))
-        .thenReturn(textElementAdapter);
+    when(chunkedTextElementFactory.get(any(TextElement.class), any(), eq(frameContext)))
+        .thenReturn(chunkedTextElementAdapter);
+    when(parameterizedTextElementFactory.get(any(TextElement.class), any(), eq(frameContext)))
+        .thenReturn(parameterizedTextElementAdapter);
     when(imageElementFactory.get(any(ImageElement.class), any(), eq(frameContext)))
         .thenReturn(imageElementAdapter);
     when(spacerElementFactory.get(any(SpacerElement.class), any(), eq(frameContext)))
@@ -111,7 +123,8 @@ public class ElementAdapterFactoryTest {
     when(templateFactory.get(any(TemplateInvocation.class), any(), eq(frameContext)))
         .thenReturn(templateAdapter);
     adapterFactories.add(customElementFactory);
-    adapterFactories.add(textElementFactory);
+    adapterFactories.add(chunkedTextElementFactory);
+    adapterFactories.add(parameterizedTextElementFactory);
     adapterFactories.add(imageElementFactory);
     adapterFactories.add(spacerElementFactory);
     adapterFactories.add(gridRowFactory);
@@ -129,12 +142,67 @@ public class ElementAdapterFactoryTest {
   }
 
   @Test
-  public void testCreateAdapterForElement_textElement() {
-    TextElement model = TextElement.getDefaultInstance();
+  public void testCreateAdapterForElement_chunkedTextElement() {
+    TextElement model =
+        TextElement.newBuilder().setChunkedText(ChunkedText.getDefaultInstance()).build();
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(textElementAdapter);
-    verify(textElementFactory).get(model, element, frameContext);
+        .isSameAs(chunkedTextElementAdapter);
+    verify(chunkedTextElementFactory).get(model, element, frameContext);
+  }
+
+  @Test
+  public void testCreateAdapterForElement_chunkedTextBindingElement() {
+    TextElement model =
+        TextElement.newBuilder()
+            .setChunkedTextBinding(ChunkedTextBindingRef.getDefaultInstance())
+            .build();
+    Element element = Element.newBuilder().setTextElement(model).build();
+    assertThat(adapterFactory.createAdapterForElement(element, frameContext))
+        .isSameAs(chunkedTextElementAdapter);
+    verify(chunkedTextElementFactory).get(model, element, frameContext);
+  }
+
+  @Test
+  public void testCreateAdapterForElement_parameterizedTextElement() {
+    TextElement model =
+        TextElement.newBuilder()
+            .setParameterizedText(ParameterizedText.getDefaultInstance())
+            .build();
+    Element element = Element.newBuilder().setTextElement(model).build();
+    assertThat(adapterFactory.createAdapterForElement(element, frameContext))
+        .isSameAs(parameterizedTextElementAdapter);
+    verify(parameterizedTextElementFactory).get(model, element, frameContext);
+  }
+
+  @Test
+  public void testCreateAdapterForElement_parameterizedTextBindingElement() {
+    TextElement model =
+        TextElement.newBuilder()
+            .setParameterizedTextBinding(ParameterizedTextBindingRef.getDefaultInstance())
+            .build();
+    Element element = Element.newBuilder().setTextElement(model).build();
+    assertThat(adapterFactory.createAdapterForElement(element, frameContext))
+        .isSameAs(parameterizedTextElementAdapter);
+    verify(parameterizedTextElementFactory).get(model, element, frameContext);
+  }
+
+  @Test
+  public void testCreateAdapterForElement_invalidTextElement() {
+    TextElement model = TextElement.getDefaultInstance();
+    Element element = Element.newBuilder().setTextElement(model).build();
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapterFactory.createAdapterForElement(element, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Unsupported TextElement type");
   }
 
   @Test
@@ -235,9 +303,16 @@ public class ElementAdapterFactoryTest {
   }
 
   @Test
-  public void testReleaseAdapter_text() {
-    adapterFactory.releaseAdapter(textElementAdapter);
-    verify(textElementFactory).release(textElementAdapter);
+  public void testReleaseAdapter_chunkedText() {
+    adapterFactory.releaseAdapter(chunkedTextElementAdapter);
+    verify(chunkedTextElementFactory).release(chunkedTextElementAdapter);
+    testNoOtherFactoryInteractions();
+  }
+
+  @Test
+  public void testReleaseAdapter_parameterizedText() {
+    adapterFactory.releaseAdapter(parameterizedTextElementAdapter);
+    verify(parameterizedTextElementFactory).release(parameterizedTextElementAdapter);
     testNoOtherFactoryInteractions();
   }
 

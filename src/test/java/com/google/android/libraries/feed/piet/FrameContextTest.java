@@ -143,7 +143,7 @@ public class FrameContextTest {
         frameContext.bindTemplate(
             DEFAULT_TEMPLATE, BindingContext.newBuilder().addBindingValues(textBinding).build());
     assertThat(
-            frameContextWithBindings.getTextFromBinding(
+            frameContextWithBindings.getParameterizedTextFromBinding(
                 ParameterizedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
         .isEqualTo(text);
 
@@ -247,15 +247,16 @@ public class FrameContextTest {
     frameContext = makeFrameContextWithBinding(imageBindingValue);
 
     // Succeed in looking up binding
-    assertThat(frameContext.getTextFromBinding(textBindingRef)).isEqualTo(text);
-    assertThat(frameContext.getTextBindingValue(textBindingRef)).isEqualTo(imageBindingValue);
+    assertThat(frameContext.getParameterizedTextFromBinding(textBindingRef)).isEqualTo(text);
+    assertThat(frameContext.getParameterizedTextBindingValue(textBindingRef))
+        .isEqualTo(imageBindingValue);
 
     // Can't look up binding
     assertThatRunnable(
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                frameContext.getTextBindingValue(
+                frameContext.getParameterizedTextBindingValue(
                     ParameterizedTextBindingRef.newBuilder()
                         .setBindingId(INVALID_BINDING_ID)
                         .build());
@@ -271,7 +272,7 @@ public class FrameContextTest {
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                makeFrameContextWithEmptyBinding().getTextBindingValue(textBindingRef);
+                makeFrameContextWithEmptyBinding().getParameterizedTextBindingValue(textBindingRef);
               }
             })
         .throwsAnExceptionOfType(IllegalStateException.class)
@@ -279,10 +280,10 @@ public class FrameContextTest {
         .hasMessageThat()
         .contains("Text binding not found");
 
-    // No image, but visibility is GONE, so succeed
+    // No text, but visibility is GONE, so succeed
     assertThat(
             makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
-                .getTextFromBinding(textBindingRef))
+                .getParameterizedTextFromBinding(textBindingRef))
         .isEqualTo(ParameterizedText.getDefaultInstance());
 
     // Fail when bindingValues not initialized.
@@ -290,7 +291,7 @@ public class FrameContextTest {
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                makeFrameContextWithNoBindings().getTextBindingValue(textBindingRef);
+                makeFrameContextWithNoBindings().getParameterizedTextBindingValue(textBindingRef);
               }
             })
         .throwsAnExceptionOfType(NullPointerException.class)

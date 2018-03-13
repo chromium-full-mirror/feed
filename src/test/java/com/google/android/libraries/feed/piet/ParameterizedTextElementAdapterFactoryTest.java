@@ -28,7 +28,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
-import com.google.android.libraries.feed.piet.TextElementAdapter.Key;
+import com.google.android.libraries.feed.piet.ParameterizedTextElementAdapter.Key;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -47,18 +47,18 @@ import org.robolectric.annotation.Config;
 @Config(
   manifest = "AndroidManifest.xml"
 )
-public class TextElementAdapterFactoryTest {
+public class ParameterizedTextElementAdapterFactoryTest {
   private static final String TEXT_LINE_CONTENT = "Content";
 
   @Mock private FrameContext frameContext;
-  @Mock TextElementAdapter.KeySupplier keySupplier;
-  @Mock TextElementAdapter adapter;
-  @Mock TextElementAdapter adapter2;
+  @Mock ParameterizedTextElementAdapter.KeySupplier keySupplier;
+  @Mock ParameterizedTextElementAdapter adapter;
+  @Mock ParameterizedTextElementAdapter adapter2;
 
   private AdapterParameters adapterParameters;
   private Context context;
 
-  private AdapterFactory<TextElementAdapter, TextElement> textElementFactory;
+  private AdapterFactory<ParameterizedTextElementAdapter, TextElement> textElementFactory;
 
   @Before
   public void setUp() throws Exception {
@@ -73,7 +73,8 @@ public class TextElementAdapterFactoryTest {
 
   @Test
   public void testKeySupplier() {
-    TextElementAdapter.KeySupplier keySupplier = new TextElementAdapter.KeySupplier();
+    ParameterizedTextElementAdapter.KeySupplier keySupplier =
+        new ParameterizedTextElementAdapter.KeySupplier();
     assertThat(keySupplier.getAdapterTag()).isEqualTo("TextElementAdapter");
     assertThat(keySupplier.getAdapter(context, adapterParameters)).isNotNull();
     assertThat(keySupplier).isNotInstanceOf(SingletonKeySupplier.class);
@@ -87,7 +88,8 @@ public class TextElementAdapterFactoryTest {
     textElementFactory = new AdapterFactory<>(context, adapterParameters, keySupplier);
     TextElement textElement = getBaseTextElement(null);
 
-    TextElementAdapter textElementAdapter = textElementFactory.get(textElement, frameContext);
+    ParameterizedTextElementAdapter textElementAdapter =
+        textElementFactory.get(textElement, frameContext);
 
     // Verify we get the adapter from the KeySupplier, and we create but not bind it.
     assertThat(textElementAdapter).isSameAs(adapter);
@@ -103,7 +105,8 @@ public class TextElementAdapterFactoryTest {
     when(adapter.getKey()).thenReturn(adapterKey);
     when(keySupplier.getKey(frameContext, textElement)).thenReturn(adapterKey);
 
-    TextElementAdapter textElementAdapter = textElementFactory.get(textElement, frameContext);
+    ParameterizedTextElementAdapter textElementAdapter =
+        textElementFactory.get(textElement, frameContext);
     assertThat(textElementAdapter).isSameAs(adapter);
 
     // Ensure that releasing in the factory unbinds and releases the adapter.

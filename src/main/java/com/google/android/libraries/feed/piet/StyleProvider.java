@@ -59,6 +59,11 @@ class StyleProvider {
     return style.getColor();
   }
 
+  /** Whether a color is explicitly specified */
+  public boolean hasColor() {
+    return style.hasColor();
+  }
+
   /** This style's background */
   public Fill getBackground() {
     return style.getBackground();

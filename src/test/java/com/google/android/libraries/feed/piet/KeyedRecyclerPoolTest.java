@@ -18,10 +18,11 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.view.View;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.android.libraries.feed.piet.TextElementAdapter.Key;
-import com.google.search.now.ui.piet.StylesProto.Font;
+import com.google.search.now.ui.piet.ElementsProto.Element;
 import org.robolectric.RobolectricTestRunner;
+import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,16 +34,16 @@ import org.robolectric.annotation.Config;
 @Config(manifest = Config.NONE)
 public class KeyedRecyclerPoolTest {
 
-  private static final RecyclerKey KEY1 = new Key(Font.newBuilder().setSize(1).build());
-  private static final RecyclerKey KEY2 = new Key(Font.newBuilder().setSize(2).build());
-  private static final RecyclerKey KEY3 = new Key(Font.newBuilder().setSize(3).build());
+  private static final RecyclerKey KEY1 = new TestRecyclerKey("KEY1");
+  private static final RecyclerKey KEY2 = new TestRecyclerKey("KEY2");
+  private static final RecyclerKey KEY3 = new TestRecyclerKey("KEY3");
   private static final int MAX_KEYS = 10;
   private static final int CAPACITY = 11;
 
-  @Mock TextElementAdapter adapter;
-  @Mock TextElementAdapter adapter2;
-  @Mock TextElementAdapter adapter3;
-  @Mock TextElementAdapter adapter4;
+  @Mock TestElementAdapter adapter;
+  @Mock TestElementAdapter adapter2;
+  @Mock TestElementAdapter adapter3;
+  @Mock TestElementAdapter adapter4;
 
   @Before
   public void setUp() {
@@ -51,27 +52,27 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testPutAndGetOneElement() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     pool.put(KEY1, adapter);
     assertThat(pool.get(KEY1)).isEqualTo(adapter);
   }
 
   @Test
   public void testGetFromEmptyPoolReturnsNull() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     assertThat(pool.get(KEY1)).isNull();
   }
 
   @Test
   public void testGetFromEmptyPoolWithDifferentKeyReturnsNull() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     pool.put(KEY1, adapter);
     assertThat(pool.get(KEY2)).isNull();
   }
 
   @Test
   public void testPutAndGetElementsWithDifferentKeys() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     pool.put(KEY1, adapter);
     pool.put(KEY2, adapter2);
     assertThat(pool.get(KEY2)).isEqualTo(adapter2);
@@ -80,14 +81,14 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testPutNullElementFails() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     pool.put(KEY1, null);
     assertThat(pool.get(KEY1)).isNull();
   }
 
   @Test
   public void testPutNullKeyFails() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     assertThatRunnable(
             new ThrowingRunnable() {
               @Override
@@ -103,13 +104,13 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testGetNullKeyReturnsNull() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
     assertThat(pool.get(null)).isNull();
   }
 
   @Test
   public void testCacheOverflowEjectsPool() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(2, CAPACITY);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(2, CAPACITY);
     pool.put(KEY1, adapter);
     pool.put(KEY2, adapter2);
     pool.put(KEY3, adapter3);
@@ -120,7 +121,7 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testOverflowSinglePoolIgnoresLastElement() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, 2);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, 2);
     pool.put(KEY1, adapter);
     pool.put(KEY1, adapter2);
     pool.put(KEY1, adapter3);
@@ -131,7 +132,7 @@ public class KeyedRecyclerPoolTest {
 
   @Test
   public void testFillAllPools() {
-    KeyedRecyclerPool<TextElementAdapter> pool = new KeyedRecyclerPool<>(2, 2);
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(2, 2);
     pool.put(KEY1, adapter);
     pool.put(KEY1, adapter2);
     pool.put(KEY2, adapter3);
@@ -142,5 +143,47 @@ public class KeyedRecyclerPoolTest {
     assertThat(pool.get(KEY2)).isNotNull();
     assertThat(pool.get(KEY2)).isNotNull();
     assertThat(pool.get(KEY2)).isNull();
+  }
+
+  private static class TestRecyclerKey extends RecyclerKey {
+    private final String key;
+
+    TestRecyclerKey(String key) {
+      this.key = key;
+    }
+
+    @Override
+    public int hashCode() {
+      return key.hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (obj == this) {
+        return true;
+      }
+
+      if (obj == null) {
+        return false;
+      }
+
+      if (!(obj instanceof TestRecyclerKey)) {
+        return false;
+      }
+
+      TestRecyclerKey otherKey = (TestRecyclerKey) obj;
+      return otherKey.key.equals(this.key);
+    }
+  }
+
+  private static class TestElementAdapter extends ElementAdapter<View, Object> {
+    TestElementAdapter() {
+      super(null, null);
+    }
+
+    @Override
+    protected Object getModelFromElement(Element baseElement) {
+      return null;
+    }
   }
 }
