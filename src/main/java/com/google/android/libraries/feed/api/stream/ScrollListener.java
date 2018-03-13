@@ -14,10 +14,6 @@
 
 package com.google.android.libraries.feed.api.stream;
 
-import static com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState.DRAGGING;
-import static com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState.IDLE;
-import static com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState.SETTLING;
-
 import android.support.annotation.IntDef;
 
 /** Interface users can implement to be told about changes to scrolling in the Stream. */
@@ -26,7 +22,8 @@ public interface ScrollListener {
 
   void onScrolled(int dx, int dy);
 
-  @IntDef({IDLE, DRAGGING, SETTLING})
+  /** Possible scroll states. */
+  @IntDef({ScrollState.IDLE, ScrollState.DRAGGING, ScrollState.SETTLING})
   @interface ScrollState {
     /** Stream is not scrolling */
     int IDLE = 0;
