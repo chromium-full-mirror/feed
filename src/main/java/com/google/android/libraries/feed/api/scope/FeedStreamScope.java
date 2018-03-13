@@ -55,32 +55,35 @@ public class FeedStreamScope {
       this.sessionManager = sessionManager;
     }
 
-    Builder setFeedActionHandler(FeedActionHandler feedActionHandler) {
+    public Builder setFeedActionHandler(FeedActionHandler feedActionHandler) {
       this.feedActionHandler = feedActionHandler;
       return this;
     }
 
-    Builder setStream(Stream stream) {
+    public Builder setStream(Stream stream) {
       this.stream = stream;
       return this;
     }
 
-    Builder setThreadUtils(ThreadUtils threadUtils) {
+    // TODO: use ProcessScope versions instead of allowing overrides
+    public Builder setThreadUtils(ThreadUtils threadUtils) {
       this.threadUtils = threadUtils;
       return this;
     }
 
-    Builder setInternalProtocolUtils(InternalProtocolUtils internalProtocolUtils) {
+    // TODO: use ProcessScope versions instead of allowing overrides
+    public Builder setInternalProtocolUtils(InternalProtocolUtils internalProtocolUtils) {
       this.internalProtocolUtils = internalProtocolUtils;
       return this;
     }
 
-    Builder setUiRunnableHandler(UiRunnableHandler uiRunnableHandler) {
+    // TODO: use ProcessScope versions instead of allowing overrides
+    public Builder setUiRunnableHandler(UiRunnableHandler uiRunnableHandler) {
       this.uiRunnableHandler = uiRunnableHandler;
       return this;
     }
 
-    FeedStreamScope build() {
+    public FeedStreamScope build() {
       if (feedActionHandler == null) {
         feedActionHandler = new FeedActionHandlerImpl();
       }

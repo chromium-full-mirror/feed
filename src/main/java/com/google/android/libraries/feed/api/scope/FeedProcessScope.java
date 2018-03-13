@@ -53,7 +53,7 @@ import javax.annotation.Nullable;
 public class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
-  FeedStreamScope.Builder createFeedStreamScopeBuilder(ActionApi actionApi) {
+  public FeedStreamScope.Builder createFeedStreamScopeBuilder(ActionApi actionApi) {
     return new FeedStreamScope.Builder(
         actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager);
   }
