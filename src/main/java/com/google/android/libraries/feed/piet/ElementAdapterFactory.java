@@ -42,22 +42,16 @@ class ElementAdapterFactory {
       templateInvocationFactory;
 
   ElementAdapterFactory(Context context, AdapterParameters parameters) {
-    customElementFactory =
-        new AdapterFactory<>(context, parameters, new CustomElementAdapter.KeySupplier());
-    chunkedTextElementFactory =
-        new AdapterFactory<>(context, parameters, new ChunkedTextElementAdapter.KeySupplier());
-    parameterizedTextElementFactory =
+    this(
+        new AdapterFactory<>(context, parameters, new CustomElementAdapter.KeySupplier()),
+        new AdapterFactory<>(context, parameters, new ChunkedTextElementAdapter.KeySupplier()),
         new AdapterFactory<>(
-            context, parameters, new ParameterizedTextElementAdapter.KeySupplier());
-    imageElementFactory =
-        new AdapterFactory<>(context, parameters, new ImageElementAdapter.KeySupplier());
-    spacerElementFactory =
-        new AdapterFactory<>(context, parameters, new SpacerElementAdapter.KeySupplier());
-    gridRowFactory = new AdapterFactory<>(context, parameters, new GridRowAdapter.KeySupplier());
-    elementListFactory =
-        new AdapterFactory<>(context, parameters, new ElementListAdapter.KeySupplier());
-    templateInvocationFactory =
-        new AdapterFactory<>(context, parameters, new TemplateInvocationAdapter.KeySupplier());
+            context, parameters, new ParameterizedTextElementAdapter.KeySupplier()),
+        new AdapterFactory<>(context, parameters, new ImageElementAdapter.KeySupplier()),
+        new AdapterFactory<>(context, parameters, new SpacerElementAdapter.KeySupplier()),
+        new AdapterFactory<>(context, parameters, new GridRowAdapter.KeySupplier()),
+        new AdapterFactory<>(context, parameters, new ElementListAdapter.KeySupplier()),
+        new AdapterFactory<>(context, parameters, new TemplateInvocationAdapter.KeySupplier()));
   }
 
   /** Testing-only constructor for mocking the factories. */
