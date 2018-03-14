@@ -16,14 +16,12 @@ package com.google.android.libraries.feed.api.scope;
 
 import com.google.android.libraries.feed.api.actionhandler.FeedActionHandler;
 import com.google.android.libraries.feed.api.actionhandler.FeedActionHandlerImpl;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.TimingUtils;
-import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -51,12 +49,18 @@ public class FeedStreamScope {
         ImageLoaderApi imageLoaderApi,
         LoggingApi loggingApi,
         FeedProtocolAdapter feedProtocolAdapter,
-        SessionManager sessionManager) {
+        SessionManager sessionManager,
+        ThreadUtils threadUtils,
+        TimingUtils timingUtils,
+        UiRunnableHandler uiRunnableHandler) {
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
       this.feedProtocolAdapter = feedProtocolAdapter;
       this.sessionManager = sessionManager;
+      this.threadUtils = threadUtils;
+      this.timingUtils = timingUtils;
+      this.uiRunnableHandler = uiRunnableHandler;
     }
 
     public Builder setFeedActionHandler(FeedActionHandler feedActionHandler) {
@@ -69,24 +73,6 @@ public class FeedStreamScope {
       return this;
     }
 
-    // TODO: use ProcessScope versions instead of allowing overrides
-    public Builder setThreadUtils(ThreadUtils threadUtils) {
-      this.threadUtils = threadUtils;
-      return this;
-    }
-
-    // TODO: use ProcessScope versions instead of allowing overrides
-    public Builder setInternalProtocolUtils(InternalProtocolUtils internalProtocolUtils) {
-      this.internalProtocolUtils = internalProtocolUtils;
-      return this;
-    }
-
-    // TODO: use ProcessScope versions instead of allowing overrides
-    public Builder setUiRunnableHandler(UiRunnableHandler uiRunnableHandler) {
-      this.uiRunnableHandler = uiRunnableHandler;
-      return this;
-    }
-
     public Builder setModelProviderFactory(ModelProviderFactory modelProviderFactory) {
       this.modelProviderFactory = modelProviderFactory;
       return this;
@@ -96,17 +82,10 @@ public class FeedStreamScope {
       if (feedActionHandler == null) {
         feedActionHandler = new FeedActionHandlerImpl();
       }
-      if (threadUtils == null) {
-        threadUtils = new ThreadUtils();
-      }
-      if (uiRunnableHandler == null) {
-        uiRunnableHandler = new UiRunnableHandlerImpl();
-      }
       if (modelProviderFactory == null) {
         modelProviderFactory =
             new FeedModelProviderFactory(
-                // TODO: use timingUtil from ProcessScope
-                sessionManager, threadUtils, new TimingUtils(), uiRunnableHandler);
+                sessionManager, threadUtils, timingUtils, uiRunnableHandler);
       }
       // TODO: if pietManager == null, assign a PietManager to pietManager.
       // TODO: if stream == null, assign a BasicStream to stream.
@@ -127,12 +106,12 @@ public class FeedStreamScope {
     private final LoggingApi loggingApi;
     private final FeedProtocolAdapter feedProtocolAdapter;
     private final SessionManager sessionManager;
+    private final ThreadUtils threadUtils;
+    private final TimingUtils timingUtils;
+    private final UiRunnableHandler uiRunnableHandler;
 
     // Optional internal components to override the default implementations.
     @Nullable private FeedActionHandler feedActionHandler = null;
-    @Nullable private ThreadUtils threadUtils = null;
-    @Nullable private InternalProtocolUtils internalProtocolUtils = null;
-    @Nullable private UiRunnableHandler uiRunnableHandler = null;
     @Nullable private ModelProviderFactory modelProviderFactory = null;
     @Nullable private PietManager pietManager = null;
     @Nullable private Stream stream = null;

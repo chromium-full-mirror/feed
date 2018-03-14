@@ -55,7 +55,14 @@ public class FeedProcessScope implements Dumpable {
 
   public FeedStreamScope.Builder createFeedStreamScopeBuilder(ActionApi actionApi) {
     return new FeedStreamScope.Builder(
-        actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager);
+        actionApi,
+        imageLoaderApi,
+        loggingApi,
+        protocolAdapter,
+        sessionManager,
+        threadUtils,
+        timingUtils,
+        uiRunnableHandler);
   }
 
   @Override

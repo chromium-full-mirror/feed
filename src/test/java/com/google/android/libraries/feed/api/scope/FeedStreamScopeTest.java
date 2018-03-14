@@ -18,13 +18,13 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.actionhandler.FeedActionHandler;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
+import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -54,20 +54,29 @@ public class FeedStreamScopeTest {
 
   private UiRunnableHandler uiRunnableHandler;
   private ThreadUtils threadUtils;
-  private InternalProtocolUtils internalProtocolUtils;
+  private TimingUtils timingUtils;
 
   @Before
   public void setUp() {
     initMocks(this);
     uiRunnableHandler = new UiRunnableHandlerImpl();
     threadUtils = new ThreadUtils();
-    internalProtocolUtils = new InternalProtocolUtils();
+    timingUtils = new TimingUtils();
   }
 
   @Test
   public void testBasicBuild() {
     FeedStreamScope streamScope =
-        new Builder(actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager).build();
+        new Builder(
+                actionApi,
+                imageLoaderApi,
+                loggingApi,
+                protocolAdapter,
+                sessionManager,
+                threadUtils,
+                timingUtils,
+                uiRunnableHandler)
+            .build();
     // TODO: add Stream nonnull check
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
   }
@@ -75,12 +84,17 @@ public class FeedStreamScopeTest {
   @Test
   public void testComplexBuild() {
     FeedStreamScope streamScope =
-        new Builder(actionApi, imageLoaderApi, loggingApi, protocolAdapter, sessionManager)
+        new Builder(
+                actionApi,
+                imageLoaderApi,
+                loggingApi,
+                protocolAdapter,
+                sessionManager,
+                threadUtils,
+                timingUtils,
+                uiRunnableHandler)
             .setFeedActionHandler(feedActionHandler)
             .setStream(stream)
-            .setThreadUtils(threadUtils)
-            .setInternalProtocolUtils(internalProtocolUtils)
-            .setUiRunnableHandler(uiRunnableHandler)
             .setModelProviderFactory(modelProviderFactory)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
