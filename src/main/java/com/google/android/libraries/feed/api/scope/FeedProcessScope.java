@@ -114,11 +114,6 @@ public class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    public Builder setUiRunnableHandler(UiRunnableHandler uiRunnableHandler) {
-      this.uiRunnableHandler = uiRunnableHandler;
-      return this;
-    }
-
     public Builder setProtoExtensionProvider(ProtoExtensionProvider protoExtensionProvider) {
       this.protoExtensionProvider = protoExtensionProvider;
       return this;
@@ -158,11 +153,7 @@ public class FeedProcessScope implements Dumpable {
       TimingUtils timingUtils = new TimingUtils();
       FeedStore store =
           new FeedStore(timingUtils, extensionRegistry, keyValuePairStorage, journalStorage);
-
-      // TODO: require to build
-      if (uiRunnableHandler == null) {
-        uiRunnableHandler = new UiRunnableHandlerImpl();
-      }
+      UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
       ThreadUtils threadUtils = new ThreadUtils();
       if (sessionManager == null) {
         sessionManager =
@@ -210,7 +201,6 @@ public class FeedProcessScope implements Dumpable {
     // Optional fields - if they are not provided, we will use default implementations.
     @Nullable private RequestManager requestManager = null;
     @Nullable private SessionManager sessionManager = null;
-    @Nullable private UiRunnableHandler uiRunnableHandler = null;
     @Nullable private FeedProtocolAdapter protocolAdapter = null;
     @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
     @Nullable private FeedExtensionRegistry extensionRegistry = null;
@@ -274,9 +264,5 @@ public class FeedProcessScope implements Dumpable {
   // need to be package private once the StreamScope is used in Audrey2
   public TimingUtils getTimingUtils() {
     return timingUtils;
-  }
-
-  public UiRunnableHandler getUiRunnableHandler() {
-    return uiRunnableHandler;
   }
 }

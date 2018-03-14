@@ -18,13 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ConfigManager;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
-import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
@@ -54,9 +51,7 @@ public class FeedProcessScopeTest {
   @Mock private FeedProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
   @Mock private SessionManager sessionManager;
-  @Mock private ModelProviderFactory modelProviderFactory;
 
-  private UiRunnableHandler uiRunnableHandler;
   private final ProtoExtensionProvider protoExtensionProvider =
       new ProtoExtensionProvider() {
         @Override
@@ -70,7 +65,6 @@ public class FeedProcessScopeTest {
   @Before
   public void setUp() {
     initMocks(this);
-    uiRunnableHandler = new UiRunnableHandlerImpl();
   }
 
   @Test
@@ -93,7 +87,6 @@ public class FeedProcessScopeTest {
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)
-            .setUiRunnableHandler(uiRunnableHandler)
             .setExtensionRegistry(extensionRegistry)
             .setProtoExtensionProvider(protoExtensionProvider)
             .build();
