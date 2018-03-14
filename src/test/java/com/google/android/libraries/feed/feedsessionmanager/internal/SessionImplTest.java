@@ -71,7 +71,6 @@ public class SessionImplTest {
   @Test
   public void testPopulateModelProvider_features() {
     SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
-    session.setStreamSession(TEST_SESSION);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -79,7 +78,7 @@ public class SessionImplTest {
 
     // 3 features
     assertThat(streamStructures).hasSize(featureCnt);
-    session.populateModelProvider(streamStructures);
+    session.populateModelProvider(TEST_SESSION, streamStructures);
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
     assertThat(fakeModelMutator.commitCalled).isTrue();
     assertThat(session.contentInSession).hasSize(featureCnt);
@@ -102,7 +101,7 @@ public class SessionImplTest {
   @Test
   public void testUpdateSession_features() {
     SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
-    session.setStreamSession(TEST_SESSION);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -120,7 +119,7 @@ public class SessionImplTest {
   @Test
   public void testUpdateFromToken() {
     SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
-    session.setStreamSession(TEST_SESSION);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -137,7 +136,7 @@ public class SessionImplTest {
   @Test
   public void testUpdateFromToken_notInSession() {
     SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
-    session.setStreamSession(TEST_SESSION);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -154,13 +153,14 @@ public class SessionImplTest {
   @Test
   public void testStorageFailure() {
     SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
-    session.setStreamSession(TEST_SESSION);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
     when(sessionMutationResults.getStatus()).thenReturn(Status.FAILURE);
+    fakeModelMutator.clearCommit();
     session.updateSession(streamStructures, null);
     assertThat(fakeModelMutator.commitCalled).isFalse();
   }
@@ -168,7 +168,7 @@ public class SessionImplTest {
   @Test
   public void testRemove() {
     SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
-    session.setStreamSession(TEST_SESSION);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     int featureCnt = 2;
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -222,6 +222,10 @@ public class SessionImplTest {
     @Override
     public void commit() {
       commitCalled = true;
+    }
+
+    public void clearCommit() {
+      commitCalled = false;
     }
   }
 

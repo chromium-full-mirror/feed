@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.api.common;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import org.robolectric.RobolectricTestRunner;
@@ -51,28 +50,6 @@ public class ThreadUtilsTest {
               @Override
               public void run() throws Throwable {
                 threadUtils.checkNotMainThread();
-              }
-            })
-        .throwsAnExceptionOfType(IllegalStateException.class);
-  }
-
-  @Test
-  public void testCheckSpecificThread() {
-    ThreadUtils threadUtils = new ThreadUtils();
-    // expect no exception
-    threadUtils.checkSpecificThread(Thread.currentThread());
-  }
-
-  @Test
-  public void testCheckSpecificThread_exception() {
-    ThreadUtils threadUtils = new ThreadUtils();
-    // expect no exception
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                Thread expectedThread = mock(Thread.class);
-                threadUtils.checkSpecificThread(expectedThread);
               }
             })
         .throwsAnExceptionOfType(IllegalStateException.class);

@@ -42,7 +42,7 @@ import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
-import com.google.android.libraries.feed.feedsessionmanager.internal.ManagedSession;
+import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.storage.InMemoryJournalStorage;
@@ -135,8 +135,8 @@ public class FeedSessionManagerTest {
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
-    Map<String, ManagedSession> sessions = sessionManager.getSessionsMapForTest();
-    ManagedSession head = sessions.get(HEAD.streamToken);
+    Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
+    Session head = sessions.get(HEAD.streamToken);
     assertThat(head).isInstanceOf(HeadSessionImpl.class);
     String itemKey = idGenerators.createFeatureContentId(0);
     Set<String> content = ((HeadSessionImpl) head).getContentInSessionForTest();

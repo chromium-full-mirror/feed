@@ -33,11 +33,6 @@ public class ThreadUtils {
     check(isMainThread(), "checkMainThread failed");
   }
 
-  /** Throws an {@link IllegalStateException} if the current thread isn't the target thread */
-  public void checkSpecificThread(Thread targetThread) {
-    check(Thread.currentThread() == targetThread, "checkSpecificThread failed");
-  }
-
   private void check(boolean condition, String message) {
     if (!condition) {
       throw new IllegalStateException(message);

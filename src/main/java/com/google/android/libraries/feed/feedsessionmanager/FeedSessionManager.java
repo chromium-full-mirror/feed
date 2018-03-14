@@ -14,8 +14,6 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
-import android.annotation.SuppressLint;
-import android.os.AsyncTask;
 import android.text.TextUtils;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.StreamSession;
@@ -32,8 +30,8 @@ import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.feedsessionmanager.internal.FeedSession;
-import com.google.android.libraries.feed.feedsessionmanager.internal.ManagedSession;
+import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
+import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.SessionMutationCommitter;
@@ -66,7 +64,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final Map<String, StreamSharedState> sharedStateCache = new HashMap<>();
 
   @GuardedBy("lock")
-  private final Map<String, ManagedSession> sessions = new HashMap<>();
+  private final Map<String, Session> sessions = new HashMap<>();
 
   @GuardedBy("lock")
   private final Map<String, StreamDataOperation> tokenMap = new HashMap<>();
@@ -77,7 +75,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
 
-  private Thread executorThread = null;
   private ProtocolAdapter protocolAdapter;
   private RequestManager requestManager;
 
@@ -97,13 +94,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.threadUtils = threadUtils;
 
     sessionFactory = new SessionFactory(store, timingUtils, threadUtils);
-    sessionManagerExecutor.execute(
-        () -> timingUtils.pinThread(Thread.currentThread(), "SessionManager"));
-    sessionManagerExecutor.execute(
-        () -> {
-          executorThread = Thread.currentThread();
-          timingUtils.pinThread(executorThread, "SessionManager");
-        });
     sessionManagerExecutor.execute(this::initializationTask);
   }
 
@@ -111,7 +101,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   // Session Manager thread so it's complete before we create any sessions.
   private void initializationTask() {
     Logger.i(TAG, "Task: Initialization");
-    threadUtils.checkSpecificThread(executorThread);
+    timingUtils.pinThread(Thread.currentThread(), "SessionManager");
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     // Initialize the Shared States cached here.
     List<StreamSharedState> sharedStates = store.getSharedStates();
@@ -122,7 +112,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
 
     // create the head session from the data in the Store
-    ManagedSession head = sessionFactory.getHeadSession();
+    Session head = sessionFactory.getHeadSession();
     synchronized (lock) {
       sessions.put(head.getStreamSession().streamToken, head);
     }
@@ -144,7 +134,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @Override
   public void getNewSession(ModelProvider modelProvider) {
     threadUtils.checkMainThread();
-    FeedSession session = sessionFactory.getSession(modelProvider);
+    InitializableSession session = sessionFactory.getSession(modelProvider);
 
     // Task which populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
@@ -152,11 +142,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         () -> {
           Logger.i(TAG, "Task: New Session");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-          threadUtils.checkSpecificThread(executorThread);
 
           StreamSession streamSession = store.createNewSession();
-          session.setStreamSession(streamSession);
-          session.populateModelProvider(store.getStreamStructures(streamSession));
+          session.populateModelProvider(streamSession, store.getStreamStructures(streamSession));
           synchronized (lock) {
             sessions.put(session.getStreamSession().streamToken, session);
           }
@@ -170,17 +158,14 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     // TODO: This should only create the request once.
     Logger.i(TAG, "HandleToken %s", streamToken.getContentId());
     threadUtils.checkMainThread();
-    handleTokenCount++;
-    @SuppressLint("StaticFieldLeak")
-    AsyncTask<Void, Void, Void> task =
-        new AsyncTask<Void, Void, Void>() {
-          @Override
-          protected Void doInBackground(Void... params) {
-            requestManager.loadMore(streamToken.getNextPageToken());
-            return null;
-          }
-        };
-    task.execute();
+    sessionManagerExecutor.execute(
+        () -> {
+          Logger.i(TAG, "Task: handleToken");
+          ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+          requestManager.loadMore(streamToken.getNextPageToken());
+          timeTracker.stop("task", "handleToken");
+          handleTokenCount++;
+        });
   }
 
   @Override
@@ -218,7 +203,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       dumper.forKey("sharedStateCount").value(sharedStateCache.size());
       dumper.forKey("sessionCount").value(sessions.size()).compactPrevious();
       dumper.forKey("tokenCount").value(tokenMap.size()).compactPrevious();
-      for (ManagedSession session : sessions.values()) {
+      for (Session session : sessions.values()) {
         if (session instanceof Dumpable) {
           dumper.dump((Dumpable) session);
         } else {
@@ -247,7 +232,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     private void commitTask() {
       Logger.i(TAG, "Task: Commit Mutation");
-      threadUtils.checkSpecificThread(executorThread);
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
       commitContent();
       commitSessionUpdates();
@@ -319,7 +303,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             streamStructures.add(0, removeOperation);
           }
         }
-        for (ManagedSession session : sessions.values()) {
+        for (Session session : sessions.values()) {
           session.updateSession(streamStructures, mutationSourceToken);
         }
         timeTracker.stop("", "sessionUpdate", "sessions", sessions.size());
@@ -332,10 +316,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         // TODO: Think through how this should work.  Only $HEAD is cleared
         // Do we still invalidate everything?
         store.clearHead();
-        for (ManagedSession managedSession : sessions.values()) {
-          if (managedSession instanceof FeedSession) {
-            FeedSession session = (FeedSession) managedSession;
-            ModelProvider modelProvider = session.getModelProvider();
+        for (Session session : sessions.values()) {
+          ModelProvider modelProvider = session.getModelProvider();
+          if (modelProvider != null) {
             modelProvider.invalidate();
             store.removeSession(session.getStreamSession());
             sessionsRemoved.add(session.getStreamSession().streamToken);
@@ -385,7 +368,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   // This is only used in tests to access a copy of the session state
-  Map<String, ManagedSession> getSessionsMapForTest() {
+  Map<String, Session> getSessionsMapForTest() {
     synchronized (lock) {
       return new HashMap<>(sessions);
     }

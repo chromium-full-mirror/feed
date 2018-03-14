@@ -19,7 +19,6 @@ import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.sessionmanager.Session;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults.Status;
@@ -38,8 +37,8 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-/** Implementation of {@link Session} and {@link ManagedSession}. */
-public class SessionImpl implements FeedSession, Dumpable {
+/** Implementation of a {@link Session}. */
+public class SessionImpl implements InitializableSession, Dumpable {
   private static final String TAG = "SessionImpl";
 
   private final ModelProvider modelProvider;
@@ -69,8 +68,8 @@ public class SessionImpl implements FeedSession, Dumpable {
   }
 
   @Override
-  public void populateModelProvider(List<StreamStructure> head) {
-    Validators.checkNotNull(streamSession);
+  public void populateModelProvider(StreamSession streamSession, List<StreamStructure> head) {
+    this.streamSession = streamSession;
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
@@ -172,11 +171,6 @@ public class SessionImpl implements FeedSession, Dumpable {
   @Override
   public StreamSession getStreamSession() {
     return Validators.checkNotNull(streamSession);
-  }
-
-  @Override
-  public void setStreamSession(StreamSession streamSession) {
-    this.streamSession = streamSession;
   }
 
   @Override

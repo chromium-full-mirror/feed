@@ -20,7 +20,7 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
 
 /**
- * Factory for creating a {@link FeedSession} instance used in the {@link
+ * Factory for creating a {@link InitializableSession} instance used in the {@link
  * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}.
  */
 public class SessionFactory {
@@ -37,11 +37,11 @@ public class SessionFactory {
     this.threadUtils = threadUtils;
   }
 
-  public FeedSession getSession(ModelProvider modelProvider) {
+  public InitializableSession getSession(ModelProvider modelProvider) {
     return new SessionImpl(store, modelProvider, timingUtils, threadUtils);
   }
 
-  public ManagedSession getHeadSession() {
+  public Session getHeadSession() {
     return new HeadSessionImpl(store, timingUtils);
   }
 }

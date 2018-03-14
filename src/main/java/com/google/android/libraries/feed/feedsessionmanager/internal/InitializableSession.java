@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.sessionmanager;
+package com.google.android.libraries.feed.feedsessionmanager.internal;
 
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.common.StreamSession;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import java.util.List;
 
-/** This interface represents an Interface instance. */
-public interface Session {
-  /** Return the {@link ModelProvider} for this session. */
-  ModelProvider getModelProvider();
+/** A {@link Session} which supports initialization from $HEAD. */
+public interface InitializableSession extends Session {
+
+  /** Called to initialize the session from $HEAD */
+  void populateModelProvider(StreamSession streamSession, List<StreamStructure> session);
 }

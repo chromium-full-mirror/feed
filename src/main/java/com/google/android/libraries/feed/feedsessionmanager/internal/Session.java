@@ -15,23 +15,23 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import com.google.android.libraries.feed.api.common.StreamSession;
-import com.google.android.libraries.feed.api.sessionmanager.Session;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.List;
+import javax.annotation.Nullable;
 
-/**
- * This defines a fully defined {@link Session} for the {@link
- * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}. This supports initially
- * populating the Session.
- */
-public interface FeedSession extends Session, ManagedSession {
+/** A {@code Session} is a instance which supports update and optionally a {@link ModelProvider}. */
+public interface Session {
 
-  /** Called to initialize the session from $HEAD */
-  void populateModelProvider(List<StreamStructure> session);
+  /** Called to update the Session, this is responsible for updating the Stored session instance. */
+  void updateSession(
+      List<StreamStructure> streamStructures, @Nullable StreamToken mutationSourceToken);
 
-  /**
-   * Sets the StreamSession on the Session. This is created by the Store after the initial Session
-   * is created. It must be set for the SessionImpl implementation to work correctly.
-   */
-  void setStreamSession(StreamSession streamSession);
+  /** The unique identifier created by the storage layer for the session. */
+  StreamSession getStreamSession();
+
+  /** Returns a ModelProvider for a Session, if one is defined. */
+  @Nullable
+  ModelProvider getModelProvider();
 }

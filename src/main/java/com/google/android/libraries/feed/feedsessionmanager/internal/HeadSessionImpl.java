@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.StreamSession;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults.Status;
@@ -33,10 +34,8 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-/**
- * Implementation of {@link ManagedSession} for $HEAD. This class doesn't support a ModelProvider.
- */
-public class HeadSessionImpl implements ManagedSession, Dumpable {
+/** Implementation of {@link Session} for $HEAD. This class doesn't support a ModelProvider. */
+public class HeadSessionImpl implements Session, Dumpable {
   private static final String TAG = "HeadSessionImpl";
 
   private final StreamSession streamSession;
@@ -130,6 +129,12 @@ public class HeadSessionImpl implements ManagedSession, Dumpable {
   @Override
   public StreamSession getStreamSession() {
     return streamSession;
+  }
+
+  @Override
+  @Nullable
+  public ModelProvider getModelProvider() {
+    return null;
   }
 
   // This is called only in tests to acess the content in the session.
