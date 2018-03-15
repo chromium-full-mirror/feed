@@ -31,4 +31,7 @@ interface RecyclerPool<A extends ElementAdapter<?, ?>> {
 
   /** Put a {@link BoundViewAdapter} with a {@link RecyclerKey} into the pool. */
   void put(RecyclerKey key, A adapter);
+
+  /** Clear everything out of the recycler pool. */
+  void clear();
 }

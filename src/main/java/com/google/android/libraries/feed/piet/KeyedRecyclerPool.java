@@ -58,4 +58,9 @@ public class KeyedRecyclerPool<A extends ElementAdapter<?, ?>> implements Recycl
     }
     pool.put(key, adapter);
   }
+
+  @Override
+  public void clear() {
+    poolMap.evictAll();
+  }
 }

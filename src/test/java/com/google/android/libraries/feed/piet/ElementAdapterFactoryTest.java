@@ -368,6 +368,14 @@ public class ElementAdapterFactoryTest {
     assertThat(adapter).isSameAs(templateAdapter);
   }
 
+  @Test
+  public void testPurgeRecyclerPools() {
+    adapterFactory.purgeRecyclerPools();
+    for (AdapterFactory<?, ?> adapterFactory : adapterFactories) {
+      verify(adapterFactory).purgeRecyclerPool();
+    }
+  }
+
   private void testNoOtherFactoryInteractions() {
     for (AdapterFactory<?, ?> adapterFactory : adapterFactories) {
       verifyNoMoreInteractions(adapterFactory);

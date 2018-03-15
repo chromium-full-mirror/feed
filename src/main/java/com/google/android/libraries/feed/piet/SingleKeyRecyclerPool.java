@@ -19,13 +19,16 @@ import javax.annotation.Nullable;
 
 /** A very simple, single pool version of a {@link RecyclerPool} */
 public class SingleKeyRecyclerPool<A extends ElementAdapter<?, ?>> implements RecyclerPool<A> {
-  private final SimplePool<A> pool;
-
   private static final String KEY_ERROR_MESSAGE = "Given key %s does not match singleton key %s";
+
   private final RecyclerKey singletonKey;
+  private final int capacity;
+
+  private SimplePool<A> pool;
 
   SingleKeyRecyclerPool(RecyclerKey key, int capacity) {
     singletonKey = key;
+    this.capacity = capacity;
     pool = new SimplePool<>(capacity);
   }
 
@@ -47,5 +50,10 @@ public class SingleKeyRecyclerPool<A extends ElementAdapter<?, ?>> implements Re
       throw new IllegalArgumentException(String.format(KEY_ERROR_MESSAGE, key, singletonKey));
     }
     pool.release(adapter);
+  }
+
+  @Override
+  public void clear() {
+    pool = new SimplePool<>(capacity);
   }
 }

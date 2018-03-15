@@ -27,6 +27,9 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /** Provides methods to create various adapter types based on bindings. */
 class ElementAdapterFactory {
@@ -40,6 +43,7 @@ class ElementAdapterFactory {
   private final AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
   private final AdapterFactory<TemplateInvocationAdapter, TemplateInvocation>
       templateInvocationFactory;
+  private final List<AdapterFactory<?, ?>> factories;
 
   ElementAdapterFactory(Context context, AdapterParameters parameters) {
     this(
@@ -73,6 +77,17 @@ class ElementAdapterFactory {
     this.gridRowFactory = gridRowFactory;
     this.elementListFactory = elementListFactory;
     this.templateInvocationFactory = templateInvocationFactory;
+    factories =
+        Collections.unmodifiableList(
+            Arrays.asList(
+                customElementFactory,
+                chunkedTextElementFactory,
+                parameterizedTextElementFactory,
+                imageElementFactory,
+                spacerElementFactory,
+                gridRowFactory,
+                elementListFactory,
+                templateInvocationFactory));
   }
 
   ElementAdapter<? extends View, ?> createAdapterForElement(
@@ -158,6 +173,12 @@ class ElementAdapterFactory {
       elementListFactory.release((ElementListAdapter) adapter);
     } else if (adapter instanceof TemplateInvocationAdapter) {
       templateInvocationFactory.release((TemplateInvocationAdapter) adapter);
+    }
+  }
+
+  public void purgeRecyclerPools() {
+    for (AdapterFactory<?, ?> factory : factories) {
+      factory.purgeRecyclerPool();
     }
   }
 }

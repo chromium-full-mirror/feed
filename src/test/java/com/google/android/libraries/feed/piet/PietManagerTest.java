@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
@@ -89,5 +91,17 @@ public class PietManagerTest {
     // Get params for a different context
     returnParams = pietManager.getAdapterParameters(mockContext2, viewGroupProducer2);
     assertThat(returnParams.parentViewProducer).isEqualTo(viewGroupProducer2);
+  }
+
+  @Test
+  public void testPurgeRecyclerPools() {
+    // Test with null adapterParameters
+    pietManager.purgeRecyclerPools();
+
+    ElementAdapterFactory mockFactory = mock(ElementAdapterFactory.class);
+    pietManager.adapterParameters =
+        new AdapterParameters(context, cardViewProvider, null, null, mockFactory);
+    pietManager.purgeRecyclerPools();
+    verify(mockFactory).purgeRecyclerPools();
   }
 }

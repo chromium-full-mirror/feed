@@ -107,6 +107,10 @@ public class AdapterFactory<A extends ElementAdapter<?, M>, M> {
     recyclingPool.put(a.getKey(), a);
   }
 
+  public void purgeRecyclerPool() {
+    recyclingPool.clear();
+  }
+
   /** Basic statistics about hits, creations, etc. used to track how get/release are being used. */
   static class Statistics {
     String factoryName;

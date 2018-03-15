@@ -155,6 +155,14 @@ public class SingleKeyRecyclerPoolTest {
     assertThat(pool.get(DEFAULT_KEY)).isNull();
   }
 
+  @Test
+  public void testClear() {
+    pool.put(DEFAULT_KEY, adapter);
+    pool.put(DEFAULT_KEY, adapter2);
+    pool.clear();
+    assertThat(pool.get(DEFAULT_KEY)).isNull();
+  }
+
   private static class TestRecyclerKey extends RecyclerKey {
     private final String key;
 

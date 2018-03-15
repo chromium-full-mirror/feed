@@ -29,7 +29,7 @@ public class PietManager {
   private final ActionHandler actionHandler;
   private final FrameModelBinder frameModelBinder;
 
-  @Nullable private AdapterParameters adapterParameters = null;
+  @VisibleForTesting @Nullable AdapterParameters adapterParameters = null;
 
   public PietManager(
       PietStylesHelper pietStylesHelper,
@@ -58,5 +58,11 @@ public class PietManager {
       adapterParameters = new AdapterParameters(context, cardViewProducer, actionHandler);
     }
     return adapterParameters;
+  }
+
+  public void purgeRecyclerPools() {
+    if (adapterParameters != null) {
+      adapterParameters.adapterFactory.purgeRecyclerPools();
+    }
   }
 }

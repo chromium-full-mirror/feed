@@ -145,6 +145,18 @@ public class KeyedRecyclerPoolTest {
     assertThat(pool.get(KEY2)).isNull();
   }
 
+  @Test
+  public void testClear() {
+    KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, MAX_KEYS);
+    pool.put(KEY1, adapter);
+    pool.put(KEY1, adapter2);
+    pool.put(KEY2, adapter3);
+    pool.put(KEY2, adapter4);
+    pool.clear();
+    assertThat(pool.get(KEY1)).isNull();
+    assertThat(pool.get(KEY2)).isNull();
+  }
+
   private static class TestRecyclerKey extends RecyclerKey {
     private final String key;
 
