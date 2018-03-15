@@ -2,9 +2,10 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2
 
-android_library(
+java_library(
     name = "internal",
     srcs = glob(["*.java"]),
+    constraints = ["android"],
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/store",

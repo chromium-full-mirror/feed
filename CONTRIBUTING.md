@@ -45,6 +45,11 @@ again.
 All pull requests must follow the [Google Java style
 guide][google_java_style_guide].
 
+### Build Targets
+
+Use `java_library` when possible, and `android_library` when the sources depend
+on an `android_library` or Android code.
+
 ### Library Size
 
 A key feature of this library is its low impact on method count and dex size. In
