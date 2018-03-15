@@ -10,10 +10,9 @@ package_group(
     ],
 )
 
-java_library(
+android_library(
     name = "feedstore",
     srcs = glob(["*.java"]),
-    constraints = ["android"],
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/store",
