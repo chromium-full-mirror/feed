@@ -47,8 +47,8 @@ public class ModelMutatorImpl implements ModelMutator {
 
     ChildMutation(
         StreamStructure.Operation operation,
-        UpdatableModelChild addChild,
-        StreamStructure removeChild) {
+        @Nullable UpdatableModelChild addChild,
+        @Nullable StreamStructure removeChild) {
       this.operation = operation;
       this.addChild = addChild;
       this.removeChild = removeChild;
@@ -67,19 +67,16 @@ public class ModelMutatorImpl implements ModelMutator {
   }
 
   private final ModelMutatorCommitter committer;
-  private final ModelChildFactory modelChildFactory;
   private final ModelChildBinder modelChildBinder;
 
   @VisibleForTesting final List<ChildMutation> streamChildList = new ArrayList<>();
-  @VisibleForTesting final List<StreamStructure> updateList = new ArrayList<>();
+  private final List<StreamStructure> updateList = new ArrayList<>();
   private StreamToken mutationSourceToken;
 
   public ModelMutatorImpl(
       ModelMutatorCommitter committer,
-      ModelChildFactory modelChildFactory,
       ModelChildBinder modelChildBinder) {
     this.committer = committer;
-    this.modelChildFactory = modelChildFactory;
     this.modelChildBinder = modelChildBinder;
   }
 
@@ -88,7 +85,7 @@ public class ModelMutatorImpl implements ModelMutator {
     streamChildList.add(
         new ChildMutation(
             Operation.UPDATE_OR_APPEND,
-            modelChildFactory.createUnboundChild(
+            new UpdatableModelChild(
                 streamStructure.getContentId(), streamStructure.getParentContentId()),
             null));
     return this;

@@ -61,6 +61,7 @@ message StreamToken {
   // feature is the exception.
   optional string parent_id = 2;
 
+  // The Token
   optional bytes next_page_token = 3;
 }
 

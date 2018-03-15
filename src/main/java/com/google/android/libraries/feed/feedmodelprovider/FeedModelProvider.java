@@ -39,7 +39,6 @@ import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.feedmodelprovider.internal.CursorProvider;
 import com.google.android.libraries.feed.feedmodelprovider.internal.FeatureChangeImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildBinder;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildFactory;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ChildMutation;
@@ -108,7 +107,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
   private final UiRunnableHandler uiRunnableHandler;
-  private final ModelChildFactory modelChildFactory;
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
 
@@ -122,7 +120,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     this.timingUtils = timingUtils;
     this.uiRunnableHandler = uiRunnableHandler;
 
-    modelChildFactory = new ModelChildFactory();
     CursorProvider cursorProvider =
         parentId -> {
           synchronized (lock) {
@@ -194,7 +191,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   public ModelMutator edit() {
-    return new ModelMutatorImpl(committer, modelChildFactory, modelChildBinder);
+    return new ModelMutatorImpl(committer, modelChildBinder);
   }
 
   @Override

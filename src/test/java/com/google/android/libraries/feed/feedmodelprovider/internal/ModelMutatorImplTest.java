@@ -36,18 +36,14 @@ public class ModelMutatorImplTest {
   @Mock private ModelMutatorCommitter modelMutatorCommitter;
   @Mock private ModelChildBinder modelChildBinder;
 
-  private ModelChildFactory modelChildFactory;
-
   @Before
   public void setup() {
     initMocks(this);
-    modelChildFactory = new ModelChildFactory();
   }
 
   @Test
   public void testFeature() {
-    ModelMutatorImpl modelMutator =
-        new ModelMutatorImpl(modelMutatorCommitter, modelChildFactory, modelChildBinder);
+    ModelMutatorImpl modelMutator = new ModelMutatorImpl(modelMutatorCommitter, modelChildBinder);
     StreamFeature streamFeature = StreamFeature.newBuilder().build();
     modelMutator.addChild(createStreamStructureFromFeature(streamFeature));
     assertThat(modelMutator.streamChildList.size()).isEqualTo(1);
@@ -59,8 +55,7 @@ public class ModelMutatorImplTest {
 
   @Test
   public void testToken() {
-    ModelMutatorImpl modelMutator =
-        new ModelMutatorImpl(modelMutatorCommitter, modelChildFactory, modelChildBinder);
+    ModelMutatorImpl modelMutator = new ModelMutatorImpl(modelMutatorCommitter, modelChildBinder);
     StreamToken streamToken = StreamToken.newBuilder().build();
     modelMutator.addChild(createStreamStructureFromToken(streamToken));
     assertThat(modelMutator.streamChildList.size()).isEqualTo(1);
@@ -72,8 +67,7 @@ public class ModelMutatorImplTest {
 
   @Test
   public void testTokenForMutation() {
-    ModelMutatorImpl modelMutator =
-        new ModelMutatorImpl(modelMutatorCommitter, modelChildFactory, modelChildBinder);
+    ModelMutatorImpl modelMutator = new ModelMutatorImpl(modelMutatorCommitter, modelChildBinder);
     StreamToken streamToken = StreamToken.newBuilder().build();
     modelMutator.setMutationSourceToken(streamToken);
     assertThat(modelMutator.streamChildList.size()).isEqualTo(0);
@@ -85,8 +79,7 @@ public class ModelMutatorImplTest {
 
   @Test
   public void testRemove() {
-    ModelMutatorImpl modelMutator =
-        new ModelMutatorImpl(modelMutatorCommitter, modelChildFactory, modelChildBinder);
+    ModelMutatorImpl modelMutator = new ModelMutatorImpl(modelMutatorCommitter, modelChildBinder);
     assertThat(modelMutator.streamChildList).hasSize(0);
     modelMutator.removeChild(StreamStructure.getDefaultInstance());
     assertThat(modelMutator.streamChildList).hasSize(1);
