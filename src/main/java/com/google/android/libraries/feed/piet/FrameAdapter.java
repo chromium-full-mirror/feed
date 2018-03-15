@@ -114,7 +114,7 @@ public class FrameAdapter {
   public void unbindModel() {
     LinearLayout view = checkNotNull(this.view);
     for (ElementAdapter<?, ?> child : childAdapters) {
-      parameters.adapterFactory.releaseAdapter(child);
+      parameters.elementAdapterFactory.releaseAdapter(child);
     }
     childAdapters.clear();
     view.removeAllViews();
@@ -144,13 +144,14 @@ public class FrameAdapter {
     switch (slice.getSliceInstanceCase()) {
       case INLINE_SLICE:
         ElementListAdapter inlineSliceAdapter =
-            parameters.adapterFactory.createElementListAdapter(
+            parameters.elementAdapterFactory.createElementListAdapter(
                 slice.getInlineSlice(), frameContext);
         inlineSliceAdapter.bindModel(slice.getInlineSlice(), frameContext);
         return inlineSliceAdapter;
       case TEMPLATE_SLICE:
         TemplateInvocationAdapter templateAdapter =
-            parameters.adapterFactory.createTemplateAdapter(slice.getTemplateSlice(), frameContext);
+            parameters.elementAdapterFactory.createTemplateAdapter(
+                slice.getTemplateSlice(), frameContext);
         templateAdapter.bindModel(slice.getTemplateSlice(), frameContext);
         return templateAdapter;
       default:

@@ -156,7 +156,7 @@ public class ElementListAdapter
   private ElementAdapter<? extends View, ?> getAdapterForChildElement(
       Element contentLine, FrameContext frameContext) {
     ElementAdapter<? extends View, ?> adapter =
-        getParameters().adapterFactory.createAdapterForElement(contentLine, frameContext);
+        getParameters().elementAdapterFactory.createAdapterForElement(contentLine, frameContext);
     addChildAdapter(adapter);
     return adapter;
   }

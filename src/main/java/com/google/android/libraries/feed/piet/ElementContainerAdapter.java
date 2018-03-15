@@ -60,7 +60,7 @@ public abstract class ElementContainerAdapter<
       getBaseView().removeAllViews();
     }
     for (ElementAdapter<?, ?> childAdapter : childAdapters) {
-      getParameters().adapterFactory.releaseAdapter(childAdapter);
+      getParameters().elementAdapterFactory.releaseAdapter(childAdapter);
     }
     childAdapters.clear();
   }

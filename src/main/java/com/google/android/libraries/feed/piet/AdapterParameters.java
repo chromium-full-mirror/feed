@@ -33,7 +33,7 @@ public class AdapterParameters {
 
   final Context context;
 
-  final ElementAdapterFactory adapterFactory;
+  final ElementAdapterFactory elementAdapterFactory;
 
   @SuppressWarnings("nullness:assignment.type.incompatible")
   public AdapterParameters(
@@ -43,7 +43,7 @@ public class AdapterParameters {
     this.actionHandler = actionHandler;
 
     templatedStringEvaluator = new ParameterizedTextEvaluator();
-    adapterFactory = new ElementAdapterFactory(context, this);
+    elementAdapterFactory = new ElementAdapterFactory(context, this);
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -53,12 +53,12 @@ public class AdapterParameters {
       Producer<ViewGroup> parentViewProducer,
       ActionHandler actionHandler,
       ParameterizedTextEvaluator templatedStringEvaluator,
-      ElementAdapterFactory adapterFactory) {
+      ElementAdapterFactory elementAdapterFactory) {
     this.context = context;
     this.parentViewProducer = parentViewProducer;
     this.actionHandler = actionHandler;
 
     this.templatedStringEvaluator = templatedStringEvaluator;
-    this.adapterFactory = adapterFactory;
+    this.elementAdapterFactory = elementAdapterFactory;
   }
 }

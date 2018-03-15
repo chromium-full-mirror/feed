@@ -194,7 +194,7 @@ public class GridRowAdapter
     // we omit this behavior for now.
 
     ElementListAdapter listAdapter =
-        getParameters().adapterFactory.createElementListAdapter(list, frameContext);
+        getParameters().elementAdapterFactory.createElementListAdapter(list, frameContext);
     addChildAdapter(listAdapter);
     return listAdapter;
   }

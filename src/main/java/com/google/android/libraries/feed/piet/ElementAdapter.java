@@ -187,7 +187,9 @@ public abstract class ElementAdapter<V extends View, M> {
 
       for (ElementList overlayList : baseElement.getOverlayElementsList()) {
         ElementListAdapter overlayAdapter =
-            getParameters().adapterFactory.createElementListAdapter(overlayList, frameContext);
+            getParameters()
+                .elementAdapterFactory
+                .createElementListAdapter(overlayList, frameContext);
         overlays.add(overlayAdapter);
         overlayView.addView(overlayAdapter.getView());
 
@@ -310,7 +312,7 @@ public abstract class ElementAdapter<V extends View, M> {
       overlayView = null;
     }
     for (ElementListAdapter overlayAdapter : overlays) {
-      getParameters().adapterFactory.releaseAdapter(overlayAdapter);
+      getParameters().elementAdapterFactory.releaseAdapter(overlayAdapter);
     }
     overlays.clear();
   }

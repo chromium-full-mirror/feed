@@ -62,7 +62,7 @@ public class PietManager {
 
   public void purgeRecyclerPools() {
     if (adapterParameters != null) {
-      adapterParameters.adapterFactory.purgeRecyclerPools();
+      adapterParameters.elementAdapterFactory.purgeRecyclerPools();
     }
   }
 }
