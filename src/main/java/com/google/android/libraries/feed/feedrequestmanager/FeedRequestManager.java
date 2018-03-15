@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
@@ -69,8 +70,12 @@ public class FeedRequestManager implements RequestManager {
   }
 
   @Override
-  public void handlePushedResponse(Response response) {
-    protocolAdapter.createModel(response, /* token */ null);
+  public void handlePushedResponseBytes(byte[] responseBytes) {
+    try {
+      handleResponseBytes(responseBytes, null);
+    } catch (InvalidProtocolBufferException e) {
+      Logger.e(TAG, e, "Error handling pushed response bytes.");
+    }
   }
 
   private RequestBuilder newDefaultRequest() {
@@ -95,13 +100,16 @@ public class FeedRequestManager implements RequestManager {
         return;
       }
       // TODO:  Figure out a more scalable to parse extensions.
-      Response response =
-          Response.parseFrom(
-              httpResponse.getResponseBody(), extensionRegistry.getExtensionRegistry());
-      protocolAdapter.createModel(response, requestBuilder.getPageToken());
+      handleResponseBytes(httpResponse.getResponseBody(), requestBuilder.getPageToken());
     } catch (IOException e) {
       Logger.e(TAG, e, "Network level error performing request");
     }
+  }
+
+  private void handleResponseBytes(byte[] responseBytes, ByteString pageToken)
+      throws InvalidProtocolBufferException {
+    Response response = Response.parseFrom(responseBytes, extensionRegistry.getExtensionRegistry());
+    protocolAdapter.createModel(response, pageToken);
   }
 
   // TODO: Populate ClientInfo

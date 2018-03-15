@@ -119,11 +119,6 @@ public class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    public Builder setExtensionRegistry(FeedExtensionRegistry extensionRegistry) {
-      this.extensionRegistry = extensionRegistry;
-      return this;
-    }
-
     public Builder setKeyValuePairStorage(KeyValuePairStorage keyValuePairStorage) {
       this.keyValuePairStorage = keyValuePairStorage;
       return this;
@@ -140,9 +135,7 @@ public class FeedProcessScope implements Dumpable {
         // Return an empty list of extensions by default.
         protoExtensionProvider = () -> new ArrayList<>();
       }
-      if (extensionRegistry == null) {
-        extensionRegistry = new FeedExtensionRegistry(protoExtensionProvider);
-      }
+      FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(protoExtensionProvider);
       if (keyValuePairStorage == null) {
         keyValuePairStorage = new InMemoryKeyValuePairStorage();
       }
@@ -203,7 +196,6 @@ public class FeedProcessScope implements Dumpable {
     @Nullable private SessionManager sessionManager = null;
     @Nullable private FeedProtocolAdapter protocolAdapter = null;
     @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
-    @Nullable private FeedExtensionRegistry extensionRegistry = null;
     @Nullable private KeyValuePairStorage keyValuePairStorage = null;
     @Nullable private JournalStorage journalStorage = null;
   }

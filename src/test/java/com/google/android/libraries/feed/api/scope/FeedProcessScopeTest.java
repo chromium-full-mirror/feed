@@ -22,7 +22,6 @@ import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
@@ -59,8 +58,6 @@ public class FeedProcessScopeTest {
           return new ArrayList<>();
         }
       };
-  private final FeedExtensionRegistry extensionRegistry =
-      new FeedExtensionRegistry(protoExtensionProvider);
 
   @Before
   public void setUp() {
@@ -87,7 +84,6 @@ public class FeedProcessScopeTest {
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)
-            .setExtensionRegistry(extensionRegistry)
             .setProtoExtensionProvider(protoExtensionProvider)
             .build();
 

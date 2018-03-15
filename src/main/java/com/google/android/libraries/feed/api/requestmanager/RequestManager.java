@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.api.requestmanager;
 
 import com.google.protobuf.ByteString;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
-import com.google.search.now.wire.feed.ResponseProto.Response;
 
 /** Creates and issues requests to the server. */
 public interface RequestManager {
@@ -41,5 +40,5 @@ public interface RequestManager {
   void triggerRefresh(RequestReason reason);
 
   /** Handle a asynchronous response from the Network Client */
-  void handlePushedResponse(Response response);
+  void handlePushedResponseBytes(byte[] responseBytes);
 }
