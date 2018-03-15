@@ -7,11 +7,3 @@ surfaces currently include Android.
 ## Contributing
 
 See CONTRIBUTING.md.
-
-<!-- BEGIN-INTERNAL -->
-
-## Internal
-
-See README-INTERNAL.md.
-
-<!-- END-INTERNAL -->
