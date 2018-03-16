@@ -680,7 +680,6 @@ public final class Logger {
       }
       th = new DebugStackTraceLogger(tag + ": " + throwableMessage);
     }
-    // TODO: Add more caller info to the log statement.
     // TODO: Remove self from the stack trace.
     switch (level) {
       case VERBOSE:
