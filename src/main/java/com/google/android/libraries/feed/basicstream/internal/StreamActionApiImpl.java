@@ -66,4 +66,54 @@ public class StreamActionApiImpl implements StreamActionApi {
   public boolean canOpenUrl() {
     return actionApi.canOpenUrl();
   }
+
+  @Override
+  public void openUrlInIncognitoMode(String url) {
+    // TODO: Implement open in Incognito Mode.
+  }
+
+  @Override
+  public boolean canOpenUrlInIncognitoMode() {
+    return false;
+  }
+
+  @Override
+  public void openUrlInNewTab(String url) {
+    // TODO: Implement open in new tab.
+  }
+
+  @Override
+  public boolean canOpenUrlInNewTab() {
+    return false;
+  }
+
+  @Override
+  public void openUrlInNewWindow(String url) {
+    // TODO: Implement open in new window.
+  }
+
+  @Override
+  public boolean canOpenUrlInNewWindow() {
+    return false;
+  }
+
+  @Override
+  public void downloadUrl(String url) {
+    // TODO: Implement download.
+  }
+
+  @Override
+  public boolean canDownloadUrl() {
+    return false;
+  }
+
+  @Override
+  public void learnMore() {
+    // TODO: Implement learn more.
+  }
+
+  @Override
+  public boolean canLearnMore() {
+    return false;
+  }
 }

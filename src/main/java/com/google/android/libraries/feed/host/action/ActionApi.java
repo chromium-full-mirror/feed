@@ -33,4 +33,34 @@ public interface ActionApi {
 
   /** Whether the host can open a URL. */
   boolean canOpenUrl();
+
+  /** Opens the given URL in incognito mode. */
+  void openUrlInIncognitoMode(String url);
+
+  /** Whether the host can open a URL in incognito mode. */
+  boolean canOpenUrlInIncognitoMode();
+
+  /** Opens the given URL in a new tab. */
+  void openUrlInNewTab(String url);
+
+  /** Whether the host can open a URL in a new tab. */
+  boolean canOpenUrlInNewTab();
+
+  /** Opens the given URL in a new window. */
+  void openUrlInNewWindow(String url);
+
+  /** Whether the host can open a URL in a new window. */
+  boolean canOpenUrlInNewWindow();
+
+  /** Downloads the given url. */
+  void downloadUrl(String url);
+
+  /** Whether the host can download a URL. */
+  boolean canDownloadUrl();
+
+  /** Opens the Google Product Help page for the Feed. */
+  void learnMore();
+
+  /** Whether the host can open the Google Product Help page. */
+  boolean canLearnMore();
 }
