@@ -18,8 +18,6 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults.Status;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
@@ -107,8 +105,8 @@ public class HeadSessionImpl implements Session, Dumpable {
       }
       Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
     }
-    SessionMutationResults result = sessionMutation.commit();
-    if (result.getStatus() == Status.SUCCESS) {
+    boolean success = sessionMutation.commit();
+    if (success) {
       timeTracker.stop(
           "updateSession",
           streamSession.streamToken,

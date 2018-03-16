@@ -59,7 +59,7 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
   }
 
   @Override
-  public Future<CommitResult> commit(JournalMutation mutation) {
+  public Future<Boolean> commit(JournalMutation mutation) {
     return executor.submit(
         () -> {
           String journalName = mutation.getJournalName();
@@ -71,22 +71,22 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
             // JournalOperation?
             if (operation instanceof Append) {
               if (!append(((Append) operation).getValue(), journalName)) {
-                return CommitResult.FAILURE;
+                return false;
               }
             } else if (operation instanceof Copy) {
               if (!copy(journalName, ((Copy) operation).getToJournalName())) {
-                return CommitResult.FAILURE;
+                return false;
               }
             } else if (operation instanceof Delete) {
               if (!delete(journalName)) {
-                return CommitResult.FAILURE;
+                return false;
               }
             } else {
               Logger.w(TAG, "Unexpected JournalOperation type: %s", operation.getType().name());
-              return CommitResult.FAILURE;
+              return false;
             }
           }
-          return CommitResult.SUCCESS;
+          return true;
         });
   }
 

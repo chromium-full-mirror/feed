@@ -14,28 +14,14 @@
 
 package com.google.android.libraries.feed.api.store;
 
-import android.support.annotation.IntDef;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 
 /** A structural mutation against a session. */
 public interface SessionMutation {
-  interface SessionMutationResults {
-
-    @IntDef({Status.FAILURE, Status.SUCCESS})
-    @interface Status {
-      /** Something failed */
-      int FAILURE = 0;
-      /** Everything was successful */
-      int SUCCESS = 1;
-    }
-    /** Return the status of the mutation */
-    @Status
-    int getStatus();
-  }
 
   /** Add or update a structure in the store. */
   SessionMutation add(StreamStructure streamStructure);
 
   /** Commit the mutations to the backing store */
-  SessionMutationResults commit();
+  Boolean commit();
 }

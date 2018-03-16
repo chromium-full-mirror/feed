@@ -30,11 +30,11 @@ public interface JournalStorage {
 
   /**
    * Commits the operations in {@link JournalMutation} in order and asynchronously reports the
-   * {@link CommitResult}. If all the operations succeed, {@code callback} is called with a success
-   * result. If any operation fails, {@code callback} is called with a failure result and the
-   * remaining operations are not processed.
+   * boolean, where success is equal to {@code TRUE}. If all the operations succeed, {@code
+   * callback} is called with a success result. If any operation fails, {@code callback} is called
+   * with a failure result and the remaining operations are not processed.
    *
    * <p>This operation is not guaranteed to be atomic.
    */
-  Future<CommitResult> commit(JournalMutation mutation);
+  Future<Boolean> commit(JournalMutation mutation);
 }

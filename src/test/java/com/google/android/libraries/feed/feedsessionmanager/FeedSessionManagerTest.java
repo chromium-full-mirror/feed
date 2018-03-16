@@ -35,8 +35,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults.Status;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -122,9 +120,7 @@ public class FeedSessionManagerTest {
         mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
     when(store.getStreamStructures(any(StreamSession.class))).thenReturn(streamStructures);
     when(store.editSession(HEAD)).thenReturn(sessionMutation);
-    SessionMutationResults sessionMutationResult = mock(SessionMutationResults.class);
-    when(sessionMutation.commit()).thenReturn(sessionMutationResult);
-    when(sessionMutationResult.getStatus()).thenReturn(Status.SUCCESS);
+    when(sessionMutation.commit()).thenReturn(true);
 
     FeedSessionManager sessionManager =
         new FeedSessionManager(

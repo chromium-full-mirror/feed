@@ -37,10 +37,10 @@ public interface KeyValuePairStorage {
 
   /**
    * Commits the operations in the {@link StorageMutation} in order and asynchronously reports the
-   * {@link CommitResult}.
+   * results as a boolean, where success is equal to {@code TRUE}.
    *
    * <p>This operation is not guaranteed to be atomic. In the event of a failure, processing is
    * halted immediately, so the database may be left in an invalid state.
    */
-  Future<CommitResult> commit(StorageMutation mutation);
+  Future<Boolean> commit(StorageMutation mutation);
 }

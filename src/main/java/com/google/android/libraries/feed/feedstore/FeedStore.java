@@ -19,7 +19,6 @@ import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
@@ -30,7 +29,6 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
 import com.google.android.libraries.feed.feedstore.internal.SessionState;
-import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.host.storage.InMemoryKeyValuePairStorage;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
@@ -187,11 +185,11 @@ public class FeedStore implements Store, Dumpable {
         feedSessionMutation -> commitSessionMutation(streamSession, feedSessionMutation));
   }
 
-  private SessionMutationResults commitSessionMutation(
+  private Boolean commitSessionMutation(
       StreamSession streamSession, List<StreamStructure> streamStructures) {
     if (streamStructures.isEmpty()) {
       Logger.i(TAG, "No StreamStructures found to add");
-      return new SessionResults(CommitResult.SUCCESS);
+      return true;
     }
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -199,7 +197,7 @@ public class FeedStore implements Store, Dumpable {
     for (StreamStructure streamStructure : streamStructures) {
       mutation.append(streamStructure.toByteArray());
     }
-    CommitResult result;
+    boolean result;
     try {
       result = journalStorage.commit(mutation.build()).get();
     } catch (InterruptedException | ExecutionException e) {
@@ -210,10 +208,10 @@ public class FeedStore implements Store, Dumpable {
     Logger.i(
         TAG,
         "commitSessionMutation - Success %s, Update Session %s, stream structures %s",
-        result == CommitResult.SUCCESS,
+        result,
         streamSession.streamToken,
         streamStructures.size());
-    return new SessionResults(result);
+    return result;
   }
 
   private ContentMutationResults commitContentMutation(List<PayloadWithId> mutations) {
@@ -237,11 +235,11 @@ public class FeedStore implements Store, Dumpable {
         try {
           // Check whether the payload is already in storage.
           byte[] payloadBytes = keyValuePairStorage.get(payloadId).get();
-          CommitResult commitResult =
+          boolean commitResult =
               keyValuePairStorage
                   .commit(new Builder().upsert(payloadId, payload.toByteArray()).build())
                   .get();
-          if (commitResult == CommitResult.SUCCESS) {
+          if (commitResult) {
             if (payloadBytes != null) {
               contentUpdated.add(payloadId);
             } else {
@@ -303,29 +301,6 @@ public class FeedStore implements Store, Dumpable {
     @Override
     public List<String> getSharedStateAdded() {
       return sharedStateAdded;
-    }
-  }
-
-  private static class SessionResults implements SessionMutationResults {
-    private final @Status int status;
-
-    SessionResults(CommitResult commitResult) {
-      switch (commitResult) {
-        case FAILURE:
-          status = Status.FAILURE;
-          break;
-        case SUCCESS:
-          status = Status.SUCCESS;
-          break;
-        default:
-          Logger.e(TAG, "Unknown CommitResult %s", commitResult);
-          status = Status.FAILURE;
-      }
-    }
-
-    @Override
-    public @Status int getStatus() {
-      return status;
     }
   }
 }

@@ -22,7 +22,6 @@ import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.store.SessionMutation;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -41,7 +40,6 @@ public class HeadSessionImplTest {
   private static final StreamSession HEAD = new StreamSession("$HEAD");
 
   @Mock private Store store;
-  @Mock private SessionMutationResults sessionMutationResults;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final TimingUtils timingUtils = new TimingUtils();
@@ -266,8 +264,8 @@ public class HeadSessionImplTest {
     }
 
     @Override
-    public SessionMutationResults commit() {
-      return sessionMutationResults;
+    public Boolean commit() {
+      return true;
     }
   }
 }

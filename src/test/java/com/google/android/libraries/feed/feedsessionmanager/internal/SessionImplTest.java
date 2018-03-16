@@ -26,8 +26,6 @@ import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuil
 import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults.Status;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
@@ -48,9 +46,10 @@ public class SessionImplTest {
   private static final StreamSession TEST_SESSION = new StreamSession("TEST$1");
 
   @Mock private Store store;
-  @Mock private SessionMutationResults sessionMutationResults;
   @Mock private ModelProvider modelProvider;
   @Mock private ThreadUtils threadUtils;
+
+  private Boolean sessionMutationResults = true;
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
 
@@ -159,7 +158,7 @@ public class SessionImplTest {
     addFeatures(protocolBuilder, featureCnt, 1);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
-    when(sessionMutationResults.getStatus()).thenReturn(Status.FAILURE);
+    sessionMutationResults = false;
     fakeModelMutator.clearCommit();
     session.updateSession(streamStructures, null);
     assertThat(fakeModelMutator.commitCalled).isFalse();
@@ -224,7 +223,7 @@ public class SessionImplTest {
       commitCalled = true;
     }
 
-    public void clearCommit() {
+    void clearCommit() {
       commitCalled = false;
     }
   }
@@ -240,7 +239,7 @@ public class SessionImplTest {
     }
 
     @Override
-    public SessionMutationResults commit() {
+    public Boolean commit() {
       return sessionMutationResults;
     }
   }

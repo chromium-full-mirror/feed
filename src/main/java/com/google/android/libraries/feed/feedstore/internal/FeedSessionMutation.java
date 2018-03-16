@@ -23,11 +23,10 @@ import java.util.List;
 /** Implementation of the {@link SessionMutation}. */
 public class FeedSessionMutation implements SessionMutation {
   private final List<StreamStructure> streamStructures = new ArrayList<>();
-  private final Committer<SessionMutationResults, List<StreamStructure>> commitCallback;
+  private final Committer<Boolean, List<StreamStructure>> committer;
 
-  public FeedSessionMutation(
-      Committer<SessionMutationResults, List<StreamStructure>> commitCallback) {
-    this.commitCallback = commitCallback;
+  public FeedSessionMutation(Committer<Boolean, List<StreamStructure>> committer) {
+    this.committer = committer;
   }
 
   @Override
@@ -37,7 +36,7 @@ public class FeedSessionMutation implements SessionMutation {
   }
 
   @Override
-  public SessionMutationResults commit() {
-    return commitCallback.commit(streamStructures);
+  public Boolean commit() {
+    return committer.commit(streamStructures);
   }
 }

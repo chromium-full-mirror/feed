@@ -59,24 +59,24 @@ public class InMemoryKeyValuePairStorage implements KeyValuePairStorage, Dumpabl
   }
 
   @Override
-  public Future<CommitResult> commit(StorageMutation mutation) {
+  public Future<Boolean> commit(StorageMutation mutation) {
     for (StorageOperation operation : mutation.getOperations()) {
       if (operation instanceof Upsert) {
         Upsert upsert = (Upsert) operation;
         String key = upsert.getKey();
         if (key == null) {
           Logger.e(TAG, "Invalid StorageMutation: null key");
-          return executor.submit(() -> CommitResult.FAILURE);
+          return executor.submit(() -> false);
         }
         ByteBuffer valueBuffer = upsert.getValue();
         if (valueBuffer == null) {
           Logger.e(TAG, "Invalid StorageMutation: null value");
-          return executor.submit(() -> CommitResult.FAILURE);
+          return executor.submit(() -> false);
         }
         byte[] value = valueBuffer.array();
         if (value.length == 0) {
           Logger.e(TAG, "Invalid StorageMutation: empty value");
-          return executor.submit(() -> CommitResult.FAILURE);
+          return executor.submit(() -> false);
         }
         byte[] currentValue = store.put(key, value);
         if (currentValue == null) {
@@ -87,10 +87,10 @@ public class InMemoryKeyValuePairStorage implements KeyValuePairStorage, Dumpabl
       } else {
         Logger.e(
             TAG, "Invalid StorageMutation: unexpected operation: %s", operation.getType().name());
-        return executor.submit(() -> CommitResult.FAILURE);
+        return executor.submit(() -> false);
       }
     }
-    return executor.submit(() -> CommitResult.SUCCESS);
+    return executor.submit(() -> true);
   }
 
   @Override

@@ -20,8 +20,6 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults;
-import com.google.android.libraries.feed.api.store.SessionMutation.SessionMutationResults.Status;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
@@ -150,8 +148,8 @@ public class SessionImpl implements InitializableSession, Dumpable {
       }
     }
     // Commit the Model Provider mutation after the store is updated.
-    SessionMutationResults result = sessionMutation.commit();
-    if (result.getStatus() == Status.SUCCESS) {
+    boolean success = sessionMutation.commit();
+    if (success) {
       modelMutator.commit();
       timeTracker.stop(
           "updateSession",

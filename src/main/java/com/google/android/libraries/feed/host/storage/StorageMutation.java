@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.host.storage;
 
-import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.host.storage.StorageOperation.Delete;
 import com.google.android.libraries.feed.host.storage.StorageOperation.DeleteByPrefix;
 import com.google.android.libraries.feed.host.storage.StorageOperation.Upsert;
@@ -61,8 +60,8 @@ public class StorageMutation {
     /**
      * Deletes the value from {@link KeyValuePairStorage} with a matching key, if it exists.
      *
-     * <p>{@link KeyValuePairStorage#commit(StorageMutation, Callback)} will fulfill with {@link
-     * CommitResult#SUCCESS}, even if {@code key} is not found in {@link KeyValuePairStorage}.
+     * <p>{@link KeyValuePairStorage#commit(StorageMutation)} will fulfill with result is {@code
+     * TRUE}, even if {@code key} is not found in {@link KeyValuePairStorage}.
      *
      * <p>If {@link Delete} and {@link Upsert} are committed for the same key, only the last
      * operation will take effect.
@@ -75,8 +74,8 @@ public class StorageMutation {
     /**
      * Deletes all values from {@link KeyValuePairStorage} with matching key prefixes.
      *
-     * <p>{@link KeyValuePairStorage#commit(StorageMutation, Callback)} will fulfill with {@link
-     * CommitResult#SUCCESS}, even if no keys have a matching prefix.
+     * <p>{@link KeyValuePairStorage#commit(StorageMutation)} will fulfill with result equal to
+     * {@code TRUE}, even if no keys have a matching prefix.
      *
      * <p>If {@link DeleteByPrefix} and {@link Upsert} are committed for the same matching key, only
      * the last operation will take effect.
