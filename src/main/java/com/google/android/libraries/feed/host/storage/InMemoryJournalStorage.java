@@ -82,7 +82,7 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
                 return false;
               }
             } else {
-              Logger.w(TAG, "Unexpected JournalOperation type: %s", operation.getType().name());
+              Logger.w(TAG, "Unexpected JournalOperation type: %s", operation.getType());
               return false;
             }
           }

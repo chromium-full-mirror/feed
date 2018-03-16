@@ -85,8 +85,7 @@ public class InMemoryKeyValuePairStorage implements KeyValuePairStorage, Dumpabl
           updateCount++;
         }
       } else {
-        Logger.e(
-            TAG, "Invalid StorageMutation: unexpected operation: %s", operation.getType().name());
+        Logger.e(TAG, "Invalid StorageMutation: unexpected operation: %s", operation.getType());
         return executor.submit(() -> false);
       }
     }

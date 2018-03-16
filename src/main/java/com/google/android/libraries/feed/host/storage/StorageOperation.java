@@ -14,25 +14,27 @@
 
 package com.google.android.libraries.feed.host.storage;
 
+import android.support.annotation.IntDef;
 import java.nio.ByteBuffer;
 
 /** A mutation to the underlying {@link KeyValuePairStorage}. */
 public abstract class StorageOperation {
   /** The types of operations. */
-  public enum Type {
-    DELETE,
-    DELETE_BY_PREFIX,
-    UPSERT
+  @IntDef({Type.DELETE, Type.DELETE_BY_PREFIX, Type.UPSERT})
+  @interface Type {
+    int DELETE = 0;
+    int DELETE_BY_PREFIX = 1;
+    int UPSERT = 3;
   }
 
-  public Type getType() {
+  public @Type int getType() {
     return type;
   }
 
-  private final Type type;
+  private final @Type int type;
 
   // Only the following classes may extend StorageOperation
-  private StorageOperation(Type type) {
+  private StorageOperation(@Type int type) {
     this.type = type;
   }
 

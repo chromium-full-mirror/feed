@@ -14,25 +14,27 @@
 
 package com.google.android.libraries.feed.host.storage;
 
+import android.support.annotation.IntDef;
 import java.nio.ByteBuffer;
 
 /** A mutation to the underlying {@link JournalStorage}. */
 public abstract class JournalOperation {
   /** The types of operations. */
-  public enum Type {
-    APPEND,
-    COPY,
-    DELETE
+  @IntDef({Type.APPEND, Type.COPY, Type.DELETE})
+  @interface Type {
+    int APPEND = 0;
+    int COPY = 1;
+    int DELETE = 2;
   }
 
-  public Type getType() {
+  public @Type int getType() {
     return type;
   }
 
-  private final Type type;
+  private final @Type int type;
 
   // Only the following classes may extend JournalOperation
-  private JournalOperation(Type type) {
+  private JournalOperation(@Type int type) {
     this.type = type;
   }
 
