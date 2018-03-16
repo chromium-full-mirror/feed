@@ -32,7 +32,7 @@ public class ConfigManagerTest {
     ConfigFlag<String> configFlag = ConfigFlag.forString(key, defaultValue);
     assertThat(configFlag).isNotNull();
     assertThat(configFlag.getKey()).isEqualTo(key);
-    assertThat(configFlag.getDefaultValue()).isEqualTo(defaultValue);
+    assertThat(configFlag.getValue()).isEqualTo(defaultValue);
     assertThat(configFlag.getType()).isEqualTo(String.class);
   }
 
@@ -43,7 +43,7 @@ public class ConfigManagerTest {
     ConfigFlag<Integer> configFlag = ConfigFlag.forInteger(key, defaultValue);
     assertThat(configFlag).isNotNull();
     assertThat(configFlag.getKey()).isEqualTo(key);
-    assertThat(configFlag.getDefaultValue()).isEqualTo(defaultValue);
+    assertThat(configFlag.getValue()).isEqualTo(defaultValue);
     assertThat(configFlag.getType()).isEqualTo(Integer.class);
   }
 }
