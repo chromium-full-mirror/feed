@@ -18,9 +18,7 @@ import com.google.protobuf.ByteString;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 
-/**
- * The Protocol Adapter will convert the wire protocol into the internal protocol used in Jardin.
- */
+/** Converts the wire protocol (protos sent from the server) into an internal representation. */
 public interface ProtocolAdapter {
   /**
    * Create the internal protocol from a wire protocol response definition. The {@code token} {@link
