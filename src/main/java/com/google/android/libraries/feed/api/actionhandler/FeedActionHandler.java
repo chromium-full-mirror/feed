@@ -16,14 +16,17 @@ package com.google.android.libraries.feed.api.actionhandler;
 
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import javax.annotation.Nullable;
 
 /** Handles actions for the feed. */
 public interface FeedActionHandler {
 
   /**
-   * Gets the feed action from a Piet Action.
+   * Attempts to get the feed action from a Piet Action. Returns {@literal null} if it doesn't
+   * exist.
    *
    * @param action the Piet Action to pull the feed action metadata out of.
    */
+  @Nullable
   FeedAction getFeedAction(Action action);
 }

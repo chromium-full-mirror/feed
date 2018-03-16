@@ -25,14 +25,13 @@ public class FeedActionHandlerImpl implements FeedActionHandler {
 
   private static final String TAG = "ActionHandlerImpl";
 
-  public FeedActionHandlerImpl() {}
-
   /**
    * Gets the feed action from a Piet Action.
    *
    * @param action the Piet Action to pull the feed action metadata out of.
    */
   @Override
+  @Nullable
   public FeedAction getFeedAction(Action action) {
     @Nullable
     PietFeedAction feedActionExtension =
@@ -40,7 +39,7 @@ public class FeedActionHandlerImpl implements FeedActionHandler {
     if (feedActionExtension != null && feedActionExtension.hasFeedAction()) {
       return feedActionExtension.getFeedAction();
     }
-    Logger.e(TAG, "FeedActionExtension was null");
+    Logger.e(TAG, "FeedActionExtension was null or did not contain a feed action");
     return null;
   }
 }
