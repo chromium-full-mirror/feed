@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
+import android.support.annotation.IntDef;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import javax.annotation.Nullable;
@@ -59,24 +60,26 @@ public interface ModelProvider {
   void handleToken(ModelToken modelToken);
 
   /** Defines the Lifecycle of the ModelProvider */
-  enum State {
+  @IntDef({State.INITIALIZING, State.READY, State.INVALIDATED})
+  @interface State {
     /**
      * State of the Model Provider before it has been fully initialized. The model shouldn't be
      * accessed before it enters the {@code READY} state. You should register an Observer to receive
      * an event when the model is ready.
      */
-    INITIALIZING,
+    int INITIALIZING = 0;
     /** State of the Model Provider when it is ready for normal use. */
-    READY,
+    int READY = 1;
     /**
      * State of the Model Provider when it has been invalidated. In this mode, the Model is no
      * longer valid and methods will fail.
      */
-    INVALIDATED
+    int INVALIDATED = 2;
   }
 
   /** Returns the current state of the ModelProvider */
-  State getCurrentState();
+  @State
+  int getCurrentState();
 
   /**
    * Register a {@link ModelProviderObserver} for changes on this container. The types of changes

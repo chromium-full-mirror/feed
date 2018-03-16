@@ -96,7 +96,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final List<WeakReference<ModelCursorImpl>> cursors = new ArrayList<>();
 
   @GuardedBy("lock")
-  private State currentState = State.INITIALIZING;
+  private @State int currentState = State.INITIALIZING;
 
   // #dump() operation counts
   private int removedChildrenCount = 0;
@@ -185,7 +185,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
-  public State getCurrentState() {
+  public @State int getCurrentState() {
     synchronized (lock) {
       return currentState;
     }
@@ -229,7 +229,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   public void dump(Dumper dumper) {
     synchronized (lock) {
       dumper.title(TAG);
-      dumper.forKey("currentState").value(currentState.ordinal());
+      dumper.forKey("currentState").value(currentState);
       dumper.forKey("contentCount").value(contents.size()).compactPrevious();
       dumper.forKey("containers").value(containers.size()).compactPrevious();
       dumper.forKey("tokens").value(tokens.size()).compactPrevious();

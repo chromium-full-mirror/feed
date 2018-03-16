@@ -307,7 +307,7 @@ public class FeedStore implements Store, Dumpable {
   }
 
   private static class SessionResults implements SessionMutationResults {
-    private final Status status;
+    private final @Status int status;
 
     SessionResults(CommitResult commitResult) {
       switch (commitResult) {
@@ -324,7 +324,7 @@ public class FeedStore implements Store, Dumpable {
     }
 
     @Override
-    public Status getStatus() {
+    public @Status int getStatus() {
       return status;
     }
   }

@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
+import android.support.annotation.IntDef;
 import javax.annotation.Nullable;
 
 /**
@@ -23,22 +24,24 @@ import javax.annotation.Nullable;
 public interface ModelChild {
 
   /** Define the concrete type of the children. */
-  enum Type {
+  @IntDef({Type.UNBOUND, Type.FEATURE, Type.TOKEN})
+  @interface Type {
     // A feature that isn't yet bound to a specific data type
     // This should never be exposed outside of the model.
-    UNBOUND,
+    int UNBOUND = 0;
 
     // A stream feature child.
-    FEATURE,
+    int FEATURE = 1;
 
     // The child is a continuation token.  This means the cursor is at end
     // and a request has been made to create a new cursor with additional
     // children.
-    TOKEN
+    int TOKEN = 2;
   }
 
   /** Returns the type of the child. */
-  Type getType();
+  @Type
+  int getType();
 
   /** Returns the ContentId of the child, all children will have a Content ID. */
   String getContentId();

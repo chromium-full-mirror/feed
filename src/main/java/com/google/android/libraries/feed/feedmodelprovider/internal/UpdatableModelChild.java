@@ -29,7 +29,7 @@ public class UpdatableModelChild implements ModelChild {
   private final String contentId;
   @Nullable private final String parentContentId;
 
-  private ModelChild.Type type = Type.UNBOUND;
+  private @Type int type = Type.UNBOUND;
   private UpdatableModelFeature modelFeature;
   private UpdatableModelToken modelToken;
 
@@ -75,14 +75,14 @@ public class UpdatableModelChild implements ModelChild {
 
   public void updateFeature(StreamPayload payload) {
     switch (type) {
-      case FEATURE:
+      case Type.FEATURE:
         if (payload.hasStreamFeature()) {
           modelFeature.setFeatureValue(payload.getStreamFeature());
         } else {
           Logger.e(TAG, "Attempting to update a ModelFeature without providing a feature");
         }
         break;
-      case TOKEN:
+      case Type.TOKEN:
         Logger.e(TAG, "Updated called for TOKEN is unsupported");
         break;
       default:
@@ -91,7 +91,7 @@ public class UpdatableModelChild implements ModelChild {
   }
 
   @Override
-  public Type getType() {
+  public @Type int getType() {
     return type;
   }
 
@@ -111,7 +111,7 @@ public class UpdatableModelChild implements ModelChild {
     return !TextUtils.isEmpty(parentContentId);
   }
 
-  private void validateType(ModelChild.Type type) {
+  private void validateType(@Type int type) {
     if (this.type != type) {
       throw new IllegalStateException(
           String.format("ModelChild type error - Type %s, expected %s", this.type, type));
