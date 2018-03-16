@@ -10,7 +10,7 @@ package_group(
     ],
 )
 
-android_library(
+java_library(
     name = "feedstore",
     srcs = glob(["*.java"]),
     deps = [
