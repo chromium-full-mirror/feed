@@ -41,7 +41,7 @@ import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import java.util.ArrayList;
 import java.util.List;
 
-/** A RecyclerView adapter which can show Piet Stream features. */
+/** A RecyclerView adapter which can show a list of views with Piet Stream features. */
 public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
   private static final String TAG = "StreamRecyclerViewAdapt";
 
