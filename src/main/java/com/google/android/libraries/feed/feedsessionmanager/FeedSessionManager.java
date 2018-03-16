@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.Committer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
@@ -34,7 +35,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.Initializab
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl;
-import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.SessionMutationCommitter;
+import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.Change;
 import com.google.android.libraries.feed.host.common.Callback;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -217,17 +218,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
    * This class will commit a session mutation. This will queue the actual work onto the Session
    * Manager thread. We will update the content first followed by updates to each session.
    */
-  private class CommitterTask implements SessionMutationCommitter {
-    @Nullable private StreamToken mutationSourceToken;
-    private List<StreamDataOperation> dataOperations;
+  private class CommitterTask implements Committer<Void, Change> {
+    private Change change;
     private final List<StreamStructure> streamStructures = new ArrayList<>();
 
     @Override
-    public void commit(
-        List<StreamDataOperation> dataOperations, @Nullable StreamToken mutationSourceToken) {
-      this.dataOperations = dataOperations;
-      this.mutationSourceToken = mutationSourceToken;
+    public Void commit(Change change) {
+      this.change = change;
       sessionManagerExecutor.execute(this::commitTask);
+      return null;
     }
 
     private void commitTask() {
@@ -243,7 +242,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
       ContentMutation contentMutation = store.editContent();
-      for (StreamDataOperation dataOperation : dataOperations) {
+      for (StreamDataOperation dataOperation : change.dataOperations) {
         Operation operation = dataOperation.getStreamStructure().getOperation();
         if (operation == Operation.CLEAR_ALL) {
           streamStructures.add(dataOperation.getStreamStructure());
@@ -289,7 +288,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
       contentMutation.commit();
-      timeTracker.stop("", "contentUpdate", "items", dataOperations.size());
+      timeTracker.stop("", "contentUpdate", "items", change.dataOperations.size());
     }
 
     private void commitSessionUpdates() {
@@ -297,14 +296,14 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       synchronized (lock) {
         // For sessions we want to add the remove operation if the mutation source was a
         // continuation token.
-        if (mutationSourceToken != null) {
-          StreamStructure removeOperation = addTokenRemoveOperation(mutationSourceToken);
+        if (change.mutationSourceToken != null) {
+          StreamStructure removeOperation = addTokenRemoveOperation(change.mutationSourceToken);
           if (removeOperation != null) {
             streamStructures.add(0, removeOperation);
           }
         }
         for (Session session : sessions.values()) {
-          session.updateSession(streamStructures, mutationSourceToken);
+          session.updateSession(streamStructures, change.mutationSourceToken);
         }
         timeTracker.stop("", "sessionUpdate", "sessions", sessions.size());
       }

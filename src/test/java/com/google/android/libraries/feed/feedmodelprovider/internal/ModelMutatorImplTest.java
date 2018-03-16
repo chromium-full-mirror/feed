@@ -15,26 +15,25 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ModelMutatorCommitter;
+import com.google.android.libraries.feed.common.Committer;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.Change;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import org.robolectric.RobolectricTestRunner;
-import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 /** Tests of {@link ModelMutatorImpl}. */
 @RunWith(RobolectricTestRunner.class)
 public class ModelMutatorImplTest {
-  @Mock private ModelMutatorCommitter modelMutatorCommitter;
-  @Mock private ModelChildBinder modelChildBinder;
+  @Mock private Committer<Void, Change> committer;
 
   @Before
   public void setup() {
@@ -43,46 +42,40 @@ public class ModelMutatorImplTest {
 
   @Test
   public void testFeature() {
-    ModelMutatorImpl modelMutator = new ModelMutatorImpl(modelMutatorCommitter, modelChildBinder);
+    ModelMutatorImpl modelMutator = new ModelMutatorImpl(committer);
     StreamFeature streamFeature = StreamFeature.newBuilder().build();
     modelMutator.addChild(createStreamStructureFromFeature(streamFeature));
-    assertThat(modelMutator.streamChildList.size()).isEqualTo(1);
+    assertThat(modelMutator.change.streamChildList).hasSize(1);
     modelMutator.commit();
-    Mockito.verify(modelChildBinder)
-        .bindAndCommit(
-            modelMutatorCommitter, modelMutator.streamChildList, new ArrayList<>(), null);
+    verify(committer).commit(modelMutator.change);
   }
 
   @Test
   public void testToken() {
-    ModelMutatorImpl modelMutator = new ModelMutatorImpl(modelMutatorCommitter, modelChildBinder);
+    ModelMutatorImpl modelMutator = new ModelMutatorImpl(committer);
     StreamToken streamToken = StreamToken.newBuilder().build();
     modelMutator.addChild(createStreamStructureFromToken(streamToken));
-    assertThat(modelMutator.streamChildList.size()).isEqualTo(1);
+    assertThat(modelMutator.change.streamChildList).hasSize(1);
     modelMutator.commit();
-    Mockito.verify(modelChildBinder)
-        .bindAndCommit(
-            modelMutatorCommitter, modelMutator.streamChildList, new ArrayList<>(), null);
+    verify(committer).commit(modelMutator.change);
   }
 
   @Test
   public void testTokenForMutation() {
-    ModelMutatorImpl modelMutator = new ModelMutatorImpl(modelMutatorCommitter, modelChildBinder);
+    ModelMutatorImpl modelMutator = new ModelMutatorImpl(committer);
     StreamToken streamToken = StreamToken.newBuilder().build();
     modelMutator.setMutationSourceToken(streamToken);
-    assertThat(modelMutator.streamChildList.size()).isEqualTo(0);
+    assertThat(modelMutator.change.streamChildList).isEmpty();
     modelMutator.commit();
-    Mockito.verify(modelChildBinder)
-        .bindAndCommit(
-            modelMutatorCommitter, modelMutator.streamChildList, new ArrayList<>(), streamToken);
+    verify(committer).commit(modelMutator.change);
   }
 
   @Test
   public void testRemove() {
-    ModelMutatorImpl modelMutator = new ModelMutatorImpl(modelMutatorCommitter, modelChildBinder);
-    assertThat(modelMutator.streamChildList).hasSize(0);
+    ModelMutatorImpl modelMutator = new ModelMutatorImpl(committer);
+    assertThat(modelMutator.change.streamChildList).isEmpty();
     modelMutator.removeChild(StreamStructure.getDefaultInstance());
-    assertThat(modelMutator.streamChildList).hasSize(1);
+    assertThat(modelMutator.change.streamChildList).hasSize(1);
   }
 
   private StreamStructure createStreamStructureFromFeature(StreamFeature feature) {

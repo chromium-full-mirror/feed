@@ -30,20 +30,22 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.Committer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ChildBinding;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ChildStructureMutation;
 import com.google.android.libraries.feed.feedmodelprovider.internal.CursorProvider;
 import com.google.android.libraries.feed.feedmodelprovider.internal.FeatureChangeImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildBinder;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildBinder.BindingResults;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ChildMutation;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ChildUpdateMutation;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.ModelMutatorCommitter;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.Change;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelChild;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelFeature;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
@@ -110,7 +112,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
 
-  public FeedModelProvider(
+  FeedModelProvider(
       SessionManager sessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
@@ -191,7 +193,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   public ModelMutator edit() {
-    return new ModelMutatorImpl(committer, modelChildBinder);
+    return new ModelMutatorImpl(committer);
   }
 
   @Override
@@ -299,19 +301,21 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   /** This is the {@code ModelMutatorCommitter} which updates the model */
-  private final ModelMutatorCommitter committer =
-      new ModelMutatorCommitter() {
+  private final Committer<Void, Change> committer =
+      new Committer<Void, Change>() {
         @Override
-        public void commit(
-            List<ChildMutation> structureChanges,
-            List<ChildUpdateMutation> updates,
-            StreamToken mutationSourceToken) {
+        public Void commit(Change change) {
+          modelChildBinder.bindChildren(this::postBind, change);
+          return null;
+        }
+
+        void postBind(BindingResults bindingResults) {
           Logger.i(
               TAG,
               "commit mutation - Structure changes %s, Updates %s, Token %s",
-              structureChanges.size(),
-              updates.size(),
-              mutationSourceToken != null);
+              bindingResults.streamChildList.size(),
+              bindingResults.updates.size(),
+              bindingResults.mutationSourceToken != null);
 
           threadUtils.checkNotMainThread();
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -321,14 +325,14 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             MutationHandler mutationHandler;
             if (currentState == State.INITIALIZING) {
               Validators.checkState(
-                  mutationSourceToken == null,
+                  bindingResults.mutationSourceToken == null,
                   "Initializing the Model Provider from a Continuation Token");
               mutationHandler = new InitializeModel();
-            } else if (mutationSourceToken != null) {
-              mutationHandler = new TokenMutation(mutationSourceToken);
+            } else if (bindingResults.mutationSourceToken != null) {
+              mutationHandler = new TokenMutation(bindingResults.mutationSourceToken);
               commitTokenCount++;
             } else {
-              mutationHandler = new UpdateMutation(updates);
+              mutationHandler = new UpdateMutation(bindingResults.updates);
               commitUpdateCount++;
             }
 
@@ -339,9 +343,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             boolean rootChanged = false;
             String currentParentKey = null;
             ArrayList<UpdatableModelChild> childrenList = null;
-            for (ChildMutation childMutation : structureChanges) {
-              if (childMutation.operation == Operation.UPDATE_OR_APPEND) {
-                UpdatableModelChild child = Validators.checkNotNull(childMutation.addChild);
+            for (ChildStructureMutation childStructureMutation : bindingResults.streamChildList) {
+              if (childStructureMutation.operation == Operation.UPDATE_OR_APPEND) {
+                UpdatableModelChild child =
+                    Validators.checkNotNull(childStructureMutation.addChild);
                 if (child.getType() == Type.UNBOUND) {
                   Logger.e(TAG, "Unbound Child Found %s", child.getContentIdAsKey());
                   continue;
@@ -369,9 +374,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                       child.getModelToken().getStreamToken().getNextPageToken(), tokenTracking);
                 }
               } else {
-                Validators.checkNotNull(childMutation.removeChild);
-                handleRemoveOperation(mutationHandler, childMutation.removeChild);
-                contents.remove(childMutation.removeChild.getContentId());
+                Validators.checkNotNull(childStructureMutation.removeChild);
+                handleRemoveOperation(mutationHandler, childStructureMutation.removeChild);
+                contents.remove(childStructureMutation.removeChild.getContentId());
               }
             }
 
@@ -393,7 +398,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             // started
             mutationHandler.postMutation();
           }
-          timeTracker.stop("", "modelMutation", "updates", structureChanges.size());
+          timeTracker.stop("", "modelMutation", "updates", bindingResults.streamChildList.size());
         }
       };
 
@@ -526,11 +531,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   @VisibleForTesting
   class UpdateMutation extends MutationHandler {
 
-    private final List<ChildUpdateMutation> updates;
+    private final List<ChildBinding> updates;
     private final Map<String, FeatureChangeImpl> changes = new HashMap<>();
     private final Set<String> newParents = new HashSet<>();
 
-    UpdateMutation(List<ChildUpdateMutation> updates) {
+    UpdateMutation(List<ChildBinding> updates) {
       this.updates = updates;
     }
 
@@ -538,8 +543,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     public void preMutation() {
       Logger.i(TAG, "Updating %s items", updates.size());
       // Walk all the updates and update the values, creating changes to track these
-      for (ChildUpdateMutation update : updates) {
-        String contentKey = update.updateChild.getContentId();
+      for (ChildBinding update : updates) {
+        String contentKey = update.child.getContentId();
         UpdatableModelChild updatableModelChild;
         synchronized (lock) {
           updatableModelChild = contents.get(contentKey);

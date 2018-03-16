@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
+import com.google.android.libraries.feed.common.Committer;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
@@ -26,32 +27,31 @@ import javax.annotation.Nullable;
  * callback.
  */
 public class SessionMutationImpl implements SessionMutation {
-  /** Callback interface to commit a {@link SessionMutation}. */
-  public interface SessionMutationCommitter {
-    /** Method called to commit the session mutation */
-    void commit(List<StreamDataOperation> dataOperations, StreamToken mutationSourceToken);
+  /** Structure containing the change to the session manager. */
+  public static class Change {
+    public final List<StreamDataOperation> dataOperations = new ArrayList<>();
+    @Nullable public StreamToken mutationSourceToken;
   }
 
-  private final List<StreamDataOperation> dataOperations = new ArrayList<>();
-  private final SessionMutationCommitter committer;
-  @Nullable private StreamToken mutationSourceToken;
+  private final Change change = new Change();
+  private final Committer<Void, Change> committer;
 
-  public SessionMutationImpl(SessionMutationCommitter committer) {
+  public SessionMutationImpl(Committer<Void, Change> committer) {
     this.committer = committer;
   }
 
   @Override
   public void addOperation(StreamDataOperation dataOperation) {
-    dataOperations.add(dataOperation);
+    change.dataOperations.add(dataOperation);
   }
 
   @Override
   public void setMutationSourceToken(StreamToken mutationSourceToken) {
-    this.mutationSourceToken = mutationSourceToken;
+    change.mutationSourceToken = mutationSourceToken;
   }
 
   @Override
   public void commit() {
-    committer.commit(dataOperations, mutationSourceToken);
+    committer.commit(change);
   }
 }

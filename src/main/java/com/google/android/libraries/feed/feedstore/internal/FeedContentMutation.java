@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.store.ContentMutation;
+import com.google.android.libraries.feed.common.Committer;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,19 +24,11 @@ import java.util.List;
 /** This class will mutate the Content stored in the FeedStore. */
 public class FeedContentMutation implements ContentMutation {
 
-  /**
-   * Called when the Content Mutation is committed. The {@code FeedStore} will provide the
-   * implementation of this callback to update the Content.
-   */
-  public interface CommitCallback {
-    ContentMutationResults commitToStore(List<PayloadWithId> mutations);
-  }
-
   private final List<PayloadWithId> mutations = new ArrayList<>();
-  private final CommitCallback commitCallback;
+  private final Committer<ContentMutationResults, List<PayloadWithId>> committer;
 
-  public FeedContentMutation(CommitCallback commitCallback) {
-    this.commitCallback = commitCallback;
+  public FeedContentMutation(Committer<ContentMutationResults, List<PayloadWithId>> committer) {
+    this.committer = committer;
   }
 
   @Override
@@ -46,6 +39,6 @@ public class FeedContentMutation implements ContentMutation {
 
   @Override
   public ContentMutationResults commit() {
-    return commitCallback.commitToStore(mutations);
+    return committer.commit(mutations);
   }
 }

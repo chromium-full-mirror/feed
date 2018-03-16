@@ -15,26 +15,18 @@
 package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.store.SessionMutation;
+import com.google.android.libraries.feed.common.Committer;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
 import java.util.List;
 
 /** Implementation of the {@link SessionMutation}. */
 public class FeedSessionMutation implements SessionMutation {
-
-  /**
-   * Called when the Content Mutation is committed. The {@code FeedStore} will provide the
-   * implementation of this callback to update the Content.
-   */
-  public interface CommitCallback {
-    /** Method called to commit the mutation to the Store. */
-    SessionMutationResults commitToStore(List<StreamStructure> streamStructures);
-  }
-
-  private final CommitCallback commitCallback;
   private final List<StreamStructure> streamStructures = new ArrayList<>();
+  private final Committer<SessionMutationResults, List<StreamStructure>> commitCallback;
 
-  public FeedSessionMutation(CommitCallback commitCallback) {
+  public FeedSessionMutation(
+      Committer<SessionMutationResults, List<StreamStructure>> commitCallback) {
     this.commitCallback = commitCallback;
   }
 
@@ -46,6 +38,6 @@ public class FeedSessionMutation implements SessionMutation {
 
   @Override
   public SessionMutationResults commit() {
-    return commitCallback.commitToStore(streamStructures);
+    return commitCallback.commit(streamStructures);
   }
 }
