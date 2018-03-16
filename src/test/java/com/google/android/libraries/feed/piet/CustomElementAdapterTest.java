@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -47,6 +48,8 @@ import org.robolectric.annotation.Config;
 public class CustomElementAdapterTest {
 
   private static final CustomElementData DUMMY_DATA = CustomElementData.getDefaultInstance();
+  private static final CustomElement DEFAULT_MODEL =
+      CustomElement.newBuilder().setCustomElementData(DUMMY_DATA).build();
 
   @Mock private AdapterParameters adapterParameters;
   @Mock private FrameContext frameContext;
@@ -73,11 +76,31 @@ public class CustomElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_data() {
-    adapter.bindModel(
-        CustomElement.newBuilder().setCustomElementData(DUMMY_DATA).build(), frameContext);
+  public void testCreateAdapter_initializes() {
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    assertThat(adapter.getView()).isEqualTo(customView);
+    assertThat(adapter.getView()).isNotNull();
+    assertThat(adapter.getKey()).isNotNull();
+  }
+
+  @Test
+  public void testCreateAdapter_ignoresSubsequentCalls() {
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    View adapterView = adapter.getView();
+    RecyclerKey adapterKey = adapter.getKey();
+
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+
+    assertThat(adapter.getView()).isSameAs(adapterView);
+    assertThat(adapter.getKey()).isSameAs(adapterKey);
+  }
+
+  @Test
+  public void testBindModel_data() {
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0)).isEqualTo(customView);
   }
 
   @Test
@@ -85,20 +108,60 @@ public class CustomElementAdapterTest {
     CustomBindingRef bindingRef = CustomBindingRef.newBuilder().setBindingId("CUSTOM!").build();
     when(frameContext.getCustomElementFromBinding(bindingRef)).thenReturn(DUMMY_DATA);
 
-    adapter.bindModel(
-        CustomElement.newBuilder().setCustomBinding(bindingRef).build(), frameContext);
+    CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
 
-    assertThat(adapter.getView()).isEqualTo(customView);
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0)).isEqualTo(customView);
+  }
+
+  @Test
+  public void testBindModel_noContent() {
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(CustomElement.getDefaultInstance(), frameContext);
+
+    verifyZeroInteractions(customElementProvider);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
   }
 
   @Test
   public void testUnbindModel() {
-    adapter.bindModel(
-        CustomElement.newBuilder().setCustomElementData(DUMMY_DATA).build(), frameContext);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
 
     adapter.unbindModel();
 
     verify(customElementProvider).releaseCustomView(customView);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testUnbindModel_noChildren() {
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+
+    adapter.unbindModel();
+
+    verifyZeroInteractions(customElementProvider);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testUnbindModel_multipleChildren() {
+    View customView2 = new View(context);
+    when(customElementProvider.createCustomElement(DUMMY_DATA))
+        .thenReturn(customView)
+        .thenReturn(customView2);
+
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+
+    adapter.unbindModel();
+
+    verify(customElementProvider).releaseCustomView(customView);
+    verify(customElementProvider).releaseCustomView(customView2);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
   }
 
   @Test

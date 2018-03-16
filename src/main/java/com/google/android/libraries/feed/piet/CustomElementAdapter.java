@@ -14,8 +14,11 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+
 import android.content.Context;
 import android.view.View;
+import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
@@ -23,7 +26,7 @@ import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 
 /** Adapter that manages a custom view created by the host. */
-public class CustomElementAdapter extends ElementAdapter<View, CustomElement> {
+public class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
   private static final String TAG = "CustomElementAdapter";
 
   public CustomElementAdapter(Context context, AdapterParameters parameters) {
@@ -40,8 +43,20 @@ public class CustomElementAdapter extends ElementAdapter<View, CustomElement> {
   }
 
   @Override
+  public void onCreateAdapter(
+      CustomElement customElement, Element baseElement, FrameContext frameContext) {
+    if (getBaseView() != null) {
+      return;
+    }
+    FrameLayout frameLayout = new FrameLayout(getContext());
+    initializeAdapter(frameLayout, KeySupplier.SINGLETON_KEY);
+  }
+
+  @Override
   public void onBindModel(
       CustomElement customElement, Element baseElement, FrameContext frameContext) {
+    checkNotNull(getBaseView(), "View is null; initialize adapter first?");
+
     CustomElementData customElementData;
     switch (customElement.getContentCase()) {
       case CUSTOM_ELEMENT_DATA:
@@ -57,17 +72,18 @@ public class CustomElementAdapter extends ElementAdapter<View, CustomElement> {
     }
 
     View v = frameContext.getCustomElementProvider().createCustomElement(customElementData);
-    initializeAdapter(v, KeySupplier.SINGLETON_KEY);
+    getBaseView().addView(v);
   }
 
   @Override
   public void onUnbindModel() {
-    if (getView() != null) {
-      getFrameContext().getCustomElementProvider().releaseCustomView(getView());
+    if (getBaseView() != null && getBaseView().getChildCount() > 0) {
+      for (int i = 0; i < getBaseView().getChildCount(); i++) {
+        getFrameContext().getCustomElementProvider().releaseCustomView(getBaseView().getChildAt(i));
+      }
+      getBaseView().removeAllViews();
     }
   }
-
-  static final class Key {}
 
   static class KeySupplier extends SingletonKeySupplier<CustomElementAdapter, CustomElement> {
     @Override
