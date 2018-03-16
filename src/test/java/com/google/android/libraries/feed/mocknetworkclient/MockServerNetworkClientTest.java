@@ -20,7 +20,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
@@ -38,6 +41,15 @@ public class MockServerNetworkClientTest {
 
   @Mock RequestManager requestManager;
 
+  private final FeedExtensionRegistry extensionRegistry =
+      new FeedExtensionRegistry(
+          new ProtoExtensionProvider() {
+            @Override
+            public List<GeneratedExtension<?, ?>> getProtoExtensions() {
+              return new ArrayList<>();
+            }
+          });
+
   @Before
   public void setUp() throws Exception {
     initMocks(this);
@@ -48,7 +60,7 @@ public class MockServerNetworkClientTest {
     MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
     List<MockUpdate> mockUpdates = new ArrayList<>();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, mockUpdates);
+        new MockServerNetworkClient(mockServerConfig, mockUpdates, extensionRegistry);
     assertThat(networkClient.hasQuit).isFalse();
     assertThat(networkClient.looper).isNotNull();
 
@@ -61,7 +73,7 @@ public class MockServerNetworkClientTest {
     MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
     List<MockUpdate> mockUpdates = new ArrayList<>();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, mockUpdates);
+        new MockServerNetworkClient(mockServerConfig, mockUpdates, extensionRegistry);
     assertThat(networkClient.requestManager).isNull();
     networkClient.setRequestManager(requestManager);
     assertThat(networkClient.requestManager).isEqualTo(requestManager);
@@ -76,7 +88,7 @@ public class MockServerNetworkClientTest {
     MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
     List<MockUpdate> mockUpdates = new ArrayList<>();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, mockUpdates);
+        new MockServerNetworkClient(mockServerConfig, mockUpdates, extensionRegistry);
 
     Response response = Response.getDefaultInstance();
     assertThatRunnable(

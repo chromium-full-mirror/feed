@@ -181,7 +181,8 @@ public class FeedProcessScope implements Dumpable {
           store,
           timingUtils,
           threadUtils,
-          uiRunnableHandler);
+          uiRunnableHandler,
+          extensionRegistry);
     }
 
     // Required fields.
@@ -212,7 +213,8 @@ public class FeedProcessScope implements Dumpable {
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      UiRunnableHandler uiRunnableHandler) {
+      UiRunnableHandler uiRunnableHandler,
+      FeedExtensionRegistry extensionRegistry) {
     this.configManager = configManager;
     this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
@@ -225,6 +227,7 @@ public class FeedProcessScope implements Dumpable {
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.uiRunnableHandler = uiRunnableHandler;
+    this.extensionRegistry = extensionRegistry;
   }
 
   private final ConfigManager configManager;
@@ -239,6 +242,7 @@ public class FeedProcessScope implements Dumpable {
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
   private final UiRunnableHandler uiRunnableHandler;
+  private final FeedExtensionRegistry extensionRegistry;
 
   public FeedProtocolAdapter getProtocolAdapter() {
     return protocolAdapter;
@@ -252,9 +256,7 @@ public class FeedProcessScope implements Dumpable {
     return sessionManager;
   }
 
-  // TODO: These are required to create the FeedModelProviderFactory, these probably only
-  // need to be package private once the StreamScope is used in Audrey2
-  public TimingUtils getTimingUtils() {
-    return timingUtils;
+  public FeedExtensionRegistry getExtensionRegistry() {
+    return extensionRegistry;
   }
 }
