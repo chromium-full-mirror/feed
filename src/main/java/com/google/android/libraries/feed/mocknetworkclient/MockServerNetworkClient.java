@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.api.network.HttpRequest;
 import com.google.android.libraries.feed.api.network.HttpResponse;
 import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -74,6 +75,19 @@ public class MockServerNetworkClient implements NetworkClient {
     looper.getHandler().removeCallbacks(null);
     looper.quitSafely();
     hasQuit = true;
+  }
+
+  @Override
+  public void send(HttpRequest request, Consumer<HttpResponse> responseConsumer) {
+    HttpResponse response;
+    try {
+      response = execute(request);
+    } catch (IOException e) {
+      // TODO : handle errors here
+      Logger.e(TAG, e.getMessage());
+      response = new HttpResponse(0, new byte[] {});
+    }
+    responseConsumer.accept(response);
   }
 
   @Override
