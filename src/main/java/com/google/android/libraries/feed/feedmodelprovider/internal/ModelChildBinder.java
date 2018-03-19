@@ -23,7 +23,7 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.Change;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutationImpl.Change;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;

@@ -30,7 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
+import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
@@ -109,7 +109,7 @@ public class FeedModelProviderTest {
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INITIALIZING);
 
     // Add a root to the model provider
-    ModelMutator mutator = modelProvider.edit();
+    ModelMutation mutator = modelProvider.edit();
     assertThat(mutator).isNotNull();
 
     StreamFeature rootStreamFeature = getRootFeature();
@@ -132,7 +132,7 @@ public class FeedModelProviderTest {
   public void testEmptyStream() {
     FeedModelProvider modelProvider = createFeedModelProvider();
 
-    ModelMutator mutator = modelProvider.edit();
+    ModelMutation mutator = modelProvider.edit();
     mutator.commit();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     assertThat(modelProvider.getRootFeature()).isNull();
@@ -141,7 +141,7 @@ public class FeedModelProviderTest {
   @Test
   public void testCursor() {
     FeedModelProvider modelProvider = createFeedModelProvider();
-    ModelMutator mutator = getRootedModelMutator(modelProvider);
+    ModelMutation mutator = getRootedModelMutator(modelProvider);
     int featureCnt = 2;
     for (int i = 0; i < featureCnt; i++) {
       mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
@@ -163,7 +163,7 @@ public class FeedModelProviderTest {
   @Test
   public void testRemove() {
     FeedModelProvider modelProvider = createFeedModelProvider();
-    ModelMutator mutator = getRootedModelMutator(modelProvider);
+    ModelMutation mutator = getRootedModelMutator(modelProvider);
     int featureCnt = 2;
     for (int i = 0; i < featureCnt; i++) {
       mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
@@ -184,7 +184,7 @@ public class FeedModelProviderTest {
   @Test
   public void testMultiLevelCursors() {
     FeedModelProvider modelProvider = createFeedModelProvider();
-    ModelMutator mutator = getRootedModelMutator(modelProvider);
+    ModelMutation mutator = getRootedModelMutator(modelProvider);
 
     int featureCnt = 3;
     for (int i = 0; i < featureCnt; i++) {
@@ -258,7 +258,7 @@ public class FeedModelProviderTest {
   public void testInvalidate() {
     // Create a valid model
     FeedModelProvider modelProvider = createFeedModelProvider();
-    ModelMutator mutator = modelProvider.edit();
+    ModelMutation mutator = modelProvider.edit();
     StreamFeature rootStreamFeature = getRootFeature();
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
     mutator.commit();
@@ -280,7 +280,7 @@ public class FeedModelProviderTest {
     modelProvider.registerObserver(observer1);
     verify(observer1, never()).onSessionStart();
 
-    ModelMutator mutator = modelProvider.edit();
+    ModelMutation mutator = modelProvider.edit();
     StreamFeature rootStreamFeature = getRootFeature();
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
     mutator.commit();
@@ -307,7 +307,7 @@ public class FeedModelProviderTest {
     modelProvider.registerObserver(observer);
     verify(observer, never()).onSessionStart();
 
-    ModelMutator mutator = modelProvider.edit();
+    ModelMutation mutator = modelProvider.edit();
     StreamFeature rootStreamFeature = getRootFeature();
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
     mutator.commit();
@@ -419,7 +419,7 @@ public class FeedModelProviderTest {
   }
 
   private StreamToken initializeStreamWithToken(FeedModelProvider modelProvider, int featureCnt) {
-    ModelMutator mutator = getRootedModelMutator(modelProvider);
+    ModelMutation mutator = getRootedModelMutator(modelProvider);
 
     // Populate the model provider with a continuation token at the end.
     for (int i = 0; i < featureCnt; i++) {
@@ -454,8 +454,8 @@ public class FeedModelProviderTest {
     return idGenerators.createFeatureContentId(i);
   }
 
-  private ModelMutator getRootedModelMutator(ModelProvider modelProvider) {
-    ModelMutator mutator = modelProvider.edit();
+  private ModelMutation getRootedModelMutator(ModelProvider modelProvider) {
+    ModelMutation mutator = modelProvider.edit();
     assertThat(mutator).isNotNull();
     StreamFeature rootStreamFeature = getRootFeature();
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));

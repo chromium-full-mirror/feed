@@ -18,21 +18,21 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 
 /**
- * Mutator which will batch a set of atomic changes to the Model maintained by the ModelProvider.
+ * Mutation which will batch a set of atomic changes to the Model maintained by the ModelProvider.
  * Order is important, things will be stored in the order they are added to a parent feature.
  */
-public interface ModelMutator {
+public interface ModelMutation {
   /** Add the structural information to the model as a child */
-  ModelMutator addChild(StreamStructure streamStructure);
+  ModelMutation addChild(StreamStructure streamStructure);
 
   /** Remove the model child defined by the structural information */
-  ModelMutator removeChild(StreamStructure streamStructure);
+  ModelMutation removeChild(StreamStructure streamStructure);
 
   /** Content for a child was updated. */
-  ModelMutator updateChild(StreamStructure streamStructure);
+  ModelMutation updateChild(StreamStructure streamStructure);
 
   /** StreamToken which is the source of the response */
-  ModelMutator setMutationSourceToken(StreamToken mutationSourceToken);
+  ModelMutation setMutationSourceToken(StreamToken mutationSourceToken);
 
   /** Commits the pending changes to the store. */
   void commit();

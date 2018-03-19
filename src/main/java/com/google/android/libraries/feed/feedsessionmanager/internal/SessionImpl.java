@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
+import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -71,7 +71,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    ModelMutator modelMutator = modelProvider.edit();
+    ModelMutation modelMutation = modelProvider.edit();
 
     // Walk through head and add all the DataOperations to the session.
     for (StreamStructure streamStructure : head) {
@@ -82,13 +82,13 @@ public class SessionImpl implements InitializableSession, Dumpable {
           continue;
         } else {
           contentInSession.add(streamStructure.getContentId());
-          modelMutator.addChild(streamStructure);
+          modelMutation.addChild(streamStructure);
         }
         continue;
       }
       Logger.e(TAG, "unsupported StreamDataOperation: %s", streamStructure.getOperation());
     }
-    modelMutator.commit();
+    modelMutation.commit();
     timeTracker.stop("populateSession", streamSession.streamToken, "operations", head.size());
   }
 
@@ -112,9 +112,9 @@ public class SessionImpl implements InitializableSession, Dumpable {
       }
     }
 
-    ModelMutator modelMutator = modelProvider.edit();
+    ModelMutation modelMutation = modelProvider.edit();
     if (mutationSourceToken != null) {
-      modelMutator.setMutationSourceToken(mutationSourceToken);
+      modelMutation.setMutationSourceToken(mutationSourceToken);
     }
 
     int updateCnt = 0;
@@ -126,19 +126,19 @@ public class SessionImpl implements InitializableSession, Dumpable {
         if (contentInSession.contains(contentKey)) {
           // this is an update operation so we can ignore it
           Logger.i(TAG, "Found update to content in session");
-          modelMutator.updateChild(streamStructure);
+          modelMutation.updateChild(streamStructure);
           updateCnt++;
         } else {
           sessionMutation.add(streamStructure);
           contentInSession.add(contentKey);
-          modelMutator.addChild(streamStructure);
+          modelMutation.addChild(streamStructure);
           addFeatureCnt++;
         }
       } else if (streamStructure.getOperation() == Operation.REMOVE) {
         Logger.i(TAG, "Removing Item from session %s", streamSession.streamToken);
         sessionMutation.add(streamStructure);
         contentInSession.remove(contentKey);
-        modelMutator.removeChild(streamStructure);
+        modelMutation.removeChild(streamStructure);
       } else if (streamStructure.getOperation() == Operation.CLEAR_ALL) {
         // Sessions are never cleared.
         // TODO: Defined the behavior for sessions when $HEAD is cleared
@@ -150,7 +150,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
     // Commit the Model Provider mutation after the store is updated.
     boolean success = sessionMutation.commit();
     if (success) {
-      modelMutator.commit();
+      modelMutation.commit();
       timeTracker.stop(
           "updateSession",
           streamSession.streamToken,

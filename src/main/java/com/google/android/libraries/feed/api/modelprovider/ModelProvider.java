@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  */
 public interface ModelProvider {
   /** Returns a Mutator used to change the model. */
-  ModelMutator edit();
+  ModelMutation edit();
 
   /**
    * This is called to invalidate the model. The SessionManager calls this to free all resources

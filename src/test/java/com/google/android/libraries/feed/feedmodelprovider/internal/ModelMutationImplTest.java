@@ -19,7 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.Committer;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.Change;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutationImpl.Change;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -30,9 +30,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-/** Tests of {@link ModelMutatorImpl}. */
+/** Tests of {@link ModelMutationImpl}. */
 @RunWith(RobolectricTestRunner.class)
-public class ModelMutatorImplTest {
+public class ModelMutationImplTest {
   @Mock private Committer<Void, Change> committer;
 
   @Before
@@ -42,7 +42,7 @@ public class ModelMutatorImplTest {
 
   @Test
   public void testFeature() {
-    ModelMutatorImpl modelMutator = new ModelMutatorImpl(committer);
+    ModelMutationImpl modelMutator = new ModelMutationImpl(committer);
     StreamFeature streamFeature = StreamFeature.newBuilder().build();
     modelMutator.addChild(createStreamStructureFromFeature(streamFeature));
     assertThat(modelMutator.change.streamChildList).hasSize(1);
@@ -52,7 +52,7 @@ public class ModelMutatorImplTest {
 
   @Test
   public void testToken() {
-    ModelMutatorImpl modelMutator = new ModelMutatorImpl(committer);
+    ModelMutationImpl modelMutator = new ModelMutationImpl(committer);
     StreamToken streamToken = StreamToken.newBuilder().build();
     modelMutator.addChild(createStreamStructureFromToken(streamToken));
     assertThat(modelMutator.change.streamChildList).hasSize(1);
@@ -62,7 +62,7 @@ public class ModelMutatorImplTest {
 
   @Test
   public void testTokenForMutation() {
-    ModelMutatorImpl modelMutator = new ModelMutatorImpl(committer);
+    ModelMutationImpl modelMutator = new ModelMutationImpl(committer);
     StreamToken streamToken = StreamToken.newBuilder().build();
     modelMutator.setMutationSourceToken(streamToken);
     assertThat(modelMutator.change.streamChildList).isEmpty();
@@ -72,7 +72,7 @@ public class ModelMutatorImplTest {
 
   @Test
   public void testRemove() {
-    ModelMutatorImpl modelMutator = new ModelMutatorImpl(committer);
+    ModelMutationImpl modelMutator = new ModelMutationImpl(committer);
     assertThat(modelMutator.change.streamChildList).isEmpty();
     modelMutator.removeChild(StreamStructure.getDefaultInstance());
     assertThat(modelMutator.change.streamChildList).hasSize(1);

@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
+import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.common.Committer;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementation of the {@link ModelMutator}. When the mutation is committed updating the Model
+ * Implementation of the {@link ModelMutation}. When the mutation is committed updating the Model
  */
-public class ModelMutatorImpl implements ModelMutator {
+public class ModelMutationImpl implements ModelMutation {
 
   /** The data representing the Change to the model. */
   public static class Change {
@@ -38,12 +38,12 @@ public class ModelMutatorImpl implements ModelMutator {
   private final Committer<Void, Change> committer;
   @VisibleForTesting final Change change = new Change();
 
-  public ModelMutatorImpl(Committer<Void, Change> committer) {
+  public ModelMutationImpl(Committer<Void, Change> committer) {
     this.committer = committer;
   }
 
   @Override
-  public ModelMutator addChild(StreamStructure streamStructure) {
+  public ModelMutation addChild(StreamStructure streamStructure) {
     change.streamChildList.add(
         new ChildStructureMutation(
             Operation.UPDATE_OR_APPEND,
@@ -54,19 +54,19 @@ public class ModelMutatorImpl implements ModelMutator {
   }
 
   @Override
-  public ModelMutator removeChild(StreamStructure streamStructure) {
+  public ModelMutation removeChild(StreamStructure streamStructure) {
     change.streamChildList.add(new ChildStructureMutation(Operation.REMOVE, null, streamStructure));
     return this;
   }
 
   @Override
-  public ModelMutator updateChild(StreamStructure updateChild) {
+  public ModelMutation updateChild(StreamStructure updateChild) {
     change.updateList.add(updateChild);
     return this;
   }
 
   @Override
-  public ModelMutator setMutationSourceToken(StreamToken mutationSourceToken) {
+  public ModelMutation setMutationSourceToken(StreamToken mutationSourceToken) {
     change.mutationSourceToken = mutationSourceToken;
     return this;
   }

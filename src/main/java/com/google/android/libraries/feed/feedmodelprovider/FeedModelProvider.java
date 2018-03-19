@@ -23,7 +23,7 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
+import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
@@ -44,8 +44,8 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.FeatureChang
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildBinder;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildBinder.BindingResults;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatorImpl.Change;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutationImpl;
+import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutationImpl.Change;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelChild;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelFeature;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
@@ -192,8 +192,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
-  public ModelMutator edit() {
-    return new ModelMutatorImpl(committer);
+  public ModelMutation edit() {
+    return new ModelMutationImpl(committer);
   }
 
   @Override

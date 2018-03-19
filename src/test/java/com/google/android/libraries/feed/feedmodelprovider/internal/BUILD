@@ -95,10 +95,10 @@ android_local_test(
 )
 
 android_local_test(
-    name = "ModelMutatorImplTest",
+    name = "ModelMutationImplTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["ModelMutatorImplTest.java"],
+    srcs = ["ModelMutationImplTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

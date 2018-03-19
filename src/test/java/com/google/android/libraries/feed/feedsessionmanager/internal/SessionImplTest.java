@@ -23,7 +23,7 @@ import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
-import com.google.android.libraries.feed.api.modelprovider.ModelMutator;
+import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -54,7 +54,7 @@ public class SessionImplTest {
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
 
   private FakeSessionMutation fakeSessionMutation;
-  private FakeModelMutator fakeModelMutator;
+  private FakeModelMutation fakeModelMutator;
   private final TimingUtils timingUtils = new TimingUtils();
 
   @Before
@@ -63,7 +63,7 @@ public class SessionImplTest {
     when(store.getHeadSession()).thenReturn(HEAD);
     fakeSessionMutation = new FakeSessionMutation();
     when(store.editSession(TEST_SESSION)).thenReturn(fakeSessionMutation);
-    fakeModelMutator = new FakeModelMutator();
+    fakeModelMutator = new FakeModelMutation();
     when(modelProvider.edit()).thenReturn(fakeModelMutator);
   }
 
@@ -187,7 +187,7 @@ public class SessionImplTest {
     }
   }
 
-  private static class FakeModelMutator implements ModelMutator {
+  private static class FakeModelMutation implements ModelMutation {
     final List<StreamStructure> addedChildren = new ArrayList<>();
     final List<StreamStructure> removedChildren = new ArrayList<>();
     final List<StreamStructure> updateChildren = new ArrayList<>();
@@ -195,25 +195,25 @@ public class SessionImplTest {
     boolean commitCalled = false;
 
     @Override
-    public ModelMutator addChild(StreamStructure streamStructure) {
+    public ModelMutation addChild(StreamStructure streamStructure) {
       addedChildren.add(streamStructure);
       return this;
     }
 
     @Override
-    public ModelMutator removeChild(StreamStructure streamStructure) {
+    public ModelMutation removeChild(StreamStructure streamStructure) {
       removedChildren.add(streamStructure);
       return this;
     }
 
     @Override
-    public ModelMutator updateChild(StreamStructure streamStructure) {
+    public ModelMutation updateChild(StreamStructure streamStructure) {
       updateChildren.add(streamStructure);
       return this;
     }
 
     @Override
-    public ModelMutator setMutationSourceToken(StreamToken mutationSourceToken) {
+    public ModelMutation setMutationSourceToken(StreamToken mutationSourceToken) {
       this.token = mutationSourceToken;
       return this;
     }

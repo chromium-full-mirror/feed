@@ -235,7 +235,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       commitContent();
       commitSessionUpdates();
       commitCount++;
-      timeTracker.stop("task", "Commit Mutation");
+      timeTracker.stop("task", "Commit Mutation", "mutations", streamStructures.size());
     }
 
     private void commitContent() {
