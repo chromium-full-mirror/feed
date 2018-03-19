@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.network.HttpResponse;
 import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.protobuf.ByteString;
@@ -32,6 +33,7 @@ import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import javax.annotation.Nullable;
 
 /** Default implementation of RequestManager. */
@@ -83,23 +85,35 @@ public class FeedRequestManager implements RequestManager {
   }
 
   private void executeRequest(RequestBuilder requestBuilder) {
-    try {
       Request request = requestBuilder.build();
       String endpoint = configManager.getValue(SERVICE_ENDPOINT_FLAG);
       HttpRequest httpRequest =
           new HttpRequest(Uri.parse(endpoint), request.toByteArray(), /* withAuthToken= */ true);
-      HttpResponse httpResponse = networkClient.execute(httpRequest);
-      if (httpResponse.getResponseCode() != 200) {
-        String errorBody = new String(httpResponse.getResponseBody(), "UTF-8");
-        Logger.e(TAG, "errorCode: %d", httpResponse.getResponseCode());
-        Logger.e(TAG, "errorResponse: %s", errorBody);
-        return;
-      }
-      // TODO:  Figure out a more scalable to parse extensions.
-      handleResponseBytes(httpResponse.getResponseBody(), requestBuilder.getPageToken());
-    } catch (IOException e) {
-      Logger.e(TAG, e, "Network level error performing request");
-    }
+    networkClient.send(
+        httpRequest,
+        new Consumer<HttpResponse>() {
+          @Override
+          public void accept(HttpResponse input) {
+            if (input.getResponseCode() != 200) {
+              String errorBody = null;
+              try {
+                errorBody = new String(input.getResponseBody(), "UTF-8");
+              } catch (UnsupportedEncodingException e) {
+                Logger.e(TAG, "Error handling http error logging", e);
+              }
+              Logger.e(TAG, "errorCode: %d", input.getResponseCode());
+              Logger.e(TAG, "errorResponse: %s", errorBody);
+              return;
+            }
+
+            try {
+              // TODO:  Figure out a more scalable to parse extensions.
+              handleResponseBytes(input.getResponseBody(), requestBuilder.getPageToken());
+            } catch (IOException e) {
+              Logger.e(TAG, "Error handling response bytes");
+            }
+          }
+        });
   }
 
   private void handleResponseBytes(byte[] responseBytes, ByteString pageToken) throws IOException {
