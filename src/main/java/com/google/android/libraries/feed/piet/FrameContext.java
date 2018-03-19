@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 
@@ -89,7 +88,7 @@ class FrameContext {
   private final Map<String, Style> stylesheet;
 
   // The in-scope bindings as a map from state_id to binding value
-  @Nullable private final Map<String, BindingValue> bindingValues;
+  private final Map<String, BindingValue> bindingValues;
 
   // This is the current style provider
   private final StyleProvider currentStyleProvider;
@@ -127,7 +126,7 @@ class FrameContext {
       CustomElementProvider customElementProvider) {
     currentFrame = frame;
     this.stylesheet = stylesheet;
-    this.bindingValues = bindingValues;
+    this.bindingValues = bindingValues == null ? new HashMap<>() : bindingValues;
     this.baseStyle = baseStyle;
     currentStyleProvider = styleProvider;
     this.stylesHelper = stylesHelper;
@@ -378,7 +377,6 @@ class FrameContext {
    * does not point to a text resource.
    */
   public BindingValue getParameterizedTextBindingValue(ParameterizedTextBindingRef binding) {
-    checkBindingValuesInitialized(binding.getBindingId());
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
     if (returnValue == null
         || (!returnValue.hasParameterizedText()
@@ -395,7 +393,6 @@ class FrameContext {
    * does not point to a image resource.
    */
   public BindingValue getImageBindingValue(ImageBindingRef binding) {
-    checkBindingValuesInitialized(binding.getBindingId());
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
     if (returnValue == null
         || (!returnValue.hasImage() && !returnValue.getVisibility().equals(Visibility.GONE))) {
@@ -411,7 +408,6 @@ class FrameContext {
    * does not point to a ElementList.
    */
   public BindingValue getElementListBindingValue(ElementListBindingRef binding) {
-    checkBindingValuesInitialized(binding.getBindingId());
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
     if (returnValue == null
         || (!returnValue.hasElementList()
@@ -447,11 +443,6 @@ class FrameContext {
       return null;
     }
     return new ErrorViewUtils(context).getErrorView(errors);
-  }
-
-  private void checkBindingValuesInitialized(String debugBinding) {
-    checkNotNull(
-        bindingValues, "bindingValues is null; cannot look up binding value for %s", debugBinding);
   }
 
   private int getRadius(RoundedCorners roundedCorner, Context context) {

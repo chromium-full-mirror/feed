@@ -285,19 +285,6 @@ public class FrameContextTest {
             makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
                 .getParameterizedTextFromBinding(textBindingRef))
         .isEqualTo(ParameterizedText.getDefaultInstance());
-
-    // Fail when bindingValues not initialized.
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                makeFrameContextWithNoBindings().getParameterizedTextBindingValue(textBindingRef);
-              }
-            })
-        .throwsAnExceptionOfType(NullPointerException.class)
-        .that()
-        .hasMessageThat()
-        .contains("bindingValues is null");
   }
 
   @Test
@@ -344,19 +331,6 @@ public class FrameContextTest {
             makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
                 .getImageFromBinding(imageBindingRef))
         .isEqualTo(Image.getDefaultInstance());
-
-    // Fail when bindingValues not initialized.
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                makeFrameContextWithNoBindings().getImageBindingValue(imageBindingRef);
-              }
-            })
-        .throwsAnExceptionOfType(NullPointerException.class)
-        .that()
-        .hasMessageThat()
-        .contains("bindingValues is null");
   }
 
   @Test
@@ -405,19 +379,6 @@ public class FrameContextTest {
             makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
                 .getElementListFromBinding(listBindingRef))
         .isEqualTo(ElementList.getDefaultInstance());
-
-    // Fail when bindingValues not initialized.
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                makeFrameContextWithNoBindings().getElementListBindingValue(listBindingRef);
-              }
-            })
-        .throwsAnExceptionOfType(NullPointerException.class)
-        .that()
-        .hasMessageThat()
-        .contains("bindingValues is null");
   }
 
   @Test
