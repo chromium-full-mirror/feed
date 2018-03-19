@@ -15,15 +15,19 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.TemplateKey;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -38,6 +42,7 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.Style;
@@ -63,6 +68,7 @@ public class TemplateInvocationAdapterTest {
   private static final String FRAME_STYLESHEET_ID = "coolcat";
   private static final String TEXT_STYLE_ID = "catalog";
   private static final String TEMPLATE_ID = "duplicat";
+  private static final String OTHER_TEMPLATE_ID = "alleycat";
   private static final String TEXT_BINDING_ID = "ofmiceandmen";
   private static final String TEXT_CONTENTS = "afewmilessouth";
   private static final String TEXT_CONTENTS_2 = "gangaftagley";
@@ -86,6 +92,11 @@ public class TemplateInvocationAdapterTest {
                                       ParameterizedTextBindingRef.newBuilder()
                                           .setBindingId(TEXT_BINDING_ID)))))
           .build();
+  private static final Template OTHER_TEMPLATE =
+      Template.newBuilder()
+          .setTemplateId(OTHER_TEMPLATE_ID)
+          .setElementList(ElementList.getDefaultInstance())
+          .build();
 
   private static final Frame DEFAULT_FRAME =
       Frame.newBuilder()
@@ -94,6 +105,21 @@ public class TemplateInvocationAdapterTest {
                   .setStylesheetId(FRAME_STYLESHEET_ID)
                   .addStyles(Style.newBuilder().setStyleId(TEXT_STYLE_ID).setColor(FRAME_COLOR)))
           .addTemplates(DEFAULT_TEMPLATE)
+          .addTemplates(OTHER_TEMPLATE)
+          .build();
+
+  private static final BindingContext DEFAULT_BINDING =
+      BindingContext.newBuilder()
+          .addBindingValues(
+              BindingValue.newBuilder()
+                  .setBindingId(TEXT_BINDING_ID)
+                  .setParameterizedText(ParameterizedText.newBuilder().setText(TEXT_CONTENTS)))
+          .build();
+
+  private static final TemplateInvocation DEFAULT_TEMPLATE_INVOCATION =
+      TemplateInvocation.newBuilder()
+          .setTemplateId(TEMPLATE_ID)
+          .addBindingContexts(DEFAULT_BINDING)
           .build();
 
   @Mock private PietStylesHelper stylesHelper;
@@ -115,6 +141,7 @@ public class TemplateInvocationAdapterTest {
         new FrameModelBinder(stylesHelper, assetProvider, customElementProvider)
             .bindFrame(DEFAULT_FRAME);
     adapterParameters = new AdapterParameters(context, Producers.of(null), actionHandler);
+    when(stylesHelper.getCurrentPietSharedState()).thenReturn(PietSharedState.getDefaultInstance());
 
     adapter = new TemplateInvocationAdapter(context, adapterParameters);
   }
@@ -124,21 +151,66 @@ public class TemplateInvocationAdapterTest {
     TemplateInvocation templateInvocation =
         TemplateInvocation.newBuilder()
             .setTemplateId("NOT_A_REAL_ID")
-            .addBindingContexts(
-                BindingContext.newBuilder()
-                    .addBindingValues(
-                        BindingValue.newBuilder()
-                            .setBindingId(TEXT_BINDING_ID)
-                            .setParameterizedText(
-                                ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
+            .addBindingContexts(DEFAULT_BINDING)
             .build();
 
-    adapter.createAdapter(templateInvocation, frameContext);
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.createAdapter(templateInvocation, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(NullPointerException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Template was not found: NOT_A_REAL_ID");
+  }
 
-    // No children have been added because the template was not found.
-    LinearLayout templateView = adapter.getBaseView();
-    assertThat(templateView.getChildCount()).isEqualTo(0);
-    // TODO: make this a more visible error on dev/alpha builds.
+  @Test
+  public void testOnCreateAdapter_templateMismatchFails() {
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
+
+    TemplateInvocation templateInvocation2 =
+        TemplateInvocation.newBuilder()
+            .setTemplateId(OTHER_TEMPLATE_ID)
+            .addBindingContexts(DEFAULT_BINDING)
+            .build();
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.createAdapter(templateInvocation2, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Adapter was constructed already with different template");
+  }
+
+  @Test
+  public void testOnCreateAdapter_recreateDoesNothing() {
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
+    RecyclerKey originalKey = adapter.getKey();
+    View originalView = adapter.getView();
+
+    Template equivalentTemplate = DEFAULT_TEMPLATE.toBuilder().build();
+    assertThat(equivalentTemplate).isNotSameAs(DEFAULT_TEMPLATE);
+    assertThat(equivalentTemplate).isEqualTo(DEFAULT_TEMPLATE);
+    frameContext =
+        new FrameModelBinder(stylesHelper, assetProvider, customElementProvider)
+            .bindFrame(
+                DEFAULT_FRAME
+                    .toBuilder()
+                    .clearTemplates()
+                    .addTemplates(equivalentTemplate)
+                    .build());
+
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
+    assertThat(adapter.getKey()).isSameAs(originalKey);
+    assertThat(adapter.getView()).isSameAs(originalView);
   }
 
   @Test
@@ -154,20 +226,51 @@ public class TemplateInvocationAdapterTest {
   }
 
   @Test
-  public void testOnBindModel_singleInstanceWithFrameStyle() {
-    TemplateInvocation templateInvocation =
+  public void testOnBindModel_templateNotFoundDoesNothing() {
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
+    TemplateKey originalKey = (TemplateKey) adapter.getKey();
+
+    TemplateInvocation templateInvocation2 =
         TemplateInvocation.newBuilder()
-            .setTemplateId(TEMPLATE_ID)
-            .addBindingContexts(
-                BindingContext.newBuilder()
-                    .addBindingValues(
-                        BindingValue.newBuilder()
-                            .setBindingId(TEXT_BINDING_ID)
-                            .setParameterizedText(
-                                ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
+            .setTemplateId("NOT_A_REAL_ID")
+            .addBindingContexts(DEFAULT_BINDING)
             .build();
 
-    adapter.createAdapter(templateInvocation, frameContext);
+    adapter.bindModel(templateInvocation2, frameContext);
+
+    assertThat(adapter.getKey()).isEqualTo(originalKey);
+  }
+
+  @Test
+  public void testOnBindModel_templateMismatchFails() {
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
+
+    TemplateInvocation templateInvocation2 =
+        TemplateInvocation.newBuilder()
+            .setTemplateId(OTHER_TEMPLATE_ID)
+            .addBindingContexts(DEFAULT_BINDING)
+            .build();
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(templateInvocation2, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Model template does not match");
+  }
+
+  @Test
+  public void testOnCreateAndBind_singleInstanceWithDefaultStyle() {
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
+
+    // Check the recycling key
+    assertThat(adapter.getKey())
+        .isEqualTo(new TemplateKey(DEFAULT_TEMPLATE, PietSharedState.getDefaultInstance()));
 
     // Assert that all child views have been created
     LinearLayout templateView = adapter.getBaseView();
@@ -183,19 +286,20 @@ public class TemplateInvocationAdapterTest {
     assertThat(elementListView.getChildCount()).isEqualTo(1);
     TextView textElementView = (TextView) elementListView.getChildAt(0);
 
-    // Text style comes from the Frame stylesheet.
-    assertThat(textElementView.getTextColors().getDefaultColor()).isEqualTo(FRAME_COLOR);
+    // Text style comes from the default style since template doesn't set one.
+    assertThat(textElementView.getTextColors().getDefaultColor())
+        .isEqualTo(DEFAULT_STYLE_PROVIDER.getColor());
 
     // No text before binding
     assertThat(textElementView.getText().toString()).isEmpty();
 
     // Binding sets text.
-    adapter.bindModel(templateInvocation, frameContext);
+    adapter.bindModel(DEFAULT_TEMPLATE_INVOCATION, frameContext);
     assertThat(textElementView.getText().toString()).isEqualTo(TEXT_CONTENTS);
   }
 
   @Test
-  public void testOnBindModel_singleInstanceWithTemplateStyle() {
+  public void testOnCreateAndBind_singleInstanceWithTemplateStyle() {
     Template defaultTemplateWithLocalStylesheet =
         DEFAULT_TEMPLATE.toBuilder().setStylesheet(TEMPLATE_STYLESHEET).build();
     frameContext =
@@ -207,19 +311,7 @@ public class TemplateInvocationAdapterTest {
                     .addTemplates(defaultTemplateWithLocalStylesheet)
                     .build());
 
-    TemplateInvocation templateInvocation =
-        TemplateInvocation.newBuilder()
-            .setTemplateId(TEMPLATE_ID)
-            .addBindingContexts(
-                BindingContext.newBuilder()
-                    .addBindingValues(
-                        BindingValue.newBuilder()
-                            .setBindingId(TEXT_BINDING_ID)
-                            .setParameterizedText(
-                                ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
-            .build();
-
-    adapter.createAdapter(templateInvocation, frameContext);
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
 
     // Assert that all child views have been created and that text is set.
     LinearLayout templateView = adapter.getBaseView();
@@ -233,22 +325,15 @@ public class TemplateInvocationAdapterTest {
     assertThat(textElementView.getText().toString()).isEmpty();
 
     // Text is populated after binding.
-    adapter.bindModel(templateInvocation, frameContext);
+    adapter.bindModel(DEFAULT_TEMPLATE_INVOCATION, frameContext);
     assertThat(textElementView.getText().toString()).isEqualTo(TEXT_CONTENTS);
   }
 
   @Test
-  public void testOnBindModel_multipleInstances() {
+  public void testOnCreateAndBind_multipleInstances() {
     TemplateInvocation templateInvocation =
-        TemplateInvocation.newBuilder()
-            .setTemplateId(TEMPLATE_ID)
-            .addBindingContexts(
-                BindingContext.newBuilder()
-                    .addBindingValues(
-                        BindingValue.newBuilder()
-                            .setBindingId(TEXT_BINDING_ID)
-                            .setParameterizedText(
-                                ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
+        DEFAULT_TEMPLATE_INVOCATION
+            .toBuilder()
             .addBindingContexts(
                 BindingContext.newBuilder()
                     .addBindingValues(
@@ -294,32 +379,24 @@ public class TemplateInvocationAdapterTest {
   }
 
   @Test
-  public void testReleaseAdapter() {
-    TemplateInvocation templateInvocation =
-        TemplateInvocation.newBuilder()
-            .setTemplateId(TEMPLATE_ID)
-            .addBindingContexts(
-                BindingContext.newBuilder()
-                    .addBindingValues(
-                        BindingValue.newBuilder()
-                            .setBindingId(TEXT_BINDING_ID)
-                            .setParameterizedText(
-                                ParameterizedText.newBuilder().setText(TEXT_CONTENTS))))
-            .build();
-
-    adapter.createAdapter(templateInvocation, frameContext);
-    adapter.bindModel(templateInvocation, frameContext);
+  public void testReleaseAdapter_doesNothing() {
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
+    adapter.bindModel(DEFAULT_TEMPLATE_INVOCATION, frameContext);
     LinearLayout templateView = adapter.getBaseView();
     assertThat(templateView.getChildCount()).isEqualTo(1);
     LinearLayout elementListView = (LinearLayout) templateView.getChildAt(0);
     assertThat(((TextView) elementListView.getChildAt(0)).getText().toString())
         .isEqualTo(TEXT_CONTENTS);
+    ElementListAdapter listAdapter = adapter.childAdapters.get(0);
 
     adapter.releaseAdapter();
 
-    assertThat(templateView.getChildCount()).isEqualTo(0);
-    assertThat(elementListView.getChildCount()).isEqualTo(0);
-    assertThat(adapter.childAdapters).isEmpty();
+    // Assert that nothing has changed.
+    assertThat(templateView.getChildCount()).isEqualTo(1);
+    assertThat(elementListView.getChildCount()).isEqualTo(1);
+    assertThat(((TextView) elementListView.getChildAt(0)).getText().toString())
+        .isEqualTo(TEXT_CONTENTS);
+    assertThat(adapter.childAdapters).containsExactly(listAdapter);
   }
 
   @Test
@@ -329,6 +406,65 @@ public class TemplateInvocationAdapterTest {
     assertThat(viewGroup.getOrientation()).isEqualTo(LinearLayout.VERTICAL);
     assertThat(viewGroup.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
     assertThat(viewGroup.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
+  }
+
+  @Test
+  public void testTemplateKay_equalWithSameObjects() {
+    Template template = Template.newBuilder().setTemplateId("T").build();
+    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template).build();
+    TemplateKey key1 = new TemplateKey(template, sharedState);
+    TemplateKey key2 = new TemplateKey(template, sharedState);
+
+    assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
+    assertThat(key1).isEqualTo(key2);
+  }
+
+  @Test
+  public void testTemplateKey_equalWithDifferentTemplateObject() {
+    Template template1 = Template.newBuilder().setTemplateId("T").build();
+    Template template2 = Template.newBuilder().setTemplateId("T").build();
+    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template1).build();
+    TemplateKey key1 = new TemplateKey(template1, sharedState);
+    TemplateKey key2 = new TemplateKey(template2, sharedState);
+
+    assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
+    assertThat(key1).isEqualTo(key2);
+  }
+
+  @Test
+  public void testTemplateKey_equalWithDifferentSharedStateObject() {
+    Template template = Template.newBuilder().setTemplateId("T").build();
+    PietSharedState sharedState1 = PietSharedState.newBuilder().addTemplates(template).build();
+    PietSharedState sharedState2 = PietSharedState.newBuilder().addTemplates(template).build();
+    TemplateKey key1 = new TemplateKey(template, sharedState1);
+    TemplateKey key2 = new TemplateKey(template, sharedState2);
+
+    assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
+    assertThat(key1).isEqualTo(key2);
+  }
+
+  @Test
+  public void testTemplateKey_differentWithDifferentTemplate() {
+    Template template1 = Template.newBuilder().setTemplateId("T1").build();
+    Template template2 = Template.newBuilder().setTemplateId("T2").build();
+    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template1).build();
+    TemplateKey key1 = new TemplateKey(template1, sharedState);
+    TemplateKey key2 = new TemplateKey(template2, sharedState);
+
+    assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
+    assertThat(key1).isNotEqualTo(key2);
+  }
+
+  @Test
+  public void testTemplateKey_differentWithDifferentSharedState() {
+    Template template = Template.newBuilder().setTemplateId("T").build();
+    PietSharedState sharedState1 = PietSharedState.newBuilder().addTemplates(template).build();
+    PietSharedState sharedState2 = PietSharedState.getDefaultInstance();
+    TemplateKey key1 = new TemplateKey(template, sharedState1);
+    TemplateKey key2 = new TemplateKey(template, sharedState2);
+
+    assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
+    assertThat(key1).isNotEqualTo(key2);
   }
 
   @Test

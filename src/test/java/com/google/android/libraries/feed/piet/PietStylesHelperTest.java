@@ -118,19 +118,18 @@ public class PietStylesHelperTest {
   public void testNewPietSharedState() {
     // Set up the current state
     helper.getTemplate(TEMPLATE_ID);
+    assertThat(helper.getCurrentPietSharedState()).isEqualTo(sharedState);
 
     // Change to a new state
-    PietSharedState.Builder sharedState2 = PietSharedState.newBuilder();
-
-    Stylesheet.Builder stylesheet2 = Stylesheet.newBuilder().setStylesheetId("ss2");
     Style style2 = Style.newBuilder().setStyleId("s2").build();
-    stylesheet2.addStyles(style2);
-    sharedState2.addStylesheets(stylesheet2.build());
-
+    Stylesheet stylesheet2 =
+        Stylesheet.newBuilder().setStylesheetId("ss2").addStyles(style2).build();
     Template template2 = Template.newBuilder().setTemplateId("t2").build();
-    sharedState2.addTemplates(template2);
 
-    when(sharedStateProducer.get()).thenReturn(sharedState2.build());
+    PietSharedState sharedState2 =
+        PietSharedState.newBuilder().addStylesheets(stylesheet2).addTemplates(template2).build();
+
+    when(sharedStateProducer.get()).thenReturn(sharedState2);
 
     // Then access the new data
     assertThat(helper.getTemplate("t2")).isEqualTo(template2);
@@ -139,6 +138,8 @@ public class PietStylesHelperTest {
     // And the old data is gone
     assertThat(helper.getTemplate(TEMPLATE_ID)).isNull();
     assertThat(helper.getStylesheet(STYLESHEET_ID)).isNull();
+
+    assertThat(helper.getCurrentPietSharedState()).isEqualTo(sharedState2);
   }
 
   @Test

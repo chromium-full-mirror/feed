@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
@@ -54,7 +55,10 @@ import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import com.google.search.now.ui.piet.TextProto.Chunk;
+import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
+import com.google.search.now.ui.piet.TextProto.StyledTextChunk;
 import org.robolectric.RobolectricTestRunner;
 import java.util.HashMap;
 import java.util.Map;
@@ -150,7 +154,7 @@ public class FrameContextTest {
     // and clear out all the previous styles
     assertThat(frameContextWithBindings.getCurrentStyle()).isEqualTo(DEFAULT_STYLE_PROVIDER);
     assertThat(frameContextWithBindings.makeStyleFor(DEFAULT_STYLE_IDS).getColor())
-        .isEqualTo(DEFAULT_STYLE_COLOR);
+        .isEqualTo(DEFAULT_STYLE_PROVIDER.getColor());
 
     // A local template stylesheet should override the previous styles.
     // Look up a style from a template's local stylesheet, and check the default style.
@@ -483,6 +487,34 @@ public class FrameContextTest {
     assertThat(
             frameContext.getTemplateInvocationFromBinding(
                 TemplateBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+        .isNull();
+  }
+
+  @Test
+  public void testGetChunkedTextFromBinding() {
+    ChunkedText chunkedText =
+        ChunkedText.newBuilder()
+            .addChunks(
+                Chunk.newBuilder()
+                    .setTextChunk(
+                        StyledTextChunk.newBuilder()
+                            .setParameterizedText(ParameterizedText.newBuilder().setText("PB"))))
+            .build();
+    frameContext =
+        makeFrameContextWithBinding(defaultBinding().setChunkedText(chunkedText).build());
+    assertThat(
+            frameContext.getChunkedTextFromBinding(
+                ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+        .isEqualTo(chunkedText);
+    assertThat(
+            frameContext.getChunkedTextFromBinding(
+                ChunkedTextBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
+        .isNull();
+
+    frameContext = makeFrameContextWithEmptyBinding();
+    assertThat(
+            frameContext.getChunkedTextFromBinding(
+                ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
         .isNull();
   }
 

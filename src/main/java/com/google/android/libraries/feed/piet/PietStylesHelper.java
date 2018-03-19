@@ -75,6 +75,11 @@ public class PietStylesHelper {
     return templates.get(templateId);
   }
 
+  @Nullable
+  public PietSharedState getCurrentPietSharedState() {
+    return currentPietSharedState;
+  }
+
   /**
    * Given a StyleIdsStack, a base style, and a styleMap that contains the styles definition,
    * returns a Style that is the proto-merge of all the styles in the stack, starting with the base.

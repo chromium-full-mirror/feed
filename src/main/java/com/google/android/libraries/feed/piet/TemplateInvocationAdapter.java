@@ -22,12 +22,13 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
 import javax.annotation.Nullable;
 
@@ -36,6 +37,9 @@ class TemplateInvocationAdapter
     extends ElementContainerAdapter<LinearLayout, ElementListAdapter, TemplateInvocation> {
 
   private static final String TAG = "TemplateInvocationAdapter";
+
+  @Nullable private Template template = null;
+  @Nullable private PietSharedState sharedState = null;
 
   TemplateInvocationAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
@@ -50,14 +54,27 @@ class TemplateInvocationAdapter
   @Override
   public void onCreateAdapter(
       TemplateInvocation model, Element baseElement, FrameContext frameContext) {
-    initialCreate();
+    Template modelTemplate =
+        checkNotNull(
+            frameContext.getTemplate(model.getTemplateId()),
+            "Template was not found: %s",
+            model.getTemplateId());
 
-    Template template = frameContext.getTemplate(model.getTemplateId());
-    if (template == null) {
-      // TODO: How do we handle errors
-      Logger.e(TAG, "Template was not found: %s", model.getTemplateId());
-      return;
+    // Adapter has already been created.
+    if (template != null) {
+      if (!templateEquals(template, modelTemplate)) {
+        throw new IllegalArgumentException(
+            "Adapter was constructed already with different template");
+      } else {
+        // We're recycling something with a compatible template; return without doing anything.
+        return;
+      }
     }
+
+    template = modelTemplate;
+    sharedState = frameContext.getPietSharedState();
+
+    initialCreate();
 
     // TODO: Need to support Sharding.
     if (model.getBindingContextsCount() > 0 && template.hasElementList()) {
@@ -85,11 +102,14 @@ class TemplateInvocationAdapter
       TemplateInvocation model,
       FrameContext frameContext,
       @Nullable ShardingControl shardingControl) {
-    Template template = frameContext.getTemplate(model.getTemplateId());
-    if (template == null) {
+    Template modelTemplate = frameContext.getTemplate(model.getTemplateId());
+    if (modelTemplate == null) {
       // TODO: How do we handle errors
       Logger.e(TAG, "Template was not found: %s", model.getTemplateId());
       return;
+    }
+    if (!templateEquals(modelTemplate, template)) {
+      throw new IllegalArgumentException("Model template does not match adapter template");
     }
 
     // TODO: Need to support Sharding.
@@ -105,6 +125,12 @@ class TemplateInvocationAdapter
         childAdapters.get(i).bindModel(template.getElementList(), localFrameContext);
       }
     }
+  }
+
+  @Override
+  public void releaseAdapter() {
+    // Because we recycle templates as a unit, we don't actually want to do anything here - we want
+    // to keep the existing layout and styles so we can quickly re-bind content to the template.
   }
 
   /** Create an Adapter for the {@code ElementList}. */
@@ -125,10 +151,10 @@ class TemplateInvocationAdapter
     return viewGroup;
   }
 
-  // TODO: Create a unique key based on the template.
   @Override
   protected RecyclerKey createKey() {
-    return KeySupplier.SINGLETON_KEY;
+    return new TemplateKey(
+        checkNotNull(template, "Template is null; not created yet?"), sharedState);
   }
 
   void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
@@ -140,12 +166,18 @@ class TemplateInvocationAdapter
     childAdapter.setLayoutParams(new LinearLayout.LayoutParams(width, height));
   }
 
-  // TODO: Create some kind of key which determines whether a TemplateInvocationAdapter
-  // can be recycled and rebound to a given model. This could be tricky because different frames
-  // could have templates with the same id, and the shared state can be updated with new templates
-  // that share an ID.
-  static class KeySupplier
-      extends SingletonKeySupplier<TemplateInvocationAdapter, TemplateInvocation> {
+  /**
+   * Determines whether two templates are compatible for recycling. We're going to call the hash
+   * code good enough for performance reasons (.equals() is expensive), and hope we don't get a lot
+   * of collisions.
+   */
+  @SuppressWarnings("ReferenceEquality")
+  static boolean templateEquals(Template template1, Template template2) {
+    return template1 == template2 || template1.hashCode() == template2.hashCode();
+  }
+
+  static class TemplateKeySupplier
+      implements AdapterKeySupplier<TemplateInvocationAdapter, TemplateInvocation> {
     @Override
     public String getAdapterTag() {
       return TAG;
@@ -154,6 +186,50 @@ class TemplateInvocationAdapter
     @Override
     public TemplateInvocationAdapter getAdapter(Context context, AdapterParameters parameters) {
       return new TemplateInvocationAdapter(context, parameters);
+    }
+
+    @Override
+    public RecyclerKey getKey(FrameContext frameContext, TemplateInvocation model) {
+      return new TemplateKey(
+          frameContext.getTemplate(model.getTemplateId()), frameContext.getPietSharedState());
+    }
+  }
+
+  /** Wrap the Template proto object as the recycler key. */
+  static class TemplateKey extends RecyclerKey {
+    private final Template template;
+    @Nullable private final PietSharedState sharedState;
+
+    TemplateKey(Template template, @Nullable PietSharedState sharedState) {
+      this.template = template;
+      this.sharedState = sharedState;
+    }
+
+    /** Equals checks the hashCode of template and sharedState to avoid expensive proto equals. */
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      TemplateKey that = (TemplateKey) o;
+
+      if (!templateEquals(template, that.template)) {
+        return false;
+      }
+      return sharedState != null
+          ? sharedState.hashCode() == that.sharedState.hashCode()
+          : that.sharedState == null;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = template.hashCode();
+      result = 31 * result + (sharedState != null ? sharedState.hashCode() : 0);
+      return result;
     }
   }
 }

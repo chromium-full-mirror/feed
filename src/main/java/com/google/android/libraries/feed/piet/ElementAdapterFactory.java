@@ -55,7 +55,8 @@ class ElementAdapterFactory {
         new AdapterFactory<>(context, parameters, new SpacerElementAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new GridRowAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new ElementListAdapter.KeySupplier()),
-        new AdapterFactory<>(context, parameters, new TemplateInvocationAdapter.KeySupplier()));
+        new AdapterFactory<>(
+            context, parameters, new TemplateInvocationAdapter.TemplateKeySupplier()));
   }
 
   /** Testing-only constructor for mocking the factories. */

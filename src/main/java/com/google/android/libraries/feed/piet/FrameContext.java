@@ -46,6 +46,7 @@ import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
@@ -157,10 +158,15 @@ class FrameContext {
     return (template != null) ? template : stylesHelper.getTemplate(templateId);
   }
 
+  @Nullable
+  public PietSharedState getPietSharedState() {
+    return stylesHelper.getCurrentPietSharedState();
+  }
+
   /**
-   * Creates a new FrameContext which is scoped properly for the Template. If a Template defines a
-   * Stylesheet, it overrides the Frame defined Stylesheet. In addition, a Template can define a
-   * root level Style.
+   * Creates a new FrameContext which is scoped properly for the Template. The Frame's stylesheet is
+   * discarded and replaced by the Template's stylesheet. In addition, a Template can define a root
+   * level style which applies to all child elements.
    */
   // TODO: Why do we allow bindingContext to be null if it's an error?
   FrameContext bindTemplate(Template template, @Nullable BindingContext bindingContext) {
@@ -179,7 +185,7 @@ class FrameContext {
         localStylesheet = stylesHelper.getStylesheet(template.getStylesheetId());
         break;
       default:
-        localStylesheet = stylesheet;
+        localStylesheet = new HashMap<>();
     }
 
     Style templateBaseStyle;
@@ -366,7 +372,7 @@ class FrameContext {
   @Nullable
   ChunkedText getChunkedTextFromBinding(ChunkedTextBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
-    return bindingValue == null || !bindingValue.hasBoundStyle()
+    return bindingValue == null || !bindingValue.hasChunkedText()
         ? null
         : bindingValue.getChunkedText();
   }
