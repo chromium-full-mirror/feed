@@ -25,7 +25,7 @@ import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.CodedInputStream;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
@@ -73,7 +73,7 @@ public class FeedRequestManager implements RequestManager {
   public void handlePushedResponseBytes(byte[] responseBytes) {
     try {
       handleResponseBytes(responseBytes, null);
-    } catch (InvalidProtocolBufferException e) {
+    } catch (IOException e) {
       Logger.e(TAG, e, "Error handling pushed response bytes.");
     }
   }
@@ -102,10 +102,38 @@ public class FeedRequestManager implements RequestManager {
     }
   }
 
-  private void handleResponseBytes(byte[] responseBytes, ByteString pageToken)
-      throws InvalidProtocolBufferException {
-    Response response = Response.parseFrom(responseBytes, extensionRegistry.getExtensionRegistry());
+  private void handleResponseBytes(byte[] responseBytes, ByteString pageToken) throws IOException {
+    // Try parsing the bytes as a length-prefixed proto, then as an ordinary proto.
+    Response response;
+    try {
+      response =
+          Response.parseFrom(
+              getLengthPrefixedValue(responseBytes), extensionRegistry.getExtensionRegistry());
+    } catch (IOException responseIsNotLengthPrefixed) {
+      response = Response.parseFrom(responseBytes, extensionRegistry.getExtensionRegistry());
+    }
     protocolAdapter.createModel(response, pageToken);
+  }
+
+  /**
+   * Returns the first length-prefixed value from {@code input}. The first bytes of input are
+   * assumed to be a varint32 encoding the length of the rest of the message. If input contains more
+   * than one message, only the first message is returned.
+   *
+   * @throws IOException if input cannot be parsed
+   */
+  private byte[] getLengthPrefixedValue(byte[] input) throws IOException {
+    CodedInputStream codedInputStream = CodedInputStream.newInstance(input);
+    try {
+      if (codedInputStream.isAtEnd()) {
+        throw new IOException("Empty length-prefixed response");
+      } else {
+        int length = codedInputStream.readRawVarint32();
+        return codedInputStream.readRawBytes(length);
+      }
+    } catch (IOException e) {
+      throw new IOException("Exception parsing length-prefixed response");
+    }
   }
 
   // TODO: Populate ClientInfo
