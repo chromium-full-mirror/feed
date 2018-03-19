@@ -27,7 +27,7 @@ import java.util.List;
  * GridRow. Ensures that lifecycle methods are called on child adapters when the parent class binds,
  * unbinds, or releases.
  */
-public abstract class ElementContainerAdapter<
+abstract class ElementContainerAdapter<
         V extends ViewGroup, ChildAdapterT extends ElementAdapter<? extends View, ?>, M>
     extends ElementAdapter<V, M> {
 
@@ -38,7 +38,7 @@ public abstract class ElementContainerAdapter<
     childAdapters = new ArrayList<>();
   }
 
-  protected void initialCreate() {
+  void initialCreate() {
     if (getBaseView() != null) {
       return;
     }
@@ -47,7 +47,7 @@ public abstract class ElementContainerAdapter<
 
   /** Unbind the model and release child adapters. Be sure to call this in any overrides. */
   @Override
-  public void onUnbindModel() {
+  void onUnbindModel() {
     for (ElementAdapter<?, ?> childAdapter : childAdapters) {
       childAdapter.unbindModel();
     }
@@ -55,7 +55,7 @@ public abstract class ElementContainerAdapter<
   }
 
   @Override
-  public void onReleaseAdapter() {
+  void onReleaseAdapter() {
     if (getBaseView() != null) {
       getBaseView().removeAllViews();
     }
@@ -65,18 +65,18 @@ public abstract class ElementContainerAdapter<
     childAdapters.clear();
   }
 
-  protected void addChildAdapter(ChildAdapterT adapter) {
+  void addChildAdapter(ChildAdapterT adapter) {
     childAdapters.add(adapter);
   }
 
   /** Creates the base ViewGroup for this adapter. */
-  protected abstract V createViewGroup();
+  abstract V createViewGroup();
 
   /**
    * Creates a {@link RecyclerKey} for this adapter based on the model (or returns SINGLETON_KEY if
    * all adapters of this type are compatible for recycling).
    */
-  protected RecyclerKey createKey() {
+  RecyclerKey createKey() {
     return SingletonKeySupplier.SINGLETON_KEY;
   }
 }

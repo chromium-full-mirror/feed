@@ -63,7 +63,6 @@ import javax.annotation.Nullable;
  * This is a {@link FrameContext} that is bound. Binding means we have a {@code Frame}, an optional
  * map of {@code BindingValues} and a {@code StyleProvider}.
  */
-@VisibleForTesting
 class FrameContext {
   private static final String TAG = "FrameContext";
 
@@ -164,7 +163,7 @@ class FrameContext {
    * root level Style.
    */
   // TODO: Why do we allow bindingContext to be null if it's an error?
-  public FrameContext bindTemplate(Template template, @Nullable BindingContext bindingContext) {
+  FrameContext bindTemplate(Template template, @Nullable BindingContext bindingContext) {
     if (bindingContext == null) {
       Logger.w(TAG, reportError(ErrorType.WARNING, "Template BindingContext was not provided"));
       return this;
@@ -209,7 +208,7 @@ class FrameContext {
    * Creates a new FrameContext from the existing FrameContext using {@code styleId} to lookup the
    * new Style.
    */
-  public FrameContext bindNewStyle(StyleIdsStack styles) {
+  FrameContext bindNewStyle(StyleIdsStack styles) {
     if (styles.getStyleIdsList().isEmpty()) {
       return this;
     }
@@ -263,7 +262,7 @@ class FrameContext {
    * {@code null} if the background has no color defined.
    */
   @Nullable
-  public Drawable createBackground(StyleProvider style, Context context) {
+  Drawable createBackground(StyleProvider style, Context context) {
     Fill background = style.getBackground();
     if (!background.hasColor()) {
       return null;
@@ -286,7 +285,7 @@ class FrameContext {
   /**
    * Return a {@link Image} for the binding if there is one defined; otherwise returns {@code null}.
    */
-  public Image getImageFromBinding(ImageBindingRef binding) {
+  Image getImageFromBinding(ImageBindingRef binding) {
     return getImageBindingValue(binding).getImage();
   }
 
@@ -294,7 +293,7 @@ class FrameContext {
    * Return a {@link ElementList} for the binding if there is one defined; otherwise returns {@code
    * null}.
    */
-  public ElementList getElementListFromBinding(ElementListBindingRef binding) {
+  ElementList getElementListFromBinding(ElementListBindingRef binding) {
     return getElementListBindingValue(binding).getElementList();
   }
 
@@ -302,7 +301,7 @@ class FrameContext {
    * Return a {@link ParameterizedText} for the binding if there is one defined; otherwise returns
    * {@code null}.
    */
-  public ParameterizedText getParameterizedTextFromBinding(ParameterizedTextBindingRef binding) {
+  ParameterizedText getParameterizedTextFromBinding(ParameterizedTextBindingRef binding) {
     return getParameterizedTextBindingValue(binding).getParameterizedText();
   }
 
@@ -311,7 +310,7 @@ class FrameContext {
    * {@code null}.
    */
   @Nullable
-  public GridCellWidth getGridCellWidthFromBinding(GridCellWidthBindingRef binding) {
+  GridCellWidth getGridCellWidthFromBinding(GridCellWidthBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasCellWidth()
         ? null
@@ -323,7 +322,7 @@ class FrameContext {
    * null}.
    */
   @Nullable
-  public Actions getActionsFromBinding(ActionsBindingRef binding) {
+  Actions getActionsFromBinding(ActionsBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasActions() ? null : bindingValue.getActions();
   }
@@ -333,7 +332,7 @@ class FrameContext {
    * {@code null}.
    */
   @Nullable
-  public CustomElementData getCustomElementFromBinding(CustomBindingRef binding) {
+  CustomElementData getCustomElementFromBinding(CustomBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasCustomElementData()
         ? null
@@ -345,7 +344,7 @@ class FrameContext {
    * null}.
    */
   @Nullable
-  public BoundStyle getStyleFromBinding(StyleBindingRef binding) {
+  BoundStyle getStyleFromBinding(StyleBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasBoundStyle()
         ? null
@@ -357,7 +356,7 @@ class FrameContext {
    * {@code null}.
    */
   @Nullable
-  public TemplateInvocation getTemplateInvocationFromBinding(TemplateBindingRef binding) {
+  TemplateInvocation getTemplateInvocationFromBinding(TemplateBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasTemplateInvocation()
         ? null
@@ -365,7 +364,7 @@ class FrameContext {
   }
 
   @Nullable
-  public ChunkedText getChunkedTextFromBinding(ChunkedTextBindingRef binding) {
+  ChunkedText getChunkedTextFromBinding(ChunkedTextBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasBoundStyle()
         ? null
@@ -376,7 +375,7 @@ class FrameContext {
    * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
    * does not point to a text resource.
    */
-  public BindingValue getParameterizedTextBindingValue(ParameterizedTextBindingRef binding) {
+  BindingValue getParameterizedTextBindingValue(ParameterizedTextBindingRef binding) {
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
     if (returnValue == null
         || (!returnValue.hasParameterizedText()
@@ -392,7 +391,7 @@ class FrameContext {
    * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
    * does not point to a image resource.
    */
-  public BindingValue getImageBindingValue(ImageBindingRef binding) {
+  BindingValue getImageBindingValue(ImageBindingRef binding) {
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
     if (returnValue == null
         || (!returnValue.hasImage() && !returnValue.getVisibility().equals(Visibility.GONE))) {
@@ -407,7 +406,7 @@ class FrameContext {
    * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
    * does not point to a ElementList.
    */
-  public BindingValue getElementListBindingValue(ElementListBindingRef binding) {
+  BindingValue getElementListBindingValue(ElementListBindingRef binding) {
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
     if (returnValue == null
         || (!returnValue.hasElementList()
@@ -436,7 +435,7 @@ class FrameContext {
    * will return {@code null} if the View shouldn't be displayed.
    */
   @Nullable
-  public View getErrorView(Context context) {
+  View getErrorView(Context context) {
     // TODO: This needs to be controlled by a DEBUG flag, this should always return
     // null in production.
     if (errors.isEmpty()) {

@@ -45,7 +45,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /** An {@link ElementAdapter} which manages {@code ChunkedText} elements. */
-public class ChunkedTextElementAdapter extends TextElementAdapter {
+class ChunkedTextElementAdapter extends TextElementAdapter {
   private static final String TAG = "ChunkedTextElementAdapter";
 
   // We only use a LayerDrawable so we can switch out the Drawable; we only want one layer.
@@ -167,7 +167,7 @@ public class ChunkedTextElementAdapter extends TextElementAdapter {
   }
 
   @Override
-  public void onUnbindModel() {
+  void onUnbindModel() {
     for (ImageSpanDrawableCallback imageLoader : loadingImages) {
       imageLoader.cancelCallback();
     }

@@ -45,7 +45,7 @@ public class PietStylesHelper {
 
   /** Returns a Map of style_id to Style. This represents the Stylesheet. */
   @Nullable
-  public Map<String, Style> getStylesheet(String stylesheetId) {
+  Map<String, Style> getStylesheet(String stylesheetId) {
     checkCurrent();
     if (stylesheetScopes.containsKey(stylesheetId)) {
       return stylesheetScopes.get(stylesheetId);
@@ -60,7 +60,7 @@ public class PietStylesHelper {
     return null;
   }
 
-  public static Map<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
+  static Map<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
     Map<String, Style> stylesheetMap = new HashMap<>();
     for (Style style : stylesheet.getStylesList()) {
       stylesheetMap.put(style.getStyleId(), style);

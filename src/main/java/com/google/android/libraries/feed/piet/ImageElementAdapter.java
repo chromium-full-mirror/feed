@@ -32,7 +32,7 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import javax.annotation.Nullable;
 
 /** An {@link ElementAdapter} for {@code ImageElement} elements. */
-public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
+class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
   private static final String TAG = "ImageElementAdapter";
 
   private ImageView imageView = null;
@@ -43,7 +43,7 @@ public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElemen
   }
 
   @Override
-  protected ImageElement getModelFromElement(Element baseElement) {
+  ImageElement getModelFromElement(Element baseElement) {
     if (!baseElement.hasImageElement()) {
       throw new IllegalArgumentException(
           String.format("Missing ImageElement; has %s", baseElement.getElementsCase()));
@@ -52,7 +52,7 @@ public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElemen
   }
 
   @Override
-  public void onCreateAdapter(ImageElement model, Element baseElement, FrameContext frameContext) {
+  void onCreateAdapter(ImageElement model, Element baseElement, FrameContext frameContext) {
     initialBind();
 
     StyleProvider style = getElementStyle();
@@ -96,7 +96,7 @@ public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElemen
   }
 
   @Override
-  public void onBindModel(ImageElement model, Element baseElement, FrameContext frameContext) {
+  void onBindModel(ImageElement model, Element baseElement, FrameContext frameContext) {
     Image image;
     switch (model.getContentCase()) {
       case IMAGE:
@@ -143,7 +143,7 @@ public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElemen
   }
 
   @Override
-  protected void onUnbindModel() {
+  void onUnbindModel() {
     if (currentlyLoadingImage != null) {
       currentlyLoadingImage.cancelled = true;
       currentlyLoadingImage = null;
@@ -156,10 +156,10 @@ public class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElemen
   }
 
   @Override
-  protected void onReleaseAdapter() {}
+  void onReleaseAdapter() {}
 
   @Override
-  protected StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 

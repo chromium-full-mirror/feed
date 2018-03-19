@@ -42,7 +42,7 @@ class FrameModelBinder {
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
 
-  public FrameModelBinder(
+  FrameModelBinder(
       PietStylesHelper stylesHelper,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider) {
@@ -51,7 +51,7 @@ class FrameModelBinder {
     this.customElementProvider = customElementProvider;
   }
 
-  public FrameContext bindFrame(Frame frame) {
+  FrameContext bindFrame(Frame frame) {
     Map<String, Style> stylesheetMap = null;
     List<String> errors = new ArrayList<>(3);
     if (frame.hasStylesheetId()) {

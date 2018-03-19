@@ -34,7 +34,7 @@ public class ViewUtils {
   }
 
   /** Attaches the onClick action from actions to the view, executed by the handler. */
-  public static void setOnClickActions(
+  static void setOnClickActions(
       @Nullable Actions actions,
       @Nullable View view,
       ActionHandler handler,
@@ -61,7 +61,7 @@ public class ViewUtils {
   /**
    * Attaches the onClick action bound by actionsBindingRef to the view, executed by the handler.
    */
-  public static void setOnClickActions(
+  static void setOnClickActions(
       @Nullable ActionsBindingRef actionsBindingRef,
       @Nullable View view,
       ActionHandler handler,
@@ -75,7 +75,7 @@ public class ViewUtils {
     setOnClickActions(actions, view, handler, frameContext);
   }
 
-  public static void clearOnLongClickActions(@Nullable View view) {
+  static void clearOnLongClickActions(@Nullable View view) {
     if (view != null) {
       view.setOnLongClickListener(null);
       view.setLongClickable(false);
@@ -83,7 +83,7 @@ public class ViewUtils {
   }
 
   /** Sets clickability to false. */
-  public static void clearOnClickActions(@Nullable View view) {
+  static void clearOnClickActions(@Nullable View view) {
     if (view != null) {
       if (view.hasOnClickListeners()) {
         view.setOnClickListener(null);

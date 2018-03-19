@@ -24,12 +24,12 @@ import javax.annotation.Nullable;
 interface RecyclerPool<A extends ElementAdapter<?, ?>> {
 
   /**
-   * Return an {@link BoundViewAdapter} matching the {@link RecyclerKey} or null if one isn't found.
+   * Return an {@link ElementAdapter} matching the {@link RecyclerKey} or null if one isn't found.
    */
   @Nullable
   A get(RecyclerKey key);
 
-  /** Put a {@link BoundViewAdapter} with a {@link RecyclerKey} into the pool. */
+  /** Put a {@link ElementAdapter} with a {@link RecyclerKey} into the pool. */
   void put(RecyclerKey key, A adapter);
 
   /** Clear everything out of the recycler pool. */

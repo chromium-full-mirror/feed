@@ -30,7 +30,7 @@ import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** An {@link ElementContainerAdapter} which manages vertical lists of elements. */
-public class ElementListAdapter
+class ElementListAdapter
     extends ElementContainerAdapter<LinearLayout, ElementAdapter<? extends View, ?>, ElementList> {
   private static final String TAG = "ElementListAdapter";
 
@@ -39,7 +39,7 @@ public class ElementListAdapter
   }
 
   @Override
-  protected ElementList getModelFromElement(Element baseElement) {
+  ElementList getModelFromElement(Element baseElement) {
     // Will also throw for ElementListBindingRef; looking up bindings is not supported here.
     if (!baseElement.hasElementList()) {
       throw new IllegalArgumentException(
@@ -49,7 +49,7 @@ public class ElementListAdapter
   }
 
   @Override
-  public void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
+  void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
     initialCreate();
 
     createLayout(model, frameContext);
@@ -60,7 +60,7 @@ public class ElementListAdapter
   }
 
   @Override
-  public void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
+  void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
     // TODO: When onCreateAdapter skips creating some adapters (ex. due to binding
     // issues),
     // this check will fail; if we support silently ignoring some elements in onCreateAdapter, we
@@ -82,7 +82,7 @@ public class ElementListAdapter
   }
 
   @Override
-  protected void bindActions(FrameContext frameContext) {
+  void bindActions(FrameContext frameContext) {
     switch (getModel().getActionsDataCase()) {
       case ACTIONS:
         ViewUtils.setOnClickActions(
@@ -98,12 +98,12 @@ public class ElementListAdapter
   }
 
   @Override
-  protected StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 
   @Override
-  public void onUnbindModel() {
+  void onUnbindModel() {
     ViewUtils.clearOnClickActions(getView());
     super.onUnbindModel();
   }
@@ -162,7 +162,7 @@ public class ElementListAdapter
   }
 
   @Override
-  protected LinearLayout createViewGroup() {
+  LinearLayout createViewGroup() {
     LinearLayout viewGroup = new LinearLayout(getContext());
     viewGroup.setOrientation(LinearLayout.VERTICAL);
     viewGroup.setLayoutParams(

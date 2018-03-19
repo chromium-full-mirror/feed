@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
  *
  * <p>TODO: This should be made real so it supports control of the pool size
  */
-public class KeyedRecyclerPool<A extends ElementAdapter<?, ?>> implements RecyclerPool<A> {
+class KeyedRecyclerPool<A extends ElementAdapter<?, ?>> implements RecyclerPool<A> {
 
   private final LruCache<RecyclerKey, SingleKeyRecyclerPool<A>> poolMap;
   private final int capacityPerPool;

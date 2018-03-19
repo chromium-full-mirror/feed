@@ -29,7 +29,7 @@ import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** An {@link ElementAdapter} for {@code SpacerElement} elements. */
-public class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
+class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
   private static final String TAG = "SpacerElementAdapter";
 
   @VisibleForTesting
@@ -38,7 +38,7 @@ public class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
   }
 
   @Override
-  protected SpacerElement getModelFromElement(Element baseElement) {
+  SpacerElement getModelFromElement(Element baseElement) {
     if (!baseElement.hasSpacerElement()) {
       throw new IllegalArgumentException(
           String.format("Missing SpacerElement; has %s", baseElement.getElementsCase()));
@@ -47,13 +47,13 @@ public class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
   }
 
   @Override
-  public void onCreateAdapter(SpacerElement model, Element baseElement, FrameContext frameContext) {
+  void onCreateAdapter(SpacerElement model, Element baseElement, FrameContext frameContext) {
     initialCreate(frameContext, model);
     setSpacerStyles(frameContext);
   }
 
   @Override
-  public void onBindModel(SpacerElement model, Element baseElement, FrameContext frameContext) {
+  void onBindModel(SpacerElement model, Element baseElement, FrameContext frameContext) {
     if (model.getStyleReferences().hasStyleBinding()) {
       setSpacerStyles(frameContext);
     }
@@ -77,7 +77,7 @@ public class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
   }
 
   @Override
-  protected StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 

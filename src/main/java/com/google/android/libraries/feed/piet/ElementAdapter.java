@@ -42,7 +42,7 @@ import javax.annotation.Nullable;
  *     for creating. Once created, it should have the same lifetime as the adapter.
  * @param <M> The model. This is the model type which is bound to the view by the adapter.
  */
-public abstract class ElementAdapter<V extends View, M> {
+abstract class ElementAdapter<V extends View, M> {
   private static final String TAG = "ElementAdapter";
 
   /**
@@ -66,12 +66,12 @@ public abstract class ElementAdapter<V extends View, M> {
    * Desired width of this element. {@link #DIMENSION_NOT_SET} indicates no explicit width; let the
    * parent view decide.
    */
-  protected int widthPx = DIMENSION_NOT_SET;
+  int widthPx = DIMENSION_NOT_SET;
   /**
    * Desired height of this element. {@link #DIMENSION_NOT_SET} indicates no explicit height; let
    * the parent view decide.
    */
-  protected int heightPx = DIMENSION_NOT_SET;
+  int heightPx = DIMENSION_NOT_SET;
 
   ElementAdapter(Context context, AdapterParameters parameters) {
     this.context = context;
@@ -141,7 +141,7 @@ public abstract class ElementAdapter<V extends View, M> {
   }
 
   /** Performs child-class-specific adapter creation; to be overridden. */
-  protected void onCreateAdapter(M model, Element baseElement, FrameContext frameContext) {}
+  void onCreateAdapter(M model, Element baseElement, FrameContext frameContext) {}
 
   /**
    * Binds data from a Model to the Adapter, without changing child views or styles. Do not
@@ -175,10 +175,10 @@ public abstract class ElementAdapter<V extends View, M> {
   }
 
   /** Extracts the relevant model from the Element oneof. Throws IllegalArgument if not found. */
-  protected abstract M getModelFromElement(Element baseElement);
+  abstract M getModelFromElement(Element baseElement);
 
   /** Performs child-adapter-specific binding logic; to be overridden. */
-  protected void onBindModel(M model, Element baseElement, FrameContext frameContext) {}
+  void onBindModel(M model, Element baseElement, FrameContext frameContext) {}
 
   private void initializeOverlays(FrameContext frameContext) {
     if (baseElement.getOverlayElementsCount() > 0) {
@@ -227,7 +227,7 @@ public abstract class ElementAdapter<V extends View, M> {
     }
   }
 
-  protected void bindActions(FrameContext frameContext) {
+  void bindActions(FrameContext frameContext) {
     // Set up actions
     switch (baseElement.getActionsDataCase()) {
       case ACTIONS:
@@ -272,7 +272,7 @@ public abstract class ElementAdapter<V extends View, M> {
    * <p>Element doesn't have any styles, but most sub-elements do, so should be overridden wherever
    * possible.
    */
-  protected StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getElementStyleIdsStack() {
     return StyleIdsStack.getDefaultInstance();
   }
 
@@ -297,7 +297,7 @@ public abstract class ElementAdapter<V extends View, M> {
   }
 
   /** Performs child-adapter-specific unbind logic; to be overridden. */
-  protected void onUnbindModel() {}
+  void onUnbindModel() {}
 
   /**
    * Releases all child adapters to recycler pools. Do not override; override {@link
@@ -318,7 +318,7 @@ public abstract class ElementAdapter<V extends View, M> {
   }
 
   /** Performs child-adapter-specific release logic; to be overridden. */
-  protected void onReleaseAdapter() {}
+  void onReleaseAdapter() {}
 
   /**
    * Subclasses will call this method when they are first bound to a Model to set the View created
@@ -340,7 +340,7 @@ public abstract class ElementAdapter<V extends View, M> {
    * Returns the desired width of the adapter, computed from the model at bind time, or {@link
    * #DIMENSION_NOT_SET} which implies that the parent can choose the width.
    */
-  public int getComputedWidthPx() {
+  int getComputedWidthPx() {
     return widthPx;
   }
 
@@ -348,7 +348,7 @@ public abstract class ElementAdapter<V extends View, M> {
    * Returns the desired height of the adapter, computed from the model at bind time, or {@link
    * #DIMENSION_NOT_SET} which implies that the parent can choose the height.
    */
-  public int getComputedHeightPx() {
+  int getComputedHeightPx() {
     return heightPx;
   }
 
@@ -370,16 +370,16 @@ public abstract class ElementAdapter<V extends View, M> {
     }
   }
 
-  protected AdapterParameters getParameters() {
+  AdapterParameters getParameters() {
     return parameters;
   }
 
-  protected Context getContext() {
+  Context getContext() {
     return context;
   }
 
   /** Returns the {@code model}, but is only legal to call when the Adapter is bound to a model */
-  protected M getModel() {
+  M getModel() {
     return checkNotNull(model);
   }
 
@@ -394,15 +394,15 @@ public abstract class ElementAdapter<V extends View, M> {
     return model;
   }
 
-  protected Frame getFrame() {
+  Frame getFrame() {
     return frameContext.getFrame();
   }
 
-  protected FrameContext getFrameContext() {
+  FrameContext getFrameContext() {
     return frameContext;
   }
 
-  protected ParameterizedTextEvaluator getTemplatedStringEvaluator() {
+  ParameterizedTextEvaluator getTemplatedStringEvaluator() {
     return parameters.templatedStringEvaluator;
   }
 }

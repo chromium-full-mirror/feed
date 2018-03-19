@@ -26,7 +26,7 @@ import com.google.search.now.ui.piet.ElementsProto.Element;
  * @param <A> A subclass of {@link ElementAdapter} which this factory is managing.
  * @param <M> The model. This is the model type which is bound to the view by the adapter.
  */
-public class AdapterFactory<A extends ElementAdapter<?, M>, M> {
+class AdapterFactory<A extends ElementAdapter<?, M>, M> {
   private static final String TAG = "AdapterFactory";
 
   // TODO: Make these configurable instead of constants.

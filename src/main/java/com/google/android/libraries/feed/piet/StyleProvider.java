@@ -31,7 +31,6 @@ import com.google.search.now.ui.piet.StylesProto.Style;
  *
  * <p>Feel free to add "has..." methods for any of the fields if needed.
  */
-@VisibleForTesting
 class StyleProvider {
 
   @VisibleForTesting

@@ -26,7 +26,7 @@ import com.google.android.libraries.feed.piet.util.Producer;
  *
  * <p>TODO: This is basically the Dagger state for Piet. Need to implement dagger support.
  */
-public class AdapterParameters {
+class AdapterParameters {
   final ParameterizedTextEvaluator templatedStringEvaluator;
   final Producer<ViewGroup> parentViewProducer;
   final ActionHandler actionHandler;

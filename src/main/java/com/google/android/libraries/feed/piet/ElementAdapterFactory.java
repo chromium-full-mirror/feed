@@ -176,7 +176,7 @@ class ElementAdapterFactory {
     }
   }
 
-  public void purgeRecyclerPools() {
+  void purgeRecyclerPools() {
     for (AdapterFactory<?, ?> factory : factories) {
       factory.purgeRecyclerPool();
     }

@@ -32,7 +32,7 @@ import com.google.search.now.ui.piet.PietProto.Template;
 import javax.annotation.Nullable;
 
 /** A {@link ElementContainerAdapter} which manages {@code TemplateInvocation} slices. */
-public class TemplateInvocationAdapter
+class TemplateInvocationAdapter
     extends ElementContainerAdapter<LinearLayout, ElementListAdapter, TemplateInvocation> {
 
   private static final String TAG = "TemplateInvocationAdapter";
@@ -42,7 +42,7 @@ public class TemplateInvocationAdapter
   }
 
   @Override
-  protected TemplateInvocation getModelFromElement(Element baseElement) {
+  TemplateInvocation getModelFromElement(Element baseElement) {
     throw new IllegalArgumentException(
         "Templates must be re-bound; cannot be extracted from an Element.");
   }
@@ -77,12 +77,11 @@ public class TemplateInvocationAdapter
   }
 
   @Override
-  public void onBindModel(
-      TemplateInvocation model, Element baseElement, FrameContext frameContext) {
+  void onBindModel(TemplateInvocation model, Element baseElement, FrameContext frameContext) {
     onBindModel(model, frameContext, null);
   }
 
-  public void onBindModel(
+  void onBindModel(
       TemplateInvocation model,
       FrameContext frameContext,
       @Nullable ShardingControl shardingControl) {
@@ -117,7 +116,7 @@ public class TemplateInvocationAdapter
   }
 
   @Override
-  protected LinearLayout createViewGroup() {
+  LinearLayout createViewGroup() {
     LinearLayout viewGroup = new LinearLayout(getContext());
     viewGroup.setOrientation(LinearLayout.VERTICAL);
     viewGroup.setLayoutParams(
@@ -132,7 +131,7 @@ public class TemplateInvocationAdapter
     return KeySupplier.SINGLETON_KEY;
   }
 
-  protected void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
+  void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
     int width = childAdapter.getComputedWidthPx();
     width = width == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
     int height = childAdapter.getComputedHeightPx();

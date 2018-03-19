@@ -26,10 +26,10 @@ import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 
 /** Adapter that manages a custom view created by the host. */
-public class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
+class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
   private static final String TAG = "CustomElementAdapter";
 
-  public CustomElementAdapter(Context context, AdapterParameters parameters) {
+  CustomElementAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters);
   }
 
@@ -43,7 +43,7 @@ public class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElem
   }
 
   @Override
-  public void onCreateAdapter(
+  void onCreateAdapter(
       CustomElement customElement, Element baseElement, FrameContext frameContext) {
     if (getBaseView() != null) {
       return;
@@ -53,8 +53,7 @@ public class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElem
   }
 
   @Override
-  public void onBindModel(
-      CustomElement customElement, Element baseElement, FrameContext frameContext) {
+  void onBindModel(CustomElement customElement, Element baseElement, FrameContext frameContext) {
     checkNotNull(getBaseView(), "View is null; initialize adapter first?");
 
     CustomElementData customElementData;
@@ -76,7 +75,7 @@ public class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElem
   }
 
   @Override
-  public void onUnbindModel() {
+  void onUnbindModel() {
     if (getBaseView() != null && getBaseView().getChildCount() > 0) {
       for (int i = 0; i < getBaseView().getChildCount(); i++) {
         getFrameContext().getCustomElementProvider().releaseCustomView(getBaseView().getChildAt(i));

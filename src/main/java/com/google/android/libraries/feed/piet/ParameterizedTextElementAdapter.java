@@ -30,7 +30,7 @@ import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import javax.annotation.Nullable;
 
 /** An {@link ElementAdapter} which manages {@code ParameterizedText} elements. */
-public class ParameterizedTextElementAdapter extends TextElementAdapter {
+class ParameterizedTextElementAdapter extends TextElementAdapter {
   private static final String TAG = "TextElementAdapter";
 
   ParameterizedTextElementAdapter(Context context, AdapterParameters parameters) {

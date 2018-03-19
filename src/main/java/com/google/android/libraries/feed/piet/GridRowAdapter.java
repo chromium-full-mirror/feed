@@ -35,8 +35,7 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import javax.annotation.Nullable;
 
 /** An {@link ElementContainerAdapter} which manages {@code GridRow} slices. */
-public class GridRowAdapter
-    extends ElementContainerAdapter<LinearLayout, ElementListAdapter, GridRow> {
+class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAdapter, GridRow> {
 
   private static final String TAG = "GridRowAdapter";
 
@@ -45,7 +44,7 @@ public class GridRowAdapter
   }
 
   @Override
-  protected GridRow getModelFromElement(Element baseElement) {
+  GridRow getModelFromElement(Element baseElement) {
     if (!baseElement.hasGridRow()) {
       throw new IllegalArgumentException(
           String.format("Missing GridRow; has %s", baseElement.getElementsCase()));
@@ -54,7 +53,7 @@ public class GridRowAdapter
   }
 
   @Override
-  public void onCreateAdapter(GridRow gridRow, Element baseElement, FrameContext frameContext) {
+  void onCreateAdapter(GridRow gridRow, Element baseElement, FrameContext frameContext) {
     initialCreate();
 
     // Set the padding on the LinearLayout representing the grid line.
@@ -74,7 +73,7 @@ public class GridRowAdapter
   }
 
   @Override
-  public void onBindModel(GridRow gridRow, Element baseElement, FrameContext frameContext) {
+  void onBindModel(GridRow gridRow, Element baseElement, FrameContext frameContext) {
     // Populate the LinearLayout with cells.
     // TODO: When onCreateAdapter skips creating some adapters (ex. due to binding
     // issues),
@@ -100,7 +99,7 @@ public class GridRowAdapter
   }
 
   @Override
-  protected StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 
@@ -200,7 +199,7 @@ public class GridRowAdapter
   }
 
   @Override
-  protected LinearLayout createViewGroup() {
+  LinearLayout createViewGroup() {
     LinearLayout viewGroup = new LinearLayout(getContext());
     viewGroup.setOrientation(LinearLayout.HORIZONTAL);
     viewGroup.setLayoutParams(

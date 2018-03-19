@@ -120,7 +120,7 @@ public class FrameAdapter {
     view.removeAllViews();
   }
 
-  protected void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
+  private void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
     int width = childAdapter.getComputedWidthPx();
     width = width == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
     int height = childAdapter.getComputedHeightPx();
@@ -174,8 +174,7 @@ public class FrameAdapter {
     if (view != null) {
       return;
     }
-    LinearLayout v = createView(parent);
-    this.view = v;
+    this.view = createView(parent);
   }
 
   private LinearLayout createView(@Nullable ViewGroup parent) {

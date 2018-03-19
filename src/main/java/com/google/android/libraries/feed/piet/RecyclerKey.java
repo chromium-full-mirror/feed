@@ -20,4 +20,4 @@ package com.google.android.libraries.feed.piet;
  * compatible for recycling. (ex. {@link TextElementAdapter} is only compatible with other adapters
  * that have the same size, font weight, and italic)
  */
-public class RecyclerKey {}
+class RecyclerKey {}

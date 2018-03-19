@@ -50,8 +50,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
 
   @Override
-  public void onCreateAdapter(
-      TextElement textLine, Element baseElement, FrameContext frameContext) {
+  void onCreateAdapter(TextElement textLine, Element baseElement, FrameContext frameContext) {
     initialCreate(frameContext, textLine);
 
     // Setup the layout of the text lines.
@@ -74,7 +73,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
 
   @Override
-  public void onBindModel(TextElement textLine, Element baseElement, FrameContext frameContext) {
+  void onBindModel(TextElement textLine, Element baseElement, FrameContext frameContext) {
 
     // Set the initial state for the TextView
     // No bindings found, so use the inlined value (or empty if not set)
@@ -86,14 +85,14 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
 
   @Override
-  protected StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 
   abstract void setTextOnView(FrameContext frameContext, TextElement textElement);
 
   @Override
-  public void onUnbindModel() {
+  void onUnbindModel() {
     TextView textView = checkNotNull(getBaseView());
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       textView.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
