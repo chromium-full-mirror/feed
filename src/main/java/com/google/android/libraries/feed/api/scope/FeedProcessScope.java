@@ -79,7 +79,11 @@ public class FeedProcessScope implements Dumpable {
   }
 
   public void onDestroy() {
-    networkClient.onDestroy();
+    try {
+      networkClient.close();
+    } catch (Exception ignored) {
+      // Ignore exception when closing.
+    }
   }
 
   /** A builder that creates a {@link FeedProcessScope}. */

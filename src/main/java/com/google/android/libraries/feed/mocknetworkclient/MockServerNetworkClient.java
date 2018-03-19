@@ -90,7 +90,7 @@ public class MockServerNetworkClient implements NetworkClient {
   }
 
   @Override
-  public void onDestroy() {
+  public void close() {
     quitSafely();
   }
 
@@ -107,12 +107,9 @@ public class MockServerNetworkClient implements NetworkClient {
 
   private HttpResponse createHttpResponse(Response response) {
     if (response == null) {
-      return new HttpResponse.Builder().setResponseCode(500).build();
+      return new HttpResponse(500, new byte[] {});
     }
-    return new HttpResponse.Builder()
-        .setResponseBody(response.toByteArray())
-        .setResponseCode(200)
-        .build();
+    return new HttpResponse(200, response.toByteArray());
   }
 
   private boolean allConditionsMatch(List<Condition> conditions, Request request) {

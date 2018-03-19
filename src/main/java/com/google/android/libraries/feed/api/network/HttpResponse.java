@@ -16,10 +16,13 @@ package com.google.android.libraries.feed.api.network;
 
 /** Representation of an HTTP response. */
 public final class HttpResponse {
-  private int responseCode;
-  private byte[] responseBody;
+  private final int responseCode;
+  private final byte[] responseBody;
 
-  private HttpResponse() {}
+  public HttpResponse(int responseCode, byte[] responseBody) {
+    this.responseCode = responseCode;
+    this.responseBody = responseBody;
+  }
 
   public int getResponseCode() {
     return responseCode;
@@ -27,24 +30,5 @@ public final class HttpResponse {
 
   public byte[] getResponseBody() {
     return responseBody;
-  }
-
-  /** Builds a {@link HttpResponse}. */
-  public static class Builder {
-    private final HttpResponse result = new HttpResponse();
-
-    public Builder setResponseCode(int responseCode) {
-      result.responseCode = responseCode;
-      return this;
-    }
-
-    public Builder setResponseBody(byte[] responseBody) {
-      result.responseBody = responseBody;
-      return this;
-    }
-
-    public HttpResponse build() {
-      return result;
-    }
   }
 }

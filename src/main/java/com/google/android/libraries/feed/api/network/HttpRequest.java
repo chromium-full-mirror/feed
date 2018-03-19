@@ -18,14 +18,18 @@ import android.net.Uri;
 
 /** Representation of an HTTP request. */
 public class HttpRequest {
-  private Uri uri;
-  private boolean withAuthToken;
-  private byte[] body;
+  private final Uri uri;
+  private final byte[] body;
+  private final boolean withAuthToken;
 
-  private HttpRequest() {}
+  public HttpRequest(Uri uri, byte[] body) {
+    this(uri, body, false);
+  }
 
-  public boolean getWithAuthToken() {
-    return withAuthToken;
+  public HttpRequest(Uri uri, byte[] body, boolean withAuthToken) {
+    this.uri = uri;
+    this.body = body;
+    this.withAuthToken = withAuthToken;
   }
 
   public Uri getUri() {
@@ -36,27 +40,7 @@ public class HttpRequest {
     return body;
   }
 
-  /** Builds a {@link HttpRequest}. */
-  public static class Builder {
-    private final HttpRequest request = new HttpRequest();
-
-    public Builder withAuthToken() {
-      request.withAuthToken = true;
-      return this;
-    }
-
-    public Builder setBody(byte[] body) {
-      request.body = body;
-      return this;
-    }
-
-    public Builder setUri(Uri uri) {
-      request.uri = uri;
-      return this;
-    }
-
-    public HttpRequest build() {
-      return request;
-    }
+  public boolean getWithAuthToken() {
+    return withAuthToken;
   }
 }

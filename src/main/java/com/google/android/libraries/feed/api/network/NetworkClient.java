@@ -16,9 +16,10 @@ package com.google.android.libraries.feed.api.network;
 
 import java.io.IOException;
 
-/** Defines an interface for sending an {@link HttpRequest}. */
-public interface NetworkClient {
+/**
+ * An object that can send an {@link HttpRequest} and receive an {@link HttpResponse} in response.
+ */
+public interface NetworkClient extends AutoCloseable {
+  /** Sends an {@link HttpRequest} and returns the {@link HttpResponse}. */
   HttpResponse execute(HttpRequest request) throws IOException;
-
-  void onDestroy();
 }

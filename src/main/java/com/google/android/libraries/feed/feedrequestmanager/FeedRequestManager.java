@@ -87,11 +87,7 @@ public class FeedRequestManager implements RequestManager {
       Request request = requestBuilder.build();
       String endpoint = configManager.getValue(SERVICE_ENDPOINT_FLAG);
       HttpRequest httpRequest =
-          new HttpRequest.Builder()
-              .withAuthToken()
-              .setUri(Uri.parse(endpoint))
-              .setBody(request.toByteArray())
-              .build();
+          new HttpRequest(Uri.parse(endpoint), request.toByteArray(), /* withAuthToken= */ true);
       HttpResponse httpResponse = networkClient.execute(httpRequest);
       if (httpResponse.getResponseCode() != 200) {
         String errorBody = new String(httpResponse.getResponseBody(), "UTF-8");
