@@ -184,7 +184,7 @@ public class TimingUtils implements Dumpable {
           String key = ts.args[i++].toString();
           Object value = (i < ts.args.length) ? ts.args[i] : "";
           if (!TextUtils.isEmpty(key)) {
-            sb.append(String.format("%s : %s", key, value));
+            sb.append(key).append(" : ").append(value);
           } else {
             sb.append(value);
           }

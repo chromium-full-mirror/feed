@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
-import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,12 +24,7 @@ import java.util.List;
  * com.google.android.libraries.feed.feedstore.FeedStore}.
  */
 public class SessionState {
-  private final StreamSession streamSession;
   private final List<StreamStructure> streamStructures = new ArrayList<>();
-
-  public SessionState(StreamSession streamSession) {
-    this.streamSession = streamSession;
-  }
 
   public void addAll(Collection<StreamStructure> operations) {
     streamStructures.addAll(operations);
@@ -38,15 +32,5 @@ public class SessionState {
 
   public List<StreamStructure> getStreamStructures() {
     return streamStructures;
-  }
-
-  public void clearState() {
-    streamStructures.clear();
-  }
-
-  @Override
-  public String toString() {
-    return String.format(
-        "[%s] - operations %s", streamSession.streamToken, streamStructures.size());
   }
 }

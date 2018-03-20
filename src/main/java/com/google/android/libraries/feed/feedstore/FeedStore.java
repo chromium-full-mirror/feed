@@ -127,7 +127,7 @@ public class FeedStore implements Store, Dumpable {
     int newSessionId = sessionId++;
     StreamSession streamSession = new StreamSession("_session:" + newSessionId);
     try {
-      SessionState session = new SessionState(streamSession);
+      SessionState session = new SessionState();
       session.addAll(getStreamStructures(HEAD));
       journalStorage
           .commit(
@@ -279,13 +279,6 @@ public class FeedStore implements Store, Dumpable {
       this.contentAdded = contentAdded;
       this.contentUpdated = contentUpdated;
       this.sharedStateAdded = sharedStateAdded;
-    }
-
-    @Override
-    public String toString() {
-      return String.format(
-          "ContentMutationResults - Added %s, Updated %s, Shared State Added %s",
-          contentAdded.size(), contentUpdated.size(), sharedStateAdded.size());
     }
 
     @Override
