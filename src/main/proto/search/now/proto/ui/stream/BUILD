@@ -11,6 +11,11 @@ proto_library(
     ],
 )
 
+java_proto_library(
+    name = "stream_java_proto",
+    deps = [":stream_proto"],
+)
+
 java_lite_proto_library(
     name = "stream_java_proto_lite",
     deps = [":stream_proto"],
