@@ -33,7 +33,7 @@ public class UpdatableModelChild implements ModelChild {
   private UpdatableModelFeature modelFeature;
   private UpdatableModelToken modelToken;
 
-  UpdatableModelChild(String contentId, @Nullable String parentContentId) {
+  public UpdatableModelChild(String contentId, @Nullable String parentContentId) {
     this.contentId = contentId;
     this.parentContentId = parentContentId;
   }
@@ -69,11 +69,7 @@ public class UpdatableModelChild implements ModelChild {
     return modelToken;
   }
 
-  public String getContentIdAsKey() {
-    return contentId;
-  }
-
-  public void updateFeature(StreamPayload payload) {
+  void updateFeature(StreamPayload payload) {
     switch (type) {
       case Type.FEATURE:
         if (payload.hasStreamFeature()) {
@@ -84,6 +80,9 @@ public class UpdatableModelChild implements ModelChild {
         break;
       case Type.TOKEN:
         Logger.e(TAG, "Updated called for TOKEN is unsupported");
+        break;
+      case Type.UNBOUND:
+        Logger.e(TAG, "updateFeature called on UNBOUND child");
         break;
       default:
         Logger.e(TAG, "Updated called for unsupported type: %s", type);

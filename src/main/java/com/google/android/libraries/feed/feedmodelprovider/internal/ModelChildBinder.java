@@ -19,47 +19,25 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Consumer;
-import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.common.Validators;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutationImpl.Change;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
-import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Bind the {@link StreamPayload} objects to the currently unbound {@link ModelChild objects}. */
+/**
+ * Bind the {@link StreamPayload} objects to the {@link ModelChild} instances. If the model child is
+ * UNBOUND, we will bind the initial type. For FEATURE model child instances we will update the
+ * data.
+ */
 public class ModelChildBinder {
   private static final String TAG = "ModelChildBinder";
 
   private final SessionManager sessionManager;
   private final CursorProvider cursorProvider;
   private final TimingUtils timingUtils;
-
-  /**
-   * After binding the children, the {@link #bindChildren(Consumer, Change)} will call the {@link
-   * Consumer<>} with the {@code BindingResults}.
-   */
-  public static class BindingResults {
-    public final List<ChildStructureMutation> streamChildList;
-    public final List<ChildBinding> updates;
-    public final StreamToken mutationSourceToken;
-
-    private BindingResults(
-        List<ChildStructureMutation> streamChildList,
-        List<ChildBinding> updates,
-        StreamToken mutationSourceToken) {
-      this.streamChildList = Collections.unmodifiableList(streamChildList);
-      this.updates = Collections.unmodifiableList(updates);
-      this.mutationSourceToken = mutationSourceToken;
-    }
-  }
 
   public ModelChildBinder(
       SessionManager sessionManager, CursorProvider cursorProvider, TimingUtils timingUtils) {
@@ -68,57 +46,39 @@ public class ModelChildBinder {
     this.timingUtils = timingUtils;
   }
 
-  public void bindChildren(Consumer<BindingResults> consumer, Change change) {
-
+  public void bindChildren(List<UpdatableModelChild> childrenToBind, Consumer<Integer> consumer) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    Map<String, UpdatableModelChild> unboundChildren = new HashMap<>();
+    Map<String, UpdatableModelChild> bindingChildren = new HashMap<>();
     List<String> contentIds = new ArrayList<>();
-    for (ChildStructureMutation childStructureMutation : change.streamChildList) {
-      if (childStructureMutation.operation == Operation.UPDATE_OR_APPEND) {
-        Validators.checkNotNull(childStructureMutation.addChild);
-        if (childStructureMutation.addChild.getType() == Type.UNBOUND) {
-          String key = childStructureMutation.addChild.getContentIdAsKey();
-          unboundChildren.put(key, childStructureMutation.addChild);
-          contentIds.add(childStructureMutation.addChild.getContentId());
-        }
-      }
-    }
-    Map<String, StreamStructure> updateChildren = new HashMap<>();
-    for (StreamStructure updateChild : change.updateList) {
-      contentIds.add(updateChild.getContentId());
-      updateChildren.put(updateChild.getContentId(), updateChild);
+    for (UpdatableModelChild child : childrenToBind) {
+      String key = child.getContentId();
+      contentIds.add(key);
+      bindingChildren.put(key, child);
     }
     sessionManager.getStreamFeatures(
         contentIds,
         payloads -> {
-          List<ChildBinding> updates = new ArrayList<>();
           for (PayloadWithId childPayload : payloads) {
             String key = childPayload.contentId;
-            UpdatableModelChild child = unboundChildren.get(key);
+            UpdatableModelChild child = bindingChildren.get(key);
             if (child != null) {
               StreamPayload payload = childPayload.payload;
-              if (payload != null) {
+              if (child.getType() == Type.UNBOUND) {
                 if (payload.hasStreamFeature()) {
                   child.bindFeature(
                       new UpdatableModelFeature(payload.getStreamFeature(), cursorProvider));
-                } else if (payload.hasStreamToken()) {
+                }
+                if (payload.hasStreamToken()) {
                   child.bindToken(new UpdatableModelToken(payload.getStreamToken()));
                 }
+                child.updateFeature(childPayload.payload);
               } else {
-                Logger.e(TAG, "Payload not provided in the PayloadWithId");
-              }
-            } else {
-              Logger.i(TAG, "Found Updated Content %s", key);
-              StreamStructure structure = updateChildren.get(key);
-              if (structure != null) {
-                updates.add(new ChildBinding(structure, childPayload.payload));
+                child.updateFeature(payload);
               }
             }
           }
-          BindingResults bindingResults =
-              new BindingResults(change.streamChildList, updates, change.mutationSourceToken);
-          timeTracker.stop("", "bindingChildren", "unboundChildren", unboundChildren.size());
-          consumer.accept(bindingResults);
+          timeTracker.stop("", "bindingChildren", "childrenToBind", childrenToBind.size());
+          consumer.accept(payloads.size());
         });
   }
 }

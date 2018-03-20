@@ -112,7 +112,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
         // This assumes removes are rare so we can walk the list for each deleted child.
         for (int i = currentPosition; i < childList.size(); i++) {
           UpdatableModelChild child = childList.get(i);
-          if (child.getContentIdAsKey().equals(childKey)) {
+          if (child.getContentId().equals(childKey)) {
             realRemoves.add(child);
             break;
           }

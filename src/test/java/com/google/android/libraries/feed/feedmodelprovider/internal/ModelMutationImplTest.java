@@ -45,7 +45,7 @@ public class ModelMutationImplTest {
     ModelMutationImpl modelMutator = new ModelMutationImpl(committer);
     StreamFeature streamFeature = StreamFeature.newBuilder().build();
     modelMutator.addChild(createStreamStructureFromFeature(streamFeature));
-    assertThat(modelMutator.change.streamChildList).hasSize(1);
+    assertThat(modelMutator.change.structureChanges).hasSize(1);
     modelMutator.commit();
     verify(committer).commit(modelMutator.change);
   }
@@ -55,7 +55,7 @@ public class ModelMutationImplTest {
     ModelMutationImpl modelMutator = new ModelMutationImpl(committer);
     StreamToken streamToken = StreamToken.newBuilder().build();
     modelMutator.addChild(createStreamStructureFromToken(streamToken));
-    assertThat(modelMutator.change.streamChildList).hasSize(1);
+    assertThat(modelMutator.change.structureChanges).hasSize(1);
     modelMutator.commit();
     verify(committer).commit(modelMutator.change);
   }
@@ -65,7 +65,7 @@ public class ModelMutationImplTest {
     ModelMutationImpl modelMutator = new ModelMutationImpl(committer);
     StreamToken streamToken = StreamToken.newBuilder().build();
     modelMutator.setMutationSourceToken(streamToken);
-    assertThat(modelMutator.change.streamChildList).isEmpty();
+    assertThat(modelMutator.change.structureChanges).isEmpty();
     modelMutator.commit();
     verify(committer).commit(modelMutator.change);
   }
@@ -73,9 +73,9 @@ public class ModelMutationImplTest {
   @Test
   public void testRemove() {
     ModelMutationImpl modelMutator = new ModelMutationImpl(committer);
-    assertThat(modelMutator.change.streamChildList).isEmpty();
+    assertThat(modelMutator.change.structureChanges).isEmpty();
     modelMutator.removeChild(StreamStructure.getDefaultInstance());
-    assertThat(modelMutator.change.streamChildList).hasSize(1);
+    assertThat(modelMutator.change.structureChanges).hasSize(1);
   }
 
   private StreamStructure createStreamStructureFromFeature(StreamFeature feature) {

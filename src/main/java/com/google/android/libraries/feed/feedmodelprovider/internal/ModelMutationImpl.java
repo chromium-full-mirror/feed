@@ -18,7 +18,6 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.common.Committer;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +29,8 @@ public class ModelMutationImpl implements ModelMutation {
 
   /** The data representing the Change to the model. */
   public static class Change {
-    final List<ChildStructureMutation> streamChildList = new ArrayList<>();
-    final List<StreamStructure> updateList = new ArrayList<>();
+    public final List<StreamStructure> structureChanges = new ArrayList<>();
+    public final List<StreamStructure> updateChanges = new ArrayList<>();
     public StreamToken mutationSourceToken;
   }
 
@@ -44,24 +43,19 @@ public class ModelMutationImpl implements ModelMutation {
 
   @Override
   public ModelMutation addChild(StreamStructure streamStructure) {
-    change.streamChildList.add(
-        new ChildStructureMutation(
-            Operation.UPDATE_OR_APPEND,
-            new UpdatableModelChild(
-                streamStructure.getContentId(), streamStructure.getParentContentId()),
-            null));
+    change.structureChanges.add(streamStructure);
     return this;
   }
 
   @Override
   public ModelMutation removeChild(StreamStructure streamStructure) {
-    change.streamChildList.add(new ChildStructureMutation(Operation.REMOVE, null, streamStructure));
+    change.structureChanges.add(streamStructure);
     return this;
   }
 
   @Override
   public ModelMutation updateChild(StreamStructure updateChild) {
-    change.updateList.add(updateChild);
+    change.updateChanges.add(updateChild);
     return this;
   }
 

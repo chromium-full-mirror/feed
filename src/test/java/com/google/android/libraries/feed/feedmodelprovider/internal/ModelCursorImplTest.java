@@ -117,7 +117,6 @@ public class ModelCursorImplTest {
       UpdatableModelChild child = mock(UpdatableModelChild.class);
       String contentId = contentIdGenerators.createFeatureContentId(i);
       when(child.getContentId()).thenReturn(contentId);
-      when(child.getContentIdAsKey()).thenReturn(contentId);
       modelChildren.add(child);
     }
     ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren, threadUtils);

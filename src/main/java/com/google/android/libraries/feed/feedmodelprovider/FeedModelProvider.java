@@ -37,12 +37,9 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ChildBinding;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ChildStructureMutation;
 import com.google.android.libraries.feed.feedmodelprovider.internal.CursorProvider;
 import com.google.android.libraries.feed.feedmodelprovider.internal.FeatureChangeImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildBinder;
-import com.google.android.libraries.feed.feedmodelprovider.internal.ModelChildBinder.BindingResults;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutationImpl;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutationImpl.Change;
@@ -79,7 +76,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final Object lock = new Object();
 
   @GuardedBy("lock")
-  private ModelFeature root = null;
+  private UpdatableModelChild root = null;
 
   // The tree is model as a parent with an list of children.  A container is created for every
   // ModelChild with a child.
@@ -147,8 +144,13 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     synchronized (lock) {
       if (root == null) {
         Logger.i(TAG, "Found Empty Stream");
+        return null;
       }
-      return root;
+      if (root.getType() != Type.FEATURE) {
+        Logger.e(TAG, "Root is bound to the wrong type %s", root.getType());
+        return null;
+      }
+      return root.getModelFeature();
     }
   }
 
@@ -239,10 +241,16 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       dumper.forKey("commitUpdateCount").value(commitUpdateCount).compactPrevious();
       dumper.forKey("removeCount").value(removedChildrenCount);
       dumper.forKey("removeScanCount").value(removeScanCount).compactPrevious();
-      if (root != null
-          && root.getStreamFeature() != null
-          && root.getStreamFeature().hasContentId()) {
-        dumper.forKey("root").value(root.getStreamFeature().getContentId());
+      if (root != null) {
+        if (root.getType() != Type.FEATURE) {
+          dumper.forKey("root").value("[ROOT NOT A FEATURE]");
+          dumper.forKey("type").value(root.getType()).compactPrevious();
+        } else if (root.getModelFeature().getStreamFeature() != null
+            && root.getModelFeature().getStreamFeature().hasContentId()) {
+          dumper.forKey("root").value(root.getModelFeature().getStreamFeature().getContentId());
+        } else {
+          dumper.forKey("root").value("[FEATURE NOT DEFINED]");
+        }
       } else {
         dumper.forKey("root").value("[UNDEFINED]");
       }
@@ -300,41 +308,117 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     void postMutation() {}
   }
 
-  /** This is the {@code ModelMutatorCommitter} which updates the model */
+  /** This is the {@code ModelMutatorCommitter} which updates the model. */
   private final Committer<Void, Change> committer =
       new Committer<Void, Change>() {
         @Override
         public Void commit(Change change) {
-          modelChildBinder.bindChildren(this::postBind, change);
-          return null;
-        }
-
-        void postBind(BindingResults bindingResults) {
-          Logger.i(
-              TAG,
-              "commit mutation - Structure changes %s, Updates %s, Token %s",
-              bindingResults.streamChildList.size(),
-              bindingResults.updates.size(),
-              bindingResults.mutationSourceToken != null);
-
+          Logger.i(TAG, "committing ModelProvider mutation");
           threadUtils.checkNotMainThread();
+
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
           commitCount++;
 
+          // Separate the Appends from the Removes.  All appends and updates are considered
+          // unbound (childrenToBind) and will need to be sent to the ModelChildBinder.
+          // TODO: When we support synthetic tokens, we won't binding all children.
+          List<UpdatableModelChild> appendedChildren = new ArrayList<>();
+          List<StreamStructure> removedChildren = new ArrayList<>();
+          List<UpdatableModelChild> childrenToBind = new ArrayList<>();
+          for (StreamStructure structureChange : change.structureChanges) {
+            if (structureChange.getOperation() == Operation.UPDATE_OR_APPEND) {
+              UpdatableModelChild child =
+                  new UpdatableModelChild(
+                      structureChange.getContentId(), structureChange.getParentContentId());
+              appendedChildren.add(child);
+              childrenToBind.add(child);
+            } else if (structureChange.getOperation() == Operation.REMOVE) {
+              removedChildren.add(structureChange);
+            }
+          }
+
+          synchronized (lock) {
+            // Add the updates to the childrenToBind
+            for (StreamStructure updatedChild : change.updateChanges) {
+              UpdatableModelChild child = contents.get(updatedChild.getContentId());
+              if (child != null) {
+                childrenToBind.add(child);
+              } else {
+                Logger.w(TAG, "child %s was not found for updating", updatedChild.getContentId());
+              }
+            }
+          }
+
+          // Mutate the Model
+          MutationHandler mutationHandler =
+              getMutationHandler(change.updateChanges, change.mutationSourceToken);
+          processMutation(mutationHandler, appendedChildren, removedChildren);
+
+          // Bind the unbound children
+          modelChildBinder.bindChildren(
+              childrenToBind,
+              (bindingCount) -> {
+                if (bindingCount != childrenToBind.size()) {
+                  Logger.w(TAG, "Not all children added were bound");
+                }
+                mutationHandler.postMutation();
+              });
+          synchronized (lock) {
+            // Track any tokens we added to the tree
+            for (UpdatableModelChild child : childrenToBind) {
+              if (child.getType() == Type.TOKEN) {
+                ArrayList<UpdatableModelChild> childrenList = getChildList(child.getParentId());
+                TokenTracking tokenTracking =
+                    new TokenTracking(
+                        child.getUpdatableModelToken(), child.getParentId(), childrenList);
+                tokens.put(
+                    child.getModelToken().getStreamToken().getNextPageToken(), tokenTracking);
+              }
+            }
+          }
+
+          timeTracker.stop("", "ModelProvider Commit");
+          Logger.i(
+              TAG,
+              "ModelProvider Mutation committed - appendedChildren %s, updateChildren %s, "
+                  + "removedChildren %s, Token %s",
+              appendedChildren.size(),
+              change.updateChanges.size(),
+              removedChildren.size(),
+              change.mutationSourceToken != null);
+          return null;
+        }
+
+        /** Returns a MutationHandler for processing the mutation */
+        private MutationHandler getMutationHandler(
+            List<StreamStructure> updatedChildren, StreamToken mutationSourceToken) {
           synchronized (lock) {
             MutationHandler mutationHandler;
             if (currentState == State.INITIALIZING) {
               Validators.checkState(
-                  bindingResults.mutationSourceToken == null,
+                  mutationSourceToken == null,
                   "Initializing the Model Provider from a Continuation Token");
               mutationHandler = new InitializeModel();
-            } else if (bindingResults.mutationSourceToken != null) {
-              mutationHandler = new TokenMutation(bindingResults.mutationSourceToken);
+            } else if (mutationSourceToken != null) {
+              mutationHandler = new TokenMutation(mutationSourceToken);
               commitTokenCount++;
             } else {
-              mutationHandler = new UpdateMutation(bindingResults.updates);
+              mutationHandler = new UpdateMutation(updatedChildren);
               commitUpdateCount++;
             }
+            return mutationHandler;
+          }
+        }
+
+        /** Process the structure changes to update the model. */
+        void processMutation(
+            MutationHandler mutationHandler,
+            List<UpdatableModelChild> appendedChildren,
+            List<StreamStructure> removedChildren) {
+
+          ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+
+          synchronized (lock) {
 
             // Processing before the structural mutation
             mutationHandler.preMutation();
@@ -343,41 +427,26 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             boolean rootChanged = false;
             String currentParentKey = null;
             ArrayList<UpdatableModelChild> childrenList = null;
-            for (ChildStructureMutation childStructureMutation : bindingResults.streamChildList) {
-              if (childStructureMutation.operation == Operation.UPDATE_OR_APPEND) {
-                UpdatableModelChild child =
-                    Validators.checkNotNull(childStructureMutation.addChild);
-                if (child.getType() == Type.UNBOUND) {
-                  Logger.e(TAG, "Unbound Child Found %s", child.getContentIdAsKey());
-                  continue;
-                }
-                if (!child.hasParentId()) {
-                  rootChanged = createRoot(child);
-                  contents.put(child.getContentIdAsKey(), child);
-                  continue;
-                }
-
-                String parentKey = Validators.checkNotNull(child.getParentId());
-                if (!parentKey.equals(currentParentKey)) {
-                  childrenList = getChildList(parentKey);
-                  currentParentKey = parentKey;
-                }
-                childrenList.add(child);
-                contents.put(child.getContentIdAsKey(), child);
-                mutationHandler.appendChild(parentKey, child);
-
-                if (child.getType() == Type.TOKEN) {
-                  TokenTracking tokenTracking =
-                      new TokenTracking(
-                          child.getUpdatableModelToken(), child.getParentId(), childrenList);
-                  tokens.put(
-                      child.getModelToken().getStreamToken().getNextPageToken(), tokenTracking);
-                }
-              } else {
-                Validators.checkNotNull(childStructureMutation.removeChild);
-                handleRemoveOperation(mutationHandler, childStructureMutation.removeChild);
-                contents.remove(childStructureMutation.removeChild.getContentId());
+            for (UpdatableModelChild modelChild : appendedChildren) {
+              if (!modelChild.hasParentId()) {
+                rootChanged = createRoot(modelChild);
+                contents.put(modelChild.getContentId(), modelChild);
+                continue;
               }
+
+              String parentKey = Validators.checkNotNull(modelChild.getParentId());
+              if (!parentKey.equals(currentParentKey)) {
+                childrenList = getChildList(parentKey);
+                currentParentKey = parentKey;
+              }
+              childrenList.add(modelChild);
+              contents.put(modelChild.getContentId(), modelChild);
+              mutationHandler.appendChild(parentKey, modelChild);
+            }
+
+            for (StreamStructure removeChild : removedChildren) {
+              handleRemoveOperation(mutationHandler, removeChild);
+              contents.remove(removeChild.getContentId());
             }
 
             // check if we need to notify that the root was changed
@@ -393,12 +462,14 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                     }
                   });
             }
-
-            // The first mutation of an INITIALIZING model provider will cause the session to be
-            // started
-            mutationHandler.postMutation();
           }
-          timeTracker.stop("", "modelMutation", "updates", bindingResults.streamChildList.size());
+          timeTracker.stop(
+              "",
+              "modelMutation",
+              "appends",
+              appendedChildren.size(),
+              "removes",
+              removedChildren.size());
         }
       };
 
@@ -430,7 +501,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       while (li.hasPrevious()) {
         removeScanCount++;
         UpdatableModelChild child = li.previous();
-        if (child.getContentIdAsKey().equals(childKey)) {
+        if (child.getContentId().equals(childKey)) {
           removed = child;
           break;
         }
@@ -531,11 +602,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   @VisibleForTesting
   class UpdateMutation extends MutationHandler {
 
-    private final List<ChildBinding> updates;
+    private final List<StreamStructure> updates;
     private final Map<String, FeatureChangeImpl> changes = new HashMap<>();
     private final Set<String> newParents = new HashSet<>();
 
-    UpdateMutation(List<ChildBinding> updates) {
+    UpdateMutation(List<StreamStructure> updates) {
       this.updates = updates;
     }
 
@@ -543,18 +614,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     public void preMutation() {
       Logger.i(TAG, "Updating %s items", updates.size());
       // Walk all the updates and update the values, creating changes to track these
-      for (ChildBinding update : updates) {
-        String contentKey = update.child.getContentId();
-        UpdatableModelChild updatableModelChild;
-        synchronized (lock) {
-          updatableModelChild = contents.get(contentKey);
-        }
-        if (updatableModelChild == null) {
-          Logger.w(TAG, "Didn't find feature being updated for %s", contentKey);
-          continue;
-        }
-        updatableModelChild.updateFeature(update.payload);
-        FeatureChangeImpl change = getChange(contentKey);
+      for (StreamStructure update : updates) {
+        FeatureChangeImpl change = getChange(update.getContentId());
         if (change != null) {
           change.setFeatureChanged(true);
         }
@@ -563,7 +624,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
     @Override
     public void removeChild(String parentKey, UpdatableModelChild child) {
-      Logger.i(TAG, "Removing child %s from %s", child.getContentIdAsKey(), parentKey);
+      Logger.i(TAG, "Removing child %s from %s", child.getContentId(), parentKey);
       FeatureChangeImpl change = getChange(parentKey);
       if (change != null) {
         change.getChildChangesImpl().removeChild(child);
@@ -574,7 +635,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     public void appendChild(String parentKey, UpdatableModelChild child) {
       // Is this a child of a node that is new to the model?  We only report changes
       // to existing ModelFeatures.
-      String childKey = child.getContentIdAsKey();
+      String childKey = child.getContentId();
       if (newParents.contains(parentKey)) {
         // Don't create a change the child of a new child
         newParents.add(childKey);
@@ -647,19 +708,19 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private boolean createRoot(UpdatableModelChild child) {
     synchronized (lock) {
       // this must be a root
-      if (child.getType() == Type.FEATURE) {
+      if (child.getType() == Type.FEATURE || child.getType() == Type.UNBOUND) {
         if (root != null) {
           // TODO: What do we do about multiple roots?
           Logger.e(
               TAG,
               "Found multiple roots, this will overwrite the previous definition: %s",
-              child.getContentIdAsKey());
+              child.getContentId());
         }
-        root = child.getModelFeature();
+        root = child;
         return true;
       } else {
         // continuation tokens can not be roots.
-        Logger.e(TAG, "Invalid Root");
+        Logger.e(TAG, "Invalid Root, type %s", child.getType());
       }
       return false;
     }
