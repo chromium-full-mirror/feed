@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.common.testing;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -50,7 +49,6 @@ public class InfrastructureIntegrationScope {
 
   InfrastructureIntegrationScope(
       ThreadUtils threadUtils, RequestManager mockRequestManager, ExecutorService executorService) {
-    InternalProtocolUtils protocolUtils = new InternalProtocolUtils();
     TimingUtils timingUtils = new TimingUtils();
     UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
 
@@ -63,7 +61,7 @@ public class InfrastructureIntegrationScope {
     modelProviderFactory =
         new FeedModelProviderFactory(
             feedSessionManager, threadUtils, timingUtils, uiRunnableHandler);
-    feedProtocolAdapter = new FeedProtocolAdapter(feedSessionManager, timingUtils, protocolUtils);
+    feedProtocolAdapter = new FeedProtocolAdapter(feedSessionManager, timingUtils);
     feedSessionManager.setProtocolAdapter(feedProtocolAdapter);
     feedSessionManager.setRequestManager(mockRequestManager);
   }

@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.scope;
 
 import com.google.android.libraries.feed.api.common.ConfigManager;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.network.NetworkClient;
@@ -146,7 +145,6 @@ public class FeedProcessScope implements Dumpable {
       if (journalStorage == null) {
         journalStorage = new InMemoryJournalStorage();
       }
-      InternalProtocolUtils internalProtocolUtils = new InternalProtocolUtils();
       TimingUtils timingUtils = new TimingUtils();
       FeedStore store =
           new FeedStore(timingUtils, extensionRegistry, keyValuePairStorage, journalStorage);
@@ -161,8 +159,7 @@ public class FeedProcessScope implements Dumpable {
                 threadUtils);
       }
       if (protocolAdapter == null) {
-        protocolAdapter =
-            new FeedProtocolAdapter(sessionManager, timingUtils, internalProtocolUtils);
+        protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
       }
       if (requestManager == null) {
         requestManager =

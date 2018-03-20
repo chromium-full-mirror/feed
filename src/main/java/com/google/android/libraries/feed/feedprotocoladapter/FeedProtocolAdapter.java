@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedprotocoladapter;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
@@ -58,7 +57,6 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   private static final String TAG = "FeedProtocolAdapter";
 
   private final SessionManager sessionManager;
-  private final InternalProtocolUtils protocolUtils;
   private final TimingUtils timingUtils;
   private int nextTokenId = 1;
 
@@ -68,11 +66,9 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   private int responseHandlingCount = 0;
   private int convertContentIdCount = 0;
 
-  public FeedProtocolAdapter(
-      SessionManager sessionManager, TimingUtils timingUtils, InternalProtocolUtils protocolUtils) {
+  public FeedProtocolAdapter(SessionManager sessionManager, TimingUtils timingUtils) {
     this.sessionManager = sessionManager;
     this.timingUtils = timingUtils;
-    this.protocolUtils = protocolUtils;
   }
 
   /** Create the internal protocol based upon the FeedStream definition. */
@@ -102,10 +98,10 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
         continue;
       } else if (streamOperation == Operation.REMOVE) {
         if (operation.getMetadata().hasContentId()) {
-          contentId = protocolUtils.createContentId(operation.getMetadata().getContentId());
+          contentId = createContentId(operation.getMetadata().getContentId());
           String parentId = null;
           if (operation.getFeature().hasParentId()) {
-            parentId = protocolUtils.createContentId(operation.getFeature().getParentId());
+            parentId = createContentId(operation.getFeature().getParentId());
           }
           sessionMutation.addOperation(
               createDataOperation(Operation.REMOVE, contentId, parentId).build());
@@ -115,7 +111,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
         }
         continue;
       } else if (operation.getMetadata().hasContentId()) {
-        contentId = protocolUtils.createContentId(operation.getMetadata().getContentId());
+        contentId = createContentId(operation.getMetadata().getContentId());
       } else {
         // This is an error state, every card should have a content id
         Logger.e(TAG, "ContentId not defined for DataOperation");
@@ -127,7 +123,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
         streamFeature.setContentId(contentId);
         String parentId = null;
         if (operation.getFeature().hasParentId()) {
-          parentId = protocolUtils.createContentId(operation.getFeature().getParentId());
+          parentId = createContentId(operation.getFeature().getParentId());
           streamFeature.setParentId(parentId);
         }
         switch (operation.getFeature().getRenderableUnit()) {
@@ -166,7 +162,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
         response.getExtension(FeedResponse.feedResponse).getNextPageToken();
     if (continuationToken != null && !continuationToken.isEmpty()) {
       String contentId =
-          protocolUtils.createContentId(
+          createContentId(
               ContentId.newBuilder()
                   .setContentDomain("token")
                   .setId(nextTokenId++)
@@ -189,7 +185,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     }
     StreamToken.Builder tokenBuilder = StreamToken.newBuilder();
     String rootContentId =
-        protocolUtils.createContentId(
+        createContentId(
             ContentId.newBuilder()
                 .setContentDomain("stream_root")
                 .setId(0)
@@ -204,7 +200,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   @Override
   public String getStreamContentId(ContentId contentId) {
     convertContentIdCount++;
-    return protocolUtils.createContentId(contentId);
+    return createContentId(contentId);
   }
 
   private StreamDataOperation.Builder createFeatureDataOperation(
@@ -245,6 +241,11 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     }
     streamDataOperation.setStreamStructure(streamStructure);
     return streamDataOperation;
+  }
+
+  private String createContentId(ContentId contentId) {
+    // Using String concat for performance reasons.  This is called a lot for large feed responses.
+    return contentId.getTable() + "::" + contentId.getContentDomain() + "::" + contentId.getId();
   }
 
   @Override

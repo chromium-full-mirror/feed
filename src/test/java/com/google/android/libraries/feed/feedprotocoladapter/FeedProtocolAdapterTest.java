@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.common.TimingUtils;
@@ -42,7 +41,6 @@ import org.mockito.Mock;
 public class FeedProtocolAdapterTest {
   @Mock private SessionManager sessionManager;
 
-  private final InternalProtocolUtils protocolUtils = new InternalProtocolUtils();
   private final TimingUtils timingUtils = new TimingUtils();
   private FakeSessionMutation sessionMutation;
   private WireProtocolResponseBuilder responseBuilder;
@@ -57,8 +55,7 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testConvertContentId() {
-    FeedProtocolAdapter protocolAdapter =
-        new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
     String streamContentId = protocolAdapter.getStreamContentId(contentId);
     assertThat(streamContentId).isNotNull();
@@ -69,8 +66,7 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testSimpleResponse_clear() {
-    FeedProtocolAdapter protocolAdapter =
-        new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     ByteString token = ByteString.copyFromUtf8("token");
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
     protocolAdapter.streamTokens.put(token.hashCode(), streamToken);
@@ -83,8 +79,7 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testSimpleResponse_feature() {
-    FeedProtocolAdapter protocolAdapter =
-        new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     Response response = responseBuilder.addRootFeature().build();
 
     protocolAdapter.createModel(response, null);
@@ -101,8 +96,7 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testResponse_remove() {
-    FeedProtocolAdapter protocolAdapter =
-        new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     Response response =
         responseBuilder
             .removeFeature(ContentId.getDefaultInstance(), ContentId.getDefaultInstance())
@@ -114,8 +108,7 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testPietSharedState() {
-    FeedProtocolAdapter protocolAdapter =
-        new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     Response response = responseBuilder.addPietSharedState().build();
     protocolAdapter.createModel(response, null);
     assertThat(sessionMutation.streamToken).isNull();
@@ -129,8 +122,7 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testContinuationToken_nextPageToken() {
-    FeedProtocolAdapter protocolAdapter =
-        new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
     Response response = responseBuilder.addStreamToken(tokenForMutation).build();
 
@@ -143,8 +135,7 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testContinuationToken_responseFromToken() {
-    FeedProtocolAdapter protocolAdapter =
-        new FeedProtocolAdapter(sessionManager, timingUtils, protocolUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
     Response response = responseBuilder.addStreamToken(tokenForMutation).build();
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(tokenForMutation).build();

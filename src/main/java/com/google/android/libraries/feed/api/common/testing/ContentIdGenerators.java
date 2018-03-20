@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.common.testing;
 
-import com.google.android.libraries.feed.api.common.InternalProtocolUtils;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 
 /** Test support class which creates Jardin content ids. */
@@ -26,22 +25,26 @@ public class ContentIdGenerators {
       ContentId.newBuilder().setContentDomain("token").setId(0).setTable(FEATURE).build();
   private static final ContentId SHARED_STATE_CONTENT_ID =
       ContentId.newBuilder().setContentDomain("shared-state").setId(0).setTable(FEATURE).build();
-  private final InternalProtocolUtils protocolUtils = new InternalProtocolUtils();
 
   public String createFeatureContentId(long id) {
-    return protocolUtils.createContentId(FEATURE_CONTENT_ID.toBuilder().setId(id).build());
+    return createContentId(FEATURE_CONTENT_ID.toBuilder().setId(id).build());
   }
 
   public String createTokenContentId(long id) {
-    return protocolUtils.createContentId(TOKEN_ID.toBuilder().setId(id).build());
+    return createContentId(TOKEN_ID.toBuilder().setId(id).build());
   }
 
   public String createSharedStateContentId(long id) {
-    return protocolUtils.createContentId(SHARED_STATE_CONTENT_ID.toBuilder().setId(id).build());
+    return createContentId(SHARED_STATE_CONTENT_ID.toBuilder().setId(id).build());
   }
 
   public String createRootContentId(int id) {
-    return protocolUtils.createContentId(
+    return createContentId(
         ContentId.newBuilder().setContentDomain("stream_root").setId(id).setTable(FEATURE).build());
+  }
+
+  private String createContentId(ContentId contentId) {
+    // Using String concat for performance reasons.  This is called a lot for large feed responses.
+    return contentId.getTable() + "::" + contentId.getContentDomain() + "::" + contentId.getId();
   }
 }
