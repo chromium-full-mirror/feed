@@ -75,20 +75,6 @@ public class MockServerNetworkClientTest {
   }
 
   @Test
-  public void testExecute() throws IOException {
-    Response defaultResponse =
-        Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
-    MockServerConfig mockServerConfig =
-        MockServerConfig.newBuilder().setDefaultResponse(defaultResponse).build();
-    List<MockUpdate> mockUpdates = new ArrayList<>();
-    MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, mockUpdates, extensionRegistry);
-    HttpResponse response = networkClient.execute(new HttpRequest(Uri.EMPTY, new byte[] {}));
-    assertThat(response.getResponseBody()).isEqualTo(defaultResponse.toByteArray());
-    assertThat(response.getResponseCode()).isEqualTo(200);
-  }
-
-  @Test
   public void testSend() throws IOException {
     Response defaultResponse =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();

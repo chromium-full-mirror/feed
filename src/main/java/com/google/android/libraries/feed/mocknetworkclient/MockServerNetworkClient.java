@@ -78,29 +78,24 @@ public class MockServerNetworkClient implements NetworkClient {
   }
 
   @Override
-  public void send(HttpRequest request, Consumer<HttpResponse> responseConsumer) {
-    HttpResponse response;
+  public void send(HttpRequest httpRequest, Consumer<HttpResponse> responseConsumer) {
     try {
-      response = execute(request);
+      Request request =
+          Request.parseFrom(httpRequest.getBody(), extensionRegistry.getExtensionRegistry());
+      for (ConditionalResponse conditionalResponse : config.getConditionalResponsesList()) {
+        if (allConditionsMatch(conditionalResponse.getConditionsList(), request)) {
+          responseConsumer.accept(createHttpResponse(conditionalResponse.getResponse()));
+          return;
+        }
+      }
+
+      responseConsumer.accept(createHttpResponse(config.getDefaultResponse()));
+
     } catch (IOException e) {
       // TODO : handle errors here
       Logger.e(TAG, e.getMessage());
-      response = new HttpResponse(0, new byte[] {});
+      responseConsumer.accept(new HttpResponse(400, new byte[] {}));
     }
-    responseConsumer.accept(response);
-  }
-
-  @Override
-  public HttpResponse execute(HttpRequest httpRequest) throws IOException {
-    Request request =
-        Request.parseFrom(httpRequest.getBody(), extensionRegistry.getExtensionRegistry());
-    for (ConditionalResponse conditionalResponse : config.getConditionalResponsesList()) {
-      if (allConditionsMatch(conditionalResponse.getConditionsList(), request)) {
-        return createHttpResponse(conditionalResponse.getResponse());
-      }
-    }
-
-    return createHttpResponse(config.getDefaultResponse());
   }
 
   @Override

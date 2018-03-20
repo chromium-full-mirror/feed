@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.network;
 
 import com.google.android.libraries.feed.common.Consumer;
-import java.io.IOException;
 
 /**
  * An object that can send an {@link HttpRequest} and receive an {@link HttpResponse} in response.
@@ -33,7 +32,4 @@ public interface NetworkClient extends AutoCloseable {
    * @param responseConsumer The callback to be used when the response comes back.
    */
   void send(HttpRequest request, Consumer<HttpResponse> responseConsumer);
-
-  // TODO : remove this when switched to async
-  HttpResponse execute(HttpRequest request) throws IOException;
 }
