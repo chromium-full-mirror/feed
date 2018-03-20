@@ -21,6 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.net.Uri;
 import com.google.android.libraries.feed.api.network.HttpRequest;
+import com.google.android.libraries.feed.api.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.api.network.HttpResponse;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
@@ -34,6 +35,7 @@ import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConf
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import org.robolectric.RobolectricTestRunner;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -91,7 +93,8 @@ public class MockServerNetworkClientTest {
             assertThat(input.getResponseCode()).isEqualTo(200);
           }
         };
-    networkClient.send(new HttpRequest(Uri.EMPTY, new byte[] {}), responseConsumer);
+    networkClient.send(
+        new HttpRequest(Uri.EMPTY, ByteBuffer.allocate(0), HttpMethod.GET), responseConsumer);
   }
 
   @Test

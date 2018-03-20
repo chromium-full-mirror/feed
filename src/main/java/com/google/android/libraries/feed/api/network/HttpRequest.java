@@ -15,32 +15,49 @@
 package com.google.android.libraries.feed.api.network;
 
 import android.net.Uri;
+import android.support.annotation.StringDef;
+import java.net.HttpURLConnection;
+import java.nio.ByteBuffer;
 
 /** Representation of an HTTP request. */
 public class HttpRequest {
-  private final Uri uri;
-  private final byte[] body;
-  private final boolean withAuthToken;
 
-  public HttpRequest(Uri uri, byte[] body) {
-    this(uri, body, false);
+  /**
+   * These string values line up with HTTP method values, see {@link
+   * HttpURLConnection#setRequestMethod(String)}.
+   */
+  @StringDef({
+    HttpMethod.GET,
+    HttpMethod.POST,
+    HttpMethod.PUT,
+    HttpMethod.DELETE,
+  })
+  public @interface HttpMethod {
+    String GET = "GET";
+    String POST = "POST";
+    String PUT = "PUT";
+    String DELETE = "DELETE";
   }
 
-  public HttpRequest(Uri uri, byte[] body, boolean withAuthToken) {
+  private final Uri uri;
+  private final ByteBuffer body;
+  private final @HttpMethod String method;
+
+  public HttpRequest(Uri uri, ByteBuffer body, String method) {
     this.uri = uri;
     this.body = body;
-    this.withAuthToken = withAuthToken;
+    this.method = method;
   }
 
   public Uri getUri() {
     return uri;
   }
 
-  public byte[] getBody() {
+  public ByteBuffer getBody() {
     return body;
   }
 
-  public boolean getWithAuthToken() {
-    return withAuthToken;
+  public @HttpMethod String getMethod() {
+    return method;
   }
 }

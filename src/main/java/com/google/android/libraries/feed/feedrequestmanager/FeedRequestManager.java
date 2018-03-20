@@ -18,6 +18,7 @@ import android.net.Uri;
 import com.google.android.libraries.feed.api.common.ConfigManager;
 import com.google.android.libraries.feed.api.common.ConfigManager.ConfigFlag;
 import com.google.android.libraries.feed.api.network.HttpRequest;
+import com.google.android.libraries.feed.api.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.api.network.HttpResponse;
 import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -34,6 +35,7 @@ import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import javax.annotation.Nullable;
 
 /** Default implementation of RequestManager. */
@@ -87,8 +89,9 @@ public class FeedRequestManager implements RequestManager {
   private void executeRequest(RequestBuilder requestBuilder) {
       Request request = requestBuilder.build();
       String endpoint = configManager.getValue(SERVICE_ENDPOINT_FLAG);
-      HttpRequest httpRequest =
-          new HttpRequest(Uri.parse(endpoint), request.toByteArray(), /* withAuthToken= */ true);
+    HttpRequest httpRequest =
+        new HttpRequest(
+            Uri.parse(endpoint), ByteBuffer.wrap(request.toByteArray()), HttpMethod.POST);
     networkClient.send(
         httpRequest,
         new Consumer<HttpResponse>() {
