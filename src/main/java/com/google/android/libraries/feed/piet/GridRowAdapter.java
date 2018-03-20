@@ -32,7 +32,6 @@ import com.google.search.now.ui.piet.ElementsProto.GridCell;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import javax.annotation.Nullable;
 
 /** An {@link ElementContainerAdapter} which manages {@code GridRow} slices. */
 class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAdapter, GridRow> {
@@ -65,29 +64,35 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
     // Populate the LinearLayout with cells.
     for (GridCell cell : gridRow.getCellsList()) {
       ElementListAdapter cellAdapter = getCellAdapter(cell, frameContext);
-      if (cellAdapter != null) {
-        viewGroup.addView(cellAdapter.getView());
-        setLayoutParamsOnCell(cellAdapter, cell, frameContext);
-      }
+      viewGroup.addView(cellAdapter.getView());
+      setLayoutParamsOnCell(cellAdapter, cell, frameContext);
     }
   }
 
   @Override
   void onBindModel(GridRow gridRow, Element baseElement, FrameContext frameContext) {
     // Populate the LinearLayout with cells.
-    // TODO: When onCreateAdapter skips creating some adapters (ex. due to binding
-    // issues),
-    // this check will fail; if we support silently ignoring some elements in onCreateAdapter, we
-    // should also support it here (or it should be an error both places).
     checkState(
         gridRow.getCellsCount() == childAdapters.size(),
         "Number of cells mismatch: got %s cells, had %s adapters",
         gridRow.getCellsCount(),
         childAdapters.size());
+    // When re-binding, we should be able to assume that the locations of bound or inline cells in
+    // the list are the same, since we are re-binding the same template.
     for (int i = 0; i < gridRow.getCellsCount(); i++) {
-      childAdapters
-          .get(i)
-          .bindModel(getElementListFromCell(gridRow.getCells(i), frameContext), frameContext);
+      GridCell cell = gridRow.getCells(i);
+      ElementListAdapter targetAdapter = childAdapters.get(i);
+      switch (cell.getCellContentCase()) {
+        case ELEMENT_LIST:
+          targetAdapter.bindModel(getElementListFromCell(cell, frameContext), frameContext);
+          break;
+        case ELEMENT_LIST_BINDING:
+          createAndBindCellAdapter(targetAdapter, cell, frameContext);
+          break;
+        default:
+          throw new IllegalArgumentException(
+              String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
+      }
     }
 
     // Reapply styles if we have style bindings.
@@ -95,6 +100,23 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
       frameContext
           .makeStyleFor(gridRow.getStyleReferences())
           .setElementStyles(getContext(), frameContext, getBaseView());
+    }
+  }
+
+  @Override
+  void onUnbindModel() {
+    super.onUnbindModel();
+
+    // Bound cell layout is created at bind time. We can't reuse the layout in child adapters, so we
+    // call release at unbind time so that the child adapter's children can be recycled.
+    GridRow model = getModel();
+    if (model != null) {
+      for (int i = 0; i < model.getCellsCount(); i++) {
+        GridCell cell = model.getCells(i);
+        if (cell.hasElementListBinding()) {
+          childAdapters.get(i).releaseAdapter();
+        }
+      }
     }
   }
 
@@ -140,14 +162,13 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
     cellAdapter.setLayoutParams(params);
   }
 
-  @Nullable
   private ElementListAdapter getCellAdapter(GridCell cell, FrameContext frameContext) {
     ElementListAdapter adapter;
     if (cell.hasElementList()) {
       // TODO: get adapter from childAdapters if it exists.
       adapter = getAdapterForChildList(getElementListFromCell(cell, frameContext), frameContext);
     } else if (cell.hasElementListBinding()) {
-      adapter = getAdapterFromBinding(cell, frameContext);
+      adapter = getAdapterForChildList(ElementList.getDefaultInstance(), frameContext);
     } else {
       throw new IllegalArgumentException(
           String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
@@ -155,29 +176,24 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
     return adapter;
   }
 
-  @Nullable
-  private ElementListAdapter getAdapterFromBinding(GridCell cell, FrameContext frameContext) {
-    ElementList list = getElementListFromCell(cell, frameContext);
-
-    if (list == null) {
-      Logger.e(
-          TAG,
-          frameContext.reportError(
-              ErrorType.ERROR,
-              String.format("Binding not found for Binding [%s]", cell.getElementListBinding())));
-      return null;
-    }
-
-    return getAdapterForChildList(list, frameContext);
-  }
-
-  @Nullable
   private ElementList getElementListFromCell(GridCell cell, FrameContext frameContext) {
     switch (cell.getCellContentCase()) {
       case ELEMENT_LIST:
         return cell.getElementList();
       case ELEMENT_LIST_BINDING:
-        return frameContext.getElementListFromBinding(cell.getElementListBinding());
+        ElementList listFromBinding =
+            frameContext.getElementListFromBinding(cell.getElementListBinding());
+        if (listFromBinding == null) {
+          Logger.e(
+              TAG,
+              frameContext.reportError(
+                  ErrorType.ERROR,
+                  String.format(
+                      "Binding not found for Binding [%s]", cell.getElementListBinding())));
+          return ElementList.getDefaultInstance();
+        } else {
+          return listFromBinding;
+        }
       default:
         throw new IllegalArgumentException(
             String.format("Cell has no recognized content; has %s", cell.getCellContentCase()));
@@ -196,6 +212,23 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
         getParameters().elementAdapterFactory.createElementListAdapter(list, frameContext);
     addChildAdapter(listAdapter);
     return listAdapter;
+  }
+
+  /**
+   * When we bind a cell that has an ElementListBinding, the adapter hasn't been initialized yet so
+   * we need to both create and bind it.
+   */
+  private void createAndBindCellAdapter(
+      ElementListAdapter adapter, GridCell cell, FrameContext frameContext) {
+    checkState(cell.hasElementListBinding(), "Cell is missing ElementListBinding");
+    // We assume this adapter has been released in onUnbindModel
+    ElementList list = frameContext.getElementListFromBinding(cell.getElementListBinding());
+    if (list == null) {
+      list = ElementList.getDefaultInstance();
+    }
+    adapter.createAdapter(list, frameContext);
+    adapter.bindModel(list, frameContext);
+    setLayoutParamsOnCell(adapter, cell, frameContext);
   }
 
   @Override

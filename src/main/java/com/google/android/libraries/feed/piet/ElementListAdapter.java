@@ -61,10 +61,6 @@ class ElementListAdapter
 
   @Override
   void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
-    // TODO: When onCreateAdapter skips creating some adapters (ex. due to binding
-    // issues),
-    // this check will fail; if we support silently ignoring some elements in onCreateAdapter, we
-    // should also support it here (or it should be an error both places).
     checkState(
         model.getElementsCount() == childAdapters.size(),
         "Number of elements mismatch: got %s elements, had %s adapters",
@@ -116,40 +112,36 @@ class ElementListAdapter
   private void createLayout(ElementList list, FrameContext frameContext) {
     ViewGroup viewGroup = checkNotNull(getBaseView());
     for (Element line : list.getElementsList()) {
-      // TODO: reuse existing adapter from childAdapters if rebinding template.
       ElementAdapter<? extends View, ?> adapter = getAdapterForChildElement(line, frameContext);
-      if (adapter.getView() != null) {
-        viewGroup.addView(adapter.getView());
+      checkNotNull(adapter.getView(), "Adapter had null view");
+      viewGroup.addView(adapter.getView());
 
-        int width = adapter.getComputedWidthPx();
-        width =
-            width == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.MATCH_PARENT : width;
-        int height = adapter.getComputedHeightPx();
-        height =
-            height == ElementAdapter.DIMENSION_NOT_SET
-                ? ViewGroup.LayoutParams.WRAP_CONTENT
-                : height;
+      int width = adapter.getComputedWidthPx();
+      width =
+          width == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.MATCH_PARENT : width;
+      int height = adapter.getComputedHeightPx();
+      height =
+          height == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
 
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
+      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
 
-        adapter.getElementStyle().setMargins(getContext(), params);
+      adapter.getElementStyle().setMargins(getContext(), params);
 
-        switch (adapter.getHorizontalGravity()) {
-          case GRAVITY_START:
-            params.gravity = Gravity.START;
-            break;
-          case GRAVITY_CENTER:
-            params.gravity = Gravity.CENTER_HORIZONTAL;
-            break;
-          case GRAVITY_END:
-            params.gravity = Gravity.END;
-            break;
-          default:
-            params.gravity = Gravity.START;
-        }
-
-        adapter.setLayoutParams(params);
+      switch (adapter.getHorizontalGravity()) {
+        case GRAVITY_START:
+          params.gravity = Gravity.START;
+          break;
+        case GRAVITY_CENTER:
+          params.gravity = Gravity.CENTER_HORIZONTAL;
+          break;
+        case GRAVITY_END:
+          params.gravity = Gravity.END;
+          break;
+        default:
+          params.gravity = Gravity.START;
       }
+
+      adapter.setLayoutParams(params);
     }
   }
 
