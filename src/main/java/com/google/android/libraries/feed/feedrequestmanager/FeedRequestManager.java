@@ -17,15 +17,15 @@ package com.google.android.libraries.feed.feedrequestmanager;
 import android.net.Uri;
 import com.google.android.libraries.feed.api.common.ConfigManager;
 import com.google.android.libraries.feed.api.common.ConfigManager.ConfigFlag;
-import com.google.android.libraries.feed.api.network.HttpRequest;
-import com.google.android.libraries.feed.api.network.HttpRequest.HttpMethod;
-import com.google.android.libraries.feed.api.network.HttpResponse;
-import com.google.android.libraries.feed.api.network.NetworkClient;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.host.network.HttpRequest;
+import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
+import com.google.android.libraries.feed.host.network.HttpResponse;
+import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
@@ -135,7 +135,7 @@ public class FeedRequestManager implements RequestManager {
   /**
    * Returns the first length-prefixed value from {@code input}. The first bytes of input are
    * assumed to be a varint32 encoding the length of the rest of the message. If input contains more
-   * than one message, only the first message is returned.
+   * than one message, only the first message is returned.i w
    *
    * @throws IOException if input cannot be parsed
    */

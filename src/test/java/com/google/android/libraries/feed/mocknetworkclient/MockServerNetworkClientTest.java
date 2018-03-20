@@ -20,14 +20,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.net.Uri;
-import com.google.android.libraries.feed.api.network.HttpRequest;
-import com.google.android.libraries.feed.api.network.HttpRequest.HttpMethod;
-import com.google.android.libraries.feed.api.network.HttpResponse;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.network.HttpRequest;
+import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
+import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.ResponseProto.Response.ResponseVersion;

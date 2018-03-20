@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.network;
+package com.google.android.libraries.feed.host.network;
 
 import android.net.Uri;
 import android.support.annotation.StringDef;

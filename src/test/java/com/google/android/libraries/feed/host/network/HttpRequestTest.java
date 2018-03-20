@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.network;
+package com.google.android.libraries.feed.host.network;
 
 import static com.google.common.truth.Truth.assertThat;
 
 import android.net.Uri;
-import com.google.android.libraries.feed.api.network.HttpRequest.HttpMethod;
+import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import org.robolectric.RobolectricTestRunner;
 import java.nio.ByteBuffer;
 import org.junit.Test;
