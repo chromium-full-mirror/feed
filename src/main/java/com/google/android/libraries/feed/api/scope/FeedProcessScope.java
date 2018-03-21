@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.api.scope;
 import com.google.android.libraries.feed.api.common.ConfigManager;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
+import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
@@ -25,6 +26,7 @@ import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
@@ -170,6 +172,9 @@ public class FeedProcessScope implements Dumpable {
         ((FeedSessionManager) sessionManager).setProtocolAdapter(protocolAdapter);
         ((FeedSessionManager) sessionManager).setRequestManager(requestManager);
       }
+
+      AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener();
+
       return new FeedProcessScope(
           configManager,
           imageLoaderApi,
@@ -183,7 +188,8 @@ public class FeedProcessScope implements Dumpable {
           timingUtils,
           threadUtils,
           uiRunnableHandler,
-          extensionRegistry);
+          extensionRegistry,
+          appLifecycleListener);
     }
 
     // Required fields.
@@ -215,7 +221,8 @@ public class FeedProcessScope implements Dumpable {
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
       UiRunnableHandler uiRunnableHandler,
-      FeedExtensionRegistry extensionRegistry) {
+      FeedExtensionRegistry extensionRegistry,
+      AppLifecycleListener appLifecycleListener) {
     this.configManager = configManager;
     this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
@@ -229,6 +236,7 @@ public class FeedProcessScope implements Dumpable {
     this.threadUtils = threadUtils;
     this.uiRunnableHandler = uiRunnableHandler;
     this.extensionRegistry = extensionRegistry;
+    this.appLifecycleListener = appLifecycleListener;
   }
 
   private final ConfigManager configManager;
@@ -244,6 +252,7 @@ public class FeedProcessScope implements Dumpable {
   private final ThreadUtils threadUtils;
   private final UiRunnableHandler uiRunnableHandler;
   private final FeedExtensionRegistry extensionRegistry;
+  private final AppLifecycleListener appLifecycleListener;
 
   public FeedProtocolAdapter getProtocolAdapter() {
     return protocolAdapter;
@@ -260,4 +269,9 @@ public class FeedProcessScope implements Dumpable {
   public FeedExtensionRegistry getExtensionRegistry() {
     return extensionRegistry;
   }
+
+  public AppLifecycleListener getAppLifecycleListener() {
+    return appLifecycleListener;
+  }
 }
+

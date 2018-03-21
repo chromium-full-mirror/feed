@@ -8,6 +8,7 @@ android_library(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/actionhandler",
         "//src/main/java/com/google/android/libraries/feed/api/common",
+        "//src/main/java/com/google/android/libraries/feed/api/lifecycle",
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
@@ -15,6 +16,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
+        "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
         "//src/main/java/com/google/android/libraries/feed/feedmodelprovider",
         "//src/main/java/com/google/android/libraries/feed/feedprotocoladapter",
         "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",

@@ -73,6 +73,7 @@ public class FeedProcessScopeTest {
     assertThat(processScope.getProtocolAdapter()).isNotNull();
     assertThat(processScope.getRequestManager()).isNotNull();
     assertThat(processScope.getSessionManager()).isNotNull();
+    assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }
 
   @Test
@@ -90,5 +91,6 @@ public class FeedProcessScopeTest {
     assertThat(processScope.getProtocolAdapter()).isEqualTo(protocolAdapter);
     assertThat(processScope.getRequestManager()).isEqualTo(requestManager);
     assertThat(processScope.getSessionManager()).isEqualTo(sessionManager);
+    assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }
 }
