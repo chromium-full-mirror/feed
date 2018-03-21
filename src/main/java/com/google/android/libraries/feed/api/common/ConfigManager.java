@@ -14,6 +14,9 @@
 
 package com.google.android.libraries.feed.api.common;
 
+import android.support.annotation.StringDef;
+import java.util.HashMap;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /**
@@ -21,9 +24,29 @@ import javax.annotation.Nullable;
  * experiment values, host specific customizations, or debug overrides.
  */
 // TODO: Configuration needs plenty of adjustment.
-public interface ConfigManager {
+public class ConfigManager {
+  @StringDef({ConfigValues.FEED_SERVER_ENDPOINT, ConfigValues.OPTIMISTIC_SESSION_WRITES})
+  public @interface ConfigValues {
+    String FEED_SERVER_ENDPOINT = "feed_service_endpoint";
+    String OPTIMISTIC_SESSION_WRITES = "optimistic_session_writes";
+  }
+
+  private final HashMap<String, ConfigFlag<?>> values = new HashMap<>();
+
+  public ConfigManager(List<ConfigFlag<?>> overrides) {
+    values.put(
+        ConfigValues.OPTIMISTIC_SESSION_WRITES,
+        ConfigFlag.forBoolean(ConfigValues.OPTIMISTIC_SESSION_WRITES, false));
+    for (ConfigFlag<?> override : overrides) {
+      values.put(override.getKey(), override);
+    }
+  }
+
   @Nullable
-  <T> T getValue(ConfigFlag<T> flag);
+  public <T> T getValue(String key, @Nullable T defaultValue) {
+    ConfigFlag<?> value = values.get(key);
+    return (value != null) ? (T) value.getValue() : defaultValue;
+  }
 
   /**
    * A key-value pair with an expected type to serialize from and deserialize to.
@@ -31,7 +54,7 @@ public interface ConfigManager {
    * @param <T> the expected type of the config value for this flag. Currently only Integer and
    *     String are supported.
    */
-  class ConfigFlag<T> {
+  public static class ConfigFlag<T> {
     private final Class<T> type;
     private final String key;
     private final T value;
@@ -48,6 +71,10 @@ public interface ConfigManager {
 
     public static ConfigFlag<Integer> forInteger(String key, int value) {
       return new ConfigFlag<>(Integer.class, key, value);
+    }
+
+    public static ConfigFlag<Boolean> forBoolean(String key, boolean value) {
+      return new ConfigFlag<>(Boolean.class, key, value);
     }
 
     public String getKey() {

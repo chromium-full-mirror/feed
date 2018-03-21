@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.net.Uri;
 import com.google.android.libraries.feed.api.common.ConfigManager;
-import com.google.android.libraries.feed.api.common.ConfigManager.ConfigFlag;
+import com.google.android.libraries.feed.api.common.ConfigManager.ConfigValues;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
@@ -41,9 +41,6 @@ import javax.annotation.Nullable;
 /** Default implementation of RequestManager. */
 public class FeedRequestManager implements RequestManager {
   private static final String TAG = "JardinRM";
-
-  private static final ConfigFlag<String> SERVICE_ENDPOINT_FLAG =
-      ConfigFlag.forString("feed_service_endpoint", null);
 
   private final ConfigManager configManager;
   private final NetworkClient networkClient;
@@ -88,7 +85,7 @@ public class FeedRequestManager implements RequestManager {
 
   private void executeRequest(RequestBuilder requestBuilder) {
       Request request = requestBuilder.build();
-      String endpoint = configManager.getValue(SERVICE_ENDPOINT_FLAG);
+    String endpoint = configManager.getValue(ConfigValues.FEED_SERVER_ENDPOINT, "");
     HttpRequest httpRequest =
         new HttpRequest(
             Uri.parse(endpoint), ByteBuffer.wrap(request.toByteArray()), HttpMethod.POST);
