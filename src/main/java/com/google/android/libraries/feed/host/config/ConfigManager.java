@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.host.config;
 import android.support.annotation.StringDef;
 import java.util.HashMap;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * Allows the host to provide config values to Jardin libraries. These config values can come from
@@ -42,8 +41,7 @@ public class ConfigManager {
     }
   }
 
-  @Nullable
-  public <T> T getValue(String key, @Nullable T defaultValue) {
+  public <T> T getValue(String key, T defaultValue) {
     ConfigFlag<?> value = values.get(key);
     return (value != null) ? (T) value.getValue() : defaultValue;
   }
