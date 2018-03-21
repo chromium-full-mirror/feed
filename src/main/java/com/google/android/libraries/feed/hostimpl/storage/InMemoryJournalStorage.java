@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.host.storage;
+package com.google.android.libraries.feed.hostimpl.storage;
 
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.host.storage.JournalMutation;
+import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Copy;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Delete;
+import com.google.android.libraries.feed.host.storage.JournalStorage;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;

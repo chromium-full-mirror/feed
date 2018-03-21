@@ -30,6 +30,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/network",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
+        "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "@com_google_code_findbugs_jsr305//jar",
     ],
 )

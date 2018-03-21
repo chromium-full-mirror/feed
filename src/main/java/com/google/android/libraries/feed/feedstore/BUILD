@@ -21,6 +21,7 @@ java_library(
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal",
         "//src/main/java/com/google/android/libraries/feed/host/common",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
+        "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/proto/ui/action:piet_extensions_java_proto_lite",
         "//src/main/proto/search/now/proto/ui/piet:piet_java_proto_lite",

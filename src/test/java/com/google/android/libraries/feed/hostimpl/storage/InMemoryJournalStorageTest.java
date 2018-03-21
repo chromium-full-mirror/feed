@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.host.storage;
+package com.google.android.libraries.feed.hostimpl.storage;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.android.libraries.feed.host.storage.JournalMutation;
+import com.google.android.libraries.feed.host.storage.JournalStorage;
 import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
 import java.util.Arrays;
