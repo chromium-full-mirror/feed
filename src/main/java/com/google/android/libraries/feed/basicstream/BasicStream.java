@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.basicstream;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -34,6 +35,7 @@ import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
+import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.ActionParser;
@@ -59,6 +61,7 @@ public class BasicStream implements Stream {
   private final StreamRecyclerViewAdapter adapter;
   private final ViewHolderBindingObserver viewHolderBindingObserver;
   private final PietManager pietManager;
+  private final PietSharedStateSupplier pietSharedStateSupplier;
 
   @Nullable private ModelToken streamToken = null;
   @Nullable private ModelProvider modelProvider;
@@ -66,7 +69,6 @@ public class BasicStream implements Stream {
   public BasicStream(
       Context context,
       CardConfiguration cardConfiguration,
-      PietStylesHelper pietStylesHelper,
       AssetProvider assetProvider,
       ActionParser actionParser,
       ActionApi actionApi,
@@ -75,9 +77,10 @@ public class BasicStream implements Stream {
       List<View> headers) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
+    this.pietSharedStateSupplier = createPietSharedStateSupplier();
     this.pietManager =
         new PietManager(
-            pietStylesHelper,
+            new PietStylesHelper(pietSharedStateSupplier),
             assetProvider,
             (action, frame, veLoggingToken) ->
                 actionParser.parseAction(
@@ -185,6 +188,7 @@ public class BasicStream implements Stream {
   @Override
   public void setModelProvider(ModelProvider modelProvider) {
     this.modelProvider = modelProvider;
+    this.pietSharedStateSupplier.setModelProvider(modelProvider);
     modelProvider.registerObserver(
         new ModelProviderObserver() {
           @Override
@@ -234,5 +238,10 @@ public class BasicStream implements Stream {
           }
         })) {}
     return modelFeatures;
+  }
+
+  @VisibleForTesting
+  PietSharedStateSupplier createPietSharedStateSupplier() {
+    return new PietSharedStateSupplier();
   }
 }

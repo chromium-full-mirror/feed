@@ -6,7 +6,7 @@ package_group(
     name = "basicstream_pkgs",
     packages = [
         "//src/main/java/com/google/android/libraries/feed/basicstream/...",
-        "//src/test/java/com/google/android/libraries/feedbasicstream/...",
+        "//src/test/java/com/google/android/libraries/feed/basicstream/...",
     ],
 )
 
@@ -18,6 +18,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/piet",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/piet",
@@ -25,6 +26,7 @@ android_library(
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/search/now/proto/ui/piet:piet_java_proto_lite",
         "@androidsdk//com.android.support:recyclerview-v7-25.3.1",
+        "@androidsdk//com.android.support:support-annotations-25.3.1",
         "@com_google_code_findbugs_jsr305//jar",
     ],
 )

@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
-import com.google.android.libraries.feed.piet.PietManager;
 import javax.annotation.Nullable;
 
 /** Per-stream instance of the feed library. */
@@ -113,7 +112,6 @@ public class FeedStreamScope {
     // Optional internal components to override the default implementations.
     @Nullable private FeedActionHandler feedActionHandler = null;
     @Nullable private ModelProviderFactory modelProviderFactory = null;
-    @Nullable private PietManager pietManager = null;
     @Nullable private Stream stream = null;
   }
 
