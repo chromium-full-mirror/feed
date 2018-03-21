@@ -28,10 +28,10 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
-import com.google.android.libraries.feed.host.storage.KeyValuePairStorage;
+import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryKeyValuePairStorage;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -84,26 +84,26 @@ public class FeedStoreTest {
               return new ArrayList<>();
             }
           });
-  private final KeyValuePairStorage keyValuePairStorage = new InMemoryKeyValuePairStorage();
+  private final ContentStorage contentStorage = new InMemoryContentStorage();
   private final JournalStorage journalStorage = new InMemoryJournalStorage();
 
   @Before
   public void setUp() throws Exception {
     // TODO: update the test to work with the old and new feed stores.
-    store = new FeedStore(timingUtils, extensionRegistry, keyValuePairStorage, journalStorage);
+    store = new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
   }
 
   @Test
   public void testMinimalStore() {
     FeedStore feedStore =
-        new FeedStore(timingUtils, extensionRegistry, keyValuePairStorage, journalStorage);
+        new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
     assertThat(feedStore.getHeadSession()).isNotNull();
   }
 
   @Test
   public void testContentMutation() {
     FeedStore feedStore =
-        new FeedStore(timingUtils, extensionRegistry, keyValuePairStorage, journalStorage);
+        new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
     ContentMutation contentMutation = feedStore.editContent();
     assertThat(contentMutation).isNotNull();
   }

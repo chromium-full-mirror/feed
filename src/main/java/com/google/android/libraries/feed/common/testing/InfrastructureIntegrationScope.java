@@ -29,10 +29,10 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
-import com.google.android.libraries.feed.host.storage.KeyValuePairStorage;
+import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryKeyValuePairStorage;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,11 +54,10 @@ public class InfrastructureIntegrationScope {
     UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
-    KeyValuePairStorage keyValuePairStorage = new InMemoryKeyValuePairStorage();
+    ContentStorage contentStorage = new InMemoryContentStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage();
     ConfigManager configManager = new ConfigManager(new ArrayList<>());
-    FeedStore store =
-        new FeedStore(timingUtils, extensionRegistry, keyValuePairStorage, journalStorage);
+    FeedStore store = new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
     feedSessionManager =
         new FeedSessionManager(executorService, store, timingUtils, threadUtils, configManager);
     modelProviderFactory =

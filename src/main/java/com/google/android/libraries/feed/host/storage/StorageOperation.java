@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.host.storage;
 import android.support.annotation.IntDef;
 import java.nio.ByteBuffer;
 
-/** A mutation to the underlying {@link KeyValuePairStorage}. */
+/** A mutation to the underlying {@link ContentStorage}. */
 public abstract class StorageOperation {
   /** The types of operations. */
   @IntDef({Type.DELETE, Type.DELETE_BY_PREFIX, Type.UPSERT})

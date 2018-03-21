@@ -29,12 +29,10 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
 import com.google.android.libraries.feed.feedstore.internal.SessionState;
+import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
-import com.google.android.libraries.feed.host.storage.KeyValuePairStorage;
 import com.google.android.libraries.feed.host.storage.StorageMutation.Builder;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryKeyValuePairStorage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -46,8 +44,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Implementation of the Store. The FeedStore will call the host APIs {@link
- * InMemoryKeyValuePairStorage} and {@link InMemoryJournalStorage} to make persistent changes.
+ * Implementation of the Store. The FeedStore will call the host APIs {@link ContentStorage} and
+ * {@link JournalStorage} to make persistent changes.
  */
 public class FeedStore implements Store, Dumpable {
 
@@ -56,7 +54,7 @@ public class FeedStore implements Store, Dumpable {
 
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
-  private final KeyValuePairStorage keyValuePairStorage;
+  private final ContentStorage contentStorage;
   private final JournalStorage journalStorage;
 
   // TODO: We need to synchronize access to these states
@@ -68,11 +66,11 @@ public class FeedStore implements Store, Dumpable {
   public FeedStore(
       TimingUtils timingUtils,
       FeedExtensionRegistry extensionRegistry,
-      KeyValuePairStorage keyValuePairStorage,
+      ContentStorage contentStorage,
       JournalStorage journalStorage) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
-    this.keyValuePairStorage = keyValuePairStorage;
+    this.contentStorage = contentStorage;
     this.journalStorage = journalStorage;
   }
 
@@ -82,7 +80,7 @@ public class FeedStore implements Store, Dumpable {
     List<PayloadWithId> payloads = new ArrayList<>();
     for (String contentId : contentIds) {
       try {
-        byte[] content = keyValuePairStorage.get(contentId).get();
+        byte[] content = contentStorage.get(contentId).get();
         if (content != null) {
           StreamPayload streamPayload =
               StreamPayload.parseFrom(content, extensionRegistry.getExtensionRegistry());
@@ -234,9 +232,9 @@ public class FeedStore implements Store, Dumpable {
         // Block waiting for the response from storage, to make this method synchronous.
         try {
           // Check whether the payload is already in storage.
-          byte[] payloadBytes = keyValuePairStorage.get(payloadId).get();
+          byte[] payloadBytes = contentStorage.get(payloadId).get();
           boolean commitResult =
-              keyValuePairStorage
+              contentStorage
                   .commit(new Builder().upsert(payloadId, payload.toByteArray()).build())
                   .get();
           if (commitResult) {
@@ -261,8 +259,8 @@ public class FeedStore implements Store, Dumpable {
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("nextSessionId").value(sessionId);
-    if (keyValuePairStorage instanceof Dumpable) {
-      dumper.dump((Dumpable) keyValuePairStorage);
+    if (contentStorage instanceof Dumpable) {
+      dumper.dump((Dumpable) contentStorage);
     }
     if (journalStorage instanceof Dumpable) {
       dumper.dump((Dumpable) journalStorage);

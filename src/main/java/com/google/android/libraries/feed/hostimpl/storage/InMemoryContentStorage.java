@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.hostimpl.storage;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.host.storage.KeyValuePairStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.StorageMutation;
 import com.google.android.libraries.feed.host.storage.StorageOperation;
 import com.google.android.libraries.feed.host.storage.StorageOperation.Upsert;
@@ -29,8 +29,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-/** A {@link KeyValuePairStorage} that holds data in memory. */
-public class InMemoryKeyValuePairStorage implements KeyValuePairStorage, Dumpable {
+/** A {@link ContentStorage} that holds data in memory. */
+public class InMemoryContentStorage implements ContentStorage, Dumpable {
 
   private static final String TAG = "InMemoryKVPStorage";
 

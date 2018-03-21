@@ -19,10 +19,10 @@ android_local_test(
 )
 
 android_local_test(
-    name = "InMemoryKeyValuePairStorageTest",
+    name = "InMemoryContentStorageTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["InMemoryKeyValuePairStorageTest.java"],
+    srcs = ["InMemoryContentStorageTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

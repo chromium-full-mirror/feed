@@ -24,7 +24,7 @@ import java.util.concurrent.Future;
  *
  * <p>[INTERNAL LINK]
  */
-public interface KeyValuePairStorage {
+public interface ContentStorage {
   /**
    * Asynchronously requests the value for a key.
    *

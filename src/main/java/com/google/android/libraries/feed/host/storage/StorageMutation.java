@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * A sequence of {@link StorageOperation} instances. This class is used to commit changes to {@link
- * KeyValuePairStorage}.
+ * ContentStorage}.
  */
 public class StorageMutation {
   private final List<StorageOperation> operations;
@@ -33,21 +33,21 @@ public class StorageMutation {
     this.operations = Collections.unmodifiableList(operations);
   }
 
-  /** An unmodifiable list of operations to be committed by {@link KeyValuePairStorage}. */
+  /** An unmodifiable list of operations to be committed by {@link ContentStorage}. */
   public List<StorageOperation> getOperations() {
     return operations;
   }
 
   /**
    * Creates a {@link StorageMutation}, which can be used to apply mutations to the underlying
-   * {@link KeyValuePairStorage}.
+   * {@link ContentStorage}.
    */
   public static class Builder {
     private final ArrayList<StorageOperation> operations = new ArrayList<>();
     private final StorageOperationListSimplifier simplifier = new StorageOperationListSimplifier();
 
     /**
-     * Sets the key/value pair in {@link KeyValuePairStorage}, or inserts it if it doesn't exist.
+     * Sets the key/value pair in {@link ContentStorage}, or inserts it if it doesn't exist.
      *
      * <p>This method can be called repeatedly to assign multiple key/values. If the same key is
      * assigned multiple times, only the last value will be persisted.
@@ -58,10 +58,10 @@ public class StorageMutation {
     }
 
     /**
-     * Deletes the value from {@link KeyValuePairStorage} with a matching key, if it exists.
+     * Deletes the value from {@link ContentStorage} with a matching key, if it exists.
      *
-     * <p>{@link KeyValuePairStorage#commit(StorageMutation)} will fulfill with result is {@code
-     * TRUE}, even if {@code key} is not found in {@link KeyValuePairStorage}.
+     * <p>{@link ContentStorage#commit(StorageMutation)} will fulfill with result is {@code TRUE},
+     * even if {@code key} is not found in {@link ContentStorage}.
      *
      * <p>If {@link Delete} and {@link Upsert} are committed for the same key, only the last
      * operation will take effect.
@@ -72,10 +72,10 @@ public class StorageMutation {
     }
 
     /**
-     * Deletes all values from {@link KeyValuePairStorage} with matching key prefixes.
+     * Deletes all values from {@link ContentStorage} with matching key prefixes.
      *
-     * <p>{@link KeyValuePairStorage#commit(StorageMutation)} will fulfill with result equal to
-     * {@code TRUE}, even if no keys have a matching prefix.
+     * <p>{@link ContentStorage#commit(StorageMutation)} will fulfill with result equal to {@code
+     * TRUE}, even if no keys have a matching prefix.
      *
      * <p>If {@link DeleteByPrefix} and {@link Upsert} are committed for the same matching key, only
      * the last operation will take effect.

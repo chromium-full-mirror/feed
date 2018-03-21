@@ -37,10 +37,10 @@ import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
-import com.google.android.libraries.feed.host.storage.KeyValuePairStorage;
+import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryKeyValuePairStorage;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import javax.annotation.Nullable;
@@ -124,8 +124,8 @@ public class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    public Builder setKeyValuePairStorage(KeyValuePairStorage keyValuePairStorage) {
-      this.keyValuePairStorage = keyValuePairStorage;
+    public Builder setContentStorage(ContentStorage contentStorage) {
+      this.contentStorage = contentStorage;
       return this;
     }
 
@@ -141,15 +141,15 @@ public class FeedProcessScope implements Dumpable {
         protoExtensionProvider = () -> new ArrayList<>();
       }
       FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(protoExtensionProvider);
-      if (keyValuePairStorage == null) {
-        keyValuePairStorage = new InMemoryKeyValuePairStorage();
+      if (contentStorage == null) {
+        contentStorage = new InMemoryContentStorage();
       }
       if (journalStorage == null) {
         journalStorage = new InMemoryJournalStorage();
       }
       TimingUtils timingUtils = new TimingUtils();
       FeedStore store =
-          new FeedStore(timingUtils, extensionRegistry, keyValuePairStorage, journalStorage);
+          new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
       UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
       ThreadUtils threadUtils = new ThreadUtils();
       if (sessionManager == null) {
@@ -205,7 +205,7 @@ public class FeedProcessScope implements Dumpable {
     @Nullable private SessionManager sessionManager = null;
     @Nullable private FeedProtocolAdapter protocolAdapter = null;
     @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
-    @Nullable private KeyValuePairStorage keyValuePairStorage = null;
+    @Nullable private ContentStorage contentStorage = null;
     @Nullable private JournalStorage journalStorage = null;
   }
 

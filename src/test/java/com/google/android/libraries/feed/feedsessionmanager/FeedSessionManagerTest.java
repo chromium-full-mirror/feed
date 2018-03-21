@@ -45,8 +45,8 @@ import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.config.ConfigManager;
 import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
+import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
-import com.google.android.libraries.feed.hostimpl.storage.InMemoryKeyValuePairStorage;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
@@ -252,7 +252,7 @@ public class FeedSessionManagerTest {
         new FeedStore(
             timingUtils,
             extensionRegistry,
-            new InMemoryKeyValuePairStorage(),
+            new InMemoryContentStorage(),
             new InMemoryJournalStorage());
     FeedSessionManager sessionManager =
         new FeedSessionManager(
