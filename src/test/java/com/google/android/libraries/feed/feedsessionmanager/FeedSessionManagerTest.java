@@ -43,6 +43,8 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSession
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryKeyValuePairStorage;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -78,6 +80,7 @@ public class FeedSessionManagerTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
+  @Mock private ConfigManager configManager;
 
   private int cursorCount = 0;
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
@@ -94,6 +97,7 @@ public class FeedSessionManagerTest {
   @Before
   public void setUp() {
     initMocks(this);
+    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(false);
   }
 
   @Test
@@ -127,7 +131,8 @@ public class FeedSessionManagerTest {
             MoreExecutors.newDirectExecutorService(),
             store,
             timingUtils,
-            threadUtils);
+            threadUtils,
+            configManager);
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
@@ -254,7 +259,8 @@ public class FeedSessionManagerTest {
             MoreExecutors.newDirectExecutorService(),
             store,
             timingUtils,
-            threadUtils);
+            threadUtils,
+            configManager);
     sessionManager.setProtocolAdapter(protocolAdapter);
     sessionManager.setRequestManager(requestManager);
     return sessionManager;

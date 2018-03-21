@@ -29,6 +29,9 @@ import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import org.robolectric.RobolectricTestRunner;
@@ -48,6 +51,7 @@ public class SessionImplTest {
   @Mock private Store store;
   @Mock private ModelProvider modelProvider;
   @Mock private ThreadUtils threadUtils;
+  @Mock private ConfigManager configManager;
 
   private Boolean sessionMutationResults = true;
 
@@ -65,11 +69,12 @@ public class SessionImplTest {
     when(store.editSession(TEST_SESSION)).thenReturn(fakeSessionMutation);
     fakeModelMutator = new FakeModelMutation();
     when(modelProvider.edit()).thenReturn(fakeModelMutator);
+    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(false);
   }
 
   @Test
   public void testPopulateModelProvider_features() {
-    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
+    SessionImpl session = getSessionImpl();
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -86,7 +91,7 @@ public class SessionImplTest {
 
   @Test
   public void testUpdateSession_notFullyInitialized() {
-    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
+    SessionImpl session = getSessionImpl();
     assertThatRunnable(
             new ThrowingRunnable() {
               @Override
@@ -99,7 +104,7 @@ public class SessionImplTest {
 
   @Test
   public void testUpdateSession_features() {
-    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
+    SessionImpl session = getSessionImpl();
     session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
@@ -117,7 +122,7 @@ public class SessionImplTest {
 
   @Test
   public void testUpdateFromToken() {
-    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
+    SessionImpl session = getSessionImpl();
     session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -134,7 +139,7 @@ public class SessionImplTest {
 
   @Test
   public void testUpdateFromToken_notInSession() {
-    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
+    SessionImpl session = getSessionImpl();
     session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -151,7 +156,7 @@ public class SessionImplTest {
 
   @Test
   public void testStorageFailure() {
-    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
+    SessionImpl session = getSessionImpl();
     session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
@@ -166,7 +171,7 @@ public class SessionImplTest {
 
   @Test
   public void testRemove() {
-    SessionImpl session = new SessionImpl(store, modelProvider, timingUtils, threadUtils);
+    SessionImpl session = getSessionImpl();
     session.populateModelProvider(TEST_SESSION, new ArrayList<>());
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     int featureCnt = 2;
@@ -226,6 +231,16 @@ public class SessionImplTest {
     void clearCommit() {
       commitCalled = false;
     }
+  }
+
+  private SessionImpl getSessionImpl() {
+    return new SessionImpl(
+        store,
+        modelProvider,
+        MoreExecutors.newDirectExecutorService(),
+        timingUtils,
+        threadUtils,
+        configManager);
   }
 
   private class FakeSessionMutation implements SessionMutation {

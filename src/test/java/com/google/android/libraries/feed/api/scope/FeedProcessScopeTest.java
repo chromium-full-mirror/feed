@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.scope;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -23,6 +24,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
@@ -62,6 +64,7 @@ public class FeedProcessScopeTest {
   @Before
   public void setUp() {
     initMocks(this);
+    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(false);
   }
 
   @Test

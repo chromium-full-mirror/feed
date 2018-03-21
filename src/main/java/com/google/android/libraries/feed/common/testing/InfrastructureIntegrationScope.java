@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.config.ConfigManager;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.host.storage.KeyValuePairStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
@@ -55,9 +56,11 @@ public class InfrastructureIntegrationScope {
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     KeyValuePairStorage keyValuePairStorage = new InMemoryKeyValuePairStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage();
+    ConfigManager configManager = new ConfigManager(new ArrayList<>());
     FeedStore store =
         new FeedStore(timingUtils, extensionRegistry, keyValuePairStorage, journalStorage);
-    feedSessionManager = new FeedSessionManager(executorService, store, timingUtils, threadUtils);
+    feedSessionManager =
+        new FeedSessionManager(executorService, store, timingUtils, threadUtils, configManager);
     modelProviderFactory =
         new FeedModelProviderFactory(
             feedSessionManager, threadUtils, timingUtils, uiRunnableHandler);

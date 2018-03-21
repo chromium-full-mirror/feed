@@ -19,6 +19,7 @@ java_library(
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager",
         "//src/main/java/com/google/android/libraries/feed/feedstore",
         "//src/main/java/com/google/android/libraries/feed/host/common",
+        "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",

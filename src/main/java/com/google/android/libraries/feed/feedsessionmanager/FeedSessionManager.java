@@ -37,6 +37,8 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFact
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.Change;
 import com.google.android.libraries.feed.host.common.Callback;
+import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -70,11 +72,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @GuardedBy("lock")
   private final Map<String, StreamDataOperation> tokenMap = new HashMap<>();
 
+  @GuardedBy("lock")
+  private final Map<String, StreamPayload> contentCache = new HashMap<>();
+
   private final SessionFactory sessionFactory;
   private final ExecutorService sessionManagerExecutor;
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
+  private final boolean optimisticWrites;
 
   private ProtocolAdapter protocolAdapter;
   private RequestManager requestManager;
@@ -88,13 +94,16 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       ExecutorService sessionManagerExecutor,
       Store store,
       TimingUtils timingUtils,
-      ThreadUtils threadUtils) {
+      ThreadUtils threadUtils,
+      ConfigManager configManager) {
     this.sessionManagerExecutor = sessionManagerExecutor;
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
 
-    sessionFactory = new SessionFactory(store, timingUtils, threadUtils);
+    optimisticWrites = configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false);
+    sessionFactory =
+        new SessionFactory(store, sessionManagerExecutor, timingUtils, threadUtils, configManager);
     sessionManagerExecutor.execute(this::initializationTask);
   }
 
@@ -141,7 +150,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     // on the Session Manager thread so it atomic with the mutations.
     sessionManagerExecutor.execute(
         () -> {
-          Logger.i(TAG, "Task: New Session");
+          Logger.i(TAG, "Task: Create/Populate New Session");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
           StreamSession streamSession = store.createNewSession();
@@ -149,7 +158,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           synchronized (lock) {
             sessions.put(session.getStreamSession().streamToken, session);
           }
-          timeTracker.stop("task", "New Session");
+          timeTracker.stop("task", "Create/Populate New Session");
           newSessionCount++;
         });
   }
@@ -171,7 +180,36 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   @Override
   public void getStreamFeatures(List<String> contentIds, Callback<List<PayloadWithId>> callback) {
-    callback.handleResult(store.getPayloads(contentIds));
+    if (optimisticWrites) {
+      List<PayloadWithId> results = new ArrayList<>();
+      List<String> cacheMisses = new ArrayList<>();
+      int contentSize;
+      synchronized (lock) {
+        contentSize = contentCache.size();
+        for (String contentId : contentIds) {
+          StreamPayload payload = contentCache.get(contentId);
+          if (payload != null) {
+            results.add(new PayloadWithId(contentId, payload));
+          } else {
+            cacheMisses.add(contentId);
+          }
+        }
+      }
+
+      if (!cacheMisses.isEmpty()) {
+        List<PayloadWithId> content = store.getPayloads(cacheMisses);
+        results.addAll(content);
+      }
+      Logger.i(
+          TAG,
+          "Caching getStreamFeatures - items %s, cache misses %s, cache size %s",
+          contentIds.size(),
+          cacheMisses.size(),
+          contentSize);
+      callback.handleResult(results);
+    } else {
+      callback.handleResult(store.getPayloads(contentIds));
+    }
   }
 
   @Override
@@ -230,12 +268,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
 
     private void commitTask() {
-      Logger.i(TAG, "Task: Commit Mutation");
+      Logger.i(TAG, "Task: Mutate FeedSessionManager");
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
       commitContent();
       commitSessionUpdates();
       commitCount++;
-      timeTracker.stop("task", "Commit Mutation", "mutations", streamStructures.size());
+      timeTracker.stop("task", "Mutate FeedSessionManager", "mutations", streamStructures.size());
     }
 
     private void commitContent() {
@@ -255,6 +293,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           }
           StreamPayload payload = dataOperation.getStreamPayload();
           String contentId = dataOperation.getStreamStructure().getContentId();
+          if (optimisticWrites) {
+            // TODO: When optimisticWrites is the default move synchronized outside the
+            // for loop
+            synchronized (lock) {
+              contentCache.put(contentId, payload);
+            }
+          }
           if (payload.hasStreamSharedState()) {
             contentMutation.add(contentId, payload);
             synchronized (lock) {
@@ -287,7 +332,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         Logger.e(
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
-      contentMutation.commit();
+      if (optimisticWrites) {
+        sessionManagerExecutor.execute(contentMutation::commit);
+      } else {
+        contentMutation.commit();
+      }
       timeTracker.stop("", "contentUpdate", "items", change.dataOperations.size());
     }
 

@@ -18,6 +18,8 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.android.libraries.feed.host.config.ConfigManager;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Factory for creating a {@link InitializableSession} instance used in the {@link
@@ -25,20 +27,27 @@ import com.google.android.libraries.feed.common.TimingUtils;
  */
 public class SessionFactory {
   private final Store store;
+  private final ExecutorService sessionManagerExecutor;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
+  private final ConfigManager configManager;
 
   public SessionFactory(
       Store store,
+      ExecutorService sessionManagerExecutor,
       TimingUtils timingUtils,
-      ThreadUtils threadUtils) {
+      ThreadUtils threadUtils,
+      ConfigManager configManager) {
     this.store = store;
+    this.sessionManagerExecutor = sessionManagerExecutor;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    this.configManager = configManager;
   }
 
   public InitializableSession getSession(ModelProvider modelProvider) {
-    return new SessionImpl(store, modelProvider, timingUtils, threadUtils);
+    return new SessionImpl(
+        store, modelProvider, sessionManagerExecutor, timingUtils, threadUtils, configManager);
   }
 
   public Session getHeadSession() {

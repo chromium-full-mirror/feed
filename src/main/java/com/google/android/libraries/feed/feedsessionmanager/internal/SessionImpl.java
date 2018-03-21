@@ -27,12 +27,15 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import javax.annotation.Nullable;
 
 /** Implementation of a {@link Session}. */
@@ -41,8 +44,10 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
   private final ModelProvider modelProvider;
   private final Store store;
+  private final ExecutorService sessionManagerExecutor;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
+  private final boolean optimisticWrites;
 
   @VisibleForTesting final Set<String> contentInSession = new HashSet<>();
 
@@ -53,11 +58,18 @@ public class SessionImpl implements InitializableSession, Dumpable {
   private int storeMutationFailures = 0;
 
   SessionImpl(
-      Store store, ModelProvider modelProvider, TimingUtils timingUtils, ThreadUtils threadUtils) {
+      Store store,
+      ModelProvider modelProvider,
+      ExecutorService sessionManagerExecutor,
+      TimingUtils timingUtils,
+      ThreadUtils threadUtils,
+      ConfigManager configManager) {
     this.store = store;
     this.modelProvider = modelProvider;
+    this.sessionManagerExecutor = sessionManagerExecutor;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    optimisticWrites = configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false);
   }
 
   @Override
@@ -148,7 +160,14 @@ public class SessionImpl implements InitializableSession, Dumpable {
       }
     }
     // Commit the Model Provider mutation after the store is updated.
-    boolean success = sessionMutation.commit();
+    boolean success;
+    if (optimisticWrites) {
+      sessionManagerExecutor.execute(sessionMutation::commit);
+      success = true;
+    } else {
+      success = sessionMutation.commit();
+    }
+    // TODO: When we only support optimistic writes remove the if statement
     if (success) {
       modelMutation.commit();
       timeTracker.stop(

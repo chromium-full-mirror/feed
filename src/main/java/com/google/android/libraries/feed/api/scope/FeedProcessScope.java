@@ -158,7 +158,8 @@ public class FeedProcessScope implements Dumpable {
                 Executors.newSingleThreadExecutor(),
                 store,
                 timingUtils,
-                threadUtils);
+                threadUtils,
+                configManager);
       }
       if (protocolAdapter == null) {
         protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);

@@ -253,7 +253,7 @@ public class FeedStore implements Store, Dumpable {
     }
 
     StoreResults results = new StoreResults(contentAdded, contentUpdated, sharedStateAdded);
-    tracker.stop("", "commitContentMutation", "mutations", mutations.size());
+    tracker.stop("task", "commitContentMutation", "mutations", mutations.size());
     return results;
   }
 

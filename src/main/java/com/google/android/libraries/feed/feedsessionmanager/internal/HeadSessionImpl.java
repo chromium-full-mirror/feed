@@ -32,7 +32,11 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-/** Implementation of {@link Session} for $HEAD. This class doesn't support a ModelProvider. */
+/**
+ * Implementation of {@link Session} for $HEAD. This class doesn't support a ModelProvider. The
+ * $HEAD session does not support optimistic writes because we may create a new session between when
+ * the response is received and when task updating the head session runs.
+ */
 public class HeadSessionImpl implements Session, Dumpable {
   private static final String TAG = "HeadSessionImpl";
 
