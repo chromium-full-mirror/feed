@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.scope;
 
-import com.google.android.libraries.feed.api.common.ConfigManager;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
@@ -33,6 +32,7 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.config.ConfigManager;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;

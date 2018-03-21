@@ -15,13 +15,13 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.net.Uri;
-import com.google.android.libraries.feed.api.common.ConfigManager;
-import com.google.android.libraries.feed.api.common.ConfigManager.ConfigValues;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -84,7 +84,7 @@ public class FeedRequestManager implements RequestManager {
   }
 
   private void executeRequest(RequestBuilder requestBuilder) {
-      Request request = requestBuilder.build();
+    Request request = requestBuilder.build();
     String endpoint = configManager.getValue(ConfigValues.FEED_SERVER_ENDPOINT, "");
     HttpRequest httpRequest =
         new HttpRequest(

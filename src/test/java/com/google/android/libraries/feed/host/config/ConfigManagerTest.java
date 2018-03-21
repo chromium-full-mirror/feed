@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.common;
+package com.google.android.libraries.feed.host.config;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.api.common.ConfigManager.ConfigFlag;
+import com.google.android.libraries.feed.host.config.ConfigManager.ConfigFlag;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;

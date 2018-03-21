@@ -24,6 +24,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/feedstore",
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/common",
+        "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/network",
