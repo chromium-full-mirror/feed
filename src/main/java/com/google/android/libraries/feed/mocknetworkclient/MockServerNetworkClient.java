@@ -81,7 +81,8 @@ public class MockServerNetworkClient implements NetworkClient {
   public void send(HttpRequest httpRequest, Consumer<HttpResponse> responseConsumer) {
     try {
       Request request =
-          Request.parseFrom(httpRequest.getBody(), extensionRegistry.getExtensionRegistry());
+          Request.parseFrom(
+              httpRequest.getBody().array(), extensionRegistry.getExtensionRegistry());
       for (ConditionalResponse conditionalResponse : config.getConditionalResponsesList()) {
         if (allConditionsMatch(conditionalResponse.getConditionsList(), request)) {
           responseConsumer.accept(createHttpResponse(conditionalResponse.getResponse()));
