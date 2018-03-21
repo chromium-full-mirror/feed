@@ -97,7 +97,7 @@ public class FeedRequestManager implements RequestManager {
             if (input.getResponseCode() != 200) {
               String errorBody = null;
               try {
-                errorBody = new String(input.getResponseBody(), "UTF-8");
+                errorBody = new String(input.getResponseBody().array(), "UTF-8");
               } catch (UnsupportedEncodingException e) {
                 Logger.e(TAG, "Error handling http error logging", e);
               }
@@ -108,7 +108,7 @@ public class FeedRequestManager implements RequestManager {
 
             try {
               // TODO:  Figure out a more scalable to parse extensions.
-              handleResponseBytes(input.getResponseBody(), requestBuilder.getPageToken());
+              handleResponseBytes(input.getResponseBody().array(), requestBuilder.getPageToken());
             } catch (IOException e) {
               Logger.e(TAG, "Error handling response bytes");
             }

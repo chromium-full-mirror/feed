@@ -89,7 +89,7 @@ public class MockServerNetworkClientTest {
         new Consumer<HttpResponse>() {
           @Override
           public void accept(HttpResponse input) {
-            assertThat(input.getResponseBody()).isEqualTo(defaultResponse.toByteArray());
+            assertThat(input.getResponseBody().array()).isEqualTo(defaultResponse.toByteArray());
             assertThat(input.getResponseCode()).isEqualTo(200);
           }
         };

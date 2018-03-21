@@ -35,6 +35,7 @@ import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConf
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig.ConditionalResponse.Condition;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -95,7 +96,7 @@ public class MockServerNetworkClient implements NetworkClient {
     } catch (IOException e) {
       // TODO : handle errors here
       Logger.e(TAG, e.getMessage());
-      responseConsumer.accept(new HttpResponse(400, new byte[] {}));
+      responseConsumer.accept(new HttpResponse(400, ByteBuffer.allocate(0)));
     }
   }
 
@@ -117,9 +118,9 @@ public class MockServerNetworkClient implements NetworkClient {
 
   private HttpResponse createHttpResponse(Response response) {
     if (response == null) {
-      return new HttpResponse(500, new byte[] {});
+      return new HttpResponse(500, ByteBuffer.allocate(0));
     }
-    return new HttpResponse(200, response.toByteArray());
+    return new HttpResponse(200, ByteBuffer.wrap(response.toByteArray()));
   }
 
   private boolean allConditionsMatch(List<Condition> conditions, Request request) {

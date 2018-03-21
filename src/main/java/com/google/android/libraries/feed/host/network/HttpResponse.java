@@ -14,21 +14,30 @@
 
 package com.google.android.libraries.feed.host.network;
 
+import java.nio.ByteBuffer;
+
 /** Representation of an HTTP response. */
 public final class HttpResponse {
   private final int responseCode;
-  private final byte[] responseBody;
+  private final ByteBuffer responseBody;
 
-  public HttpResponse(int responseCode, byte[] responseBody) {
+  public HttpResponse(int responseCode, ByteBuffer responseBody) {
     this.responseCode = responseCode;
     this.responseBody = responseBody;
   }
 
+  /**
+   * Gets the response code for the response.
+   *
+   * <p>Note: this does not have to correspond to an HTTP response code, e.g. if there is a network
+   * issue and no request was able to be sent.
+   */
   public int getResponseCode() {
     return responseCode;
   }
 
-  public byte[] getResponseBody() {
+  /** Gets the body for the response. */
+  public ByteBuffer getResponseBody() {
     return responseBody;
   }
 }
