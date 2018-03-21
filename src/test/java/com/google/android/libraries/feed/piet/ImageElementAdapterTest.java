@@ -31,6 +31,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
@@ -40,6 +41,8 @@ import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
@@ -192,6 +195,25 @@ public class ImageElementAdapterTest {
   }
 
   @Test
+  public void testCreateAdapter_noContent() {
+    ImageElement model = ImageElement.getDefaultInstance();
+
+    adapter.createAdapter(model, frameContext);
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(model, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Unsupported or missing content");
+  }
+
+  @Test
   public void testBindModel_image() {
     StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
     ImageElement model =
@@ -212,7 +234,8 @@ public class ImageElementAdapterTest {
   public void testBindModel_imageBinding() {
     ImageBindingRef imageBinding = ImageBindingRef.newBuilder().setBindingId("feline").build();
     ImageElement model = ImageElement.newBuilder().setImageBinding(imageBinding).build();
-    when(frameContext.getImageFromBinding(imageBinding)).thenReturn(DEFAULT_IMAGE);
+    when(frameContext.getImageBindingValue(imageBinding))
+        .thenReturn(BindingValue.newBuilder().setImage(DEFAULT_IMAGE).build());
 
     adapter.createAdapter(model, frameContext);
     adapter.bindModel(model, frameContext);
@@ -222,43 +245,92 @@ public class ImageElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_notFound() {
-    ImageBindingRef imageBinding = ImageBindingRef.newBuilder().setBindingId("INVALID").build();
-    ImageElement model = ImageElement.newBuilder().setImageBinding(imageBinding).build();
-    when(frameContext.getImageFromBinding(imageBinding)).thenReturn(null);
+  public void testBindModel_visibilityGone() {
+    String bindingRef = "foto";
+    ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(bindingRef).build();
+    ImageElement imageBindingElement =
+        ImageElement.newBuilder().setImageBinding(imageBindingRef).build();
+    adapter.createAdapter(
+        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
+    when(frameContext.getImageBindingValue(imageBindingRef))
+        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
 
-    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(imageBindingElement, frameContext);
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(model, frameContext);
-              }
-            })
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Image binding not found");
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
   }
 
   @Test
-  public void testBindModel_noContent() {
-    ImageElement model = ImageElement.getDefaultInstance();
-
-    adapter.createAdapter(model, frameContext);
+  public void testBindModel_noContentInBindingValue() {
+    String bindingRef = "foto";
+    ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(bindingRef).build();
+    ImageElement imageBindingElement =
+        ImageElement.newBuilder().setImageBinding(imageBindingRef).build();
+    adapter.createAdapter(
+        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
+    when(frameContext.getImageBindingValue(imageBindingRef))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setBindingId(bindingRef)
+                .setVisibility(Visibility.VISIBLE)
+                .clearImage()
+                .build());
 
     assertThatRunnable(
             new ThrowingRunnable() {
               @Override
               public void run() throws Throwable {
-                adapter.bindModel(model, frameContext);
+                adapter.bindModel(imageBindingElement, frameContext);
               }
             })
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
-        .contains("Unsupported or missing content");
+        .contains("Image binding foto had no content");
+  }
+
+  @Test
+  public void testBindModel_setsVisibility() {
+    String bindingRef = "foto";
+    ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(bindingRef).build();
+    ImageElement imageBindingElement =
+        ImageElement.newBuilder().setImageBinding(imageBindingRef).build();
+    adapter.createAdapter(
+        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
+
+    // Sets visibility on bound value with content
+    when(frameContext.getImageBindingValue(imageBindingRef))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setImage(Image.getDefaultInstance())
+                .setVisibility(Visibility.INVISIBLE)
+                .build());
+    adapter.bindModel(imageBindingElement, frameContext);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
+    adapter.unbindModel();
+
+    // Sets visibility for inline content
+    adapter.bindModel(
+        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+    adapter.unbindModel();
+
+    // Sets visibility on GONE binding with no content
+    when(frameContext.getImageBindingValue(imageBindingRef))
+        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
+    adapter.bindModel(imageBindingElement, frameContext);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
+    adapter.unbindModel();
+
+    // Sets visibility with VISIBLE binding
+    when(frameContext.getImageBindingValue(imageBindingRef))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setImage(Image.getDefaultInstance())
+                .setVisibility(Visibility.VISIBLE)
+                .build());
+    adapter.bindModel(imageBindingElement, frameContext);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
   }
 
   @Test

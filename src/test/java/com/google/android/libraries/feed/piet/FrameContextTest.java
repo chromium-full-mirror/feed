@@ -40,7 +40,6 @@ import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
@@ -69,7 +68,7 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 
-/** Tests of the {@link BoundFrameContext}. */
+/** Tests of the {@link FrameContext}. */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class FrameContextTest {
@@ -147,8 +146,10 @@ public class FrameContextTest {
         frameContext.bindTemplate(
             DEFAULT_TEMPLATE, BindingContext.newBuilder().addBindingValues(textBinding).build());
     assertThat(
-            frameContextWithBindings.getParameterizedTextFromBinding(
-                ParameterizedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+            frameContextWithBindings
+                .getParameterizedTextBindingValue(
+                    ParameterizedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build())
+                .getParameterizedText())
         .isEqualTo(text);
 
     // and clear out all the previous styles
@@ -251,7 +252,6 @@ public class FrameContextTest {
     frameContext = makeFrameContextWithBinding(imageBindingValue);
 
     // Succeed in looking up binding
-    assertThat(frameContext.getParameterizedTextFromBinding(textBindingRef)).isEqualTo(text);
     assertThat(frameContext.getParameterizedTextBindingValue(textBindingRef))
         .isEqualTo(imageBindingValue);
 
@@ -269,7 +269,7 @@ public class FrameContextTest {
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
-        .contains("Text binding not found");
+        .contains("Parameterized text binding not found");
 
     // Binding has no content
     assertThatRunnable(
@@ -282,13 +282,7 @@ public class FrameContextTest {
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
-        .contains("Text binding not found");
-
-    // No text, but visibility is GONE, so succeed
-    assertThat(
-            makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
-                .getParameterizedTextFromBinding(textBindingRef))
-        .isEqualTo(ParameterizedText.getDefaultInstance());
+        .contains("Parameterized text binding not found");
   }
 
   @Test
@@ -300,7 +294,6 @@ public class FrameContextTest {
     frameContext = makeFrameContextWithBinding(imageBindingValue);
 
     // Succeed in looking up binding
-    assertThat(frameContext.getImageFromBinding(imageBindingRef)).isEqualTo(image);
     assertThat(frameContext.getImageBindingValue(imageBindingRef)).isEqualTo(imageBindingValue);
 
     // Can't look up binding
@@ -329,12 +322,6 @@ public class FrameContextTest {
         .that()
         .hasMessageThat()
         .contains("Image binding not found");
-
-    // No image, but visibility is GONE, so succeed
-    assertThat(
-            makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
-                .getImageFromBinding(imageBindingRef))
-        .isEqualTo(Image.getDefaultInstance());
   }
 
   @Test
@@ -348,7 +335,6 @@ public class FrameContextTest {
     frameContext = makeFrameContextWithBinding(listBindingValue);
 
     // Succeed in looking up binding
-    assertThat(frameContext.getElementListFromBinding(listBindingRef)).isEqualTo(list);
     assertThat(frameContext.getElementListBindingValue(listBindingRef)).isEqualTo(listBindingValue);
 
     // Can't look up binding
@@ -377,12 +363,6 @@ public class FrameContextTest {
         .that()
         .hasMessageThat()
         .contains("ElementList binding not found");
-
-    // No image, but visibility is GONE, so succeed
-    assertThat(
-            makeFrameContextWithBinding(defaultBinding().setVisibility(Visibility.GONE).build())
-                .getElementListFromBinding(listBindingRef))
-        .isEqualTo(ElementList.getDefaultInstance());
   }
 
   @Test
@@ -423,27 +403,6 @@ public class FrameContextTest {
     assertThat(
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isNull();
-  }
-
-  @Test
-  public void testGetCustomElementFromBinding() {
-    frameContext =
-        makeFrameContextWithBinding(
-            defaultBinding().setCustomElementData(CustomElementData.getDefaultInstance()).build());
-    assertThat(
-            frameContext.getCustomElementFromBinding(
-                CustomBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isEqualTo(CustomElementData.getDefaultInstance());
-    assertThat(
-            frameContext.getCustomElementFromBinding(
-                CustomBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .isNull();
-
-    frameContext = makeFrameContextWithEmptyBinding();
-    assertThat(
-            frameContext.getCustomElementFromBinding(
-                CustomBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
         .isNull();
   }
 
@@ -491,31 +450,93 @@ public class FrameContextTest {
   }
 
   @Test
-  public void testGetChunkedTextFromBinding() {
-    ChunkedText chunkedText =
+  public void testGetCustomElementBindingValue() {
+    CustomElementData customElement = CustomElementData.getDefaultInstance();
+    BindingValue customElementBindingValue =
+        defaultBinding().setCustomElementData(customElement).build();
+    CustomBindingRef customBindingRef =
+        CustomBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(customElementBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getCustomElementBindingValue(customBindingRef))
+        .isEqualTo(customElementBindingValue);
+
+    // Can't look up binding
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                frameContext.getCustomElementBindingValue(
+                    CustomBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build());
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Custom element binding not found");
+
+    // Binding has no content
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                makeFrameContextWithEmptyBinding().getCustomElementBindingValue(customBindingRef);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Custom element binding not found");
+  }
+
+  @Test
+  public void testGetChunkedTextBindingValue() {
+    ChunkedText text =
         ChunkedText.newBuilder()
             .addChunks(
                 Chunk.newBuilder()
                     .setTextChunk(
                         StyledTextChunk.newBuilder()
-                            .setParameterizedText(ParameterizedText.newBuilder().setText("PB"))))
+                            .setParameterizedText(ParameterizedText.newBuilder().setText("text"))))
             .build();
-    frameContext =
-        makeFrameContextWithBinding(defaultBinding().setChunkedText(chunkedText).build());
-    assertThat(
-            frameContext.getChunkedTextFromBinding(
-                ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isEqualTo(chunkedText);
-    assertThat(
-            frameContext.getChunkedTextFromBinding(
-                ChunkedTextBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .isNull();
+    BindingValue imageBindingValue = defaultBinding().setChunkedText(text).build();
+    ChunkedTextBindingRef textBindingRef =
+        ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build();
 
-    frameContext = makeFrameContextWithEmptyBinding();
-    assertThat(
-            frameContext.getChunkedTextFromBinding(
-                ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isNull();
+    frameContext = makeFrameContextWithBinding(imageBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getChunkedTextBindingValue(textBindingRef))
+        .isEqualTo(imageBindingValue);
+
+    // Can't look up binding
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                frameContext.getChunkedTextBindingValue(
+                    ChunkedTextBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build());
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Chunked text binding not found");
+
+    // Binding has no content
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                makeFrameContextWithEmptyBinding().getChunkedTextBindingValue(textBindingRef);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Chunked text binding not found");
   }
 
   private FrameContext defaultFrameContext() {

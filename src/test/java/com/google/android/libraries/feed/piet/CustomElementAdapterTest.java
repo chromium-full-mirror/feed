@@ -29,6 +29,8 @@ import com.google.android.libraries.feed.common.testing.RunnableSubject.Throwing
 import com.google.android.libraries.feed.piet.CustomElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -106,7 +108,8 @@ public class CustomElementAdapterTest {
   @Test
   public void testBindModel_binding() {
     CustomBindingRef bindingRef = CustomBindingRef.newBuilder().setBindingId("CUSTOM!").build();
-    when(frameContext.getCustomElementFromBinding(bindingRef)).thenReturn(DUMMY_DATA);
+    when(frameContext.getCustomElementBindingValue(bindingRef))
+        .thenReturn(BindingValue.newBuilder().setCustomElementData(DUMMY_DATA).build());
 
     CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
 
@@ -123,6 +126,90 @@ public class CustomElementAdapterTest {
 
     verifyZeroInteractions(customElementProvider);
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testBindModel_visibilityGone() {
+    CustomBindingRef bindingRef = CustomBindingRef.newBuilder().setBindingId("CUSTOM!").build();
+    when(frameContext.getCustomElementBindingValue(bindingRef))
+        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
+    CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
+    adapter.createAdapter(model, frameContext);
+
+    adapter.bindModel(model, frameContext);
+
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
+  public void testBindModel_setsVisibility() {
+    CustomBindingRef customBindingRef =
+        CustomBindingRef.newBuilder().setBindingId("CUSTOM").build();
+    CustomElement customElement =
+        CustomElement.newBuilder().setCustomBinding(customBindingRef).build();
+    adapter.createAdapter(
+        CustomElement.newBuilder()
+            .setCustomElementData(CustomElementData.getDefaultInstance())
+            .build(),
+        frameContext);
+
+    // Sets visibility on bound value with content
+    when(frameContext.getCustomElementBindingValue(customBindingRef))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setCustomElementData(CustomElementData.getDefaultInstance())
+                .setVisibility(Visibility.INVISIBLE)
+                .build());
+    adapter.bindModel(customElement, frameContext);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
+    adapter.unbindModel();
+
+    // Sets visibility for inline content
+    adapter.bindModel(
+        CustomElement.newBuilder()
+            .setCustomElementData(CustomElementData.getDefaultInstance())
+            .build(),
+        frameContext);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+    adapter.unbindModel();
+
+    // Sets visibility on GONE binding with no content
+    when(frameContext.getCustomElementBindingValue(customBindingRef))
+        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
+    adapter.bindModel(customElement, frameContext);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
+    adapter.unbindModel();
+
+    // Sets visibility with VISIBLE binding
+    when(frameContext.getCustomElementBindingValue(customBindingRef))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setCustomElementData(CustomElementData.getDefaultInstance())
+                .setVisibility(Visibility.VISIBLE)
+                .build());
+    adapter.bindModel(customElement, frameContext);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
+  public void testBindModel_noContentInBinding() {
+    CustomBindingRef bindingRef = CustomBindingRef.newBuilder().setBindingId("CUSTOM").build();
+    when(frameContext.getCustomElementBindingValue(bindingRef))
+        .thenReturn(BindingValue.newBuilder().setBindingId("CUSTOM").build());
+    CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
+    adapter.createAdapter(model, frameContext);
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(model, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Custom element binding CUSTOM had no content");
   }
 
   @Test

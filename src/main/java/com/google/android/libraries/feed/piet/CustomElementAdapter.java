@@ -21,6 +21,8 @@ import android.view.View;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -60,10 +62,21 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
     switch (customElement.getContentCase()) {
       case CUSTOM_ELEMENT_DATA:
         customElementData = customElement.getCustomElementData();
+        setVisibility(Visibility.VISIBLE);
         break;
       case CUSTOM_BINDING:
-        customElementData =
-            frameContext.getCustomElementFromBinding(customElement.getCustomBinding());
+        BindingValue binding =
+            frameContext.getCustomElementBindingValue(customElement.getCustomBinding());
+        setVisibility(binding.getVisibility());
+        if (!binding.hasCustomElementData()) {
+          if (binding.getVisibility() == Visibility.GONE) {
+            return;
+          } else {
+            throw new IllegalArgumentException(
+                String.format("Custom element binding %s had no content", binding.getBindingId()));
+          }
+        }
+        customElementData = binding.getCustomElementData();
         break;
       default:
         Logger.e(TAG, "Missing payload in CustomElement");

@@ -19,12 +19,15 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
@@ -53,7 +56,7 @@ class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
 
   @Override
   void onCreateAdapter(ImageElement model, Element baseElement, FrameContext frameContext) {
-    initialBind();
+    initialCreate();
 
     StyleProvider style = getElementStyle();
 
@@ -101,13 +104,20 @@ class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
     switch (model.getContentCase()) {
       case IMAGE:
         image = model.getImage();
+        getBaseView().setVisibility(View.VISIBLE);
         break;
       case IMAGE_BINDING:
-        image = frameContext.getImageFromBinding(model.getImageBinding());
-        if (image == null) {
-          throw new IllegalStateException(
-              String.format("Image binding not found for %s", model.getImageBinding()));
+        BindingValue binding = frameContext.getImageBindingValue(model.getImageBinding());
+        setVisibility(binding.getVisibility());
+        if (!binding.hasImage()) {
+          if (binding.getVisibility() == Visibility.GONE) {
+            return;
+          } else {
+            throw new IllegalArgumentException(
+                String.format("Image binding %s had no content", binding.getBindingId()));
+          }
         }
+        image = binding.getImage();
         break;
       default:
         throw new IllegalStateException(
@@ -120,25 +130,6 @@ class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
 
     if (model.getStyleReferences().hasStyleBinding()) {
       getElementStyle().setElementStyles(getContext(), getFrameContext(), getBaseView());
-    }
-  }
-
-  private void initialBind() {
-    if (getBaseView() != null) {
-      return;
-    }
-    FrameLayout frameLayout = new FrameLayout(getContext());
-    initializeAdapter(frameLayout, KeySupplier.SINGLETON_KEY);
-    initializeImageView();
-  }
-
-  // TODO: After the AssetProvider returns Drawable instead of ImageView, make the base
-  // view be ImageView and get rid of the FrameLayout.
-  private void initializeImageView() {
-    imageView = new ImageView(getContext());
-    FrameLayout frameLayout = getBaseView();
-    if (frameLayout != null) {
-      frameLayout.addView(imageView);
     }
   }
 
@@ -161,6 +152,20 @@ class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
   @Override
   StyleIdsStack getElementStyleIdsStack() {
     return getModel().getStyleReferences();
+  }
+
+  private void initialCreate() {
+    if (getBaseView() != null) {
+      return;
+    }
+    // TODO: After the AssetProvider returns Drawable instead of ImageView, make the
+    // base view be ImageView and get rid of the FrameLayout.
+    FrameLayout frameLayout = new FrameLayout(getContext());
+    imageView = new ImageView(getContext());
+    if (frameLayout != null) {
+      frameLayout.addView(imageView);
+    }
+    initializeAdapter(frameLayout, KeySupplier.SINGLETON_KEY);
   }
 
   private int getPaddingWidthPx(Context context, StyleProvider style) {

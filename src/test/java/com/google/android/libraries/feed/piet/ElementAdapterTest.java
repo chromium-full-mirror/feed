@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.piet.util.Producers;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
@@ -462,6 +463,20 @@ public class ElementAdapterTest {
     assertThat(adapter.getView()).isSameAs(adapter.getBaseView());
     assertThat(overlayView.getChildCount()).isEqualTo(0);
     verify(mockOverlayAdapter).releaseAdapter();
+  }
+
+  @Test
+  public void testSetVisibility() {
+    adapter.createAdapter(Element.getDefaultInstance(), Element.getDefaultInstance(), frameContext);
+    adapter.getBaseView().setVisibility(View.GONE);
+    adapter.setVisibility(Visibility.VISIBLE);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+    adapter.setVisibility(Visibility.INVISIBLE);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
+    adapter.setVisibility(Visibility.GONE);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
+    adapter.setVisibility(Visibility.VISIBILITY_UNSPECIFIED);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
   }
 
   // Dummy implementation

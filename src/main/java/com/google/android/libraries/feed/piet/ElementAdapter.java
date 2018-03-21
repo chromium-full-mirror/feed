@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
@@ -404,5 +405,26 @@ abstract class ElementAdapter<V extends View, M> {
 
   ParameterizedTextEvaluator getTemplatedStringEvaluator() {
     return parameters.templatedStringEvaluator;
+  }
+
+  protected void setVisibility(Visibility visibility) {
+    View view = getView();
+    if (view == null) {
+      return;
+    }
+    switch (visibility) {
+      case INVISIBLE:
+        view.setVisibility(View.INVISIBLE);
+        break;
+      case GONE:
+        view.setVisibility(View.GONE);
+        break;
+      case VISIBILITY_UNSPECIFIED:
+      case VISIBLE:
+        view.setVisibility(View.VISIBLE);
+        break;
+      default:
+        throw new IllegalArgumentException(String.format("Unhandled visibility: %s", visibility));
+    }
   }
 }

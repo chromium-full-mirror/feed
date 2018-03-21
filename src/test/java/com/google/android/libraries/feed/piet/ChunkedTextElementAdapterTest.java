@@ -36,6 +36,7 @@ import android.text.style.AbsoluteSizeSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
+import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
@@ -43,6 +44,8 @@ import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ImageSpa
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapterTest.ShadowTextViewWithHeight;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
@@ -89,6 +92,8 @@ public class ChunkedTextElementAdapterTest {
                   .setParameterizedText(PARAMETERIZED_CHUNK_TEXT)
                   .setStyleReferences(CHUNK_STYLE))
           .build();
+  public static final ChunkedText CHUNKED_TEXT_TEXT =
+      ChunkedText.newBuilder().addChunks(TEXT_CHUNK).build();
   private static final String CHUNKY_URL = "pb.com/jif";
   private static final Image IMAGE_CHUNK_IMAGE =
       Image.newBuilder().addSources(ImageSource.newBuilder().setUrl(CHUNKY_URL)).build();
@@ -99,6 +104,9 @@ public class ChunkedTextElementAdapterTest {
                   .setImage(IMAGE_CHUNK_IMAGE)
                   .setStyleReferences(CHUNK_STYLE))
           .build();
+  private static final String BINDING_ID = "PB";
+  private static final ChunkedTextBindingRef CHUNKED_TEXT_BINDING_REF =
+      ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build();
 
   private static final int STYLE_HEIGHT_DP = 6;
   private static final int STYLE_ASPECT_RATIO = 2;
@@ -165,9 +173,7 @@ public class ChunkedTextElementAdapterTest {
   @Test
   public void testBind_chunkedText() {
     TextElement chunkedTextElement =
-        TextElement.newBuilder()
-            .setChunkedText(ChunkedText.newBuilder().addChunks(TEXT_CHUNK))
-            .build();
+        TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build();
 
     adapter.createAdapter(chunkedTextElement, frameContext);
     adapter.bindModel(chunkedTextElement, frameContext);
@@ -177,17 +183,16 @@ public class ChunkedTextElementAdapterTest {
 
   @Test
   public void testBind_chunkedTextBinding() {
-    ChunkedText chunkedText = ChunkedText.newBuilder().addChunks(TEXT_CHUNK).build();
-    ChunkedTextBindingRef binding = ChunkedTextBindingRef.newBuilder().setBindingId("PB").build();
     TextElement chunkedTextBindingElement =
-        TextElement.newBuilder().setChunkedTextBinding(binding).build();
+        TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();
 
-    when(frameContext.getChunkedTextFromBinding(binding)).thenReturn(chunkedText);
+    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
+        .thenReturn(BindingValue.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build());
 
     adapter.createAdapter(chunkedTextBindingElement, frameContext);
     adapter.bindModel(chunkedTextBindingElement, frameContext);
 
-    verify(frameContext).getChunkedTextFromBinding(binding);
+    verify(frameContext).getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF);
     assertThat(adapter.getBaseView().getText().toString()).isEqualTo(PROCESSED_TEXT);
   }
 
@@ -233,9 +238,7 @@ public class ChunkedTextElementAdapterTest {
   @Test
   public void testBind_textChunk() {
     TextElement chunkedTextElement =
-        TextElement.newBuilder()
-            .setChunkedText(ChunkedText.newBuilder().addChunks(TEXT_CHUNK))
-            .build();
+        TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build();
 
     adapter.createAdapter(chunkedTextElement, frameContext);
     adapter.bindModel(chunkedTextElement, frameContext);
@@ -279,6 +282,86 @@ public class ChunkedTextElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Unhandled type of ChunkedText Chunk");
+  }
+
+  @Test
+  public void testSetTextOnView_visibilityGone() {
+    TextElement chunkedTextBindingElement =
+        TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();
+
+    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
+        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
+
+    adapter.createAdapter(chunkedTextBindingElement, frameContext);
+
+    adapter.setTextOnView(frameContext, chunkedTextBindingElement);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
+  public void testSetTextOnView_setsVisibility() {
+    TextElement chunkedTextBindingElement =
+        TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();
+    adapter.createAdapter(
+        TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build(), frameContext);
+
+    // Sets visibility on bound value with content
+    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setChunkedText(CHUNKED_TEXT_TEXT)
+                .setVisibility(Visibility.INVISIBLE)
+                .build());
+    adapter.setTextOnView(frameContext, chunkedTextBindingElement);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
+
+    // Sets visibility for inline content
+    adapter.setTextOnView(
+        frameContext, TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build());
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+
+    // Sets visibility on GONE binding with no content
+    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
+        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
+    adapter.setTextOnView(frameContext, chunkedTextBindingElement);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
+
+    // Sets visibility with VISIBLE binding
+    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setChunkedText(CHUNKED_TEXT_TEXT)
+                .setVisibility(Visibility.VISIBLE)
+                .build());
+    adapter.setTextOnView(frameContext, chunkedTextBindingElement);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
+  public void testSetTextOnView_noContent() {
+    TextElement chunkedTextBindingElement =
+        TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();
+    adapter.createAdapter(
+        TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build(), frameContext);
+
+    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setBindingId(BINDING_ID)
+                .setVisibility(Visibility.INVISIBLE)
+                .build());
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.setTextOnView(frameContext, chunkedTextBindingElement);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Chunked text binding PB had no content");
   }
 
   @Test

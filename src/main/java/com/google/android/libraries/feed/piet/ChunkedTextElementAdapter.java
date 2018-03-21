@@ -35,6 +35,8 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
@@ -63,9 +65,21 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     switch (textLine.getContentCase()) {
       case CHUNKED_TEXT:
         chunkedText = textLine.getChunkedText();
+        setVisibility(Visibility.VISIBLE);
         break;
       case CHUNKED_TEXT_BINDING:
-        chunkedText = frameContext.getChunkedTextFromBinding(textLine.getChunkedTextBinding());
+        BindingValue binding =
+            frameContext.getChunkedTextBindingValue(textLine.getChunkedTextBinding());
+        setVisibility(binding.getVisibility());
+        if (!binding.hasChunkedText()) {
+          if (binding.getVisibility() == Visibility.GONE) {
+            return;
+          } else {
+            throw new IllegalArgumentException(
+                String.format("Chunked text binding %s had no content", binding.getBindingId()));
+          }
+        }
+        chunkedText = binding.getChunkedText();
         break;
       default:
         throw new IllegalArgumentException(

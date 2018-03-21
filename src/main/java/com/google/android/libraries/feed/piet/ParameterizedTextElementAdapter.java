@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
@@ -40,51 +41,39 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
   @Override
   void setTextOnView(FrameContext frameContext, TextElement textLine) {
     TextView textView = checkNotNull(getBaseView());
-    if (textLine.hasParameterizedTextBinding()) {
-      BindingValue bindingValue =
-          frameContext.getParameterizedTextBindingValue(textLine.getParameterizedTextBinding());
-      if (bindingValue == null) {
-        // If no binding is specified, raise an error and hide the corresponding UI element.
-        Logger.e(
-            TAG,
-            frameContext.reportError(
-                ErrorType.ERROR,
-                String.format(
-                    "TextElement Binding not found for %s",
-                    textLine.getParameterizedTextBinding())));
-        textView.setVisibility(View.GONE);
-
-      } else {
-        if (bindingValue.hasVisibility()) {
-          switch (bindingValue.getVisibility()) {
-            case INVISIBLE:
-              textView.setVisibility(View.INVISIBLE);
-              break;
-            case GONE:
-              textView.setVisibility(View.GONE);
-              break;
-            case VISIBLE:
-              // Nothing to do for default: visible. Included here for completeness.
-              break;
-            default:
-              // Intentionally keeping the error string short, because all debug strings will be
-              // included in the binary.
-              throw new AssertionError("Unhandled");
-          }
+    switch (textLine.getContentCase()) {
+      case PARAMETERIZED_TEXT:
+        // No bindings found, so use the inlined value (or empty if not set)
+        setTextOnView(
+            frameContext,
+            textView,
+            textLine.hasParameterizedText() ? textLine.getParameterizedText() : null);
+        setVisibility(Visibility.VISIBLE);
+        break;
+      case PARAMETERIZED_TEXT_BINDING:
+        BindingValue bindingValue =
+            frameContext.getParameterizedTextBindingValue(textLine.getParameterizedTextBinding());
+        if (bindingValue == null) {
+          // If no binding is specified, raise an error and hide the corresponding UI element.
+          Logger.e(
+              TAG,
+              frameContext.reportError(
+                  ErrorType.ERROR,
+                  String.format(
+                      "TextElement Binding not found for %s",
+                      textLine.getParameterizedTextBinding())));
+          textView.setVisibility(View.GONE);
+          return;
         }
+
+        setVisibility(bindingValue.getVisibility());
 
         // If text is provided, or is null, set it even if visibility is set to GONE or INVISIBLE,
         // in case a later optimistic update operation changes the visibility but wants to retain
         // the previously-set text.
         setTextOnView(frameContext, textView, bindingValue.getParameterizedText());
-      }
-    } else if (textLine.hasParameterizedText()) {
-      // No bindings found, so use the inlined value (or empty if not set)
-      setTextOnView(
-          frameContext,
-          textView,
-          textLine.hasParameterizedText() ? textLine.getParameterizedText() : null);
-    } else {
+        break;
+      default:
       throw new IllegalArgumentException(
           String.format(
               "TextElement missing ParameterizedText content; has %s", textLine.getContentCase()));

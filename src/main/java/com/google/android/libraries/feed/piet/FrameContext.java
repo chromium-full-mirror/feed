@@ -39,12 +39,9 @@ import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
-import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
-import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
-import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
@@ -52,8 +49,6 @@ import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import com.google.search.now.ui.piet.TextProto.ChunkedText;
-import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -289,29 +284,6 @@ class FrameContext {
   }
 
   /**
-   * Return a {@link Image} for the binding if there is one defined; otherwise returns {@code null}.
-   */
-  Image getImageFromBinding(ImageBindingRef binding) {
-    return getImageBindingValue(binding).getImage();
-  }
-
-  /**
-   * Return a {@link ElementList} for the binding if there is one defined; otherwise returns {@code
-   * null}.
-   */
-  ElementList getElementListFromBinding(ElementListBindingRef binding) {
-    return getElementListBindingValue(binding).getElementList();
-  }
-
-  /**
-   * Return a {@link ParameterizedText} for the binding if there is one defined; otherwise returns
-   * {@code null}.
-   */
-  ParameterizedText getParameterizedTextFromBinding(ParameterizedTextBindingRef binding) {
-    return getParameterizedTextBindingValue(binding).getParameterizedText();
-  }
-
-  /**
    * Return a {@link GridCellWidth} for the binding if there is one defined; otherwise returns
    * {@code null}.
    */
@@ -334,18 +306,6 @@ class FrameContext {
   }
 
   /**
-   * Return a {@link CustomElementData} for the binding if there is one defined; otherwise returns
-   * {@code null}.
-   */
-  @Nullable
-  CustomElementData getCustomElementFromBinding(CustomBindingRef binding) {
-    BindingValue bindingValue = bindingValues.get(binding.getBindingId());
-    return bindingValue == null || !bindingValue.hasCustomElementData()
-        ? null
-        : bindingValue.getCustomElementData();
-  }
-
-  /**
    * Return a {@link BoundStyle} for the binding if there is one defined; otherwise returns {@code
    * null}.
    */
@@ -364,22 +324,49 @@ class FrameContext {
   @Nullable
   TemplateInvocation getTemplateInvocationFromBinding(TemplateBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
+    if (bindingValue != null && bindingValue.hasVisibility()) {
+      Logger.e(TAG, "Visibility not supported for templates; got %s", bindingValue.getVisibility());
+    }
     return bindingValue == null || !bindingValue.hasTemplateInvocation()
         ? null
         : bindingValue.getTemplateInvocation();
   }
 
-  @Nullable
-  ChunkedText getChunkedTextFromBinding(ChunkedTextBindingRef binding) {
-    BindingValue bindingValue = bindingValues.get(binding.getBindingId());
-    return bindingValue == null || !bindingValue.hasChunkedText()
-        ? null
-        : bindingValue.getChunkedText();
+  /**
+   * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
+   * does not point to a custom element resource.
+   */
+  BindingValue getCustomElementBindingValue(CustomBindingRef binding) {
+    BindingValue returnValue = bindingValues.get(binding.getBindingId());
+    if (returnValue == null
+        || (!returnValue.hasCustomElementData()
+            && !returnValue.getVisibility().equals(Visibility.GONE))) {
+      throw new IllegalStateException(
+          String.format("Custom element binding not found for %s", binding.getBindingId()));
+    } else {
+      return returnValue;
+    }
   }
 
   /**
    * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
-   * does not point to a text resource.
+   * does not point to a chunked text resource.
+   */
+  BindingValue getChunkedTextBindingValue(ChunkedTextBindingRef binding) {
+    BindingValue returnValue = bindingValues.get(binding.getBindingId());
+    if (returnValue == null
+        || (!returnValue.hasChunkedText()
+            && !returnValue.getVisibility().equals(Visibility.GONE))) {
+      throw new IllegalStateException(
+          String.format("Chunked text binding not found for %s", binding.getBindingId()));
+    } else {
+      return returnValue;
+    }
+  }
+
+  /**
+   * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
+   * does not point to a parameterized text resource.
    */
   BindingValue getParameterizedTextBindingValue(ParameterizedTextBindingRef binding) {
     BindingValue returnValue = bindingValues.get(binding.getBindingId());
@@ -387,7 +374,7 @@ class FrameContext {
         || (!returnValue.hasParameterizedText()
             && !returnValue.getVisibility().equals(Visibility.GONE))) {
       throw new IllegalStateException(
-          String.format("Text binding not found for %s", binding.getBindingId()));
+          String.format("Parameterized text binding not found for %s", binding.getBindingId()));
     } else {
       return returnValue;
     }
