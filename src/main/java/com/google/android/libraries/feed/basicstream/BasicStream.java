@@ -20,6 +20,7 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
@@ -35,13 +36,14 @@ import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
+import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.ActionParser;
+import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.PietStylesHelper;
-import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,19 +71,20 @@ public class BasicStream implements Stream {
   public BasicStream(
       Context context,
       CardConfiguration cardConfiguration,
-      AssetProvider assetProvider,
+      ImageLoaderApi imageLoaderApi,
       ActionParser actionParser,
       ActionApi actionApi,
       CustomElementProvider customElementProvider,
       ThreadUtils threadUtils,
-      List<View> headers) {
+      List<View> headers,
+      Clock clock) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
     this.pietSharedStateSupplier = createPietSharedStateSupplier();
     this.pietManager =
         new PietManager(
             new PietStylesHelper(pietSharedStateSupplier),
-            assetProvider,
+            new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
             (action, frame, veLoggingToken) ->
                 actionParser.parseAction(
                     action,

@@ -1,0 +1,90 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.basicstream.internal.piet;
+
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import android.graphics.drawable.Drawable;
+import com.google.android.libraries.feed.api.stream.CardConfiguration;
+import com.google.android.libraries.feed.common.testing.TestClockImpl;
+import com.google.android.libraries.feed.host.common.Callback;
+import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
+import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.ImagesProto.ImageSource;
+import org.robolectric.RobolectricTestRunner;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+
+/** Tests for {@link PietAssetProvider}. */
+@RunWith(RobolectricTestRunner.class)
+public class PietAssetProviderTest {
+
+  private static final int DEFAULT_CORNER_RADIUS = 10;
+
+  @Mock private CardConfiguration cardConfiguration;
+  @Mock private ImageLoaderApi imageLoaderApi;
+
+  private TestClockImpl clock;
+  private PietAssetProvider pietAssetProvider;
+
+  @Before
+  public void setUp() {
+    initMocks(this);
+
+    when(cardConfiguration.getDefaultCornerRadius()).thenReturn(DEFAULT_CORNER_RADIUS);
+
+    clock = new TestClockImpl();
+    pietAssetProvider = new PietAssetProvider(imageLoaderApi, cardConfiguration, clock);
+  }
+
+  @Test
+  public void testGetImage() {
+    List<String> urls = Arrays.asList("url0", "url1", "url2");
+    Image.Builder imageBuilder = Image.newBuilder();
+    for (String url : urls) {
+      imageBuilder.addSources(ImageSource.newBuilder().setUrl(url).build());
+    }
+
+    Callback<Drawable> callback =
+        new Callback<Drawable>() {
+          @Override
+          public void handleResult(Drawable value) {
+            // Do nothing.
+          }
+        };
+
+    pietAssetProvider.getImage(imageBuilder.build(), callback);
+    verify(imageLoaderApi).loadDrawable(urls, callback);
+  }
+
+  @Test
+  public void testGetRelativeElapsedString() {
+    assertThat(pietAssetProvider.getRelativeElapsedString(TimeUnit.MINUTES.toMillis(1)))
+        .isEqualTo("in 1 min");
+  }
+
+  @Test
+  public void testGetDefaultCornerRadius() {
+    assertThat(pietAssetProvider.getDefaultCornerRadius()).isEqualTo(DEFAULT_CORNER_RADIUS);
+  }
+}

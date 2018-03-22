@@ -24,9 +24,10 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
+import com.google.android.libraries.feed.common.testing.TestClockImpl;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.ActionParser;
-import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ import org.robolectric.Robolectric;
 public class BasicStreamTest {
 
   @Mock private CardConfiguration cardConfiguration;
-  @Mock private AssetProvider assetProvider;
+  @Mock private ImageLoaderApi imageLoaderApi;
   @Mock private ActionParser actionParser;
   @Mock private ActionApi actionApi;
   @Mock private CustomElementProvider customElementProvider;
@@ -63,12 +64,13 @@ public class BasicStreamTest {
         new BasicStream(
             Robolectric.setupActivity(Activity.class),
             cardConfiguration,
-            assetProvider,
+            imageLoaderApi,
             actionParser,
             actionApi,
             customElementProvider,
             threadUtils,
-            headers) {
+            headers,
+            new TestClockImpl()) {
           @Override
           PietSharedStateSupplier createPietSharedStateSupplier() {
             return pietSharedStateSupplier;
