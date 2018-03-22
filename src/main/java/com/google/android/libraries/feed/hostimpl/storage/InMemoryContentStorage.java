@@ -18,9 +18,9 @@ import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
+import com.google.android.libraries.feed.host.storage.ContentOperation;
+import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
-import com.google.android.libraries.feed.host.storage.StorageOperation;
-import com.google.android.libraries.feed.host.storage.StorageOperation.Upsert;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,7 +62,7 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
 
   @Override
   public Future<Boolean> commit(ContentMutation mutation) {
-    for (StorageOperation operation : mutation.getOperations()) {
+    for (ContentOperation operation : mutation.getOperations()) {
       if (operation instanceof Upsert) {
         Upsert upsert = (Upsert) operation;
         String key = upsert.getKey();

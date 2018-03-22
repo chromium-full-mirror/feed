@@ -17,18 +17,18 @@ package com.google.android.libraries.feed.host.storage;
 import java.util.List;
 
 /**
- * Simplifies a {@link List<StorageOperation>} by combining and removing Operations according to the
+ * Simplifies a {@link List<ContentOperation>} by combining and removing Operations according to the
  * methods in {@link ContentMutation.Builder}.
  */
-class StorageOperationListSimplifier {
+class ContentOperationListSimplifier {
   /**
-   * Returns a new {@link List<StorageOperation>}, which is a simplification of {@code
-   * storageOperations}.
+   * Returns a new {@link List<ContentOperation>}, which is a simplification of {@code
+   * contentOperations}.
    *
-   * <p>The returned list will have a length at most equal to {@code storageOperations}.
+   * <p>The returned list will have a length at most equal to {@code contentOperations}.
    */
-  List<StorageOperation> simplify(List<StorageOperation> storageOperations) {
+  List<ContentOperation> simplify(List<ContentOperation> contentOperations) {
     // TODO: implement
-    return storageOperations;
+    return contentOperations;
   }
 }

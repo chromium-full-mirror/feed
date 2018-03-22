@@ -14,27 +14,27 @@
 
 package com.google.android.libraries.feed.host.storage;
 
-import com.google.android.libraries.feed.host.storage.StorageOperation.Delete;
-import com.google.android.libraries.feed.host.storage.StorageOperation.DeleteByPrefix;
-import com.google.android.libraries.feed.host.storage.StorageOperation.Upsert;
+import com.google.android.libraries.feed.host.storage.ContentOperation.Delete;
+import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteByPrefix;
+import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * A sequence of {@link StorageOperation} instances. This class is used to commit changes to {@link
+ * A sequence of {@link ContentOperation} instances. This class is used to commit changes to {@link
  * ContentStorage}.
  */
 public class ContentMutation {
-  private final List<StorageOperation> operations;
+  private final List<ContentOperation> operations;
 
-  private ContentMutation(List<StorageOperation> operations) {
+  private ContentMutation(List<ContentOperation> operations) {
     this.operations = Collections.unmodifiableList(operations);
   }
 
   /** An unmodifiable list of operations to be committed by {@link ContentStorage}. */
-  public List<StorageOperation> getOperations() {
+  public List<ContentOperation> getOperations() {
     return operations;
   }
 
@@ -43,8 +43,8 @@ public class ContentMutation {
    * {@link ContentStorage}.
    */
   public static class Builder {
-    private final ArrayList<StorageOperation> operations = new ArrayList<>();
-    private final StorageOperationListSimplifier simplifier = new StorageOperationListSimplifier();
+    private final ArrayList<ContentOperation> operations = new ArrayList<>();
+    private final ContentOperationListSimplifier simplifier = new ContentOperationListSimplifier();
 
     /**
      * Sets the key/value pair in {@link ContentStorage}, or inserts it if it doesn't exist.
@@ -86,7 +86,7 @@ public class ContentMutation {
     }
 
     /**
-     * Simplifies the sequence of {@link StorageOperation} instances, and returns a new {@link
+     * Simplifies the sequence of {@link ContentOperation} instances, and returns a new {@link
      * ContentMutation} the simplified list.
      */
     public ContentMutation build() {

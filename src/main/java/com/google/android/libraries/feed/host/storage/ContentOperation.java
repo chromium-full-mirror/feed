@@ -18,7 +18,7 @@ import android.support.annotation.IntDef;
 import java.nio.ByteBuffer;
 
 /** A mutation to the underlying {@link ContentStorage}. */
-public abstract class StorageOperation {
+public abstract class ContentOperation {
   /** The types of operations. */
   @IntDef({Type.DELETE, Type.DELETE_BY_PREFIX, Type.UPSERT})
   @interface Type {
@@ -33,16 +33,16 @@ public abstract class StorageOperation {
 
   private final @Type int type;
 
-  // Only the following classes may extend StorageOperation
-  private StorageOperation(@Type int type) {
+  // Only the following classes may extend ContentOperation
+  private ContentOperation(@Type int type) {
     this.type = type;
   }
 
   /**
-   * A {@link StorageOperation} created by calling {@link ContentMutation.Builder#upsert(String,
+   * A {@link ContentOperation} created by calling {@link ContentMutation.Builder#upsert(String,
    * byte[])}.
    */
-  public static class Upsert extends StorageOperation {
+  public static class Upsert extends ContentOperation {
     private final String key;
     private final ByteBuffer value;
 
@@ -62,9 +62,9 @@ public abstract class StorageOperation {
   }
 
   /**
-   * A {@link StorageOperation} created by calling {@link ContentMutation.Builder#delete(String)}.
+   * A {@link ContentOperation} created by calling {@link ContentMutation.Builder#delete(String)}.
    */
-  public static class Delete extends StorageOperation {
+  public static class Delete extends ContentOperation {
     private final String key;
 
     Delete(String key) {
@@ -78,10 +78,10 @@ public abstract class StorageOperation {
   }
 
   /**
-   * A {@link StorageOperation} created by calling {@link
+   * A {@link ContentOperation} created by calling {@link
    * ContentMutation.Builder#deleteByPrefix(String)}.
    */
-  public static class DeleteByPrefix extends StorageOperation {
+  public static class DeleteByPrefix extends ContentOperation {
     private final String prefix;
 
     DeleteByPrefix(String prefix) {
