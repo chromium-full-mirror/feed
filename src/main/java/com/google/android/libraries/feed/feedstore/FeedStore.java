@@ -29,10 +29,10 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
 import com.google.android.libraries.feed.feedstore.internal.SessionState;
+import com.google.android.libraries.feed.host.storage.ContentMutation.Builder;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
-import com.google.android.libraries.feed.host.storage.StorageMutation.Builder;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;

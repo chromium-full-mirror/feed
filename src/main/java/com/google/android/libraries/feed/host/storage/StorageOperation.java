@@ -39,7 +39,7 @@ public abstract class StorageOperation {
   }
 
   /**
-   * A {@link StorageOperation} created by calling {@link StorageMutation.Builder#upsert(String,
+   * A {@link StorageOperation} created by calling {@link ContentMutation.Builder#upsert(String,
    * byte[])}.
    */
   public static class Upsert extends StorageOperation {
@@ -62,7 +62,7 @@ public abstract class StorageOperation {
   }
 
   /**
-   * A {@link StorageOperation} created by calling {@link StorageMutation.Builder#delete(String)}.
+   * A {@link StorageOperation} created by calling {@link ContentMutation.Builder#delete(String)}.
    */
   public static class Delete extends StorageOperation {
     private final String key;
@@ -79,7 +79,7 @@ public abstract class StorageOperation {
 
   /**
    * A {@link StorageOperation} created by calling {@link
-   * StorageMutation.Builder#deleteByPrefix(String)}.
+   * ContentMutation.Builder#deleteByPrefix(String)}.
    */
   public static class DeleteByPrefix extends StorageOperation {
     private final String prefix;

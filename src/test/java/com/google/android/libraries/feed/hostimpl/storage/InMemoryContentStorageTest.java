@@ -16,8 +16,8 @@ package com.google.android.libraries.feed.hostimpl.storage;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
-import com.google.android.libraries.feed.host.storage.StorageMutation;
 import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -49,7 +49,7 @@ public class InMemoryContentStorageTest {
 
   @Test
   public void storeAndRetrieve() throws Exception {
-    storage.commit(new StorageMutation.Builder().upsert(KEY_0, DATA_0).build()).get();
+    storage.commit(new ContentMutation.Builder().upsert(KEY_0, DATA_0).build()).get();
 
     byte[] value = storage.get(KEY_0).get();
 
@@ -59,7 +59,7 @@ public class InMemoryContentStorageTest {
   @Test
   public void multipleValues_get() throws Exception {
     storage
-        .commit(new StorageMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build())
+        .commit(new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build())
         .get();
 
     byte[] value0 = storage.get(KEY_0).get();
@@ -72,7 +72,7 @@ public class InMemoryContentStorageTest {
   @Test
   public void multipleValues_getAll() throws Exception {
     storage
-        .commit(new StorageMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build())
+        .commit(new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build())
         .get();
 
     Map<String, byte[]> values = storage.getAll(KEY).get();

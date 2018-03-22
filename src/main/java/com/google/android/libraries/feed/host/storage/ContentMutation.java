@@ -26,10 +26,10 @@ import java.util.List;
  * A sequence of {@link StorageOperation} instances. This class is used to commit changes to {@link
  * ContentStorage}.
  */
-public class StorageMutation {
+public class ContentMutation {
   private final List<StorageOperation> operations;
 
-  private StorageMutation(List<StorageOperation> operations) {
+  private ContentMutation(List<StorageOperation> operations) {
     this.operations = Collections.unmodifiableList(operations);
   }
 
@@ -39,7 +39,7 @@ public class StorageMutation {
   }
 
   /**
-   * Creates a {@link StorageMutation}, which can be used to apply mutations to the underlying
+   * Creates a {@link ContentMutation}, which can be used to apply mutations to the underlying
    * {@link ContentStorage}.
    */
   public static class Builder {
@@ -60,7 +60,7 @@ public class StorageMutation {
     /**
      * Deletes the value from {@link ContentStorage} with a matching key, if it exists.
      *
-     * <p>{@link ContentStorage#commit(StorageMutation)} will fulfill with result is {@code TRUE},
+     * <p>{@link ContentStorage#commit(ContentMutation)} will fulfill with result is {@code TRUE},
      * even if {@code key} is not found in {@link ContentStorage}.
      *
      * <p>If {@link Delete} and {@link Upsert} are committed for the same key, only the last
@@ -74,7 +74,7 @@ public class StorageMutation {
     /**
      * Deletes all values from {@link ContentStorage} with matching key prefixes.
      *
-     * <p>{@link ContentStorage#commit(StorageMutation)} will fulfill with result equal to {@code
+     * <p>{@link ContentStorage#commit(ContentMutation)} will fulfill with result equal to {@code
      * TRUE}, even if no keys have a matching prefix.
      *
      * <p>If {@link DeleteByPrefix} and {@link Upsert} are committed for the same matching key, only
@@ -87,10 +87,10 @@ public class StorageMutation {
 
     /**
      * Simplifies the sequence of {@link StorageOperation} instances, and returns a new {@link
-     * StorageMutation} the simplified list.
+     * ContentMutation} the simplified list.
      */
-    public StorageMutation build() {
-      return new StorageMutation(simplifier.simplify(operations));
+    public ContentMutation build() {
+      return new ContentMutation(simplifier.simplify(operations));
     }
   }
 }

@@ -36,11 +36,11 @@ public interface ContentStorage {
   Future<Map<String, byte[]>> getAll(String prefix);
 
   /**
-   * Commits the operations in the {@link StorageMutation} in order and asynchronously reports the
+   * Commits the operations in the {@link ContentMutation} in order and asynchronously reports the
    * results as a boolean, where success is equal to {@code TRUE}.
    *
    * <p>This operation is not guaranteed to be atomic. In the event of a failure, processing is
    * halted immediately, so the database may be left in an invalid state.
    */
-  Future<Boolean> commit(StorageMutation mutation);
+  Future<Boolean> commit(ContentMutation mutation);
 }

@@ -17,8 +17,8 @@ package com.google.android.libraries.feed.hostimpl.storage;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
-import com.google.android.libraries.feed.host.storage.StorageMutation;
 import com.google.android.libraries.feed.host.storage.StorageOperation;
 import com.google.android.libraries.feed.host.storage.StorageOperation.Upsert;
 import java.nio.ByteBuffer;
@@ -61,23 +61,23 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
   }
 
   @Override
-  public Future<Boolean> commit(StorageMutation mutation) {
+  public Future<Boolean> commit(ContentMutation mutation) {
     for (StorageOperation operation : mutation.getOperations()) {
       if (operation instanceof Upsert) {
         Upsert upsert = (Upsert) operation;
         String key = upsert.getKey();
         if (key == null) {
-          Logger.e(TAG, "Invalid StorageMutation: null key");
+          Logger.e(TAG, "Invalid ContentMutation: null key");
           return executor.submit(() -> false);
         }
         ByteBuffer valueBuffer = upsert.getValue();
         if (valueBuffer == null) {
-          Logger.e(TAG, "Invalid StorageMutation: null value");
+          Logger.e(TAG, "Invalid ContentMutation: null value");
           return executor.submit(() -> false);
         }
         byte[] value = valueBuffer.array();
         if (value.length == 0) {
-          Logger.e(TAG, "Invalid StorageMutation: empty value");
+          Logger.e(TAG, "Invalid ContentMutation: empty value");
           return executor.submit(() -> false);
         }
         byte[] currentValue = store.put(key, value);
@@ -87,7 +87,7 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
           updateCount++;
         }
       } else {
-        Logger.e(TAG, "Invalid StorageMutation: unexpected operation: %s", operation.getType());
+        Logger.e(TAG, "Invalid ContentMutation: unexpected operation: %s", operation.getType());
         return executor.submit(() -> false);
       }
     }

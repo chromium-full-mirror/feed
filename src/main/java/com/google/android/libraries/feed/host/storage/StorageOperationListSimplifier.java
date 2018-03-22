@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * Simplifies a {@link List<StorageOperation>} by combining and removing Operations according to the
- * methods in {@link StorageMutation.Builder}.
+ * methods in {@link ContentMutation.Builder}.
  */
 class StorageOperationListSimplifier {
   /**
