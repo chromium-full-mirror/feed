@@ -14,9 +14,11 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
@@ -32,7 +34,7 @@ import java.util.concurrent.Future;
 /** A {@link ContentStorage} that holds data in memory. */
 public class InMemoryContentStorage implements ContentStorage, Dumpable {
 
-  private static final String TAG = "InMemoryKVPStorage";
+  private static final String TAG = "InMemoryContentStorage";
 
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final Map<String, byte[]> store = new HashMap<>();
@@ -49,6 +51,12 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
   }
 
   @Override
+  public void get(String key, Consumer<byte[]> consumer) {
+    getCount++;
+    consumer.accept(store.get(key));
+  }
+
+  @Override
   public Future<Map<String, byte[]>> getAll(String prefix) {
     getAllCount++;
     Map<String, byte[]> results = new HashMap<>();
@@ -58,6 +66,18 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
       }
     }
     return executor.submit(() -> results);
+  }
+
+  @Override
+  public void getAll(String prefix, Consumer<Map<String, byte[]>> consumer) {
+    getAllCount++;
+    Map<String, byte[]> results = new HashMap<>();
+    for (Entry<String, byte[]> entry : store.entrySet()) {
+      if (entry.getKey().startsWith(prefix)) {
+        results.put(entry.getKey(), entry.getValue());
+      }
+    }
+    consumer.accept(results);
   }
 
   @Override
@@ -92,6 +112,44 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
       }
     }
     return executor.submit(() -> true);
+  }
+
+  @Override
+  public void commit(ContentMutation mutation, Consumer<CommitResult> consumer) {
+    for (ContentOperation operation : mutation.getOperations()) {
+      if (operation instanceof Upsert) {
+        Upsert upsert = (Upsert) operation;
+        String key = upsert.getKey();
+        if (key == null) {
+          Logger.e(TAG, "Invalid ContentMutation: null key");
+          consumer.accept(CommitResult.FAILURE);
+          return;
+        }
+        ByteBuffer valueBuffer = upsert.getValue();
+        if (valueBuffer == null) {
+          Logger.e(TAG, "Invalid ContentMutation: null value");
+          consumer.accept(CommitResult.FAILURE);
+          return;
+        }
+        byte[] value = valueBuffer.array();
+        if (value.length == 0) {
+          Logger.e(TAG, "Invalid ContentMutation: empty value");
+          consumer.accept(CommitResult.FAILURE);
+          return;
+        }
+        byte[] currentValue = store.put(key, value);
+        if (currentValue == null) {
+          insertCount++;
+        } else {
+          updateCount++;
+        }
+      } else {
+        Logger.e(TAG, "Invalid ContentMutation: unexpected operation: %s", operation.getType());
+        consumer.accept(CommitResult.FAILURE);
+        return;
+      }
+    }
+    consumer.accept(CommitResult.SUCCESS);
   }
 
   @Override
