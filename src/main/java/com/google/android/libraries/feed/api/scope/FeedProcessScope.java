@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.scope;
 
+import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
@@ -22,6 +23,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
+import com.google.android.libraries.feed.common.SystemClockImpl;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -63,7 +65,8 @@ public class FeedProcessScope implements Dumpable {
         sessionManager,
         threadUtils,
         timingUtils,
-        uiRunnableHandler);
+        uiRunnableHandler,
+        clock);
   }
 
   @Override
@@ -190,7 +193,8 @@ public class FeedProcessScope implements Dumpable {
           threadUtils,
           uiRunnableHandler,
           extensionRegistry,
-          appLifecycleListener);
+          appLifecycleListener,
+          new SystemClockImpl());
     }
 
     // Required fields.
@@ -223,7 +227,8 @@ public class FeedProcessScope implements Dumpable {
       ThreadUtils threadUtils,
       UiRunnableHandler uiRunnableHandler,
       FeedExtensionRegistry extensionRegistry,
-      AppLifecycleListener appLifecycleListener) {
+      AppLifecycleListener appLifecycleListener,
+      Clock clock) {
     this.configManager = configManager;
     this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
@@ -238,6 +243,7 @@ public class FeedProcessScope implements Dumpable {
     this.uiRunnableHandler = uiRunnableHandler;
     this.extensionRegistry = extensionRegistry;
     this.appLifecycleListener = appLifecycleListener;
+    this.clock = clock;
   }
 
   private final ConfigManager configManager;
@@ -254,6 +260,7 @@ public class FeedProcessScope implements Dumpable {
   private final UiRunnableHandler uiRunnableHandler;
   private final FeedExtensionRegistry extensionRegistry;
   private final AppLifecycleListener appLifecycleListener;
+  private final Clock clock;
 
   public FeedProtocolAdapter getProtocolAdapter() {
     return protocolAdapter;
@@ -275,4 +282,3 @@ public class FeedProcessScope implements Dumpable {
     return appLifecycleListener;
   }
 }
-

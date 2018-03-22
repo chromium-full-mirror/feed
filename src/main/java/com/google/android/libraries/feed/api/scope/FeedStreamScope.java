@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.api.scope;
 
 import com.google.android.libraries.feed.api.actionhandler.FeedActionHandler;
 import com.google.android.libraries.feed.api.actionhandler.FeedActionHandlerImpl;
+import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -51,7 +52,8 @@ public class FeedStreamScope {
         SessionManager sessionManager,
         ThreadUtils threadUtils,
         TimingUtils timingUtils,
-        UiRunnableHandler uiRunnableHandler) {
+        UiRunnableHandler uiRunnableHandler,
+        Clock clock) {
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
@@ -60,6 +62,7 @@ public class FeedStreamScope {
       this.threadUtils = threadUtils;
       this.timingUtils = timingUtils;
       this.uiRunnableHandler = uiRunnableHandler;
+      this.clock = clock;
     }
 
     public Builder setFeedActionHandler(FeedActionHandler feedActionHandler) {
@@ -108,6 +111,7 @@ public class FeedStreamScope {
     private final ThreadUtils threadUtils;
     private final TimingUtils timingUtils;
     private final UiRunnableHandler uiRunnableHandler;
+    private final Clock clock;
 
     // Optional internal components to override the default implementations.
     @Nullable private FeedActionHandler feedActionHandler = null;

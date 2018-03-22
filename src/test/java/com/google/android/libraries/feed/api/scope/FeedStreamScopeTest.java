@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.actionhandler.FeedActionHandler;
+import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -26,6 +27,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
+import com.google.android.libraries.feed.common.testing.TestClockImpl;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
@@ -55,6 +57,7 @@ public class FeedStreamScopeTest {
   private UiRunnableHandler uiRunnableHandler;
   private ThreadUtils threadUtils;
   private TimingUtils timingUtils;
+  private Clock clock;
 
   @Before
   public void setUp() {
@@ -62,6 +65,7 @@ public class FeedStreamScopeTest {
     uiRunnableHandler = new UiRunnableHandlerImpl();
     threadUtils = new ThreadUtils();
     timingUtils = new TimingUtils();
+    clock = new TestClockImpl();
   }
 
   @Test
@@ -75,7 +79,8 @@ public class FeedStreamScopeTest {
                 sessionManager,
                 threadUtils,
                 timingUtils,
-                uiRunnableHandler)
+                uiRunnableHandler,
+                clock)
             .build();
     // TODO: add Stream nonnull check
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -92,7 +97,8 @@ public class FeedStreamScopeTest {
                 sessionManager,
                 threadUtils,
                 timingUtils,
-                uiRunnableHandler)
+                uiRunnableHandler,
+                clock)
             .setFeedActionHandler(feedActionHandler)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)
