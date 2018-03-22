@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.common.Committer;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public class ModelMutationImpl implements ModelMutation {
     public final List<StreamStructure> structureChanges = new ArrayList<>();
     public final List<StreamStructure> updateChanges = new ArrayList<>();
     public StreamToken mutationSourceToken;
+    public StreamSession streamSession;
   }
 
   private final Committer<Void, Change> committer;
@@ -62,6 +64,12 @@ public class ModelMutationImpl implements ModelMutation {
   @Override
   public ModelMutation setMutationSourceToken(StreamToken mutationSourceToken) {
     change.mutationSourceToken = mutationSourceToken;
+    return this;
+  }
+
+  @Override
+  public ModelMutation setStreamSession(StreamSession streamSession) {
+    change.streamSession = streamSession;
     return this;
   }
 

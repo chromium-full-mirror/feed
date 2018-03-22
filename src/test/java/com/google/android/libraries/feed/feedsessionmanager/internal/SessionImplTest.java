@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
@@ -32,6 +31,7 @@ import com.google.android.libraries.feed.common.testing.RunnableSubject.Throwing
 import com.google.android.libraries.feed.host.config.ConfigManager;
 import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import org.robolectric.RobolectricTestRunner;
@@ -45,8 +45,10 @@ import org.mockito.Mock;
 /** Tests of the {@link SessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class SessionImplTest {
-  private static final StreamSession HEAD = new StreamSession("$HEAD");
-  private static final StreamSession TEST_SESSION = new StreamSession("TEST$1");
+  private static final StreamSession HEAD =
+      StreamSession.newBuilder().setStreamToken("$HEAD").build();
+  private static final StreamSession TEST_SESSION =
+      StreamSession.newBuilder().setStreamToken("TEST$1").build();
 
   @Mock private Store store;
   @Mock private ModelProvider modelProvider;
@@ -220,6 +222,11 @@ public class SessionImplTest {
     @Override
     public ModelMutation setMutationSourceToken(StreamToken mutationSourceToken) {
       this.token = mutationSourceToken;
+      return this;
+    }
+
+    @Override
+    public ModelMutation setStreamSession(StreamSession streamSession) {
       return this;
     }
 

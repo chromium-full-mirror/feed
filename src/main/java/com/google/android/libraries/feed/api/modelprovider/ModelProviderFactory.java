@@ -14,10 +14,12 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
+
 /** Factory method for creating {@link ModelProvider} instances. */
 public interface ModelProviderFactory {
   /** Returns a new instance of a {@link ModelProvider} from an existing session. */
-  ModelProvider create(String sessionId);
+  ModelProvider create(StreamSession sessionId);
 
   /** Returns a new instance of a {@link ModelProvider} from $HEAD. */
   ModelProvider createNew();

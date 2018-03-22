@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import android.text.TextUtils;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -41,6 +40,7 @@ import com.google.android.libraries.feed.host.config.ConfigManager;
 import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -88,6 +88,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   // operation counts for the dumper
   private int commitCount = 0;
   private int newSessionCount = 0;
+  private int existingSessionCount = 0;
   private int handleTokenCount = 0;
 
   public FeedSessionManager(
@@ -124,7 +125,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     // create the head session from the data in the Store
     Session head = sessionFactory.getHeadSession();
     synchronized (lock) {
-      sessions.put(head.getStreamSession().streamToken, head);
+      sessions.put(head.getStreamSession().getStreamToken(), head);
     }
     List<StreamStructure> structureMetadata = store.getStreamStructures(head.getStreamSession());
     synchronized (lock) {
@@ -156,10 +157,43 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           StreamSession streamSession = store.createNewSession();
           session.populateModelProvider(streamSession, store.getStreamStructures(streamSession));
           synchronized (lock) {
-            sessions.put(session.getStreamSession().streamToken, session);
+            sessions.put(session.getStreamSession().getStreamToken(), session);
           }
           timeTracker.stop("task", "Create/Populate New Session");
           newSessionCount++;
+        });
+  }
+
+  @Override
+  public void getExistingSession(StreamSession streamSession, ModelProvider modelProvider) {
+    threadUtils.checkMainThread();
+    InitializableSession session = sessionFactory.getSession(modelProvider);
+    // TODO: We need to deal with all sessions, some may be stored on disk an not yet
+    // loaded.
+    Session existingSession;
+    synchronized (lock) {
+      existingSession = sessions.get(streamSession.getStreamToken());
+    }
+    if (existingSession != null) {
+      ModelProvider existingModelProvider = existingSession.getModelProvider();
+      if (existingModelProvider != null) {
+        existingModelProvider.invalidate();
+      }
+    }
+
+    // Task which populates the newly created session.  This must be done
+    // on the Session Manager thread so it atomic with the mutations.
+    sessionManagerExecutor.execute(
+        () -> {
+          Logger.i(TAG, "Task: CreateExistingSession");
+          ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+
+          session.populateModelProvider(streamSession, store.getStreamStructures(streamSession));
+          synchronized (lock) {
+            sessions.put(session.getStreamSession().getStreamToken(), session);
+          }
+          timeTracker.stop("task", "CreateExistingSession");
+          existingSessionCount++;
         });
   }
 
@@ -238,6 +272,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       dumper.title(TAG);
       dumper.forKey("commitCount").value(commitCount);
       dumper.forKey("newSessionCount").value(newSessionCount).compactPrevious();
+      dumper.forKey("existingSessionCount").value(existingSessionCount).compactPrevious();
       dumper.forKey("handleTokenCount").value(handleTokenCount).compactPrevious();
       dumper.forKey("sharedStateCount").value(sharedStateCache.size());
       dumper.forKey("sessionCount").value(sessions.size()).compactPrevious();
@@ -369,7 +404,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           if (modelProvider != null) {
             modelProvider.invalidate();
             store.removeSession(session.getStreamSession());
-            sessionsRemoved.add(session.getStreamSession().streamToken);
+            sessionsRemoved.add(session.getStreamSession().getStreamToken());
           }
         }
         sessions.keySet().removeAll(sessionsRemoved);

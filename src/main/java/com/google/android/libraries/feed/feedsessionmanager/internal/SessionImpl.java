@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -29,6 +28,7 @@ import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.host.config.ConfigManager;
 import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -100,8 +100,9 @@ public class SessionImpl implements InitializableSession, Dumpable {
       }
       Logger.e(TAG, "unsupported StreamDataOperation: %s", streamStructure.getOperation());
     }
+    modelMutation.setStreamSession(streamSession);
     modelMutation.commit();
-    timeTracker.stop("populateSession", streamSession.streamToken, "operations", head.size());
+    timeTracker.stop("populateSession", streamSession.getStreamToken(), "operations", head.size());
   }
 
   @Override
@@ -147,7 +148,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
           addFeatureCnt++;
         }
       } else if (streamStructure.getOperation() == Operation.REMOVE) {
-        Logger.i(TAG, "Removing Item from session %s", streamSession.streamToken);
+        Logger.i(TAG, "Removing Item from session %s", streamSession.getStreamToken());
         sessionMutation.add(streamStructure);
         contentInSession.remove(contentKey);
         modelMutation.removeChild(streamStructure);
@@ -172,7 +173,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
       modelMutation.commit();
       timeTracker.stop(
           "updateSession",
-          streamSession.streamToken,
+          streamSession.getStreamToken(),
           "features",
           addFeatureCnt,
           "updates",
@@ -180,8 +181,8 @@ public class SessionImpl implements InitializableSession, Dumpable {
     } else {
       // TODO: What do we do, should we reverse the content added to the session?
       storeMutationFailures++;
-      timeTracker.stop("updateSessionFailure", streamSession.streamToken);
-      Logger.e(TAG, "Session %s session mutation failed", streamSession.streamToken);
+      timeTracker.stop("updateSessionFailure", streamSession.getStreamToken());
+      Logger.e(TAG, "Session %s session mutation failed", streamSession.getStreamToken());
     }
   }
 
@@ -193,7 +194,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("sessionName").value(streamSession.streamToken);
+    dumper.forKey("sessionName").value(streamSession.getStreamToken());
     dumper.forKey("contentInSession").value(contentInSession.size()).compactPrevious();
     dumper.forKey("updateCount").value(updateCount).compactPrevious();
     dumper.forKey("storeMutationFailures").value(storeMutationFailures).compactPrevious();

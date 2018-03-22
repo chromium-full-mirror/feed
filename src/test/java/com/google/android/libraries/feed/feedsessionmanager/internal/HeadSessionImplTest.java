@@ -18,12 +18,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import org.robolectric.RobolectricTestRunner;
@@ -37,7 +37,8 @@ import org.mockito.Mock;
 /** Tests of the {@link HeadSessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)
 public class HeadSessionImplTest {
-  private static final StreamSession HEAD = new StreamSession("$HEAD");
+  private static final StreamSession HEAD =
+      StreamSession.newBuilder().setStreamToken("$HEAD").build();
 
   @Mock private Store store;
 

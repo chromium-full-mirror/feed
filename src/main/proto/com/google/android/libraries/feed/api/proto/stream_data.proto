@@ -129,3 +129,10 @@ message StreamCursor {
   // This is the ContentId of the last accessed Child in the cursor.
   optional string last_accessed_content = 2;
 }
+
+// Persistence for a Session.  This allows the UI to create a ModelProvider
+// from an existing session.
+message StreamSession {
+  // Unique identifier for the session.
+  optional string stream_token = 1;
+}

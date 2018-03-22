@@ -15,14 +15,16 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 import android.support.annotation.IntDef;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import javax.annotation.Nullable;
 
 /**
- * A ModelProvider provides access to the stream model for the UI. It is created by the Session
- * Manager, representing the model for a single session. The Stream Library uses the model to build
- * the UI displayed to the user.
+ * A ModelProvider provides access to the Stream Model for the UI layer. It is populated by the
+ * Session Manager. The ModelProvider is backed by a Session instance, there is a one-to-one
+ * relationship between the ModelProvider and Session implementation. The Stream Library uses the
+ * model to build the UI displayed to the user.
  */
 public interface ModelProvider {
   /** Returns a Mutator used to change the model. */
@@ -80,6 +82,10 @@ public interface ModelProvider {
   /** Returns the current state of the ModelProvider */
   @State
   int getCurrentState();
+
+  /** A String which represents the session bound to the ModelProvider. */
+  @Nullable
+  StreamSession getSessionId();
 
   /**
    * Register a {@link ModelProviderObserver} for changes on this container. The types of changes

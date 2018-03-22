@@ -15,8 +15,8 @@
 package com.google.android.libraries.feed.api.store;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.List;

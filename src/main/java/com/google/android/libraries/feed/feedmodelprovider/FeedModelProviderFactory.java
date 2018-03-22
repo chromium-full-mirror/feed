@@ -19,16 +19,14 @@ import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 
 /**
  * Factory for creating instances of {@link ModelProviderFactory} using the {@link
  * FeedModelProvider}.
  */
 public class FeedModelProviderFactory implements ModelProviderFactory {
-  private static final String TAG = "FeedModelProviderFactory";
-
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
@@ -46,10 +44,11 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   }
 
   @Override
-  public ModelProvider create(String sessionId) {
-    // TODO: Need to support this
-    Logger.e(TAG, "create currently not supported");
-    return null;
+  public ModelProvider create(StreamSession sessionId) {
+    FeedModelProvider modelProvider =
+        new FeedModelProvider(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+    sessionManager.getExistingSession(sessionId, modelProvider);
+    return modelProvider;
   }
 
   @Override

@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
@@ -51,6 +50,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -74,7 +74,8 @@ public class FeedSessionManagerTest {
 
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
-  private static final StreamSession HEAD = new StreamSession("$HEAD");
+  private static final StreamSession HEAD =
+      StreamSession.newBuilder().setStreamToken("$HEAD").build();
 
   @Mock private UiRunnableHandler uiRunnableHandler;
   @Mock private ThreadUtils threadUtils;
@@ -137,7 +138,7 @@ public class FeedSessionManagerTest {
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
     Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
-    Session head = sessions.get(HEAD.streamToken);
+    Session head = sessions.get(HEAD.getStreamToken());
     assertThat(head).isInstanceOf(HeadSessionImpl.class);
     String itemKey = idGenerators.createFeatureContentId(0);
     Set<String> content = ((HeadSessionImpl) head).getContentInSessionForTest();

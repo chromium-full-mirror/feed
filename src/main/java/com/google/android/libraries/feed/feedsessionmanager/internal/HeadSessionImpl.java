@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.StreamSession;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -24,6 +23,7 @@ import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -113,7 +113,7 @@ public class HeadSessionImpl implements Session, Dumpable {
     if (success) {
       timeTracker.stop(
           "updateSession",
-          streamSession.streamToken,
+          streamSession.getStreamToken(),
           "cleared",
           cleared,
           "features",
@@ -121,7 +121,7 @@ public class HeadSessionImpl implements Session, Dumpable {
           "updates",
           updateCnt);
     } else {
-      timeTracker.stop("updateSessionFailure", streamSession.streamToken);
+      timeTracker.stop("updateSessionFailure", streamSession.getStreamToken());
       storeMutationFailures++;
       // TODO: What do we do if this fails?
       Logger.e(TAG, "$HEAD session mutation failed");
@@ -147,7 +147,7 @@ public class HeadSessionImpl implements Session, Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("sessionName").value(streamSession.streamToken);
+    dumper.forKey("sessionName").value(streamSession.getStreamToken());
     dumper.forKey("contentInSession").value(contentInSession.size()).compactPrevious();
     dumper.forKey("updateCount").value(updateCount).compactPrevious();
     dumper.forKey("storeMutationFailures").value(storeMutationFailures).compactPrevious();

@@ -47,6 +47,7 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelFeature;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
 import com.google.protobuf.ByteString;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -108,6 +109,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final UiRunnableHandler uiRunnableHandler;
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
+
+  @Nullable private StreamSession streamSession;
 
   FeedModelProvider(
       SessionManager sessionManager,
@@ -191,6 +194,15 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     synchronized (lock) {
       return currentState;
     }
+  }
+
+  @Override
+  @Nullable
+  public StreamSession getSessionId() {
+    if (streamSession == null) {
+      Logger.w(TAG, "streamSession is null, this should have been set during population");
+    }
+    return streamSession;
   }
 
   @Override
@@ -318,6 +330,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
           commitCount++;
+
+          if (change.streamSession != null) {
+            streamSession = change.streamSession;
+          }
 
           // Separate the Appends from the Removes.  All appends and updates are considered
           // unbound (childrenToBind) and will need to be sent to the ModelChildBinder.
