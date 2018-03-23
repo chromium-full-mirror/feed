@@ -139,6 +139,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
         TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
         break;
       case BLACK:
+        bold = true;
         TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_black);
         break;
       default:
@@ -153,6 +154,8 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       } else if (font.getItalic()) {
         textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
       }
+    } else {
+      textView.setTypeface(Typeface.create(textView.getTypeface(), Typeface.NORMAL));
     }
     return textView;
   }
