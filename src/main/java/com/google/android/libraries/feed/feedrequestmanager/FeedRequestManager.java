@@ -85,10 +85,11 @@ public class FeedRequestManager implements RequestManager {
 
   private void executeRequest(RequestBuilder requestBuilder) {
     Request request = requestBuilder.build();
-    String endpoint = configManager.getValue(ConfigValues.FEED_SERVER_ENDPOINT, "");
+    String host = configManager.getValue(ConfigValues.FEED_SERVER_HOST, "");
+    String path = configManager.getValue(ConfigValues.FEED_SERVER_PATH_AND_PARAMS, "");
     HttpRequest httpRequest =
         new HttpRequest(
-            Uri.parse(endpoint), ByteBuffer.wrap(request.toByteArray()), HttpMethod.POST);
+            Uri.parse(host + path), ByteBuffer.wrap(request.toByteArray()), HttpMethod.POST);
     networkClient.send(
         httpRequest,
         new Consumer<HttpResponse>() {

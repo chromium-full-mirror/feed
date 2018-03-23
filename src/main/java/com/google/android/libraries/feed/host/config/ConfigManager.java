@@ -24,9 +24,14 @@ import java.util.List;
  */
 // TODO: Configuration needs plenty of adjustment.
 public class ConfigManager {
-  @StringDef({ConfigValues.FEED_SERVER_ENDPOINT, ConfigValues.OPTIMISTIC_SESSION_WRITES})
+  @StringDef({
+    ConfigValues.FEED_SERVER_HOST,
+    ConfigValues.FEED_SERVER_PATH_AND_PARAMS,
+    ConfigValues.OPTIMISTIC_SESSION_WRITES
+  })
   public @interface ConfigValues {
-    String FEED_SERVER_ENDPOINT = "feed_service_endpoint";
+    String FEED_SERVER_HOST = "feed_server_host";
+    String FEED_SERVER_PATH_AND_PARAMS = "feed_server_path_and_params";
     String OPTIMISTIC_SESSION_WRITES = "optimistic_session_writes";
   }
 
