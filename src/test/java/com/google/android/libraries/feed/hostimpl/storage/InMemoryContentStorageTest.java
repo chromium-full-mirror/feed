@@ -45,12 +45,6 @@ public class InMemoryContentStorageTest {
 
   @Test
   public void missingKey() throws Exception {
-    byte[] value = storage.get("missing key").get();
-    assertThat(value).isNull();
-  }
-
-  @Test
-  public void missingKey_async() throws Exception {
     storage.get(
         "missing key",
         new Consumer<byte[]>() {
@@ -63,15 +57,6 @@ public class InMemoryContentStorageTest {
 
   @Test
   public void storeAndRetrieve() throws Exception {
-    storage.commit(new ContentMutation.Builder().upsert(KEY_0, DATA_0).build()).get();
-
-    byte[] value = storage.get(KEY_0).get();
-
-    assertThat(value).isEqualTo(DATA_0);
-  }
-
-  @Test
-  public void storeAndRetrieve_async() throws Exception {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).build(),
         new Consumer<CommitResult>() {
@@ -92,19 +77,6 @@ public class InMemoryContentStorageTest {
 
   @Test
   public void multipleValues_get() throws Exception {
-    storage
-        .commit(new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build())
-        .get();
-
-    byte[] value0 = storage.get(KEY_0).get();
-    byte[] value1 = storage.get(KEY_1).get();
-
-    assertThat(value0).isEqualTo(DATA_0);
-    assertThat(value1).isEqualTo(DATA_1);
-  }
-
-  @Test
-  public void multipleValues_get_async() throws Exception {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build(),
         new Consumer<CommitResult>() {
@@ -135,18 +107,6 @@ public class InMemoryContentStorageTest {
 
   @Test
   public void multipleValues_getAll() throws Exception {
-    storage
-        .commit(new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build())
-        .get();
-
-    Map<String, byte[]> values = storage.getAll(KEY).get();
-
-    assertThat(values.get(KEY_0)).isEqualTo(DATA_0);
-    assertThat(values.get(KEY_1)).isEqualTo(DATA_1);
-  }
-
-  @Test
-  public void multipleValues_getAll_async() throws Exception {
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build(),
         new Consumer<CommitResult>() {

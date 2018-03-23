@@ -15,14 +15,18 @@
 package com.google.android.libraries.feed.feedstore;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
@@ -45,10 +49,13 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 
 /** Tests of the {@link FeedStore} class. */
 @RunWith(RobolectricTestRunner.class)
 public class FeedStoreTest {
+
+  @Mock private ThreadUtils threadUtils;
 
   private Store store;
   private static final ContentIdGenerators idGenerators = new ContentIdGenerators();
@@ -86,24 +93,45 @@ public class FeedStoreTest {
           });
   private final ContentStorage contentStorage = new InMemoryContentStorage();
   private final JournalStorage journalStorage = new InMemoryJournalStorage();
+  private final UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
 
   @Before
   public void setUp() throws Exception {
+    initMocks(this);
     // TODO: update the test to work with the old and new feed stores.
-    store = new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
+    store =
+        new FeedStore(
+            timingUtils,
+            extensionRegistry,
+            contentStorage,
+            journalStorage,
+            threadUtils,
+            uiRunnableHandler);
   }
 
   @Test
   public void testMinimalStore() {
     FeedStore feedStore =
-        new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
+        new FeedStore(
+            timingUtils,
+            extensionRegistry,
+            contentStorage,
+            journalStorage,
+            threadUtils,
+            uiRunnableHandler);
     assertThat(feedStore.getHeadSession()).isNotNull();
   }
 
   @Test
   public void testContentMutation() {
     FeedStore feedStore =
-        new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
+        new FeedStore(
+            timingUtils,
+            extensionRegistry,
+            contentStorage,
+            journalStorage,
+            threadUtils,
+            uiRunnableHandler);
     ContentMutation contentMutation = feedStore.editContent();
     assertThat(contentMutation).isNotNull();
   }

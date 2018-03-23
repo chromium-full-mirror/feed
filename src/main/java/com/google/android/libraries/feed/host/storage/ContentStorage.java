@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.host.storage;
 
 import com.google.android.libraries.feed.common.Consumer;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 /**
  * Allows reading and writing of content, currently key-value pairs.
@@ -24,30 +23,12 @@ import java.util.concurrent.Future;
  * <p>Storage instances can be accessed from multiple threads.
  */
 public interface ContentStorage {
-  /**
-   * Asynchronously requests the value for a key.
-   *
-   * <p>The callback will fulfill with {@literal null} if the key does not exist.
-   */
-  Future<byte[]> get(String key);
 
   /** Asynchronously requests the value for a key. */
   void get(String key, Consumer<byte[]> consumer);
 
   /** Asynchronously requests all key/value pairs from storage with a matching key prefix. */
-  Future<Map<String, byte[]>> getAll(String prefix);
-
-  /** Asynchronously requests all key/value pairs from storage with a matching key prefix. */
   void getAll(String prefix, Consumer<Map<String, byte[]>> consumer);
-
-  /**
-   * Commits the operations in the {@link ContentMutation} in order and asynchronously reports the
-   * results as a boolean, where success is equal to {@code TRUE}.
-   *
-   * <p>This operation is not guaranteed to be atomic. In the event of a failure, processing is
-   * halted immediately, so the database may be left in an invalid state.
-   */
-  Future<Boolean> commit(ContentMutation mutation);
 
   /**
    * Commits the operations in the {@link ContentMutation} in order and asynchronously reports the

@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
@@ -27,49 +28,32 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /** A {@link ContentStorage} that holds data in memory. */
 public class InMemoryContentStorage implements ContentStorage, Dumpable {
 
   private static final String TAG = "InMemoryContentStorage";
 
-  private final ExecutorService executor = Executors.newSingleThreadExecutor();
+  private final ThreadUtils threadUtils = new ThreadUtils();
   private final Map<String, byte[]> store = new HashMap<>();
+
   private int getCount = 0;
   private int getAllCount = 0;
   private int insertCount = 0;
   private int updateCount = 0;
 
   @Override
-  public Future<byte[]> get(String key) {
-    // TODO: once Callback allows it, populate a failure reason here.
-    getCount++;
-    return executor.submit(() -> store.get(key));
-  }
-
-  @Override
   public void get(String key, Consumer<byte[]> consumer) {
+    threadUtils.checkMainThread();
+
     getCount++;
     consumer.accept(store.get(key));
   }
 
   @Override
-  public Future<Map<String, byte[]>> getAll(String prefix) {
-    getAllCount++;
-    Map<String, byte[]> results = new HashMap<>();
-    for (Entry<String, byte[]> entry : store.entrySet()) {
-      if (entry.getKey().startsWith(prefix)) {
-        results.put(entry.getKey(), entry.getValue());
-      }
-    }
-    return executor.submit(() -> results);
-  }
-
-  @Override
   public void getAll(String prefix, Consumer<Map<String, byte[]>> consumer) {
+    threadUtils.checkMainThread();
+
     getAllCount++;
     Map<String, byte[]> results = new HashMap<>();
     for (Entry<String, byte[]> entry : store.entrySet()) {
@@ -81,41 +65,9 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
   }
 
   @Override
-  public Future<Boolean> commit(ContentMutation mutation) {
-    for (ContentOperation operation : mutation.getOperations()) {
-      if (operation instanceof Upsert) {
-        Upsert upsert = (Upsert) operation;
-        String key = upsert.getKey();
-        if (key == null) {
-          Logger.e(TAG, "Invalid ContentMutation: null key");
-          return executor.submit(() -> false);
-        }
-        ByteBuffer valueBuffer = upsert.getValue();
-        if (valueBuffer == null) {
-          Logger.e(TAG, "Invalid ContentMutation: null value");
-          return executor.submit(() -> false);
-        }
-        byte[] value = valueBuffer.array();
-        if (value.length == 0) {
-          Logger.e(TAG, "Invalid ContentMutation: empty value");
-          return executor.submit(() -> false);
-        }
-        byte[] currentValue = store.put(key, value);
-        if (currentValue == null) {
-          insertCount++;
-        } else {
-          updateCount++;
-        }
-      } else {
-        Logger.e(TAG, "Invalid ContentMutation: unexpected operation: %s", operation.getType());
-        return executor.submit(() -> false);
-      }
-    }
-    return executor.submit(() -> true);
-  }
-
-  @Override
   public void commit(ContentMutation mutation, Consumer<CommitResult> consumer) {
+    threadUtils.checkMainThread();
+
     for (ContentOperation operation : mutation.getOperations()) {
       if (operation instanceof Upsert) {
         Upsert upsert = (Upsert) operation;

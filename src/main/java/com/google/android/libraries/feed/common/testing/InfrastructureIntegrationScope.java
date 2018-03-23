@@ -57,7 +57,14 @@ public class InfrastructureIntegrationScope {
     ContentStorage contentStorage = new InMemoryContentStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage();
     ConfigManager configManager = new ConfigManager(new ArrayList<>());
-    FeedStore store = new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
+    FeedStore store =
+        new FeedStore(
+            timingUtils,
+            extensionRegistry,
+            contentStorage,
+            journalStorage,
+            threadUtils,
+            uiRunnableHandler);
     feedSessionManager =
         new FeedSessionManager(executorService, store, timingUtils, threadUtils, configManager);
     modelProviderFactory =

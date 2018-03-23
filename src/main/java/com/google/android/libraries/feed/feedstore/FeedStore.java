@@ -15,19 +15,24 @@
 package com.google.android.libraries.feed.feedstore;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
 import com.google.android.libraries.feed.feedstore.internal.SessionState;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation.Builder;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
@@ -57,6 +62,8 @@ public class FeedStore implements Store, Dumpable {
   private final FeedExtensionRegistry extensionRegistry;
   private final ContentStorage contentStorage;
   private final JournalStorage journalStorage;
+  private final ThreadUtils threadUtils;
+  private final UiRunnableHandler uiRunnableHandler;
 
   // TODO: We need to synchronize access to these states
   private int sessionId = 1;
@@ -68,20 +75,43 @@ public class FeedStore implements Store, Dumpable {
       TimingUtils timingUtils,
       FeedExtensionRegistry extensionRegistry,
       ContentStorage contentStorage,
-      JournalStorage journalStorage) {
+      JournalStorage journalStorage,
+      ThreadUtils threadUtils,
+      UiRunnableHandler uiRunnableHandler) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
     this.contentStorage = contentStorage;
     this.journalStorage = journalStorage;
+    this.threadUtils = threadUtils;
+    this.uiRunnableHandler = uiRunnableHandler;
   }
 
   @Override
   public List<PayloadWithId> getPayloads(List<String> contentIds) {
+    threadUtils.checkNotMainThread();
+
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<PayloadWithId> payloads = new ArrayList<>();
     for (String contentId : contentIds) {
       try {
-        byte[] content = contentStorage.get(contentId).get();
+        SimpleSettableFuture<byte[]> contentFuture = new SimpleSettableFuture<>();
+
+        uiRunnableHandler.post(
+            TAG,
+            () -> {
+              contentStorage.get(
+                  contentId,
+                  new Consumer<byte[]>() {
+                    @Override
+                    public void accept(byte[] input) {
+                      contentFuture.put(input);
+
+                      // todo(rbonick): handle errors
+                    }
+                  });
+            });
+
+        byte[] content = contentFuture.get();
         if (content != null) {
           StreamPayload streamPayload =
               StreamPayload.parseFrom(content, extensionRegistry.getExtensionRegistry());
@@ -180,6 +210,8 @@ public class FeedStore implements Store, Dumpable {
 
   @Override
   public ContentMutation editContent() {
+    threadUtils.checkNotMainThread();
+
     return new FeedContentMutation(this::commitContentMutation);
   }
 
@@ -238,12 +270,37 @@ public class FeedStore implements Store, Dumpable {
         // Block waiting for the response from storage, to make this method synchronous.
         try {
           // Check whether the payload is already in storage.
-          byte[] payloadBytes = contentStorage.get(payloadId).get();
-          boolean commitResult =
-              contentStorage
-                  .commit(new Builder().upsert(payloadId, payload.toByteArray()).build())
-                  .get();
-          if (commitResult) {
+          // TODO: skip the add / update check and just upsert
+          SimpleSettableFuture<byte[]> payloadFuture = new SimpleSettableFuture<>();
+          uiRunnableHandler.post(
+              TAG,
+              () -> {
+                contentStorage.get(
+                    payloadId,
+                    input -> {
+                      payloadFuture.put(input);
+
+                      // TODO: handle errors
+                    });
+              });
+
+          byte[] payloadBytes = payloadFuture.get();
+          SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
+          uiRunnableHandler.post(
+              TAG,
+              () -> {
+                contentStorage.commit(
+                    new Builder().upsert(payloadId, payload.toByteArray()).build(),
+                    input -> {
+                      commitResultFuture.put(input);
+
+                      // TODO: handle errors
+                    });
+              });
+
+          CommitResult commitResult = commitResultFuture.get();
+          // TODO: skip the add / update check and just upsert
+          if (CommitResult.SUCCESS.equals(commitResult)) {
             if (payloadBytes != null) {
               contentUpdated.add(payloadId);
             } else {

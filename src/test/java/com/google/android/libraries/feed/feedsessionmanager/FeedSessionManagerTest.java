@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
@@ -254,7 +255,9 @@ public class FeedSessionManagerTest {
             timingUtils,
             extensionRegistry,
             new InMemoryContentStorage(),
-            new InMemoryJournalStorage());
+            new InMemoryJournalStorage(),
+            threadUtils,
+            new UiRunnableHandlerImpl());
     FeedSessionManager sessionManager =
         new FeedSessionManager(
             MoreExecutors.newDirectExecutorService(),

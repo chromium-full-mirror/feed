@@ -156,10 +156,16 @@ public class FeedProcessScope implements Dumpable {
         journalStorage = new InMemoryJournalStorage();
       }
       TimingUtils timingUtils = new TimingUtils();
-      FeedStore store =
-          new FeedStore(timingUtils, extensionRegistry, contentStorage, journalStorage);
       UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
       ThreadUtils threadUtils = new ThreadUtils();
+      FeedStore store =
+          new FeedStore(
+              timingUtils,
+              extensionRegistry,
+              contentStorage,
+              journalStorage,
+              threadUtils,
+              uiRunnableHandler);
       if (sessionManager == null) {
         sessionManager =
             new FeedSessionManager(
