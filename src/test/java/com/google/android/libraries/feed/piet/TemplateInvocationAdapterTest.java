@@ -28,6 +28,7 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.TemplateKey;
+import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.TemplateKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -137,11 +138,11 @@ public class TemplateInvocationAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
+    when(stylesHelper.getCurrentPietSharedState()).thenReturn(PietSharedState.getDefaultInstance());
     frameContext =
         new FrameModelBinder(stylesHelper, assetProvider, customElementProvider)
             .bindFrame(DEFAULT_FRAME);
     adapterParameters = new AdapterParameters(context, Producers.of(null), actionHandler);
-    when(stylesHelper.getCurrentPietSharedState()).thenReturn(PietSharedState.getDefaultInstance());
 
     adapter = new TemplateInvocationAdapter(context, adapterParameters);
   }
@@ -226,19 +227,25 @@ public class TemplateInvocationAdapterTest {
   }
 
   @Test
-  public void testOnBindModel_templateNotFoundDoesNothing() {
+  public void testOnBindModel_templateNotFoundThrows() {
     adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
-    TemplateKey originalKey = (TemplateKey) adapter.getKey();
-
     TemplateInvocation templateInvocation2 =
         TemplateInvocation.newBuilder()
             .setTemplateId("NOT_A_REAL_ID")
             .addBindingContexts(DEFAULT_BINDING)
             .build();
 
-    adapter.bindModel(templateInvocation2, frameContext);
-
-    assertThat(adapter.getKey()).isEqualTo(originalKey);
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(templateInvocation2, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(NullPointerException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Template was not found");
   }
 
   @Test
@@ -465,6 +472,28 @@ public class TemplateInvocationAdapterTest {
 
     assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
     assertThat(key1).isNotEqualTo(key2);
+  }
+
+  @Test
+  public void testTemplateKeySupplier() {
+    TemplateKeySupplier keySupplier = new TemplateKeySupplier();
+
+    assertThat(keySupplier.getKey(frameContext, DEFAULT_TEMPLATE_INVOCATION))
+        .isEqualTo(new TemplateKey(DEFAULT_TEMPLATE, PietSharedState.getDefaultInstance()));
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                keySupplier.getKey(
+                    frameContext,
+                    TemplateInvocation.newBuilder().setTemplateId("NOT_A_REAL_TEMPLATE").build());
+              }
+            })
+        .throwsAnExceptionOfType(NullPointerException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Template was not found");
   }
 
   @Test

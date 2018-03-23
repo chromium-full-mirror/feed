@@ -21,7 +21,6 @@ import android.content.Context;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
-import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -102,12 +101,11 @@ class TemplateInvocationAdapter
       TemplateInvocation model,
       FrameContext frameContext,
       @Nullable ShardingControl shardingControl) {
-    Template modelTemplate = frameContext.getTemplate(model.getTemplateId());
-    if (modelTemplate == null) {
-      // TODO: How do we handle errors
-      Logger.e(TAG, "Template was not found: %s", model.getTemplateId());
-      return;
-    }
+    Template modelTemplate =
+        checkNotNull(
+            frameContext.getTemplate(model.getTemplateId()),
+            "Template was not found: %s",
+            model.getTemplateId());
     if (!templateEquals(modelTemplate, template)) {
       throw new IllegalArgumentException("Model template does not match adapter template");
     }
@@ -190,8 +188,12 @@ class TemplateInvocationAdapter
 
     @Override
     public RecyclerKey getKey(FrameContext frameContext, TemplateInvocation model) {
-      return new TemplateKey(
-          frameContext.getTemplate(model.getTemplateId()), frameContext.getPietSharedState());
+      Template template =
+          checkNotNull(
+              frameContext.getTemplate(model.getTemplateId()),
+              "Template was not found: ",
+              model.getTemplateId());
+      return new TemplateKey(template, frameContext.getPietSharedState());
     }
   }
 
