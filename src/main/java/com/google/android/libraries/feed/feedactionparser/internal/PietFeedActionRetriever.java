@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.actionhandler;
+package com.google.android.libraries.feed.feedactionparser.internal;
 
 import com.google.android.libraries.feed.common.Logger;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -20,17 +20,16 @@ import com.google.search.now.ui.action.PietExtensionsProto.PietFeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import javax.annotation.Nullable;
 
-/** Implementation of the FeedActionHandler which handles actions for the feed. */
-public class FeedActionHandlerImpl implements FeedActionHandler {
+/** Class which is able to retrieve FeedActions from Piet actions */
+public class PietFeedActionRetriever {
 
-  private static final String TAG = "ActionHandlerImpl";
+  private static final String TAG = "PietFeedActionRetriever";
 
   /**
    * Gets the feed action from a Piet Action.
    *
    * @param action the Piet Action to pull the feed action metadata out of.
    */
-  @Override
   @Nullable
   public FeedAction getFeedAction(Action action) {
     @Nullable

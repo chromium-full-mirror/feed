@@ -14,8 +14,7 @@
 
 package com.google.android.libraries.feed.api.scope;
 
-import com.google.android.libraries.feed.api.actionhandler.FeedActionHandler;
-import com.google.android.libraries.feed.api.actionhandler.FeedActionHandlerImpl;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
@@ -65,8 +64,8 @@ public class FeedStreamScope {
       this.clock = clock;
     }
 
-    public Builder setFeedActionHandler(FeedActionHandler feedActionHandler) {
-      this.feedActionHandler = feedActionHandler;
+    public Builder setActionParser(ActionParser actionParser) {
+      this.actionParser = actionParser;
       return this;
     }
 
@@ -81,9 +80,6 @@ public class FeedStreamScope {
     }
 
     public FeedStreamScope build() {
-      if (feedActionHandler == null) {
-        feedActionHandler = new FeedActionHandlerImpl();
-      }
       if (modelProviderFactory == null) {
         modelProviderFactory =
             new FeedModelProviderFactory(
@@ -93,7 +89,7 @@ public class FeedStreamScope {
       // TODO: if stream == null, assign a BasicStream to stream.
       return new FeedStreamScope(
           actionApi,
-          feedActionHandler,
+          actionParser,
           feedProtocolAdapter,
           imageLoaderApi,
           loggingApi,
@@ -114,21 +110,21 @@ public class FeedStreamScope {
     private final Clock clock;
 
     // Optional internal components to override the default implementations.
-    @Nullable private FeedActionHandler feedActionHandler = null;
+    @Nullable private ActionParser actionParser = null;
     @Nullable private ModelProviderFactory modelProviderFactory = null;
     @Nullable private Stream stream = null;
   }
 
   private FeedStreamScope(
       ActionApi actionApi,
-      FeedActionHandler feedActionHandler,
+      ActionParser actionParser,
       FeedProtocolAdapter feedProtocolAdapter,
       ImageLoaderApi imageLoaderApi,
       LoggingApi loggingApi,
       SessionManager sessionManager,
       Stream stream,
       ModelProviderFactory modelProviderFactory) {
-    this.feedActionHandler = feedActionHandler;
+    this.actionParser = actionParser;
     this.actionApi = actionApi;
     this.feedProtocolAdapter = feedProtocolAdapter;
     this.imageLoaderApi = imageLoaderApi;
@@ -141,7 +137,7 @@ public class FeedStreamScope {
   private final ActionApi actionApi;
   private final ImageLoaderApi imageLoaderApi;
   private final LoggingApi loggingApi;
-  private final FeedActionHandler feedActionHandler;
+  private final ActionParser actionParser;
   private final FeedProtocolAdapter feedProtocolAdapter;
   private final SessionManager sessionManager;
   private final Stream stream;

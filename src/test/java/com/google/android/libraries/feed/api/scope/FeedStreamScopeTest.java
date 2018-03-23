@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.api.scope;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.actionhandler.FeedActionHandler;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
@@ -50,7 +50,7 @@ public class FeedStreamScopeTest {
   // Mocks for optional fields
   @Mock private FeedProtocolAdapter protocolAdapter;
   @Mock private SessionManager sessionManager;
-  @Mock private FeedActionHandler feedActionHandler;
+  @Mock private ActionParser actionParser;
   @Mock private Stream stream;
   @Mock private ModelProviderFactory modelProviderFactory;
 
@@ -99,7 +99,7 @@ public class FeedStreamScopeTest {
                 timingUtils,
                 uiRunnableHandler,
                 clock)
-            .setFeedActionHandler(feedActionHandler)
+            .setActionParser(actionParser)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)
             .build();

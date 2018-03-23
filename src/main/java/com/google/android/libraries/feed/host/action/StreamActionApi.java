@@ -16,7 +16,10 @@ package com.google.android.libraries.feed.host.action;
 
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 
-/** Allows the {@link ActionParser} to communicate actions back to the Stream after parsing. */
+/**
+ * Allows the {@link com.google.android.libraries.feed.api.actionparser.ActionParser} to communicate
+ * actions back to the Stream after parsing.
+ */
 public interface StreamActionApi extends ActionApi {
 
   /** Opens context menu. */
