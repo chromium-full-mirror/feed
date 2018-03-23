@@ -198,11 +198,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   @Nullable
-  public StreamSession getSessionId() {
+  public String getSessionToken() {
     if (streamSession == null) {
       Logger.w(TAG, "streamSession is null, this should have been set during population");
     }
-    return streamSession;
+    return streamSession.getStreamToken();
   }
 
   @Override

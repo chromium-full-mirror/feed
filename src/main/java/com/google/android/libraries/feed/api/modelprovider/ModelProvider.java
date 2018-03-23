@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 import android.support.annotation.IntDef;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import javax.annotation.Nullable;
@@ -85,7 +84,7 @@ public interface ModelProvider {
 
   /** A String which represents the session bound to the ModelProvider. */
   @Nullable
-  StreamSession getSessionId();
+  String getSessionToken();
 
   /**
    * Register a {@link ModelProviderObserver} for changes on this container. The types of changes

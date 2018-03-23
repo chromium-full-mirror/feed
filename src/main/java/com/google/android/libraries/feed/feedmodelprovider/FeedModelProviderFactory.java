@@ -20,7 +20,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.TimingUtils;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 
 /**
  * Factory for creating instances of {@link ModelProviderFactory} using the {@link
@@ -44,10 +43,10 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   }
 
   @Override
-  public ModelProvider create(StreamSession sessionId) {
+  public ModelProvider create(String sessionToken) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
-    sessionManager.getExistingSession(sessionId, modelProvider);
+    sessionManager.getExistingSession(sessionToken, modelProvider);
     return modelProvider;
   }
 

@@ -18,7 +18,6 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.host.common.Callback;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -51,7 +50,7 @@ public interface SessionManager {
    * invalidate any existing ModelProvider instances attached to the session. This will also throw
    * an {@link IllegalStateException} if the session is not found.
    */
-  void getExistingSession(StreamSession sessionId, ModelProvider modelProvider);
+  void getExistingSession(String sessionToken, ModelProvider modelProvider);
 
   /**
    * Method which causes a request to be created for the next page of content based upon the

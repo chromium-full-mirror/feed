@@ -165,21 +165,27 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
-  public void getExistingSession(StreamSession streamSession, ModelProvider modelProvider) {
+  public void getExistingSession(String sessionToken, ModelProvider modelProvider) {
     threadUtils.checkMainThread();
     InitializableSession session = sessionFactory.getSession(modelProvider);
     // TODO: We need to deal with all sessions, some may be stored on disk an not yet
     // loaded.
     Session existingSession;
     synchronized (lock) {
-      existingSession = sessions.get(streamSession.getStreamToken());
+      existingSession = sessions.get(sessionToken);
     }
     if (existingSession != null) {
       ModelProvider existingModelProvider = existingSession.getModelProvider();
       if (existingModelProvider != null) {
         existingModelProvider.invalidate();
       }
+    } else {
+      Logger.w(
+          TAG, "Didn't find an existing Session called %s, creating new Session", sessionToken);
+      getNewSession(modelProvider);
+      return;
     }
+    StreamSession streamSession = existingSession.getStreamSession();
 
     // Task which populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.

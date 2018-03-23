@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.common.testing.InfrastructureIntegratio
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
@@ -81,20 +80,61 @@ public class ExistingSessionTest {
     ModelCursor initCursor = initRoot.getCursor();
     assertThat(initCursor).isNotNull();
 
-    StreamSession sessionId = modelProvider.getSessionId();
-    assertThat(sessionId).isNotNull();
+    String sessionToken = modelProvider.getSessionToken();
+    assertThat(sessionToken).isNotEmpty();
 
-    ModelProvider modelProvider2 = modelProviderFactory.create(sessionId);
+    ModelProvider modelProvider2 = modelProviderFactory.create(sessionToken);
     assertThat(modelProvider2).isNotNull();
     ModelFeature root2 = modelProvider2.getRootFeature();
     assertThat(root2).isNotNull();
     ModelCursor cursor2 = root2.getCursor();
     assertThat(cursor2).isNotNull();
-    assertThat(modelProvider2.getSessionId()).isEqualTo(sessionId);
+    assertThat(modelProvider2.getSessionToken()).isEqualTo(sessionToken);
     modelValidator.assertCursorContents(cursor2, cards);
 
     // Creating the new session will invalidate the previous ModelProvider and Cursor
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
     assertThat(initCursor.isAtEnd()).isTrue();
+  }
+
+  @Test
+  public void createModelProvider_unknownSession() {
+    // Create a simple stream with a root and three features
+    ContentId[] cards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(1),
+          WireProtocolResponseBuilder.createFeatureContentId(2),
+          WireProtocolResponseBuilder.createFeatureContentId(3)
+        };
+    WireProtocolResponseBuilder responseBuilder =
+        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    for (ContentId contentId : cards) {
+      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+    }
+    protocolAdapter.createModel(responseBuilder.build(), null);
+    ModelProvider modelProvider = modelProviderFactory.createNew();
+
+    ModelFeature initRoot = modelProvider.getRootFeature();
+    assertThat(initRoot).isNotNull();
+    ModelCursor initCursor = initRoot.getCursor();
+    assertThat(initCursor).isNotNull();
+
+    String sessionToken = modelProvider.getSessionToken();
+    assertThat(sessionToken).isNotEmpty();
+
+    // Create a second model provider using an unknown session token
+    ModelProvider modelProvider2 = modelProviderFactory.create("unknown-session");
+    assertThat(modelProvider2).isNotNull();
+    ModelFeature root2 = modelProvider2.getRootFeature();
+    assertThat(root2).isNotNull();
+    ModelCursor cursor2 = root2.getCursor();
+    assertThat(cursor2).isNotNull();
+    modelValidator.assertCursorContents(cursor2, cards);
+
+    // Creating the new session will invalidate the previous ModelProvider and Cursor
+    assertThat(modelProvider2.getSessionToken()).isNotEqualTo(sessionToken);
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+    assertThat(initCursor.isAtEnd()).isFalse();
+    modelValidator.assertCursorContents(initCursor, cards);
   }
 }
