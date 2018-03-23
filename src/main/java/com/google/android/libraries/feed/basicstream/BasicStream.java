@@ -38,6 +38,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImp
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
+import com.google.android.libraries.feed.basicstream.internal.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -74,7 +75,7 @@ public class BasicStream implements Stream {
       ImageLoaderApi imageLoaderApi,
       ActionParser actionParser,
       ActionApi actionApi,
-      CustomElementProvider customElementProvider,
+      @Nullable CustomElementProvider customElementProvider,
       ThreadUtils threadUtils,
       List<View> headers,
       Clock clock) {
@@ -90,7 +91,7 @@ public class BasicStream implements Stream {
                     action,
                     new StreamActionApiImpl(context, actionApi, actionParser),
                     veLoggingToken),
-            customElementProvider);
+            new PietCustomElementProvider(context, customElementProvider));
     recyclerView = new RecyclerView(context);
     recyclerView.setLayoutManager(new LinearLayoutManager(context));
     viewHolderBindingObserver = initializeBindingObserver();

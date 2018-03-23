@@ -31,6 +31,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
+        "//src/main/java/com/google/android/libraries/feed/piet/host",
         "@com_google_code_findbugs_jsr305//jar",
     ],
 )

@@ -17,6 +17,8 @@ package com.google.android.libraries.feed.api.scope;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -24,6 +26,7 @@ import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
@@ -32,11 +35,13 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
+import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 
 /** Tests for {@link FeedStreamScope}. */
 @RunWith(RobolectricTestRunner.class)
@@ -52,8 +57,11 @@ public class FeedStreamScopeTest {
   @Mock private SessionManager sessionManager;
   @Mock private ActionParser actionParser;
   @Mock private Stream stream;
+  @Mock private CardConfiguration cardConfiguration;
   @Mock private ModelProviderFactory modelProviderFactory;
+  @Mock private CustomElementProvider customElementProvider;
 
+  private Context context;
   private UiRunnableHandler uiRunnableHandler;
   private ThreadUtils threadUtils;
   private TimingUtils timingUtils;
@@ -62,6 +70,7 @@ public class FeedStreamScopeTest {
   @Before
   public void setUp() {
     initMocks(this);
+    context = Robolectric.setupActivity(Activity.class);
     uiRunnableHandler = new UiRunnableHandlerImpl();
     threadUtils = new ThreadUtils();
     timingUtils = new TimingUtils();
@@ -72,6 +81,7 @@ public class FeedStreamScopeTest {
   public void testBasicBuild() {
     FeedStreamScope streamScope =
         new Builder(
+                context,
                 actionApi,
                 imageLoaderApi,
                 loggingApi,
@@ -80,7 +90,8 @@ public class FeedStreamScopeTest {
                 threadUtils,
                 timingUtils,
                 uiRunnableHandler,
-                clock)
+                clock,
+                cardConfiguration)
             .build();
     // TODO: add Stream nonnull check
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -90,6 +101,7 @@ public class FeedStreamScopeTest {
   public void testComplexBuild() {
     FeedStreamScope streamScope =
         new Builder(
+                context,
                 actionApi,
                 imageLoaderApi,
                 loggingApi,
@@ -98,10 +110,12 @@ public class FeedStreamScopeTest {
                 threadUtils,
                 timingUtils,
                 uiRunnableHandler,
-                clock)
+                clock,
+                cardConfiguration)
             .setActionParser(actionParser)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)
+            .setCustomElementProvider(customElementProvider)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();

@@ -14,12 +14,14 @@
 
 package com.google.android.libraries.feed.api.scope;
 
+import android.content.Context;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
@@ -27,6 +29,7 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
+import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import javax.annotation.Nullable;
 
 /** Per-stream instance of the feed library. */
@@ -44,6 +47,7 @@ public class FeedStreamScope {
   public static class Builder {
     /** Construct this builder using {@link FeedProcessScope#createFeedStreamScopeBuilder} */
     Builder(
+        Context context,
         ActionApi actionApi,
         ImageLoaderApi imageLoaderApi,
         LoggingApi loggingApi,
@@ -52,7 +56,9 @@ public class FeedStreamScope {
         ThreadUtils threadUtils,
         TimingUtils timingUtils,
         UiRunnableHandler uiRunnableHandler,
-        Clock clock) {
+        Clock clock,
+        CardConfiguration cardConfiguration) {
+      this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
@@ -62,6 +68,7 @@ public class FeedStreamScope {
       this.timingUtils = timingUtils;
       this.uiRunnableHandler = uiRunnableHandler;
       this.clock = clock;
+      this.cardConfiguration = cardConfiguration;
     }
 
     public Builder setActionParser(ActionParser actionParser) {
@@ -76,6 +83,11 @@ public class FeedStreamScope {
 
     public Builder setModelProviderFactory(ModelProviderFactory modelProviderFactory) {
       this.modelProviderFactory = modelProviderFactory;
+      return this;
+    }
+
+    public Builder setCustomElementProvider(CustomElementProvider customElementProvider) {
+      this.customElementProvider = customElementProvider;
       return this;
     }
 
@@ -99,6 +111,7 @@ public class FeedStreamScope {
     }
 
     // Required external dependencies.
+    private final Context context;
     private final ActionApi actionApi;
     private final ImageLoaderApi imageLoaderApi;
     private final LoggingApi loggingApi;
@@ -108,11 +121,13 @@ public class FeedStreamScope {
     private final TimingUtils timingUtils;
     private final UiRunnableHandler uiRunnableHandler;
     private final Clock clock;
+    private final CardConfiguration cardConfiguration;
 
     // Optional internal components to override the default implementations.
     @Nullable private ActionParser actionParser = null;
     @Nullable private ModelProviderFactory modelProviderFactory = null;
     @Nullable private Stream stream = null;
+    @Nullable private CustomElementProvider customElementProvider = null;
   }
 
   private FeedStreamScope(
