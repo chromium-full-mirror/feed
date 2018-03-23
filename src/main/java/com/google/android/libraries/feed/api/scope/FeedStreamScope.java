@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.api.stream.Stream;
+import com.google.android.libraries.feed.basicstream.BasicStream;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
@@ -30,6 +31,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import java.util.ArrayList;
 import javax.annotation.Nullable;
 
 /** Per-stream instance of the feed library. */
@@ -96,6 +98,19 @@ public class FeedStreamScope {
         modelProviderFactory =
             new FeedModelProviderFactory(
                 sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+      }
+      if (stream == null) {
+        stream =
+            new BasicStream(
+                context,
+                cardConfiguration,
+                imageLoaderApi,
+                actionParser,
+                actionApi,
+                customElementProvider,
+                threadUtils,
+                /* headers = */ new ArrayList<>(0),
+                clock);
       }
       // TODO: if pietManager == null, assign a PietManager to pietManager.
       // TODO: if stream == null, assign a BasicStream to stream.

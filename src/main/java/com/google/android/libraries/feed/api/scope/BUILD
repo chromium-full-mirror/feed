@@ -14,6 +14,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/store",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
+        "//src/main/java/com/google/android/libraries/feed/basicstream",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
         "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",

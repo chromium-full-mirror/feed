@@ -93,7 +93,7 @@ public class FeedStreamScopeTest {
                 clock,
                 cardConfiguration)
             .build();
-    // TODO: add Stream nonnull check
+    assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
   }
 
@@ -117,7 +117,7 @@ public class FeedStreamScopeTest {
             .setModelProviderFactory(modelProviderFactory)
             .setCustomElementProvider(customElementProvider)
             .build();
-    assertThat(streamScope.getStream()).isNotNull();
-    assertThat(streamScope.getModelProviderFactory()).isNotNull();
+    assertThat(streamScope.getStream()).isEqualTo(stream);
+    assertThat(streamScope.getModelProviderFactory()).isEqualTo(modelProviderFactory);
   }
 }
