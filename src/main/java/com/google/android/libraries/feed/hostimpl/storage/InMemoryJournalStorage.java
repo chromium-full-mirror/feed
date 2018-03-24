@@ -14,6 +14,10 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
+import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.APPEND;
+import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.COPY;
+import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.DELETE;
+
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
@@ -21,7 +25,6 @@ import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Copy;
-import com.google.android.libraries.feed.host.storage.JournalOperation.Delete;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -68,19 +71,15 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
           String journalName = mutation.getJournalName();
 
           for (JournalOperation operation : mutation.getOperations()) {
-            // TODO: instanceof is ugly here, and it makes it hard to report what the
-            // bad
-            // value was if we get an unexpected operation. Also include an enum in
-            // JournalOperation?
-            if (operation instanceof Append) {
+            if (operation.getType() == APPEND) {
               if (!append(((Append) operation).getValue(), journalName)) {
                 return false;
               }
-            } else if (operation instanceof Copy) {
+            } else if (operation.getType() == COPY) {
               if (!copy(journalName, ((Copy) operation).getToJournalName())) {
                 return false;
               }
-            } else if (operation instanceof Delete) {
+            } else if (operation.getType() == DELETE) {
               if (!delete(journalName)) {
                 return false;
               }

@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 public abstract class JournalOperation {
   /** The types of operations. */
   @IntDef({Type.APPEND, Type.COPY, Type.DELETE})
-  @interface Type {
+  public @interface Type {
     int APPEND = 0;
     int COPY = 1;
     int DELETE = 2;

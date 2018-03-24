@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 public abstract class ContentOperation {
   /** The types of operations. */
   @IntDef({Type.DELETE, Type.DELETE_BY_PREFIX, Type.UPSERT})
-  @interface Type {
+  public @interface Type {
     int DELETE = 0;
     int DELETE_BY_PREFIX = 1;
     int UPSERT = 3;

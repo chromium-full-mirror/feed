@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
+import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.UPSERT;
+
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
@@ -69,7 +71,7 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
     threadUtils.checkMainThread();
 
     for (ContentOperation operation : mutation.getOperations()) {
-      if (operation instanceof Upsert) {
+      if (operation.getType() == UPSERT) {
         Upsert upsert = (Upsert) operation;
         String key = upsert.getKey();
         if (key == null) {
