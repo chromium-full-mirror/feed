@@ -30,9 +30,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.view.Gravity;
 import android.view.View;
-import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
@@ -120,18 +118,12 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL);
 
     assertThat(adapter.getView()).isNotNull();
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-
-    imageView = getImageView();
-    assertThat(imageView.getLayoutParams().height).isEqualTo(heightPx);
-    assertThat(imageView.getLayoutParams().width).isEqualTo(widthPx);
-    assertThat(((LayoutParams) imageView.getLayoutParams()).gravity)
-        .isEqualTo(Gravity.CENTER_HORIZONTAL);
 
     assertThat(adapter.getComputedHeightPx())
         .isEqualTo(heightPx + PADDING.getTop() + PADDING.getBottom());
     assertThat(adapter.getComputedWidthPx())
         .isEqualTo(widthPx + PADDING.getStart() + PADDING.getEnd());
+    assertThat(adapter.getBaseView().getCropToPadding()).isTrue();
   }
 
   @Test
@@ -142,13 +134,8 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL);
 
     assertThat(adapter.getView()).isNotNull();
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
 
     // Assert that width and height are set to the defaults
-    imageView = getImageView();
-    assertThat(imageView.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
-    assertThat(imageView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
-
     assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
   }
@@ -161,13 +148,8 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getModel()).isEqualTo(DEFAULT_MODEL);
 
     assertThat(adapter.getView()).isNotNull();
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
 
     // Width defaults to MATCH_PARENT
-    imageView = getImageView();
-    assertThat(imageView.getLayoutParams().height).isEqualTo(heightPx);
-    assertThat(imageView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
-
     assertThat(adapter.getComputedHeightPx())
         .isEqualTo(heightPx + PADDING.getTop() + PADDING.getBottom());
     assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
@@ -181,13 +163,8 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getModel()).isEqualTo(DEFAULT_MODEL);
 
     assertThat(adapter.getView()).isNotNull();
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
 
     // Image defaults to a square.
-    imageView = getImageView();
-    assertThat(imageView.getLayoutParams().height).isEqualTo(widthPx);
-    assertThat(imageView.getLayoutParams().width).isEqualTo(widthPx);
-
     assertThat(adapter.getComputedHeightPx())
         .isEqualTo(widthPx + PADDING.getTop() + PADDING.getBottom());
     assertThat(adapter.getComputedWidthPx())
@@ -222,7 +199,7 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(model, frameContext);
     adapter.bindModel(model, frameContext);
 
-    imageView = getImageView();
+    imageView = adapter.getBaseView();
     assertDrawableSet(imageView);
     assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
 
@@ -240,7 +217,7 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(model, frameContext);
     adapter.bindModel(model, frameContext);
 
-    assertDrawableSet(getImageView());
+    assertDrawableSet(adapter.getBaseView());
     assertThat(adapter.getModel()).isSameAs(model);
   }
 
@@ -339,7 +316,7 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
-    imageView = getImageView();
+    imageView = adapter.getBaseView();
     RecyclerKey key1 = adapter.getKey();
     adapter.unbindModel();
 
@@ -352,12 +329,11 @@ public class ImageElementAdapterTest {
     assertThat(key1).isSameAs(key2);
     assertThat(adapter.getModel()).isSameAs(model2);
     assertThat(adapter.getView()).isNotNull();
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
 
     Drawable drawable2 = new ColorDrawable(Color.RED);
     callbackCaptor.getValue().handleResult(drawable2);
 
-    ImageView imageView2 = (ImageView) adapter.getBaseView().getChildAt(0);
+    ImageView imageView2 = adapter.getBaseView();
 
     assertThat(imageView2).isSameAs(imageView);
     assertThat(imageView2.getDrawable()).isEqualTo(drawable2);
@@ -433,8 +409,7 @@ public class ImageElementAdapterTest {
     adapter.unbindModel();
 
     assertThat(adapter.getView()).isNotNull();
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(getImageView().getDrawable()).isNull();
+    assertThat(adapter.getBaseView().getDrawable()).isNull();
 
     assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
@@ -453,7 +428,7 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
 
-    imageView = getImageView();
+    imageView = adapter.getBaseView();
 
     adapter.unbindModel();
     verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
@@ -481,7 +456,7 @@ public class ImageElementAdapterTest {
     callbackCaptor.getValue().handleResult(defaultDrawable);
 
     // But has no effect
-    imageView = getImageView();
+    imageView = adapter.getBaseView();
     assertThat(imageView.getDrawable()).isEqualTo(null);
 
     // And now the callback for the second model completes
@@ -563,11 +538,6 @@ public class ImageElementAdapterTest {
       when(styleProvider.hasWidth()).thenReturn(false);
       when(styleProvider.getWidth()).thenReturn(0);
     }
-  }
-
-  private ImageView getImageView() {
-    assertThat(adapter.getBaseView().getChildAt(0)).isInstanceOf(ImageView.class);
-    return (ImageView) adapter.getBaseView().getChildAt(0);
   }
 
   private void assertDrawableSet(ImageView imageView) {

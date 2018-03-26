@@ -18,10 +18,8 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.host.common.Callback;
@@ -35,10 +33,9 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import javax.annotation.Nullable;
 
 /** An {@link ElementAdapter} for {@code ImageElement} elements. */
-class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
+class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
   private static final String TAG = "ImageElementAdapter";
 
-  private ImageView imageView = null;
   @Nullable private LoadImageCallback currentlyLoadingImage = null;
 
   private ImageElementAdapter(Context context, AdapterParameters parameters) {
@@ -60,8 +57,6 @@ class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
 
     StyleProvider style = getElementStyle();
 
-    FrameLayout.LayoutParams layoutParams =
-        ((FrameLayout.LayoutParams) imageView.getLayoutParams());
     if (style.hasWidth() || style.hasHeight()) {
       Context context = getContext();
 
@@ -74,26 +69,18 @@ class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
         widthPx = DIMENSION_NOT_SET;
       }
 
-      int height;
       if (style.hasHeight()) {
-        height = (int) ViewUtils.dpToPx(style.getHeight(), context);
-        heightPx = height + getPaddingHeightPx(context, style);
+        heightPx =
+            (int) ViewUtils.dpToPx(style.getHeight(), context) + getPaddingHeightPx(context, style);
       } else {
         // Defaults to a square when only the width is defined.
-        height = width;
         heightPx =
             style.hasWidth() ? width + getPaddingHeightPx(context, style) : DIMENSION_NOT_SET;
       }
-
-      layoutParams.width = width;
-      layoutParams.height = height;
     } else {
-      layoutParams.width = LayoutParams.MATCH_PARENT;
-      layoutParams.height = LayoutParams.WRAP_CONTENT;
       widthPx = DIMENSION_NOT_SET;
       heightPx = DIMENSION_NOT_SET;
     }
-    layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
 
     style.setElementStyles(getContext(), getFrameContext(), getBaseView());
   }
@@ -125,7 +112,7 @@ class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
                 "Unsupported or missing content in ImageElement: %s", model.getContentCase()));
     }
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
-    currentlyLoadingImage = new LoadImageCallback(imageView);
+    currentlyLoadingImage = new LoadImageCallback(getBaseView());
     getFrameContext().getAssetProvider().getImage(image, currentlyLoadingImage);
 
     if (model.getStyleReferences().hasStyleBinding()) {
@@ -139,6 +126,7 @@ class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
       currentlyLoadingImage.cancelled = true;
       currentlyLoadingImage = null;
     }
+    ImageView imageView = getBaseView();
     if (imageView != null) {
       imageView.setImageDrawable(null);
     }
@@ -158,14 +146,9 @@ class ImageElementAdapter extends ElementAdapter<FrameLayout, ImageElement> {
     if (getBaseView() != null) {
       return;
     }
-    // TODO: After the AssetProvider returns Drawable instead of ImageView, make the
-    // base view be ImageView and get rid of the FrameLayout.
-    FrameLayout frameLayout = new FrameLayout(getContext());
-    imageView = new ImageView(getContext());
-    if (frameLayout != null) {
-      frameLayout.addView(imageView);
-    }
-    initializeAdapter(frameLayout, KeySupplier.SINGLETON_KEY);
+    ImageView imageView = new ImageView(getContext());
+    imageView.setCropToPadding(true);
+    initializeAdapter(imageView, KeySupplier.SINGLETON_KEY);
   }
 
   private int getPaddingWidthPx(Context context, StyleProvider style) {
