@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.net.Uri;
+import android.util.Base64;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
@@ -32,6 +33,7 @@ import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.RequestProto.Request;
+import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -41,6 +43,9 @@ import javax.annotation.Nullable;
 /** Default implementation of RequestManager. */
 public class FeedRequestManager implements RequestManager {
   private static final String TAG = "JardinRM";
+  private static final String MOTHERSHIP_PARAM_PAYLOAD = "reqpld";
+  private static final String MOTHERSHIP_PARAM_FORMAT = "fmt";
+  private static final String MOTHERSHIP_VALUE_BINARY = "bin";
 
   private final ConfigManager configManager;
   private final NetworkClient networkClient;
@@ -84,12 +89,17 @@ public class FeedRequestManager implements RequestManager {
   }
 
   private void executeRequest(RequestBuilder requestBuilder) {
-    Request request = requestBuilder.build();
     String host = configManager.getValue(ConfigValues.FEED_SERVER_HOST, "");
     String path = configManager.getValue(ConfigValues.FEED_SERVER_PATH_AND_PARAMS, "");
+    Uri.Builder uriBuilder = Uri.parse(host + path).buildUpon();
+    uriBuilder.appendQueryParameter(
+        MOTHERSHIP_PARAM_PAYLOAD,
+        Base64.encodeToString(
+            requestBuilder.build().toByteArray(), Base64.URL_SAFE | Base64.NO_WRAP));
+    uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
+
     HttpRequest httpRequest =
-        new HttpRequest(
-            Uri.parse(host + path), ByteBuffer.wrap(request.toByteArray()), HttpMethod.POST);
+        new HttpRequest(uriBuilder.build(), ByteBuffer.allocate(0), HttpMethod.GET);
     networkClient.send(
         httpRequest,
         new Consumer<HttpResponse>() {
@@ -172,16 +182,17 @@ public class FeedRequestManager implements RequestManager {
     }
 
     public Request build() {
+      Request.Builder requestBuilder =
+          Request.newBuilder().setRequestVersion(RequestVersion.FEED_QUERY);
 
       FeedQuery.Builder feedQuery = FeedQuery.newBuilder();
       if (token != null) {
         feedQuery.setPageToken(token);
       }
+      requestBuilder.setExtension(
+          FeedRequest.feedRequest, FeedRequest.newBuilder().setFeedQuery(feedQuery).build());
 
-      return Request.newBuilder()
-          .setExtension(
-              FeedRequest.feedRequest, FeedRequest.newBuilder().setFeedQuery(feedQuery).build())
-          .build();
+      return requestBuilder.build();
     }
   }
 }
