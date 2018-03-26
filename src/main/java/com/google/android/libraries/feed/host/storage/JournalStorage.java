@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.host.storage;
 
+import com.google.android.libraries.feed.common.Consumer;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -28,6 +29,9 @@ public interface JournalStorage {
   /** Reads the journal and asynchronously returns the contents. */
   Future<List<byte[]>> read(String journalName);
 
+  /** Reads the journal and asynchronously returns the contents. */
+  void read(String journalName, Consumer<List<byte[]>> consumer);
+
   /**
    * Commits the operations in {@link JournalMutation} in order and asynchronously reports the
    * boolean, where success is equal to {@code TRUE}. If all the operations succeed, {@code
@@ -37,4 +41,14 @@ public interface JournalStorage {
    * <p>This operation is not guaranteed to be atomic.
    */
   Future<Boolean> commit(JournalMutation mutation);
+
+  /**
+   * Commits the operations in {@link JournalMutation} in order and asynchronously reports the
+   * {@link CommitResult}. If all the operations succeed, {@code callback} is called with a success
+   * result. If any operation fails, {@code callback} is called with a failure result and the
+   * remaining operations are not processed.
+   *
+   * <p>This operation is not guaranteed to be atomic.
+   */
+  void commit(JournalMutation mutation, Consumer<CommitResult> consumer);
 }

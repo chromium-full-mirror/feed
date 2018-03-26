@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.hostimpl.storage;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import org.robolectric.RobolectricTestRunner;
@@ -54,6 +56,22 @@ public class InMemoryJournalStorageTest {
   }
 
   @Test
+  public void readOfEmptyJournalReturnsEmptyData_async() throws Exception {
+    // Try to read some blobs from an empty journal store.
+    journalStorage.read(
+        JOURNAL_NAME,
+        new Consumer<List<byte[]>>() {
+          @Override
+          public void accept(List<byte[]> input) {
+
+            // The result should be an empty List.
+            assertThat(input).isNotNull();
+            assertThat(input).isEmpty();
+          }
+        });
+  }
+
+  @Test
   public void appendToJournal() throws Exception {
     // Write some data and put the result from the callback into commitResult.
     boolean commitResult =
@@ -69,6 +87,32 @@ public class InMemoryJournalStorageTest {
     assertThat(blobs).hasSize(2);
     assertThat(Arrays.equals(blobs.get(0), DATA_0)).isTrue();
     assertThat(Arrays.equals(blobs.get(1), DATA_1)).isTrue();
+  }
+
+  @Test
+  public void appendToJournal_async() throws Exception {
+    // Write some data and put the result from the callback into commitResult.
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        new Consumer<CommitResult>() {
+          @Override
+          public void accept(CommitResult input) {
+            assertThat(input).isEqualTo(CommitResult.SUCCESS);
+          }
+        });
+    // Read the data back into blobs.
+    journalStorage.read(
+        JOURNAL_NAME,
+        new Consumer<List<byte[]>>() {
+          @Override
+          public void accept(List<byte[]> input) {
+            // We should get back one byte array, containing the bytes of DATA_0 and DATA_1.
+            assertThat(input).isNotNull();
+            assertThat(input).hasSize(2);
+            assertThat(Arrays.equals(input.get(0), DATA_0)).isTrue();
+            assertThat(Arrays.equals(input.get(1), DATA_1)).isTrue();
+          }
+        });
   }
 
   @Test
@@ -94,6 +138,42 @@ public class InMemoryJournalStorageTest {
   }
 
   @Test
+  public void copyJournal_async() throws Exception {
+    // Write some data.
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        new Consumer<CommitResult>() {
+          @Override
+          public void accept(CommitResult input) {
+            assertThat(input).isEqualTo(CommitResult.SUCCESS);
+          }
+        });
+    // Copy the data into a new journal and put the result from the callback into commitResult.
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME).copy(JOURNAL_COPY_NAME).build(),
+        new Consumer<CommitResult>() {
+          @Override
+          public void accept(CommitResult input) {
+            assertThat(input).isEqualTo(CommitResult.SUCCESS);
+          }
+        });
+
+    // Read the data back into blobs.
+    journalStorage.read(
+        JOURNAL_COPY_NAME,
+        new Consumer<List<byte[]>>() {
+          @Override
+          public void accept(List<byte[]> input) {
+            // We should get back one byte array, containing the bytes of DATA_0.
+            assertThat(input).isNotNull();
+            assertThat(input).hasSize(2);
+            assertThat(Arrays.equals(input.get(0), DATA_0)).isTrue();
+            assertThat(Arrays.equals(input.get(1), DATA_1)).isTrue();
+          }
+        });
+  }
+
+  @Test
   public void deleteJournal() throws Exception {
     // Write some data.
     journalStorage
@@ -109,5 +189,39 @@ public class InMemoryJournalStorageTest {
     assertThat(commitResult).isTrue();
     assertThat(blobs).isNotNull();
     assertThat(blobs).isEmpty();
+  }
+
+  @Test
+  public void deleteJournal_async() throws Exception {
+    // Write some data.
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        new Consumer<CommitResult>() {
+          @Override
+          public void accept(CommitResult input) {
+            assertThat(input).isEqualTo(CommitResult.SUCCESS);
+          }
+        });
+    // Delete the journal and put the result from the callback into commitResult.
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME).delete().build(),
+        new Consumer<CommitResult>() {
+          @Override
+          public void accept(CommitResult input) {
+            assertThat(input).isEqualTo(CommitResult.SUCCESS);
+          }
+        });
+    // Try to read the deleted journal.
+    journalStorage.read(
+        JOURNAL_NAME,
+        new Consumer<List<byte[]>>() {
+          @Override
+          public void accept(List<byte[]> input) {
+
+            // The result should be an empty List.
+            assertThat(input).isNotNull();
+            assertThat(input).isEmpty();
+          }
+        });
   }
 }

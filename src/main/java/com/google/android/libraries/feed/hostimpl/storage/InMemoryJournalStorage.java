@@ -18,9 +18,11 @@ import static com.google.android.libraries.feed.host.storage.JournalOperation.Ty
 import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.COPY;
 import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.DELETE;
 
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
@@ -65,6 +67,16 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
   }
 
   @Override
+  public void read(String journalName, Consumer<List<byte[]>> consumer) {
+    readCount++;
+    List<byte[]> journal = journals.get(journalName);
+    if (journal == null) {
+      journal = new ArrayList<>();
+    }
+    consumer.accept(journal);
+  }
+
+  @Override
   public Future<Boolean> commit(JournalMutation mutation) {
     return executor.submit(
         () -> {
@@ -90,6 +102,39 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
           }
           return true;
         });
+  }
+
+  @Override
+  public void commit(JournalMutation mutation, Consumer<CommitResult> consumer) {
+    String journalName = mutation.getJournalName();
+
+    for (JournalOperation operation : mutation.getOperations()) {
+      // TODO: instanceof is ugly here, and it makes it hard to report what the
+      // bad
+      // value was if we get an unexpected operation. Also include an enum in
+      // JournalOperation?
+      if (operation.getType() == APPEND) {
+        if (!append(((Append) operation).getValue(), journalName)) {
+          consumer.accept(CommitResult.FAILURE);
+          return;
+        }
+      } else if (operation.getType() == COPY) {
+        if (!copy(journalName, ((Copy) operation).getToJournalName())) {
+          consumer.accept(CommitResult.FAILURE);
+          return;
+        }
+      } else if (operation.getType() == DELETE) {
+        if (!delete(journalName)) {
+          consumer.accept(CommitResult.FAILURE);
+          return;
+        }
+      } else {
+        Logger.w(TAG, "Unexpected JournalOperation type: %s", operation.getType());
+        consumer.accept(CommitResult.FAILURE);
+        return;
+      }
+    }
+    consumer.accept(CommitResult.SUCCESS);
   }
 
   private boolean append(ByteBuffer value, String journalName) {
