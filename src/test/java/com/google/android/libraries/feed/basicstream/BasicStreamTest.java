@@ -14,20 +14,24 @@
 
 package com.google.android.libraries.feed.basicstream;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
+import android.os.Build.VERSION_CODES;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.testing.TestClockImpl;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
+import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
@@ -37,11 +41,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
+import org.robolectric.annotation.Config;
 
 /** Tests for {@link BasicStream}. */
 @RunWith(RobolectricTestRunner.class)
 public class BasicStreamTest {
 
+  private static final int START_PADDING = 1;
+  private static final int END_PADDING = 2;
+  private static final int TOP_PADDING = 3;
+  private static final int BOTTOM_PADDING = 4;
+
+  @Mock private StreamConfiguration streamConfiguration;
   @Mock private CardConfiguration cardConfiguration;
   @Mock private ImageLoaderApi imageLoaderApi;
   @Mock private ActionParser actionParser;
@@ -60,9 +71,15 @@ public class BasicStreamTest {
   public void setUp() {
     initMocks(this);
 
+    when(streamConfiguration.getPaddingStart()).thenReturn(START_PADDING);
+    when(streamConfiguration.getPaddingEnd()).thenReturn(END_PADDING);
+    when(streamConfiguration.getPaddingTop()).thenReturn(TOP_PADDING);
+    when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
+
     basicStream =
         new BasicStream(
             Robolectric.setupActivity(Activity.class),
+            streamConfiguration,
             cardConfiguration,
             imageLoaderApi,
             actionParser,
@@ -83,5 +100,29 @@ public class BasicStreamTest {
     basicStream.setModelProvider(modelProvider);
 
     verify(pietSharedStateSupplier).setModelProvider(modelProvider);
+  }
+
+  @Test
+  @Config(sdk = VERSION_CODES.JELLY_BEAN)
+  public void testPadding_jellyBean() {
+    // Padding is setup in constructor.
+    View view = basicStream.getView();
+
+    assertThat(view.getPaddingLeft()).isEqualTo(START_PADDING);
+    assertThat(view.getPaddingRight()).isEqualTo(END_PADDING);
+    assertThat(view.getPaddingTop()).isEqualTo(TOP_PADDING);
+    assertThat(view.getPaddingBottom()).isEqualTo(BOTTOM_PADDING);
+  }
+
+  @Test
+  @Config(sdk = VERSION_CODES.KITKAT)
+  public void testPadding_kitKat() {
+    // Padding is setup in constructor.
+    View view = basicStream.getView();
+
+    assertThat(view.getPaddingStart()).isEqualTo(START_PADDING);
+    assertThat(view.getPaddingEnd()).isEqualTo(END_PADDING);
+    assertThat(view.getPaddingTop()).isEqualTo(TOP_PADDING);
+    assertThat(view.getPaddingBottom()).isEqualTo(BOTTOM_PADDING);
   }
 }

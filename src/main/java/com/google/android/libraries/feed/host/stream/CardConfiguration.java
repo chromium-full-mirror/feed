@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.stream;
+package com.google.android.libraries.feed.host.stream;
 
 /** Class which is able to provide host configuration for default card look and feel. */
 // TODO: Look into allowing server configuration of this.
@@ -24,5 +24,6 @@ public interface CardConfiguration {
 
   float getMaxDefaultCardElevation();
 
+  /** Returns the amount of padding (in px) at the end of a card in the Stream */
   float getCardBottomPadding();
 }

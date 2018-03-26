@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
@@ -35,6 +34,8 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
+import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
@@ -42,9 +43,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
+import org.robolectric.annotation.Config;
 
 /** Tests for {@link FeedStreamScope}. */
 @RunWith(RobolectricTestRunner.class)
+@Config(
+  manifest = "AndroidManifest.xml"
+)
 public class FeedStreamScopeTest {
 
   // Mocks for required fields
@@ -57,6 +62,7 @@ public class FeedStreamScopeTest {
   @Mock private SessionManager sessionManager;
   @Mock private ActionParser actionParser;
   @Mock private Stream stream;
+  @Mock private StreamConfiguration streamConfiguration;
   @Mock private CardConfiguration cardConfiguration;
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private CustomElementProvider customElementProvider;
@@ -90,8 +96,7 @@ public class FeedStreamScopeTest {
                 threadUtils,
                 timingUtils,
                 uiRunnableHandler,
-                clock,
-                cardConfiguration)
+                clock)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -110,9 +115,10 @@ public class FeedStreamScopeTest {
                 threadUtils,
                 timingUtils,
                 uiRunnableHandler,
-                clock,
-                cardConfiguration)
+                clock)
             .setActionParser(actionParser)
+            .setStreamConfiguration(streamConfiguration)
+            .setCardConfiguration(cardConfiguration)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)
             .setCustomElementProvider(customElementProvider)

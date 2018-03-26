@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.BasicStream;
 import com.google.android.libraries.feed.common.TimingUtils;
@@ -30,6 +29,10 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
+import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.host.stream.StreamConfiguration;
+import com.google.android.libraries.feed.hostimpl.stream.DefaultCardConfiguration;
+import com.google.android.libraries.feed.hostimpl.stream.DefaultStreamConfiguration;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import java.util.ArrayList;
 import javax.annotation.Nullable;
@@ -58,8 +61,7 @@ public class FeedStreamScope {
         ThreadUtils threadUtils,
         TimingUtils timingUtils,
         UiRunnableHandler uiRunnableHandler,
-        Clock clock,
-        CardConfiguration cardConfiguration) {
+        Clock clock) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
@@ -70,11 +72,20 @@ public class FeedStreamScope {
       this.timingUtils = timingUtils;
       this.uiRunnableHandler = uiRunnableHandler;
       this.clock = clock;
-      this.cardConfiguration = cardConfiguration;
     }
 
     public Builder setActionParser(ActionParser actionParser) {
       this.actionParser = actionParser;
+      return this;
+    }
+
+    public Builder setCardConfiguration(CardConfiguration cardConfiguration) {
+      this.cardConfiguration = cardConfiguration;
+      return this;
+    }
+
+    public Builder setStreamConfiguration(StreamConfiguration streamConfiguration) {
+      this.streamConfiguration = streamConfiguration;
       return this;
     }
 
@@ -99,10 +110,17 @@ public class FeedStreamScope {
             new FeedModelProviderFactory(
                 sessionManager, threadUtils, timingUtils, uiRunnableHandler);
       }
+      if (cardConfiguration == null) {
+        cardConfiguration = new DefaultCardConfiguration(context);
+      }
+      if (streamConfiguration == null) {
+        streamConfiguration = new DefaultStreamConfiguration(context);
+      }
       if (stream == null) {
         stream =
             new BasicStream(
                 context,
+                streamConfiguration,
                 cardConfiguration,
                 imageLoaderApi,
                 actionParser,
@@ -136,13 +154,14 @@ public class FeedStreamScope {
     private final TimingUtils timingUtils;
     private final UiRunnableHandler uiRunnableHandler;
     private final Clock clock;
-    private final CardConfiguration cardConfiguration;
 
     // Optional internal components to override the default implementations.
     @Nullable private ActionParser actionParser = null;
     @Nullable private ModelProviderFactory modelProviderFactory = null;
     @Nullable private Stream stream = null;
     @Nullable private CustomElementProvider customElementProvider = null;
+    @Nullable private CardConfiguration cardConfiguration;
+    @Nullable private StreamConfiguration streamConfiguration;
   }
 
   private FeedStreamScope(

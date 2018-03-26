@@ -22,7 +22,6 @@ import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.SystemClockImpl;
@@ -59,7 +58,7 @@ public class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
   public FeedStreamScope.Builder createFeedStreamScopeBuilder(
-      Context context, ActionApi actionApi, CardConfiguration cardConfiguration) {
+      Context context, ActionApi actionApi) {
     return new FeedStreamScope.Builder(
         context,
         actionApi,
@@ -70,8 +69,7 @@ public class FeedProcessScope implements Dumpable {
         threadUtils,
         timingUtils,
         uiRunnableHandler,
-        clock,
-        cardConfiguration);
+        clock);
   }
 
   @Override

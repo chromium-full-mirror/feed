@@ -12,6 +12,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",
+        "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/util",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",

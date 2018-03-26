@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.basicstream;
 
 import android.content.Context;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.LinearLayoutManager;
@@ -30,7 +32,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.api.stream.CardConfiguration;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
@@ -43,6 +44,8 @@ import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedSta
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
+import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.PietStylesHelper;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -71,6 +74,7 @@ public class BasicStream implements Stream {
 
   public BasicStream(
       Context context,
+      StreamConfiguration streamConfiguration,
       CardConfiguration cardConfiguration,
       ImageLoaderApi imageLoaderApi,
       ActionParser actionParser,
@@ -100,6 +104,21 @@ public class BasicStream implements Stream {
             context, this.cardConfiguration, pietManager, viewHolderBindingObserver);
     adapter.setHeaders(headers);
     recyclerView.setAdapter(adapter);
+
+    recyclerView.setClipToPadding(false);
+    if (VERSION.SDK_INT > VERSION_CODES.JELLY_BEAN) {
+      recyclerView.setPaddingRelative(
+          streamConfiguration.getPaddingStart(),
+          streamConfiguration.getPaddingTop(),
+          streamConfiguration.getPaddingEnd(),
+          streamConfiguration.getPaddingBottom());
+    } else {
+      recyclerView.setPadding(
+          streamConfiguration.getPaddingStart(),
+          streamConfiguration.getPaddingTop(),
+          streamConfiguration.getPaddingEnd(),
+          streamConfiguration.getPaddingBottom());
+    }
   }
 
   private ViewHolderBindingObserver initializeBindingObserver() {

@@ -20,6 +20,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",
+        "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "@bazel_android//:robolectric",
