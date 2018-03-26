@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedstore.internal;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.common.Committer;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +26,9 @@ import java.util.List;
 public class FeedContentMutation implements ContentMutation {
 
   private final List<PayloadWithId> mutations = new ArrayList<>();
-  private final Committer<ContentMutationResults, List<PayloadWithId>> committer;
+  private final Committer<CommitResult, List<PayloadWithId>> committer;
 
-  public FeedContentMutation(Committer<ContentMutationResults, List<PayloadWithId>> committer) {
+  public FeedContentMutation(Committer<CommitResult, List<PayloadWithId>> committer) {
     this.committer = committer;
   }
 
@@ -38,7 +39,7 @@ public class FeedContentMutation implements ContentMutation {
   }
 
   @Override
-  public ContentMutationResults commit() {
+  public CommitResult commit() {
     return committer.commit(mutations);
   }
 }

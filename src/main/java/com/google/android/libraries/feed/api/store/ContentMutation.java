@@ -14,29 +14,18 @@
 
 package com.google.android.libraries.feed.api.store;
 
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import java.util.List;
 
 /**
  * Mutation for adding and updating Content in the Feed Store. Remove will be handled by a task
  * which garbage collects the content that is not longer defined in any sessions.
  */
 public interface ContentMutation {
-  /** Defines the results of a Content mutation */
-  interface ContentMutationResults {
-    /** Content Ids of the items added */
-    List<String> getContentAdded();
-
-    /** Content Ids of the items updated */
-    List<String> getContentUpdated();
-
-    /** Content Ids of the SharedState added */
-    List<String> getSharedStateAdded();
-  }
 
   /** Add a new Mutation to the Store */
   ContentMutation add(String contentId, StreamPayload payload);
 
   /** Commit the mutations to the backing store */
-  ContentMutationResults commit();
+  CommitResult commit();
 }

@@ -18,7 +18,6 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.store.ContentMutation;
-import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Consumer;
@@ -250,41 +249,18 @@ public class FeedStore implements Store, Dumpable {
     return result;
   }
 
-  private ContentMutationResults commitContentMutation(List<PayloadWithId> mutations) {
+  private CommitResult commitContentMutation(List<PayloadWithId> mutations) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    List<String> contentAdded = new ArrayList<>();
-    List<String> contentUpdated = new ArrayList<>();
-    List<String> sharedStateAdded = new ArrayList<>();
+    CommitResult commitResult = null;
     for (PayloadWithId mutation : mutations) {
       String payloadId = mutation.contentId;
       StreamPayload payload = mutation.payload;
       if (mutation.payload.hasStreamSharedState()) {
-        StreamSharedState prevValue =
-            sharedStates.put(mutation.contentId, payload.getStreamSharedState());
-        // TODO: Do we need to track SharedState Updates?
-        if (prevValue == null) {
-          sharedStateAdded.add(mutation.contentId);
-        }
+        sharedStates.put(mutation.contentId, payload.getStreamSharedState());
       } else {
         // Block waiting for the response from storage, to make this method synchronous.
         try {
-          // Check whether the payload is already in storage.
-          // TODO: skip the add / update check and just upsert
-          SimpleSettableFuture<byte[]> payloadFuture = new SimpleSettableFuture<>();
-          uiRunnableHandler.post(
-              TAG,
-              () -> {
-                contentStorage.get(
-                    payloadId,
-                    input -> {
-                      payloadFuture.put(input);
-
-                      // TODO: handle errors
-                    });
-              });
-
-          byte[] payloadBytes = payloadFuture.get();
           SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
           uiRunnableHandler.post(
               TAG,
@@ -298,24 +274,15 @@ public class FeedStore implements Store, Dumpable {
                     });
               });
 
-          CommitResult commitResult = commitResultFuture.get();
-          // TODO: skip the add / update check and just upsert
-          if (CommitResult.SUCCESS.equals(commitResult)) {
-            if (payloadBytes != null) {
-              contentUpdated.add(payloadId);
-            } else {
-              contentAdded.add(payloadId);
-            }
-          }
+          commitResult = commitResultFuture.get();
         } catch (ExecutionException | InterruptedException e) {
           Logger.e(TAG, e, "Exception committing content mutation");
         }
       }
     }
 
-    StoreResults results = new StoreResults(contentAdded, contentUpdated, sharedStateAdded);
     tracker.stop("task", "commitContentMutation", "mutations", mutations.size());
-    return results;
+    return commitResult;
   }
 
   @Override
@@ -327,34 +294,6 @@ public class FeedStore implements Store, Dumpable {
     }
     if (journalStorage instanceof Dumpable) {
       dumper.dump((Dumpable) journalStorage);
-    }
-  }
-
-  private static class StoreResults implements ContentMutationResults {
-    private final List<String> contentAdded;
-    private final List<String> contentUpdated;
-    private final List<String> sharedStateAdded;
-
-    StoreResults(
-        List<String> contentAdded, List<String> contentUpdated, List<String> sharedStateAdded) {
-      this.contentAdded = contentAdded;
-      this.contentUpdated = contentUpdated;
-      this.sharedStateAdded = sharedStateAdded;
-    }
-
-    @Override
-    public List<String> getContentAdded() {
-      return contentAdded;
-    }
-
-    @Override
-    public List<String> getContentUpdated() {
-      return contentUpdated;
-    }
-
-    @Override
-    public List<String> getSharedStateAdded() {
-      return sharedStateAdded;
     }
   }
 }

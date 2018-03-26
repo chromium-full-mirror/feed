@@ -22,7 +22,6 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.store.ContentMutation;
-import com.google.android.libraries.feed.api.store.ContentMutation.ContentMutationResults;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
@@ -31,6 +30,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
@@ -159,10 +159,9 @@ public class FeedStoreTest {
   public void addContentOperationToSession() throws Exception {
     ContentMutation mutation = store.editContent();
     mutation.add(PAYLOAD_CONTENT_ID, STREAM_DATA_OPERATION.getStreamPayload());
-    ContentMutationResults results = mutation.commit();
+    CommitResult result = mutation.commit();
 
-    assertThat(results.getContentAdded()).hasSize(1);
-    assertThat(results.getContentAdded().get(0)).isEqualTo(PAYLOAD_CONTENT_ID);
+    assertThat(result).isEqualTo(CommitResult.SUCCESS);
   }
 
   @Test
