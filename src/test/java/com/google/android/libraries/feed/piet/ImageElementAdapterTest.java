@@ -119,11 +119,10 @@ public class ImageElementAdapterTest {
 
     assertThat(adapter.getView()).isNotNull();
 
-    assertThat(adapter.getComputedHeightPx())
-        .isEqualTo(heightPx + PADDING.getTop() + PADDING.getBottom());
-    assertThat(adapter.getComputedWidthPx())
-        .isEqualTo(widthPx + PADDING.getStart() + PADDING.getEnd());
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
     assertThat(adapter.getBaseView().getCropToPadding()).isTrue();
+    verify(styleProvider).setElementStyles(context, frameContextWithStyle, adapter.getView());
   }
 
   @Test
@@ -150,8 +149,7 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getView()).isNotNull();
 
     // Width defaults to MATCH_PARENT
-    assertThat(adapter.getComputedHeightPx())
-        .isEqualTo(heightPx + PADDING.getTop() + PADDING.getBottom());
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
   }
 
@@ -165,10 +163,8 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getView()).isNotNull();
 
     // Image defaults to a square.
-    assertThat(adapter.getComputedHeightPx())
-        .isEqualTo(widthPx + PADDING.getTop() + PADDING.getBottom());
-    assertThat(adapter.getComputedWidthPx())
-        .isEqualTo(widthPx + PADDING.getStart() + PADDING.getEnd());
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(widthPx);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
   }
 
   @Test
@@ -480,10 +476,8 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    assertThat(adapter.getComputedHeightPx())
-        .isEqualTo(heightPx + PADDING.getTop() + PADDING.getBottom());
-    assertThat(adapter.getComputedWidthPx())
-        .isEqualTo(widthPx + PADDING.getStart() + PADDING.getEnd());
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
   }
 
   @Test

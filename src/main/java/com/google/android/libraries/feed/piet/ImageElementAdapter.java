@@ -19,7 +19,6 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.Consumer;
@@ -60,22 +59,17 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
     if (style.hasWidth() || style.hasHeight()) {
       Context context = getContext();
 
-      int width;
       if (style.hasWidth()) {
-        width = (int) ViewUtils.dpToPx(style.getWidth(), context);
-        widthPx = width + getPaddingWidthPx(context, style);
+        widthPx = (int) ViewUtils.dpToPx(style.getWidth(), context);
       } else {
-        width = LayoutParams.MATCH_PARENT;
         widthPx = DIMENSION_NOT_SET;
       }
 
       if (style.hasHeight()) {
-        heightPx =
-            (int) ViewUtils.dpToPx(style.getHeight(), context) + getPaddingHeightPx(context, style);
+        heightPx = (int) ViewUtils.dpToPx(style.getHeight(), context);
       } else {
         // Defaults to a square when only the width is defined.
-        heightPx =
-            style.hasWidth() ? width + getPaddingHeightPx(context, style) : DIMENSION_NOT_SET;
+        heightPx = style.hasWidth() ? widthPx : DIMENSION_NOT_SET;
       }
     } else {
       widthPx = DIMENSION_NOT_SET;
@@ -149,16 +143,6 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
     ImageView imageView = new ImageView(getContext());
     imageView.setCropToPadding(true);
     initializeAdapter(imageView, KeySupplier.SINGLETON_KEY);
-  }
-
-  private int getPaddingWidthPx(Context context, StyleProvider style) {
-    return (int)
-        ViewUtils.dpToPx(style.getPadding().getStart() + style.getPadding().getEnd(), context);
-  }
-
-  private int getPaddingHeightPx(Context context, StyleProvider style) {
-    return (int)
-        ViewUtils.dpToPx(style.getPadding().getTop() + style.getPadding().getBottom(), context);
   }
 
   private static class LoadImageCallback implements Consumer<Drawable> {
