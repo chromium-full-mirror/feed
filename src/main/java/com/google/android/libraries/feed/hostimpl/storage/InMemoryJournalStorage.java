@@ -34,15 +34,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /** A {@link JournalStorage} implementation that holds the data in memory. */
 public class InMemoryJournalStorage implements JournalStorage, Dumpable {
   private static final String TAG = "InMemoryJournalStorage";
 
-  private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final Map<String, List<byte[]>> journals;
   private int readCount = 0;
   private int appendCount = 0;
@@ -54,19 +50,6 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
   }
 
   @Override
-  public Future<List<byte[]>> read(String journalName) {
-    return executor.submit(
-        () -> {
-          readCount++;
-          List<byte[]> journal = journals.get(journalName);
-          if (journal == null) {
-            journal = new ArrayList<>();
-          }
-          return journal;
-        });
-  }
-
-  @Override
   public void read(String journalName, Consumer<List<byte[]>> consumer) {
     readCount++;
     List<byte[]> journal = journals.get(journalName);
@@ -74,34 +57,6 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
       journal = new ArrayList<>();
     }
     consumer.accept(journal);
-  }
-
-  @Override
-  public Future<Boolean> commit(JournalMutation mutation) {
-    return executor.submit(
-        () -> {
-          String journalName = mutation.getJournalName();
-
-          for (JournalOperation operation : mutation.getOperations()) {
-            if (operation.getType() == APPEND) {
-              if (!append(((Append) operation).getValue(), journalName)) {
-                return false;
-              }
-            } else if (operation.getType() == COPY) {
-              if (!copy(journalName, ((Copy) operation).getToJournalName())) {
-                return false;
-              }
-            } else if (operation.getType() == DELETE) {
-              if (!delete(journalName)) {
-                return false;
-              }
-            } else {
-              Logger.w(TAG, "Unexpected JournalOperation type: %s", operation.getType());
-              return false;
-            }
-          }
-          return true;
-        });
   }
 
   @Override

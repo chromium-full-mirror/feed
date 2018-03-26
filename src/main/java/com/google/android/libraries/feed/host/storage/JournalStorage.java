@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.host.storage;
 
 import com.google.android.libraries.feed.common.Consumer;
 import java.util.List;
-import java.util.concurrent.Future;
 
 /**
  * Allows reading and writing to an append-only storage medium.
@@ -26,21 +25,9 @@ import java.util.concurrent.Future;
  * <p>[INTERNAL LINK]
  */
 public interface JournalStorage {
-  /** Reads the journal and asynchronously returns the contents. */
-  Future<List<byte[]>> read(String journalName);
 
   /** Reads the journal and asynchronously returns the contents. */
   void read(String journalName, Consumer<List<byte[]>> consumer);
-
-  /**
-   * Commits the operations in {@link JournalMutation} in order and asynchronously reports the
-   * boolean, where success is equal to {@code TRUE}. If all the operations succeed, {@code
-   * callback} is called with a success result. If any operation fails, {@code callback} is called
-   * with a failure result and the remaining operations are not processed.
-   *
-   * <p>This operation is not guaranteed to be atomic.
-   */
-  Future<Boolean> commit(JournalMutation mutation);
 
   /**
    * Commits the operations in {@link JournalMutation} in order and asynchronously reports the

@@ -48,16 +48,6 @@ public class InMemoryJournalStorageTest {
   @Test
   public void readOfEmptyJournalReturnsEmptyData() throws Exception {
     // Try to read some blobs from an empty journal store.
-    List<byte[]> blobs = journalStorage.read(JOURNAL_NAME).get();
-
-    // The result should be an empty List.
-    assertThat(blobs).isNotNull();
-    assertThat(blobs).isEmpty();
-  }
-
-  @Test
-  public void readOfEmptyJournalReturnsEmptyData_async() throws Exception {
-    // Try to read some blobs from an empty journal store.
     journalStorage.read(
         JOURNAL_NAME,
         new Consumer<List<byte[]>>() {
@@ -73,24 +63,6 @@ public class InMemoryJournalStorageTest {
 
   @Test
   public void appendToJournal() throws Exception {
-    // Write some data and put the result from the callback into commitResult.
-    boolean commitResult =
-        journalStorage
-            .commit(new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build())
-            .get();
-    // Read the data back into blobs.
-    List<byte[]> blobs = journalStorage.read(JOURNAL_NAME).get();
-
-    // We should get back one byte array, containing the bytes of DATA_0 and DATA_1.
-    assertThat(commitResult).isTrue();
-    assertThat(blobs).isNotNull();
-    assertThat(blobs).hasSize(2);
-    assertThat(Arrays.equals(blobs.get(0), DATA_0)).isTrue();
-    assertThat(Arrays.equals(blobs.get(1), DATA_1)).isTrue();
-  }
-
-  @Test
-  public void appendToJournal_async() throws Exception {
     // Write some data and put the result from the callback into commitResult.
     journalStorage.commit(
         new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
@@ -117,28 +89,6 @@ public class InMemoryJournalStorageTest {
 
   @Test
   public void copyJournal() throws Exception {
-    // Write some data.
-    journalStorage
-        .commit(new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build())
-        .get();
-    // Copy the data into a new journal and put the result from the callback into commitResult.
-    boolean commitResult =
-        journalStorage
-            .commit(new JournalMutation.Builder(JOURNAL_NAME).copy(JOURNAL_COPY_NAME).build())
-            .get();
-    // Read the data back into blobs.
-    List<byte[]> blobs = journalStorage.read(JOURNAL_COPY_NAME).get();
-
-    // We should get back one byte array, containing the bytes of DATA_0.
-    assertThat(commitResult).isTrue();
-    assertThat(blobs).isNotNull();
-    assertThat(blobs).hasSize(2);
-    assertThat(Arrays.equals(blobs.get(0), DATA_0)).isTrue();
-    assertThat(Arrays.equals(blobs.get(1), DATA_1)).isTrue();
-  }
-
-  @Test
-  public void copyJournal_async() throws Exception {
     // Write some data.
     journalStorage.commit(
         new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
@@ -175,24 +125,6 @@ public class InMemoryJournalStorageTest {
 
   @Test
   public void deleteJournal() throws Exception {
-    // Write some data.
-    journalStorage
-        .commit(new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build())
-        .get();
-    // Delete the journal and put the result from the callback into commitResult.
-    boolean commitResult =
-        journalStorage.commit(new JournalMutation.Builder(JOURNAL_NAME).delete().build()).get();
-    // Try to read the deleted journal.
-    List<byte[]> blobs = journalStorage.read(JOURNAL_NAME).get();
-
-    // The result should be an empty List.
-    assertThat(commitResult).isTrue();
-    assertThat(blobs).isNotNull();
-    assertThat(blobs).isEmpty();
-  }
-
-  @Test
-  public void deleteJournal_async() throws Exception {
     // Write some data.
     journalStorage.commit(
         new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),

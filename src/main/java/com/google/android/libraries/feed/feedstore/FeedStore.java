@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.SimpleSettableFuture;
+import com.google.android.libraries.feed.common.SynchronousConsumerLatch;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -135,10 +136,23 @@ public class FeedStore implements Store, Dumpable {
 
   @Override
   public List<StreamStructure> getStreamStructures(StreamSession session) {
+    threadUtils.checkNotMainThread();
+
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamStructure> streamStructures = new ArrayList<>();
     try {
-      List<byte[]> operations = journalStorage.read(session.getStreamToken()).get();
+      SimpleSettableFuture<List<byte[]>> operationsFuture = new SimpleSettableFuture<>();
+      uiRunnableHandler.post(
+          TAG,
+          () -> {
+            journalStorage.read(
+                session.getStreamToken(),
+                input -> {
+                  operationsFuture.put(input);
+                  // TODO: handle errors
+                });
+          });
+      List<byte[]> operations = operationsFuture.get();
       for (byte[] bytes : operations) {
         streamStructures.add(StreamStructure.parseFrom(bytes));
       }
@@ -151,22 +165,30 @@ public class FeedStore implements Store, Dumpable {
 
   @Override
   public StreamSession createNewSession() {
+    threadUtils.checkNotMainThread();
+
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     int newSessionId = sessionId++;
     StreamSession streamSession =
         StreamSession.newBuilder().setStreamToken("_session:" + newSessionId).build();
-    try {
-      SessionState session = new SessionState();
-      session.addAll(getStreamStructures(HEAD));
-      journalStorage
-          .commit(
+    SessionState session = new SessionState();
+    session.addAll(getStreamStructures(HEAD));
+
+    // While journal storage is async, we want FeedStore calls to be synchronous (for now)
+    SynchronousConsumerLatch<CommitResult> latch = new SynchronousConsumerLatch<>();
+    uiRunnableHandler.post(
+        TAG,
+        () -> {
+          journalStorage.commit(
               new JournalMutation.Builder(HEAD.getStreamToken())
                   .copy(streamSession.getStreamToken())
-                  .build())
-          .get();
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, "Unable to write new session %s", newSessionId);
-      throw new IllegalStateException("Unable to write new session", e);
+                  .build(),
+              latch);
+        });
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+      Logger.e(TAG, "Error creating new session due to interrupt", e);
     }
     tracker.stop("createNewSession", streamSession.getStreamToken());
     return streamSession;
@@ -179,30 +201,47 @@ public class FeedStore implements Store, Dumpable {
 
   @Override
   public void removeSession(StreamSession session) {
+    threadUtils.checkNotMainThread();
+
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     if (session.getStreamToken().equals(HEAD.getStreamToken())) {
       // TODO: What type of exception should this throw?
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
+    // While journal storage is async, we want FeedStore calls to be synchronous (for now)
+    SynchronousConsumerLatch<CommitResult> latch = new SynchronousConsumerLatch<>();
+    uiRunnableHandler.post(
+        TAG,
+        () -> {
+          journalStorage.commit(
+              new JournalMutation.Builder(session.getStreamToken()).delete().build(), latch);
+        });
     try {
-      journalStorage
-          .commit(new JournalMutation.Builder(session.getStreamToken()).delete().build())
-          .get();
-    } catch (InterruptedException | ExecutionException e) {
-      throw new IllegalStateException("Unable to delete session", e);
+      latch.await();
+    } catch (InterruptedException e) {
+      Logger.e(TAG, "Error removing session due to interrupt", e);
     }
     tracker.stop("removeSession", session.getStreamToken());
   }
 
   @Override
   public void clearHead() {
+    threadUtils.checkNotMainThread();
+
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+
+    // While journal storage is async, we want FeedStore calls to be synchronous (for now)
+    SynchronousConsumerLatch<CommitResult> latch = new SynchronousConsumerLatch<>();
+    uiRunnableHandler.post(
+        TAG,
+        () -> {
+          journalStorage.commit(
+              new JournalMutation.Builder(HEAD.getStreamToken()).delete().build(), latch);
+        });
     try {
-      journalStorage
-          .commit(new JournalMutation.Builder(HEAD.getStreamToken()).delete().build())
-          .get();
-    } catch (InterruptedException | ExecutionException e) {
-      throw new IllegalStateException("Unable to clear $HEAD");
+      latch.await();
+    } catch (InterruptedException e) {
+      Logger.e(TAG, "Error clearing head due to interrupt", e);
     }
     tracker.stop("", "clearHead");
   }
@@ -222,6 +261,8 @@ public class FeedStore implements Store, Dumpable {
 
   private Boolean commitSessionMutation(
       StreamSession streamSession, List<StreamStructure> streamStructures) {
+    threadUtils.checkNotMainThread();
+
     if (streamStructures.isEmpty()) {
       Logger.i(TAG, "No StreamStructures found to add");
       return true;
@@ -232,9 +273,20 @@ public class FeedStore implements Store, Dumpable {
     for (StreamStructure streamStructure : streamStructures) {
       mutation.append(streamStructure.toByteArray());
     }
+    SimpleSettableFuture<CommitResult> resultFuture = new SimpleSettableFuture<>();
+    uiRunnableHandler.post(
+        TAG,
+        () -> {
+          journalStorage.commit(
+              mutation.build(),
+              input -> {
+                resultFuture.put(input);
+                // TOOD(rbonick): handle errors
+              });
+        });
     boolean result;
     try {
-      result = journalStorage.commit(mutation.build()).get();
+      result = CommitResult.SUCCESS.equals(resultFuture.get());
     } catch (InterruptedException | ExecutionException e) {
       tracker.stop("", "commitSessionMutationFailure");
       throw new IllegalStateException("Unable to mutate session", e);
