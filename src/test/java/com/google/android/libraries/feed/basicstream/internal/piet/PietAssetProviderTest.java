@@ -21,8 +21,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.api.stream.CardConfiguration;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.testing.TestClockImpl;
-import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
@@ -65,16 +65,16 @@ public class PietAssetProviderTest {
       imageBuilder.addSources(ImageSource.newBuilder().setUrl(url).build());
     }
 
-    Callback<Drawable> callback =
-        new Callback<Drawable>() {
+    Consumer<Drawable> consumer =
+        new Consumer<Drawable>() {
           @Override
-          public void handleResult(Drawable value) {
+          public void accept(Drawable value) {
             // Do nothing.
           }
         };
 
-    pietAssetProvider.getImage(imageBuilder.build(), callback);
-    verify(imageLoaderApi).loadDrawable(urls, callback);
+    pietAssetProvider.getImage(imageBuilder.build(), consumer);
+    verify(imageLoaderApi).loadDrawable(urls, consumer);
   }
 
   @Test

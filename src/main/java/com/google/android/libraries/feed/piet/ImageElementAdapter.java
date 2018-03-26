@@ -22,7 +22,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
-import com.google.android.libraries.feed.host.common.Callback;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
@@ -161,7 +161,7 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
         ViewUtils.dpToPx(style.getPadding().getTop() + style.getPadding().getBottom(), context);
   }
 
-  private static class LoadImageCallback implements Callback<Drawable> {
+  private static class LoadImageCallback implements Consumer<Drawable> {
     private final ImageView imageView;
     boolean cancelled = false;
 
@@ -170,7 +170,7 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
     }
 
     @Override
-    public void handleResult(Drawable drawable) {
+    public void accept(Drawable drawable) {
       if (!cancelled) {
         imageView.setImageDrawable(drawable);
         imageView.setScaleType(ScaleType.CENTER_CROP);

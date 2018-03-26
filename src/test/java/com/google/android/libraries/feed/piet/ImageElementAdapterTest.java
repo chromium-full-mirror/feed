@@ -33,8 +33,8 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
@@ -78,7 +78,7 @@ public class ImageElementAdapterTest {
   @Mock private AssetProvider assetProvider;
   @Mock private StyleProvider styleProvider;
 
-  @Captor ArgumentCaptor<Callback<Drawable>> callbackCaptor;
+  @Captor ArgumentCaptor<Consumer<Drawable>> consumerArgumentCaptor;
 
   private Context context;
   private int heightPx;
@@ -323,7 +323,8 @@ public class ImageElementAdapterTest {
     // Bind a different model
     ImageElement model2 = ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build();
     adapter.bindModel(model2, frameContext);
-    verify(assetProvider).getImage(eq(Image.getDefaultInstance()), callbackCaptor.capture());
+    verify(assetProvider)
+        .getImage(eq(Image.getDefaultInstance()), consumerArgumentCaptor.capture());
 
     RecyclerKey key2 = adapter.getKey();
     assertThat(key1).isSameAs(key2);
@@ -331,7 +332,7 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getView()).isNotNull();
 
     Drawable drawable2 = new ColorDrawable(Color.RED);
-    callbackCaptor.getValue().handleResult(drawable2);
+    consumerArgumentCaptor.getValue().accept(drawable2);
 
     ImageView imageView2 = adapter.getBaseView();
 
@@ -431,8 +432,8 @@ public class ImageElementAdapterTest {
     imageView = adapter.getBaseView();
 
     adapter.unbindModel();
-    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
-    callbackCaptor.getValue().handleResult(defaultDrawable);
+    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    consumerArgumentCaptor.getValue().accept(defaultDrawable);
 
     // The drawable was not set by the callback because the model had already been unbound.
     assertThat(imageView.getDrawable()).isEqualTo(null);
@@ -444,7 +445,7 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
 
-    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
+    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
 
     adapter.unbindModel();
 
@@ -453,7 +454,7 @@ public class ImageElementAdapterTest {
     adapter.bindModel(ImageElement.newBuilder().setImage(model2).build(), frameContext);
 
     // Callback now completes
-    callbackCaptor.getValue().handleResult(defaultDrawable);
+    consumerArgumentCaptor.getValue().accept(defaultDrawable);
 
     // But has no effect
     imageView = adapter.getBaseView();
@@ -461,8 +462,8 @@ public class ImageElementAdapterTest {
 
     // And now the callback for the second model completes
     Drawable drawable2 = new ColorDrawable(Color.RED);
-    verify(assetProvider).getImage(eq(model2), callbackCaptor.capture());
-    callbackCaptor.getValue().handleResult(drawable2);
+    verify(assetProvider).getImage(eq(model2), consumerArgumentCaptor.capture());
+    consumerArgumentCaptor.getValue().accept(drawable2);
 
     // The image has the second drawable as expected.
     assertThat(imageView.getDrawable()).isEqualTo(drawable2);
@@ -541,8 +542,8 @@ public class ImageElementAdapterTest {
   }
 
   private void assertDrawableSet(ImageView imageView) {
-    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), callbackCaptor.capture());
-    callbackCaptor.getValue().handleResult(defaultDrawable);
+    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    consumerArgumentCaptor.getValue().accept(defaultDrawable);
     assertThat(imageView.getDrawable()).isEqualTo(defaultDrawable);
     assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
   }

@@ -32,8 +32,8 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
@@ -232,7 +232,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
   }
 
   @VisibleForTesting
-  class ImageSpanDrawableCallback implements Callback<Drawable> {
+  class ImageSpanDrawableCallback implements Consumer<Drawable> {
     private final LayerDrawable wrapper;
     private final StyleProvider imageStyle;
     private final TextView textView;
@@ -245,7 +245,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     }
 
     @Override
-    public void handleResult(Drawable imageDrawable) {
+    public void accept(Drawable imageDrawable) {
       if (cancelled) {
         return;
       }

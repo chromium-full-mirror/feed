@@ -6,6 +6,6 @@ android_library(
     name = "imageloader",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/host/common",
+        "//src/main/java/com/google/android/libraries/feed/common",
     ],
 )

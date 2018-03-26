@@ -424,7 +424,7 @@ public class ChunkedTextElementAdapterTest {
 
     // Activate the image loading callback
     Drawable imageDrawable = new ColorDrawable(123);
-    imageCallbackCaptor.getValue().handleResult(imageDrawable);
+    imageCallbackCaptor.getValue().accept(imageDrawable);
 
     // Assert that we set the image on the span
     assertThat(containerDrawable.getDrawable(0)).isSameAs(imageDrawable);
@@ -450,7 +450,7 @@ public class ChunkedTextElementAdapterTest {
 
     // Activate the image loading callback
     Drawable imageDrawable = new ColorDrawable(Color.RED);
-    imageCallbackCaptor.getValue().handleResult(imageDrawable);
+    imageCallbackCaptor.getValue().accept(imageDrawable);
 
     // Assert that we did NOT set the image on the span
     assertThat(containerDrawable.getDrawable(SINGLE_LAYER_ID)).isNotSameAs(imageDrawable);

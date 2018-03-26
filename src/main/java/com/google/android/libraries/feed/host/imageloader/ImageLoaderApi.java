@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.host.imageloader;
 
 import android.graphics.drawable.Drawable;
-import com.google.android.libraries.feed.host.common.Callback;
+import com.google.android.libraries.feed.common.Consumer;
 import java.util.List;
 
 /** Feed Host API to load images. */
@@ -32,5 +32,5 @@ public interface ImageLoaderApi {
    *     {@literal null} if no Drawable is found (or could not be loaded) after trying all possible
    *     urls.
    */
-  void loadDrawable(List<String> urls, Callback<Drawable> consumer);
+  void loadDrawable(List<String> urls, Consumer<Drawable> consumer);
 }

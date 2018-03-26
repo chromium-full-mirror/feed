@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Committer;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
@@ -35,7 +36,6 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.Change;
-import com.google.android.libraries.feed.host.common.Callback;
 import com.google.android.libraries.feed.host.config.ConfigManager;
 import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -219,7 +219,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
-  public void getStreamFeatures(List<String> contentIds, Callback<List<PayloadWithId>> callback) {
+  public void getStreamFeatures(List<String> contentIds, Consumer<List<PayloadWithId>> consumer) {
     if (optimisticWrites) {
       List<PayloadWithId> results = new ArrayList<>();
       List<String> cacheMisses = new ArrayList<>();
@@ -246,9 +246,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           contentIds.size(),
           cacheMisses.size(),
           contentSize);
-      callback.handleResult(results);
+      consumer.accept(results);
     } else {
-      callback.handleResult(store.getPayloads(contentIds));
+      consumer.accept(store.getPayloads(contentIds));
     }
   }
 

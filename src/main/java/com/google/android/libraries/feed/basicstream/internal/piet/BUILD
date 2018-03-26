@@ -11,7 +11,6 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/common",
-        "//src/main/java/com/google/android/libraries/feed/host/common",
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/util",

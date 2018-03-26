@@ -18,7 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.text.format.DateUtils;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.stream.CardConfiguration;
-import com.google.android.libraries.feed.host.common.Callback;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.ImagesProto.Image;
@@ -44,13 +44,13 @@ public class PietAssetProvider implements AssetProvider {
   }
 
   @Override
-  public void getImage(Image image, Callback<Drawable> callback) {
+  public void getImage(Image image, Consumer<Drawable> consumer) {
     List<String> urls = new ArrayList<>(image.getSourcesList().size());
     for (ImageSource source : image.getSourcesList()) {
       urls.add(source.getUrl());
     }
 
-    imageLoaderApi.loadDrawable(urls, callback);
+    imageLoaderApi.loadDrawable(urls, consumer);
   }
 
   @Override
