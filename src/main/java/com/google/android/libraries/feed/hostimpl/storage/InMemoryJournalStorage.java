@@ -109,10 +109,6 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
     String journalName = mutation.getJournalName();
 
     for (JournalOperation operation : mutation.getOperations()) {
-      // TODO: instanceof is ugly here, and it makes it hard to report what the
-      // bad
-      // value was if we get an unexpected operation. Also include an enum in
-      // JournalOperation?
       if (operation.getType() == APPEND) {
         if (!append(((Append) operation).getValue(), journalName)) {
           consumer.accept(CommitResult.FAILURE);
