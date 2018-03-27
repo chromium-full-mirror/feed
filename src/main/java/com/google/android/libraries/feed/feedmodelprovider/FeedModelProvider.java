@@ -77,6 +77,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final Object lock = new Object();
 
   @GuardedBy("lock")
+  @Nullable
   private UpdatableModelChild root = null;
 
   // The tree is model as a parent with an list of children.  A container is created for every
@@ -201,6 +202,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   public String getSessionToken() {
     if (streamSession == null) {
       Logger.w(TAG, "streamSession is null, this should have been set during population");
+      return null;
     }
     return streamSession.getStreamToken();
   }
@@ -254,12 +256,16 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       dumper.forKey("removeCount").value(removedChildrenCount);
       dumper.forKey("removeScanCount").value(removeScanCount).compactPrevious();
       if (root != null) {
-        if (root.getType() != Type.FEATURE) {
+        // This is here to satisfy the nullness checker.
+        UpdatableModelChild nonNullRoot = Validators.checkNotNull(root);
+        if (nonNullRoot.getType() != Type.FEATURE) {
           dumper.forKey("root").value("[ROOT NOT A FEATURE]");
-          dumper.forKey("type").value(root.getType()).compactPrevious();
-        } else if (root.getModelFeature().getStreamFeature() != null
-            && root.getModelFeature().getStreamFeature().hasContentId()) {
-          dumper.forKey("root").value(root.getModelFeature().getStreamFeature().getContentId());
+          dumper.forKey("type").value(nonNullRoot.getType()).compactPrevious();
+        } else if (nonNullRoot.getModelFeature().getStreamFeature() != null
+            && nonNullRoot.getModelFeature().getStreamFeature().hasContentId()) {
+          dumper
+              .forKey("root")
+              .value(nonNullRoot.getModelFeature().getStreamFeature().getContentId());
         } else {
           dumper.forKey("root").value("[FEATURE NOT DEFINED]");
         }
@@ -383,10 +389,17 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             // Track any tokens we added to the tree
             for (UpdatableModelChild child : childrenToBind) {
               if (child.getType() == Type.TOKEN) {
-                ArrayList<UpdatableModelChild> childrenList = getChildList(child.getParentId());
+                String parent = child.getParentId();
+                if (parent == null) {
+                  Logger.w(
+                      TAG,
+                      "Found a token for a child %s without a parent, ignoring",
+                      child.getContentId());
+                  continue;
+                }
+                ArrayList<UpdatableModelChild> childrenList = getChildList(parent);
                 TokenTracking tokenTracking =
-                    new TokenTracking(
-                        child.getUpdatableModelToken(), child.getParentId(), childrenList);
+                    new TokenTracking(child.getUpdatableModelToken(), parent, childrenList);
                 tokens.put(
                     child.getModelToken().getStreamToken().getNextPageToken(), tokenTracking);
               }
@@ -455,6 +468,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                 childrenList = getChildList(parentKey);
                 currentParentKey = parentKey;
               }
+              if (childrenList == null) {
+                Logger.e(TAG, "childrenList was not set");
+                continue;
+              }
               childrenList.add(modelChild);
               contents.put(modelChild.getContentId(), modelChild);
               mutationHandler.appendChild(parentKey, modelChild);
@@ -502,8 +519,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       // For FEATURE children, add the remove to the mutation handler to create the
       // StreamFeatureChange.  We skip this for TOKENS.
       String childKey = removeChild.getContentId();
-      UpdatableModelChild targetChild = contents.get(childKey);
-      Validators.checkNotNull(targetChild, "Child not found in the ModelProvider contents");
+      UpdatableModelChild targetChild =
+          Validators.checkNotNull(
+              contents.get(childKey), "Child not found in the ModelProvider contents");
       if (targetChild.getType() == Type.FEATURE) {
         Logger.i(TAG, "Removing a child");
         mutationHandler.removeChild(parentKey, targetChild);
@@ -564,7 +582,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   @VisibleForTesting
   class TokenMutation extends MutationHandler {
     private final StreamToken mutationSourceToken;
-    TokenTracking token = null;
+    @Nullable TokenTracking token = null;
     int newCursorStart = -1;
 
     TokenMutation(StreamToken mutationSourceToken) {
@@ -574,7 +592,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     @VisibleForTesting
     TokenTracking getTokenTrackingForTest() {
       synchronized (lock) {
-        return tokens.get(mutationSourceToken.getNextPageToken());
+        return Validators.checkNotNull(tokens.get(mutationSourceToken.getNextPageToken()));
       }
     }
 
@@ -584,6 +602,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         token = tokens.remove(mutationSourceToken.getNextPageToken());
         if (token == null) {
           Logger.e(TAG, "Token was not found, positioning to end of list");
+          return;
         }
         newCursorStart = token.location.size();
       }
@@ -591,6 +610,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
     @Override
     public void postMutation() {
+      if (token == null) {
+        Logger.e(TAG, "Token was not found, mutation is being ignored");
+        return;
+      }
       ModelCursorImpl cursor =
           new ModelCursorImpl(
               token.parentContentId,

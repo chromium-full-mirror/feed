@@ -40,6 +40,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
 
   private final String parentContentId;
 
+
   @GuardedBy("lock")
   private List<UpdatableModelChild> childList;
 
@@ -104,8 +105,8 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
     // Remove only needs to remove all children that are beyond the current position because we
     // have visited everything before and can't revisit them with this cursor.
     synchronized (lock) {
-      Validators.checkNotNull(iterator);
-      int currentPosition = iterator.getPosition();
+      CursorIterator cursorIterator = Validators.checkNotNull(iterator);
+      int currentPosition = cursorIterator.getPosition();
       List<UpdatableModelChild> realRemoves = new ArrayList<>();
       for (ModelChild modelChild : children) {
         String childKey = modelChild.getContentId();
@@ -149,7 +150,6 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   public void release() {
     // This could be called on a background thread.
     synchronized (lock) {
-      childList = null;
       iterator = null;
     }
   }
