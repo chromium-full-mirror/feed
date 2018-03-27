@@ -156,4 +156,86 @@ public class InMemoryJournalStorageTest {
           }
         });
   }
+
+  @Test
+  public void exists() throws Exception {
+    // Write some data.
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        new Consumer<CommitResult>() {
+          @Override
+          public void accept(CommitResult input) {
+            assertThat(input).isEqualTo(CommitResult.SUCCESS);
+          }
+        });
+    journalStorage.exists(
+        JOURNAL_NAME,
+        new Consumer<Boolean>() {
+          @Override
+          public void accept(Boolean input) {
+            assertThat(input).isTrue();
+          }
+        });
+  }
+
+  @Test
+  public void exists_doesNotExist() throws Exception {
+    journalStorage.exists(
+        JOURNAL_NAME,
+        new Consumer<Boolean>() {
+          @Override
+          public void accept(Boolean input) {
+            assertThat(input).isFalse();
+          }
+        });
+  }
+
+  @Test
+  public void getAllJournals_singleJournal() throws Exception {
+    // Write some data.
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        new Consumer<CommitResult>() {
+          @Override
+          public void accept(CommitResult input) {
+            assertThat(input).isEqualTo(CommitResult.SUCCESS);
+          }
+        });
+
+    journalStorage.getAllJournals(
+        new Consumer<List<String>>() {
+          @Override
+          public void accept(List<String> input) {
+            assertThat(input).hasSize(1);
+            assertThat(input).contains(JOURNAL_NAME);
+          }
+        });
+  }
+
+  @Test
+  public void getAllJournals_multipleJournals() throws Exception {
+    // Write some data.
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME)
+            .append(DATA_0)
+            .append(DATA_1)
+            .copy(JOURNAL_COPY_NAME)
+            .build(),
+        new Consumer<CommitResult>() {
+          @Override
+          public void accept(CommitResult input) {
+            assertThat(input).isEqualTo(CommitResult.SUCCESS);
+          }
+        });
+
+    journalStorage.getAllJournals(
+        new Consumer<List<String>>() {
+          @Override
+          public void accept(List<String> input) {
+            assertThat(input).hasSize(2);
+            assertThat(input).contains(JOURNAL_NAME);
+            assertThat(input).contains(JOURNAL_COPY_NAME);
+          }
+        });
+  }
 }

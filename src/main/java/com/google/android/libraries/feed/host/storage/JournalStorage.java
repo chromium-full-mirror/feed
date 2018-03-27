@@ -26,7 +26,11 @@ import java.util.List;
  */
 public interface JournalStorage {
 
-  /** Reads the journal and asynchronously returns the contents. */
+  /**
+   * Reads the journal and asynchronously returns the contents.
+   *
+   * <p>Reads on journals that do not exist will fulfill with an empty list.
+   */
   void read(String journalName, Consumer<List<byte[]>> consumer);
 
   /**
@@ -38,4 +42,10 @@ public interface JournalStorage {
    * <p>This operation is not guaranteed to be atomic.
    */
   void commit(JournalMutation mutation, Consumer<CommitResult> consumer);
+
+  /** Determines whether a journal exists and asynchronously responds. */
+  void exists(String journalName, Consumer<Boolean> consumer);
+
+  /** Asynchronously retrieve a list of all current journals */
+  void getAllJournals(Consumer<List<String>> consumer);
 }

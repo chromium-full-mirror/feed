@@ -88,6 +88,16 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
     consumer.accept(CommitResult.SUCCESS);
   }
 
+  @Override
+  public void exists(String journalName, Consumer<Boolean> consumer) {
+    consumer.accept(journals.containsKey(journalName));
+  }
+
+  @Override
+  public void getAllJournals(Consumer<List<String>> consumer) {
+    consumer.accept(new ArrayList<>(journals.keySet()));
+  }
+
   private boolean append(ByteBuffer value, String journalName) {
     List<byte[]> journal = journals.get(journalName);
     if (value == null) {
