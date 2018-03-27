@@ -379,6 +379,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     private void commitSessionUpdates() {
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+      ArrayList<Session> updates;
       synchronized (lock) {
         // For sessions we want to add the remove operation if the mutation source was a
         // continuation token.
@@ -388,11 +389,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             streamStructures.add(0, removeOperation);
           }
         }
-        for (Session session : sessions.values()) {
+        updates = new ArrayList<>(sessions.values());
+      }
+      for (Session session : updates) {
           session.updateSession(streamStructures, change.mutationSourceToken);
         }
-        timeTracker.stop("", "sessionUpdate", "sessions", sessions.size());
-      }
+      timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
     }
 
     private void resetHead() {
