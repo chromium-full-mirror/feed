@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
@@ -80,10 +81,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
+  private final Supplier<ProtocolAdapter> protocolAdapterSupplier;
+  private final Supplier<RequestManager> requestManagerSupplier;
   private final boolean optimisticWrites;
-
-  private ProtocolAdapter protocolAdapter;
-  private RequestManager requestManager;
 
   // operation counts for the dumper
   private int commitCount = 0;
@@ -96,11 +96,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
+      Supplier<ProtocolAdapter> protocolAdapterSupplier,
+      Supplier<RequestManager> requestManagerSupplier,
       ConfigManager configManager) {
     this.sessionManagerExecutor = sessionManagerExecutor;
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    this.protocolAdapterSupplier = protocolAdapterSupplier;
+    this.requestManagerSupplier = requestManagerSupplier;
 
     optimisticWrites = configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false);
     sessionFactory =
@@ -132,14 +136,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       head.updateSession(structureMetadata, null);
     }
     timeTracker.stop("task", "Initialization");
-  }
-
-  public void setProtocolAdapter(ProtocolAdapter protocolAdapter) {
-    this.protocolAdapter = protocolAdapter;
-  }
-
-  public void setRequestManager(RequestManager requestManager) {
-    this.requestManager = requestManager;
   }
 
   @Override
@@ -212,7 +208,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         () -> {
           Logger.i(TAG, "Task: handleToken");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-          requestManager.loadMore(streamToken.getNextPageToken());
+          requestManagerSupplier.get().loadMore(streamToken.getNextPageToken());
           timeTracker.stop("task", "handleToken");
           handleTokenCount++;
         });
@@ -256,7 +252,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @Nullable
   public StreamSharedState getSharedState(ContentId contentId) {
     threadUtils.checkMainThread();
-    String sharedStateId = protocolAdapter.getStreamContentId(contentId);
+    String sharedStateId = protocolAdapterSupplier.get().getStreamContentId(contentId);
     StreamSharedState state;
     synchronized (lock) {
       state = sharedStateCache.get(sharedStateId);

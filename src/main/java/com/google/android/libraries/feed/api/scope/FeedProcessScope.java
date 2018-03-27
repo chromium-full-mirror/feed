@@ -19,11 +19,13 @@ import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
+import com.google.android.libraries.feed.common.SettableSupplier;
 import com.google.android.libraries.feed.common.SystemClockImpl;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
@@ -75,7 +77,9 @@ public class FeedProcessScope implements Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.dump(protocolAdapter);
+    if (protocolAdapter instanceof Dumpable) {
+      dumper.dump((Dumpable) protocolAdapter);
+    }
     dumper.dump(timingUtils);
     if (sessionManager instanceof Dumpable) {
       dumper.dump((Dumpable) sessionManager);
@@ -164,6 +168,8 @@ public class FeedProcessScope implements Dumpable {
               journalStorage,
               threadUtils,
               uiRunnableHandler);
+      SettableSupplier<ProtocolAdapter> protocolAdapterSupplier = new SettableSupplier<>();
+      SettableSupplier<RequestManager> requestManagerSupplier = new SettableSupplier<>();
       if (sessionManager == null) {
         sessionManager =
             new FeedSessionManager(
@@ -171,6 +177,8 @@ public class FeedProcessScope implements Dumpable {
                 store,
                 timingUtils,
                 threadUtils,
+                protocolAdapterSupplier,
+                requestManagerSupplier,
                 configManager);
       }
       if (protocolAdapter == null) {
@@ -181,10 +189,8 @@ public class FeedProcessScope implements Dumpable {
             new FeedRequestManager(
                 configManager, networkClient, protocolAdapter, extensionRegistry);
       }
-      if (sessionManager instanceof FeedSessionManager) {
-        ((FeedSessionManager) sessionManager).setProtocolAdapter(protocolAdapter);
-        ((FeedSessionManager) sessionManager).setRequestManager(requestManager);
-      }
+      protocolAdapterSupplier.set(protocolAdapter);
+      requestManagerSupplier.set(requestManager);
 
       AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener();
 
@@ -259,7 +265,7 @@ public class FeedProcessScope implements Dumpable {
   private final ImageLoaderApi imageLoaderApi;
   private final LoggingApi loggingApi;
   private final NetworkClient networkClient;
-  private final FeedProtocolAdapter protocolAdapter;
+  private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
   private final SchedulerApi schedulerApi;
   private final SessionManager sessionManager;
@@ -271,7 +277,7 @@ public class FeedProcessScope implements Dumpable {
   private final AppLifecycleListener appLifecycleListener;
   private final Clock clock;
 
-  public FeedProtocolAdapter getProtocolAdapter() {
+  public ProtocolAdapter getProtocolAdapter() {
     return protocolAdapter;
   }
 

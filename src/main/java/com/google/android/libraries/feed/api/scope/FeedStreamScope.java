@@ -20,12 +20,12 @@ import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.BasicStream;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
-import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
@@ -42,7 +42,7 @@ public class FeedStreamScope {
 
   public Stream getStream() {
     return stream;
-  };
+  }
 
   public ModelProviderFactory getModelProviderFactory() {
     return modelProviderFactory;
@@ -56,7 +56,7 @@ public class FeedStreamScope {
         ActionApi actionApi,
         ImageLoaderApi imageLoaderApi,
         LoggingApi loggingApi,
-        FeedProtocolAdapter feedProtocolAdapter,
+        ProtocolAdapter protocolAdapter,
         SessionManager sessionManager,
         ThreadUtils threadUtils,
         TimingUtils timingUtils,
@@ -66,7 +66,7 @@ public class FeedStreamScope {
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
-      this.feedProtocolAdapter = feedProtocolAdapter;
+      this.protocolAdapter = protocolAdapter;
       this.sessionManager = sessionManager;
       this.threadUtils = threadUtils;
       this.timingUtils = timingUtils;
@@ -135,7 +135,7 @@ public class FeedStreamScope {
       return new FeedStreamScope(
           actionApi,
           actionParser,
-          feedProtocolAdapter,
+          protocolAdapter,
           imageLoaderApi,
           loggingApi,
           sessionManager,
@@ -148,7 +148,7 @@ public class FeedStreamScope {
     private final ActionApi actionApi;
     private final ImageLoaderApi imageLoaderApi;
     private final LoggingApi loggingApi;
-    private final FeedProtocolAdapter feedProtocolAdapter;
+    private final ProtocolAdapter protocolAdapter;
     private final SessionManager sessionManager;
     private final ThreadUtils threadUtils;
     private final TimingUtils timingUtils;
@@ -167,7 +167,7 @@ public class FeedStreamScope {
   private FeedStreamScope(
       ActionApi actionApi,
       ActionParser actionParser,
-      FeedProtocolAdapter feedProtocolAdapter,
+      ProtocolAdapter protocolAdapter,
       ImageLoaderApi imageLoaderApi,
       LoggingApi loggingApi,
       SessionManager sessionManager,
@@ -175,7 +175,7 @@ public class FeedStreamScope {
       ModelProviderFactory modelProviderFactory) {
     this.actionParser = actionParser;
     this.actionApi = actionApi;
-    this.feedProtocolAdapter = feedProtocolAdapter;
+    this.protocolAdapter = protocolAdapter;
     this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
     this.sessionManager = sessionManager;
@@ -187,7 +187,7 @@ public class FeedStreamScope {
   private final ImageLoaderApi imageLoaderApi;
   private final LoggingApi loggingApi;
   private final ActionParser actionParser;
-  private final FeedProtocolAdapter feedProtocolAdapter;
+  private final ProtocolAdapter protocolAdapter;
   private final SessionManager sessionManager;
   private final Stream stream;
   private final ModelProviderFactory modelProviderFactory;

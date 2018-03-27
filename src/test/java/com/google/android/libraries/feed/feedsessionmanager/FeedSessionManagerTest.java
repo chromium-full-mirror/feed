@@ -38,6 +38,7 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
@@ -134,6 +135,8 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
+            Suppliers.of(protocolAdapter),
+            Suppliers.of(requestManager),
             configManager);
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
@@ -264,9 +267,9 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
+            Suppliers.of(protocolAdapter),
+            Suppliers.of(requestManager),
             configManager);
-    sessionManager.setProtocolAdapter(protocolAdapter);
-    sessionManager.setRequestManager(requestManager);
     return sessionManager;
   }
 

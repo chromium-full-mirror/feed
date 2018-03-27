@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.SettableSupplier;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -65,14 +66,23 @@ public class InfrastructureIntegrationScope {
             journalStorage,
             threadUtils,
             uiRunnableHandler);
+    SettableSupplier<ProtocolAdapter> protocolAdapterSupplier = new SettableSupplier<>();
+    SettableSupplier<RequestManager> requestManagerSupplier = new SettableSupplier<>();
     feedSessionManager =
-        new FeedSessionManager(executorService, store, timingUtils, threadUtils, configManager);
+        new FeedSessionManager(
+            executorService,
+            store,
+            timingUtils,
+            threadUtils,
+            protocolAdapterSupplier,
+            requestManagerSupplier,
+            configManager);
     modelProviderFactory =
         new FeedModelProviderFactory(
             feedSessionManager, threadUtils, timingUtils, uiRunnableHandler);
     feedProtocolAdapter = new FeedProtocolAdapter(feedSessionManager, timingUtils);
-    feedSessionManager.setProtocolAdapter(feedProtocolAdapter);
-    feedSessionManager.setRequestManager(mockRequestManager);
+    protocolAdapterSupplier.set(feedProtocolAdapter);
+    requestManagerSupplier.set(mockRequestManager);
   }
 
   public ProtocolAdapter getProtocolAdapter() {
