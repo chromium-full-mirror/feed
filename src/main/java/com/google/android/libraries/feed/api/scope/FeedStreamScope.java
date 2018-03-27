@@ -128,7 +128,8 @@ public class FeedStreamScope {
                 customElementProvider,
                 threadUtils,
                 /* headers = */ new ArrayList<>(0),
-                clock);
+                clock,
+                modelProviderFactory);
       }
       // TODO: if pietManager == null, assign a PietManager to pietManager.
       // TODO: if stream == null, assign a BasicStream to stream.

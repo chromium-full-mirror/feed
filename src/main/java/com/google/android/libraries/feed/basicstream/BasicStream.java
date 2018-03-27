@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
@@ -57,7 +58,7 @@ import javax.annotation.Nullable;
  * A basic implementation of a Feed {@link Stream} that is just able to render a vertical stream of
  * cards.
  */
-public class BasicStream implements Stream {
+public class BasicStream implements Stream, ModelProviderObserver {
 
   private static final String TAG = "BasicStream";
 
@@ -68,6 +69,7 @@ public class BasicStream implements Stream {
   private final ViewHolderBindingObserver viewHolderBindingObserver;
   private final PietManager pietManager;
   private final PietSharedStateSupplier pietSharedStateSupplier;
+  private final ModelProviderFactory modelProviderFactory;
 
   @Nullable private ModelToken streamToken = null;
   @Nullable private ModelProvider modelProvider;
@@ -82,7 +84,8 @@ public class BasicStream implements Stream {
       @Nullable CustomElementProvider customElementProvider,
       ThreadUtils threadUtils,
       List<View> headers,
-      Clock clock) {
+      Clock clock,
+      ModelProviderFactory modelProviderFactory) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
     this.pietSharedStateSupplier = createPietSharedStateSupplier();
@@ -104,7 +107,6 @@ public class BasicStream implements Stream {
             context, this.cardConfiguration, pietManager, viewHolderBindingObserver);
     adapter.setHeaders(headers);
     recyclerView.setAdapter(adapter);
-
     recyclerView.setClipToPadding(false);
     if (VERSION.SDK_INT > VERSION_CODES.JELLY_BEAN) {
       recyclerView.setPaddingRelative(
@@ -119,6 +121,9 @@ public class BasicStream implements Stream {
           streamConfiguration.getPaddingEnd(),
           streamConfiguration.getPaddingBottom());
     }
+    this.modelProviderFactory = modelProviderFactory;
+    modelProvider = modelProviderFactory.createNew();
+    modelProvider.registerObserver(this);
   }
 
   private ViewHolderBindingObserver initializeBindingObserver() {
@@ -208,30 +213,6 @@ public class BasicStream implements Stream {
   @Override
   public void removeOnContentChangedListener(ContentChangedListener listener) {}
 
-  @Override
-  public void setModelProvider(ModelProvider modelProvider) {
-    this.modelProvider = modelProvider;
-    this.pietSharedStateSupplier.setModelProvider(modelProvider);
-    modelProvider.registerObserver(
-        new ModelProviderObserver() {
-          @Override
-          public void onSessionStart() {
-            threadUtils.checkMainThread();
-            updateAdapter(modelProvider);
-          }
-
-          @Override
-          public void onSessionFinished() {
-            // TODO: Do we clear out the adapter?
-          }
-
-          @Override
-          public void onRootSet() {
-            // TODO: What do we do if the root is reset?
-          }
-        });
-  }
-
   private void updateAdapter(ModelProvider modelProvider) {
     ModelFeature root = modelProvider.getRootFeature();
     if (root == null) {
@@ -266,5 +247,24 @@ public class BasicStream implements Stream {
   @VisibleForTesting
   PietSharedStateSupplier createPietSharedStateSupplier() {
     return new PietSharedStateSupplier();
+  }
+
+  @Override
+  public void onSessionStart() {
+    threadUtils.checkMainThread();
+    pietSharedStateSupplier.setModelProvider(modelProvider);
+    updateAdapter(modelProvider);
+  }
+
+  @Override
+  public void onSessionFinished() {
+    modelProvider.unregisterObserver(this);
+    modelProvider = modelProviderFactory.createNew();
+    modelProvider.registerObserver(this);
+  }
+
+  @Override
+  public void onRootSet() {
+    // TODO: Handle onRootSet
   }
 }

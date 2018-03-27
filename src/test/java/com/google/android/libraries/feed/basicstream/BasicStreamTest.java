@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -25,6 +26,7 @@ import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.testing.TestClockImpl;
@@ -60,6 +62,8 @@ public class BasicStreamTest {
   @Mock private CustomElementProvider customElementProvider;
   @Mock private PietSharedStateSupplier pietSharedStateSupplier;
   @Mock private StreamRecyclerViewAdapter streamRecyclerViewAdapter;
+  @Mock private ModelProviderFactory modelProviderFactory;
+  @Mock private ModelProvider initialModelProvider;
   @Mock private ModelProvider modelProvider;
 
   private final List<View> headers = new ArrayList<>();
@@ -75,6 +79,7 @@ public class BasicStreamTest {
     when(streamConfiguration.getPaddingEnd()).thenReturn(END_PADDING);
     when(streamConfiguration.getPaddingTop()).thenReturn(TOP_PADDING);
     when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
+    when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
 
     basicStream =
         new BasicStream(
@@ -87,7 +92,8 @@ public class BasicStreamTest {
             customElementProvider,
             threadUtils,
             headers,
-            new TestClockImpl()) {
+            new TestClockImpl(),
+            modelProviderFactory) {
           @Override
           PietSharedStateSupplier createPietSharedStateSupplier() {
             return pietSharedStateSupplier;
@@ -96,10 +102,19 @@ public class BasicStreamTest {
   }
 
   @Test
-  public void testSetModelProvider() {
-    basicStream.setModelProvider(modelProvider);
+  public void testOnSessionStart() {
+    basicStream.onSessionStart();
 
-    verify(pietSharedStateSupplier).setModelProvider(modelProvider);
+    verify(pietSharedStateSupplier).setModelProvider(initialModelProvider);
+  }
+
+  @Test
+  public void testOnSessionFinished() {
+    basicStream.onSessionFinished();
+
+    verify(initialModelProvider).unregisterObserver(basicStream);
+    verify(modelProviderFactory, times(2)).createNew();
+    verify(modelProvider).registerObserver(basicStream);
   }
 
   @Test

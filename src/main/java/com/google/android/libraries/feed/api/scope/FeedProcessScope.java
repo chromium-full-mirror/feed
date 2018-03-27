@@ -289,6 +289,14 @@ public class FeedProcessScope implements Dumpable {
     return sessionManager;
   }
 
+  public TimingUtils getTimingUtils() {
+    return timingUtils;
+  }
+
+  public UiRunnableHandler getUiRunnableHandler() {
+    return uiRunnableHandler;
+  }
+
   public FeedExtensionRegistry getExtensionRegistry() {
     return extensionRegistry;
   }

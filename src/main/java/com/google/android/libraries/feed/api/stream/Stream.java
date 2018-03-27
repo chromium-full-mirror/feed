@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.api.stream;
 
 import android.os.Bundle;
 import android.view.View;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -136,7 +135,4 @@ public interface Stream {
   void addOnContentChangedListener(ContentChangedListener listener);
 
   void removeOnContentChangedListener(ContentChangedListener listener);
-
-  /** Sets the data this Stream should display based on the information in {@link ModelProvider}. */
-  void setModelProvider(ModelProvider modelProvider);
 }
