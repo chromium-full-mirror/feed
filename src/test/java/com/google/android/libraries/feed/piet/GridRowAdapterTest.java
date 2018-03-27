@@ -117,6 +117,7 @@ public class GridRowAdapterTest {
     adapter.createAdapter(gridRow, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
+    assertThat(adapter.getBaseView().getBaseline()).isEqualTo(-1);
     assertThat(adapter.childAdapters).hasSize(2);
   }
 
@@ -257,8 +258,6 @@ public class GridRowAdapterTest {
 
   @Test
   public void testOnBindModel_recreatesBindingCells() {
-    ElementListBindingRef cellBinding =
-        ElementListBindingRef.newBuilder().setBindingId("cougar").build();
     ElementList cellWithOneElement =
         ElementList.newBuilder()
             .addElements(Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()))
@@ -268,20 +267,16 @@ public class GridRowAdapterTest {
             .addElements(Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()))
             .addElements(Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()))
             .build();
-    GridRow gridRow =
-        GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementListBinding(cellBinding))
-            .build();
 
-    when(frameContext.getElementListBindingValue(cellBinding))
+    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
         .thenReturn(BindingValue.newBuilder().setElementList(cellWithOneElement).build());
-    adapter.createAdapter(gridRow, frameContext);
+    adapter.createAdapter(GRID_ROW_WITH_BOUND_CELL, frameContext);
     // The cell adapter is created but has no child views.
     assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(0);
 
-    when(frameContext.getElementListBindingValue(cellBinding))
+    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
         .thenReturn(BindingValue.newBuilder().setElementList(cellWithTwoElements).build());
-    adapter.bindModel(gridRow, frameContext);
+    adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext);
     // The cell adapter creates its one view on bind.
     assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(2);
 
@@ -289,9 +284,9 @@ public class GridRowAdapterTest {
     // The cell adapter has been released.
     assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(0);
 
-    when(frameContext.getElementListBindingValue(cellBinding))
+    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
         .thenReturn(BindingValue.newBuilder().setElementList(cellWithOneElement).build());
-    adapter.bindModel(gridRow, frameContext);
+    adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext);
     // The cell adapter can bind to a different model.
     assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(1);
   }

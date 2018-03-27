@@ -24,8 +24,6 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GridCell;
@@ -100,7 +98,8 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
           targetAdapter.bindModel(cell.getElementList(), frameContext);
           break;
         case ELEMENT_LIST_BINDING:
-          createAndBindCellAdapter(targetAdapter, cell, frameContext);
+          createAndBindChildListAdapter(targetAdapter, cell.getElementListBinding(), frameContext);
+          setLayoutParamsOnCell(targetAdapter, cell, frameContext);
           break;
         default:
           throw new IllegalArgumentException(
@@ -189,37 +188,13 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
     return listAdapter;
   }
 
-  /**
-   * When we bind a cell that has an ElementListBinding, the adapter hasn't been initialized yet so
-   * we need to both create and bind it.
-   */
-  private void createAndBindCellAdapter(
-      ElementListAdapter adapter, GridCell cell, FrameContext frameContext) {
-    checkState(cell.hasElementListBinding(), "Cell is missing ElementListBinding");
-    BindingValue listBinding =
-        frameContext.getElementListBindingValue(cell.getElementListBinding());
-    adapter.setVisibility(listBinding.getVisibility());
-    if (!listBinding.hasElementList()) {
-      if (listBinding.getVisibility() == Visibility.GONE) {
-        return;
-      } else {
-        throw new IllegalArgumentException(
-            String.format("ElementList binding %s had no content", listBinding.getBindingId()));
-      }
-    }
-    ElementList list = listBinding.getElementList();
-    // If this is a re-bind, we assume this adapter has been released in onUnbindModel
-    adapter.createAdapter(list, frameContext);
-    adapter.bindModel(list, frameContext);
-    setLayoutParamsOnCell(adapter, cell, frameContext);
-  }
-
   @Override
   LinearLayout createViewGroup() {
     LinearLayout viewGroup = new LinearLayout(getContext());
     viewGroup.setOrientation(LinearLayout.HORIZONTAL);
     viewGroup.setLayoutParams(
         new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+    viewGroup.setBaselineAligned(false);
     return viewGroup;
   }
 

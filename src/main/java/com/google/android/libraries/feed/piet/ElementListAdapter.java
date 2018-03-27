@@ -67,7 +67,15 @@ class ElementListAdapter
         model.getElementsCount(),
         childAdapters.size());
     for (int i = 0; i < model.getElementsCount(); i++) {
-      childAdapters.get(i).bindModel(model.getElements(i), frameContext);
+      Element cellModel = model.getElements(i);
+      if (cellModel.hasElementListBinding()) {
+        createAndBindChildListAdapter(
+            (ElementListAdapter) childAdapters.get(i),
+            cellModel.getElementListBinding(),
+            frameContext);
+      } else {
+        childAdapters.get(i).bindModel(model.getElements(i), frameContext);
+      }
     }
 
     if (model.getStyleReferences().hasStyleBinding()) {
@@ -102,6 +110,18 @@ class ElementListAdapter
   void onUnbindModel() {
     ViewUtils.clearOnClickActions(getView());
     super.onUnbindModel();
+
+    // Bound item layout is created at bind time. We can't reuse the layout in child adapters, so we
+    // call release at unbind time so that the child adapter's children can be recycled.
+    ElementList model = getRawModel();
+    if (model != null) {
+      for (int i = 0; i < model.getElementsCount(); i++) {
+        Element element = model.getElements(i);
+        if (element.hasElementListBinding()) {
+          childAdapters.get(i).releaseAdapter();
+        }
+      }
+    }
   }
 
   GravityVertical getVerticalGravity() {
@@ -147,8 +167,18 @@ class ElementListAdapter
 
   private ElementAdapter<? extends View, ?> getAdapterForChildElement(
       Element contentLine, FrameContext frameContext) {
-    ElementAdapter<? extends View, ?> adapter =
-        getParameters().elementAdapterFactory.createAdapterForElement(contentLine, frameContext);
+    ElementAdapter<? extends View, ?> adapter;
+    if (contentLine.hasElementListBinding()) {
+      adapter =
+          getParameters()
+              .elementAdapterFactory
+              .createElementListAdapter(ElementList.getDefaultInstance(), frameContext);
+      // Immediately release the adapter, since the first thing we do in bind is to recreate it.
+      adapter.releaseAdapter();
+    } else {
+      adapter =
+          getParameters().elementAdapterFactory.createAdapterForElement(contentLine, frameContext);
+    }
     addChildAdapter(adapter);
     return adapter;
   }

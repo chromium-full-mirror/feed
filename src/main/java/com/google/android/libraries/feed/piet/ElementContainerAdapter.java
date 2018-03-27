@@ -19,6 +19,10 @@ import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
+import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +67,28 @@ abstract class ElementContainerAdapter<
       getParameters().elementAdapterFactory.releaseAdapter(childAdapter);
     }
     childAdapters.clear();
+  }
+
+  /**
+   * When we bind an item that has an ElementListBinding, the adapter hasn't been initialized yet so
+   * we need to both create and bind it.
+   */
+  void createAndBindChildListAdapter(
+      ElementListAdapter adapter, ElementListBindingRef listBindingRef, FrameContext frameContext) {
+    BindingValue listBinding = frameContext.getElementListBindingValue(listBindingRef);
+    adapter.setVisibility(listBinding.getVisibility());
+    if (!listBinding.hasElementList()) {
+      if (listBinding.getVisibility() == Visibility.GONE) {
+        return;
+      } else {
+        throw new IllegalArgumentException(
+            String.format("ElementList binding %s had no content", listBinding.getBindingId()));
+      }
+    }
+    ElementList list = listBinding.getElementList();
+    // If this is a re-bind, we assume this adapter has been released in onUnbindModel
+    adapter.createAdapter(list, frameContext);
+    adapter.bindModel(list, frameContext);
   }
 
   void addChildAdapter(ChildAdapterT adapter) {
