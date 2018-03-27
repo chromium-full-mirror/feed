@@ -71,7 +71,7 @@ public class SessionImplTest {
     when(store.editSession(TEST_SESSION)).thenReturn(fakeSessionMutation);
     fakeModelMutator = new FakeModelMutation();
     when(modelProvider.edit()).thenReturn(fakeModelMutator);
-    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(false);
+    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(true);
   }
 
   @Test
@@ -168,7 +168,7 @@ public class SessionImplTest {
     sessionMutationResults = false;
     fakeModelMutator.clearCommit();
     session.updateSession(streamStructures, null);
-    assertThat(fakeModelMutator.commitCalled).isFalse();
+    assertThat(fakeModelMutator.commitCalled).isTrue(); // Optimistic write will still call this
   }
 
   @Test

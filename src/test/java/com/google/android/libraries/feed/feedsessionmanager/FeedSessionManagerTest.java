@@ -100,7 +100,7 @@ public class FeedSessionManagerTest {
   @Before
   public void setUp() {
     initMocks(this);
-    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(false);
+    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(true);
   }
 
   @Test

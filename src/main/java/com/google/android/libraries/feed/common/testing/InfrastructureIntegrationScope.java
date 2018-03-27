@@ -30,6 +30,8 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.ConfigManager.ConfigFlag;
+import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
@@ -57,7 +59,9 @@ public class InfrastructureIntegrationScope {
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorage contentStorage = new InMemoryContentStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage();
-    ConfigManager configManager = new ConfigManager(new ArrayList<>());
+    List<ConfigFlag<?>> configOverrides = new ArrayList<>();
+    configOverrides.add(ConfigFlag.forBoolean(ConfigValues.OPTIMISTIC_SESSION_WRITES, true));
+    ConfigManager configManager = new ConfigManager(configOverrides);
     FeedStore store =
         new FeedStore(
             timingUtils,
