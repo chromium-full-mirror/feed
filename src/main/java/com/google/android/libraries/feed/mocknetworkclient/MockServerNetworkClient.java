@@ -24,13 +24,13 @@ import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Validators;
-import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.protobuf.CodedOutputStream;
+import com.google.protobuf.ExtensionRegistryLite;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.ResponseProto.Response;
@@ -49,7 +49,7 @@ public class MockServerNetworkClient implements NetworkClient {
   private static final String TAG = "MockServerNetworkClient";
 
   private final MockServerConfig config;
-  private final FeedExtensionRegistry extensionRegistry;
+  private final ExtensionRegistryLite extensionRegistry;
 
   @VisibleForTesting final MockServerLooper looper;
 
@@ -57,17 +57,15 @@ public class MockServerNetworkClient implements NetworkClient {
 
   @Nullable @VisibleForTesting RequestManager requestManager;
 
-  public MockServerNetworkClient(
-      MockServerConfig config,
-      List<MockUpdate> mockUpdates,
-      FeedExtensionRegistry extensionRegistry) {
+  public MockServerNetworkClient(MockServerConfig config, List<MockUpdate> mockUpdates) {
     this.config = config;
     this.looper = new MockServerLooper();
     Handler handler = looper.getHandler();
     for (MockUpdate update : mockUpdates) {
       handler.postDelayed(() -> handleUpdate(update.getResponse()), update.getUpdateTriggerTime());
     }
-    this.extensionRegistry = extensionRegistry;
+    extensionRegistry = ExtensionRegistryLite.newInstance();
+    extensionRegistry.add(FeedRequest.feedRequest);
   }
 
   /** Called to set the {@code RequestManager}. This is required to support updates */
@@ -112,7 +110,7 @@ public class MockServerNetworkClient implements NetworkClient {
     } else {
       rawRequest = httpRequest.getBody().array();
     }
-    return Request.parseFrom(rawRequest, extensionRegistry.getExtensionRegistry());
+    return Request.parseFrom(rawRequest, extensionRegistry);
   }
 
   @Override

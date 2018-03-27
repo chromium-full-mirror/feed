@@ -82,7 +82,7 @@ public class MockServerNetworkClientTest {
     MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
     List<MockUpdate> mockUpdates = new ArrayList<>();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, mockUpdates, extensionRegistry);
+        new MockServerNetworkClient(mockServerConfig, mockUpdates);
     assertThat(networkClient.hasQuit).isFalse();
     assertThat(networkClient.looper).isNotNull();
 
@@ -98,7 +98,7 @@ public class MockServerNetworkClientTest {
         MockServerConfig.newBuilder().setDefaultResponse(defaultResponse).build();
     List<MockUpdate> mockUpdates = new ArrayList<>();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, mockUpdates, extensionRegistry);
+        new MockServerNetworkClient(mockServerConfig, mockUpdates);
     Consumer<HttpResponse> responseConsumer =
         new Consumer<HttpResponse>() {
           @Override
@@ -123,7 +123,7 @@ public class MockServerNetworkClientTest {
     MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
     List<MockUpdate> mockUpdates = new ArrayList<>();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, mockUpdates, extensionRegistry);
+        new MockServerNetworkClient(mockServerConfig, mockUpdates);
     assertThat(networkClient.requestManager).isNull();
     networkClient.setRequestManager(requestManager);
     assertThat(networkClient.requestManager).isEqualTo(requestManager);
@@ -138,7 +138,7 @@ public class MockServerNetworkClientTest {
     MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
     List<MockUpdate> mockUpdates = new ArrayList<>();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, mockUpdates, extensionRegistry);
+        new MockServerNetworkClient(mockServerConfig, mockUpdates);
 
     Response response = Response.getDefaultInstance();
     assertThatRunnable(
@@ -167,7 +167,7 @@ public class MockServerNetworkClientTest {
                     .setResponse(response))
             .build();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, new ArrayList<>(), extensionRegistry);
+        new MockServerNetworkClient(mockServerConfig, new ArrayList<>());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(configManager, networkClient, protocolAdapter, extensionRegistry);
 
@@ -192,7 +192,7 @@ public class MockServerNetworkClientTest {
                     .setResponse(response))
             .build();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerConfig, new ArrayList<>(), extensionRegistry);
+        new MockServerNetworkClient(mockServerConfig, new ArrayList<>());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(configManager, networkClient, protocolAdapter, extensionRegistry);
 

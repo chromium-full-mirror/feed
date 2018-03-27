@@ -207,7 +207,6 @@ public class FeedProcessScope implements Dumpable {
           timingUtils,
           threadUtils,
           uiRunnableHandler,
-          extensionRegistry,
           appLifecycleListener,
           new SystemClockImpl());
     }
@@ -241,7 +240,6 @@ public class FeedProcessScope implements Dumpable {
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
       UiRunnableHandler uiRunnableHandler,
-      FeedExtensionRegistry extensionRegistry,
       AppLifecycleListener appLifecycleListener,
       Clock clock) {
     this.configManager = configManager;
@@ -256,7 +254,6 @@ public class FeedProcessScope implements Dumpable {
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.uiRunnableHandler = uiRunnableHandler;
-    this.extensionRegistry = extensionRegistry;
     this.appLifecycleListener = appLifecycleListener;
     this.clock = clock;
   }
@@ -273,7 +270,6 @@ public class FeedProcessScope implements Dumpable {
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
   private final UiRunnableHandler uiRunnableHandler;
-  private final FeedExtensionRegistry extensionRegistry;
   private final AppLifecycleListener appLifecycleListener;
   private final Clock clock;
 
@@ -295,10 +291,6 @@ public class FeedProcessScope implements Dumpable {
 
   public UiRunnableHandler getUiRunnableHandler() {
     return uiRunnableHandler;
-  }
-
-  public FeedExtensionRegistry getExtensionRegistry() {
-    return extensionRegistry;
   }
 
   public AppLifecycleListener getAppLifecycleListener() {
