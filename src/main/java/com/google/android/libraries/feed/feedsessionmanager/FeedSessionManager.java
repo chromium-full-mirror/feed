@@ -109,7 +109,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     optimisticWrites = configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false);
     sessionFactory =
         new SessionFactory(store, sessionManagerExecutor, timingUtils, threadUtils, configManager);
-    sessionManagerExecutor.execute(this::initializationTask);
+
+    // Suppress @UnderInitialization warning
+    @SuppressWarnings("nullness")
+    Runnable initializationTask = this::initializationTask;
+    sessionManagerExecutor.execute(initializationTask);
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the
