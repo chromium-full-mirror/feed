@@ -83,8 +83,9 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       if (token == null) {
         // TODO: What do we do about this failure?
         Logger.e(TAG, "Didn't find the StreamToken");
+      } else {
+        sessionMutation.setMutationSourceToken(token);
       }
-      sessionMutation.setMutationSourceToken(token);
     }
     List<DataOperation> dataOperations =
         response.getExtension(FeedResponse.feedResponse).getDataOperationList();
