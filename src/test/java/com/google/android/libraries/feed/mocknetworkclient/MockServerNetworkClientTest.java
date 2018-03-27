@@ -20,19 +20,26 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.net.Uri;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.config.ConfigManager;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
+import com.google.common.truth.extensions.proto.LiteProtoTruth;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.ResponseProto.Response.ResponseVersion;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig;
+import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig.ConditionalResponse;
+import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig.ConditionalResponse.Condition;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import org.robolectric.RobolectricTestRunner;
 import java.io.IOException;
@@ -42,13 +49,19 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
 /** Tests of the {@link MockServerNetworkClient} class. */
 @RunWith(RobolectricTestRunner.class)
 public class MockServerNetworkClientTest {
 
+  @Mock ConfigManager configManager;
+  @Mock ProtocolAdapter protocolAdapter;
   @Mock RequestManager requestManager;
+  @Captor private ArgumentCaptor<ByteString> tokenCaptor;
+  @Captor private ArgumentCaptor<Response> responseCaptor;
 
   private final FeedExtensionRegistry extensionRegistry =
       new FeedExtensionRegistry(
@@ -102,7 +115,7 @@ public class MockServerNetworkClientTest {
           }
         };
     networkClient.send(
-        new HttpRequest(Uri.EMPTY, ByteBuffer.allocate(0), HttpMethod.GET), responseConsumer);
+        new HttpRequest(Uri.EMPTY, ByteBuffer.allocate(0), HttpMethod.POST), responseConsumer);
   }
 
   @Test
@@ -136,5 +149,58 @@ public class MockServerNetworkClientTest {
               }
             })
         .throwsAnExceptionOfType(NullPointerException.class);
+  }
+
+  @Test
+  public void testPaging() {
+    Response response =
+        Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
+    ByteString token = ByteString.copyFromUtf8("fooToken");
+    MockServerConfig mockServerConfig =
+        MockServerConfig.newBuilder()
+            .addConditionalResponses(
+                ConditionalResponse.newBuilder()
+                    .addConditions(
+                        Condition.newBuilder()
+                            .setType(Condition.Type.CONTINUATION_TOKEN_MATCH)
+                            .setContinuationToken(token))
+                    .setResponse(response))
+            .build();
+    MockServerNetworkClient networkClient =
+        new MockServerNetworkClient(mockServerConfig, new ArrayList<>(), extensionRegistry);
+    FeedRequestManager feedRequestManager =
+        new FeedRequestManager(configManager, networkClient, protocolAdapter, extensionRegistry);
+
+    feedRequestManager.loadMore(token);
+
+    verify(protocolAdapter).createModel(responseCaptor.capture(), tokenCaptor.capture());
+    LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
+    assertThat(tokenCaptor.getValue()).isEqualTo(token);
+  }
+
+  @Test
+  public void testPaging_noMatch() {
+    Response response =
+        Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
+    // Create a MockServerConfig without a matching token.
+    MockServerConfig mockServerConfig =
+        MockServerConfig.newBuilder()
+            .addConditionalResponses(
+                ConditionalResponse.newBuilder()
+                    .addConditions(
+                        Condition.newBuilder().setType(Condition.Type.CONTINUATION_TOKEN_MATCH))
+                    .setResponse(response))
+            .build();
+    MockServerNetworkClient networkClient =
+        new MockServerNetworkClient(mockServerConfig, new ArrayList<>(), extensionRegistry);
+    FeedRequestManager feedRequestManager =
+        new FeedRequestManager(configManager, networkClient, protocolAdapter, extensionRegistry);
+
+    ByteString token = ByteString.copyFromUtf8("fooToken");
+    feedRequestManager.loadMore(token);
+
+    verify(protocolAdapter).createModel(responseCaptor.capture(), tokenCaptor.capture());
+    LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualToDefaultInstance();
+    assertThat(tokenCaptor.getValue()).isEqualTo(token);
   }
 }

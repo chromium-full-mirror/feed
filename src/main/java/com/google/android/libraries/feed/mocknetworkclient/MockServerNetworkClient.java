@@ -19,12 +19,15 @@ import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.VisibleForTesting;
+import android.util.Base64;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.host.network.HttpRequest;
+import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.protobuf.CodedOutputStream;
@@ -82,9 +85,7 @@ public class MockServerNetworkClient implements NetworkClient {
   @Override
   public void send(HttpRequest httpRequest, Consumer<HttpResponse> responseConsumer) {
     try {
-      Request request =
-          Request.parseFrom(
-              httpRequest.getBody().array(), extensionRegistry.getExtensionRegistry());
+      Request request = getRequest(httpRequest);
       for (ConditionalResponse conditionalResponse : config.getConditionalResponsesList()) {
         if (allConditionsMatch(conditionalResponse.getConditionsList(), request)) {
           responseConsumer.accept(createHttpResponse(conditionalResponse.getResponse()));
@@ -99,6 +100,19 @@ public class MockServerNetworkClient implements NetworkClient {
       Logger.e(TAG, e.getMessage());
       responseConsumer.accept(new HttpResponse(400, ByteBuffer.allocate(0)));
     }
+  }
+
+  private Request getRequest(HttpRequest httpRequest) throws IOException {
+    byte[] rawRequest;
+    if (httpRequest.getMethod().equals(HttpMethod.GET)) {
+      rawRequest =
+          Base64.decode(
+              httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
+              Base64.URL_SAFE);
+    } else {
+      rawRequest = httpRequest.getBody().array();
+    }
+    return Request.parseFrom(rawRequest, extensionRegistry.getExtensionRegistry());
   }
 
   @Override

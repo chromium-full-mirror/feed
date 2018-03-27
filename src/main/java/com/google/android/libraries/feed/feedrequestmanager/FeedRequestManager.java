@@ -42,8 +42,8 @@ import javax.annotation.Nullable;
 
 /** Default implementation of RequestManager. */
 public class FeedRequestManager implements RequestManager {
+  public static final String MOTHERSHIP_PARAM_PAYLOAD = "reqpld";
   private static final String TAG = "JardinRM";
-  private static final String MOTHERSHIP_PARAM_PAYLOAD = "reqpld";
   private static final String MOTHERSHIP_PARAM_FORMAT = "fmt";
   private static final String MOTHERSHIP_VALUE_BINARY = "bin";
 
