@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
+import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.ResponseProto.Response.ResponseVersion;
@@ -89,8 +90,15 @@ public class MockServerNetworkClientTest {
         new Consumer<HttpResponse>() {
           @Override
           public void accept(HttpResponse input) {
-            assertThat(input.getResponseBody().array()).isEqualTo(defaultResponse.toByteArray());
-            assertThat(input.getResponseCode()).isEqualTo(200);
+            try {
+              CodedInputStream inputStream =
+                  CodedInputStream.newInstance(input.getResponseBody().array());
+              int length = inputStream.readRawVarint32();
+              assertThat(inputStream.readRawBytes(length)).isEqualTo(defaultResponse.toByteArray());
+              assertThat(input.getResponseCode()).isEqualTo(200);
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
           }
         };
     networkClient.send(

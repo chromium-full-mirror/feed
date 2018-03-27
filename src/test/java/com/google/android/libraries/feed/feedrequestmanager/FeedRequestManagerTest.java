@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -22,19 +24,28 @@ import android.util.Base64;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.config.ConfigManager;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
+import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
+import com.google.search.now.wire.feed.ResponseProto.Response;
 import org.robolectric.RobolectricTestRunner;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,15 +60,25 @@ public class FeedRequestManagerTest {
   @Mock private ConfigManager configManager;
   @Mock private NetworkClient networkClient;
   @Mock private ProtocolAdapter protocolAdapter;
-  @Mock private FeedExtensionRegistry feedExtensionRegistry;
-  @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
+  @Captor private ArgumentCaptor<ByteString> byteStringCaptor;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
+  @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
+  @Captor private ArgumentCaptor<Response> responseCaptor;
   private ExtensionRegistryLite registry;
+  private FeedExtensionRegistry feedExtensionRegistry;
   private FeedRequestManager requestManager;
 
   @Before
   public void setUp() {
     initMocks(this);
+    feedExtensionRegistry =
+        new FeedExtensionRegistry(
+            new ProtoExtensionProvider() {
+              @Override
+              public List<GeneratedExtension<?, ?>> getProtoExtensions() {
+                return new ArrayList<>();
+              }
+            });
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
     requestManager =
@@ -89,5 +110,53 @@ public class FeedRequestManagerTest {
                 FeedRequest.newBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
             .build();
     LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+  }
+
+  @Test
+  public void testHandleResponse() throws Exception {
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH);
+
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+    Response response = Response.getDefaultInstance();
+    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
+
+    verify(protocolAdapter).createModel(responseCaptor.capture(), byteStringCaptor.capture());
+    LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
+    assertThat(byteStringCaptor.getValue()).isNull();
+  }
+
+  @Test
+  public void testHandleResponse_missingLengthPrefixNotSupported() {
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH);
+
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+    responseConsumerCaptor
+        .getValue()
+        .accept(
+            new HttpResponse(
+                /* responseCode= */ 200,
+                ByteBuffer.wrap(Response.getDefaultInstance().toByteArray())));
+
+    verify(protocolAdapter, never()).createModel(any(), any());
+  }
+
+  @Test
+  public void testHandlePushedResponseBytes() {
+    Response response = Response.getDefaultInstance();
+    requestManager.handlePushedResponseBytes(response.toByteArray());
+
+    verify(protocolAdapter).createModel(responseCaptor.capture(), byteStringCaptor.capture());
+    LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
+    assertThat(byteStringCaptor.getValue()).isNull();
+  }
+
+  private HttpResponse createHttpResponse(int responseCode, Response response) throws IOException {
+    byte[] rawResponse = response.toByteArray();
+    ByteBuffer buffer = ByteBuffer.allocate(rawResponse.length + (Integer.SIZE / 8));
+    CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
+    codedOutputStream.writeUInt32NoTag(rawResponse.length);
+    codedOutputStream.writeRawBytes(rawResponse);
+    codedOutputStream.flush();
+    return new HttpResponse(responseCode, buffer);
   }
 }

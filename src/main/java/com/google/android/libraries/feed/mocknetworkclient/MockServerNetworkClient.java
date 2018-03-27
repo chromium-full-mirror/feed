@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
+import com.google.protobuf.CodedOutputStream;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.ResponseProto.Response;
@@ -120,7 +121,19 @@ public class MockServerNetworkClient implements NetworkClient {
     if (response == null) {
       return new HttpResponse(500, ByteBuffer.allocate(0));
     }
-    return new HttpResponse(200, ByteBuffer.wrap(response.toByteArray()));
+
+    try {
+      byte[] rawResponse = response.toByteArray();
+      ByteBuffer buffer = ByteBuffer.allocate(rawResponse.length + (Integer.SIZE / 8));
+      CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
+      codedOutputStream.writeUInt32NoTag(rawResponse.length);
+      codedOutputStream.writeRawBytes(rawResponse);
+      codedOutputStream.flush();
+      return new HttpResponse(200, buffer);
+    } catch (IOException e) {
+      Logger.e(TAG, "Error creating response", e);
+      return new HttpResponse(500, ByteBuffer.allocate(0));
+    }
   }
 
   private boolean allConditionsMatch(List<Condition> conditions, Request request) {

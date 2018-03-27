@@ -14,5 +14,6 @@ android_library(
         "//src/main/proto/search/now/proto/wire/feed/mockserver:mock_server_java_proto_lite",
         "@androidsdk//com.android.support:support-annotations-25.3.1",
         "@com_google_code_findbugs_jsr305//jar",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
     ],
 )

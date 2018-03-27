@@ -78,7 +78,7 @@ public class FeedRequestManager implements RequestManager {
   @Override
   public void handlePushedResponseBytes(byte[] responseBytes) {
     try {
-      handleResponseBytes(responseBytes, null);
+      handleResponseBytes(responseBytes, null, /* isLengthPrefixed= */ false);
     } catch (IOException e) {
       Logger.e(TAG, e, "Error handling pushed response bytes.");
     }
@@ -118,25 +118,23 @@ public class FeedRequestManager implements RequestManager {
             }
 
             try {
-              // TODO:  Figure out a more scalable to parse extensions.
-              handleResponseBytes(input.getResponseBody().array(), requestBuilder.getPageToken());
+              handleResponseBytes(
+                  input.getResponseBody().array(),
+                  requestBuilder.getPageToken(),
+                  /* isLengthPrefixed= */ true);
             } catch (IOException e) {
-              Logger.e(TAG, "Error handling response bytes");
+              Logger.e(TAG, "Error handling response bytes", e);
             }
           }
         });
   }
 
-  private void handleResponseBytes(byte[] responseBytes, ByteString pageToken) throws IOException {
-    // Try parsing the bytes as a length-prefixed proto, then as an ordinary proto.
-    Response response;
-    try {
-      response =
-          Response.parseFrom(
-              getLengthPrefixedValue(responseBytes), extensionRegistry.getExtensionRegistry());
-    } catch (IOException responseIsNotLengthPrefixed) {
-      response = Response.parseFrom(responseBytes, extensionRegistry.getExtensionRegistry());
-    }
+  private void handleResponseBytes(
+      byte[] responseBytes, ByteString pageToken, boolean isLengthPrefixed) throws IOException {
+    Response response =
+        Response.parseFrom(
+            isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,
+            extensionRegistry.getExtensionRegistry());
     protocolAdapter.createModel(response, pageToken);
   }
 
@@ -149,15 +147,11 @@ public class FeedRequestManager implements RequestManager {
    */
   private byte[] getLengthPrefixedValue(byte[] input) throws IOException {
     CodedInputStream codedInputStream = CodedInputStream.newInstance(input);
-    try {
-      if (codedInputStream.isAtEnd()) {
-        throw new IOException("Empty length-prefixed response");
-      } else {
-        int length = codedInputStream.readRawVarint32();
-        return codedInputStream.readRawBytes(length);
-      }
-    } catch (IOException e) {
-      throw new IOException("Exception parsing length-prefixed response");
+    if (codedInputStream.isAtEnd()) {
+      throw new IOException("Empty length-prefixed response");
+    } else {
+      int length = codedInputStream.readRawVarint32();
+      return codedInputStream.readRawBytes(length);
     }
   }
 
