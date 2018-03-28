@@ -210,21 +210,16 @@ class FrameContext {
    * new Style.
    */
   FrameContext bindNewStyle(StyleIdsStack styles) {
-    if (styles.getStyleIdsList().isEmpty()) {
-      return this;
-    }
     StyleProvider styleProvider = makeStyleFor(styles);
-    return styleProvider != null
-        ? new FrameContext(
-            currentFrame,
-            stylesheet,
-            bindingValues,
-            baseStyle,
-            styleProvider,
-            stylesHelper,
-            assetProvider,
-            customElementProvider)
-        : this;
+    return new FrameContext(
+        currentFrame,
+        stylesheet,
+        bindingValues,
+        baseStyle,
+        styleProvider,
+        stylesHelper,
+        assetProvider,
+        customElementProvider);
   }
 
   /** Return the current {@link StyleProvider}. */
@@ -239,9 +234,6 @@ class FrameContext {
 
   /** Return a {@link StyleProvider} for the style, and allow errors to be suppressed */
   public StyleProvider makeStyleFor(StyleIdsStack styles, boolean suppressErrors) {
-    if (styles.getStyleIdsList().isEmpty()) {
-      return currentStyleProvider;
-    }
     Style style =
         PietStylesHelper.mergeStyleIdsStack(baseStyle, styles, stylesheet, this, suppressErrors);
     if (style == null) {

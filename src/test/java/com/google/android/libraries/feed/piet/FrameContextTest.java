@@ -77,12 +77,14 @@ public class FrameContextTest {
       Template.newBuilder().setTemplateId(DEFAULT_TEMPLATE_ID).build();
   private static final Frame DEFAULT_FRAME =
       Frame.newBuilder().addTemplates(DEFAULT_TEMPLATE).build();
-  private static final String DEFAULT_STYLE_ID = "STYLE_ID";
-  private static final int DEFAULT_STYLE_COLOR = 888888;
-  private static final Style DEFAULT_STYLE =
-      Style.newBuilder().setStyleId(DEFAULT_STYLE_ID).setColor(DEFAULT_STYLE_COLOR).build();
-  private static final StyleIdsStack DEFAULT_STYLE_IDS =
-      StyleIdsStack.newBuilder().addStyleIds(DEFAULT_STYLE_ID).build();
+  private static final String SAMPLE_STYLE_ID = "STYLE_ID";
+  private static final int BASE_STYLE_COLOR = 111111;
+  private static final int SAMPLE_STYLE_COLOR = 888888;
+  private static final Style SAMPLE_STYLE =
+      Style.newBuilder().setStyleId(SAMPLE_STYLE_ID).setColor(SAMPLE_STYLE_COLOR).build();
+  private static final Style BASE_STYLE = Style.newBuilder().setColor(BASE_STYLE_COLOR).build();
+  private static final StyleIdsStack SAMPLE_STYLE_IDS =
+      StyleIdsStack.newBuilder().addStyleIds(SAMPLE_STYLE_ID).build();
 
   private static final String BINDING_ID = "BINDING_ID";
   private static final String INVALID_BINDING_ID = "NOT_A_REAL_BINDING_ID";
@@ -102,7 +104,7 @@ public class FrameContextTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
-    defaultStylesheet.put(DEFAULT_STYLE_ID, DEFAULT_STYLE);
+    defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);
   }
 
   @Test
@@ -111,7 +113,7 @@ public class FrameContextTest {
         new FrameContext(
             DEFAULT_FRAME,
             defaultStylesheet,
-            DEFAULT_STYLE,
+            SAMPLE_STYLE,
             styleProvider,
             stylesHelper,
             assetProvider,
@@ -154,7 +156,7 @@ public class FrameContextTest {
 
     // and clear out all the previous styles
     assertThat(frameContextWithBindings.getCurrentStyle()).isEqualTo(DEFAULT_STYLE_PROVIDER);
-    assertThat(frameContextWithBindings.makeStyleFor(DEFAULT_STYLE_IDS).getColor())
+    assertThat(frameContextWithBindings.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
         .isEqualTo(DEFAULT_STYLE_PROVIDER.getColor());
 
     // A local template stylesheet should override the previous styles.
@@ -183,8 +185,8 @@ public class FrameContextTest {
     assertThat(frameContextWithTemplate.getCurrentStyle().getColor())
         .isEqualTo(templateDefaultColor);
 
-    // Can't look up the DEFAULT_STYLE_ID anymore, so we return the default.
-    assertThat(frameContextWithTemplate.makeStyleFor(DEFAULT_STYLE_IDS).getColor())
+    // Can't look up the SAMPLE_STYLE_ID anymore, so we return the default.
+    assertThat(frameContextWithTemplate.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
         .isEqualTo(templateDefaultColor);
   }
 
@@ -192,26 +194,28 @@ public class FrameContextTest {
   public void testBindNewStyle() {
     frameContext = defaultFrameContext();
 
-    assertThat(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance()))
-        .isEqualTo(frameContext);
+    FrameContext noStyleFrameContext =
+        frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance());
+    assertThat(noStyleFrameContext).isNotSameAs(frameContext);
+    assertThat(noStyleFrameContext.getCurrentStyle().getColor()).isEqualTo(BASE_STYLE_COLOR);
 
-    FrameContext frameContextWithStyle = frameContext.bindNewStyle(DEFAULT_STYLE_IDS);
+    FrameContext frameContextWithStyle = frameContext.bindNewStyle(SAMPLE_STYLE_IDS);
     assertThat(frameContextWithStyle).isNotEqualTo(frameContext);
-    assertThat(frameContextWithStyle.getCurrentStyle().getColor()).isEqualTo(DEFAULT_STYLE_COLOR);
-    assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(DEFAULT_STYLE_COLOR);
+    assertThat(frameContextWithStyle.getCurrentStyle().getColor()).isEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(SAMPLE_STYLE_COLOR);
   }
 
   @Test
   public void testMakeStyleFor() {
     frameContext = defaultFrameContext();
 
-    // Returns current style provider if there are no styles defined
-    assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .isEqualTo(styleProvider);
+    // Returns base style provider if there are no styles defined
+    StyleProvider noStyle = frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance());
+    assertThat(noStyle.getColor()).isEqualTo(BASE_STYLE_COLOR);
 
     // Successful lookup results in a new style provider
-    StyleProvider defaultStyle = frameContext.makeStyleFor(DEFAULT_STYLE_IDS);
-    assertThat(defaultStyle.getColor()).isEqualTo(DEFAULT_STYLE_COLOR);
+    StyleProvider defaultStyle = frameContext.makeStyleFor(SAMPLE_STYLE_IDS);
+    assertThat(defaultStyle.getColor()).isEqualTo(SAMPLE_STYLE_COLOR);
 
     // Failed lookup returns the current style provider
     StyleProvider notFoundStyle =
@@ -547,7 +551,7 @@ public class FrameContextTest {
     return new FrameContext(
         DEFAULT_FRAME,
         defaultStylesheet,
-        DEFAULT_STYLE,
+        BASE_STYLE,
         styleProvider,
         stylesHelper,
         assetProvider,
@@ -561,7 +565,7 @@ public class FrameContextTest {
         DEFAULT_FRAME,
         defaultStylesheet,
         bindingValueMap,
-        DEFAULT_STYLE,
+        BASE_STYLE,
         styleProvider,
         stylesHelper,
         assetProvider,
@@ -575,7 +579,7 @@ public class FrameContextTest {
         DEFAULT_FRAME,
         defaultStylesheet,
         bindingValueMap,
-        DEFAULT_STYLE,
+        BASE_STYLE,
         styleProvider,
         stylesHelper,
         assetProvider,
