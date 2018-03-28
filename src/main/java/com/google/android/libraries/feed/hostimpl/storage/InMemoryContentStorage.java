@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
+import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.DELETE;
+import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.DELETE_BY_PREFIX;
 import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.UPSERT;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -24,10 +26,14 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
+import com.google.android.libraries.feed.host.storage.ContentOperation.Delete;
+import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteByPrefix;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -72,30 +78,19 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
 
     for (ContentOperation operation : mutation.getOperations()) {
       if (operation.getType() == UPSERT) {
-        Upsert upsert = (Upsert) operation;
-        String key = upsert.getKey();
-        if (key == null) {
-          Logger.e(TAG, "Invalid ContentMutation: null key");
+        if (!upsert((Upsert) operation)) {
           consumer.accept(CommitResult.FAILURE);
           return;
         }
-        ByteBuffer valueBuffer = upsert.getValue();
-        if (valueBuffer == null) {
-          Logger.e(TAG, "Invalid ContentMutation: null value");
+      } else if (operation.getType() == DELETE) {
+        if (!delete((Delete) operation)) {
           consumer.accept(CommitResult.FAILURE);
           return;
         }
-        byte[] value = valueBuffer.array();
-        if (value.length == 0) {
-          Logger.e(TAG, "Invalid ContentMutation: empty value");
+      } else if (operation.getType() == DELETE_BY_PREFIX) {
+        if (!deleteByPrefix((DeleteByPrefix) operation)) {
           consumer.accept(CommitResult.FAILURE);
           return;
-        }
-        byte[] currentValue = store.put(key, value);
-        if (currentValue == null) {
-          insertCount++;
-        } else {
-          updateCount++;
         }
       } else {
         Logger.e(TAG, "Invalid ContentMutation: unexpected operation: %s", operation.getType());
@@ -103,7 +98,50 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
         return;
       }
     }
+
     consumer.accept(CommitResult.SUCCESS);
+  }
+
+  private boolean deleteByPrefix(DeleteByPrefix operation) {
+    List<String> keysToRemove = new ArrayList<>();
+    for (String key : store.keySet()) {
+      if (key.startsWith(operation.getPrefix())) {
+        keysToRemove.add(key);
+      }
+    }
+    store.keySet().removeAll(keysToRemove);
+    return true;
+  }
+
+  private boolean delete(Delete operation) {
+    store.remove(operation.getKey());
+    return true;
+  }
+
+  private boolean upsert(Upsert operation) {
+    String key = operation.getKey();
+    // TODO: remove unneeded null checks.
+    if (key == null) {
+      Logger.e(TAG, "Invalid ContentMutation: null key");
+      return false;
+    }
+    ByteBuffer valueBuffer = operation.getValue();
+    if (valueBuffer == null) {
+      Logger.e(TAG, "Invalid ContentMutation: null value");
+      return false;
+    }
+    byte[] value = valueBuffer.array();
+    if (value.length == 0) {
+      Logger.e(TAG, "Invalid ContentMutation: empty value");
+      return false;
+    }
+    byte[] currentValue = store.put(key, value);
+    if (currentValue == null) {
+      insertCount++;
+    } else {
+      updateCount++;
+    }
+    return true;
   }
 
   @Override
