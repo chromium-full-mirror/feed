@@ -40,7 +40,12 @@ public class FeedActionParser implements ActionParser {
   @Override
   public void parseAction(
       Action action, StreamActionApi streamActionApi, @Nullable String veLoggingToken) {
-    parseFeedAction(pietFeedActionRetriever.getFeedAction(action), streamActionApi);
+    FeedAction feedAction = pietFeedActionRetriever.getFeedAction(action);
+    if (feedAction == null) {
+      Logger.w(TAG, "Unable to get FeedAction from PietFeedActionRetriever");
+      return;
+    }
+    parseFeedAction(feedAction, streamActionApi);
   }
 
   @Override
