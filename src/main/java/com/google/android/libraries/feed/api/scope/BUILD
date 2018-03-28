@@ -18,6 +18,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/basicstream",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
+        "//src/main/java/com/google/android/libraries/feed/feedactionparser",
         "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
         "//src/main/java/com/google/android/libraries/feed/feedmodelprovider",
         "//src/main/java/com/google/android/libraries/feed/feedprotocoladapter",
@@ -36,6 +37,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/stream",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
+        "@androidsdk//com.android.support:support-annotations-25.3.1",
         "@com_google_code_findbugs_jsr305//jar",
     ],
 )

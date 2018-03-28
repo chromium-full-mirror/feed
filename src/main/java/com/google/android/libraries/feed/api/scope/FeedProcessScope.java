@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
@@ -29,6 +30,7 @@ import com.google.android.libraries.feed.common.SettableSupplier;
 import com.google.android.libraries.feed.common.SystemClockImpl;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
+import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
@@ -59,8 +61,7 @@ import javax.annotation.Nullable;
 public class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
-  public FeedStreamScope.Builder createFeedStreamScopeBuilder(
-      Context context, ActionApi actionApi) {
+  FeedStreamScope.Builder createFeedStreamScopeBuilder(Context context, ActionApi actionApi) {
     return new FeedStreamScope.Builder(
         context,
         actionApi,
@@ -114,27 +115,28 @@ public class FeedProcessScope implements Dumpable {
       this.schedulerApi = schedulerApi;
     }
 
-    public Builder setProtocolAdapter(FeedProtocolAdapter protocolAdapter) {
+    public Builder setProtocolAdapter(@NonNull FeedProtocolAdapter protocolAdapter) {
       this.protocolAdapter = protocolAdapter;
       return this;
     }
 
-    public Builder setRequestManager(RequestManager requestManager) {
+    public Builder setRequestManager(@NonNull RequestManager requestManager) {
       this.requestManager = requestManager;
       return this;
     }
 
-    public Builder setSessionManager(SessionManager sessionManager) {
+    public Builder setSessionManager(@NonNull SessionManager sessionManager) {
       this.sessionManager = sessionManager;
       return this;
     }
 
-    public Builder setProtoExtensionProvider(ProtoExtensionProvider protoExtensionProvider) {
+    public Builder setProtoExtensionProvider(
+        @NonNull ProtoExtensionProvider protoExtensionProvider) {
       this.protoExtensionProvider = protoExtensionProvider;
       return this;
     }
 
-    public Builder setContentStorage(ContentStorage contentStorage) {
+    public Builder setContentStorage(@NonNull ContentStorage contentStorage) {
       this.contentStorage = contentStorage;
       return this;
     }
@@ -148,7 +150,7 @@ public class FeedProcessScope implements Dumpable {
       // Build default component instances if necessary.
       if (protoExtensionProvider == null) {
         // Return an empty list of extensions by default.
-        protoExtensionProvider = () -> new ArrayList<>();
+        protoExtensionProvider = ArrayList::new;
       }
       FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(protoExtensionProvider);
       if (contentStorage == null) {
@@ -190,7 +192,7 @@ public class FeedProcessScope implements Dumpable {
                 configManager, networkClient, protocolAdapter, extensionRegistry);
       }
       protocolAdapterSupplier.set(protocolAdapter);
-      requestManagerSupplier.set(requestManager);
+      requestManagerSupplier.set(Validators.checkNotNull(requestManager));
 
       AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener();
 
@@ -199,10 +201,10 @@ public class FeedProcessScope implements Dumpable {
           imageLoaderApi,
           loggingApi,
           networkClient,
-          protocolAdapter,
-          requestManager,
+          Validators.checkNotNull(protocolAdapter),
+          Validators.checkNotNull(requestManager),
           schedulerApi,
-          sessionManager,
+          Validators.checkNotNull(sessionManager),
           store,
           timingUtils,
           threadUtils,

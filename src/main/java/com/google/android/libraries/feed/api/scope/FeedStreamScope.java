@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -25,6 +26,8 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.BasicStream;
 import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.feedactionparser.FeedActionParser;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
@@ -74,32 +77,32 @@ public class FeedStreamScope {
       this.clock = clock;
     }
 
-    public Builder setActionParser(ActionParser actionParser) {
+    public Builder setActionParser(@NonNull ActionParser actionParser) {
       this.actionParser = actionParser;
       return this;
     }
 
-    public Builder setCardConfiguration(CardConfiguration cardConfiguration) {
+    public Builder setCardConfiguration(@NonNull CardConfiguration cardConfiguration) {
       this.cardConfiguration = cardConfiguration;
       return this;
     }
 
-    public Builder setStreamConfiguration(StreamConfiguration streamConfiguration) {
+    public Builder setStreamConfiguration(@NonNull StreamConfiguration streamConfiguration) {
       this.streamConfiguration = streamConfiguration;
       return this;
     }
 
-    public Builder setStream(Stream stream) {
+    public Builder setStream(@NonNull Stream stream) {
       this.stream = stream;
       return this;
     }
 
-    public Builder setModelProviderFactory(ModelProviderFactory modelProviderFactory) {
+    public Builder setModelProviderFactory(@NonNull ModelProviderFactory modelProviderFactory) {
       this.modelProviderFactory = modelProviderFactory;
       return this;
     }
 
-    public Builder setCustomElementProvider(CustomElementProvider customElementProvider) {
+    public Builder setCustomElementProvider(@NonNull CustomElementProvider customElementProvider) {
       this.customElementProvider = customElementProvider;
       return this;
     }
@@ -116,6 +119,9 @@ public class FeedStreamScope {
       if (streamConfiguration == null) {
         streamConfiguration = new DefaultStreamConfiguration(context);
       }
+      if (actionParser == null) {
+        actionParser = new FeedActionParser();
+      }
       if (stream == null) {
         stream =
             new BasicStream(
@@ -123,25 +129,23 @@ public class FeedStreamScope {
                 streamConfiguration,
                 cardConfiguration,
                 imageLoaderApi,
-                actionParser,
+                Validators.checkNotNull(actionParser),
                 actionApi,
                 customElementProvider,
                 threadUtils,
                 /* headers = */ new ArrayList<>(0),
                 clock,
-                modelProviderFactory);
+                Validators.checkNotNull(modelProviderFactory));
       }
-      // TODO: if pietManager == null, assign a PietManager to pietManager.
-      // TODO: if stream == null, assign a BasicStream to stream.
       return new FeedStreamScope(
           actionApi,
-          actionParser,
+          Validators.checkNotNull(actionParser),
           protocolAdapter,
           imageLoaderApi,
           loggingApi,
           sessionManager,
-          stream,
-          modelProviderFactory);
+          Validators.checkNotNull(stream),
+          Validators.checkNotNull(modelProviderFactory));
     }
 
     // Required external dependencies.
