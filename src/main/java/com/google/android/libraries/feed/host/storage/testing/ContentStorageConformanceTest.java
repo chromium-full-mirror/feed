@@ -76,11 +76,12 @@ public abstract class ContentStorageConformanceTest {
           assertThat(input).isEqualTo(CommitResult.SUCCESS);
         }
       };
-  private final Consumer<byte[]> isNull =
+  private final Consumer<byte[]> isEmptyByteArray =
       new Consumer<byte[]>() {
         @Override
         public void accept(byte[] input) {
-          assertThat(input).isNull();
+          assertThat(input).isNotNull();
+          assertThat(input).hasLength(0);
         }
       };
 
@@ -88,7 +89,7 @@ public abstract class ContentStorageConformanceTest {
 
   @Test
   public void missingKey() throws Exception {
-    RequiredConsumer<byte[]> consumer = new RequiredConsumer<>(isNull);
+    RequiredConsumer<byte[]> consumer = new RequiredConsumer<>(isEmptyByteArray);
     storage.get("missing key", consumer);
     assertThat(consumer.isCalled()).isTrue();
   }
@@ -135,7 +136,7 @@ public abstract class ContentStorageConformanceTest {
                 assertThat(deleteConsumer.isCalled()).isTrue();
 
                 // Confirm that Key 0 is deleted and Key 1 is present
-                byteConsumer1 = new RequiredConsumer<>(isNull);
+                byteConsumer1 = new RequiredConsumer<>(isEmptyByteArray);
                 storage.get(KEY_0, byteConsumer1);
                 assertThat(byteConsumer1.isCalled()).isTrue();
 
@@ -178,11 +179,11 @@ public abstract class ContentStorageConformanceTest {
                     new ContentMutation.Builder().deleteByPrefix(KEY).build(), deleteConsumer);
 
                 // Confirm Key 0 and Key 1 are deleted, and Other is present
-                byteConsumer1 = new RequiredConsumer<>(isNull);
+                byteConsumer1 = new RequiredConsumer<>(isEmptyByteArray);
                 storage.get(KEY_0, byteConsumer1);
                 assertThat(byteConsumer1.isCalled()).isTrue();
 
-                byteConsumer2 = new RequiredConsumer<>(isNull);
+                byteConsumer2 = new RequiredConsumer<>(isEmptyByteArray);
                 storage.get(KEY_1, byteConsumer2);
                 assertThat(byteConsumer2.isCalled()).isTrue();
 

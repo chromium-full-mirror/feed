@@ -55,7 +55,11 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
     threadUtils.checkMainThread();
 
     getCount++;
-    consumer.accept(store.get(key));
+    byte[] result = store.get(key);
+    if (result == null) {
+      result = new byte[0];
+    }
+    consumer.accept(result);
   }
 
   @Override
