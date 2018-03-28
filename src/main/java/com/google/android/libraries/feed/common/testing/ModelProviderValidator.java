@@ -39,9 +39,12 @@ public class ModelProviderValidator {
     assertRoot(modelProvider, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
   }
 
+  // Suppress nullness since it's just another failure type for tests
+  @SuppressWarnings("nullness")
   public void assertRoot(ModelProvider modelProvider, ContentId contentId) {
     ModelFeature modelFeature = modelProvider.getRootFeature();
     assertThat(modelFeature).isNotNull();
+    assertThat(modelFeature.getStreamFeature()).isNotNull();
     assertStreamContentId(
         modelFeature.getStreamFeature().getContentId(),
         protocolAdapter.getStreamContentId(contentId));

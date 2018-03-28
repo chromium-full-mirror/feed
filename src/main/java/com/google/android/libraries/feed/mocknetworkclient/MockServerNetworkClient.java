@@ -57,15 +57,18 @@ public class MockServerNetworkClient implements NetworkClient {
 
   @Nullable @VisibleForTesting RequestManager requestManager;
 
+  @SuppressWarnings("nullness")
   public MockServerNetworkClient(MockServerConfig config, List<MockUpdate> mockUpdates) {
     this.config = config;
     this.looper = new MockServerLooper();
     Handler handler = looper.getHandler();
+    extensionRegistry = ExtensionRegistryLite.newInstance();
+    extensionRegistry.add(FeedRequest.feedRequest);
+    // This triggers a nullness warning, suppressing above.  This should be ok since this is a mock
+    // class.
     for (MockUpdate update : mockUpdates) {
       handler.postDelayed(() -> handleUpdate(update.getResponse()), update.getUpdateTriggerTime());
     }
-    extensionRegistry = ExtensionRegistryLite.newInstance();
-    extensionRegistry.add(FeedRequest.feedRequest);
   }
 
   /** Called to set the {@code RequestManager}. This is required to support updates */
@@ -75,7 +78,7 @@ public class MockServerNetworkClient implements NetworkClient {
 
   /** Called to shutdown the Looper providing support for Mock Updates */
   public void quitSafely() {
-    looper.getHandler().removeCallbacks(null);
+    looper.getHandler().removeCallbacksAndMessages(null);
     looper.quitSafely();
     hasQuit = true;
   }
@@ -120,13 +123,13 @@ public class MockServerNetworkClient implements NetworkClient {
 
   @VisibleForTesting
   void handleUpdate(Response response) {
-    Validators.checkNotNull(requestManager);
+    RequestManager rm = Validators.checkNotNull(requestManager);
     if (hasQuit) {
       Logger.i(TAG, "Calling update after MockServerNetworkClient has quit");
       return;
     }
     Logger.i(TAG, "Calling handlePushedResponse");
-    requestManager.handlePushedResponseBytes(response.toByteArray());
+    rm.handlePushedResponseBytes(response.toByteArray());
   }
 
   private HttpResponse createHttpResponse(Response response) {

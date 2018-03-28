@@ -130,7 +130,8 @@ public class FeedRequestManager implements RequestManager {
   }
 
   private void handleResponseBytes(
-      byte[] responseBytes, ByteString pageToken, boolean isLengthPrefixed) throws IOException {
+      byte[] responseBytes, @Nullable ByteString pageToken, boolean isLengthPrefixed)
+      throws IOException {
     Response response =
         Response.parseFrom(
             isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,

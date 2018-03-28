@@ -73,7 +73,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   /** Create the internal protocol based upon the FeedStream definition. */
   @Override
-  public void createModel(Response response, ByteString pageTokenForMutation) {
+  public void createModel(Response response, @Nullable ByteString pageTokenForMutation) {
     ElapsedTimeTracker totalTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
     responseHandlingCount++;
 

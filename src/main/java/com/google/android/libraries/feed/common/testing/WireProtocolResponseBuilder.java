@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.common.testing;
 
+import android.support.annotation.NonNull;
 import com.google.protobuf.ByteString;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -26,6 +27,7 @@ import com.google.search.now.wire.feed.PayloadMetadataProto.PayloadMetadata;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /** Builder making creation of wire protocol Response object easier. */
 public class WireProtocolResponseBuilder {
@@ -46,7 +48,7 @@ public class WireProtocolResponseBuilder {
   private final WireProtocolInfo wireProtocolInfo = new WireProtocolInfo();
   private final FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
 
-  private ByteString token = null;
+  @Nullable private ByteString token = null;
 
   /** Add a CLEAR_ALL data operation to the response */
   public WireProtocolResponseBuilder addClearOperation() {
@@ -56,7 +58,7 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
-  public WireProtocolResponseBuilder addStreamToken(ByteString token) {
+  public WireProtocolResponseBuilder addStreamToken(@NonNull ByteString token) {
     this.token = token;
     return this;
   }
