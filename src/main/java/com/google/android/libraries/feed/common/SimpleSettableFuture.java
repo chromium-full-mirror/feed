@@ -14,21 +14,21 @@
 
 package com.google.android.libraries.feed.common;
 
-import android.support.annotation.NonNull;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
 
 /** Simple future that allows for setting a value from another thread */
 public class SimpleSettableFuture<V> implements Future<V> {
 
   private final CountDownLatch latch = new CountDownLatch(1);
   private boolean cancelled = false;
-  private V value = null;
-  private Exception exception = null;
+  @Nullable private V value = null;
+  @Nullable private Exception exception = null;
 
   /** Note that this will not interrupt tasks as tasks aren't running within the future */
   @Override
@@ -68,11 +68,11 @@ public class SimpleSettableFuture<V> implements Future<V> {
     if (exception != null) {
       throw new ExecutionException(exception);
     }
-    return value;
+    return Validators.checkNotNull(value, "Unable to return null from a Future.get()");
   }
 
   @Override
-  public V get(long timeout, @NonNull TimeUnit unit)
+  public V get(long timeout, TimeUnit unit)
       throws InterruptedException, ExecutionException, TimeoutException {
     boolean timedOut = !latch.await(timeout, unit);
     if (timedOut) {
@@ -84,7 +84,7 @@ public class SimpleSettableFuture<V> implements Future<V> {
     if (exception != null) {
       throw new ExecutionException(exception);
     }
-    return value;
+    return Validators.checkNotNull(value, "Unable to return null from a Future.get()");
   }
 
   public void put(V value) {
@@ -94,7 +94,7 @@ public class SimpleSettableFuture<V> implements Future<V> {
     }
   }
 
-  public void putException(Exception e) {
+  void putException(Exception e) {
     if (!isDone()) {
       this.exception = e;
       latch.countDown();

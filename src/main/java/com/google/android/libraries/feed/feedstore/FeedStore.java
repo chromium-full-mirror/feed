@@ -104,6 +104,10 @@ public class FeedStore implements Store, Dumpable {
                   new Consumer<byte[]>() {
                     @Override
                     public void accept(byte[] input) {
+                      if (input == null) {
+                        Logger.w(TAG, "input was null, converting to empty byte[]");
+                        input = new byte[0];
+                      }
                       contentFuture.put(input);
 
                       // todo(rbonick): handle errors
@@ -112,7 +116,7 @@ public class FeedStore implements Store, Dumpable {
             });
 
         byte[] content = contentFuture.get();
-        if (content != null) {
+        if (content.length > 0) {
           StreamPayload streamPayload =
               StreamPayload.parseFrom(content, extensionRegistry.getExtensionRegistry());
           payloads.add(new PayloadWithId(contentId, streamPayload));

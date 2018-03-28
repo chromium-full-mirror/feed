@@ -73,7 +73,7 @@ public class Dumper {
     return getChildDumper(null);
   }
 
-  private Dumper getChildDumper(Dumpable dumpable) {
+  private Dumper getChildDumper(@Nullable Dumpable dumpable) {
     return new Dumper(indentLevel + 1, this, new WeakReference<>(dumpable), values);
   }
 

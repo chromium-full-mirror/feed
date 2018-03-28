@@ -161,8 +161,6 @@ public class FeedSessionManagerTest {
     ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider).isNotNull();
 
-    assertThat(modelProvider).isNotNull();
-    assertThat(modelProvider.getRootFeature()).isNotNull();
     ModelCursor cursor = modelProvider.getRootFeature().getCursor();
     cursorCount = 0;
     while (cursor.advanceCursor(incrementChildCountProcessor())) ;
