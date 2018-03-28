@@ -308,7 +308,7 @@ public class FeedStore implements Store, Dumpable {
   private CommitResult commitContentMutation(List<PayloadWithId> mutations) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    CommitResult commitResult = null;
+    CommitResult commitResult = CommitResult.FAILURE;
     for (PayloadWithId mutation : mutations) {
       String payloadId = mutation.contentId;
       StreamPayload payload = mutation.payload;
