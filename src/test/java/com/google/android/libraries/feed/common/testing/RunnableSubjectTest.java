@@ -26,6 +26,7 @@ import com.google.common.truth.ExpectFailure;
 import com.google.common.truth.Truth;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import org.junit.ComparisonFailure;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -112,9 +113,9 @@ public class RunnableSubjectTest {
         .hasMessageThat()
         .isEqualTo("Expected message.");
 
-    assertThat(expectFailure.getFailure())
-        .hasMessageThat()
-        .contains("expected:<[Expected message.]> but was:<[Wrong message!]>");
+    ComparisonFailure failure = (ComparisonFailure) expectFailure.getFailure();
+    assertThat(failure.getExpected()).isEqualTo("Expected message.");
+    assertThat(failure.getActual()).isEqualTo("Wrong message!");
   }
 
   @Test
