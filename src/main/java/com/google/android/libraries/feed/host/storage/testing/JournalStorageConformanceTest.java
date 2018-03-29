@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.host.storage.testing;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
@@ -102,75 +103,119 @@ public abstract class JournalStorageConformanceTest {
   @Test
   public void readOfEmptyJournalReturnsEmptyData() throws Exception {
     // Try to read some blobs from an empty journal store.
-    journalStorage.read(JOURNAL_NAME, isEmptyList);
+    RequiredConsumer<List<byte[]>> readConsumer = new RequiredConsumer<>(isEmptyList);
+    journalStorage.read(JOURNAL_NAME, readConsumer);
+    assertThat(readConsumer.isCalled()).isTrue();
   }
 
   @Test
   public void appendToJournal() throws Exception {
     // Write some data and put the result from the callback into commitResult.
+    RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
-        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(), isSuccess);
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
+
     // Read the data back into blobs.
-    journalStorage.read(JOURNAL_NAME, isData0AndData1);
+    RequiredConsumer<List<byte[]>> readConsumer = new RequiredConsumer<>(isData0AndData1);
+    journalStorage.read(JOURNAL_NAME, readConsumer);
+    assertThat(readConsumer.isCalled()).isTrue();
   }
 
   @Test
   public void copyJournal() throws Exception {
     // Write some data.
+    RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
-        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(), isSuccess);
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
+
     // Copy the data into a new journal and put the result from the callback into commitResult.
+    commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
-        new JournalMutation.Builder(JOURNAL_NAME).copy(JOURNAL_COPY_NAME).build(), isSuccess);
+        new JournalMutation.Builder(JOURNAL_NAME).copy(JOURNAL_COPY_NAME).build(), commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
 
     // Read the data back into blobs.
-    journalStorage.read(JOURNAL_COPY_NAME, isData0AndData1);
+    RequiredConsumer<List<byte[]>> readConsumer = new RequiredConsumer<>(isData0AndData1);
+    journalStorage.read(JOURNAL_COPY_NAME, readConsumer);
+    assertThat(readConsumer.isCalled()).isTrue();
   }
 
   @Test
   public void deleteJournal() throws Exception {
     // Write some data.
+    RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
-        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(), isSuccess);
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
+
     // Delete the journal and put the result from the callback into commitResult.
-    journalStorage.commit(new JournalMutation.Builder(JOURNAL_NAME).delete().build(), isSuccess);
+    commitConsumer = new RequiredConsumer<>(isSuccess);
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME).delete().build(), commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
+
     // Try to read the deleted journal.
-    journalStorage.read(JOURNAL_NAME, isEmptyList);
+    RequiredConsumer<List<byte[]>> readConsumer = new RequiredConsumer<>(isEmptyList);
+    journalStorage.read(JOURNAL_NAME, readConsumer);
+    assertThat(readConsumer.isCalled()).isTrue();
   }
 
   @Test
   public void exists() throws Exception {
     // Write some data.
+    RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
-        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(), isSuccess);
-    journalStorage.exists(JOURNAL_NAME, isTrue);
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
+
+    RequiredConsumer<Boolean> existsConsumer = new RequiredConsumer<>(isTrue);
+    journalStorage.exists(JOURNAL_NAME, existsConsumer);
+    assertThat(existsConsumer.isCalled()).isTrue();
   }
 
   @Test
   public void exists_doesNotExist() throws Exception {
-    journalStorage.exists(JOURNAL_NAME, isFalse);
+    RequiredConsumer<Boolean> existsConsumer = new RequiredConsumer<>(isFalse);
+    journalStorage.exists(JOURNAL_NAME, existsConsumer);
+    assertThat(existsConsumer.isCalled()).isTrue();
   }
 
   @Test
   public void getAllJournals_singleJournal() throws Exception {
     // Write some data.
+    RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
-        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(), isSuccess);
+        new JournalMutation.Builder(JOURNAL_NAME).append(DATA_0).append(DATA_1).build(),
+        commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
 
-    journalStorage.getAllJournals(isJournal1);
+    RequiredConsumer<List<String>> getAllJournalsConsumer = new RequiredConsumer<>(isJournal1);
+    journalStorage.getAllJournals(getAllJournalsConsumer);
+    assertThat(getAllJournalsConsumer.isCalled()).isTrue();
   }
 
   @Test
   public void getAllJournals_multipleJournals() throws Exception {
     // Write some data.
+    RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
     journalStorage.commit(
         new JournalMutation.Builder(JOURNAL_NAME)
             .append(DATA_0)
             .append(DATA_1)
             .copy(JOURNAL_COPY_NAME)
             .build(),
-        isSuccess);
+        commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
 
-    journalStorage.getAllJournals(isJournal1AndJournal2);
+    RequiredConsumer<List<String>> getAllJournalsConsumer =
+        new RequiredConsumer<>(isJournal1AndJournal2);
+    journalStorage.getAllJournals(getAllJournalsConsumer);
+    assertThat(getAllJournalsConsumer.isCalled()).isTrue();
   }
 }
