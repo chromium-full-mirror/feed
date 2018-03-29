@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange.ChildChanges;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
@@ -126,7 +127,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   }
 
   @Override
-  public boolean advanceCursor(ProcessNextChild processor) {
+  public boolean advanceCursor(Consumer<ModelChild> modelChildConsumer) {
     // This should only be called on the UI thread.
     threadUtils.checkMainThread();
 
@@ -142,7 +143,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
         release();
       }
     }
-    processor.processNextChild(nextChild);
+    modelChildConsumer.accept(nextChild);
     return true;
   }
 

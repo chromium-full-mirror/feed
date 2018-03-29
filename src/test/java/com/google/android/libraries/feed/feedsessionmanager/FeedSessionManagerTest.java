@@ -28,13 +28,13 @@ import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -271,10 +271,10 @@ public class FeedSessionManagerTest {
     return sessionManager;
   }
 
-  private ProcessNextChild incrementChildCountProcessor() {
-    return new ProcessNextChild() {
+  private Consumer<ModelChild> incrementChildCountProcessor() {
+    return new Consumer<ModelChild>() {
       @Override
-      public void processNextChild(ModelChild child) {
+      public void accept(ModelChild child) {
         cursorCount++;
       }
     };

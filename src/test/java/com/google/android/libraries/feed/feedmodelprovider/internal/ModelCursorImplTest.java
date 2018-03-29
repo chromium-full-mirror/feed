@@ -22,8 +22,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl.CursorIterator;
 import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
@@ -68,9 +68,9 @@ public class ModelCursorImplTest {
 
     assertThat(
             cursor.advanceCursor(
-                new ProcessNextChild() {
+                new Consumer<ModelChild>() {
                   @Override
-                  public void processNextChild(ModelChild child) {
+                  public void accept(ModelChild child) {
                     // Do nothing
                   }
                 }))
@@ -142,10 +142,10 @@ public class ModelCursorImplTest {
     assertThat(cursorIterator.getPosition()).isEqualTo(1);
   }
 
-  private ProcessNextChild incrementChildCountProcessor() {
-    return new ProcessNextChild() {
+  private Consumer<ModelChild> incrementChildCountProcessor() {
+    return new Consumer<ModelChild>() {
       @Override
-      public void processNextChild(ModelChild child) {
+      public void accept(ModelChild child) {
         childCount++;
       }
     };

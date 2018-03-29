@@ -28,7 +28,6 @@ import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -205,9 +204,9 @@ public class FeedModelProviderTest {
 
     cursorCount = 0;
     while (modelCursor.advanceCursor(
-        new ProcessNextChild() {
+        new Consumer<ModelChild>() {
           @Override
-          public void processNextChild(ModelChild child) {
+          public void accept(ModelChild child) {
             cursorCount++;
             if (child.getType() == Type.FEATURE) {
               ModelFeature feature = child.getModelFeature();
@@ -359,9 +358,9 @@ public class FeedModelProviderTest {
     cursorCount = 0;
     continuationToken = null;
     while (modelCursor.advanceCursor(
-        new ProcessNextChild() {
+        new Consumer<ModelChild>() {
           @Override
-          public void processNextChild(ModelChild child) {
+          public void accept(ModelChild child) {
             cursorCount++;
             if (child.getType() == Type.TOKEN) {
               continuationToken = child;
@@ -387,9 +386,9 @@ public class FeedModelProviderTest {
     ModelCursor modelCursor = rootFeature.getCursor();
     continuationToken = null;
     while (modelCursor.advanceCursor(
-        new ProcessNextChild() {
+        new Consumer<ModelChild>() {
           @Override
-          public void processNextChild(ModelChild child) {
+          public void accept(ModelChild child) {
             if (child.getType() == Type.TOKEN) {
               continuationToken = child;
             }
@@ -510,10 +509,10 @@ public class FeedModelProviderTest {
     return StreamFeature.newBuilder().setContentId(rootContentId).build();
   }
 
-  private ProcessNextChild incrementChildCountProcessor() {
-    return new ProcessNextChild() {
+  private Consumer<ModelChild> incrementChildCountProcessor() {
+    return new Consumer<ModelChild>() {
       @Override
-      public void processNextChild(ModelChild child) {
+      public void accept(ModelChild child) {
         cursorCount++;
       }
     };

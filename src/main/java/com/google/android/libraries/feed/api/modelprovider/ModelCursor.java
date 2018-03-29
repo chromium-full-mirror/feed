@@ -14,44 +14,26 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
+import com.google.android.libraries.feed.common.Consumer;
+
 /**
  * This represents a Cursor through the children of a {@link ModelFeature}. A Cursor will provide
  * forward only access to the children of the container. When a cursor is created by calling {@link
  * ModelFeature#getCursor()}, it is positioned at the first child. Access to the next child is done
- * through the {@link ProcessNextChild} interface. The interface provides a method which will
- * process the next child.
- *
- * <p>Cursors are designed so they can be held onto by the UI. The Cursor can be invalidated, for
- * example on a Stream refresh, all existing cursors will become invalid. An invalidated cursor will
- * not process any remaining children. All resources will be freed.
+ * through the {@link Consumer} interface. The interface provides a method which will process the
+ * next child.
  */
 public interface ModelCursor {
   /**
-   * A callback method which is called during {@link #processNextChild(ModelChild)}. This allows the
-   * caller to process the Child.
-   */
-  interface ProcessNextChild {
-    /**
-     * Called to process the {@link com.google.android.libraries.feed.api.modelprovider.ModelChild}.
-     */
-    void processNextChild(ModelChild child);
-  }
-
-  /**
-   * Return {@code true} if the child was valid and passed to ProcessNextChild method. If the cursor
-   * is at the end of the list, or if it has been invalidated, then this will always return {@code
-   * false}.
+   * Return {@literal true} if the child was valid and passed to ProcessNextChild method. If the
+   * cursor is at the end of the list, then this will always return {@literal false}.
    *
    * <p>The cursor is designed to support a callback instead of a {@code hasNext(), next()} model to
    * avoid race conditions which can occur with multiple calls on an object. This is designed to
    * allow Lambda function use at the calling site.
    */
-  boolean advanceCursor(ProcessNextChild processor);
+  boolean advanceCursor(Consumer<ModelChild> processor);
 
-  /**
-   * Boolean indicating the Cursor is at the end. When the cursor is at the end it will always
-   * return {@code false} from advanceCursor. If the cursor has been released this this will return
-   * {@code true}.
-   */
+  /** Returns {@literal true} if the cursor is at the end. */
   boolean isAtEnd();
 }

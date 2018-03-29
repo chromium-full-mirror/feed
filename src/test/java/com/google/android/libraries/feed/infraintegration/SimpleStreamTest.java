@@ -20,12 +20,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
@@ -88,9 +88,9 @@ public class SimpleStreamTest {
     ModelCursor cursor = root.getCursor();
     AtomicInteger cursorCount = new AtomicInteger();
     while (cursor.advanceCursor(
-        new ProcessNextChild() {
+        new Consumer<ModelChild>() {
           @Override
-          public void processNextChild(ModelChild child) {
+          public void accept(ModelChild child) {
             cursorCount.incrementAndGet();
           }
         })) {}
@@ -99,9 +99,9 @@ public class SimpleStreamTest {
     // Validate that the structure of the card
     cursor = root.getCursor();
     cursor.advanceCursor(
-        new ProcessNextChild() {
+        new Consumer<ModelChild>() {
           @Override
-          public void processNextChild(ModelChild child) {
+          public void accept(ModelChild child) {
             modelValidator.assertCardStructure(child);
           }
         });
@@ -136,9 +136,9 @@ public class SimpleStreamTest {
     ModelCursor cursor = root.getCursor();
     for (ContentId contentId : cards) {
       cursor.advanceCursor(
-          new ProcessNextChild() {
+          new Consumer<ModelChild>() {
             @Override
-            public void processNextChild(ModelChild child) {
+            public void accept(ModelChild child) {
               modelValidator.assertStreamContentId(
                   child.getContentId(), protocolAdapter.getStreamContentId(contentId));
               modelValidator.assertCardStructure(child);

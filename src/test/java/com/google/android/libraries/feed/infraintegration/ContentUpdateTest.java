@@ -24,12 +24,12 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor.ProcessNextChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
@@ -89,9 +89,9 @@ public class ContentUpdateTest {
     List<FeatureChangeObserver> contentObservers = new ArrayList<>();
     for (ContentId contentId : cards) {
       cursor.advanceCursor(
-          new ProcessNextChild() {
+          new Consumer<ModelChild>() {
             @Override
-            public void processNextChild(ModelChild child) {
+            public void accept(ModelChild child) {
               modelValidator.assertStreamContentId(
                   child.getContentId(), protocolAdapter.getStreamContentId(contentId));
               modelValidator.assertCardStructure(child);
@@ -106,9 +106,9 @@ public class ContentUpdateTest {
               contentObservers.add(contentObserver);
               ModelCursor cardCursor = feature.getCursor();
               cardCursor.advanceCursor(
-                  new ProcessNextChild() {
+                  new Consumer<ModelChild>() {
                     @Override
-                    public void processNextChild(ModelChild child) {
+                    public void accept(ModelChild child) {
                       child.getModelFeature().registerObserver(contentObserver);
                     }
                   });
