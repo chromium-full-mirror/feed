@@ -36,51 +36,68 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /** Implementation of {@link ContentStorage} that persists data to disk. */
 public class PersistentContentStorage implements ContentStorage {
+
 
   private static final String TAG = "PersistentContent";
   private static final String CONTENT_DIR = "content";
 
   private final Context context;
-  private final ThreadUtils threadUtils = new ThreadUtils();
+  private final ThreadUtils threadUtils;
+  private final ExecutorService executor;
+
   private File contentDir;
 
-  public PersistentContentStorage(Context context) {
+  public PersistentContentStorage(
+      Context context, ExecutorService executor, ThreadUtils threadUtils) {
     this.context = context;
+    this.executor = executor;
+    this.threadUtils = threadUtils;
   }
 
   @Override
   public void get(String key, Consumer<byte[]> consumer) {
     threadUtils.checkMainThread();
-    initializeContentDir();
 
-    File keyFile = new File(contentDir, key);
-    consumer.accept(getFileContents(keyFile));
+    executor.execute(
+        () -> {
+          initializeContentDir();
+
+          File keyFile = new File(contentDir, key);
+          consumer.accept(getFileContents(keyFile));
+        });
   }
 
   @Override
   public void getAll(String prefix, Consumer<Map<String, byte[]>> consumer) {
     threadUtils.checkMainThread();
-    initializeContentDir();
 
-    File[] files = contentDir.listFiles();
+    executor.execute(
+        () -> {
+          initializeContentDir();
 
-    Map<String, byte[]> allFilesMap = new HashMap<>();
+          File[] files = contentDir.listFiles();
 
-    if (files != null) {
-      for (File file : files) {
-        if (file.getName().startsWith(prefix)) {
-          allFilesMap.put(file.getName(), getFileContents(file));
-        }
-      }
-    }
+          Map<String, byte[]> allFilesMap = new HashMap<>();
 
-    consumer.accept(allFilesMap);
+          if (files != null) {
+            for (File file : files) {
+              if (file.getName().startsWith(prefix)) {
+                allFilesMap.put(file.getName(), getFileContents(file));
+              }
+            }
+          }
+
+          consumer.accept(allFilesMap);
+        });
   }
 
   private byte[] getFileContents(File keyFile) {
+    threadUtils.checkNotMainThread();
+
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
     if (keyFile.exists()) {
@@ -99,33 +116,38 @@ public class PersistentContentStorage implements ContentStorage {
   @Override
   public void commit(ContentMutation mutation, Consumer<CommitResult> consumer) {
     threadUtils.checkMainThread();
-    initializeContentDir();
+    executor.execute(
+        () -> {
+          initializeContentDir();
 
-    for (ContentOperation operation : mutation.getOperations()) {
-      if (operation.getType() == UPSERT) {
-        if (!upsert((Upsert) operation)) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
-        }
-      } else if (operation.getType() == DELETE) {
-        if (!delete((Delete) operation)) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
-        }
-      } else if (operation.getType() == DELETE_BY_PREFIX) {
-        if (!deleteByPrefix((DeleteByPrefix) operation)) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
-        }
-      } else {
-        Logger.e(TAG, "Unrecognized ContentOperation type: %s", operation.getType());
-      }
-    }
+          for (ContentOperation operation : mutation.getOperations()) {
+            if (operation.getType() == UPSERT) {
+              if (!upsert((Upsert) operation)) {
+                consumer.accept(CommitResult.FAILURE);
+                return;
+              }
+            } else if (operation.getType() == DELETE) {
+              if (!delete((Delete) operation)) {
+                consumer.accept(CommitResult.FAILURE);
+                return;
+              }
+            } else if (operation.getType() == DELETE_BY_PREFIX) {
+              if (!deleteByPrefix((DeleteByPrefix) operation)) {
+                consumer.accept(CommitResult.FAILURE);
+                return;
+              }
+            } else {
+              Logger.e(TAG, "Unrecognized ContentOperation type: %s", operation.getType());
+            }
+          }
 
-    consumer.accept(CommitResult.SUCCESS);
+          consumer.accept(CommitResult.SUCCESS);
+        });
   }
 
   private boolean deleteByPrefix(DeleteByPrefix operation) {
+    threadUtils.checkNotMainThread();
+
     File[] files = contentDir.listFiles();
 
     if (files != null) {
@@ -145,6 +167,8 @@ public class PersistentContentStorage implements ContentStorage {
   }
 
   private boolean delete(Delete operation) {
+    threadUtils.checkNotMainThread();
+
     File file = new File(contentDir, operation.getKey());
     boolean result = file.delete();
     if (!result) {
@@ -154,6 +178,8 @@ public class PersistentContentStorage implements ContentStorage {
   }
 
   private boolean upsert(Upsert operation) {
+    threadUtils.checkNotMainThread();
+
     File file = new File(contentDir, operation.getKey());
     try (FileOutputStream fos = new FileOutputStream(file)) {
       fos.write(operation.getValue().array());
@@ -166,8 +192,11 @@ public class PersistentContentStorage implements ContentStorage {
   }
 
   private void initializeContentDir() {
+    threadUtils.checkNotMainThread();
+
     if (contentDir == null) {
       contentDir = context.getDir(CONTENT_DIR, Context.MODE_PRIVATE);
     }
   }
 }
+

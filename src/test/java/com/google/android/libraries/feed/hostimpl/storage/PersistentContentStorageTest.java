@@ -14,24 +14,33 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import android.content.Context;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.host.storage.testing.ContentStorageConformanceTest;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.RuntimeEnvironment;
 
 /** Tests for {@link PersistentContentStorage}. */
 @RunWith(RobolectricTestRunner.class)
 public class PersistentContentStorageTest extends ContentStorageConformanceTest {
 
+  @Mock private ThreadUtils threadUtils;
   private Context context;
 
   @Before
   public void setUp() {
+    initMocks(this);
     context = RuntimeEnvironment.application;
-    storage = new PersistentContentStorage(context);
+    storage =
+        new PersistentContentStorage(
+            context, MoreExecutors.newDirectExecutorService(), threadUtils);
   }
 
   @After
