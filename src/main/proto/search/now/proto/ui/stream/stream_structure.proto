@@ -36,6 +36,16 @@ message Stream {
   // Empty for now as don't support any custom information.
 }
 
+// Feature which represents a cluster in a Stream. May have a Card or Content
+// as children.
+message Cluster {
+  extend search.now.proto.wire.feed.Feature {
+    optional Cluster cluster_extension = 190812910;
+  }
+
+  // Empty for now as we don't support any custom information.
+}
+
 // Feature which represents a full card in a Stream.  Allows metadata to be sent
 // to describe how to render the card.
 message Card {
