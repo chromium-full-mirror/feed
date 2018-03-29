@@ -139,6 +139,8 @@ abstract class ElementAdapter<V extends View, M> {
     initializeOverlays(frameContext);
 
     initializeOverflow(baseElement);
+
+    this.frameContext.getCurrentStyle().setElementStyles(getContext(), this.frameContext, view);
   }
 
   /** Performs child-class-specific adapter creation; to be overridden. */
@@ -165,7 +167,9 @@ abstract class ElementAdapter<V extends View, M> {
   void bindModel(M model, Element baseElement, FrameContext frameContext) {
     this.model = model;
     this.baseElement = baseElement;
-    this.frameContext = frameContext.bindNewStyle(getElementStyleIdsStack());
+    if (getElementStyleIdsStack().hasStyleBinding()) {
+      this.frameContext = frameContext.bindNewStyle(getElementStyleIdsStack());
+    }
 
     onBindModel(model, baseElement, frameContext);
 
@@ -173,6 +177,11 @@ abstract class ElementAdapter<V extends View, M> {
     bindOverlays(frameContext);
 
     bindActions(frameContext);
+
+    // Reapply styles if we have style bindings
+    if (getElementStyleIdsStack().hasStyleBinding()) {
+      this.frameContext.getCurrentStyle().setElementStyles(getContext(), this.frameContext, view);
+    }
   }
 
   /** Extracts the relevant model from the Element oneof. Throws IllegalArgument if not found. */

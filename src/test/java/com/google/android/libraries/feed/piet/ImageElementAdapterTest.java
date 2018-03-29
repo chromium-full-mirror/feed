@@ -362,7 +362,7 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    verify(frameContextWithStyle).getCurrentStyle();
+    verify(styleProvider).setElementStyles(context, frameContextWithStyle, adapter.getView());
 
     // Styles do not change when a different model is bound
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
@@ -392,10 +392,10 @@ public class ImageElementAdapterTest {
     FrameContext frameContextWithBoundStyle = mock(FrameContext.class);
     when(frameContext.bindNewStyle(boundStyle)).thenReturn(frameContextWithBoundStyle);
     when(frameContextWithBoundStyle.getAssetProvider()).thenReturn(assetProvider);
-    when(frameContextWithBoundStyle.getCurrentStyle()).thenReturn(DEFAULT_STYLE_PROVIDER);
+    when(frameContextWithBoundStyle.getCurrentStyle()).thenReturn(styleProvider);
     adapter.bindModel(imageWithBoundStyle, frameContext);
 
-    verify(frameContextWithBoundStyle).getCurrentStyle();
+    verify(styleProvider).setElementStyles(context, frameContextWithBoundStyle, adapter.getView());
   }
 
   @Test

@@ -71,6 +71,8 @@ public class TextElementAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
         new AdapterParameters(null, null, null, new ParameterizedTextEvaluator(), null);
+    when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
+    when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
 
     adapter = new TestTextElementAdapter(context, adapterParameters);
   }
@@ -155,7 +157,7 @@ public class TextElementAdapterTest {
     adapter.bindModel(textElement, frameContext);
 
     assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
-    verify(frameContext, never()).makeStyleFor(otherStyle);
+    verify(frameContext, never()).bindNewStyle(otherStyle);
 
     // Styles only change if new model has style bindings
     adapter.unbindModel();
@@ -165,9 +167,10 @@ public class TextElementAdapterTest {
             .build();
     textElement =
         getBaseTextElement().toBuilder().setStyleReferences(otherStyleWithBinding).build();
+    when(frameContext.bindNewStyle(otherStyleWithBinding)).thenReturn(frameContext);
     adapter.bindModel(textElement, frameContext);
 
-    verify(frameContext).makeStyleFor(otherStyleWithBinding);
+    verify(frameContext).bindNewStyle(otherStyleWithBinding);
   }
 
   @Test
@@ -193,6 +196,7 @@ public class TextElementAdapterTest {
   public void testGetStyles() {
     StyleIdsStack elementStyles = StyleIdsStack.newBuilder().addStyleIds("hair").build();
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
+    when(frameContext.bindNewStyle(elementStyles)).thenReturn(frameContext);
     TextElement textElement =
         getBaseTextElement(mockStyleProvider).toBuilder().setStyleReferences(elementStyles).build();
 

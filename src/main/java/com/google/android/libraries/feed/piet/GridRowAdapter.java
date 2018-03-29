@@ -55,9 +55,6 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
 
     // Set the padding on the LinearLayout representing the grid line.
     ViewGroup viewGroup = checkNotNull(getBaseView());
-    frameContext
-        .makeStyleFor(gridRow.getStyleReferences())
-        .setElementStyles(getContext(), frameContext, viewGroup);
 
     // Populate the LinearLayout with cells.
     for (GridCell cell : gridRow.getCellsList()) {
@@ -105,13 +102,6 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
           throw new IllegalArgumentException(
               String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
       }
-    }
-
-    // Reapply styles if we have style bindings.
-    if (gridRow.getStyleReferences().hasStyleBinding()) {
-      frameContext
-          .makeStyleFor(gridRow.getStyleReferences())
-          .setElementStyles(getContext(), frameContext, getBaseView());
     }
   }
 

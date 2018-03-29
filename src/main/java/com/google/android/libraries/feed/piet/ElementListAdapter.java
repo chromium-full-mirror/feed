@@ -52,11 +52,39 @@ class ElementListAdapter
   void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
     initialCreate();
 
-    createLayout(model, frameContext);
+    ViewGroup viewGroup = checkNotNull(getBaseView());
+    for (Element line : model.getElementsList()) {
+      ElementAdapter<? extends View, ?> adapter = getAdapterForChildElement(line, frameContext);
+      checkNotNull(adapter.getView(), "Adapter had null view");
+      viewGroup.addView(adapter.getView());
 
-    frameContext
-        .makeStyleFor(model.getStyleReferences())
-        .setElementStyles(getContext(), frameContext, getView());
+      int width = adapter.getComputedWidthPx();
+      width =
+          width == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.MATCH_PARENT : width;
+      int height = adapter.getComputedHeightPx();
+      height =
+          height == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
+
+      LayoutParams params = new LayoutParams(width, height);
+
+      adapter.getElementStyle().setMargins(getContext(), params);
+
+      switch (adapter.getHorizontalGravity()) {
+        case GRAVITY_START:
+          params.gravity = Gravity.START;
+          break;
+        case GRAVITY_CENTER:
+          params.gravity = Gravity.CENTER_HORIZONTAL;
+          break;
+        case GRAVITY_END:
+          params.gravity = Gravity.END;
+          break;
+        default:
+          params.gravity = Gravity.START;
+      }
+
+      adapter.setLayoutParams(params);
+    }
   }
 
   @Override
@@ -76,12 +104,6 @@ class ElementListAdapter
       } else {
         childAdapters.get(i).bindModel(model.getElements(i), frameContext);
       }
-    }
-
-    if (model.getStyleReferences().hasStyleBinding()) {
-      frameContext
-          .makeStyleFor(model.getStyleReferences())
-          .setElementStyles(getContext(), frameContext, getView());
     }
   }
 
@@ -126,43 +148,6 @@ class ElementListAdapter
 
   GravityVertical getVerticalGravity() {
     return getModel().getGravityVertical();
-  }
-
-  /** Creates each ui element in {@code list} and adds them to {@code views}. */
-  private void createLayout(ElementList list, FrameContext frameContext) {
-    ViewGroup viewGroup = checkNotNull(getBaseView());
-    for (Element line : list.getElementsList()) {
-      ElementAdapter<? extends View, ?> adapter = getAdapterForChildElement(line, frameContext);
-      checkNotNull(adapter.getView(), "Adapter had null view");
-      viewGroup.addView(adapter.getView());
-
-      int width = adapter.getComputedWidthPx();
-      width =
-          width == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.MATCH_PARENT : width;
-      int height = adapter.getComputedHeightPx();
-      height =
-          height == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
-
-      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
-
-      adapter.getElementStyle().setMargins(getContext(), params);
-
-      switch (adapter.getHorizontalGravity()) {
-        case GRAVITY_START:
-          params.gravity = Gravity.START;
-          break;
-        case GRAVITY_CENTER:
-          params.gravity = Gravity.CENTER_HORIZONTAL;
-          break;
-        case GRAVITY_END:
-          params.gravity = Gravity.END;
-          break;
-        default:
-          params.gravity = Gravity.START;
-      }
-
-      adapter.setLayoutParams(params);
-    }
   }
 
   private ElementAdapter<? extends View, ?> getAdapterForChildElement(

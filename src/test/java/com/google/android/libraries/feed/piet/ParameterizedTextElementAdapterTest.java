@@ -72,6 +72,8 @@ public class ParameterizedTextElementAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
         new AdapterParameters(null, null, null, new ParameterizedTextEvaluator(), null);
+    when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
+    when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
 
     adapter =
         new ParameterizedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);

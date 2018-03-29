@@ -54,14 +54,12 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     initialCreate(frameContext, textLine);
 
     // Setup the layout of the text lines.
-    updateTextStyle(textLine.getStyleReferences(), frameContext, getContext());
+    updateTextStyle();
   }
 
-  private void updateTextStyle(
-      StyleIdsStack styleIdsStack, FrameContext frameContext, Context context) {
+  private void updateTextStyle() {
     TextView textView = checkNotNull(getBaseView());
-    StyleProvider textStyle = frameContext.makeStyleFor(styleIdsStack);
-    textStyle.setElementStyles(context, frameContext, textView);
+    StyleProvider textStyle = getFrameContext().getCurrentStyle();
     textView.setTextColor(textStyle.getColor());
     if (textStyle.getMaxLines() > 0) {
       textView.setMaxLines(textStyle.getMaxLines());
@@ -80,7 +78,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     setTextOnView(frameContext, textLine);
 
     if (textLine.getStyleReferences().hasStyleBinding()) {
-      updateTextStyle(textLine.getStyleReferences(), frameContext, getContext());
+      updateTextStyle();
     }
   }
 

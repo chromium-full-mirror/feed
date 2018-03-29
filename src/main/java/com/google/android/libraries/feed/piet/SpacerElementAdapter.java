@@ -73,7 +73,6 @@ class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
       params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, height);
     }
     getBaseView().setLayoutParams(params);
-    spacerStyle.setElementStyles(getContext(), frameContext, getBaseView());
   }
 
   @Override

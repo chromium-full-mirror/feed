@@ -97,7 +97,7 @@ public class GridRowAdapterTest {
         .thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.makeStyleFor(GRID_STYLES)).thenReturn(styleProvider);
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
-    when(frameContext.getCurrentStyle()).thenReturn(DEFAULT_STYLE_PROVIDER);
+    when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
   }
 
   @Test
@@ -166,7 +166,7 @@ public class GridRowAdapterTest {
 
     adapter.createAdapter(gridRow, frameContext);
 
-    verify(frameContext).makeStyleFor(GRID_STYLES);
+    verify(frameContext).bindNewStyle(GRID_STYLES);
     verify(styleProvider).setElementStyles(context, frameContext, adapter.getBaseView());
   }
 
@@ -395,7 +395,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.createAdapter(gridRowWithStyle, frameContext);
-    verify(frameContext).makeStyleFor(GRID_STYLES);
+    verify(frameContext).bindNewStyle(GRID_STYLES);
 
     // When we bind a new model, the style does not change.
     StyleIdsStack otherStyles = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
@@ -406,7 +406,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.bindModel(gridRowWithOtherStyle, frameContext);
-    verify(frameContext, never()).makeStyleFor(otherStyles);
+    verify(frameContext, never()).bindNewStyle(otherStyles);
 
     // If we bind a model that has a style binding, then the style does get re-applied.
     StyleIdsStack styleWithBinding =
@@ -420,9 +420,10 @@ public class GridRowAdapterTest {
             .build();
     StyleProvider otherStyleProvider = mock(StyleProvider.class);
     when(frameContext.makeStyleFor(styleWithBinding)).thenReturn(otherStyleProvider);
+    when(frameContext.getCurrentStyle()).thenReturn(otherStyleProvider);
 
     adapter.bindModel(gridRowWithBoundStyle, frameContext);
-    verify(frameContext).makeStyleFor(styleWithBinding);
+    verify(frameContext).bindNewStyle(styleWithBinding);
     verify(otherStyleProvider).setElementStyles(context, frameContext, adapter.getBaseView());
   }
 

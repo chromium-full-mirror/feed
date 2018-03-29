@@ -160,6 +160,7 @@ public class ChunkedTextElementAdapterTest {
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance(), true))
         .thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
     when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
+    when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
 
     adapter = new ChunkedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);

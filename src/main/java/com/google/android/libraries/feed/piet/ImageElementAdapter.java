@@ -75,8 +75,6 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
       widthPx = DIMENSION_NOT_SET;
       heightPx = DIMENSION_NOT_SET;
     }
-
-    style.setElementStyles(getContext(), getFrameContext(), getBaseView());
   }
 
   @Override
@@ -108,10 +106,6 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
     currentlyLoadingImage = new LoadImageCallback(getBaseView());
     getFrameContext().getAssetProvider().getImage(image, currentlyLoadingImage);
-
-    if (model.getStyleReferences().hasStyleBinding()) {
-      getElementStyle().setElementStyles(getContext(), getFrameContext(), getBaseView());
-    }
   }
 
   @Override

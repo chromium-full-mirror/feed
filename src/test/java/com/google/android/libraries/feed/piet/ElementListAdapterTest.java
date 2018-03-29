@@ -101,9 +101,10 @@ public class ElementListAdapterTest {
 
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance()))
         .thenReturn(childFrameContext);
+    when(frameContext.bindNewStyle(LIST_STYLES)).thenReturn(childFrameContext);
     when(childFrameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(DEFAULT_STYLE_PROVIDER);
-    when(childFrameContext.getCurrentStyle()).thenReturn(DEFAULT_STYLE_PROVIDER);
+    when(childFrameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.makeStyleFor(LIST_STYLES)).thenReturn(styleProvider);
@@ -136,7 +137,7 @@ public class ElementListAdapterTest {
 
     adapter.createAdapter(listWithStyles, frameContext);
 
-    verify(styleProvider).setElementStyles(context, frameContext, adapter.getView());
+    verify(styleProvider).setElementStyles(context, childFrameContext, adapter.getView());
   }
 
   @Test
@@ -271,7 +272,7 @@ public class ElementListAdapterTest {
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
-    verify(frameContext).makeStyleFor(LIST_STYLES);
+    verify(frameContext).bindNewStyle(LIST_STYLES);
 
     // Binding an element with a different style will not apply the new style
     StyleIdsStack otherStyles = StyleIdsStack.newBuilder().addStyleIds("bobcat").build();
@@ -282,7 +283,7 @@ public class ElementListAdapterTest {
             .build();
 
     adapter.bindModel(otherListWithStyles, frameContext);
-    verify(frameContext, never()).makeStyleFor(otherStyles);
+    verify(frameContext, never()).bindNewStyle(otherStyles);
 
     // But binding an element with a style binding will re-apply the style
     StyleIdsStack otherStylesWithBinding =
@@ -295,10 +296,11 @@ public class ElementListAdapterTest {
             .setStyleReferences(otherStylesWithBinding)
             .addElements(DEFAULT_ELEMENT)
             .build();
+    when(frameContext.bindNewStyle(otherStylesWithBinding)).thenReturn(frameContext);
     when(frameContext.makeStyleFor(otherStylesWithBinding)).thenReturn(styleProvider);
 
     adapter.bindModel(otherListWithStyleBindings, frameContext);
-    verify(frameContext).makeStyleFor(otherStylesWithBinding);
+    verify(frameContext).bindNewStyle(otherStylesWithBinding);
   }
 
   @Test

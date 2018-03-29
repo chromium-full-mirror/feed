@@ -68,6 +68,7 @@ public class CustomElementAdapterTest {
     customView = new View(context);
     when(frameContext.getCustomElementProvider()).thenReturn(customElementProvider);
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
+    when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
     when(customElementProvider.createCustomElement(DUMMY_DATA)).thenReturn(customView);
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }
