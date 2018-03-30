@@ -95,6 +95,33 @@ public class FeedProtocolAdapterTest {
   }
 
   @Test
+  public void testResponse_rootClusterCardContent() {
+    ContentId rootId = ContentId.newBuilder().setId(1).build();
+    ContentId clusterId = ContentId.newBuilder().setId(2).build();
+    ContentId cardId = ContentId.newBuilder().setId(3).build();
+    Response response =
+        responseBuilder
+            .addRootFeature(rootId)
+            .addClusterFeature(clusterId, rootId)
+            .addCard(cardId, clusterId)
+            .build();
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
+
+    protocolAdapter.createModel(response, null);
+
+    assertThat(sessionMutation.streamToken).isNull();
+    assertThat(sessionMutation.operations).hasSize(4);
+    assertThat(sessionMutation.operations.get(0).getStreamPayload().getStreamFeature().hasStream())
+        .isTrue();
+    assertThat(sessionMutation.operations.get(1).getStreamPayload().getStreamFeature().hasCluster())
+        .isTrue();
+    assertThat(sessionMutation.operations.get(2).getStreamPayload().getStreamFeature().hasCard())
+        .isTrue();
+    assertThat(sessionMutation.operations.get(3).getStreamPayload().getStreamFeature().hasContent())
+        .isTrue();
+  }
+
+  @Test
   public void testResponse_remove() {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     Response response =

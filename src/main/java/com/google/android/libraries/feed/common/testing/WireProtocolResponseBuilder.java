@@ -94,6 +94,23 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
+  public WireProtocolResponseBuilder addClusterFeature(ContentId contentId, ContentId parentId) {
+    PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();
+    Feature feature =
+        Feature.newBuilder()
+            .setRenderableUnit(RenderableUnit.CLUSTER)
+            .setParentId(parentId)
+            .build();
+    feedResponseBuilder.addDataOperation(
+        DataOperation.newBuilder()
+            .setOperation(Operation.UPDATE_OR_APPEND)
+            .setFeature(feature)
+            .setMetadata(payloadMetadata)
+            .build());
+    wireProtocolInfo.featuresAdded.add(contentId);
+    return this;
+  }
+
   public WireProtocolResponseBuilder addCard(ContentId contentId, ContentId parentId) {
     // Create a Card
     PayloadMetadata payloadMetadata = PayloadMetadata.newBuilder().setContentId(contentId).build();

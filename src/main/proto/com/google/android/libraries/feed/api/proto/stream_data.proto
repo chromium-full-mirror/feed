@@ -49,6 +49,10 @@ message StreamFeature {
     // Content stream structure.  Describes information which will be rendered
     // on screen.
     search.now.ui.stream.Content content = 6;
+
+    // Cluster stream structure which defines a logical grouping of Content and
+    // Cards.
+    search.now.ui.stream.Cluster cluster = 7;
   }
 }
 

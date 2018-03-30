@@ -33,6 +33,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
+import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Stream;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -136,6 +137,9 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
             break;
           case CONTENT:
             streamFeature.setContent(operation.getFeature().getExtension(Content.contentExtension));
+            break;
+          case CLUSTER:
+            streamFeature.setCluster(operation.getFeature().getExtension(Cluster.clusterExtension));
             break;
           default:
             throw new RuntimeException("Unknown feature payload");

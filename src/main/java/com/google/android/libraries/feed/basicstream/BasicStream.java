@@ -225,7 +225,12 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   private List<ModelFeature> processCursor(ModelCursor modelCursor) {
-    final List<ModelFeature> modelFeatures = new ArrayList<>();
+    List<ModelFeature> modelFeatures = new ArrayList<>();
+    populateCardFeatures(modelCursor, modelFeatures);
+    return modelFeatures;
+  }
+
+  private void populateCardFeatures(ModelCursor modelCursor, List<ModelFeature> cardFeatures) {
     while (modelCursor.advanceCursor(
         (ModelChild child) -> {
           Logger.i(TAG, "Advance Cursor");
@@ -236,12 +241,15 @@ public class BasicStream implements Stream, ModelProviderObserver {
               return;
             }
 
-            modelFeatures.add(content);
+            if (content.getStreamFeature().hasCard()) {
+              cardFeatures.add(content);
+            } else if (content.getStreamFeature().hasCluster()) {
+              populateCardFeatures(content.getCursor(), cardFeatures);
+            }
           } else if (child.getType() == Type.TOKEN) {
             streamToken = child.getModelToken();
           }
         })) {}
-    return modelFeatures;
   }
 
   @VisibleForTesting
