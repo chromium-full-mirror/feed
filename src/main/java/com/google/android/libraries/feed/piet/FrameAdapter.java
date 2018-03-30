@@ -50,7 +50,7 @@ public class FrameAdapter {
 
   private final Context context;
   private final AdapterParameters parameters;
-  private LinearLayout view = null;
+  @Nullable private LinearLayout view = null;
 
   public FrameAdapter(
       Context context, AdapterParameters parameters, FrameModelBinder frameModelBinder) {
@@ -82,7 +82,7 @@ public class FrameAdapter {
         }
         childAdapters.add(adapter);
         setLayoutParamsOnChild(adapter);
-        frameView.addView(adapter.getView());
+        frameView.addView(checkNotNull(adapter.getView()));
       }
 
       StyleProvider style = frameContext.getCurrentStyle();
@@ -166,6 +166,7 @@ public class FrameAdapter {
   }
 
   @VisibleForTesting
+  @Nullable
   LinearLayout getView() {
     return this.view;
   }

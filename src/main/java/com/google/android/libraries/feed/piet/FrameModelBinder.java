@@ -56,7 +56,7 @@ class FrameModelBinder {
     List<String> errors = new ArrayList<>(3);
     if (frame.hasStylesheetId()) {
       stylesheetMap = stylesHelper.getStylesheet(frame.getStylesheetId());
-      if (stylesheetMap == null) {
+      if (stylesheetMap.isEmpty()) {
         String error =
             String.format("Stylesheet [%s] not found, no stylesheet used", frame.getStylesheetId());
         errors.add(error);
@@ -75,7 +75,7 @@ class FrameModelBinder {
       if (stylesheetMap != null) {
         frameStyle =
             PietStylesHelper.mergeStyleIdsStack(
-                DEFAULT_STYLE, frame.getStyleReferences(), stylesheetMap, null, false);
+                DEFAULT_STYLE, frame.getStyleReferences(), stylesheetMap, null);
         if (frameStyle == null) {
           String error =
               String.format(

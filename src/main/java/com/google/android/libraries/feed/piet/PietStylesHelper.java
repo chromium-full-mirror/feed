@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
 import com.google.android.libraries.feed.piet.util.Producer;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
@@ -44,7 +45,6 @@ public class PietStylesHelper {
   }
 
   /** Returns a Map of style_id to Style. This represents the Stylesheet. */
-  @Nullable
   Map<String, Style> getStylesheet(String stylesheetId) {
     checkCurrent();
     if (stylesheetScopes.containsKey(stylesheetId)) {
@@ -57,7 +57,7 @@ public class PietStylesHelper {
       return stylesheetMap;
     }
     Logger.w(TAG, "Stylesheet [%s] was not found in the Stylesheet", stylesheetId);
-    return null;
+    return createMapFromStylesheet(Stylesheet.getDefaultInstance());
   }
 
   static Map<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
@@ -83,37 +83,37 @@ public class PietStylesHelper {
   /**
    * Given a StyleIdsStack, a base style, and a styleMap that contains the styles definition,
    * returns a Style that is the proto-merge of all the styles in the stack, starting with the base.
-   *
-   * <p>TODO: This is only nullable to handle an error case. Maybe once error-handling
-   * is standardized we could create some reasonable fallback behavior and get rid of @Nullable.
    */
-  @Nullable
   static Style mergeStyleIdsStack(
       Style baseStyle,
       StyleIdsStack stack,
       Map<String, Style> styleMap,
-      @Nullable FrameContext frameContext,
-      boolean suppressErrors) {
+      @Nullable FrameContext frameContext) {
     Style.Builder mergedStyle = baseStyle.toBuilder();
     for (String style : stack.getStyleIdsList()) {
       if (styleMap.containsKey(style)) {
         mergedStyle.mergeFrom(styleMap.get(style)).build();
       } else {
-        if (!suppressErrors) {
-          Logger.e(TAG, "Unable to bind style [%s], style not found in Stylesheet", style);
-          return null;
+        String error =
+            String.format("Unable to bind style [%s], style not found in Stylesheet", style);
+        if (frameContext != null) {
+          frameContext.reportError(ErrorType.ERROR, error);
         }
+        Logger.w(TAG, error);
       }
     }
     if (stack.hasStyleBinding()) {
-      checkNotNull(frameContext, "Binding styles not supported when frameContext is null");
-      BoundStyle boundStyle = frameContext.getStyleFromBinding(stack.getStyleBinding());
-      if (boundStyle.hasBackground()) {
-        mergedStyle.setBackground(
-            mergedStyle.getBackground().toBuilder().mergeFrom(boundStyle.getBackground()));
-      }
-      if (boundStyle.hasColor()) {
-        mergedStyle.setColor(boundStyle.getColor());
+      FrameContext localFrameContext =
+          checkNotNull(frameContext, "Binding styles not supported when frameContext is null");
+      BoundStyle boundStyle = localFrameContext.getStyleFromBinding(stack.getStyleBinding());
+      if (boundStyle != null) {
+        if (boundStyle.hasBackground()) {
+          mergedStyle.setBackground(
+              mergedStyle.getBackground().toBuilder().mergeFrom(boundStyle.getBackground()));
+        }
+        if (boundStyle.hasColor()) {
+          mergedStyle.setColor(boundStyle.getColor());
+        }
       }
     }
     return mergedStyle.build();

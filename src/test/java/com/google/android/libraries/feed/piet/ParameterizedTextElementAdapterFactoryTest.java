@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.piet.AdapterFactory.SingletonKey
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -131,7 +130,6 @@ public class ParameterizedTextElementAdapterFactoryTest {
   private TextElement getBaseTextElement(@Nullable StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean())).thenReturn(sp);
     when(frameContext.getCurrentStyle()).thenReturn(sp);
 
     TextElement.Builder textElement = TextElement.newBuilder();

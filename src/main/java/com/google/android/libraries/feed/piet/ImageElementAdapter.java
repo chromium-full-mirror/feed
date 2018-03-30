@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
@@ -80,10 +81,11 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
   @Override
   void onBindModel(ImageElement model, Element baseElement, FrameContext frameContext) {
     Image image;
+    ImageView baseView = checkNotNull(getBaseView());
     switch (model.getContentCase()) {
       case IMAGE:
         image = model.getImage();
-        getBaseView().setVisibility(View.VISIBLE);
+        baseView.setVisibility(View.VISIBLE);
         break;
       case IMAGE_BINDING:
         BindingValue binding = frameContext.getImageBindingValue(model.getImageBinding());
@@ -104,8 +106,9 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
                 "Unsupported or missing content in ImageElement: %s", model.getContentCase()));
     }
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
-    currentlyLoadingImage = new LoadImageCallback(getBaseView());
-    getFrameContext().getAssetProvider().getImage(image, currentlyLoadingImage);
+    LoadImageCallback loadImageCallback = new LoadImageCallback(baseView);
+    currentlyLoadingImage = loadImageCallback;
+    getFrameContext().getAssetProvider().getImage(image, loadImageCallback);
   }
 
   @Override

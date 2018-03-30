@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -66,13 +67,14 @@ class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
     int height = padding.getTop() + padding.getBottom() + getModel().getHeight();
     height = (int) ViewUtils.dpToPx(height, getContext());
 
-    LayoutParams params = getBaseView().getLayoutParams();
+    View baseView = checkNotNull(getBaseView());
+    LayoutParams params = baseView.getLayoutParams();
     if (params != null) {
       params.height = height;
     } else {
       params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, height);
     }
-    getBaseView().setLayoutParams(params);
+    baseView.setLayoutParams(params);
   }
 
   @Override

@@ -60,8 +60,9 @@ abstract class ElementContainerAdapter<
 
   @Override
   void onReleaseAdapter() {
-    if (getBaseView() != null) {
-      getBaseView().removeAllViews();
+    V containerView = getBaseView();
+    if (containerView != null) {
+      containerView.removeAllViews();
     }
     for (ElementAdapter<?, ?> childAdapter : childAdapters) {
       getParameters().elementAdapterFactory.releaseAdapter(childAdapter);

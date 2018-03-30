@@ -22,11 +22,11 @@ android_library(
     resource_files = glob(["res/**/*"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common",
-        "//src/main/java/com/google/android/libraries/feed/host/common",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
         "//src/main/java/com/google/android/libraries/feed/piet/util",
         "//src/main/proto/search/now/proto/ui/piet:piet_java_proto_lite",
+        "//third_party/java/checker_framework:annotations",
         "@androidsdk//com.android.support:support-annotations-25.3.1",
         "@androidsdk//com.android.support:support-compat-25.3.1",
         "@com_google_code_findbugs_jsr305//jar",

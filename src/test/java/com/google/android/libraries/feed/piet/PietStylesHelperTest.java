@@ -89,7 +89,7 @@ public class PietStylesHelperTest {
 
   @Test
   public void testGetStylesheet_notExist() {
-    assertThat(helper.getStylesheet("NOT EXIST")).isEqualTo(null);
+    assertThat(helper.getStylesheet("NOT EXIST")).isEmpty();
   }
 
   @Test
@@ -137,7 +137,7 @@ public class PietStylesHelperTest {
 
     // And the old data is gone
     assertThat(helper.getTemplate(TEMPLATE_ID)).isNull();
-    assertThat(helper.getStylesheet(STYLESHEET_ID)).isNull();
+    assertThat(helper.getStylesheet(STYLESHEET_ID)).isEmpty();
 
     assertThat(helper.getCurrentPietSharedState()).isEqualTo(sharedState2);
   }
@@ -221,8 +221,7 @@ public class PietStylesHelperTest {
             baseStyle,
             StyleIdsStack.newBuilder().addStyleIds(styleId1).addStyleIds(styleId2).build(),
             stylesheetMap,
-            frameContext,
-            false);
+            frameContext);
 
     assertThat(mergedStyle)
         .isEqualTo(
@@ -260,8 +259,7 @@ public class PietStylesHelperTest {
                 .setStyleBinding(styleBindingRef)
                 .build(),
             stylesheetMap,
-            frameContext,
-            false);
+            frameContext);
     assertThat(mergedStyle)
         .isEqualTo(
             Style.newBuilder()
@@ -291,8 +289,7 @@ public class PietStylesHelperTest {
                         .setStyleBinding(styleBindingRef)
                         .build(),
                     stylesheetMap,
-                    null,
-                    false);
+                    null);
               }
             })
         .throwsAnExceptionOfType(NullPointerException.class)

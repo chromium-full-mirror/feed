@@ -103,8 +103,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     if (getBaseView() != null) {
       return;
     }
-    // Don't report errors, we will report them when we bind the model to the View.
-    StyleProvider styleProvider = frameContext.makeStyleFor(textLine.getStyleReferences(), true);
+    StyleProvider styleProvider = frameContext.makeStyleFor(textLine.getStyleReferences());
     RecyclerKey k = createKey(styleProvider.getFont());
     TextView v = createTextView(styleProvider.getFont());
     initializeAdapter(v, k);

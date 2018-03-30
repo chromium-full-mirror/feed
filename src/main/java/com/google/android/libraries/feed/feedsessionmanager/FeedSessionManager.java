@@ -110,7 +110,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     sessionFactory =
         new SessionFactory(store, sessionManagerExecutor, timingUtils, threadUtils, configManager);
 
-    // Suppress @UnderInitialization warning
+    // Suppress warning
     @SuppressWarnings("nullness")
     Runnable initializationTask = this::initializationTask;
     sessionManagerExecutor.execute(initializationTask);

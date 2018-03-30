@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
@@ -76,17 +77,18 @@ class TemplateInvocationAdapter
     initialCreate();
 
     // TODO: Need to support Sharding.
-    if (model.getBindingContextsCount() > 0 && template.hasElementList()) {
+    if (model.getBindingContextsCount() > 0 && modelTemplate.hasElementList()) {
       ViewGroup viewGroup = checkNotNull(getBaseView());
       ElementListAdapter listAdapter = null;
       for (BindingContext bindingContext : model.getBindingContextsList()) {
         // Create an ElementListAdapter for each of the bindingContexts - this adapter holds a list
         // of lists
-        FrameContext localFrameContext = frameContext.bindTemplate(template, bindingContext);
-        listAdapter = getAdapterForChildList(template.getElementList(), localFrameContext);
+        FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
+        listAdapter = getAdapterForChildList(modelTemplate.getElementList(), localFrameContext);
         setLayoutParamsOnChild(listAdapter);
-        if (listAdapter.getView() != null) {
-          viewGroup.addView(listAdapter.getView());
+        View listView = listAdapter.getView();
+        if (listView != null) {
+          viewGroup.addView(listView);
         }
       }
     }
@@ -111,7 +113,7 @@ class TemplateInvocationAdapter
     }
 
     // TODO: Need to support Sharding.
-    if (model.getBindingContextsCount() > 0 && template.hasElementList()) {
+    if (model.getBindingContextsCount() > 0 && modelTemplate.hasElementList()) {
       checkState(
           model.getBindingContextsCount() == childAdapters.size(),
           "Number of binding contexts mismatch: got %s bcs, had %s adapters",
@@ -119,8 +121,8 @@ class TemplateInvocationAdapter
           childAdapters.size());
       for (int i = 0; i < model.getBindingContextsCount(); i++) {
         BindingContext bindingContext = model.getBindingContexts(i);
-        FrameContext localFrameContext = frameContext.bindTemplate(template, bindingContext);
-        childAdapters.get(i).bindModel(template.getElementList(), localFrameContext);
+        FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
+        childAdapters.get(i).bindModel(modelTemplate.getElementList(), localFrameContext);
       }
     }
   }
@@ -170,8 +172,13 @@ class TemplateInvocationAdapter
    * of collisions.
    */
   @SuppressWarnings("ReferenceEquality")
-  static boolean templateEquals(Template template1, Template template2) {
-    return template1 == template2 || template1.hashCode() == template2.hashCode();
+  static boolean templateEquals(@Nullable Template template1, @Nullable Template template2) {
+    if (template1 == template2) {
+      return true;
+    } else if (template1 == null || template2 == null) {
+      return false;
+    }
+    return template1.hashCode() == template2.hashCode();
   }
 
   static class TemplateKeySupplier
@@ -208,8 +215,9 @@ class TemplateInvocationAdapter
     }
 
     /** Equals checks the hashCode of template and sharedState to avoid expensive proto equals. */
+    @SuppressWarnings("ReferenceEquality")
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
       if (this == o) {
         return true;
       }
@@ -222,9 +230,11 @@ class TemplateInvocationAdapter
       if (!templateEquals(template, that.template)) {
         return false;
       }
-      return sharedState != null
-          ? sharedState.hashCode() == that.sharedState.hashCode()
-          : that.sharedState == null;
+      if (that.sharedState == null || this.sharedState == null) {
+        return this.sharedState == that.sharedState;
+      } else {
+        return sharedState.hashCode() == that.sharedState.hashCode();
+      }
     }
 
     @Override

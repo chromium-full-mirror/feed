@@ -188,7 +188,7 @@ class FrameContext {
     if (template.hasChildDefaultStyleIds()) {
       templateBaseStyle =
           PietStylesHelper.mergeStyleIdsStack(
-              DEFAULT_STYLE, template.getChildDefaultStyleIds(), localStylesheet, this, false);
+              DEFAULT_STYLE, template.getChildDefaultStyleIds(), localStylesheet, this);
       templateStyleProvider = new StyleProvider(templateBaseStyle);
     } else {
       templateBaseStyle = DEFAULT_STYLE;
@@ -229,25 +229,8 @@ class FrameContext {
 
   /** Return a {@link StyleProvider} for the style. */
   public StyleProvider makeStyleFor(StyleIdsStack styles) {
-    return makeStyleFor(styles, false);
-  }
-
-  /** Return a {@link StyleProvider} for the style, and allow errors to be suppressed */
-  public StyleProvider makeStyleFor(StyleIdsStack styles, boolean suppressErrors) {
-    Style style =
-        PietStylesHelper.mergeStyleIdsStack(baseStyle, styles, stylesheet, this, suppressErrors);
-    if (style == null) {
-      if (!suppressErrors) {
-        Logger.e(
-            TAG,
-            reportError(
-                ErrorType.ERROR,
-                String.format(
-                    "Unable to bind styles [%s], style not found in Stylesheet", styles)));
-      }
-      return currentStyleProvider;
-    }
-    return new StyleProvider(style);
+    return new StyleProvider(
+        PietStylesHelper.mergeStyleIdsStack(baseStyle, styles, stylesheet, this));
   }
 
   /**

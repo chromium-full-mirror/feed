@@ -72,7 +72,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
           throw new IllegalArgumentException(
               String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
       }
-      viewGroup.addView(cellAdapter.getView());
+      viewGroup.addView(checkNotNull(cellAdapter.getView()));
       setLayoutParamsOnCell(cellAdapter, cell, frameContext);
     }
   }

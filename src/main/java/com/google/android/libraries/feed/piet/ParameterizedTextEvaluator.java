@@ -55,15 +55,11 @@ public class ParameterizedTextEvaluator {
    * Evaluates the given ParameterizedText, and returns the raw evaluated value, without any Html
    * wrapping.
    */
-  @Nullable
-  public String evaluate(FrameContext frameContext, @Nullable ParameterizedText templatedString) {
+  public String evaluate(FrameContext frameContext, ParameterizedText templatedString) {
 
-    if (templatedString == null) {
-      return null;
-    }
     if (!templatedString.hasText()) {
       Logger.w(TAG, "Got templated string with no display string");
-      return null;
+      return templatedString.getText();
     }
 
     if (templatedString.getParametersCount() == 0) {

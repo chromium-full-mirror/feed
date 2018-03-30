@@ -19,7 +19,6 @@ import static com.google.android.libraries.feed.piet.AdapterFactory.SingletonKey
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,8 +96,6 @@ public class TextElementAdapterTest {
   @Test
   public void testCreateTextView_default() {
     Font font = Font.getDefaultInstance();
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
-        .thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
     when(mockStyleProvider.getFont()).thenReturn(font);
 
@@ -111,8 +108,6 @@ public class TextElementAdapterTest {
     Font.Builder font = Font.newBuilder();
     font.setWeight(FontWeight.BOLD);
 
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
-        .thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
     when(mockStyleProvider.getFont()).thenReturn(font.build());
 
@@ -128,8 +123,6 @@ public class TextElementAdapterTest {
     Font.Builder font = Font.newBuilder();
     font.setItalic(true);
 
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
-        .thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
     when(mockStyleProvider.getFont()).thenReturn(font.build());
 
@@ -250,7 +243,6 @@ public class TextElementAdapterTest {
   private TextElement getBaseTextElement(@Nullable StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean())).thenReturn(sp);
     when(frameContext.getCurrentStyle()).thenReturn(sp);
 
     TextElement.Builder textElement = TextElement.newBuilder();

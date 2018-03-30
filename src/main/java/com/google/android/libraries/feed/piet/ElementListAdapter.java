@@ -55,8 +55,7 @@ class ElementListAdapter
     ViewGroup viewGroup = checkNotNull(getBaseView());
     for (Element line : model.getElementsList()) {
       ElementAdapter<? extends View, ?> adapter = getAdapterForChildElement(line, frameContext);
-      checkNotNull(adapter.getView(), "Adapter had null view");
-      viewGroup.addView(adapter.getView());
+      viewGroup.addView(checkNotNull(adapter.getView(), "Adapter had null view"));
 
       int width = adapter.getComputedWidthPx();
       width =

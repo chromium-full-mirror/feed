@@ -35,10 +35,7 @@ public class ViewUtils {
 
   /** Attaches the onClick action from actions to the view, executed by the handler. */
   static void setOnClickActions(
-      @Nullable Actions actions,
-      @Nullable View view,
-      ActionHandler handler,
-      FrameContext frameContext) {
+      Actions actions, @Nullable View view, ActionHandler handler, FrameContext frameContext) {
     if (actions != null && actions.hasOnLongClick() && view != null) {
       view.setOnLongClickListener(
           v -> {
@@ -72,7 +69,12 @@ public class ViewUtils {
       return;
     }
     Actions actions = frameContext.getActionsFromBinding(actionsBindingRef);
-    setOnClickActions(actions, view, handler, frameContext);
+    if (actions != null) {
+      setOnClickActions(actions, view, handler, frameContext);
+    } else {
+      clearOnClickActions(view);
+      clearOnLongClickActions(view);
+    }
   }
 
   static void clearOnLongClickActions(@Nullable View view) {

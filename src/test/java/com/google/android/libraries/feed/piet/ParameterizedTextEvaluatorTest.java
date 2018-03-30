@@ -47,16 +47,10 @@ public class ParameterizedTextEvaluatorTest {
   }
 
   @Test
-  public void testEvaluate_noString() {
-    ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
-    assertThat(evaluator.evaluate(frameContext, null)).isNull();
-  }
-
-  @Test
-  public void testEvaluate_noTest() {
+  public void testEvaluate_noText() {
     ParameterizedText text = ParameterizedText.getDefaultInstance();
     ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
-    assertThat(evaluator.evaluate(frameContext, text)).isNull();
+    assertThat(evaluator.evaluate(frameContext, text)).isEmpty();
   }
 
   @Test

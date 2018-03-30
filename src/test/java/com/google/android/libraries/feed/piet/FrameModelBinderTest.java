@@ -79,7 +79,7 @@ public class FrameModelBinderTest {
   @Test
   public void testError_stylesheetNotFound() {
     Frame frame = getBaseFrame();
-    when(stylesHelper.getStylesheet(STYLESHEET_ID)).thenReturn(null);
+    when(stylesHelper.getStylesheet(STYLESHEET_ID)).thenReturn(new HashMap<>());
     FrameContext frameContext = frameModelBinder.bindFrame(frame);
     assertThat(frameContext).isNotNull();
     assertThat(frameContext.errors.size()).isEqualTo(1);

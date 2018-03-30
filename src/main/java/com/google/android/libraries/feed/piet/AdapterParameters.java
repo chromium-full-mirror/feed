@@ -35,7 +35,9 @@ class AdapterParameters {
 
   final ElementAdapterFactory elementAdapterFactory;
 
-  @SuppressWarnings("nullness:assignment.type.incompatible")
+  // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
+  // construction will reference the elementAdapterFactory member of this, so should be safe.
+  @SuppressWarnings("initialization")
   public AdapterParameters(
       Context context, Producer<ViewGroup> parentViewProducer, ActionHandler actionHandler) {
     this.context = context;

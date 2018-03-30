@@ -54,7 +54,7 @@ abstract class ElementAdapter<V extends View, M> {
 
   private final Context context;
   private final AdapterParameters parameters;
-  @Nullable private V view;
+  private V view;
   @Nullable private M model;
   private Element baseElement = Element.getDefaultInstance();
   private RecyclerKey key;
@@ -135,12 +135,13 @@ abstract class ElementAdapter<V extends View, M> {
 
     onCreateAdapter(model, baseElement, frameContext);
 
-    checkNotNull(view, "View is null; call initializeAdapter first!");
     initializeOverlays(frameContext);
 
     initializeOverflow(baseElement);
 
-    this.frameContext.getCurrentStyle().setElementStyles(getContext(), this.frameContext, view);
+    this.frameContext
+        .getCurrentStyle()
+        .setElementStyles(getContext(), this.frameContext, checkNotNull(view));
   }
 
   /** Performs child-class-specific adapter creation; to be overridden. */
@@ -180,7 +181,9 @@ abstract class ElementAdapter<V extends View, M> {
 
     // Reapply styles if we have style bindings
     if (getElementStyleIdsStack().hasStyleBinding()) {
-      this.frameContext.getCurrentStyle().setElementStyles(getContext(), this.frameContext, view);
+      this.frameContext
+          .getCurrentStyle()
+          .setElementStyles(getContext(), this.frameContext, checkNotNull(view));
     }
   }
 
@@ -192,8 +195,8 @@ abstract class ElementAdapter<V extends View, M> {
 
   private void initializeOverlays(FrameContext frameContext) {
     if (baseElement.getOverlayElementsCount() > 0) {
-      overlayView = new FrameLayout(getContext());
-      overlayView.addView(view);
+      FrameLayout overlayWrapper = new FrameLayout(getContext());
+      overlayWrapper.addView(checkNotNull(getBaseView()));
 
       for (ElementList overlayList : baseElement.getOverlayElementsList()) {
         ElementListAdapter overlayAdapter =
@@ -201,7 +204,7 @@ abstract class ElementAdapter<V extends View, M> {
                 .elementAdapterFactory
                 .createElementListAdapter(overlayList, frameContext);
         overlays.add(overlayAdapter);
-        overlayView.addView(overlayAdapter.getView());
+        overlayWrapper.addView(checkNotNull(overlayAdapter.getView()));
 
         FrameLayout.LayoutParams params =
             new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
@@ -221,6 +224,7 @@ abstract class ElementAdapter<V extends View, M> {
         overlayAdapter.getElementStyle().setMargins(getContext(), params);
         overlayAdapter.setLayoutParams(params);
       }
+      overlayView = overlayWrapper;
     }
   }
 
@@ -364,16 +368,18 @@ abstract class ElementAdapter<V extends View, M> {
 
   /** Sets the layout parameters on this adapter's view. */
   public void setLayoutParams(LayoutParams layoutParams) {
-    if (getView() == null) {
+    View view = getView();
+    if (view == null) {
       return;
     }
-    getView().setLayoutParams(layoutParams);
-    if (getBaseView() != getView()) {
-      getBaseView().getLayoutParams().height =
+    view.setLayoutParams(layoutParams);
+    V baseView = getBaseView();
+    if (baseView != null && baseView != view) {
+      baseView.getLayoutParams().height =
           layoutParams.height == LayoutParams.WRAP_CONTENT
               ? LayoutParams.WRAP_CONTENT
               : LayoutParams.MATCH_PARENT;
-      getBaseView().getLayoutParams().width =
+      baseView.getLayoutParams().width =
           layoutParams.width == LayoutParams.WRAP_CONTENT
               ? LayoutParams.WRAP_CONTENT
               : LayoutParams.MATCH_PARENT;

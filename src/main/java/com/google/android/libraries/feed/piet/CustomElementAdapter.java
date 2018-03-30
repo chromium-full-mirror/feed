@@ -84,16 +84,17 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
     }
 
     View v = frameContext.getCustomElementProvider().createCustomElement(customElementData);
-    getBaseView().addView(v);
+    checkNotNull(getBaseView()).addView(v);
   }
 
   @Override
   void onUnbindModel() {
-    if (getBaseView() != null && getBaseView().getChildCount() > 0) {
-      for (int i = 0; i < getBaseView().getChildCount(); i++) {
-        getFrameContext().getCustomElementProvider().releaseCustomView(getBaseView().getChildAt(i));
+    FrameLayout baseView = getBaseView();
+    if (baseView != null && baseView.getChildCount() > 0) {
+      for (int i = 0; i < baseView.getChildCount(); i++) {
+        getFrameContext().getCustomElementProvider().releaseCustomView(baseView.getChildAt(i));
       }
-      getBaseView().removeAllViews();
+      baseView.removeAllViews();
     }
   }
 

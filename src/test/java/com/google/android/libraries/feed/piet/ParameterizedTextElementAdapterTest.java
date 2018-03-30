@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.GONE;
 import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.INVISIBLE;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -162,8 +161,6 @@ public class ParameterizedTextElementAdapterTest {
         TextElement.newBuilder().setStyleReferences(StyleIdsStack.getDefaultInstance()).build();
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean()))
-        .thenReturn(mockStyleProvider);
     when(frameContext.getCurrentStyle()).thenReturn(mockStyleProvider);
 
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
@@ -178,7 +175,6 @@ public class ParameterizedTextElementAdapterTest {
   private TextElement getBindingTextElement(@Nullable StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean())).thenReturn(sp);
     when(frameContext.getCurrentStyle()).thenReturn(sp);
     return TextElement.newBuilder().setParameterizedTextBinding(DEFAULT_BINDING_REF).build();
   }
@@ -190,7 +186,6 @@ public class ParameterizedTextElementAdapterTest {
   private TextElement getBaseTextElement(@Nullable StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class), anyBoolean())).thenReturn(sp);
     when(frameContext.getCurrentStyle()).thenReturn(sp);
 
     TextElement.Builder textElement = TextElement.newBuilder();

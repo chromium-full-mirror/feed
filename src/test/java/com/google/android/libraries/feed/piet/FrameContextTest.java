@@ -221,7 +221,7 @@ public class FrameContextTest {
     StyleProvider notFoundStyle =
         frameContext.makeStyleFor(
             StyleIdsStack.newBuilder().addStyleIds(INVALID_BINDING_ID).build());
-    assertThat(notFoundStyle).isEqualTo(styleProvider);
+    assertThat(notFoundStyle.getColor()).isEqualTo(BASE_STYLE_COLOR);
   }
 
   @Test

@@ -44,10 +44,7 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
     switch (textLine.getContentCase()) {
       case PARAMETERIZED_TEXT:
         // No bindings found, so use the inlined value (or empty if not set)
-        setTextOnView(
-            frameContext,
-            textView,
-            textLine.hasParameterizedText() ? textLine.getParameterizedText() : null);
+        setTextOnView(frameContext, textView, textLine.getParameterizedText());
         setVisibility(Visibility.VISIBLE);
         break;
       case PARAMETERIZED_TEXT_BINDING:
@@ -82,7 +79,7 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
 
   void setTextOnView(
       FrameContext frameContext, TextView textView, ParameterizedText parameterizedText) {
-    if (parameterizedText == null) {
+    if (!parameterizedText.hasText()) {
       Logger.e(
           TAG,
           frameContext.reportError(
@@ -115,7 +112,7 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
 
     @Override
     public Key getKey(FrameContext frameContext, TextElement model) {
-      StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences(), true);
+      StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences());
       return new Key(styleProvider.getFont());
     }
   }
