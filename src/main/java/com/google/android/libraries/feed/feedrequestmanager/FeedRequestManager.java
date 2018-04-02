@@ -21,8 +21,8 @@ import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
-import com.google.android.libraries.feed.host.config.ConfigManager;
-import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -47,17 +47,17 @@ public class FeedRequestManager implements RequestManager {
   private static final String MOTHERSHIP_PARAM_FORMAT = "fmt";
   private static final String MOTHERSHIP_VALUE_BINARY = "bin";
 
-  private final ConfigManager configManager;
+  private final Configuration configuration;
   private final NetworkClient networkClient;
   private final ProtocolAdapter protocolAdapter;
   private final FeedExtensionRegistry extensionRegistry;
 
   public FeedRequestManager(
-      ConfigManager configManager,
+      Configuration configuration,
       NetworkClient networkClient,
       ProtocolAdapter protocolAdapter,
       FeedExtensionRegistry extensionRegistry) {
-    this.configManager = configManager;
+    this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
     this.extensionRegistry = extensionRegistry;
@@ -89,8 +89,8 @@ public class FeedRequestManager implements RequestManager {
   }
 
   private void executeRequest(RequestBuilder requestBuilder) {
-    String host = configManager.getValue(ConfigValues.FEED_SERVER_HOST, "");
-    String path = configManager.getValue(ConfigValues.FEED_SERVER_PATH_AND_PARAMS, "");
+    String host = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_HOST, "");
+    String path = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_PATH_AND_PARAMS, "");
     Uri.Builder uriBuilder = Uri.parse(host + path).buildUpon();
     uriBuilder.appendQueryParameter(
         MOTHERSHIP_PARAM_PAYLOAD,

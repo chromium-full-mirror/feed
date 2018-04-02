@@ -25,7 +25,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
-import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -56,8 +56,7 @@ import org.mockito.Mock;
 /** Test of the {@link FeedRequestManager} class. */
 @RunWith(RobolectricTestRunner.class)
 public class FeedRequestManagerTest {
-
-  @Mock private ConfigManager configManager;
+  
   @Mock private NetworkClient networkClient;
   @Mock private ProtocolAdapter protocolAdapter;
   @Captor private ArgumentCaptor<ByteString> byteStringCaptor;
@@ -67,6 +66,8 @@ public class FeedRequestManagerTest {
   private ExtensionRegistryLite registry;
   private FeedExtensionRegistry feedExtensionRegistry;
   private FeedRequestManager requestManager;
+
+  private final Configuration configuration = new Configuration.Builder().build();
 
   @Before
   public void setUp() {
@@ -83,7 +84,7 @@ public class FeedRequestManagerTest {
     registry.add(FeedRequest.feedRequest);
     requestManager =
         new FeedRequestManager(
-            configManager, networkClient, protocolAdapter, feedExtensionRegistry);
+            configuration, networkClient, protocolAdapter, feedExtensionRegistry);
   }
 
   @Test

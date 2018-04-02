@@ -18,7 +18,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
-import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.Configuration;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -30,24 +30,24 @@ public class SessionFactory {
   private final ExecutorService sessionManagerExecutor;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
-  private final ConfigManager configManager;
+  private final Configuration configuration;
 
   public SessionFactory(
       Store store,
       ExecutorService sessionManagerExecutor,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      ConfigManager configManager) {
+      Configuration configuration) {
     this.store = store;
     this.sessionManagerExecutor = sessionManagerExecutor;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    this.configManager = configManager;
+    this.configuration = configuration;
   }
 
   public InitializableSession getSession(ModelProvider modelProvider) {
     return new SessionImpl(
-        store, modelProvider, sessionManagerExecutor, timingUtils, threadUtils, configManager);
+        store, modelProvider, sessionManagerExecutor, timingUtils, threadUtils, configuration);
   }
 
   public Session getHeadSession() {

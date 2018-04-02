@@ -37,8 +37,8 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.Change;
-import com.google.android.libraries.feed.host.config.ConfigManager;
-import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -98,7 +98,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       ThreadUtils threadUtils,
       Supplier<ProtocolAdapter> protocolAdapterSupplier,
       Supplier<RequestManager> requestManagerSupplier,
-      ConfigManager configManager) {
+      Configuration configuration) {
     this.sessionManagerExecutor = sessionManagerExecutor;
     this.store = store;
     this.timingUtils = timingUtils;
@@ -106,9 +106,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.protocolAdapterSupplier = protocolAdapterSupplier;
     this.requestManagerSupplier = requestManagerSupplier;
 
-    optimisticWrites = configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false);
+    optimisticWrites = configuration.getValueOrDefault(ConfigKey.OPTIMISTIC_SESSION_WRITES, false);
     sessionFactory =
-        new SessionFactory(store, sessionManagerExecutor, timingUtils, threadUtils, configManager);
+        new SessionFactory(store, sessionManagerExecutor, timingUtils, threadUtils, configuration);
 
     // Suppress warning
     @SuppressWarnings("nullness")

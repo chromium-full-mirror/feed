@@ -28,8 +28,8 @@ import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.android.libraries.feed.host.config.ConfigManager;
-import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -53,7 +53,6 @@ public class SessionImplTest {
   @Mock private Store store;
   @Mock private ModelProvider modelProvider;
   @Mock private ThreadUtils threadUtils;
-  @Mock private ConfigManager configManager;
 
   private Boolean sessionMutationResults = true;
 
@@ -62,6 +61,8 @@ public class SessionImplTest {
   private FakeSessionMutation fakeSessionMutation;
   private FakeModelMutation fakeModelMutator;
   private final TimingUtils timingUtils = new TimingUtils();
+  private final Configuration configuration =
+      new Configuration.Builder().put(ConfigKey.OPTIMISTIC_SESSION_WRITES, true).build();
 
   @Before
   public void setUp() {
@@ -71,7 +72,6 @@ public class SessionImplTest {
     when(store.editSession(TEST_SESSION)).thenReturn(fakeSessionMutation);
     fakeModelMutator = new FakeModelMutation();
     when(modelProvider.edit()).thenReturn(fakeModelMutator);
-    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(true);
   }
 
   @Test
@@ -247,7 +247,7 @@ public class SessionImplTest {
         MoreExecutors.newDirectExecutorService(),
         timingUtils,
         threadUtils,
-        configManager);
+        configuration);
   }
 
   private class FakeSessionMutation implements SessionMutation {

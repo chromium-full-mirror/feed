@@ -39,7 +39,7 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
-import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
@@ -103,16 +103,15 @@ public class FeedProcessScope implements Dumpable {
 
     /** The APIs are all required to construct the scope. */
     public Builder(
-        ConfigManager configManager,
+        Configuration configuration,
         ImageLoaderApi imageLoaderApi,
         LoggingApi loggingApi,
         NetworkClient networkClient,
         SchedulerApi schedulerApi) {
-      this.configManager = configManager;
+      this.configuration = configuration;
       this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
-      this.schedulerApi = schedulerApi;
     }
 
     public Builder setProtocolAdapter(@NonNull FeedProtocolAdapter protocolAdapter) {
@@ -181,7 +180,7 @@ public class FeedProcessScope implements Dumpable {
                 threadUtils,
                 protocolAdapterSupplier,
                 requestManagerSupplier,
-                configManager);
+                configuration);
       }
       if (protocolAdapter == null) {
         protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
@@ -189,7 +188,7 @@ public class FeedProcessScope implements Dumpable {
       if (requestManager == null) {
         requestManager =
             new FeedRequestManager(
-                configManager, networkClient, protocolAdapter, extensionRegistry);
+                configuration, networkClient, protocolAdapter, extensionRegistry);
       }
       protocolAdapterSupplier.set(protocolAdapter);
       requestManagerSupplier.set(Validators.checkNotNull(requestManager));
@@ -197,13 +196,11 @@ public class FeedProcessScope implements Dumpable {
       AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener();
 
       return new FeedProcessScope(
-          configManager,
           imageLoaderApi,
           loggingApi,
           networkClient,
           Validators.checkNotNull(protocolAdapter),
           Validators.checkNotNull(requestManager),
-          schedulerApi,
           Validators.checkNotNull(sessionManager),
           store,
           timingUtils,
@@ -214,11 +211,10 @@ public class FeedProcessScope implements Dumpable {
     }
 
     // Required fields.
-    private final ConfigManager configManager;
+    private final Configuration configuration;
     private final ImageLoaderApi imageLoaderApi;
     private final LoggingApi loggingApi;
     private final NetworkClient networkClient;
-    private final SchedulerApi schedulerApi;
 
     // Optional fields - if they are not provided, we will use default implementations.
     @Nullable private RequestManager requestManager = null;
@@ -230,13 +226,11 @@ public class FeedProcessScope implements Dumpable {
   }
 
   private FeedProcessScope(
-      ConfigManager configManager,
       ImageLoaderApi imageLoaderApi,
       LoggingApi loggingApi,
       NetworkClient networkClient,
       FeedProtocolAdapter protocolAdapter,
       RequestManager requestManager,
-      SchedulerApi schedulerApi,
       SessionManager sessionManager,
       Store store,
       TimingUtils timingUtils,
@@ -244,13 +238,11 @@ public class FeedProcessScope implements Dumpable {
       UiRunnableHandler uiRunnableHandler,
       AppLifecycleListener appLifecycleListener,
       Clock clock) {
-    this.configManager = configManager;
     this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
-    this.schedulerApi = schedulerApi;
     this.sessionManager = sessionManager;
     this.store = store;
     this.timingUtils = timingUtils;
@@ -260,13 +252,11 @@ public class FeedProcessScope implements Dumpable {
     this.clock = clock;
   }
 
-  private final ConfigManager configManager;
   private final ImageLoaderApi imageLoaderApi;
   private final LoggingApi loggingApi;
   private final NetworkClient networkClient;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
-  private final SchedulerApi schedulerApi;
   private final SessionManager sessionManager;
   private final Store store;
   private final TimingUtils timingUtils;

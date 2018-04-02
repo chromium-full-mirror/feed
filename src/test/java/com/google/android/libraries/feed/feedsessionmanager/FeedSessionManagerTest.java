@@ -44,8 +44,8 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSession
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
-import com.google.android.libraries.feed.host.config.ConfigManager;
-import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -83,7 +83,6 @@ public class FeedSessionManagerTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
-  @Mock private ConfigManager configManager;
 
   private int cursorCount = 0;
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
@@ -96,11 +95,12 @@ public class FeedSessionManagerTest {
               return new ArrayList<>();
             }
           });
+  private final Configuration configuration =
+      new Configuration.Builder().put(ConfigKey.OPTIMISTIC_SESSION_WRITES, true).build();
 
   @Before
   public void setUp() {
     initMocks(this);
-    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(true);
   }
 
   @Test
@@ -137,7 +137,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             Suppliers.of(protocolAdapter),
             Suppliers.of(requestManager),
-            configManager);
+            configuration);
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
@@ -267,7 +267,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             Suppliers.of(protocolAdapter),
             Suppliers.of(requestManager),
-            configManager);
+            configuration);
     return sessionManager;
   }
 

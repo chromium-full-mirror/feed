@@ -27,7 +27,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
-import com.google.android.libraries.feed.host.config.ConfigManager;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -57,7 +57,6 @@ import org.mockito.Mock;
 @RunWith(RobolectricTestRunner.class)
 public class MockServerNetworkClientTest {
 
-  @Mock ConfigManager configManager;
   @Mock ProtocolAdapter protocolAdapter;
   @Mock RequestManager requestManager;
   @Captor private ArgumentCaptor<ByteString> tokenCaptor;
@@ -71,6 +70,7 @@ public class MockServerNetworkClientTest {
               return new ArrayList<>();
             }
           });
+  private final Configuration configuration = new Configuration.Builder().build();
 
   @Before
   public void setUp() throws Exception {
@@ -169,7 +169,7 @@ public class MockServerNetworkClientTest {
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(mockServerConfig, new ArrayList<>());
     FeedRequestManager feedRequestManager =
-        new FeedRequestManager(configManager, networkClient, protocolAdapter, extensionRegistry);
+        new FeedRequestManager(configuration, networkClient, protocolAdapter, extensionRegistry);
 
     feedRequestManager.loadMore(token);
 
@@ -194,7 +194,7 @@ public class MockServerNetworkClientTest {
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(mockServerConfig, new ArrayList<>());
     FeedRequestManager feedRequestManager =
-        new FeedRequestManager(configManager, networkClient, protocolAdapter, extensionRegistry);
+        new FeedRequestManager(configuration, networkClient, protocolAdapter, extensionRegistry);
 
     ByteString token = ByteString.copyFromUtf8("fooToken");
     feedRequestManager.loadMore(token);

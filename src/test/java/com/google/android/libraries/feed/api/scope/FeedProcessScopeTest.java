@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.scope;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -23,8 +22,8 @@ import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
-import com.google.android.libraries.feed.host.config.ConfigManager;
-import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
@@ -42,7 +41,6 @@ import org.mockito.Mock;
 @RunWith(RobolectricTestRunner.class)
 public class FeedProcessScopeTest {
   // Mocks for required fields
-  @Mock private ConfigManager configManager;
   @Mock private ImageLoaderApi imageLoaderApi;
   @Mock private LoggingApi loggingApi;
   @Mock private NetworkClient networkClient;
@@ -60,18 +58,19 @@ public class FeedProcessScopeTest {
           return new ArrayList<>();
         }
       };
+  private final Configuration configuration =
+      new Configuration.Builder().put(ConfigKey.OPTIMISTIC_SESSION_WRITES, true).build();
 
   @Before
   public void setUp() {
     initMocks(this);
-    when(configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false)).thenReturn(true);
   }
 
   @Test
   public void testBasicBuild() {
     // No crash should happen.
     FeedProcessScope processScope =
-        new Builder(configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi).build();
+        new Builder(configuration, imageLoaderApi, loggingApi, networkClient, schedulerApi).build();
 
     assertThat(processScope.getProtocolAdapter()).isNotNull();
     assertThat(processScope.getRequestManager()).isNotNull();
@@ -84,7 +83,7 @@ public class FeedProcessScopeTest {
     // No crash should happen.
     FeedProcessScope processScope =
         new FeedProcessScope.Builder(
-                configManager, imageLoaderApi, loggingApi, networkClient, schedulerApi)
+                configuration, imageLoaderApi, loggingApi, networkClient, schedulerApi)
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)

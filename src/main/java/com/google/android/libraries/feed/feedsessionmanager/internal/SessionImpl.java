@@ -26,8 +26,8 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.Validators;
-import com.google.android.libraries.feed.host.config.ConfigManager;
-import com.google.android.libraries.feed.host.config.ConfigManager.ConfigValues;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -63,13 +63,13 @@ public class SessionImpl implements InitializableSession, Dumpable {
       ExecutorService sessionManagerExecutor,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      ConfigManager configManager) {
+      Configuration configuration) {
     this.store = store;
     this.modelProvider = modelProvider;
     this.sessionManagerExecutor = sessionManagerExecutor;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    optimisticWrites = configManager.getValue(ConfigValues.OPTIMISTIC_SESSION_WRITES, false);
+    optimisticWrites = configuration.getValueOrDefault(ConfigKey.OPTIMISTIC_SESSION_WRITES, false);
   }
 
   @Override
