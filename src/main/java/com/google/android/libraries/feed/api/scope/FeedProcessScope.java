@@ -112,6 +112,7 @@ public class FeedProcessScope implements Dumpable {
       this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
+      this.schedulerApi = schedulerApi;
     }
 
     public Builder setProtocolAdapter(@NonNull FeedProtocolAdapter protocolAdapter) {
@@ -188,7 +189,7 @@ public class FeedProcessScope implements Dumpable {
       if (requestManager == null) {
         requestManager =
             new FeedRequestManager(
-                configuration, networkClient, protocolAdapter, extensionRegistry);
+                configuration, networkClient, protocolAdapter, extensionRegistry, schedulerApi);
       }
       protocolAdapterSupplier.set(protocolAdapter);
       requestManagerSupplier.set(Validators.checkNotNull(requestManager));
@@ -215,6 +216,7 @@ public class FeedProcessScope implements Dumpable {
     private final ImageLoaderApi imageLoaderApi;
     private final LoggingApi loggingApi;
     private final NetworkClient networkClient;
+    private final SchedulerApi schedulerApi;
 
     // Optional fields - if they are not provided, we will use default implementations.
     @Nullable private RequestManager requestManager = null;

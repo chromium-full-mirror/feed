@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
@@ -51,16 +52,19 @@ public class FeedRequestManager implements RequestManager {
   private final NetworkClient networkClient;
   private final ProtocolAdapter protocolAdapter;
   private final FeedExtensionRegistry extensionRegistry;
+  private final SchedulerApi scheduler;
 
   public FeedRequestManager(
       Configuration configuration,
       NetworkClient networkClient,
       ProtocolAdapter protocolAdapter,
-      FeedExtensionRegistry extensionRegistry) {
+      FeedExtensionRegistry extensionRegistry,
+      SchedulerApi scheduler) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
     this.extensionRegistry = extensionRegistry;
+    this.scheduler = scheduler;
   }
 
   @Override
@@ -114,7 +118,10 @@ public class FeedRequestManager implements RequestManager {
               }
               Logger.e(TAG, "errorCode: %d", input.getResponseCode());
               Logger.e(TAG, "errorResponse: %s", errorBody);
+              scheduler.onRequestError(input.getResponseCode());
               return;
+            } else {
+              scheduler.onReceiveNewContent();
             }
 
             try {

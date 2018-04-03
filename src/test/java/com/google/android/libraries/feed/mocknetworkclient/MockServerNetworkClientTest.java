@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
@@ -59,6 +60,7 @@ public class MockServerNetworkClientTest {
 
   @Mock ProtocolAdapter protocolAdapter;
   @Mock RequestManager requestManager;
+  @Mock private SchedulerApi scheduler;
   @Captor private ArgumentCaptor<ByteString> tokenCaptor;
   @Captor private ArgumentCaptor<Response> responseCaptor;
 
@@ -169,7 +171,8 @@ public class MockServerNetworkClientTest {
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(mockServerConfig, new ArrayList<>());
     FeedRequestManager feedRequestManager =
-        new FeedRequestManager(configuration, networkClient, protocolAdapter, extensionRegistry);
+        new FeedRequestManager(
+            configuration, networkClient, protocolAdapter, extensionRegistry, scheduler);
 
     feedRequestManager.loadMore(token);
 
@@ -194,7 +197,8 @@ public class MockServerNetworkClientTest {
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(mockServerConfig, new ArrayList<>());
     FeedRequestManager feedRequestManager =
-        new FeedRequestManager(configuration, networkClient, protocolAdapter, extensionRegistry);
+        new FeedRequestManager(
+            configuration, networkClient, protocolAdapter, extensionRegistry, scheduler);
 
     ByteString token = ByteString.copyFromUtf8("fooToken");
     feedRequestManager.loadMore(token);

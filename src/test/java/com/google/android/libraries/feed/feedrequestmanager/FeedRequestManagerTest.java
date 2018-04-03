@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
@@ -56,9 +57,11 @@ import org.mockito.Mock;
 /** Test of the {@link FeedRequestManager} class. */
 @RunWith(RobolectricTestRunner.class)
 public class FeedRequestManagerTest {
-  
+
+  public static final int NOT_FOUND = 404;
   @Mock private NetworkClient networkClient;
   @Mock private ProtocolAdapter protocolAdapter;
+  @Mock private SchedulerApi scheduler;
   @Captor private ArgumentCaptor<ByteString> byteStringCaptor;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
@@ -84,7 +87,7 @@ public class FeedRequestManagerTest {
     registry.add(FeedRequest.feedRequest);
     requestManager =
         new FeedRequestManager(
-            configuration, networkClient, protocolAdapter, feedExtensionRegistry);
+            configuration, networkClient, protocolAdapter, feedExtensionRegistry, scheduler);
   }
 
   @Test
@@ -124,6 +127,21 @@ public class FeedRequestManagerTest {
     verify(protocolAdapter).createModel(responseCaptor.capture(), byteStringCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
     assertThat(byteStringCaptor.getValue()).isNull();
+
+    verify(scheduler).onReceiveNewContent();
+  }
+
+  @Test
+  public void testHandleResponse_notFound() throws Exception {
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH);
+
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+    Response response = Response.getDefaultInstance();
+    responseConsumerCaptor
+        .getValue()
+        .accept(createHttpResponse(/* responseCode= */ NOT_FOUND, response));
+
+    verify(scheduler).onRequestError(NOT_FOUND);
   }
 
   @Test
