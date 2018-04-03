@@ -57,6 +57,7 @@ public class FeedStore implements Store, Dumpable {
   private static final String TAG = "FeedStore";
   private static final StreamSession HEAD =
       StreamSession.newBuilder().setStreamToken("$HEAD").build();
+  private static final String SHARED_STATE_PREFIX = "ss::";
 
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
@@ -135,7 +136,27 @@ public class FeedStore implements Store, Dumpable {
 
   @Override
   public List<StreamSharedState> getSharedStates() {
-    return new ArrayList<>(sharedStates.values());
+    List<StreamSharedState> sharedStates = new ArrayList<>();
+    SimpleSettableFuture<List<byte[]>> sharedStatesFuture = new SimpleSettableFuture<>();
+    uiRunnableHandler.post(
+        TAG,
+        () -> {
+          contentStorage.getAll(
+              SHARED_STATE_PREFIX,
+              input -> {
+                sharedStatesFuture.put(new ArrayList<>(input.values()));
+                // TODO: handle errors
+              });
+        });
+    try {
+      List<byte[]> bytes = sharedStatesFuture.get();
+      for (byte[] byteArray : bytes) {
+        sharedStates.add(StreamSharedState.parseFrom(byteArray));
+      }
+    } catch (InvalidProtocolBufferException | InterruptedException | ExecutionException e) {
+      Logger.e(TAG, e, "Error occurred getting shared states");
+    }
+    return sharedStates;
   }
 
   @Override
@@ -312,28 +333,34 @@ public class FeedStore implements Store, Dumpable {
     for (PayloadWithId mutation : mutations) {
       String payloadId = mutation.contentId;
       StreamPayload payload = mutation.payload;
-      if (mutation.payload.hasStreamSharedState()) {
-        sharedStates.put(mutation.contentId, payload.getStreamSharedState());
-      } else {
-        // Block waiting for the response from storage, to make this method synchronous.
-        try {
-          SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
-          uiRunnableHandler.post(
-              TAG,
-              () -> {
-                contentStorage.commit(
-                    new Builder().upsert(payloadId, payload.toByteArray()).build(),
-                    input -> {
-                      commitResultFuture.put(input);
-
-                      // TODO: handle errors
-                    });
-              });
-
-          commitResult = commitResultFuture.get();
-        } catch (ExecutionException | InterruptedException e) {
-          Logger.e(TAG, e, "Exception committing content mutation");
+      try {
+        Builder contentMutationBuilder = new Builder();
+        if (mutation.payload.hasStreamSharedState()) {
+          StreamSharedState streamSharedState = mutation.payload.getStreamSharedState();
+          contentMutationBuilder =
+              contentMutationBuilder.upsert(
+                  SHARED_STATE_PREFIX + streamSharedState.getContentId(),
+                  streamSharedState.toByteArray());
+        } else {
+          contentMutationBuilder.upsert(payloadId, payload.toByteArray());
         }
+
+        // Block waiting for the response from storage, to make this method synchronous.
+        SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
+        Builder finalContentMutationBuilder = contentMutationBuilder;
+        uiRunnableHandler.post(
+            TAG,
+            () -> {
+              contentStorage.commit(
+                  finalContentMutationBuilder.build(),
+                  input -> {
+                    commitResultFuture.put(input);
+                    // TODO: handle errors
+                  });
+            });
+        commitResult = commitResultFuture.get();
+      } catch (ExecutionException | InterruptedException e) {
+        Logger.e(TAG, e, "Exception committing content mutation");
       }
     }
 

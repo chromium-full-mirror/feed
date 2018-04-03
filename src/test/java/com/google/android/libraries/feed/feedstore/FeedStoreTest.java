@@ -41,6 +41,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload.Builder;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
+import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import org.robolectric.RobolectricTestRunner;
@@ -213,7 +214,19 @@ public class FeedStoreTest {
   public void getStreamFeatures() throws Exception {}
 
   @Test
-  public void getSharedStates() throws Exception {}
+  public void getSharedStates() throws Exception {
+    StreamSharedState streamSharedState =
+        StreamSharedState.newBuilder().setContentId(PAYLOAD_CONTENT_ID).build();
+    store
+        .editContent()
+        .add(
+            String.valueOf(PAYLOAD_ID),
+            StreamPayload.newBuilder().setStreamSharedState(streamSharedState).build())
+        .commit();
+    List<StreamSharedState> sharedStates = store.getSharedStates();
+    assertThat(sharedStates).hasSize(1);
+    assertThat(sharedStates.get(0)).isEqualTo(streamSharedState);
+  }
 
   @Test
   public void getPayloads_noPayload() throws Exception {
