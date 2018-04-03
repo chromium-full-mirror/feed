@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.GONE;
@@ -27,6 +28,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
@@ -95,6 +97,24 @@ public class ParameterizedTextElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_noContent() {
+    adapter.createAdapter(getBaseTextElement(), frameContext);
+    TextElement textElement = TextElement.getDefaultInstance();
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(textElement, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("TextElement missing ParameterizedText content");
+  }
+
+  @Test
   public void testBindModel_withBinding_someText() {
     ParameterizedText parameterizedText =
         ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT).build();
@@ -126,6 +146,47 @@ public class ParameterizedTextElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_withBinding_noContent() {
+    when(frameContext.getParameterizedTextBindingValue(DEFAULT_BINDING_REF))
+        .thenReturn(BindingValue.newBuilder().setBindingId(BINDING).build());
+
+    TextElement textElement = getBindingTextElement(null);
+    adapter.createAdapter(textElement, frameContext);
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                adapter.bindModel(textElement, frameContext);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Parameterized text binding binding had no content");
+  }
+
+  @Test
+  public void testBindModel_withBinding_optionalAbsent() {
+    TextElement textElement = getBindingTextElement(null /* StyleProvider*/);
+    adapter.createAdapter(textElement, frameContext);
+    TextElement textElementOptionalBinding =
+        TextElement.newBuilder()
+            .setParameterizedTextBinding(DEFAULT_BINDING_REF.toBuilder().setIsOptional(true))
+            .build();
+    when(frameContext.getParameterizedTextBindingValue(
+            textElementOptionalBinding.getParameterizedTextBinding()))
+        .thenReturn(BindingValue.getDefaultInstance());
+
+    adapter.bindModel(textElementOptionalBinding, frameContext);
+
+    assertThat(adapter.getView()).isNotNull();
+    TextView textView = adapter.getBaseView();
+    assertThat(textView).isNotNull();
+    assertThat(textView.getText().toString()).isEmpty();
+  }
+
+  @Test
   public void testBindModel_withBinding_visibilityGone() {
     BindingValue bindingValue = BindingValue.newBuilder().setVisibility(GONE).build();
     when(frameContext.getParameterizedTextBindingValue(DEFAULT_BINDING_REF))
@@ -142,7 +203,11 @@ public class ParameterizedTextElementAdapterTest {
 
   @Test
   public void testBindModel_withBinding_visibilityInvisible() {
-    BindingValue bindingValue = BindingValue.newBuilder().setVisibility(INVISIBLE).build();
+    BindingValue bindingValue =
+        BindingValue.newBuilder()
+            .setVisibility(INVISIBLE)
+            .setParameterizedText(ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT))
+            .build();
     when(frameContext.getParameterizedTextBindingValue(DEFAULT_BINDING_REF))
         .thenReturn(bindingValue);
 

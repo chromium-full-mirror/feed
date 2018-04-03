@@ -64,16 +64,24 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
         }
 
         setVisibility(bindingValue.getVisibility());
+        if (!bindingValue.hasParameterizedText()
+            && !textLine.getParameterizedTextBinding().getIsOptional()
+            && bindingValue.getVisibility() != Visibility.GONE) {
+          throw new IllegalArgumentException(
+              String.format(
+                  "Parameterized text binding %s had no content", bindingValue.getBindingId()));
+        }
 
-        // If text is provided, or is null, set it even if visibility is set to GONE or INVISIBLE,
+        // Always set text even if visibility is set to GONE or INVISIBLE,
         // in case a later optimistic update operation changes the visibility but wants to retain
         // the previously-set text.
         setTextOnView(frameContext, textView, bindingValue.getParameterizedText());
         break;
       default:
-      throw new IllegalArgumentException(
-          String.format(
-              "TextElement missing ParameterizedText content; has %s", textLine.getContentCase()));
+        throw new IllegalArgumentException(
+            String.format(
+                "TextElement missing ParameterizedText content; has %s",
+                textLine.getContentCase()));
     }
   }
 

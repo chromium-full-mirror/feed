@@ -79,7 +79,8 @@ abstract class ElementContainerAdapter<
     BindingValue listBinding = frameContext.getElementListBindingValue(listBindingRef);
     adapter.setVisibility(listBinding.getVisibility());
     if (!listBinding.hasElementList()) {
-      if (listBinding.getVisibility() == Visibility.GONE) {
+      if (listBinding.getVisibility() == Visibility.GONE || listBindingRef.getIsOptional()) {
+        adapter.setVisibility(Visibility.GONE);
         return;
       } else {
         throw new IllegalArgumentException(

@@ -143,6 +143,20 @@ public class CustomElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_optionalAbsent() {
+    CustomBindingRef bindingRef =
+        CustomBindingRef.newBuilder().setBindingId("CUSTOM!").setIsOptional(true).build();
+    when(frameContext.getCustomElementBindingValue(bindingRef))
+        .thenReturn(BindingValue.getDefaultInstance());
+    CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
+    adapter.createAdapter(model, frameContext);
+
+    // This should not fail.
+    adapter.bindModel(model, frameContext);
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
   public void testBindModel_setsVisibility() {
     CustomBindingRef customBindingRef =
         CustomBindingRef.newBuilder().setBindingId("CUSTOM").build();

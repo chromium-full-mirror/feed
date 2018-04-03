@@ -338,6 +338,30 @@ public class GridRowAdapterTest {
   }
 
   @Test
+  public void testOnBindModel_optionalAbsent() {
+    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setBindingId(LIST_BINDING_ID)
+                .setElementList(DEFAULT_CONTENTS)
+                .build());
+    adapter.createAdapter(GRID_ROW_WITH_BOUND_CELL, frameContext);
+
+    ElementListBindingRef optionalBinding =
+        ELEMENT_LIST_BINDING.toBuilder().setIsOptional(true).build();
+    GridRow optionalBindingRow =
+        GridRow.newBuilder()
+            .addCells(GridCell.newBuilder().setElementListBinding(optionalBinding))
+            .build();
+    when(frameContext.getElementListBindingValue(optionalBinding))
+        .thenReturn(BindingValue.newBuilder().setBindingId(LIST_BINDING_ID).build());
+
+    adapter.bindModel(optionalBindingRow, frameContext);
+    assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(0);
+    assertThat(adapter.getBaseView().getChildAt(0).getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
   public void testOnBindModel_setsVisibility() {
     when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
         .thenReturn(

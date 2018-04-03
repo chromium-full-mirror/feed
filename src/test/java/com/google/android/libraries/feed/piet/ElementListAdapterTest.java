@@ -414,6 +414,30 @@ public class ElementListAdapterTest {
   }
 
   @Test
+  public void testOnBindModel_bindingWithOptionalAbsent() {
+    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setBindingId(LIST_BINDING_REF.getBindingId())
+                .setElementList(DEFAULT_LIST)
+                .build());
+    adapter.createAdapter(LIST_WITH_BOUND_LIST, frameContext);
+
+    ElementListBindingRef optionalBinding =
+        LIST_BINDING_REF.toBuilder().setIsOptional(true).build();
+    ElementList optionalBindingList =
+        ElementList.newBuilder()
+            .addElements(Element.newBuilder().setElementListBinding(optionalBinding))
+            .build();
+    when(frameContext.getElementListBindingValue(optionalBinding))
+        .thenReturn(BindingValue.newBuilder().setBindingId(optionalBinding.getBindingId()).build());
+
+    // This should not fail.
+    adapter.bindModel(optionalBindingList, frameContext);
+    assertThat(adapter.getBaseView().getChildAt(0).getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
   public void testOnBindModel_bindingSetsVisibility() {
     when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
         .thenReturn(

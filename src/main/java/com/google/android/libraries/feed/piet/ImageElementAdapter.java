@@ -91,7 +91,9 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
         BindingValue binding = frameContext.getImageBindingValue(model.getImageBinding());
         setVisibility(binding.getVisibility());
         if (!binding.hasImage()) {
-          if (binding.getVisibility() == Visibility.GONE) {
+          if (binding.getVisibility() == Visibility.GONE
+              || model.getImageBinding().getIsOptional()) {
+            setVisibility(Visibility.GONE);
             return;
           } else {
             throw new IllegalArgumentException(

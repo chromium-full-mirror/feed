@@ -40,6 +40,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
@@ -249,15 +250,15 @@ public class FrameContextTest {
   @Test
   public void testGetText() {
     ParameterizedText text = ParameterizedText.newBuilder().setText("tabby").build();
-    BindingValue imageBindingValue = defaultBinding().setParameterizedText(text).build();
+    BindingValue textBindingValue = defaultBinding().setParameterizedText(text).build();
     ParameterizedTextBindingRef textBindingRef =
         ParameterizedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build();
 
-    frameContext = makeFrameContextWithBinding(imageBindingValue);
+    frameContext = makeFrameContextWithBinding(textBindingValue);
 
     // Succeed in looking up binding
     assertThat(frameContext.getParameterizedTextBindingValue(textBindingRef))
-        .isEqualTo(imageBindingValue);
+        .isEqualTo(textBindingValue);
 
     // Can't look up binding
     assertThatRunnable(
@@ -287,6 +288,34 @@ public class FrameContextTest {
         .that()
         .hasMessageThat()
         .contains("Parameterized text binding not found");
+
+    // Binding is invalid but is optional
+    ParameterizedTextBindingRef textBindingRefInvalidOptional =
+        ParameterizedTextBindingRef.newBuilder()
+            .setBindingId(INVALID_BINDING_ID)
+            .setIsOptional(true)
+            .build();
+    assertThat(
+            makeFrameContextWithEmptyBinding()
+                .getParameterizedTextBindingValue(textBindingRefInvalidOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is optional
+    ParameterizedTextBindingRef textBindingRefOptional =
+        ParameterizedTextBindingRef.newBuilder()
+            .setBindingId(BINDING_ID)
+            .setIsOptional(true)
+            .build();
+    assertThat(
+            makeFrameContextWithEmptyBinding()
+                .getParameterizedTextBindingValue(textBindingRefOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is GONE
+    textBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
+    frameContext = makeFrameContextWithBinding(textBindingValue);
+    assertThat(frameContext.getParameterizedTextBindingValue(textBindingRef))
+        .isEqualTo(textBindingValue);
   }
 
   @Test
@@ -326,6 +355,24 @@ public class FrameContextTest {
         .that()
         .hasMessageThat()
         .contains("Image binding not found");
+
+    // Binding is invalid but is optional
+    ImageBindingRef imageBindingRefInvalidOptional =
+        ImageBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).setIsOptional(true).build();
+    assertThat(
+            makeFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRefInvalidOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is optional
+    ImageBindingRef imageBindingRefOptional =
+        ImageBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
+    assertThat(makeFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRefOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is GONE
+    imageBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
+    frameContext = makeFrameContextWithBinding(imageBindingValue);
+    assertThat(frameContext.getImageBindingValue(imageBindingRef)).isEqualTo(imageBindingValue);
   }
 
   @Test
@@ -367,6 +414,29 @@ public class FrameContextTest {
         .that()
         .hasMessageThat()
         .contains("ElementList binding not found");
+
+    // Binding is missine but is optional
+    ElementListBindingRef listBindingRefInvalidOptional =
+        ElementListBindingRef.newBuilder()
+            .setBindingId(INVALID_BINDING_ID)
+            .setIsOptional(true)
+            .build();
+    assertThat(
+            makeFrameContextWithEmptyBinding()
+                .getElementListBindingValue(listBindingRefInvalidOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is optional
+    ElementListBindingRef listBindingRefOptional =
+        ElementListBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
+    assertThat(
+            makeFrameContextWithEmptyBinding().getElementListBindingValue(listBindingRefOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is GONE
+    listBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
+    frameContext = makeFrameContextWithBinding(listBindingValue);
+    assertThat(frameContext.getElementListBindingValue(listBindingRef)).isEqualTo(listBindingValue);
   }
 
   @Test
@@ -493,6 +563,28 @@ public class FrameContextTest {
         .that()
         .hasMessageThat()
         .contains("Custom element binding not found");
+
+    // Binding is missing but is optional
+    CustomBindingRef customBindingRefInvalidOptional =
+        CustomBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).setIsOptional(true).build();
+    assertThat(
+            makeFrameContextWithEmptyBinding()
+                .getCustomElementBindingValue(customBindingRefInvalidOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is optional
+    CustomBindingRef customBindingRefOptional =
+        CustomBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
+    assertThat(
+            makeFrameContextWithEmptyBinding()
+                .getCustomElementBindingValue(customBindingRefOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is GONE
+    customElementBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
+    frameContext = makeFrameContextWithBinding(customElementBindingValue);
+    assertThat(frameContext.getCustomElementBindingValue(customBindingRef))
+        .isEqualTo(customElementBindingValue);
   }
 
   @Test
@@ -505,15 +597,14 @@ public class FrameContextTest {
                         StyledTextChunk.newBuilder()
                             .setParameterizedText(ParameterizedText.newBuilder().setText("text"))))
             .build();
-    BindingValue imageBindingValue = defaultBinding().setChunkedText(text).build();
+    BindingValue textBindingValue = defaultBinding().setChunkedText(text).build();
     ChunkedTextBindingRef textBindingRef =
         ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build();
 
-    frameContext = makeFrameContextWithBinding(imageBindingValue);
+    frameContext = makeFrameContextWithBinding(textBindingValue);
 
     // Succeed in looking up binding
-    assertThat(frameContext.getChunkedTextBindingValue(textBindingRef))
-        .isEqualTo(imageBindingValue);
+    assertThat(frameContext.getChunkedTextBindingValue(textBindingRef)).isEqualTo(textBindingValue);
 
     // Can't look up binding
     assertThatRunnable(
@@ -541,6 +632,29 @@ public class FrameContextTest {
         .that()
         .hasMessageThat()
         .contains("Chunked text binding not found");
+
+    // Binding is missing but is optional
+    ChunkedTextBindingRef textBindingRefInvalidOptional =
+        ChunkedTextBindingRef.newBuilder()
+            .setBindingId(INVALID_BINDING_ID)
+            .setIsOptional(true)
+            .build();
+    assertThat(
+            makeFrameContextWithEmptyBinding()
+                .getChunkedTextBindingValue(textBindingRefInvalidOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is optional
+    ChunkedTextBindingRef textBindingRefOptional =
+        ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
+    assertThat(
+            makeFrameContextWithEmptyBinding().getChunkedTextBindingValue(textBindingRefOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is GONE
+    textBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
+    frameContext = makeFrameContextWithBinding(textBindingValue);
+    assertThat(frameContext.getChunkedTextBindingValue(textBindingRef)).isEqualTo(textBindingValue);
   }
 
   private FrameContext defaultFrameContext() {

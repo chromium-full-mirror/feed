@@ -312,12 +312,14 @@ class FrameContext {
    * does not point to a custom element resource.
    */
   BindingValue getCustomElementBindingValue(CustomBindingRef binding) {
-    BindingValue returnValue = bindingValues.get(binding.getBindingId());
-    if (returnValue == null
-        || (!returnValue.hasCustomElementData()
-            && !returnValue.getVisibility().equals(Visibility.GONE))) {
+    BindingValue returnValue = getBindingValue(binding.getBindingId());
+    if (!returnValue.hasCustomElementData()
+        && !binding.getIsOptional()
+        && !returnValue.getVisibility().equals(Visibility.GONE)) {
       throw new IllegalStateException(
-          String.format("Custom element binding not found for %s", binding.getBindingId()));
+          reportError(
+              ErrorType.ERROR,
+              String.format("Custom element binding not found for %s", binding.getBindingId())));
     } else {
       return returnValue;
     }
@@ -328,12 +330,14 @@ class FrameContext {
    * does not point to a chunked text resource.
    */
   BindingValue getChunkedTextBindingValue(ChunkedTextBindingRef binding) {
-    BindingValue returnValue = bindingValues.get(binding.getBindingId());
-    if (returnValue == null
-        || (!returnValue.hasChunkedText()
-            && !returnValue.getVisibility().equals(Visibility.GONE))) {
+    BindingValue returnValue = getBindingValue(binding.getBindingId());
+    if (!returnValue.hasChunkedText()
+        && !binding.getIsOptional()
+        && !returnValue.getVisibility().equals(Visibility.GONE)) {
       throw new IllegalStateException(
-          String.format("Chunked text binding not found for %s", binding.getBindingId()));
+          reportError(
+              ErrorType.ERROR,
+              String.format("Chunked text binding not found for %s", binding.getBindingId())));
     } else {
       return returnValue;
     }
@@ -344,12 +348,15 @@ class FrameContext {
    * does not point to a parameterized text resource.
    */
   BindingValue getParameterizedTextBindingValue(ParameterizedTextBindingRef binding) {
-    BindingValue returnValue = bindingValues.get(binding.getBindingId());
-    if (returnValue == null
-        || (!returnValue.hasParameterizedText()
-            && !returnValue.getVisibility().equals(Visibility.GONE))) {
+    BindingValue returnValue = getBindingValue(binding.getBindingId());
+    if (!returnValue.hasParameterizedText()
+        && !binding.getIsOptional()
+        && !returnValue.getVisibility().equals(Visibility.GONE)) {
       throw new IllegalStateException(
-          String.format("Parameterized text binding not found for %s", binding.getBindingId()));
+          reportError(
+              ErrorType.ERROR,
+              String.format(
+                  "Parameterized text binding not found for %s", binding.getBindingId())));
     } else {
       return returnValue;
     }
@@ -360,11 +367,14 @@ class FrameContext {
    * does not point to a image resource.
    */
   BindingValue getImageBindingValue(ImageBindingRef binding) {
-    BindingValue returnValue = bindingValues.get(binding.getBindingId());
-    if (returnValue == null
-        || (!returnValue.hasImage() && !returnValue.getVisibility().equals(Visibility.GONE))) {
+    BindingValue returnValue = getBindingValue(binding.getBindingId());
+    if (!returnValue.hasImage()
+        && !binding.getIsOptional()
+        && !returnValue.getVisibility().equals(Visibility.GONE)) {
       throw new IllegalStateException(
-          String.format("Image binding not found for %s", binding.getBindingId()));
+          reportError(
+              ErrorType.ERROR,
+              String.format("Image binding not found for %s", binding.getBindingId())));
     } else {
       return returnValue;
     }
@@ -375,15 +385,25 @@ class FrameContext {
    * does not point to a ElementList.
    */
   BindingValue getElementListBindingValue(ElementListBindingRef binding) {
-    BindingValue returnValue = bindingValues.get(binding.getBindingId());
-    if (returnValue == null
-        || (!returnValue.hasElementList()
-            && !returnValue.getVisibility().equals(Visibility.GONE))) {
+    BindingValue returnValue = getBindingValue(binding.getBindingId());
+    if (!returnValue.hasElementList()
+        && !binding.getIsOptional()
+        && !returnValue.getVisibility().equals(Visibility.GONE)) {
       throw new IllegalStateException(
-          String.format("ElementList binding not found for %s", binding.getBindingId()));
+          reportError(
+              ErrorType.ERROR,
+              String.format("ElementList binding not found for %s", binding.getBindingId())));
     } else {
       return returnValue;
     }
+  }
+
+  private BindingValue getBindingValue(String bindingId) {
+    BindingValue returnValue = bindingValues.get(bindingId);
+    if (returnValue == null) {
+      return BindingValue.getDefaultInstance();
+    }
+    return returnValue;
   }
 
   /**

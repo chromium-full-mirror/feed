@@ -297,6 +297,26 @@ public class ChunkedTextElementAdapterTest {
   }
 
   @Test
+  public void testSetTextOnView_optionalAbsent() {
+    TextElement chunkedTextBindingElement =
+        TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();
+    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
+        .thenReturn(BindingValue.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build());
+    adapter.createAdapter(chunkedTextBindingElement, frameContext);
+
+    ChunkedTextBindingRef optionalBindingRef =
+        CHUNKED_TEXT_BINDING_REF.toBuilder().setIsOptional(true).build();
+    TextElement chunkedTextBindingElementOptional =
+        TextElement.newBuilder().setChunkedTextBinding(optionalBindingRef).build();
+    when(frameContext.getChunkedTextBindingValue(optionalBindingRef))
+        .thenReturn(BindingValue.getDefaultInstance());
+
+    adapter.setTextOnView(frameContext, chunkedTextBindingElementOptional);
+    assertThat(adapter.getBaseView().getText().toString()).isEmpty();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
   public void testSetTextOnView_setsVisibility() {
     TextElement chunkedTextBindingElement =
         TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();

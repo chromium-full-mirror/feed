@@ -234,6 +234,23 @@ public class ImageElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_optionalAbsent() {
+    String bindingRef = "foto";
+    ImageBindingRef imageBindingRef =
+        ImageBindingRef.newBuilder().setBindingId(bindingRef).setIsOptional(true).build();
+    ImageElement imageBindingElement =
+        ImageElement.newBuilder().setImageBinding(imageBindingRef).build();
+    adapter.createAdapter(
+        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
+    when(frameContext.getImageBindingValue(imageBindingRef))
+        .thenReturn(BindingValue.getDefaultInstance());
+
+    adapter.bindModel(imageBindingElement, frameContext);
+    assertThat(adapter.getBaseView().getDrawable()).isNull();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
   public void testBindModel_noContentInBindingValue() {
     String bindingRef = "foto";
     ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(bindingRef).build();
