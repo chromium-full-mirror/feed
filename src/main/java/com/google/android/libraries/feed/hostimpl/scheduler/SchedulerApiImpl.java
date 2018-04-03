@@ -20,7 +20,17 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 public class SchedulerApiImpl implements SchedulerApi {
 
   @Override
-  public boolean notifyNoData() {
-    return false;
+  public boolean shouldRequestDataWhenNoDataPresent() {
+    return true;
+  }
+
+  @Override
+  public void onReceiveNewContent() {
+    // Do nothing
+  }
+
+  @Override
+  public void onRequestError(int networkResponseCode) {
+    // Do nothing
   }
 }

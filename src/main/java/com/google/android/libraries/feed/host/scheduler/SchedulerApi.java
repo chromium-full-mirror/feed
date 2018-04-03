@@ -14,12 +14,19 @@
 
 package com.google.android.libraries.feed.host.scheduler;
 
-/** An API to report feed state information to the scheduler. */
+/** Allows host to change behavior based on Feed requests and their status */
 public interface SchedulerApi {
   /**
-   * Notifies the scheduler that there is no data to render.
+   * Called when Feed initializes with no data available. The scheduler can decide whether to allow
+   * Feed to initiate a request for data, or reject the request.
    *
-   * @return true if the scheduler will schedule a request for more data
+   * @return True if Feed should request data.
    */
-  boolean notifyNoData();
+  boolean shouldRequestDataWhenNoDataPresent();
+
+  /** Notify scheduler that new content has been received. */
+  void onReceiveNewContent();
+
+  /** Notify scheduler that an error occurred handling a request. */
+  void onRequestError(int networkResponseCode);
 }
