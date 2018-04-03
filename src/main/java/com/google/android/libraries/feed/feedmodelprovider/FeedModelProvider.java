@@ -272,17 +272,36 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       } else {
         dumper.forKey("root").value("[UNDEFINED]");
       }
+      int singleChild = 0;
+      Dumper childDumper = dumper.getChildDumper();
+      childDumper.title("Containers With Multiple Children");
       for (Entry<String, ArrayList<UpdatableModelChild>> entry : containers.entrySet()) {
-        Dumper childDumper = dumper.getChildDumper();
-        childDumper.title("container");
-        childDumper.forKey("parent").value(entry.getKey());
-        childDumper.forKey("children").value(entry.getValue().size()).compactPrevious();
+        if (entry.getValue().size() > 1) {
+          childDumper.forKey("Container").value(entry.getKey());
+          childDumper.forKey("childrenCount").value(entry.getValue().size()).compactPrevious();
+        } else {
+          singleChild++;
+        }
       }
+      dumper.forKey("singleChildContainers").value(singleChild);
       dumper.forKey("cursors").value(cursors.size());
-      dumper.forKey("cursorsRemoved").value(cursorsRemoved).compactPrevious();
+      int atEnd = 0;
+      int cursorEmptyRefs = 0;
       for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
         ModelCursorImpl cursor = cursorRef.get();
-        if (cursor != null) {
+        if (cursor == null) {
+          cursorEmptyRefs++;
+        } else if (cursor.isAtEnd()) {
+          atEnd++;
+        }
+      }
+      dumper.forKey("cursorsRemoved").value(cursorsRemoved).compactPrevious();
+      dumper.forKey("reclaimedWeakReferences").value(cursorEmptyRefs).compactPrevious();
+      dumper.forKey("cursorsAtEnd").value(atEnd).compactPrevious();
+
+      for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
+        ModelCursorImpl cursor = cursorRef.get();
+        if (cursor != null && !cursor.isAtEnd()) {
           dumper.dump(cursor);
         }
       }
