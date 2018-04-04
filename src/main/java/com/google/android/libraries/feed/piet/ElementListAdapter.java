@@ -54,32 +54,7 @@ class ElementListAdapter
       ElementAdapter<? extends View, ?> adapter = getAdapterForChildElement(line, frameContext);
       getBaseView().addView(adapter.getView());
 
-      int width = adapter.getComputedWidthPx();
-      width =
-          width == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.MATCH_PARENT : width;
-      int height = adapter.getComputedHeightPx();
-      height =
-          height == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
-
-      LayoutParams params = new LayoutParams(width, height);
-
-      adapter.getElementStyle().setMargins(getContext(), params);
-
-      switch (adapter.getHorizontalGravity()) {
-        case GRAVITY_START:
-          params.gravity = Gravity.START;
-          break;
-        case GRAVITY_CENTER:
-          params.gravity = Gravity.CENTER_HORIZONTAL;
-          break;
-        case GRAVITY_END:
-          params.gravity = Gravity.END;
-          break;
-        default:
-          params.gravity = Gravity.START;
-      }
-
-      adapter.setLayoutParams(params);
+      updateChildLayoutParams(adapter);
     }
   }
 
@@ -142,6 +117,14 @@ class ElementListAdapter
     }
   }
 
+  @Override
+  public void setLayoutParams(ViewGroup.LayoutParams layoutParams) {
+    super.setLayoutParams(layoutParams);
+    for (ElementAdapter<? extends View, ?> adapter : childAdapters) {
+      updateChildLayoutParams(adapter);
+    }
+  }
+
   GravityVertical getVerticalGravity() {
     return getModel().getGravityVertical();
   }
@@ -162,6 +145,39 @@ class ElementListAdapter
     }
     addChildAdapter(adapter);
     return adapter;
+  }
+
+  private void updateChildLayoutParams(ElementAdapter<? extends View, ?> adapter) {
+    ViewGroup.LayoutParams params = getBaseView().getLayoutParams();
+
+    int width = adapter.getComputedWidthPx();
+    // If width is not set then use the same width as list adapter.  This way if ElementList is in
+    // a GridCell and it was marked as WRAP_CONTENT then all its children also use WRAP_CONTENT if
+    // they have no width defined.
+    width = width == ElementAdapter.DIMENSION_NOT_SET ? params.width : width;
+    int height = adapter.getComputedHeightPx();
+    height =
+        height == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
+
+    LayoutParams childParams = new LayoutParams(width, height);
+
+    adapter.getElementStyle().setMargins(getContext(), childParams);
+
+    switch (adapter.getHorizontalGravity()) {
+      case GRAVITY_START:
+        childParams.gravity = Gravity.START;
+        break;
+      case GRAVITY_CENTER:
+        childParams.gravity = Gravity.CENTER_HORIZONTAL;
+        break;
+      case GRAVITY_END:
+        childParams.gravity = Gravity.END;
+        break;
+      default:
+        childParams.gravity = Gravity.START;
+    }
+
+    adapter.setLayoutParams(childParams);
   }
 
   @VisibleForTesting

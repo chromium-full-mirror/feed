@@ -28,6 +28,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -171,7 +172,7 @@ public class ElementListAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsGravity() {
+  public void testOnCreateAdapter_setsLayoutParams() {
     ElementList listWithStyles =
         ElementList.newBuilder()
             .addElements(
@@ -185,6 +186,10 @@ public class ElementListAdapterTest {
         .isInstanceOf(LinearLayout.LayoutParams.class);
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).gravity)
         .isEqualTo(Gravity.CENTER_HORIZONTAL);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
+        .isEqualTo(ViewGroup.LayoutParams.MATCH_PARENT);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
+        .isEqualTo(0);
   }
 
   @Test
@@ -573,5 +578,27 @@ public class ElementListAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Missing ElementList");
+  }
+
+  @Test
+  public void testSetLayoutParams() {
+    ElementList listWithStyles =
+        ElementList.newBuilder()
+            .addElements(
+                DEFAULT_ELEMENT.toBuilder().setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER))
+            .build();
+
+    adapter.createAdapter(listWithStyles, frameContext);
+
+    LayoutParams layoutParams =
+        new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    adapter.setLayoutParams(layoutParams);
+
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).gravity)
+        .isEqualTo(Gravity.CENTER_HORIZONTAL);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
+        .isEqualTo(ViewGroup.LayoutParams.WRAP_CONTENT);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
+        .isEqualTo(0);
   }
 }
