@@ -28,6 +28,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.IllegalFormatException;
 import java.util.Locale;
+import javax.annotation.Nullable;
 
 /**
  * Helper class for logging in GSA. This class only logs if the tag for the log request is loggable.
