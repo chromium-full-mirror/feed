@@ -17,10 +17,10 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
+import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.util.Producer;
 import javax.annotation.Nullable;
 
 /** Manages a top-level session of Piet. */
@@ -42,7 +42,7 @@ public class PietManager {
   }
 
   public FrameAdapter createPietFrameAdapter(
-      Producer<ViewGroup> cardViewProducer, Context context) {
+      Supplier<ViewGroup> cardViewProducer, Context context) {
     AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
 
     return new FrameAdapter(context, parameters, frameModelBinder);
@@ -53,7 +53,8 @@ public class PietManager {
    * {@code AdapterParameters} is scoped to the {@code Context}.
    */
   @VisibleForTesting
-  AdapterParameters getAdapterParameters(Context context, Producer<ViewGroup> cardViewProducer) {
+  AdapterParameters getAdapterParameters(
+      Context context, Supplier<ViewGroup> cardViewProducer) {
     if (adapterParameters == null || adapterParameters.context != context) {
       adapterParameters = new AdapterParameters(context, cardViewProducer, actionHandler);
     }

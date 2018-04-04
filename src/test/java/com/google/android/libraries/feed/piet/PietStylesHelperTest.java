@@ -20,8 +20,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.android.libraries.feed.piet.util.Producer;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -56,7 +56,7 @@ public class PietStylesHelperTest {
 
   private PietSharedState sharedState;
 
-  @Mock Producer<PietSharedState> sharedStateProducer;
+  @Mock Supplier<PietSharedState> sharedStateSupplier;
   @Mock FrameContext frameContext;
 
   private PietStylesHelper helper;
@@ -73,9 +73,9 @@ public class PietStylesHelperTest {
             .addTemplates(TEMPLATE)
             .build();
 
-    when(sharedStateProducer.get()).thenReturn(sharedState);
+    when(sharedStateSupplier.get()).thenReturn(sharedState);
 
-    helper = new PietStylesHelper(sharedStateProducer);
+    helper = new PietStylesHelper(sharedStateSupplier);
   }
 
   @Test
@@ -129,7 +129,7 @@ public class PietStylesHelperTest {
     PietSharedState sharedState2 =
         PietSharedState.newBuilder().addStylesheets(stylesheet2).addTemplates(template2).build();
 
-    when(sharedStateProducer.get()).thenReturn(sharedState2);
+    when(sharedStateSupplier.get()).thenReturn(sharedState2);
 
     // Then access the new data
     assertThat(helper.getTemplate("t2")).isEqualTo(template2);
@@ -154,8 +154,8 @@ public class PietStylesHelperTest {
         PietSharedState.newBuilder().addTemplates(sameTemplate).build();
     assertThat(sharedState).isEqualTo(sameSharedState);
 
-    reset(sharedStateProducer);
-    when(sharedStateProducer.get()).thenReturn(sharedState).thenReturn(sameSharedState);
+    reset(sharedStateSupplier);
+    when(sharedStateSupplier.get()).thenReturn(sharedState).thenReturn(sameSharedState);
 
     // checkCurrent sets up templates from "sharedState" and returns "template"
     Template fetchTemplate = helper.getTemplate(templateId);

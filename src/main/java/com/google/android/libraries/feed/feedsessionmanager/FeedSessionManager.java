@@ -111,7 +111,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     sessionFactory = new SessionFactory(store, executor, timingUtils, threadUtils, configuration);
     contentCache = new ContentCache();
 
-    // Suppress @UnderInitialization warning
+    // Suppress warning
     @SuppressWarnings("nullness")
     Runnable initializationTask = this::initializationTask;
     executor.execute(initializationTask);

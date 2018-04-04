@@ -17,13 +17,13 @@ package com.google.android.libraries.feed.basicstream.internal.piet;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.piet.util.Producer;
+import com.google.android.libraries.feed.common.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import javax.annotation.Nullable;
 
 /** Provides Piet shared states based on the a specified {@link ModelProvider}. */
-public class PietSharedStateSupplier implements Producer<PietSharedState> {
+public class PietSharedStateSupplier implements Supplier<PietSharedState> {
 
   private static final String TAG = "PietSharedStateSupplier";
 

@@ -27,12 +27,12 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.TemplateKey;
 import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.TemplateKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.util.Producers;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
@@ -142,7 +142,7 @@ public class TemplateInvocationAdapterTest {
     frameContext =
         new FrameModelBinder(stylesHelper, assetProvider, customElementProvider)
             .bindFrame(DEFAULT_FRAME);
-    adapterParameters = new AdapterParameters(context, Producers.of(null), actionHandler);
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null), actionHandler);
 
     adapter = new TemplateInvocationAdapter(context, adapterParameters);
   }

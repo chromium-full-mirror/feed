@@ -31,9 +31,9 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.util.Producers;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
@@ -91,7 +91,7 @@ public class GridRowAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
-    adapterParameters = new AdapterParameters(context, Producers.of(null), actionHandler);
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null), actionHandler);
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))

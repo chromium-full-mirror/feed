@@ -17,8 +17,8 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
-import com.google.android.libraries.feed.piet.util.Producer;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
@@ -33,14 +33,14 @@ import javax.annotation.Nullable;
 public class PietStylesHelper {
   private static final String TAG = "PietStylesHelper";
 
-  private Producer<PietSharedState> pietSharedStateSupplier;
+  private final Supplier<PietSharedState> pietSharedStateSupplier;
   @Nullable private PietSharedState currentPietSharedState;
 
   private final Map<String, Map<String, Style>> stylesheetScopes = new HashMap<>();
   private final Map<String, Stylesheet> stylesheets = new HashMap<>();
   private final Map<String, Template> templates = new HashMap<>();
 
-  public PietStylesHelper(Producer<PietSharedState> pietSharedStateSupplier) {
+  public PietStylesHelper(Supplier<PietSharedState> pietSharedStateSupplier) {
     this.pietSharedStateSupplier = pietSharedStateSupplier;
   }
 

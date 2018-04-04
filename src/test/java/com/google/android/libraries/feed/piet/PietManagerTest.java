@@ -24,11 +24,11 @@ import android.content.Context;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.common.Supplier;
+import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.util.Producer;
-import com.google.android.libraries.feed.piet.util.Producers;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class PietManagerTest {
   @Mock private ActionHandler actionHandler;
   @Mock private AssetProvider assetProvider;
   @Mock private CustomElementProvider customElementProvider;
-  @Mock private Producer<ViewGroup> cardViewProvider;
+  @Mock private Supplier<ViewGroup> cardViewSupplier;
   @Mock Context mockContext1;
   @Mock Context mockContext2;
 
@@ -68,29 +68,29 @@ public class PietManagerTest {
 
   @Test
   public void testCreatePietFrameAdapter() {
-    FrameAdapter frameAdapter = pietManager.createPietFrameAdapter(cardViewProvider, context);
-    assertThat(frameAdapter.getParameters().parentViewProducer).isEqualTo(cardViewProvider);
+    FrameAdapter frameAdapter = pietManager.createPietFrameAdapter(cardViewSupplier, context);
+    assertThat(frameAdapter.getParameters().parentViewSupplier).isEqualTo(cardViewSupplier);
   }
 
   @Test
   public void testGetAdapterParameters() {
-    Producer<ViewGroup> viewGroupProducer1 = Producers.of(viewGroup1);
-    Producer<ViewGroup> viewGroupProducer2 = Producers.of(viewGroup2);
+    Supplier<ViewGroup> viewGroupProducer1 = Suppliers.of(viewGroup1);
+    Supplier<ViewGroup> viewGroupProducer2 = Suppliers.of(viewGroup2);
     AdapterParameters returnParams;
 
     // Get params for a context that does not exist
     returnParams = pietManager.getAdapterParameters(mockContext1, viewGroupProducer1);
-    assertThat(returnParams.parentViewProducer).isEqualTo(viewGroupProducer1);
+    assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer1);
     assertThat(returnParams.context).isEqualTo(mockContext1);
     assertThat(returnParams.actionHandler).isEqualTo(actionHandler);
 
     // Get params for the same context again (use cached value)
-    returnParams = pietManager.getAdapterParameters(mockContext1, Producers.of(null));
-    assertThat(returnParams.parentViewProducer).isEqualTo(viewGroupProducer1);
+    returnParams = pietManager.getAdapterParameters(mockContext1, Suppliers.of(null));
+    assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer1);
 
     // Get params for a different context
     returnParams = pietManager.getAdapterParameters(mockContext2, viewGroupProducer2);
-    assertThat(returnParams.parentViewProducer).isEqualTo(viewGroupProducer2);
+    assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer2);
   }
 
   @Test
@@ -100,7 +100,7 @@ public class PietManagerTest {
 
     ElementAdapterFactory mockFactory = mock(ElementAdapterFactory.class);
     pietManager.adapterParameters =
-        new AdapterParameters(context, cardViewProvider, null, null, mockFactory);
+        new AdapterParameters(context, cardViewSupplier, null, null, mockFactory);
     pietManager.purgeRecyclerPools();
     verify(mockFactory).purgeRecyclerPools();
   }

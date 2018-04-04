@@ -33,9 +33,9 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.util.Producers;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
@@ -76,7 +76,7 @@ public class ElementAdapterTest {
   public void setUp() {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    parameters = new AdapterParameters(context, Producers.of((ViewGroup) null), actionHandler);
+    parameters = new AdapterParameters(context, Suppliers.of((ViewGroup) null), actionHandler);
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
@@ -226,7 +226,7 @@ public class ElementAdapterTest {
     parameters =
         new AdapterParameters(
             context,
-            Producers.of((ViewGroup) null),
+            Suppliers.of((ViewGroup) null),
             actionHandler,
             new ParameterizedTextEvaluator(),
             mockFactory);

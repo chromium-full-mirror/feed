@@ -17,8 +17,8 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
+import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.util.Producer;
 
 /**
  * A state shared by instances of Cards and Slices. The state is accessed directly from the instance
@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.piet.util.Producer;
  */
 class AdapterParameters {
   final ParameterizedTextEvaluator templatedStringEvaluator;
-  final Producer<ViewGroup> parentViewProducer;
+  final Supplier<ViewGroup> parentViewSupplier;
   final ActionHandler actionHandler;
 
   final Context context;
@@ -39,9 +39,11 @@ class AdapterParameters {
   // construction will reference the elementAdapterFactory member of this, so should be safe.
   @SuppressWarnings("initialization")
   public AdapterParameters(
-      Context context, Producer<ViewGroup> parentViewProducer, ActionHandler actionHandler) {
+      Context context,
+      Supplier<ViewGroup> parentViewSupplier,
+      ActionHandler actionHandler) {
     this.context = context;
-    this.parentViewProducer = parentViewProducer;
+    this.parentViewSupplier = parentViewSupplier;
     this.actionHandler = actionHandler;
 
     templatedStringEvaluator = new ParameterizedTextEvaluator();
@@ -52,12 +54,12 @@ class AdapterParameters {
   @VisibleForTesting
   AdapterParameters(
       Context context,
-      Producer<ViewGroup> parentViewProducer,
+      Supplier<ViewGroup> parentViewSupplier,
       ActionHandler actionHandler,
       ParameterizedTextEvaluator templatedStringEvaluator,
       ElementAdapterFactory elementAdapterFactory) {
     this.context = context;
-    this.parentViewProducer = parentViewProducer;
+    this.parentViewSupplier = parentViewSupplier;
     this.actionHandler = actionHandler;
 
     this.templatedStringEvaluator = templatedStringEvaluator;

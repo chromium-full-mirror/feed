@@ -33,9 +33,9 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.ElementListAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.util.Producers;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
@@ -98,7 +98,7 @@ public class ElementListAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
-    adapterParameters = new AdapterParameters(context, Producers.of(null), actionHandler);
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null), actionHandler);
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance()))

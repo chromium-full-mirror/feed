@@ -69,7 +69,7 @@ public class FrameAdapter {
   public void bindModel(Frame frame, @Nullable ShardingControl shardingControl) {
     long startTime = System.nanoTime();
     FrameContext frameContext = frameModelBinder.bindFrame(frame);
-    initialBind(parameters.parentViewProducer.get());
+    initialBind(parameters.parentViewSupplier.get());
     LinearLayout frameView = checkNotNull(view);
 
     try {
@@ -134,7 +134,7 @@ public class FrameAdapter {
    * this view before {@code bindModel} is called.
    */
   public LinearLayout getFrameContainer() {
-    initialBind(parameters.parentViewProducer.get());
+    initialBind(parameters.parentViewSupplier.get());
     return checkNotNull(view);
   }
 

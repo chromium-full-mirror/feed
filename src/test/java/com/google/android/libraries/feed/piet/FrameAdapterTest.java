@@ -26,9 +26,9 @@ import android.content.Context;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
-import com.google.android.libraries.feed.piet.util.Producers;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
@@ -72,7 +72,7 @@ public class FrameAdapterTest {
     adapterParameters =
         new AdapterParameters(
             null,
-            Producers.of(new FrameLayout(context)),
+            Suppliers.of(new FrameLayout(context)),
             null,
             new ParameterizedTextEvaluator(),
             adapterFactory);
