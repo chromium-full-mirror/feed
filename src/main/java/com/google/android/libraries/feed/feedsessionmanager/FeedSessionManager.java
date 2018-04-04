@@ -49,6 +49,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operati
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -404,12 +405,16 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
 
     private void resetHead() {
+      Collection<Session> currentSessions;
       synchronized (lock) {
+        currentSessions = sessions.values();
+      }
+
         List<String> sessionsRemoved = new ArrayList<>();
         // TODO: Think through how this should work.  Only $HEAD is cleared
         // Do we still invalidate everything?
         store.clearHead();
-        for (Session session : sessions.values()) {
+      for (Session session : currentSessions) {
           ModelProvider modelProvider = session.getModelProvider();
           if (modelProvider != null) {
             modelProvider.invalidate();
@@ -417,6 +422,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             sessionsRemoved.add(session.getStreamSession().getStreamToken());
           }
         }
+      synchronized (lock) {
         sessions.keySet().removeAll(sessionsRemoved);
       }
     }
