@@ -24,7 +24,7 @@ public class UiRunnableHandlerImpl implements UiRunnableHandler {
 
   @Override
   public boolean post(String source, Runnable runnable) {
-    Logger.i(TAG, "[%s] Posting task to the UI Thread", source);
+    Logger.d(TAG, "[%s] Posting task to the UI Thread", source);
     return new Handler(Looper.getMainLooper()).post(runnable);
   }
 }
