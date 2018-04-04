@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.api.scope;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -28,6 +29,7 @@ import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
@@ -50,6 +52,7 @@ public class FeedProcessScopeTest {
   @Mock private FeedProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
   @Mock private SessionManager sessionManager;
+  @Mock private ThreadUtils threadUtils;
 
   private final ProtoExtensionProvider protoExtensionProvider =
       new ProtoExtensionProvider() {
@@ -70,7 +73,15 @@ public class FeedProcessScopeTest {
   public void testBasicBuild() {
     // No crash should happen.
     FeedProcessScope processScope =
-        new Builder(configuration, imageLoaderApi, loggingApi, networkClient, schedulerApi).build();
+        new Builder(
+                configuration,
+                MoreExecutors.newDirectExecutorService(),
+                imageLoaderApi,
+                loggingApi,
+                networkClient,
+                schedulerApi)
+            .setThreadUtils(threadUtils)
+            .build();
 
     assertThat(processScope.getProtocolAdapter()).isNotNull();
     assertThat(processScope.getRequestManager()).isNotNull();
@@ -83,7 +94,12 @@ public class FeedProcessScopeTest {
     // No crash should happen.
     FeedProcessScope processScope =
         new FeedProcessScope.Builder(
-                configuration, imageLoaderApi, loggingApi, networkClient, schedulerApi)
+                configuration,
+                MoreExecutors.newDirectExecutorService(),
+                imageLoaderApi,
+                loggingApi,
+                networkClient,
+                schedulerApi)
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)

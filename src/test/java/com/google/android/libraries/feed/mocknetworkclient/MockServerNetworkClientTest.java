@@ -20,9 +20,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.net.Uri;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
@@ -33,6 +35,7 @@ import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
@@ -58,9 +61,10 @@ import org.mockito.Mock;
 @RunWith(RobolectricTestRunner.class)
 public class MockServerNetworkClientTest {
 
-  @Mock ProtocolAdapter protocolAdapter;
-  @Mock RequestManager requestManager;
+  @Mock private ProtocolAdapter protocolAdapter;
+  @Mock private RequestManager requestManager;
   @Mock private SchedulerApi scheduler;
+  @Mock private ThreadUtils threadUtils;
   @Captor private ArgumentCaptor<ByteString> tokenCaptor;
   @Captor private ArgumentCaptor<Response> responseCaptor;
 
@@ -73,6 +77,7 @@ public class MockServerNetworkClientTest {
             }
           });
   private final Configuration configuration = new Configuration.Builder().build();
+  private final TimingUtils timingUtils = new TimingUtils();
 
   @Before
   public void setUp() throws Exception {
@@ -172,7 +177,14 @@ public class MockServerNetworkClientTest {
         new MockServerNetworkClient(mockServerConfig, new ArrayList<>());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
-            configuration, networkClient, protocolAdapter, extensionRegistry, scheduler);
+            configuration,
+            networkClient,
+            protocolAdapter,
+            extensionRegistry,
+            scheduler,
+            MoreExecutors.newDirectExecutorService(),
+            timingUtils,
+            threadUtils);
 
     feedRequestManager.loadMore(token);
 
@@ -198,7 +210,14 @@ public class MockServerNetworkClientTest {
         new MockServerNetworkClient(mockServerConfig, new ArrayList<>());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
-            configuration, networkClient, protocolAdapter, extensionRegistry, scheduler);
+            configuration,
+            networkClient,
+            protocolAdapter,
+            extensionRegistry,
+            scheduler,
+            MoreExecutors.newDirectExecutorService(),
+            timingUtils,
+            threadUtils);
 
     ByteString token = ByteString.copyFromUtf8("fooToken");
     feedRequestManager.loadMore(token);

@@ -16,16 +16,17 @@ package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.net.Uri;
 import android.util.Base64;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
-import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.protobuf.ByteString;
@@ -39,6 +40,7 @@ import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutorService;
 import javax.annotation.Nullable;
 
 /** Default implementation of RequestManager. */
@@ -53,24 +55,40 @@ public class FeedRequestManager implements RequestManager {
   private final ProtocolAdapter protocolAdapter;
   private final FeedExtensionRegistry extensionRegistry;
   private final SchedulerApi scheduler;
+  private final ExecutorService executor;
+  private final TimingUtils timingUtils;
+  private final ThreadUtils threadUtils;
 
   public FeedRequestManager(
       Configuration configuration,
       NetworkClient networkClient,
       ProtocolAdapter protocolAdapter,
       FeedExtensionRegistry extensionRegistry,
-      SchedulerApi scheduler) {
+      SchedulerApi scheduler,
+      ExecutorService executor,
+      TimingUtils timingUtils,
+      ThreadUtils threadUtils) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
     this.extensionRegistry = extensionRegistry;
     this.scheduler = scheduler;
+    this.executor = executor;
+    this.timingUtils = timingUtils;
+    this.threadUtils = threadUtils;
   }
 
   @Override
   public void loadMore(ByteString pageToken) {
-    RequestBuilder request = newDefaultRequest().setPageToken(pageToken);
-    executeRequest(request);
+    threadUtils.checkMainThread();
+    executor.execute(
+        () -> {
+          Logger.i(TAG, "Task: FeedRequestManager LoadMore");
+          ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+          RequestBuilder request = newDefaultRequest().setPageToken(pageToken);
+          executeRequest(request);
+          timeTracker.stop("task", "FeedRequestManager LoadMore");
+        });
   }
 
   @Override
@@ -106,32 +124,29 @@ public class FeedRequestManager implements RequestManager {
         new HttpRequest(uriBuilder.build(), ByteBuffer.allocate(0), HttpMethod.GET);
     networkClient.send(
         httpRequest,
-        new Consumer<HttpResponse>() {
-          @Override
-          public void accept(HttpResponse input) {
-            if (input.getResponseCode() != 200) {
-              String errorBody = null;
-              try {
-                errorBody = new String(input.getResponseBody().array(), "UTF-8");
-              } catch (UnsupportedEncodingException e) {
-                Logger.e(TAG, "Error handling http error logging", e);
-              }
-              Logger.e(TAG, "errorCode: %d", input.getResponseCode());
-              Logger.e(TAG, "errorResponse: %s", errorBody);
-              scheduler.onRequestError(input.getResponseCode());
-              return;
-            } else {
-              scheduler.onReceiveNewContent();
-            }
-
+        input -> {
+          if (input.getResponseCode() != 200) {
+            String errorBody = null;
             try {
-              handleResponseBytes(
-                  input.getResponseBody().array(),
-                  requestBuilder.getPageToken(),
-                  /* isLengthPrefixed= */ true);
-            } catch (IOException e) {
-              Logger.e(TAG, "Error handling response bytes", e);
+              errorBody = new String(input.getResponseBody().array(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+              Logger.e(TAG, "Error handling http error logging", e);
             }
+            Logger.e(TAG, "errorCode: %d", input.getResponseCode());
+            Logger.e(TAG, "errorResponse: %s", errorBody);
+            scheduler.onRequestError(input.getResponseCode());
+            return;
+          } else {
+            scheduler.onReceiveNewContent();
+          }
+
+          try {
+            handleResponseBytes(
+                input.getResponseBody().array(),
+                requestBuilder.getPageToken(),
+                /* isLengthPrefixed= */ true);
+          } catch (IOException e) {
+            Logger.e(TAG, "Error handling response bytes", e);
           }
         });
   }

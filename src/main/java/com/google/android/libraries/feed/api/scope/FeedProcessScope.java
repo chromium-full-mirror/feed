@@ -49,7 +49,7 @@ import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import java.util.ArrayList;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import javax.annotation.Nullable;
 
 /**
@@ -104,11 +104,13 @@ public class FeedProcessScope implements Dumpable {
     /** The APIs are all required to construct the scope. */
     public Builder(
         Configuration configuration,
+        ExecutorService singleThreadExecutor,
         ImageLoaderApi imageLoaderApi,
         LoggingApi loggingApi,
         NetworkClient networkClient,
         SchedulerApi schedulerApi) {
       this.configuration = configuration;
+      this.singleThreadExecutor = singleThreadExecutor;
       this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
@@ -146,6 +148,12 @@ public class FeedProcessScope implements Dumpable {
       return this;
     }
 
+    // This is really exposed for tests to override the thread checking
+    Builder setThreadUtils(ThreadUtils threadUtils) {
+      this.threadUtils = threadUtils;
+      return this;
+    }
+
     public FeedProcessScope build() {
       // Build default component instances if necessary.
       if (protoExtensionProvider == null) {
@@ -161,7 +169,6 @@ public class FeedProcessScope implements Dumpable {
       }
       TimingUtils timingUtils = new TimingUtils();
       UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
-      ThreadUtils threadUtils = new ThreadUtils();
       FeedStore store =
           new FeedStore(
               timingUtils,
@@ -175,7 +182,7 @@ public class FeedProcessScope implements Dumpable {
       if (sessionManager == null) {
         sessionManager =
             new FeedSessionManager(
-                Executors.newSingleThreadExecutor(),
+                singleThreadExecutor,
                 store,
                 timingUtils,
                 threadUtils,
@@ -189,7 +196,14 @@ public class FeedProcessScope implements Dumpable {
       if (requestManager == null) {
         requestManager =
             new FeedRequestManager(
-                configuration, networkClient, protocolAdapter, extensionRegistry, schedulerApi);
+                configuration,
+                networkClient,
+                protocolAdapter,
+                extensionRegistry,
+                schedulerApi,
+                singleThreadExecutor,
+                timingUtils,
+                threadUtils);
       }
       protocolAdapterSupplier.set(protocolAdapter);
       requestManagerSupplier.set(Validators.checkNotNull(requestManager));
@@ -213,6 +227,7 @@ public class FeedProcessScope implements Dumpable {
 
     // Required fields.
     private final Configuration configuration;
+    private final ExecutorService singleThreadExecutor;
     private final ImageLoaderApi imageLoaderApi;
     private final LoggingApi loggingApi;
     private final NetworkClient networkClient;
@@ -225,6 +240,9 @@ public class FeedProcessScope implements Dumpable {
     @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
     @Nullable private ContentStorage contentStorage = null;
     @Nullable private JournalStorage journalStorage = null;
+
+    // This will be overridden in tests.
+    private ThreadUtils threadUtils = new ThreadUtils();
   }
 
   private FeedProcessScope(

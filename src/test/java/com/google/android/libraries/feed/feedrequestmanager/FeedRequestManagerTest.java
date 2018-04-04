@@ -21,8 +21,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.util.Base64;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -32,6 +34,7 @@ import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
@@ -62,6 +65,7 @@ public class FeedRequestManagerTest {
   @Mock private NetworkClient networkClient;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SchedulerApi scheduler;
+  @Mock private ThreadUtils threadUtils;
   @Captor private ArgumentCaptor<ByteString> byteStringCaptor;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
@@ -69,6 +73,7 @@ public class FeedRequestManagerTest {
   private ExtensionRegistryLite registry;
   private FeedExtensionRegistry feedExtensionRegistry;
   private FeedRequestManager requestManager;
+  private final TimingUtils timingUtils = new TimingUtils();
 
   private final Configuration configuration = new Configuration.Builder().build();
 
@@ -87,7 +92,14 @@ public class FeedRequestManagerTest {
     registry.add(FeedRequest.feedRequest);
     requestManager =
         new FeedRequestManager(
-            configuration, networkClient, protocolAdapter, feedExtensionRegistry, scheduler);
+            configuration,
+            networkClient,
+            protocolAdapter,
+            feedExtensionRegistry,
+            scheduler,
+            MoreExecutors.newDirectExecutorService(),
+            timingUtils,
+            threadUtils);
   }
 
   @Test

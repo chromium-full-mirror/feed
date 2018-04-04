@@ -77,7 +77,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final Map<String, StreamPayload> contentCache = new HashMap<>();
 
   private final SessionFactory sessionFactory;
-  private final ExecutorService sessionManagerExecutor;
+  private final ExecutorService executor;
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
@@ -92,14 +92,14 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private int handleTokenCount = 0;
 
   public FeedSessionManager(
-      ExecutorService sessionManagerExecutor,
+      ExecutorService executor,
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
       Supplier<ProtocolAdapter> protocolAdapterSupplier,
       Supplier<RequestManager> requestManagerSupplier,
       Configuration configuration) {
-    this.sessionManagerExecutor = sessionManagerExecutor;
+    this.executor = executor;
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
@@ -107,13 +107,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.requestManagerSupplier = requestManagerSupplier;
 
     optimisticWrites = configuration.getValueOrDefault(ConfigKey.OPTIMISTIC_SESSION_WRITES, false);
-    sessionFactory =
-        new SessionFactory(store, sessionManagerExecutor, timingUtils, threadUtils, configuration);
+    sessionFactory = new SessionFactory(store, executor, timingUtils, threadUtils, configuration);
 
     // Suppress warning
     @SuppressWarnings("nullness")
     Runnable initializationTask = this::initializationTask;
-    sessionManagerExecutor.execute(initializationTask);
+    executor.execute(initializationTask);
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the
@@ -149,7 +148,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     // Task which populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
-    sessionManagerExecutor.execute(
+    executor.execute(
         () -> {
           Logger.i(TAG, "Task: Create/Populate New Session");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -189,7 +188,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     // Task which populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
-    sessionManagerExecutor.execute(
+    executor.execute(
         () -> {
           Logger.i(TAG, "Task: CreateExistingSession");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -208,14 +207,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     // TODO: This should only create the request once.
     Logger.i(TAG, "HandleToken %s", streamToken.getContentId());
     threadUtils.checkMainThread();
-    sessionManagerExecutor.execute(
-        () -> {
-          Logger.i(TAG, "Task: handleToken");
-          ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-          requestManagerSupplier.get().loadMore(streamToken.getNextPageToken());
-          timeTracker.stop("task", "handleToken");
-          handleTokenCount++;
-        });
+    handleTokenCount++;
+    requestManagerSupplier.get().loadMore(streamToken.getNextPageToken());
   }
 
   @Override
@@ -304,7 +297,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     @Override
     public Void commit(Change change) {
       this.change = change;
-      sessionManagerExecutor.execute(this::commitTask);
+      executor.execute(this::commitTask);
       return null;
     }
 
@@ -374,7 +367,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
       if (optimisticWrites) {
-        sessionManagerExecutor.execute(contentMutation::commit);
+        executor.execute(contentMutation::commit);
       } else {
         contentMutation.commit();
       }
