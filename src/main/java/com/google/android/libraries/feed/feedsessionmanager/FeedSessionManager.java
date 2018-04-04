@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
@@ -74,7 +75,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final Map<String, StreamDataOperation> tokenMap = new HashMap<>();
 
   @GuardedBy("lock")
-  private final Map<String, StreamPayload> contentCache = new HashMap<>();
+  private final ContentCache contentCache;
 
   private final SessionFactory sessionFactory;
   private final ExecutorService executor;
@@ -108,6 +109,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     optimisticWrites = configuration.getValueOrDefault(ConfigKey.OPTIMISTIC_SESSION_WRITES, false);
     sessionFactory = new SessionFactory(store, executor, timingUtils, threadUtils, configuration);
+    contentCache = new ContentCache();
 
     // Suppress warning
     @SuppressWarnings("nullness")
@@ -276,6 +278,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       dumper.forKey("sharedStateCount").value(sharedStateCache.size());
       dumper.forKey("sessionCount").value(sessions.size()).compactPrevious();
       dumper.forKey("tokenCount").value(tokenMap.size()).compactPrevious();
+      dumper.dump(contentCache);
       for (Session session : sessions.values()) {
         if (session instanceof Dumpable) {
           dumper.dump((Dumpable) session);
@@ -303,10 +306,16 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     private void commitTask() {
       Logger.i(TAG, "Task: Mutate FeedSessionManager");
+      synchronized (lock) {
+        contentCache.startMutation();
+      }
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
       commitContent();
       commitSessionUpdates();
       commitCount++;
+      synchronized (lock) {
+        contentCache.finishMutation();
+      }
       timeTracker.stop("task", "Mutate FeedSessionManager", "mutations", streamStructures.size());
     }
 
