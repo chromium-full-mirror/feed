@@ -18,7 +18,6 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
-import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
@@ -37,16 +36,14 @@ abstract class ElementContainerAdapter<
 
   @VisibleForTesting final List<ChildAdapterT> childAdapters;
 
-  ElementContainerAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters);
+  ElementContainerAdapter(Context context, AdapterParameters parameters, V view, RecyclerKey key) {
+    super(context, parameters, view, key);
     childAdapters = new ArrayList<>();
   }
 
-  void initialCreate() {
-    if (getBaseView() != null) {
-      return;
-    }
-    initializeAdapter(createViewGroup(), createKey());
+  ElementContainerAdapter(Context context, AdapterParameters parameters, V view) {
+    super(context, parameters, view);
+    childAdapters = new ArrayList<>();
   }
 
   /** Unbind the model and release child adapters. Be sure to call this in any overrides. */
@@ -95,16 +92,5 @@ abstract class ElementContainerAdapter<
 
   void addChildAdapter(ChildAdapterT adapter) {
     childAdapters.add(adapter);
-  }
-
-  /** Creates the base ViewGroup for this adapter. */
-  abstract V createViewGroup();
-
-  /**
-   * Creates a {@link RecyclerKey} for this adapter based on the model (or returns SINGLETON_KEY if
-   * all adapters of this type are compatible for recycling).
-   */
-  RecyclerKey createKey() {
-    return SingletonKeySupplier.SINGLETON_KEY;
   }
 }

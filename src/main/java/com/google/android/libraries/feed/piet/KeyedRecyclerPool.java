@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+
 import android.util.LruCache;
 import javax.annotation.Nullable;
 
@@ -48,9 +50,7 @@ class KeyedRecyclerPool<A extends ElementAdapter<?, ?>> implements RecyclerPool<
 
   @Override
   public void put(RecyclerKey key, A adapter) {
-    if (key == null) {
-      throw new NullPointerException(String.format("null key for %s", adapter));
-    }
+    checkNotNull(key, "null key for %s", adapter);
     SingleKeyRecyclerPool<A> pool = poolMap.get(key);
     if (pool == null) {
       pool = new SingleKeyRecyclerPool<>(key, capacityPerPool);

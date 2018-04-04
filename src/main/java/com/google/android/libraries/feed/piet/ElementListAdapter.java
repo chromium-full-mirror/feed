@@ -14,10 +14,10 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
+import android.support.annotation.VisibleForTesting;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +35,7 @@ class ElementListAdapter
   private static final String TAG = "ElementListAdapter";
 
   private ElementListAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters);
+    super(context, parameters, createView(context), KeySupplier.SINGLETON_KEY);
   }
 
   @Override
@@ -50,12 +50,9 @@ class ElementListAdapter
 
   @Override
   void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
-    initialCreate();
-
-    ViewGroup viewGroup = checkNotNull(getBaseView());
     for (Element line : model.getElementsList()) {
       ElementAdapter<? extends View, ?> adapter = getAdapterForChildElement(line, frameContext);
-      viewGroup.addView(checkNotNull(adapter.getView(), "Adapter had null view"));
+      getBaseView().addView(adapter.getView());
 
       int width = adapter.getComputedWidthPx();
       width =
@@ -167,9 +164,9 @@ class ElementListAdapter
     return adapter;
   }
 
-  @Override
-  LinearLayout createViewGroup() {
-    LinearLayout viewGroup = new LinearLayout(getContext());
+  @VisibleForTesting
+  static LinearLayout createView(Context context) {
+    LinearLayout viewGroup = new LinearLayout(context);
     viewGroup.setOrientation(LinearLayout.VERTICAL);
     viewGroup.setLayoutParams(
         new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));

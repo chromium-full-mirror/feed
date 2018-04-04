@@ -104,7 +104,10 @@ class AdapterFactory<A extends ElementAdapter<?, M>, M> {
     statistics.releaseCalls++;
     a.unbindModel();
     a.releaseAdapter();
-    recyclingPool.put(a.getKey(), a);
+    RecyclerKey key = a.getKey();
+    if (key != null) {
+      recyclingPool.put(key, a);
+    }
   }
 
   public void purgeRecyclerPool() {

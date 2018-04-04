@@ -110,19 +110,10 @@ public class ElementAdapterTest {
 
   @Test
   public void testSetLayoutParams() {
-    adapter.initializeAdapter(view, null);
     adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));
 
     assertThat(view.getLayoutParams().width).isEqualTo(WIDTH);
     assertThat(view.getLayoutParams().height).isEqualTo(HEIGHT);
-  }
-
-  @Test
-  public void testSetLayoutParams_nullView() {
-    adapter.initializeAdapter(null, null);
-
-    // Should not throw NPE.
-    adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));
   }
 
   @Test
@@ -255,7 +246,6 @@ public class ElementAdapterTest {
   public void testBindModel_callsOnBindModel() {
     Element defaultElement = Element.getDefaultInstance();
 
-    adapter.initializeAdapter(view, null);
     adapter.bindModel(defaultElement, defaultElement, frameContext);
 
     assertThat(adapter.bound).isTrue();
@@ -265,25 +255,9 @@ public class ElementAdapterTest {
   public void testBindModel_extractsModelFromElement() {
     Element element = Element.getDefaultInstance();
 
-    adapter.initializeAdapter(view, null);
     adapter.bindModel(element, frameContext);
 
     assertThat(adapter.getModel()).isEqualTo(TestElementAdapter.DEFAULT_MODEL);
-  }
-
-  @Test
-  public void testBindModel_failsBeforeCreateAdapter() {
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(Element.getDefaultInstance(), frameContext);
-              }
-            })
-        .throwsAnExceptionOfType(NullPointerException.class)
-        .that()
-        .hasMessageThat()
-        .contains("View is null");
   }
 
   @Test
@@ -309,7 +283,6 @@ public class ElementAdapterTest {
             .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
             .build();
 
-    adapter.initializeAdapter(view, null);
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
   }
@@ -322,7 +295,6 @@ public class ElementAdapterTest {
     when(frameContext.getActionsFromBinding(actionsBinding))
         .thenReturn(Actions.newBuilder().setOnClick(Action.getDefaultInstance()).build());
 
-    adapter.initializeAdapter(view, null);
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
   }
@@ -335,7 +307,6 @@ public class ElementAdapterTest {
             .build();
     Element elementWithoutActions = Element.getDefaultInstance();
 
-    adapter.initializeAdapter(view, null);
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
 
@@ -489,7 +460,7 @@ public class ElementAdapterTest {
     View adapterView;
 
     TestElementAdapter(Context context, AdapterParameters parameters, View adapterView) {
-      super(context, parameters);
+      super(context, parameters, adapterView);
       this.adapterView = adapterView;
     }
 
@@ -501,7 +472,6 @@ public class ElementAdapterTest {
     @Override
     protected void onCreateAdapter(Object model, Element baseElement, FrameContext frameContext) {
       created = true;
-      initializeAdapter(adapterView, null);
     }
 
     @Override

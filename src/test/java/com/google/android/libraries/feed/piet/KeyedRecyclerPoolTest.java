@@ -18,6 +18,8 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
 import android.view.View;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -27,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 
 /** Tests of the {@link KeyedRecyclerPool} */
@@ -45,8 +48,11 @@ public class KeyedRecyclerPoolTest {
   @Mock TestElementAdapter adapter3;
   @Mock TestElementAdapter adapter4;
 
+  private Context testContext;
+
   @Before
   public void setUp() {
+    testContext = Robolectric.setupActivity(Activity.class);
     initMocks(this);
   }
 
@@ -188,9 +194,9 @@ public class KeyedRecyclerPoolTest {
     }
   }
 
-  private static class TestElementAdapter extends ElementAdapter<View, Object> {
+  private class TestElementAdapter extends ElementAdapter<View, Object> {
     TestElementAdapter() {
-      super(null, null);
+      super(testContext, null, new View(testContext));
     }
 
     @Override

@@ -49,6 +49,7 @@ import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
@@ -109,6 +110,8 @@ public class ElementListAdapterTest {
         .thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.makeStyleFor(LIST_STYLES)).thenReturn(styleProvider);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
+    when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(childStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
   }
 
   @Test

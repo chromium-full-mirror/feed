@@ -47,6 +47,7 @@ import com.google.search.now.ui.piet.ElementsProto.GridCell;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
+import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
@@ -98,6 +99,7 @@ public class GridRowAdapterTest {
     when(frameContext.makeStyleFor(GRID_STYLES)).thenReturn(styleProvider);
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
+    when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
   }
 
   @Test
@@ -507,7 +509,7 @@ public class GridRowAdapterTest {
 
   @Test
   public void testCreateViewGroup() {
-    LinearLayout gridView = adapter.createViewGroup();
+    LinearLayout gridView = GridRowAdapter.createView(context);
     assertThat(gridView.getOrientation()).isEqualTo(LinearLayout.HORIZONTAL);
     assertThat(gridView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
     assertThat(gridView.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);

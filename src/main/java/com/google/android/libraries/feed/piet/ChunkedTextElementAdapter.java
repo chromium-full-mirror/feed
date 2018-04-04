@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
@@ -92,7 +91,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
   }
 
   private void bindChunkedText(ChunkedText chunkedText, FrameContext frameContext) {
-    TextView textView = checkNotNull(getBaseView());
+    TextView textView = getBaseView();
     SpannableStringBuilder spannable = new SpannableStringBuilder();
     for (Chunk chunk : chunkedText.getChunksList()) {
       switch (chunk.getContentCase()) {

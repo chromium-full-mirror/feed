@@ -54,10 +54,10 @@ abstract class ElementAdapter<V extends View, M> {
 
   private final Context context;
   private final AdapterParameters parameters;
-  private V view;
+  private final V view;
   @Nullable private M model;
   private Element baseElement = Element.getDefaultInstance();
-  private RecyclerKey key;
+  @Nullable private RecyclerKey key;
   private FrameContext frameContext;
 
   @Nullable private FrameLayout overlayView = null;
@@ -74,29 +74,29 @@ abstract class ElementAdapter<V extends View, M> {
    */
   int heightPx = DIMENSION_NOT_SET;
 
-  ElementAdapter(Context context, AdapterParameters parameters) {
+  ElementAdapter(Context context, AdapterParameters parameters, V view) {
     this.context = context;
     this.parameters = parameters;
+    this.view = view;
+  }
+
+  ElementAdapter(Context context, AdapterParameters parameters, V view, RecyclerKey key) {
+    this(context, parameters, view);
+    this.key = key;
   }
 
   /**
    * Returns the View bound to the Adapter, for external use, such as adding to a layout. This is
    * not a valid call until the first Model has been bound to the Adapter.
    */
-  @Nullable
   public View getView() {
-    if (overlayView != null) {
-      return overlayView;
-    } else {
-      return view;
-    }
+    return overlayView != null ? overlayView : view;
   }
 
   /**
    * Returns the base view of the adapter; the view typed to the subclass's content. This returns a
    * different result than getView when there is a wrapper FrameLayout to support overlays.
    */
-  @Nullable
   protected V getBaseView() {
     return view;
   }
@@ -139,9 +139,7 @@ abstract class ElementAdapter<V extends View, M> {
 
     initializeOverflow(baseElement);
 
-    this.frameContext
-        .getCurrentStyle()
-        .setElementStyles(getContext(), this.frameContext, checkNotNull(view));
+    this.frameContext.getCurrentStyle().setElementStyles(getContext(), this.frameContext, view);
   }
 
   /** Performs child-class-specific adapter creation; to be overridden. */
@@ -174,16 +172,13 @@ abstract class ElementAdapter<V extends View, M> {
 
     onBindModel(model, baseElement, frameContext);
 
-    checkNotNull(view, "View is null; call initializeAdapter first!");
     bindOverlays(frameContext);
 
     bindActions(frameContext);
 
     // Reapply styles if we have style bindings
     if (getElementStyleIdsStack().hasStyleBinding()) {
-      this.frameContext
-          .getCurrentStyle()
-          .setElementStyles(getContext(), this.frameContext, checkNotNull(view));
+      this.frameContext.getCurrentStyle().setElementStyles(getContext(), this.frameContext, view);
     }
   }
 
@@ -196,7 +191,7 @@ abstract class ElementAdapter<V extends View, M> {
   private void initializeOverlays(FrameContext frameContext) {
     if (baseElement.getOverlayElementsCount() > 0) {
       FrameLayout overlayWrapper = new FrameLayout(getContext());
-      overlayWrapper.addView(checkNotNull(getBaseView()));
+      overlayWrapper.addView(getBaseView());
 
       for (ElementList overlayList : baseElement.getOverlayElementsList()) {
         ElementListAdapter overlayAdapter =
@@ -204,7 +199,7 @@ abstract class ElementAdapter<V extends View, M> {
                 .elementAdapterFactory
                 .createElementListAdapter(overlayList, frameContext);
         overlays.add(overlayAdapter);
-        overlayWrapper.addView(checkNotNull(overlayAdapter.getView()));
+        overlayWrapper.addView(overlayAdapter.getView());
 
         FrameLayout.LayoutParams params =
             new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
@@ -335,16 +330,15 @@ abstract class ElementAdapter<V extends View, M> {
   void onReleaseAdapter() {}
 
   /**
-   * Subclasses will call this method when they are first bound to a Model to set the View created
-   * by the Adapter and the Key based upon the Model type. All Views will have a Tag point to their
-   * Adapter.
+   * Subclasses will call this method when they are first bound to a Model to set the Key based upon
+   * the Model type.
    */
-  void initializeAdapter(V view, RecyclerKey key) {
-    this.view = view;
+  void setKey(RecyclerKey key) {
     this.key = key;
   }
 
   /** Returns a {@link RecyclerKey} which represents an instance of a Model based upon a type. */
+  @Nullable
   public RecyclerKey getKey() {
     // There are Adapters which don't hold on to their views.  How do we want to mark them?
     return key;

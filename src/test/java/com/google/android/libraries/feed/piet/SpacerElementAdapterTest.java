@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -67,6 +66,7 @@ public class SpacerElementAdapterTest {
     when(frameContext.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
     when(frameContext.getCurrentStyle()).thenReturn(mockStyleProvider);
+    when(mockStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }
 
@@ -105,7 +105,7 @@ public class SpacerElementAdapterTest {
     adapter.bindModel(spacerElement, frameContext);
 
     View v1 = adapter.getView();
-    assertThat(v1.getLayoutParams().height).isEqualTo(5);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(5);
 
     // Unbind adapter
     adapter.unbindModel();
@@ -131,7 +131,7 @@ public class SpacerElementAdapterTest {
     adapter.bindModel(spacerElement2, frameContext);
 
     View v2 = adapter.getView();
-    assertThat(v2.getLayoutParams().height).isEqualTo(10);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(10);
 
     assertThat(v2).isSameAs(v1);
   }
@@ -167,21 +167,21 @@ public class SpacerElementAdapterTest {
     when(mockStyleProvider3.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
 
     adapter.createAdapter(defaultElement, frameContext);
-    verify(frameContext, times(2)).makeStyleFor(styles1);
-    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(1);
+    verify(frameContext).makeStyleFor(styles1);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(1);
 
     adapter.unbindModel();
 
     adapter.bindModel(otherElementWithStyleRefs, frameContext);
     // Height should not change
     verify(frameContext, never()).makeStyleFor(styles2);
-    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(1);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(1);
 
     adapter.unbindModel();
 
     adapter.bindModel(otherElementWithStyleBindings, frameContext);
     verify(frameContext).makeStyleFor(styles3);
-    assertThat(adapter.getView().getLayoutParams().height).isEqualTo(3);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(3);
   }
 
   @Test

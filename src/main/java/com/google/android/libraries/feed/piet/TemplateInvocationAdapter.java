@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
+import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -42,7 +43,7 @@ class TemplateInvocationAdapter
   @Nullable private PietSharedState sharedState = null;
 
   TemplateInvocationAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters);
+    super(context, parameters, createView(context));
   }
 
   @Override
@@ -73,8 +74,7 @@ class TemplateInvocationAdapter
 
     template = modelTemplate;
     sharedState = frameContext.getPietSharedState();
-
-    initialCreate();
+    setKey(createKey());
 
     // TODO: Need to support Sharding.
     if (model.getBindingContextsCount() > 0 && modelTemplate.hasElementList()) {
@@ -141,9 +141,9 @@ class TemplateInvocationAdapter
     return listAdapter;
   }
 
-  @Override
-  LinearLayout createViewGroup() {
-    LinearLayout viewGroup = new LinearLayout(getContext());
+  @VisibleForTesting
+  static LinearLayout createView(Context context) {
+    LinearLayout viewGroup = new LinearLayout(context);
     viewGroup.setOrientation(LinearLayout.VERTICAL);
     viewGroup.setLayoutParams(
         new LinearLayout.LayoutParams(
@@ -151,13 +151,12 @@ class TemplateInvocationAdapter
     return viewGroup;
   }
 
-  @Override
-  protected RecyclerKey createKey() {
+  private RecyclerKey createKey() {
     return new TemplateKey(
         checkNotNull(template, "Template is null; not created yet?"), sharedState);
   }
 
-  void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
+  private void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
     int width = childAdapter.getComputedWidthPx();
     width = width == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
     int height = childAdapter.getComputedHeightPx();

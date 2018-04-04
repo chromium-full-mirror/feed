@@ -14,28 +14,26 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.LinearLayout;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.SpacerElementAdapter.DividerView;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** An {@link ElementAdapter} for {@code SpacerElement} elements. */
-class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
+class SpacerElementAdapter extends ElementAdapter<DividerView, SpacerElement> {
   private static final String TAG = "SpacerElementAdapter";
 
   @VisibleForTesting
   SpacerElementAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters);
+    super(context, parameters, new DividerView(context), KeySupplier.SINGLETON_KEY);
   }
 
   @Override
@@ -49,7 +47,9 @@ class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
 
   @Override
   void onCreateAdapter(SpacerElement model, Element baseElement, FrameContext frameContext) {
-    initialCreate(frameContext, model);
+    StyleProvider styleProvider = getElementStyle();
+    getBaseView()
+        .initialize(styleProvider.getColor(), model.getHeight(), styleProvider.getPadding());
     setSpacerStyles(frameContext);
   }
 
@@ -65,16 +65,7 @@ class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
     EdgeWidths padding = spacerStyle.getPadding();
 
     int height = padding.getTop() + padding.getBottom() + getModel().getHeight();
-    height = (int) ViewUtils.dpToPx(height, getContext());
-
-    View baseView = checkNotNull(getBaseView());
-    LayoutParams params = baseView.getLayoutParams();
-    if (params != null) {
-      params.height = height;
-    } else {
-      params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, height);
-    }
-    baseView.setLayoutParams(params);
+    heightPx = (int) ViewUtils.dpToPx(height, getContext());
   }
 
   @Override
@@ -87,13 +78,18 @@ class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
    * which can have a height & Styles. This can be used to create empty areas, dividers, horizontal
    * rules & blocks of color.
    */
-  private static class DividerView extends View {
-    private final ColorDrawable spacerDrawable;
-    private final int heightInPx;
-    private final int topPaddingInPx;
+  static class DividerView extends View {
+    private ColorDrawable spacerDrawable;
+    private int heightInPx;
+    private int topPaddingInPx;
+    private final Context context;
 
-    public DividerView(Context context, int color, int height, EdgeWidths padding) {
+    public DividerView(Context context) {
       super(context);
+      this.context = context;
+    }
+
+    public void initialize(int color, int height, EdgeWidths padding) {
       spacerDrawable = new ColorDrawable(color);
       heightInPx = (int) ViewUtils.dpToPx(height, context);
       this.topPaddingInPx = (int) ViewUtils.dpToPx(padding.getTop(), context);
@@ -111,17 +107,6 @@ class SpacerElementAdapter extends ElementAdapter<View, SpacerElement> {
         spacerDrawable.draw(canvas);
       }
     }
-  }
-
-  private void initialCreate(FrameContext frameContext, SpacerElement model) {
-    if (getBaseView() != null) {
-      return;
-    }
-    StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences());
-    View v =
-        new DividerView(
-            getContext(), styleProvider.getColor(), model.getHeight(), styleProvider.getPadding());
-    initializeAdapter(v, KeySupplier.SINGLETON_KEY);
   }
 
   static class KeySupplier extends SingletonKeySupplier<SpacerElementAdapter, SpacerElement> {

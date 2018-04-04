@@ -94,40 +94,30 @@ public class TextElementAdapterTest {
   }
 
   @Test
-  public void testCreateTextView_default() {
-    Font font = Font.getDefaultInstance();
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
-    when(mockStyleProvider.getFont()).thenReturn(font);
-
-    TextView textView = adapter.createTextView(font);
-    assertThat(textView).isNotNull();
-  }
-
-  @Test
-  public void testCreateTextView_boldFont() {
+  public void testSetFont_boldFont() {
     Font.Builder font = Font.newBuilder();
     font.setWeight(FontWeight.BOLD);
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
     when(mockStyleProvider.getFont()).thenReturn(font.build());
 
-    TextView textView = adapter.createTextView(font.build());
-    Typeface typeface = textView.getTypeface();
+    adapter.setFont(font.build());
+    Typeface typeface = adapter.getBaseView().getTypeface();
     // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
     assertThat(typeface.getStyle() & Typeface.BOLD).isGreaterThan(0);
     assertThat(typeface.getStyle() & Typeface.ITALIC).isEqualTo(0);
   }
 
   @Test
-  public void testCreateTextView_italics() {
+  public void testSetFont_italics() {
     Font.Builder font = Font.newBuilder();
     font.setItalic(true);
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
     when(mockStyleProvider.getFont()).thenReturn(font.build());
 
-    TextView textView = adapter.createTextView(font.build());
-    Typeface typeface = textView.getTypeface();
+    adapter.setFont(font.build());
+    Typeface typeface = adapter.getBaseView().getTypeface();
     // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
     assertThat(typeface.getStyle() & Typeface.BOLD).isEqualTo(0);
     assertThat(typeface.getStyle() & Typeface.ITALIC).isGreaterThan(0);

@@ -14,12 +14,11 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
+import android.support.annotation.VisibleForTesting;
 import android.view.Gravity;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
@@ -37,7 +36,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
   private static final String TAG = "GridRowAdapter";
 
   private GridRowAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters);
+    super(context, parameters, createView(context), KeySupplier.SINGLETON_KEY);
   }
 
   @Override
@@ -51,11 +50,6 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
 
   @Override
   void onCreateAdapter(GridRow gridRow, Element baseElement, FrameContext frameContext) {
-    initialCreate();
-
-    // Set the padding on the LinearLayout representing the grid line.
-    ViewGroup viewGroup = checkNotNull(getBaseView());
-
     // Populate the LinearLayout with cells.
     for (GridCell cell : gridRow.getCellsList()) {
       ElementListAdapter cellAdapter;
@@ -72,7 +66,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
           throw new IllegalArgumentException(
               String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
       }
-      viewGroup.addView(checkNotNull(cellAdapter.getView()));
+      getBaseView().addView(cellAdapter.getView());
       setLayoutParamsOnCell(cellAdapter, cell, frameContext);
     }
   }
@@ -178,9 +172,9 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
     return listAdapter;
   }
 
-  @Override
-  LinearLayout createViewGroup() {
-    LinearLayout viewGroup = new LinearLayout(getContext());
+  @VisibleForTesting
+  static LinearLayout createView(Context context) {
+    LinearLayout viewGroup = new LinearLayout(context);
     viewGroup.setOrientation(LinearLayout.HORIZONTAL);
     viewGroup.setLayoutParams(
         new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));

@@ -92,7 +92,7 @@ public class ChunkedTextElementAdapterTest {
                   .setParameterizedText(PARAMETERIZED_CHUNK_TEXT)
                   .setStyleReferences(CHUNK_STYLE))
           .build();
-  public static final ChunkedText CHUNKED_TEXT_TEXT =
+  private static final ChunkedText CHUNKED_TEXT_TEXT =
       ChunkedText.newBuilder().addChunks(TEXT_CHUNK).build();
   private static final String CHUNKY_URL = "pb.com/jif";
   private static final Image IMAGE_CHUNK_IMAGE =

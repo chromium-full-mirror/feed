@@ -82,7 +82,7 @@ public class FrameAdapter {
         }
         childAdapters.add(adapter);
         setLayoutParamsOnChild(adapter);
-        frameView.addView(checkNotNull(adapter.getView()));
+        frameView.addView(adapter.getView());
       }
 
       StyleProvider style = frameContext.getCurrentStyle();

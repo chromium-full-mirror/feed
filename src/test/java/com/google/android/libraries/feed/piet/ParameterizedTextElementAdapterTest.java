@@ -143,6 +143,7 @@ public class ParameterizedTextElementAdapterTest {
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
     assertThat(textView.getText()).isEqualTo("");
+    assertThat(textView.getVisibility()).isEqualTo(View.GONE);
   }
 
   @Test

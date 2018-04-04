@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.graphics.Typeface;
@@ -37,7 +36,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   private static final String TAG = "TextElementAdapter";
 
   TextElementAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters);
+    super(context, parameters, new TextView(context));
   }
 
   @Override
@@ -51,15 +50,19 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
 
   @Override
   void onCreateAdapter(TextElement textLine, Element baseElement, FrameContext frameContext) {
-    initialCreate(frameContext, textLine);
+    if (getKey() == null) {
+      Font font = getElementStyle().getFont();
+      setFont(font);
+      setKey(createKey(font));
+    }
 
     // Setup the layout of the text lines.
     updateTextStyle();
   }
 
   private void updateTextStyle() {
-    TextView textView = checkNotNull(getBaseView());
-    StyleProvider textStyle = getFrameContext().getCurrentStyle();
+    TextView textView = getBaseView();
+    StyleProvider textStyle = getElementStyle();
     textView.setTextColor(textStyle.getColor());
     if (textStyle.getMaxLines() > 0) {
       textView.setMaxLines(textStyle.getMaxLines());
@@ -91,7 +94,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
 
   @Override
   void onUnbindModel() {
-    TextView textView = checkNotNull(getBaseView());
+    TextView textView = getBaseView();
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       textView.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
     }
@@ -99,23 +102,13 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     textView.setText("");
   }
 
-  private void initialCreate(FrameContext frameContext, TextElement textLine) {
-    if (getBaseView() != null) {
-      return;
-    }
-    StyleProvider styleProvider = frameContext.makeStyleFor(textLine.getStyleReferences());
-    RecyclerKey k = createKey(styleProvider.getFont());
-    TextView v = createTextView(styleProvider.getFont());
-    initializeAdapter(v, k);
-  }
-
   abstract RecyclerKey createKey(Font font);
 
   @VisibleForTesting
-  TextView createTextView(Font font) {
+  void setFont(Font font) {
     // TODO: Line Height is currently not supported.
     // TODO: Implement typefaces
-    TextView textView = new TextView(getContext());
+    TextView textView = getBaseView();
     textView.setTextSize(font.getSize());
     boolean bold = false;
     switch (font.getWeight()) {
@@ -154,6 +147,5 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     } else {
       textView.setTypeface(Typeface.create(textView.getTypeface(), Typeface.NORMAL));
     }
-    return textView;
   }
 }

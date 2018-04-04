@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.view.View;
@@ -40,11 +39,10 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
 
   @Override
   void setTextOnView(FrameContext frameContext, TextElement textLine) {
-    TextView textView = checkNotNull(getBaseView());
     switch (textLine.getContentCase()) {
       case PARAMETERIZED_TEXT:
         // No bindings found, so use the inlined value (or empty if not set)
-        setTextOnView(frameContext, textView, textLine.getParameterizedText());
+        setTextOnView(frameContext, getBaseView(), textLine.getParameterizedText());
         setVisibility(Visibility.VISIBLE);
         break;
       case PARAMETERIZED_TEXT_BINDING:
@@ -59,7 +57,7 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
                   String.format(
                       "TextElement Binding not found for %s",
                       textLine.getParameterizedTextBinding())));
-          textView.setVisibility(View.GONE);
+          getBaseView().setVisibility(View.GONE);
           return;
         }
 
@@ -75,7 +73,7 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
         // Always set text even if visibility is set to GONE or INVISIBLE,
         // in case a later optimistic update operation changes the visibility but wants to retain
         // the previously-set text.
-        setTextOnView(frameContext, textView, bindingValue.getParameterizedText());
+        setTextOnView(frameContext, getBaseView(), bindingValue.getParameterizedText());
         break;
       default:
         throw new IllegalArgumentException(

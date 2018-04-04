@@ -430,13 +430,6 @@ public class ImageElementAdapterTest {
   }
 
   @Test
-  public void testUnbind_emptyFrame() {
-    adapter.unbindModel();
-
-    assertThat(adapter.getView()).isNull();
-  }
-
-  @Test
   public void testUnbind_cancelsCallback() {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);

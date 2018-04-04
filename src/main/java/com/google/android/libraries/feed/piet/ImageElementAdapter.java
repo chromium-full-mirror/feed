@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
@@ -39,7 +38,7 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
   @Nullable private LoadImageCallback currentlyLoadingImage = null;
 
   private ImageElementAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters);
+    super(context, parameters, createView(context), KeySupplier.SINGLETON_KEY);
   }
 
   @Override
@@ -53,8 +52,6 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
 
   @Override
   void onCreateAdapter(ImageElement model, Element baseElement, FrameContext frameContext) {
-    initialCreate();
-
     StyleProvider style = getElementStyle();
 
     if (style.hasWidth() || style.hasHeight()) {
@@ -81,11 +78,10 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
   @Override
   void onBindModel(ImageElement model, Element baseElement, FrameContext frameContext) {
     Image image;
-    ImageView baseView = checkNotNull(getBaseView());
     switch (model.getContentCase()) {
       case IMAGE:
         image = model.getImage();
-        baseView.setVisibility(View.VISIBLE);
+        getBaseView().setVisibility(View.VISIBLE);
         break;
       case IMAGE_BINDING:
         BindingValue binding = frameContext.getImageBindingValue(model.getImageBinding());
@@ -108,7 +104,7 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
                 "Unsupported or missing content in ImageElement: %s", model.getContentCase()));
     }
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
-    LoadImageCallback loadImageCallback = new LoadImageCallback(baseView);
+    LoadImageCallback loadImageCallback = new LoadImageCallback(getBaseView());
     currentlyLoadingImage = loadImageCallback;
     getFrameContext().getAssetProvider().getImage(image, loadImageCallback);
   }
@@ -135,13 +131,10 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
     return getModel().getStyleReferences();
   }
 
-  private void initialCreate() {
-    if (getBaseView() != null) {
-      return;
-    }
-    ImageView imageView = new ImageView(getContext());
+  private static ImageView createView(Context context) {
+    ImageView imageView = new ImageView(context);
     imageView.setCropToPadding(true);
-    initializeAdapter(imageView, KeySupplier.SINGLETON_KEY);
+    return imageView;
   }
 
   private static class LoadImageCallback implements Consumer<Drawable> {

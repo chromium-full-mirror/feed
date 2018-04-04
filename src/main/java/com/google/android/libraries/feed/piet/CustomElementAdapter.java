@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.view.View;
@@ -32,7 +31,7 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
   private static final String TAG = "CustomElementAdapter";
 
   CustomElementAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters);
+    super(context, parameters, new FrameLayout(context), KeySupplier.SINGLETON_KEY);
   }
 
   @Override
@@ -45,19 +44,7 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
   }
 
   @Override
-  void onCreateAdapter(
-      CustomElement customElement, Element baseElement, FrameContext frameContext) {
-    if (getBaseView() != null) {
-      return;
-    }
-    FrameLayout frameLayout = new FrameLayout(getContext());
-    initializeAdapter(frameLayout, KeySupplier.SINGLETON_KEY);
-  }
-
-  @Override
   void onBindModel(CustomElement customElement, Element baseElement, FrameContext frameContext) {
-    checkNotNull(getBaseView(), "View is null; initialize adapter first?");
-
     CustomElementData customElementData;
     switch (customElement.getContentCase()) {
       case CUSTOM_ELEMENT_DATA:
@@ -86,7 +73,7 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
     }
 
     View v = frameContext.getCustomElementProvider().createCustomElement(customElementData);
-    checkNotNull(getBaseView()).addView(v);
+    getBaseView().addView(v);
   }
 
   @Override

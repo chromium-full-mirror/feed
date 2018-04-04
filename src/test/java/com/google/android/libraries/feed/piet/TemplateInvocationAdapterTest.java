@@ -408,7 +408,7 @@ public class TemplateInvocationAdapterTest {
 
   @Test
   public void testCreateViewGroup() {
-    LinearLayout viewGroup = adapter.createViewGroup();
+    LinearLayout viewGroup = TemplateInvocationAdapter.createView(context);
 
     assertThat(viewGroup.getOrientation()).isEqualTo(LinearLayout.VERTICAL);
     assertThat(viewGroup.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
