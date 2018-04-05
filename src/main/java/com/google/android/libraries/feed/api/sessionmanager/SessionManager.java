@@ -53,6 +53,12 @@ public interface SessionManager {
   void getExistingSession(String sessionToken, ModelProvider modelProvider);
 
   /**
+   * This method will invalidate head. All {@link #getNewSession(ModelProvider)} will block until a
+   * new {@link SessionMutation} completes providing the new head.
+   */
+  void invalidateHead();
+
+  /**
    * Method which causes a request to be created for the next page of content based upon the
    * continuation token. This could be called from multiple Model Providers.
    */

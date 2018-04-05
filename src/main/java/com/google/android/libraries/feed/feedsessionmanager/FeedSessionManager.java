@@ -206,6 +206,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
+  public void invalidateHead() {
+    executor.execute(this::resetHead);
+  }
+
+  @Override
   public void handleToken(StreamToken streamToken) {
     // TODO: This should only create the request once.
     Logger.i(TAG, "HandleToken %s", streamToken.getContentId());
@@ -288,6 +293,32 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         }
       }
     }
+  }
+
+  private void resetHead() {
+    Logger.i(TAG, "Task: ResetHead");
+    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+    Collection<Session> currentSessions;
+    synchronized (lock) {
+      currentSessions = sessions.values();
+    }
+
+    List<String> sessionsRemoved = new ArrayList<>();
+    // TODO: Think through how this should work.  Only $HEAD is cleared
+    // Do we still invalidate everything?
+    store.clearHead();
+    for (Session session : currentSessions) {
+      ModelProvider modelProvider = session.getModelProvider();
+      if (modelProvider != null) {
+        modelProvider.invalidate();
+        store.removeSession(session.getStreamSession());
+        sessionsRemoved.add(session.getStreamSession().getStreamToken());
+      }
+    }
+    synchronized (lock) {
+      sessions.keySet().removeAll(sessionsRemoved);
+    }
+    timeTracker.stop("");
   }
 
   /**
@@ -402,29 +433,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           session.updateSession(streamStructures, change.mutationSourceToken);
         }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
-    }
-
-    private void resetHead() {
-      Collection<Session> currentSessions;
-      synchronized (lock) {
-        currentSessions = sessions.values();
-      }
-
-        List<String> sessionsRemoved = new ArrayList<>();
-        // TODO: Think through how this should work.  Only $HEAD is cleared
-        // Do we still invalidate everything?
-        store.clearHead();
-      for (Session session : currentSessions) {
-          ModelProvider modelProvider = session.getModelProvider();
-          if (modelProvider != null) {
-            modelProvider.invalidate();
-            store.removeSession(session.getStreamSession());
-            sessionsRemoved.add(session.getStreamSession().getStreamToken());
-          }
-        }
-      synchronized (lock) {
-        sessions.keySet().removeAll(sessionsRemoved);
-      }
     }
 
     private boolean validDataOperation(StreamDataOperation dataOperation) {
