@@ -46,6 +46,8 @@ import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.robolectric.RobolectricTestRunner;
@@ -67,6 +69,8 @@ public class ImageElementAdapterTest {
   private static final int WIDTH_DP = 321;
   private static final EdgeWidths PADDING =
       EdgeWidths.newBuilder().setBottom(1).setTop(2).setStart(3).setEnd(4).build();
+  private static final RoundedCorners CORNERS =
+      RoundedCorners.newBuilder().setBitmask(Corners.BOTTOM_LEFT_VALUE).setRadius(34).build();
   private static final Image DEFAULT_IMAGE =
       Image.newBuilder().addSources(ImageSource.newBuilder().setUrl("icanhas.chz")).build();
   private static final ImageElement DEFAULT_MODEL =
@@ -102,6 +106,10 @@ public class ImageElementAdapterTest {
     when(frameContextWithStyle.getAssetProvider()).thenReturn(assetProvider);
     when(frameContextWithStyle.getCurrentStyle()).thenReturn(styleProvider);
     when(styleProvider.getPadding()).thenReturn(PADDING);
+    when(styleProvider.hasRoundedCorners()).thenReturn(true);
+    when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
+    when(frameContext.getRoundedCornerRadius(styleProvider, context))
+        .thenReturn(CORNERS.getRadius());
 
     adapter = new KeySupplier().getAdapter(context, parameters);
   }
@@ -123,6 +131,21 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
     assertThat(adapter.getBaseView().getCropToPadding()).isTrue();
     verify(styleProvider).setElementStyles(context, frameContextWithStyle, adapter.getView());
+  }
+
+  @Test
+  public void testCreateAdapter_roundedCorners() {
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+
+    assertThat(adapter.getBaseView().getCornerRadius()).isWithin(.01F).of(CORNERS.getRadius());
+  }
+
+  @Test
+  public void testCreateAdapter_noRoundedCorners() {
+    when(styleProvider.hasRoundedCorners()).thenReturn(false);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+
+    assertThat(adapter.getBaseView().getCornerRadius()).isWithin(.01F).of(0);
   }
 
   @Test

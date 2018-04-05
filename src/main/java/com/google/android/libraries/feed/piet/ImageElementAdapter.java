@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerImageView;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -32,7 +33,7 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import javax.annotation.Nullable;
 
 /** An {@link ElementAdapter} for {@code ImageElement} elements. */
-class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
+class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageElement> {
   private static final String TAG = "ImageElementAdapter";
 
   @Nullable private LoadImageCallback currentlyLoadingImage = null;
@@ -73,6 +74,15 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
       widthPx = DIMENSION_NOT_SET;
       heightPx = DIMENSION_NOT_SET;
     }
+
+    int cornerRadius = 0;
+    int cornerBitmask = 0;
+    if (style.hasRoundedCorners()) {
+      cornerBitmask = style.getRoundedCorners().getBitmask();
+      cornerRadius = frameContext.getRoundedCornerRadius(style, getContext());
+    }
+    getBaseView().setRoundedCorners(cornerBitmask);
+    getBaseView().setCornerRadius(cornerRadius);
   }
 
   @Override
@@ -131,8 +141,8 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
     return getModel().getStyleReferences();
   }
 
-  private static ImageView createView(Context context) {
-    ImageView imageView = new ImageView(context);
+  private static RoundedCornerImageView createView(Context context) {
+    RoundedCornerImageView imageView = new RoundedCornerImageView(context);
     imageView.setCropToPadding(true);
     return imageView;
   }

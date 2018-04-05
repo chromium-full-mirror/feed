@@ -243,17 +243,10 @@ class FrameContext {
     if (!background.hasColor()) {
       return null;
     }
-    RoundedCornerColorDrawable bgDrawable =
-        new RoundedCornerColorDrawable(
-            background.getColor(), getRadius(style.getRoundedCorners(), context));
+    RoundedCornerColorDrawable bgDrawable = new RoundedCornerColorDrawable(background.getColor());
     if (style.hasRoundedCorners()) {
-      RoundedCorners roundedCorners = style.getRoundedCorners();
-      // If we defined rounded corners the default bitmask is rounding all the corners.
-      int bitmask =
-          roundedCorners.hasBitmask()
-              ? roundedCorners.getBitmask()
-              : RoundedCornerColorDrawable.TOP_CORNERS | RoundedCornerColorDrawable.BOTTOM_CORNERS;
-      bgDrawable.setRoundedCorners(bitmask);
+      bgDrawable.setRoundedCorners(style.getRoundedCorners().getBitmask());
+      bgDrawable.setRadius(getRoundedCornerRadius(style, context));
     }
     return bgDrawable;
   }
@@ -432,9 +425,10 @@ class FrameContext {
     return new ErrorViewUtils(context).getErrorView(errors);
   }
 
-  private int getRadius(RoundedCorners roundedCorner, Context context) {
-    if (roundedCorner.hasRadius()) {
-      return (int) ViewUtils.dpToPx(roundedCorner.getRadius(), context);
+  public int getRoundedCornerRadius(StyleProvider style, Context context) {
+    RoundedCorners roundedCorners = style.getRoundedCorners();
+    if (roundedCorners.hasRadius()) {
+      return (int) ViewUtils.dpToPx(roundedCorners.getRadius(), context);
     } else {
       return assetProvider.getDefaultCornerRadius();
     }

@@ -26,19 +26,11 @@ import javax.annotation.Nullable;
 public class RoundedCornerColorDrawable extends ColorDrawable {
   @Nullable private Shape roundedRectangle;
   @Nullable private Paint paint;
-  private final float radius;
+  private float radius;
+  private int cornerField;
 
-  public static final int TOP_LEFT = 1;
-  public static final int TOP_RIGHT = 2;
-  public static final int BOTTOM_RIGHT = 4;
-  public static final int BOTTOM_LEFT = 8;
-
-  public static final int TOP_CORNERS = TOP_LEFT | TOP_RIGHT;
-  public static final int BOTTOM_CORNERS = BOTTOM_LEFT | BOTTOM_RIGHT;
-
-  public RoundedCornerColorDrawable(int color, int radius) {
+  public RoundedCornerColorDrawable(int color) {
     super(color);
-    this.radius = radius;
   }
 
   @Override
@@ -61,36 +53,31 @@ public class RoundedCornerColorDrawable extends ColorDrawable {
   /**
    * Updates the rounded corner, using the radius set in the layout.
    *
-   * @param roundedCorners any of {@code TOP_LEFT}, {@code TOP_RIGHT}, {@code BOTTOM_RIGHT}, or
-   *     {@code BOTTOM_LEFT}, or {@code 0}
+   * @param roundedCorners Bitmask from {@link RoundedCorners.getBitmask()}
    */
   public void setRoundedCorners(int roundedCorners) {
-    createRoundedCornerMask(radius, roundedCorners);
+    if (cornerField == roundedCorners) {
+      return;
+    }
+    this.cornerField = roundedCorners;
+    createRoundedCornerMask(radius, cornerField);
 
     // Request a re-draw.
     invalidateSelf();
   }
 
+  public void setRadius(float radius) {
+    if (this.radius == radius) {
+      return;
+    }
+    this.radius = radius;
+    createRoundedCornerMask(radius, cornerField);
+  }
+
   private void createRoundedCornerMask(float radius, int cornerField) {
     // If we don't have any radius values, don't bother creating the mask.
-    if (radius > 0 && cornerField > 0) {
-      float[] radii = new float[8];
-      if ((cornerField & TOP_LEFT) != 0) {
-        radii[0] = radius;
-        radii[1] = radius;
-      }
-      if ((cornerField & TOP_RIGHT) != 0) {
-        radii[2] = radius;
-        radii[3] = radius;
-      }
-      if ((cornerField & BOTTOM_RIGHT) != 0) {
-        radii[4] = radius;
-        radii[5] = radius;
-      }
-      if ((cornerField & BOTTOM_LEFT) != 0) {
-        radii[6] = radius;
-        radii[7] = radius;
-      }
+    if (radius > 0) {
+      float[] radii = RoundedCornerViewHelper.createRoundedCornerMask(radius, cornerField);
       roundedRectangle = new RoundRectShape(radii, null, null);
       paint = new Paint();
       paint.setAntiAlias(true);

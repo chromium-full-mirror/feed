@@ -159,7 +159,7 @@ public class FrameAdapterTest {
 
     // Set background
     when(frameContext.createBackground(styleProvider, context))
-        .thenReturn(new RoundedCornerColorDrawable(12345, 67));
+        .thenReturn(new RoundedCornerColorDrawable(12345));
     frameAdapter.bindModel(frame, (ShardingControl) null);
     assertThat(frameAdapter.getView().getBackground()).isNotNull();
     frameAdapter.unbindModel();
@@ -177,7 +177,7 @@ public class FrameAdapterTest {
 
     // Set background
     when(frameContext.createBackground(styleProvider, context))
-        .thenReturn(new RoundedCornerColorDrawable(12345, 67));
+        .thenReturn(new RoundedCornerColorDrawable(12345));
     frameAdapter.bindModel(frame, (ShardingControl) null);
     assertThat(frameAdapter.getView().getBackground()).isNotNull();
     frameAdapter.unbindModel();
