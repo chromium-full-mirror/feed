@@ -54,6 +54,7 @@ public class PietAssetProviderTest {
     when(cardConfiguration.getDefaultCornerRadius()).thenReturn(DEFAULT_CORNER_RADIUS);
 
     clock = new TestClockImpl();
+    clock.set(TimeUnit.MINUTES.toMillis(1));
     pietAssetProvider = new PietAssetProvider(imageLoaderApi, cardConfiguration, clock);
   }
 
@@ -80,7 +81,7 @@ public class PietAssetProviderTest {
   @Test
   public void testGetRelativeElapsedString() {
     assertThat(pietAssetProvider.getRelativeElapsedString(TimeUnit.MINUTES.toMillis(1)))
-        .isEqualTo("in 1 min");
+        .isEqualTo("1 min ago");
   }
 
   @Test

@@ -56,7 +56,7 @@ public class PietAssetProvider implements AssetProvider {
   @Override
   public String getRelativeElapsedString(long elapsedTimeMillis) {
     return DateUtils.getRelativeTimeSpanString(
-            elapsedTimeMillis,
+            clock.currentTimeMillis() - elapsedTimeMillis,
             clock.currentTimeMillis(),
             DateUtils.MINUTE_IN_MILLIS,
             DateUtils.FORMAT_ABBREV_RELATIVE)
