@@ -48,6 +48,7 @@ import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
+import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
@@ -72,6 +73,8 @@ public class ElementListAdapterTest {
 
   private static final Element DEFAULT_ELEMENT =
       Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()).build();
+  private static final Element IMAGE_ELEMENT =
+      Element.newBuilder().setImageElement(ImageElement.getDefaultInstance()).build();
   private static final ElementList DEFAULT_LIST =
       ElementList.newBuilder().addElements(DEFAULT_ELEMENT).build();
 
@@ -85,8 +88,10 @@ public class ElementListAdapterTest {
   @Mock private ActionHandler actionHandler;
   @Mock private FrameContext frameContext;
   @Mock private FrameContext childFrameContext;
+  @Mock private FrameContext listFrameContext;
   @Mock private StyleProvider styleProvider;
   @Mock private StyleProvider childStyleProvider;
+  @Mock private StyleProvider listStyleProvider;
 
   private Context context;
   private AdapterParameters adapterParameters;
@@ -103,10 +108,11 @@ public class ElementListAdapterTest {
 
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance()))
         .thenReturn(childFrameContext);
-    when(frameContext.bindNewStyle(LIST_STYLES)).thenReturn(childFrameContext);
+    when(frameContext.bindNewStyle(LIST_STYLES)).thenReturn(listFrameContext);
+    when(listFrameContext.getCurrentStyle()).thenReturn(listStyleProvider);
     when(childFrameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(DEFAULT_STYLE_PROVIDER);
-    when(childFrameContext.getCurrentStyle()).thenReturn(styleProvider);
+    when(childFrameContext.getCurrentStyle()).thenReturn(childStyleProvider);
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.makeStyleFor(LIST_STYLES)).thenReturn(styleProvider);
@@ -141,7 +147,7 @@ public class ElementListAdapterTest {
 
     adapter.createAdapter(listWithStyles, frameContext);
 
-    verify(styleProvider).setElementStyles(context, childFrameContext, adapter.getView());
+    verify(listStyleProvider).setElementStyles(context, listFrameContext, adapter.getView());
   }
 
   @Test
@@ -600,5 +606,49 @@ public class ElementListAdapterTest {
         .isEqualTo(ViewGroup.LayoutParams.WRAP_CONTENT);
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
         .isEqualTo(0);
+  }
+
+  @Test
+  public void testSetLayoutParams_childWidthSet() {
+    int childWidth = 5;
+    when(childStyleProvider.hasWidth()).thenReturn(true);
+    when(childStyleProvider.getWidth()).thenReturn(childWidth);
+
+    ElementList listWithStyles = ElementList.newBuilder().addElements(IMAGE_ELEMENT).build();
+
+    adapter.createAdapter(listWithStyles, frameContext);
+
+    LinearLayout.LayoutParams params =
+        new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    adapter.setLayoutParams(params);
+
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(LinearLayout.LayoutParams.class);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
+        .isEqualTo(childWidth);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
+        .isEqualTo(childWidth);
+  }
+
+  @Test
+  public void testSetLayoutParams_widthSetOnList() {
+    ElementList listWithStyles = ElementList.newBuilder().addElements(IMAGE_ELEMENT).build();
+
+    adapter.createAdapter(listWithStyles, frameContext);
+
+    LinearLayout.LayoutParams params =
+        new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT);
+    params.weight = 1;
+    adapter.setLayoutParams(params);
+
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(LinearLayout.LayoutParams.class);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
+        .isEqualTo(ViewGroup.LayoutParams.MATCH_PARENT);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
+        .isEqualTo(ViewGroup.LayoutParams.WRAP_CONTENT);
   }
 }

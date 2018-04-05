@@ -150,11 +150,21 @@ class ElementListAdapter
   private void updateChildLayoutParams(ElementAdapter<? extends View, ?> adapter) {
     ViewGroup.LayoutParams params = getBaseView().getLayoutParams();
 
+    // First try to set the width to the dimension the child wants.
     int width = adapter.getComputedWidthPx();
-    // If width is not set then use the same width as list adapter.  This way if ElementList is in
-    // a GridCell and it was marked as WRAP_CONTENT then all its children also use WRAP_CONTENT if
-    // they have no width defined.
-    width = width == ElementAdapter.DIMENSION_NOT_SET ? params.width : width;
+
+    // If a child doesn't have a computed width then we update to match the list.
+    if (width == ElementAdapter.DIMENSION_NOT_SET) {
+
+      // If the list is set to WRAP_CONTENT then we will need to make sure that children are set to
+      // also WRAP_CONTENT otherwise the list can't determine the actual size.
+      if (params.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
+        width = ViewGroup.LayoutParams.WRAP_CONTENT;
+      } else {
+        width = ViewGroup.LayoutParams.MATCH_PARENT;
+      }
+    }
+
     int height = adapter.getComputedHeightPx();
     height =
         height == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
