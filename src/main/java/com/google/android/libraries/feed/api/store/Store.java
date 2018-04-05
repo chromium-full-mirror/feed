@@ -45,6 +45,9 @@ public interface Store {
    */
   List<StreamStructure> getStreamStructures(StreamSession session);
 
+  /** Returns a list of all the sessions, excluding the $HEAD session. */
+  List<StreamSession> getAllSessions();
+
   /**
    * Create a new session. The session is defined by all the {@link StreamDataOperation}s which are
    * currently stored in $HEAD.

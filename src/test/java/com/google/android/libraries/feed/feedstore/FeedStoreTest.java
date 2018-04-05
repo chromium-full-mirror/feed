@@ -208,6 +208,26 @@ public class FeedStoreTest {
   }
 
   @Test
+  public void getSessions() throws Exception {
+    StreamSession headSession = store.getHeadSession();
+    SessionMutation mutation = store.editSession(headSession);
+    mutation.add(STREAM_STRUCTURE);
+    mutation.commit();
+
+    List<StreamSession> sessions = store.getAllSessions();
+    assertThat(sessions).isEmpty();
+
+    StreamSession session = store.createNewSession();
+    sessions = store.getAllSessions();
+    assertThat(sessions).hasSize(1);
+    assertThat(sessions.get(0).getStreamToken()).isEqualTo(session.getStreamToken());
+
+    session = store.createNewSession();
+    sessions = store.getAllSessions();
+    assertThat(sessions).hasSize(2);
+  }
+
+  @Test
   public void editContent() throws Exception {}
 
   @Test

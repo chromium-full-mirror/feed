@@ -20,7 +20,6 @@ import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
@@ -43,9 +42,8 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -58,6 +56,7 @@ public class FeedStore implements Store, Dumpable {
   private static final StreamSession HEAD =
       StreamSession.newBuilder().setStreamToken("$HEAD").build();
   private static final String SHARED_STATE_PREFIX = "ss::";
+  private static final String SESSION_NAME_PREFIX = "_session:";
 
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
@@ -65,12 +64,6 @@ public class FeedStore implements Store, Dumpable {
   private final JournalStorage journalStorage;
   private final ThreadUtils threadUtils;
   private final UiRunnableHandler uiRunnableHandler;
-
-  // TODO: We need to synchronize access to these states
-  private int sessionId = 1;
-
-  // TODO: This should be some type of prefix search against the Content?
-  private final Map<String, StreamSharedState> sharedStates = new HashMap<>();
 
   public FeedStore(
       TimingUtils timingUtils,
@@ -99,12 +92,10 @@ public class FeedStore implements Store, Dumpable {
 
         uiRunnableHandler.post(
             TAG,
-            () -> {
-              contentStorage.get(
-                  contentId,
-                  new Consumer<byte[]>() {
-                    @Override
-                    public void accept(byte[] input) {
+            () ->
+                contentStorage.get(
+                    contentId,
+                    input -> {
                       if (input == null) {
                         Logger.w(TAG, "input was null, converting to empty byte[]");
                         input = new byte[0];
@@ -112,9 +103,7 @@ public class FeedStore implements Store, Dumpable {
                       contentFuture.put(input);
 
                       // todo(rbonick): handle errors
-                    }
-                  });
-            });
+                    }));
 
         byte[] content = contentFuture.get();
         if (content.length > 0) {
@@ -140,14 +129,13 @@ public class FeedStore implements Store, Dumpable {
     SimpleSettableFuture<List<byte[]>> sharedStatesFuture = new SimpleSettableFuture<>();
     uiRunnableHandler.post(
         TAG,
-        () -> {
-          contentStorage.getAll(
-              SHARED_STATE_PREFIX,
-              input -> {
-                sharedStatesFuture.put(new ArrayList<>(input.values()));
-                // TODO: handle errors
-              });
-        });
+        () ->
+            contentStorage.getAll(
+                SHARED_STATE_PREFIX,
+                input -> {
+                  sharedStatesFuture.put(new ArrayList<>(input.values()));
+                  // TODO: handle errors
+                }));
     try {
       List<byte[]> bytes = sharedStatesFuture.get();
       for (byte[] byteArray : bytes) {
@@ -167,16 +155,9 @@ public class FeedStore implements Store, Dumpable {
     List<StreamStructure> streamStructures = new ArrayList<>();
     try {
       SimpleSettableFuture<List<byte[]>> operationsFuture = new SimpleSettableFuture<>();
+      // TODO: handle errors
       uiRunnableHandler.post(
-          TAG,
-          () -> {
-            journalStorage.read(
-                session.getStreamToken(),
-                input -> {
-                  operationsFuture.put(input);
-                  // TODO: handle errors
-                });
-          });
+          TAG, () -> journalStorage.read(session.getStreamToken(), operationsFuture::put));
       List<byte[]> operations = operationsFuture.get();
       for (byte[] bytes : operations) {
         streamStructures.add(StreamStructure.parseFrom(bytes));
@@ -189,13 +170,42 @@ public class FeedStore implements Store, Dumpable {
   }
 
   @Override
+  public List<StreamSession> getAllSessions() {
+    threadUtils.checkNotMainThread();
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    List<StreamSession> sessions = new ArrayList<>();
+
+    try {
+      SimpleSettableFuture<List<String>> contentFuture = new SimpleSettableFuture<>();
+      uiRunnableHandler.post(
+          TAG,
+          () -> {
+            // todo(rbonick): handle errors
+            journalStorage.getAllJournals(contentFuture::put);
+          });
+
+      List<String> names = contentFuture.get();
+      for (String name : names) {
+        if (HEAD.getStreamToken().equals(name)) {
+          // Don't add $HEAD to the sessions list
+          continue;
+        }
+        sessions.add(StreamSession.newBuilder().setStreamToken(name).build());
+      }
+    } catch (ExecutionException | InterruptedException e) {
+      Logger.e(TAG, e, "Exception getting stream sessions");
+    }
+    tracker.stop("", "getAllSessions", "items", sessions.size());
+    return sessions;
+  }
+
+  @Override
   public StreamSession createNewSession() {
     threadUtils.checkNotMainThread();
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    int newSessionId = sessionId++;
-    StreamSession streamSession =
-        StreamSession.newBuilder().setStreamToken("_session:" + newSessionId).build();
+    String sessionName = SESSION_NAME_PREFIX + UUID.randomUUID();
+    StreamSession streamSession = StreamSession.newBuilder().setStreamToken(sessionName).build();
     SessionState session = new SessionState();
     session.addAll(getStreamStructures(HEAD));
 
@@ -203,13 +213,12 @@ public class FeedStore implements Store, Dumpable {
     SynchronousConsumerLatch<CommitResult> latch = new SynchronousConsumerLatch<>();
     uiRunnableHandler.post(
         TAG,
-        () -> {
-          journalStorage.commit(
-              new JournalMutation.Builder(HEAD.getStreamToken())
-                  .copy(streamSession.getStreamToken())
-                  .build(),
-              latch);
-        });
+        () ->
+            journalStorage.commit(
+                new JournalMutation.Builder(HEAD.getStreamToken())
+                    .copy(streamSession.getStreamToken())
+                    .build(),
+                latch));
     try {
       latch.await();
     } catch (InterruptedException e) {
@@ -237,10 +246,9 @@ public class FeedStore implements Store, Dumpable {
     SynchronousConsumerLatch<CommitResult> latch = new SynchronousConsumerLatch<>();
     uiRunnableHandler.post(
         TAG,
-        () -> {
-          journalStorage.commit(
-              new JournalMutation.Builder(session.getStreamToken()).delete().build(), latch);
-        });
+        () ->
+            journalStorage.commit(
+                new JournalMutation.Builder(session.getStreamToken()).delete().build(), latch));
     try {
       latch.await();
     } catch (InterruptedException e) {
@@ -259,10 +267,9 @@ public class FeedStore implements Store, Dumpable {
     SynchronousConsumerLatch<CommitResult> latch = new SynchronousConsumerLatch<>();
     uiRunnableHandler.post(
         TAG,
-        () -> {
-          journalStorage.commit(
-              new JournalMutation.Builder(HEAD.getStreamToken()).delete().build(), latch);
-        });
+        () ->
+            journalStorage.commit(
+                new JournalMutation.Builder(HEAD.getStreamToken()).delete().build(), latch));
     try {
       latch.await();
     } catch (InterruptedException e) {
@@ -302,12 +309,8 @@ public class FeedStore implements Store, Dumpable {
     uiRunnableHandler.post(
         TAG,
         () -> {
-          journalStorage.commit(
-              mutation.build(),
-              input -> {
-                resultFuture.put(input);
-                // TOOD(rbonick): handle errors
-              });
+          // TOOD(rbonick): handle errors
+          journalStorage.commit(mutation.build(), resultFuture::put);
         });
     boolean result;
     try {
@@ -348,16 +351,12 @@ public class FeedStore implements Store, Dumpable {
         // Block waiting for the response from storage, to make this method synchronous.
         SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
         Builder finalContentMutationBuilder = contentMutationBuilder;
+        // TODO: handle errors
         uiRunnableHandler.post(
             TAG,
-            () -> {
-              contentStorage.commit(
-                  finalContentMutationBuilder.build(),
-                  input -> {
-                    commitResultFuture.put(input);
-                    // TODO: handle errors
-                  });
-            });
+            () ->
+                contentStorage.commit(
+                    finalContentMutationBuilder.build(), commitResultFuture::put));
         commitResult = commitResultFuture.get();
       } catch (ExecutionException | InterruptedException e) {
         Logger.e(TAG, e, "Exception committing content mutation");
@@ -371,7 +370,6 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("nextSessionId").value(sessionId);
     if (contentStorage instanceof Dumpable) {
       dumper.dump((Dumpable) contentStorage);
     }
