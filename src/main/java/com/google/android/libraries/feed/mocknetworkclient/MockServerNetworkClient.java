@@ -104,12 +104,15 @@ public class MockServerNetworkClient implements NetworkClient {
   }
 
   private Request getRequest(HttpRequest httpRequest) throws IOException {
-    byte[] rawRequest;
+    byte[] rawRequest = new byte[0];
     if (httpRequest.getMethod().equals(HttpMethod.GET)) {
-      rawRequest =
-          Base64.decode(
-              httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-              Base64.URL_SAFE);
+      if (httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD)
+          != null) {
+        rawRequest =
+            Base64.decode(
+                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
+                Base64.URL_SAFE);
+      }
     } else {
       rawRequest = httpRequest.getBody().array();
     }

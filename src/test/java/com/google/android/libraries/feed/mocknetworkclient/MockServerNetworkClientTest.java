@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
+import com.google.android.libraries.feed.host.network.testing.NetworkClientConformanceTest;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -59,7 +60,7 @@ import org.mockito.Mock;
 
 /** Tests of the {@link MockServerNetworkClient} class. */
 @RunWith(RobolectricTestRunner.class)
-public class MockServerNetworkClientTest {
+public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
@@ -82,6 +83,10 @@ public class MockServerNetworkClientTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+
+    MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
+    List<MockUpdate> mockUpdates = new ArrayList<>();
+    networkClient = new MockServerNetworkClient(mockServerConfig, mockUpdates);
   }
 
   @Test
