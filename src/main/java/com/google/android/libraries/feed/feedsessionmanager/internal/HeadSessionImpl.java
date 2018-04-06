@@ -30,7 +30,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * Implementation of {@link Session} for $HEAD. This class doesn't support a ModelProvider. The

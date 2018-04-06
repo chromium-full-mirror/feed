@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.api.modelprovider;
 import android.support.annotation.IntDef;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import javax.annotation.Nullable;
 
 /**
  * A ModelProvider provides access to the Stream Model for the UI layer. It is populated by the

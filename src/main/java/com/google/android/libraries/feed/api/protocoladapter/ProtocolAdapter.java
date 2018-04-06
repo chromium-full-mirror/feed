@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.api.protocoladapter;
 import com.google.protobuf.ByteString;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
-import javax.annotation.Nullable;
 
 /** Converts the wire protocol (protos sent from the server) into an internal representation. */
 public interface ProtocolAdapter {

@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.common;
 
-import javax.annotation.Nullable;
 
 /** Wrapper that allows callbacks to return a value as well as whether the call was successful. */
 public class Result<T> {

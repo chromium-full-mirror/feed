@@ -31,7 +31,6 @@ import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import java.util.HashSet;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * An adapter which manages {@link Frame} instances. Frames will contain one or more slices. This

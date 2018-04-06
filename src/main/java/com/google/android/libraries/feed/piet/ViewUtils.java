@@ -21,7 +21,6 @@ import android.view.View;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
-import javax.annotation.Nullable;
 
 /** Utility class, providing useful methods to interact with Views. */
 public class ViewUtils {

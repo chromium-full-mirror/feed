@@ -20,7 +20,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import javax.annotation.Nullable;
 
 /** */
 public class UpdatableModelChild implements ModelChild {

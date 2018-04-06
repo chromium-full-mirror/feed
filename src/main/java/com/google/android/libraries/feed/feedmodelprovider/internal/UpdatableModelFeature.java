@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /** Implementation of the {@link ModelFeature} */
 public class UpdatableModelFeature extends Observable<FeatureChangeObserver>

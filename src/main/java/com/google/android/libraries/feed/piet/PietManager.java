@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import javax.annotation.Nullable;
 
 /** Manages a top-level session of Piet. */
 public class PietManager {
@@ -42,7 +41,7 @@ public class PietManager {
   }
 
   public FrameAdapter createPietFrameAdapter(
-      Supplier</*@NullableType*/ ViewGroup> cardViewProducer, Context context) {
+      Supplier</*@Nullable*/ ViewGroup> cardViewProducer, Context context) {
     AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
 
     return new FrameAdapter(context, parameters, frameModelBinder);
@@ -54,7 +53,7 @@ public class PietManager {
    */
   @VisibleForTesting
   AdapterParameters getAdapterParameters(
-      Context context, Supplier</*@NullableType*/ ViewGroup> cardViewProducer) {
+      Context context, Supplier</*@Nullable*/ ViewGroup> cardViewProducer) {
     if (adapterParameters == null || adapterParameters.context != context) {
       adapterParameters = new AdapterParameters(context, cardViewProducer, actionHandler);
     }

@@ -52,7 +52,6 @@ import com.google.android.libraries.feed.piet.PietStylesHelper;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * A basic implementation of a Feed {@link Stream} that is just able to render a vertical stream of

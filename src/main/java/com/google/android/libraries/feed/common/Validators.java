@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.common;
 
-import javax.annotation.Nullable;
 
 /**
  * Class similar to Guava's Preconditions. Not all users of Feed can use Guava libraries so we

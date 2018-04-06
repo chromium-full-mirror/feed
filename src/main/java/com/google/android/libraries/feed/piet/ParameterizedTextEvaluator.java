@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 
 /** Helper class to format templated strings when rendering cards. */
 public class ParameterizedTextEvaluator {

@@ -36,7 +36,6 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import java.util.ArrayList;
-import javax.annotation.Nullable;
 
 /** Per-stream instance of the feed library. */
 public class FeedStreamScope {

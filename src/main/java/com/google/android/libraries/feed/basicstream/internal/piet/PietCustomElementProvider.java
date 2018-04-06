@@ -19,7 +19,6 @@ import android.view.View;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
-import javax.annotation.Nullable;
 
 /**
  * A Stream implementation of a {@link CustomElementProvider} which handles Stream custom elements

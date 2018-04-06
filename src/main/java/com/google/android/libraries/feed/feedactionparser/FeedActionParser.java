@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.piet.ActionsProto.Action;
-import javax.annotation.Nullable;
 
 /**
  * Action parser which is able to parse Feed actions and notify clients about which action needs to

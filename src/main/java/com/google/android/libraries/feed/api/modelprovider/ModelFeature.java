@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import javax.annotation.Nullable;
 
 /**
  * This represents a Feature model within the stream tree structure. This represents things such as

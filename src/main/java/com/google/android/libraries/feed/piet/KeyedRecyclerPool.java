@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.util.LruCache;
-import javax.annotation.Nullable;
 
 /**
  * This is a simple implementation of a recycling pool for Adapters.

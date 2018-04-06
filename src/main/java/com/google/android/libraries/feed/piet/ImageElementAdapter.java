@@ -30,7 +30,6 @@ import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import javax.annotation.Nullable;
 
 /** An {@link ElementAdapter} for {@code ImageElement} elements. */
 class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageElement> {

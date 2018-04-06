@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 import android.support.annotation.IntDef;
-import javax.annotation.Nullable;
 
 /**
  * Abstract Interface defining a Child of a feature which may be returned by a {@link ModelCursor}.

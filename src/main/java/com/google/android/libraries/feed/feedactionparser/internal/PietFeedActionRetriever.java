@@ -18,7 +18,6 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
-import javax.annotation.Nullable;
 
 /** Class which is able to retrieve FeedActions from Piet actions */
 public class PietFeedActionRetriever {

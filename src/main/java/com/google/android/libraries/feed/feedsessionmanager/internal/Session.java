@@ -19,7 +19,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /** A {@code Session} is a instance which supports update and optionally a {@link ModelProvider}. */
 public interface Session {

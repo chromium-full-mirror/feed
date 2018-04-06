@@ -20,7 +20,6 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
-import javax.annotation.Nullable;
 
 /** Provides Piet shared states based on the a specified {@link ModelProvider}. */
 public class PietSharedStateSupplier implements Supplier<PietSharedState> {

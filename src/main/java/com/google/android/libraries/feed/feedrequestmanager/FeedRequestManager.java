@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
-import javax.annotation.Nullable;
 
 /** Default implementation of RequestManager. */
 public class FeedRequestManager implements RequestManager {

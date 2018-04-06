@@ -22,7 +22,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /** The SessionManager is responsible for creating and updating sessions within Jardin. */
 public interface SessionManager {

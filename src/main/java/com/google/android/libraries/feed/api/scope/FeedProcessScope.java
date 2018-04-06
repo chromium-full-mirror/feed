@@ -52,7 +52,6 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
-import javax.annotation.Nullable;
 
 /**
  * Per-process instance of the feed library.

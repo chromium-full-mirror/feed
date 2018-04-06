@@ -27,7 +27,6 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
-import javax.annotation.Nullable;
 
 /** An {@link ElementAdapter} which manages {@code ParameterizedText} elements. */
 class ParameterizedTextElementAdapter extends TextElementAdapter {

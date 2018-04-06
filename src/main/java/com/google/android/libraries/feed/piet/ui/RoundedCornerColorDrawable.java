@@ -20,7 +20,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
 import android.graphics.drawable.shapes.Shape;
-import javax.annotation.Nullable;
 
 /** Extension of {@code ColorDrawable} that will render with rounded corners. */
 public class RoundedCornerColorDrawable extends ColorDrawable {

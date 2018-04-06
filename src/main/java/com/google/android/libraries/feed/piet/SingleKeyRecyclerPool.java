@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import android.support.v4.util.Pools.SimplePool;
-import javax.annotation.Nullable;
 
 /** A very simple, single pool version of a {@link RecyclerPool} */
 class SingleKeyRecyclerPool<A extends ElementAdapter<?, ?>> implements RecyclerPool<A> {

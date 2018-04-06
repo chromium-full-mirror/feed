@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.piet.host;
 
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.PietProto.Frame;
-import javax.annotation.Nullable;
 
 /**
  * Interface from the Piet host which provides handling of {@link Action} from the UI. An instance

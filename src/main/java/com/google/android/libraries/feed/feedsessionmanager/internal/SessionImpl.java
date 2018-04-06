@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import javax.annotation.Nullable;
 
 /** Implementation of a {@link Session}. */
 public class SessionImpl implements InitializableSession, Dumpable {

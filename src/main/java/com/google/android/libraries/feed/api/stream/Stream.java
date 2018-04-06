@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.api.stream;
 import android.os.Bundle;
 import android.view.View;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /** Interface used for interacting with the Stream library in order to render a stream of cards. */
 public interface Stream {

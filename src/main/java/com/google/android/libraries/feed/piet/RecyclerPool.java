@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import javax.annotation.Nullable;
 
 /**
  * Interface defining a simple Pool of Adapters.

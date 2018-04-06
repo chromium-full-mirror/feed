@@ -20,7 +20,6 @@ import com.google.android.libraries.feed.common.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 /**
  * In order to support optimistic writes, the cache must cache the payloads for the full mutation.

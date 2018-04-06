@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /** A network client that returns mock responses provided via a config proto */
 public class MockServerNetworkClient implements NetworkClient {

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import javax.annotation.Nullable;
 
 /**
  * Simple Dumper modelled after the AGSA Dumper. This will dump a tree of objects which implement

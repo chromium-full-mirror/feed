@@ -31,7 +31,6 @@ import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
-import javax.annotation.Nullable;
 
 /** A {@link ElementContainerAdapter} which manages {@code TemplateInvocation} slices. */
 class TemplateInvocationAdapter

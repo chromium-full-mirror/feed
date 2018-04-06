@@ -27,7 +27,6 @@ import com.google.search.now.wire.feed.PayloadMetadataProto.PayloadMetadata;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /** Builder making creation of wire protocol Response object easier. */
 public class WireProtocolResponseBuilder {

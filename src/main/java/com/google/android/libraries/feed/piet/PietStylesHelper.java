@@ -27,7 +27,6 @@ import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 /** This class provides support helpers methods for managing styles in Piet. */
 public class PietStylesHelper {

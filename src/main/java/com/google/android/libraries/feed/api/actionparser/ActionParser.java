@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.api.actionparser;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
-import javax.annotation.Nullable;
 
 /** Parses actions from Piet and directs the Stream to handle the action. */
 public interface ActionParser {

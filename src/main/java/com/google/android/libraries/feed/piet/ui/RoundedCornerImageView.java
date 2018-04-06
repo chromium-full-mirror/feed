@@ -28,7 +28,6 @@ import android.graphics.drawable.shapes.Shape;
 import android.support.annotation.VisibleForTesting;
 import android.util.AttributeSet;
 import android.widget.ImageView;
-import javax.annotation.Nullable;
 
 /** {@link ImageView} which is able to show colors and bitmaps with rounded off the corners. */
 public class RoundedCornerImageView extends ImageView {
