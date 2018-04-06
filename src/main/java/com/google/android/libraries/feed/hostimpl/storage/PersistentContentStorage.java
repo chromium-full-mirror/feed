@@ -22,6 +22,7 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
@@ -59,7 +60,7 @@ public class PersistentContentStorage implements ContentStorage {
   }
 
   @Override
-  public void get(String key, Consumer<byte[]> consumer) {
+  public void get(String key, Consumer<Result<byte[]>> consumer) {
     threadUtils.checkMainThread();
 
     executor.execute(
@@ -67,12 +68,17 @@ public class PersistentContentStorage implements ContentStorage {
           initializeContentDir();
 
           File keyFile = new File(contentDir, key);
-          consumer.accept(getFileContents(keyFile));
+          try {
+            consumer.accept(Result.success(getFileContents(keyFile)));
+          } catch (IOException e) {
+            Logger.e(TAG, e, "Error getting file contents");
+            consumer.accept(Result.failure());
+          }
         });
   }
 
   @Override
-  public void getAll(String prefix, Consumer<Map<String, byte[]>> consumer) {
+  public void getAll(String prefix, Consumer<Result<Map<String, byte[]>>> consumer) {
     threadUtils.checkMainThread();
 
     executor.execute(
@@ -83,19 +89,24 @@ public class PersistentContentStorage implements ContentStorage {
 
           Map<String, byte[]> allFilesMap = new HashMap<>();
 
-          if (files != null) {
-            for (File file : files) {
-              if (file.getName().startsWith(prefix)) {
-                allFilesMap.put(file.getName(), getFileContents(file));
+          try {
+            if (files != null) {
+              for (File file : files) {
+                if (file.getName().startsWith(prefix)) {
+                  allFilesMap.put(file.getName(), getFileContents(file));
+                }
               }
             }
-          }
 
-          consumer.accept(allFilesMap);
+            consumer.accept(Result.success(allFilesMap));
+          } catch (IOException e) {
+            Logger.e(TAG, e, "Error getting file contents");
+            consumer.accept(Result.failure());
+          }
         });
   }
 
-  private byte[] getFileContents(File keyFile) {
+  private byte[] getFileContents(File keyFile) throws IOException {
     threadUtils.checkNotMainThread();
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -108,6 +119,7 @@ public class PersistentContentStorage implements ContentStorage {
         return outputStream.toByteArray();
       } catch (IOException e) {
         Logger.e(TAG, "Error reading file", e);
+        throw new IOException("Error reading file", e);
       }
     }
     return new byte[0];

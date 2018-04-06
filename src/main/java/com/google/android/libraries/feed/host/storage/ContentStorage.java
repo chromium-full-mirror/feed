@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.host.storage;
 
 import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.Result;
 import java.util.Map;
 
 /**
@@ -25,10 +26,10 @@ import java.util.Map;
 public interface ContentStorage {
 
   /** Asynchronously requests the value for a key. */
-  void get(String key, Consumer<byte[]> consumer);
+  void get(String key, Consumer<Result<byte[]>> consumer);
 
   /** Asynchronously requests all key/value pairs from storage with a matching key prefix. */
-  void getAll(String prefix, Consumer<Map<String, byte[]>> consumer);
+  void getAll(String prefix, Consumer<Result<Map<String, byte[]>>> consumer);
 
   /**
    * Commits the operations in the {@link ContentMutation} in order and asynchronously reports the

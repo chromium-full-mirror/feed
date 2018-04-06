@@ -43,6 +43,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -92,18 +93,18 @@ public class FeedStore implements Store, Dumpable {
 
         uiRunnableHandler.post(
             TAG,
-            () ->
-                contentStorage.get(
-                    contentId,
-                    input -> {
-                      if (input == null) {
-                        Logger.w(TAG, "input was null, converting to empty byte[]");
-                        input = new byte[0];
-                      }
+            () -> {
+              contentStorage.get(
+                  contentId,
+                  result -> {
+                    if (result.isSuccessful()) {
+                      byte[] input = result.getValue();
                       contentFuture.put(input);
-
+                    } else {
                       // todo(rbonick): handle errors
-                    }));
+                    }
+                  });
+            });
 
         byte[] content = contentFuture.get();
         if (content.length > 0) {
@@ -129,13 +130,18 @@ public class FeedStore implements Store, Dumpable {
     SimpleSettableFuture<List<byte[]>> sharedStatesFuture = new SimpleSettableFuture<>();
     uiRunnableHandler.post(
         TAG,
-        () ->
-            contentStorage.getAll(
-                SHARED_STATE_PREFIX,
-                input -> {
+        () -> {
+          contentStorage.getAll(
+              SHARED_STATE_PREFIX,
+              result -> {
+                if (result.isSuccessful()) {
+                  Map<String, byte[]> input = result.getValue();
                   sharedStatesFuture.put(new ArrayList<>(input.values()));
+                } else {
                   // TODO: handle errors
-                }));
+                }
+              });
+        });
     try {
       List<byte[]> bytes = sharedStatesFuture.get();
       for (byte[] byteArray : bytes) {

@@ -94,7 +94,7 @@ public class SimpleSettableFuture<V> implements Future<V> {
     }
   }
 
-  void putException(Exception e) {
+  public void putException(Exception e) {
     if (!isDone()) {
       this.exception = e;
       latch.countDown();

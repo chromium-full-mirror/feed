@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.host.storage.testing;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
@@ -37,35 +38,44 @@ public abstract class ContentStorageConformanceTest {
   private static final String OTHER_KEY = "other";
   private static final byte[] DATA_0 = "data 0".getBytes(Charset.forName("UTF-8"));
   private static final byte[] DATA_1 = "data 1".getBytes(Charset.forName("UTF-8"));
-  private final Consumer<Map<String, byte[]>> hasData0AndData1 =
-      new Consumer<Map<String, byte[]>>() {
+  private static final byte[] OTHER_DATA = "other data".getBytes(Charset.forName("UTF-8"));
+
+  private final Consumer<Result<Map<String, byte[]>>> hasData0AndData1 =
+      new Consumer<Result<Map<String, byte[]>>>() {
         @Override
-        public void accept(Map<String, byte[]> input) {
+        public void accept(Result<Map<String, byte[]>> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          Map<String, byte[]> input = result.getValue();
           assertThat(input.get(KEY_0)).isEqualTo(DATA_0);
           assertThat(input.get(KEY_1)).isEqualTo(DATA_1);
         }
       };
-  private static final byte[] OTHER_DATA = "other data".getBytes(Charset.forName("UTF-8"));
 
   // Helper consumers to make tests cleaner
-  private final Consumer<byte[]> isData0 =
-      new Consumer<byte[]>() {
+  private final Consumer<Result<byte[]>> isData0 =
+      new Consumer<Result<byte[]>>() {
         @Override
-        public void accept(byte[] input) {
+        public void accept(Result<byte[]> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          byte[] input = result.getValue();
           assertThat(input).isEqualTo(DATA_0);
         }
       };
-  private final Consumer<byte[]> isData1 =
-      new Consumer<byte[]>() {
+  private final Consumer<Result<byte[]>> isData1 =
+      new Consumer<Result<byte[]>>() {
         @Override
-        public void accept(byte[] input) {
+        public void accept(Result<byte[]> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          byte[] input = result.getValue();
           assertThat(input).isEqualTo(DATA_1);
         }
       };
-  private final Consumer<byte[]> isDataOther =
-      new Consumer<byte[]>() {
+  private final Consumer<Result<byte[]>> isDataOther =
+      new Consumer<Result<byte[]>>() {
         @Override
-        public void accept(byte[] input) {
+        public void accept(Result<byte[]> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          byte[] input = result.getValue();
           assertThat(input).isEqualTo(OTHER_DATA);
         }
       };
@@ -76,10 +86,12 @@ public abstract class ContentStorageConformanceTest {
           assertThat(input).isEqualTo(CommitResult.SUCCESS);
         }
       };
-  private final Consumer<byte[]> isEmptyByteArray =
-      new Consumer<byte[]>() {
+  private final Consumer<Result<byte[]>> isEmptyByteArray =
+      new Consumer<Result<byte[]>>() {
         @Override
-        public void accept(byte[] input) {
+        public void accept(Result<byte[]> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          byte[] input = result.getValue();
           assertThat(input).isNotNull();
           assertThat(input).hasLength(0);
         }
@@ -89,7 +101,7 @@ public abstract class ContentStorageConformanceTest {
 
   @Test
   public void missingKey() throws Exception {
-    RequiredConsumer<byte[]> consumer = new RequiredConsumer<>(isEmptyByteArray);
+    RequiredConsumer<Result<byte[]>> consumer = new RequiredConsumer<>(isEmptyByteArray);
     storage.get("missing key", consumer);
     assertThat(consumer.isCalled()).isTrue();
   }
@@ -103,7 +115,7 @@ public abstract class ContentStorageConformanceTest {
               public void accept(CommitResult input) {
                 assertThat(input).isEqualTo(CommitResult.SUCCESS);
 
-                RequiredConsumer<byte[]> byteConsumer = new RequiredConsumer<>(isData0);
+                RequiredConsumer<Result<byte[]>> byteConsumer = new RequiredConsumer<>(isData0);
                 storage.get(KEY_0, byteConsumer);
                 assertThat(byteConsumer.isCalled()).isTrue();
               }
@@ -122,11 +134,11 @@ public abstract class ContentStorageConformanceTest {
                 assertThat(input).isEqualTo(CommitResult.SUCCESS);
 
                 // Confirm Key 0 and 1 are present
-                RequiredConsumer<byte[]> byteConsumer1 = new RequiredConsumer<>(isData0);
+                RequiredConsumer<Result<byte[]>> byteConsumer1 = new RequiredConsumer<>(isData0);
                 storage.get(KEY_0, byteConsumer1);
                 assertThat(byteConsumer1.isCalled()).isTrue();
 
-                RequiredConsumer<byte[]> byteConsumer2 = new RequiredConsumer<>(isData1);
+                RequiredConsumer<Result<byte[]>> byteConsumer2 = new RequiredConsumer<>(isData1);
                 storage.get(KEY_1, byteConsumer2);
                 assertThat(byteConsumer2.isCalled()).isTrue();
 
@@ -161,15 +173,16 @@ public abstract class ContentStorageConformanceTest {
                 assertThat(input).isEqualTo(CommitResult.SUCCESS);
 
                 // Confirm Key 0, Key 1, and Other are present
-                RequiredConsumer<byte[]> byteConsumer1 = new RequiredConsumer<>(isData0);
+                RequiredConsumer<Result<byte[]>> byteConsumer1 = new RequiredConsumer<>(isData0);
                 storage.get(KEY_0, byteConsumer1);
                 assertThat(byteConsumer1.isCalled()).isTrue();
 
-                RequiredConsumer<byte[]> byteConsumer2 = new RequiredConsumer<>(isData1);
+                RequiredConsumer<Result<byte[]>> byteConsumer2 = new RequiredConsumer<>(isData1);
                 storage.get(KEY_1, byteConsumer2);
                 assertThat(byteConsumer2.isCalled()).isTrue();
 
-                RequiredConsumer<byte[]> byteConsumer3 = new RequiredConsumer<>(isDataOther);
+                RequiredConsumer<Result<byte[]>> byteConsumer3 =
+                    new RequiredConsumer<>(isDataOther);
                 storage.get(OTHER_KEY, byteConsumer3);
                 assertThat(byteConsumer3.isCalled()).isTrue();
 
@@ -211,11 +224,11 @@ public abstract class ContentStorageConformanceTest {
               public void accept(CommitResult input) {
                 assertThat(input).isEqualTo(CommitResult.SUCCESS);
 
-                RequiredConsumer<byte[]> byteConsumer1 = new RequiredConsumer<>(isData0);
+                RequiredConsumer<Result<byte[]>> byteConsumer1 = new RequiredConsumer<>(isData0);
                 storage.get(KEY_0, byteConsumer1);
                 assertThat(byteConsumer1.isCalled()).isTrue();
 
-                RequiredConsumer<byte[]> byteConsumer2 = new RequiredConsumer<>(isData1);
+                RequiredConsumer<Result<byte[]>> byteConsumer2 = new RequiredConsumer<>(isData1);
                 storage.get(KEY_1, byteConsumer2);
                 assertThat(byteConsumer2.isCalled()).isTrue();
               }
@@ -235,7 +248,7 @@ public abstract class ContentStorageConformanceTest {
               public void accept(CommitResult input) {
                 assertThat(input).isEqualTo(CommitResult.SUCCESS);
 
-                RequiredConsumer<Map<String, byte[]>> mapConsumer =
+                RequiredConsumer<Result<Map<String, byte[]>>> mapConsumer =
                     new RequiredConsumer<>(hasData0AndData1);
                 storage.getAll(KEY, mapConsumer);
                 assertThat(mapConsumer.isCalled()).isTrue();

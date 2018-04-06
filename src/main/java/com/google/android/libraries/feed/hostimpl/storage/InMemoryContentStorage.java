@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
@@ -51,7 +52,7 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
   private int updateCount = 0;
 
   @Override
-  public void get(String key, Consumer<byte[]> consumer) {
+  public void get(String key, Consumer<Result<byte[]>> consumer) {
     threadUtils.checkMainThread();
 
     getCount++;
@@ -60,11 +61,11 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
       Logger.w(TAG, "Didn't find value for %s, returning default", key);
       value = new byte[0];
     }
-    consumer.accept(value);
+    consumer.accept(Result.success(value));
   }
 
   @Override
-  public void getAll(String prefix, Consumer<Map<String, byte[]>> consumer) {
+  public void getAll(String prefix, Consumer<Result<Map<String, byte[]>>> consumer) {
     threadUtils.checkMainThread();
 
     getAllCount++;
@@ -74,7 +75,7 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
         results.put(entry.getKey(), entry.getValue());
       }
     }
-    consumer.accept(results);
+    consumer.accept(Result.success(results));
   }
 
   @Override
