@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalOperation;
@@ -50,13 +51,13 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
   }
 
   @Override
-  public void read(String journalName, Consumer<List<byte[]>> consumer) {
+  public void read(String journalName, Consumer<Result<List<byte[]>>> consumer) {
     readCount++;
     List<byte[]> journal = journals.get(journalName);
     if (journal == null) {
       journal = new ArrayList<>();
     }
-    consumer.accept(journal);
+    consumer.accept(Result.success(journal));
   }
 
   @Override
@@ -89,15 +90,16 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
   }
 
   @Override
-  public void exists(String journalName, Consumer<Boolean> consumer) {
-    consumer.accept(journals.containsKey(journalName));
+  public void exists(String journalName, Consumer<Result<Boolean>> consumer) {
+    consumer.accept(Result.success(journals.containsKey(journalName)));
   }
 
   @Override
-  public void getAllJournals(Consumer<List<String>> consumer) {
-    consumer.accept(new ArrayList<>(journals.keySet()));
+  public void getAllJournals(Consumer<Result<List<String>>> consumer) {
+    consumer.accept(Result.success(new ArrayList<>(journals.keySet())));
   }
 
+  @SuppressWarnings("ByteBufferBackingArray")
   private boolean append(ByteBuffer value, String journalName) {
     List<byte[]> journal = journals.get(journalName);
     if (value == null) {

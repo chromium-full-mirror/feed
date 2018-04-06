@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.host.storage;
 
 import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.Result;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ public interface JournalStorage {
    *
    * <p>Reads on journals that do not exist will fulfill with an empty list.
    */
-  void read(String journalName, Consumer<List<byte[]>> consumer);
+  void read(String journalName, Consumer<Result<List<byte[]>>> consumer);
 
   /**
    * Commits the operations in {@link JournalMutation} in order and asynchronously reports the
@@ -44,8 +45,8 @@ public interface JournalStorage {
   void commit(JournalMutation mutation, Consumer<CommitResult> consumer);
 
   /** Determines whether a journal exists and asynchronously responds. */
-  void exists(String journalName, Consumer<Boolean> consumer);
+  void exists(String journalName, Consumer<Result<Boolean>> consumer);
 
   /** Asynchronously retrieve a list of all current journals */
-  void getAllJournals(Consumer<List<String>> consumer);
+  void getAllJournals(Consumer<Result<List<String>>> consumer);
 }

@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.host.storage.testing;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
@@ -37,28 +38,34 @@ public abstract class JournalStorageConformanceTest {
   private static final byte[] DATA_0 = "data 0".getBytes(Charset.forName("UTF-8"));
   private static final byte[] DATA_1 = "data 1".getBytes(Charset.forName("UTF-8"));
 
-  private final Consumer<List<String>> isJournal1 =
-      new Consumer<List<String>>() {
+  private final Consumer<Result<List<String>>> isJournal1 =
+      new Consumer<Result<List<String>>>() {
         @Override
-        public void accept(List<String> input) {
+        public void accept(Result<List<String>> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          List<String> input = result.getValue();
           assertThat(input).hasSize(1);
           assertThat(input).contains(JOURNAL_NAME);
         }
       };
-  private final Consumer<List<String>> isJournal1AndJournal2 =
-      new Consumer<List<String>>() {
+  private final Consumer<Result<List<String>>> isJournal1AndJournal2 =
+      new Consumer<Result<List<String>>>() {
         @Override
-        public void accept(List<String> input) {
+        public void accept(Result<List<String>> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          List<String> input = result.getValue();
           assertThat(input).hasSize(2);
           assertThat(input).contains(JOURNAL_NAME);
           assertThat(input).contains(JOURNAL_COPY_NAME);
         }
       };
 
-  private final Consumer<List<byte[]>> isData0AndData1 =
-      new Consumer<List<byte[]>>() {
+  private final Consumer<Result<List<byte[]>>> isData0AndData1 =
+      new Consumer<Result<List<byte[]>>>() {
         @Override
-        public void accept(List<byte[]> input) {
+        public void accept(Result<List<byte[]>> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          List<byte[]> input = result.getValue();
           // We should get back one byte array, containing the bytes of DATA_0 and DATA_1.
           assertThat(input).isNotNull();
           assertThat(input).hasSize(2);
@@ -66,10 +73,12 @@ public abstract class JournalStorageConformanceTest {
           assertThat(Arrays.equals(input.get(1), DATA_1)).isTrue();
         }
       };
-  private final Consumer<List<byte[]>> isEmptyList =
-      new Consumer<List<byte[]>>() {
+  private final Consumer<Result<List<byte[]>>> isEmptyList =
+      new Consumer<Result<List<byte[]>>>() {
         @Override
-        public void accept(List<byte[]> input) {
+        public void accept(Result<List<byte[]>> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          List<byte[]> input = result.getValue();
 
           // The result should be an empty List.
           assertThat(input).isNotNull();
@@ -83,17 +92,21 @@ public abstract class JournalStorageConformanceTest {
           assertThat(input).isEqualTo(CommitResult.SUCCESS);
         }
       };
-  private final Consumer<Boolean> isFalse =
-      new Consumer<Boolean>() {
+  private final Consumer<Result<Boolean>> isFalse =
+      new Consumer<Result<Boolean>>() {
         @Override
-        public void accept(Boolean input) {
+        public void accept(Result<Boolean> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          Boolean input = result.getValue();
           assertThat(input).isFalse();
         }
       };
-  private final Consumer<Boolean> isTrue =
-      new Consumer<Boolean>() {
+  private final Consumer<Result<Boolean>> isTrue =
+      new Consumer<Result<Boolean>>() {
         @Override
-        public void accept(Boolean input) {
+        public void accept(Result<Boolean> result) {
+          assertThat(result.isSuccessful()).isTrue();
+          Boolean input = result.getValue();
           assertThat(input).isTrue();
         }
       };
@@ -103,7 +116,7 @@ public abstract class JournalStorageConformanceTest {
   @Test
   public void readOfEmptyJournalReturnsEmptyData() throws Exception {
     // Try to read some blobs from an empty journal store.
-    RequiredConsumer<List<byte[]>> readConsumer = new RequiredConsumer<>(isEmptyList);
+    RequiredConsumer<Result<List<byte[]>>> readConsumer = new RequiredConsumer<>(isEmptyList);
     journalStorage.read(JOURNAL_NAME, readConsumer);
     assertThat(readConsumer.isCalled()).isTrue();
   }
@@ -118,7 +131,7 @@ public abstract class JournalStorageConformanceTest {
     assertThat(commitConsumer.isCalled()).isTrue();
 
     // Read the data back into blobs.
-    RequiredConsumer<List<byte[]>> readConsumer = new RequiredConsumer<>(isData0AndData1);
+    RequiredConsumer<Result<List<byte[]>>> readConsumer = new RequiredConsumer<>(isData0AndData1);
     journalStorage.read(JOURNAL_NAME, readConsumer);
     assertThat(readConsumer.isCalled()).isTrue();
   }
@@ -139,7 +152,7 @@ public abstract class JournalStorageConformanceTest {
     assertThat(commitConsumer.isCalled()).isTrue();
 
     // Read the data back into blobs.
-    RequiredConsumer<List<byte[]>> readConsumer = new RequiredConsumer<>(isData0AndData1);
+    RequiredConsumer<Result<List<byte[]>>> readConsumer = new RequiredConsumer<>(isData0AndData1);
     journalStorage.read(JOURNAL_COPY_NAME, readConsumer);
     assertThat(readConsumer.isCalled()).isTrue();
   }
@@ -160,7 +173,7 @@ public abstract class JournalStorageConformanceTest {
     assertThat(commitConsumer.isCalled()).isTrue();
 
     // Try to read the deleted journal.
-    RequiredConsumer<List<byte[]>> readConsumer = new RequiredConsumer<>(isEmptyList);
+    RequiredConsumer<Result<List<byte[]>>> readConsumer = new RequiredConsumer<>(isEmptyList);
     journalStorage.read(JOURNAL_NAME, readConsumer);
     assertThat(readConsumer.isCalled()).isTrue();
   }
@@ -174,14 +187,14 @@ public abstract class JournalStorageConformanceTest {
         commitConsumer);
     assertThat(commitConsumer.isCalled()).isTrue();
 
-    RequiredConsumer<Boolean> existsConsumer = new RequiredConsumer<>(isTrue);
+    RequiredConsumer<Result<Boolean>> existsConsumer = new RequiredConsumer<>(isTrue);
     journalStorage.exists(JOURNAL_NAME, existsConsumer);
     assertThat(existsConsumer.isCalled()).isTrue();
   }
 
   @Test
   public void exists_doesNotExist() throws Exception {
-    RequiredConsumer<Boolean> existsConsumer = new RequiredConsumer<>(isFalse);
+    RequiredConsumer<Result<Boolean>> existsConsumer = new RequiredConsumer<>(isFalse);
     journalStorage.exists(JOURNAL_NAME, existsConsumer);
     assertThat(existsConsumer.isCalled()).isTrue();
   }
@@ -195,7 +208,8 @@ public abstract class JournalStorageConformanceTest {
         commitConsumer);
     assertThat(commitConsumer.isCalled()).isTrue();
 
-    RequiredConsumer<List<String>> getAllJournalsConsumer = new RequiredConsumer<>(isJournal1);
+    RequiredConsumer<Result<List<String>>> getAllJournalsConsumer =
+        new RequiredConsumer<>(isJournal1);
     journalStorage.getAllJournals(getAllJournalsConsumer);
     assertThat(getAllJournalsConsumer.isCalled()).isTrue();
   }
@@ -213,7 +227,7 @@ public abstract class JournalStorageConformanceTest {
         commitConsumer);
     assertThat(commitConsumer.isCalled()).isTrue();
 
-    RequiredConsumer<List<String>> getAllJournalsConsumer =
+    RequiredConsumer<Result<List<String>>> getAllJournalsConsumer =
         new RequiredConsumer<>(isJournal1AndJournal2);
     journalStorage.getAllJournals(getAllJournalsConsumer);
     assertThat(getAllJournalsConsumer.isCalled()).isTrue();

@@ -138,6 +138,8 @@ public class FeedStore implements Store, Dumpable {
                   Map<String, byte[]> input = result.getValue();
                   sharedStatesFuture.put(new ArrayList<>(input.values()));
                 } else {
+                  sharedStatesFuture.putException(
+                      new RuntimeException("Error fetching shared states"));
                   // TODO: handle errors
                 }
               });
@@ -161,9 +163,21 @@ public class FeedStore implements Store, Dumpable {
     List<StreamStructure> streamStructures = new ArrayList<>();
     try {
       SimpleSettableFuture<List<byte[]>> operationsFuture = new SimpleSettableFuture<>();
-      // TODO: handle errors
       uiRunnableHandler.post(
-          TAG, () -> journalStorage.read(session.getStreamToken(), operationsFuture::put));
+          TAG,
+          () ->
+              journalStorage.read(
+                  session.getStreamToken(),
+                  result -> {
+                    if (result.isSuccessful()) {
+                      List<byte[]> value = result.getValue();
+                      operationsFuture.put(value);
+                    } else {
+                      operationsFuture.putException(
+                          new RuntimeException("Could not fetch stream structures"));
+                      // TODO: handle errors
+                    }
+                  }));
       List<byte[]> operations = operationsFuture.get();
       for (byte[] bytes : operations) {
         if (bytes.length == 0) {
@@ -189,8 +203,17 @@ public class FeedStore implements Store, Dumpable {
       uiRunnableHandler.post(
           TAG,
           () -> {
-            // todo(rbonick): handle errors
-            journalStorage.getAllJournals(contentFuture::put);
+            journalStorage.getAllJournals(
+                result -> {
+                  if (result.isSuccessful()) {
+                    List<String> value = result.getValue();
+                    contentFuture.put(value);
+                  } else {
+                    // todo(rbonick): handle errors
+                    contentFuture.putException(
+                        new RuntimeException("Could not fetch all journals"));
+                  }
+                });
           });
 
       List<String> names = contentFuture.get();

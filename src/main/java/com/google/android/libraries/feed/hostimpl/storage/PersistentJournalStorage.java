@@ -23,6 +23,7 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalOperation;
@@ -66,7 +67,7 @@ public class PersistentJournalStorage implements JournalStorage {
   }
 
   @Override
-  public void read(String journalName, Consumer<List<byte[]>> consumer) {
+  public void read(String journalName, Consumer<Result<List<byte[]>>> consumer) {
     threadUtils.checkMainThread();
 
     executor.execute(
@@ -76,13 +77,17 @@ public class PersistentJournalStorage implements JournalStorage {
           String sanitizedJournalName = sanitize(journalName);
           if (!sanitizedJournalName.isEmpty()) {
             File journal = new File(journalDir, sanitizedJournalName);
-            consumer.accept(getJournalContents(journal));
+            try {
+              consumer.accept(Result.success(getJournalContents(journal)));
+            } catch (IOException e) {
+              Logger.e(TAG, "Error occured reading journal %s", journalName);
+              consumer.accept(Result.failure());
+            }
           }
-          // TODO: error handling
         });
   }
 
-  private List<byte[]> getJournalContents(File journal) {
+  private List<byte[]> getJournalContents(File journal) throws IOException {
     List<byte[]> journalContents = new ArrayList<>();
     if (journal.exists()) {
       try (BufferedReader reader = new BufferedReader(new FileReader(journal))) {
@@ -93,6 +98,7 @@ public class PersistentJournalStorage implements JournalStorage {
         }
       } catch (IOException e) {
         Logger.e(TAG, "Error reading file", e);
+        throw new IOException("Error reading journal file", e);
       }
     }
     return journalContents;
@@ -184,7 +190,7 @@ public class PersistentJournalStorage implements JournalStorage {
   }
 
   @Override
-  public void exists(String journalName, Consumer<Boolean> consumer) {
+  public void exists(String journalName, Consumer<Result<Boolean>> consumer) {
     threadUtils.checkMainThread();
 
     executor.execute(
@@ -194,14 +200,14 @@ public class PersistentJournalStorage implements JournalStorage {
           String sanitizedJournalName = sanitize(journalName);
           if (!sanitizedJournalName.isEmpty()) {
             File journal = new File(journalDir, sanitizedJournalName);
-            consumer.accept(journal.exists());
+            consumer.accept(Result.success(journal.exists()));
           }
           // TODO: error handling
         });
   }
 
   @Override
-  public void getAllJournals(Consumer<List<String>> consumer) {
+  public void getAllJournals(Consumer<Result<List<String>>> consumer) {
     threadUtils.checkMainThread();
 
     executor.execute(
@@ -216,10 +222,9 @@ public class PersistentJournalStorage implements JournalStorage {
               if (!desanitizedFileName.isEmpty()) {
                 journals.add(desanitizedFileName);
               }
-              // TODO: error handling
             }
           }
-          consumer.accept(journals);
+          consumer.accept(Result.success(journals));
         });
   }
 
