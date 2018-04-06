@@ -31,6 +31,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -96,7 +97,7 @@ public class FrameAdapterTest {
         .thenReturn(templateAdapter);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(frameContext.getAssetProvider()).thenReturn(assetProvider);
-    when(frameContext.reportError(anyInt(), anyString()))
+    when(frameContext.reportError(eq(ErrorType.ERROR), anyString()))
         .thenAnswer(
             new Answer<Object>() {
               @Override
