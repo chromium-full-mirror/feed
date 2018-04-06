@@ -520,6 +520,12 @@ public class ElementListAdapterTest {
   }
 
   @Test
+  public void testGetVerticalGravity_noModel() {
+    assertThat(adapter.getVerticalGravity())
+        .isEqualTo(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED);
+  }
+
+  @Test
   public void testGetStyleIdsStack() {
     ElementList listWithStyles =
         ElementList.newBuilder()

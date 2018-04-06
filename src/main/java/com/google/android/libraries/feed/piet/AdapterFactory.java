@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
-import com.google.search.now.ui.piet.ElementsProto.Element;
 
 /**
  * An AdapterFactory manages binding a model to an Adapter and releasing it once we are done with
@@ -80,13 +79,8 @@ class AdapterFactory<A extends ElementAdapter<?, M>, M> {
     }
   }
 
-  /** Returns an adapter with the model bound to the view. */
-  public A get(M model, FrameContext frameContext) {
-    return get(model, Element.getDefaultInstance(), frameContext);
-  }
-
   /** Returns an adapter suitable for binding the given model. */
-  public A get(M model, Element baseElement, FrameContext frameContext) {
+  public A get(M model, FrameContext frameContext) {
     statistics.getCalls++;
     A a = recyclingPool.get(keySupplier.getKey(frameContext, model));
     if (a == null) {
@@ -95,7 +89,6 @@ class AdapterFactory<A extends ElementAdapter<?, M>, M> {
     } else {
       statistics.poolHit++;
     }
-    a.createAdapter(model, baseElement, frameContext);
     return a;
   }
 

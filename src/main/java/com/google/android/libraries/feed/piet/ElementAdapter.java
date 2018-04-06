@@ -198,6 +198,7 @@ abstract class ElementAdapter<V extends View, M> {
             getParameters()
                 .elementAdapterFactory
                 .createElementListAdapter(overlayList, frameContext);
+        overlayAdapter.createAdapter(overlayList, frameContext);
         overlays.add(overlayAdapter);
         overlayWrapper.addView(overlayAdapter.getView());
 

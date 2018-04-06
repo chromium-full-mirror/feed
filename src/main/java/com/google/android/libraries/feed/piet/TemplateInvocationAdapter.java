@@ -137,6 +137,7 @@ class TemplateInvocationAdapter
   private ElementListAdapter getAdapterForChildList(ElementList list, FrameContext frameContext) {
     ElementListAdapter listAdapter =
         getParameters().elementAdapterFactory.createElementListAdapter(list, frameContext);
+    listAdapter.createAdapter(list, frameContext);
     addChildAdapter(listAdapter);
     return listAdapter;
   }

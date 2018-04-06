@@ -16,7 +16,11 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -27,15 +31,20 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
+import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.Slice;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
+import com.google.search.now.ui.piet.PietProto.Template;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,12 +52,15 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 
 /** Tests of the {@link FrameAdapter}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@Config(
+    manifest = "AndroidManifest.xml")
 public class FrameAdapterTest {
   @Mock private AssetProvider assetProvider;
   @Mock private ElementAdapterFactory adapterFactory;
@@ -77,12 +89,21 @@ public class FrameAdapterTest {
             new ParameterizedTextEvaluator(),
             adapterFactory);
     when(elementListAdapter.getView()).thenReturn(new LinearLayout(context));
+    when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
     when(adapterFactory.createElementListAdapter(any(ElementList.class), eq(frameContext)))
         .thenReturn(elementListAdapter);
     when(adapterFactory.createTemplateAdapter(any(TemplateInvocation.class), eq(frameContext)))
         .thenReturn(templateAdapter);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(frameContext.getAssetProvider()).thenReturn(assetProvider);
+    when(frameContext.reportError(anyInt(), anyString()))
+        .thenAnswer(
+            new Answer<Object>() {
+              @Override
+              public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                throw new RuntimeException(invocationOnMock.getArgumentAt(1, String.class));
+              }
+            });
     when(frameModelBinder.bindFrame(any(Frame.class))).thenReturn(frameContext);
 
     frameAdapter = new FrameAdapter(context, adapterParameters, frameModelBinder);
@@ -108,6 +129,49 @@ public class FrameAdapterTest {
     slice = Slice.newBuilder().setTemplateSlice(TemplateInvocation.getDefaultInstance()).build();
     viewAdapter = frameAdapter.getBoundAdapterForSlice(slice, frameContext);
     assertThat(viewAdapter).isSameAs(templateAdapter);
+    verify(frameContext, never()).reportError(anyInt(), anyString());
+  }
+
+  @Test
+  public void testBindAndUnbind_respectsAdapterLifecycle() {
+    String templateId = "template";
+    ElementList defaultList =
+        ElementList.newBuilder()
+            .addElements(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
+            .addElements(Element.newBuilder().setGridRow(GridRow.getDefaultInstance()))
+            .build();
+    PietSharedState pietSharedState =
+        PietSharedState.newBuilder()
+            .addTemplates(
+                Template.newBuilder().setTemplateId(templateId).setElementList(defaultList))
+            .build();
+    AdapterParameters adapterParameters =
+        new AdapterParameters(
+            context, Suppliers.of(new LinearLayout(context)), mock(ActionHandler.class));
+    FrameModelBinder frameModelBinder =
+        new FrameModelBinder(
+            new PietStylesHelper(Suppliers.of(pietSharedState)),
+            mock(AssetProvider.class),
+            mock(CustomElementProvider.class));
+    FrameContext frameContext = frameModelBinder.bindFrame(Frame.getDefaultInstance());
+
+    frameAdapter = new FrameAdapter(context, adapterParameters, frameModelBinder);
+
+    Slice slice = Slice.newBuilder().setInlineSlice(defaultList).build();
+
+    ElementAdapter<?, ?> viewAdapter = frameAdapter.getBoundAdapterForSlice(slice, frameContext);
+    assertThat(viewAdapter.getModel()).isEqualTo(slice.getInlineSlice());
+    frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null);
+    frameAdapter.unbindModel();
+
+    slice =
+        Slice.newBuilder()
+            .setTemplateSlice(TemplateInvocation.newBuilder().setTemplateId(templateId))
+            .build();
+    viewAdapter = frameAdapter.getBoundAdapterForSlice(slice, frameContext);
+    assertThat(viewAdapter.getModel()).isEqualTo(slice.getTemplateSlice());
+    frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null);
+    frameAdapter.unbindModel();
   }
 
   @Test

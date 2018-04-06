@@ -21,9 +21,11 @@ import android.view.ViewGroup;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
+import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Base class for adapters that act as containers for other adapters, such as ElementList and
@@ -72,7 +74,12 @@ abstract class ElementContainerAdapter<
    * we need to both create and bind it.
    */
   void createAndBindChildListAdapter(
-      ElementListAdapter adapter, ElementListBindingRef listBindingRef, FrameContext frameContext) {
+      ElementListAdapter adapter,
+      ElementListBindingRef listBindingRef,
+      @Nullable Element optionalBaseElement,
+      FrameContext frameContext) {
+    Element baseElement =
+        optionalBaseElement == null ? Element.getDefaultInstance() : optionalBaseElement;
     BindingValue listBinding = frameContext.getElementListBindingValue(listBindingRef);
     adapter.setVisibility(listBinding.getVisibility());
     if (!listBinding.hasElementList()) {
@@ -86,8 +93,8 @@ abstract class ElementContainerAdapter<
     }
     ElementList list = listBinding.getElementList();
     // If this is a re-bind, we assume this adapter has been released in onUnbindModel
-    adapter.createAdapter(list, frameContext);
-    adapter.bindModel(list, frameContext);
+    adapter.createAdapter(list, baseElement, frameContext);
+    adapter.bindModel(list, baseElement, frameContext);
   }
 
   void addChildAdapter(ChildAdapterT adapter) {

@@ -19,7 +19,6 @@ import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -92,7 +91,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
 
     // Verify we get the adapter from the KeySupplier, and we create but not bind it.
     assertThat(textElementAdapter).isSameAs(adapter);
-    verify(adapter).createAdapter(textElement, Element.getDefaultInstance(), frameContext);
+    verify(adapter, never()).createAdapter(any(), any(), any());
     verify(adapter, never()).bindModel(any(), any(), any());
   }
 
@@ -107,6 +106,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
     ParameterizedTextElementAdapter textElementAdapter =
         textElementFactory.get(textElement, frameContext);
     assertThat(textElementAdapter).isSameAs(adapter);
+    textElementAdapter.createAdapter(textElement, frameContext);
 
     // Ensure that releasing in the factory unbinds and releases the adapter.
     textElementFactory.release(textElementAdapter);
@@ -117,8 +117,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
     TextElementAdapter textElementAdapter2 = textElementFactory.get(textElement, frameContext);
     assertThat(textElementAdapter2).isSameAs(adapter);
     assertThat(textElementAdapter2).isEqualTo(textElementAdapter);
-    verify(adapter, times(2))
-        .createAdapter(textElement, Element.getDefaultInstance(), frameContext);
+    verify(adapter, never()).createAdapter(textElement, Element.getDefaultInstance(), frameContext);
     verify(adapter, never()).bindModel(any(), any(), any());
 
     // Verify we get a new item when we create another.

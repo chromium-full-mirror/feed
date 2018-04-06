@@ -95,46 +95,44 @@ class ElementAdapterFactory {
       Element element, FrameContext frameContext) {
     switch (element.getElementsCase()) {
       case CUSTOM_ELEMENT:
-        return customElementFactory.get(element.getCustomElement(), element, frameContext);
+        return customElementFactory.get(element.getCustomElement(), frameContext);
       case TEXT_ELEMENT:
         switch (element.getTextElement().getContentCase()) {
           case CHUNKED_TEXT:
           case CHUNKED_TEXT_BINDING:
-            return chunkedTextElementFactory.get(element.getTextElement(), element, frameContext);
+            return chunkedTextElementFactory.get(element.getTextElement(), frameContext);
           case PARAMETERIZED_TEXT:
           case PARAMETERIZED_TEXT_BINDING:
-            return parameterizedTextElementFactory.get(
-                element.getTextElement(), element, frameContext);
+            return parameterizedTextElementFactory.get(element.getTextElement(), frameContext);
           default:
             throw new IllegalArgumentException(
                 String.format(
                     "Unsupported TextElement type: %s", element.getTextElement().getContentCase()));
         }
       case IMAGE_ELEMENT:
-        return imageElementFactory.get(element.getImageElement(), element, frameContext);
+        return imageElementFactory.get(element.getImageElement(), frameContext);
       case SPACER_ELEMENT:
-        return spacerElementFactory.get(element.getSpacerElement(), element, frameContext);
+        return spacerElementFactory.get(element.getSpacerElement(), frameContext);
       case GRID_ROW:
-        return gridRowFactory.get(element.getGridRow(), element, frameContext);
+        return gridRowFactory.get(element.getGridRow(), frameContext);
       case ELEMENT_LIST:
-        return elementListFactory.get(element.getElementList(), element, frameContext);
+        return elementListFactory.get(element.getElementList(), frameContext);
       case ELEMENT_LIST_BINDING:
         BindingValue elementListBindingValue =
             frameContext.getElementListBindingValue(element.getElementListBinding());
         // TODO: support the various bits of metadata in BindingValue
-        return elementListFactory.get(
-            elementListBindingValue.getElementList(), element, frameContext);
+        return elementListFactory.get(elementListBindingValue.getElementList(), frameContext);
       case TEMPLATE_BINDING:
         TemplateInvocation templateInvocation =
             frameContext.getTemplateInvocationFromBinding(element.getTemplateBinding());
         if (templateInvocation != null) {
-          return templateInvocationFactory.get(templateInvocation, element, frameContext);
+          return templateInvocationFactory.get(templateInvocation, frameContext);
         } else {
           frameContext.reportError(
               ErrorType.ERROR,
               String.format("Could not get template for %s", element.getTemplateBinding()));
           return templateInvocationFactory.get(
-              TemplateInvocation.getDefaultInstance(), element, frameContext);
+              TemplateInvocation.getDefaultInstance(), frameContext);
         }
       case ELEMENTS_NOT_SET:
       default:
@@ -148,8 +146,8 @@ class ElementAdapterFactory {
   }
 
   ParameterizedTextElementAdapter createAdapterForParameterizedText(
-      TextElement textLine, Element baseElement, FrameContext frameContext) {
-    return parameterizedTextElementFactory.get(textLine, baseElement, frameContext);
+      TextElement textLine, FrameContext frameContext) {
+    return parameterizedTextElementFactory.get(textLine, frameContext);
   }
 
   TemplateInvocationAdapter createTemplateAdapter(

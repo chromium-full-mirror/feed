@@ -56,18 +56,17 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
       switch (cell.getCellContentCase()) {
         case ELEMENT_LIST:
           cellAdapter = getAdapterForChildList(cell.getElementList(), frameContext);
+          cellAdapter.createAdapter(cell.getElementList(), frameContext);
+          setLayoutParamsOnCell(cellAdapter, cell, frameContext);
           break;
         case ELEMENT_LIST_BINDING:
           cellAdapter = getAdapterForChildList(ElementList.getDefaultInstance(), frameContext);
-          // Immediately release the adapter, since the first thing we do in bind is to recreate it.
-          cellAdapter.releaseAdapter();
           break;
         default:
           throw new IllegalArgumentException(
               String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
       }
       getBaseView().addView(cellAdapter.getView());
-      setLayoutParamsOnCell(cellAdapter, cell, frameContext);
     }
   }
 
@@ -89,7 +88,13 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
           targetAdapter.bindModel(cell.getElementList(), frameContext);
           break;
         case ELEMENT_LIST_BINDING:
-          createAndBindChildListAdapter(targetAdapter, cell.getElementListBinding(), frameContext);
+          createAndBindChildListAdapter(
+              targetAdapter, cell.getElementListBinding(), null, frameContext);
+
+          // TODO: If a style on the bound ElementList could cause the adapter to create
+          // a wrapper view (or lose one), remove the adapter's view from the LinearLayout and
+          // re-add the result of getView().
+
           setLayoutParamsOnCell(targetAdapter, cell, frameContext);
           break;
         default:

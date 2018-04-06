@@ -146,12 +146,14 @@ public class FrameAdapter {
         ElementListAdapter inlineSliceAdapter =
             parameters.elementAdapterFactory.createElementListAdapter(
                 slice.getInlineSlice(), frameContext);
+        inlineSliceAdapter.createAdapter(slice.getInlineSlice(), frameContext);
         inlineSliceAdapter.bindModel(slice.getInlineSlice(), frameContext);
         return inlineSliceAdapter;
       case TEMPLATE_SLICE:
         TemplateInvocationAdapter templateAdapter =
             parameters.elementAdapterFactory.createTemplateAdapter(
                 slice.getTemplateSlice(), frameContext);
+        templateAdapter.createAdapter(slice.getTemplateSlice(), frameContext);
         templateAdapter.bindModel(slice.getTemplateSlice(), frameContext);
         return templateAdapter;
       default:

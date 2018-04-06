@@ -51,7 +51,20 @@ class ElementListAdapter
   @Override
   void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
     for (Element line : model.getElementsList()) {
-      ElementAdapter<? extends View, ?> adapter = getAdapterForChildElement(line, frameContext);
+      ElementAdapter<? extends View, ?> adapter;
+      if (line.hasElementListBinding()) {
+        adapter =
+            getParameters()
+                .elementAdapterFactory
+                .createElementListAdapter(ElementList.getDefaultInstance(), frameContext);
+        addChildAdapter(adapter);
+        getBaseView().addView(adapter.getView());
+        return;
+      } else {
+        adapter = getParameters().elementAdapterFactory.createAdapterForElement(line, frameContext);
+        adapter.createAdapter(line, frameContext);
+      }
+      addChildAdapter(adapter);
       getBaseView().addView(adapter.getView());
 
       updateChildLayoutParams(adapter);
@@ -68,10 +81,12 @@ class ElementListAdapter
     for (int i = 0; i < model.getElementsCount(); i++) {
       Element cellModel = model.getElements(i);
       if (cellModel.hasElementListBinding()) {
+        ElementListAdapter targetAdapter = (ElementListAdapter) childAdapters.get(i);
         createAndBindChildListAdapter(
-            (ElementListAdapter) childAdapters.get(i),
-            cellModel.getElementListBinding(),
-            frameContext);
+            targetAdapter, cellModel.getElementListBinding(), cellModel, frameContext);
+        // TODO: If a style on the bound ElementList could cause the adapter to create
+        // a wrapper view (or lose one), remove the adapter's view from the LinearLayout and
+        // re-add the result of getView().
       } else {
         childAdapters.get(i).bindModel(model.getElements(i), frameContext);
       }
@@ -126,25 +141,12 @@ class ElementListAdapter
   }
 
   GravityVertical getVerticalGravity() {
-    return getModel().getGravityVertical();
-  }
-
-  private ElementAdapter<? extends View, ?> getAdapterForChildElement(
-      Element contentLine, FrameContext frameContext) {
-    ElementAdapter<? extends View, ?> adapter;
-    if (contentLine.hasElementListBinding()) {
-      adapter =
-          getParameters()
-              .elementAdapterFactory
-              .createElementListAdapter(ElementList.getDefaultInstance(), frameContext);
-      // Immediately release the adapter, since the first thing we do in bind is to recreate it.
-      adapter.releaseAdapter();
+    ElementList model = getRawModel();
+    if (model != null) {
+      return model.getGravityVertical();
     } else {
-      adapter =
-          getParameters().elementAdapterFactory.createAdapterForElement(contentLine, frameContext);
+      return GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED;
     }
-    addChildAdapter(adapter);
-    return adapter;
   }
 
   private void updateChildLayoutParams(ElementAdapter<? extends View, ?> adapter) {

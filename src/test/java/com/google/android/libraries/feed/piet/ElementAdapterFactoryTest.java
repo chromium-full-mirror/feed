@@ -102,25 +102,24 @@ public class ElementAdapterFactoryTest {
             gridRowFactory,
             elementListFactory,
             templateFactory);
-    when(customElementFactory.get(any(CustomElement.class), any(), eq(frameContext)))
+    when(customElementFactory.get(any(CustomElement.class), eq(frameContext)))
         .thenReturn(customElementAdapter);
-    when(chunkedTextElementFactory.get(any(TextElement.class), any(), eq(frameContext)))
+    when(chunkedTextElementFactory.get(any(TextElement.class), eq(frameContext)))
         .thenReturn(chunkedTextElementAdapter);
-    when(parameterizedTextElementFactory.get(any(TextElement.class), any(), eq(frameContext)))
+    when(parameterizedTextElementFactory.get(any(TextElement.class), eq(frameContext)))
         .thenReturn(parameterizedTextElementAdapter);
-    when(imageElementFactory.get(any(ImageElement.class), any(), eq(frameContext)))
+    when(imageElementFactory.get(any(ImageElement.class), eq(frameContext)))
         .thenReturn(imageElementAdapter);
-    when(spacerElementFactory.get(any(SpacerElement.class), any(), eq(frameContext)))
+    when(spacerElementFactory.get(any(SpacerElement.class), eq(frameContext)))
         .thenReturn(spacerElementAdapter);
-    when(gridRowFactory.get(any(GridRow.class), any(), eq(frameContext)))
-        .thenReturn(gridRowAdapter);
+    when(gridRowFactory.get(any(GridRow.class), eq(frameContext))).thenReturn(gridRowAdapter);
     when(elementListFactory.get(any(ElementList.class), eq(frameContext)))
         .thenReturn(elementListAdapter);
-    when(elementListFactory.get(any(ElementList.class), any(), eq(frameContext)))
+    when(elementListFactory.get(any(ElementList.class), eq(frameContext)))
         .thenReturn(elementListAdapter);
     when(templateFactory.get(any(TemplateInvocation.class), eq(frameContext)))
         .thenReturn(templateAdapter);
-    when(templateFactory.get(any(TemplateInvocation.class), any(), eq(frameContext)))
+    when(templateFactory.get(any(TemplateInvocation.class), eq(frameContext)))
         .thenReturn(templateAdapter);
     adapterFactories.add(customElementFactory);
     adapterFactories.add(chunkedTextElementFactory);
@@ -138,7 +137,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setCustomElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(customElementAdapter);
-    verify(customElementFactory).get(model, element, frameContext);
+    verify(customElementFactory).get(model, frameContext);
   }
 
   @Test
@@ -148,7 +147,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(chunkedTextElementAdapter);
-    verify(chunkedTextElementFactory).get(model, element, frameContext);
+    verify(chunkedTextElementFactory).get(model, frameContext);
   }
 
   @Test
@@ -160,7 +159,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(chunkedTextElementAdapter);
-    verify(chunkedTextElementFactory).get(model, element, frameContext);
+    verify(chunkedTextElementFactory).get(model, frameContext);
   }
 
   @Test
@@ -172,7 +171,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(parameterizedTextElementAdapter);
-    verify(parameterizedTextElementFactory).get(model, element, frameContext);
+    verify(parameterizedTextElementFactory).get(model, frameContext);
   }
 
   @Test
@@ -184,7 +183,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setTextElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(parameterizedTextElementAdapter);
-    verify(parameterizedTextElementFactory).get(model, element, frameContext);
+    verify(parameterizedTextElementFactory).get(model, frameContext);
   }
 
   @Test
@@ -211,7 +210,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setImageElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(imageElementAdapter);
-    verify(imageElementFactory).get(model, element, frameContext);
+    verify(imageElementFactory).get(model, frameContext);
   }
 
   @Test
@@ -220,7 +219,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setSpacerElement(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(spacerElementAdapter);
-    verify(spacerElementFactory).get(model, element, frameContext);
+    verify(spacerElementFactory).get(model, frameContext);
   }
 
   @Test
@@ -229,7 +228,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setGridRow(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(gridRowAdapter);
-    verify(gridRowFactory).get(model, element, frameContext);
+    verify(gridRowFactory).get(model, frameContext);
   }
 
   @Test
@@ -238,7 +237,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setElementList(model).build();
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(elementListAdapter);
-    verify(elementListFactory).get(model, element, frameContext);
+    verify(elementListFactory).get(model, frameContext);
   }
 
   @Test
@@ -252,7 +251,7 @@ public class ElementAdapterFactoryTest {
     when(frameContext.getElementListBindingValue(bindingRef)).thenReturn(bindingValue);
     ElementAdapter<?, ?> adapter = adapterFactory.createAdapterForElement(element, frameContext);
     ArgumentCaptor<ElementList> captor = ArgumentCaptor.forClass(ElementList.class);
-    verify(elementListFactory).get(captor.capture(), eq(element), eq(frameContext));
+    verify(elementListFactory).get(captor.capture(), eq(frameContext));
     assertThat(adapter).isSameAs(elementListAdapter);
     assertThat(captor.getValue()).isSameAs(elementList);
   }
@@ -268,7 +267,7 @@ public class ElementAdapterFactoryTest {
 
     ElementAdapter<?, ?> adapter = adapterFactory.createAdapterForElement(element, frameContext);
 
-    verify(templateFactory).get(templateInvocation, element, frameContext);
+    verify(templateFactory).get(templateInvocation, frameContext);
     assertThat(adapter).isSameAs(templateAdapter);
 
     when(frameContext.getTemplateInvocationFromBinding(bindingRef)).thenReturn(null);
@@ -277,7 +276,7 @@ public class ElementAdapterFactoryTest {
 
     ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
     verify(frameContext).reportError(eq(ErrorType.ERROR), captor.capture());
-    verify(templateFactory).get(TemplateInvocation.getDefaultInstance(), element, frameContext);
+    verify(templateFactory).get(TemplateInvocation.getDefaultInstance(), frameContext);
   }
 
   @Test
