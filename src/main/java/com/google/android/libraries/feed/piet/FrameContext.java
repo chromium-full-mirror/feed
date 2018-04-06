@@ -38,7 +38,6 @@ import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -306,9 +305,7 @@ class FrameContext {
    */
   BindingValue getCustomElementBindingValue(CustomBindingRef binding) {
     BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasCustomElementData()
-        && !binding.getIsOptional()
-        && !returnValue.getVisibility().equals(Visibility.GONE)) {
+    if (!returnValue.hasCustomElementData() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               ErrorType.ERROR,
@@ -324,9 +321,7 @@ class FrameContext {
    */
   BindingValue getChunkedTextBindingValue(ChunkedTextBindingRef binding) {
     BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasChunkedText()
-        && !binding.getIsOptional()
-        && !returnValue.getVisibility().equals(Visibility.GONE)) {
+    if (!returnValue.hasChunkedText() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               ErrorType.ERROR,
@@ -342,9 +337,7 @@ class FrameContext {
    */
   BindingValue getParameterizedTextBindingValue(ParameterizedTextBindingRef binding) {
     BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasParameterizedText()
-        && !binding.getIsOptional()
-        && !returnValue.getVisibility().equals(Visibility.GONE)) {
+    if (!returnValue.hasParameterizedText() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               ErrorType.ERROR,
@@ -361,9 +354,7 @@ class FrameContext {
    */
   BindingValue getImageBindingValue(ImageBindingRef binding) {
     BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasImage()
-        && !binding.getIsOptional()
-        && !returnValue.getVisibility().equals(Visibility.GONE)) {
+    if (!returnValue.hasImage() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               ErrorType.ERROR,
@@ -379,9 +370,7 @@ class FrameContext {
    */
   BindingValue getElementListBindingValue(ElementListBindingRef binding) {
     BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasElementList()
-        && !binding.getIsOptional()
-        && !returnValue.getVisibility().equals(Visibility.GONE)) {
+    if (!returnValue.hasElementList() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               ErrorType.ERROR,
