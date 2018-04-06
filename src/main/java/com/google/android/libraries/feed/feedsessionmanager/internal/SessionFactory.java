@@ -50,7 +50,7 @@ public class SessionFactory {
         store, modelProvider, sessionManagerExecutor, timingUtils, threadUtils, configuration);
   }
 
-  public Session getHeadSession() {
+  public HeadSessionImpl getHeadSession() {
     return new HeadSessionImpl(store, timingUtils);
   }
 }

@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
+import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
@@ -133,14 +134,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
 
     // create the head session from the data in the Store
-    Session head = sessionFactory.getHeadSession();
+    HeadSessionImpl head = sessionFactory.getHeadSession();
     synchronized (lock) {
       sessions.put(head.getStreamSession().getStreamToken(), head);
     }
-    List<StreamStructure> structureMetadata = store.getStreamStructures(head.getStreamSession());
-    synchronized (lock) {
-      head.updateSession(structureMetadata, null);
-    }
+    List<StreamStructure> streamStructures = store.getStreamStructures(head.getStreamSession());
+    head.initializeSession(streamStructures);
     timeTracker.stop("task", "Initialization");
   }
 

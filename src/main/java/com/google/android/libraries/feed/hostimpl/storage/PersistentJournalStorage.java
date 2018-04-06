@@ -138,6 +138,10 @@ public class PersistentJournalStorage implements JournalStorage {
   }
 
   private boolean delete(File journal) {
+    if (!journal.exists()) {
+      // If the file doesn't exist, let's call it deleted.
+      return true;
+    }
     boolean result = journal.delete();
     if (!result) {
       Logger.e(TAG, "Error deleting journal %s", journal.getName());
@@ -155,7 +159,11 @@ public class PersistentJournalStorage implements JournalStorage {
       // TODO: error handling
     } catch (IOException e) {
       Logger.e(
-          TAG, "Error copying journal %s to %s", journal.getName(), operation.getToJournalName());
+          TAG,
+          e,
+          "Error copying journal %s to %s",
+          journal.getName(),
+          operation.getToJournalName());
     }
     return false;
   }

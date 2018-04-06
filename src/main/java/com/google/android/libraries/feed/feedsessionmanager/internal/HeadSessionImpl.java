@@ -56,6 +56,13 @@ public class HeadSessionImpl implements Session, Dumpable {
     this.timingUtils = timingUtils;
   }
 
+  /** Initialize head from the stored stream structures. */
+  public void initializeSession(List<StreamStructure> streamStructures) {
+    for (StreamStructure streamStructure : streamStructures) {
+      contentInSession.add(streamStructure.getContentId());
+    }
+  }
+
   @Override
   public void updateSession(
       List<StreamStructure> streamStructures, @Nullable StreamToken mutationSourceToken) {

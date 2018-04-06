@@ -166,6 +166,9 @@ public class FeedStore implements Store, Dumpable {
           TAG, () -> journalStorage.read(session.getStreamToken(), operationsFuture::put));
       List<byte[]> operations = operationsFuture.get();
       for (byte[] bytes : operations) {
+        if (bytes.length == 0) {
+          continue;
+        }
         streamStructures.add(StreamStructure.parseFrom(bytes));
       }
     } catch (InvalidProtocolBufferException | InterruptedException | ExecutionException e) {
@@ -275,7 +278,11 @@ public class FeedStore implements Store, Dumpable {
         TAG,
         () ->
             journalStorage.commit(
-                new JournalMutation.Builder(HEAD.getStreamToken()).delete().build(), latch));
+                new JournalMutation.Builder(HEAD.getStreamToken())
+                    .delete()
+                    .append(new byte[0])
+                    .build(),
+                latch));
     try {
       latch.await();
     } catch (InterruptedException e) {
@@ -300,14 +307,12 @@ public class FeedStore implements Store, Dumpable {
   private Boolean commitSessionMutation(
       StreamSession streamSession, List<StreamStructure> streamStructures) {
     threadUtils.checkNotMainThread();
-
-    if (streamStructures.isEmpty()) {
-      Logger.i(TAG, "No StreamStructures found to add");
-      return true;
-    }
-
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     JournalMutation.Builder mutation = new JournalMutation.Builder(streamSession.getStreamToken());
+    if (streamStructures.isEmpty()) {
+      // allow an empty journal to be created
+      mutation.append(new byte[0]);
+    }
     for (StreamStructure streamStructure : streamStructures) {
       mutation.append(streamStructure.toByteArray());
     }
