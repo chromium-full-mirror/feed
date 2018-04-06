@@ -39,8 +39,8 @@ class TemplateInvocationAdapter
 
   private static final String TAG = "TemplateInvocationAdapter";
 
-  @Nullable private Template template = null;
-  @Nullable private PietSharedState sharedState = null;
+  /*@Nullable*/ private Template template = null;
+  /*@Nullable*/ private PietSharedState sharedState = null;
 
   TemplateInvocationAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, createView(context));
@@ -102,7 +102,7 @@ class TemplateInvocationAdapter
   void onBindModel(
       TemplateInvocation model,
       FrameContext frameContext,
-      @Nullable ShardingControl shardingControl) {
+      /*@Nullable*/ ShardingControl shardingControl) {
     Template modelTemplate =
         checkNotNull(
             frameContext.getTemplate(model.getTemplateId()),
@@ -172,7 +172,7 @@ class TemplateInvocationAdapter
    * of collisions.
    */
   @SuppressWarnings("ReferenceEquality")
-  static boolean templateEquals(@Nullable Template template1, @Nullable Template template2) {
+  static boolean templateEquals(/*@Nullable*/ Template template1, /*@Nullable*/ Template template2) {
     if (template1 == template2) {
       return true;
     } else if (template1 == null || template2 == null) {
@@ -207,9 +207,9 @@ class TemplateInvocationAdapter
   /** Wrap the Template proto object as the recycler key. */
   static class TemplateKey extends RecyclerKey {
     private final Template template;
-    @Nullable private final PietSharedState sharedState;
+    /*@Nullable*/ private final PietSharedState sharedState;
 
-    TemplateKey(Template template, @Nullable PietSharedState sharedState) {
+    TemplateKey(Template template, /*@Nullable*/ PietSharedState sharedState) {
       this.template = template;
       this.sharedState = sharedState;
     }
@@ -217,7 +217,7 @@ class TemplateInvocationAdapter
     /** Equals checks the hashCode of template and sharedState to avoid expensive proto equals. */
     @SuppressWarnings("ReferenceEquality")
     @Override
-    public boolean equals(@Nullable Object o) {
+    public boolean equals(/*@Nullable*/ Object o) {
       if (this == o) {
         return true;
       }

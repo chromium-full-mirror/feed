@@ -45,7 +45,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   @GuardedBy("lock")
   private List<UpdatableModelChild> childList;
 
-  @Nullable
+  /*@Nullable*/
   @GuardedBy("lock")
   private CursorIterator iterator;
 

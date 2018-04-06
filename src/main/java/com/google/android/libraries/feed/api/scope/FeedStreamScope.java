@@ -161,12 +161,12 @@ public class FeedStreamScope {
     private final Clock clock;
 
     // Optional internal components to override the default implementations.
-    @Nullable private ActionParser actionParser = null;
-    @Nullable private ModelProviderFactory modelProviderFactory = null;
-    @Nullable private Stream stream = null;
-    @Nullable private CustomElementProvider customElementProvider = null;
-    @Nullable private CardConfiguration cardConfiguration;
-    @Nullable private StreamConfiguration streamConfiguration;
+    /*@Nullable*/ private ActionParser actionParser = null;
+    /*@Nullable*/ private ModelProviderFactory modelProviderFactory = null;
+    /*@Nullable*/ private Stream stream = null;
+    /*@Nullable*/ private CustomElementProvider customElementProvider = null;
+    /*@Nullable*/ private CardConfiguration cardConfiguration;
+    /*@Nullable*/ private StreamConfiguration streamConfiguration;
   }
 
   private FeedStreamScope(

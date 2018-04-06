@@ -50,7 +50,7 @@ public class FrameAdapter {
 
   private final Context context;
   private final AdapterParameters parameters;
-  @Nullable private LinearLayout view = null;
+  /*@Nullable*/ private LinearLayout view = null;
 
   public FrameAdapter(
       Context context, AdapterParameters parameters, FrameModelBinder frameModelBinder) {
@@ -66,7 +66,7 @@ public class FrameAdapter {
    * subset of the full set of slices defined for the frame.
    */
   // TODO: Need to implement support for sharding
-  public void bindModel(Frame frame, @Nullable ShardingControl shardingControl) {
+  public void bindModel(Frame frame, /*@Nullable*/ ShardingControl shardingControl) {
     long startTime = System.nanoTime();
     FrameContext frameContext = frameModelBinder.bindFrame(frame);
     initialBind(parameters.parentViewSupplier.get());
@@ -139,7 +139,7 @@ public class FrameAdapter {
   }
 
   @VisibleForTesting
-  @Nullable
+  /*@Nullable*/
   ElementAdapter<?, ?> getBoundAdapterForSlice(Slice slice, FrameContext frameContext) {
     switch (slice.getSliceInstanceCase()) {
       case INLINE_SLICE:
@@ -168,19 +168,19 @@ public class FrameAdapter {
   }
 
   @VisibleForTesting
-  @Nullable
+  /*@Nullable*/
   LinearLayout getView() {
     return this.view;
   }
 
-  private void initialBind(@Nullable ViewGroup parent) {
+  private void initialBind(/*@Nullable*/ ViewGroup parent) {
     if (view != null) {
       return;
     }
     this.view = createView(parent);
   }
 
-  private LinearLayout createView(@Nullable ViewGroup parent) {
+  private LinearLayout createView(/*@Nullable*/ ViewGroup parent) {
     LinearLayout linearLayout = new LinearLayout(context);
     linearLayout.setOrientation(LinearLayout.VERTICAL);
     ViewGroup.LayoutParams layoutParams;

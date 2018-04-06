@@ -34,7 +34,7 @@ public class Validators {
    * @throws NullPointerException if {@code reference} is null
    */
   public static <T> T checkNotNull(
-      @Nullable T reference, String debugString, Object... formatArgs) {
+      /*@Nullable*/ T reference, String debugString, Object... formatArgs) {
     if (reference == null) {
       throw new NullPointerException(String.format(debugString, formatArgs));
     }
@@ -48,7 +48,7 @@ public class Validators {
    * @return the non-null reference that was validated
    * @throws NullPointerException if {@code reference} is null
    */
-  public static <T> T checkNotNull(@Nullable T reference) {
+  public static <T> T checkNotNull(/*@Nullable*/ T reference) {
     if (reference == null) {
       throw new NullPointerException();
     }

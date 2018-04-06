@@ -48,7 +48,7 @@ public class WireProtocolResponseBuilder {
   private final WireProtocolInfo wireProtocolInfo = new WireProtocolInfo();
   private final FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
 
-  @Nullable private ByteString token = null;
+  /*@Nullable*/ private ByteString token = null;
 
   /** Add a CLEAR_ALL data operation to the response */
   public WireProtocolResponseBuilder addClearOperation() {

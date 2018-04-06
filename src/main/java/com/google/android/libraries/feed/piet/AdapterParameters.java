@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.piet.host.ActionHandler;
  */
 class AdapterParameters {
   final ParameterizedTextEvaluator templatedStringEvaluator;
-  final Supplier<ViewGroup> parentViewSupplier;
+  final Supplier</*@NullableType*/ ViewGroup> parentViewSupplier;
   final ActionHandler actionHandler;
 
   final Context context;
@@ -40,7 +40,7 @@ class AdapterParameters {
   @SuppressWarnings("initialization")
   public AdapterParameters(
       Context context,
-      Supplier<ViewGroup> parentViewSupplier,
+      Supplier</*@NullableType*/ ViewGroup> parentViewSupplier,
       ActionHandler actionHandler) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
@@ -54,7 +54,7 @@ class AdapterParameters {
   @VisibleForTesting
   AdapterParameters(
       Context context,
-      Supplier<ViewGroup> parentViewSupplier,
+      Supplier</*@NullableType*/ ViewGroup> parentViewSupplier,
       ActionHandler actionHandler,
       ParameterizedTextEvaluator templatedStringEvaluator,
       ElementAdapterFactory elementAdapterFactory) {

@@ -55,12 +55,12 @@ abstract class ElementAdapter<V extends View, M> {
   private final Context context;
   private final AdapterParameters parameters;
   private final V view;
-  @Nullable private M model;
+  /*@Nullable*/ private M model;
   private Element baseElement = Element.getDefaultInstance();
-  @Nullable private RecyclerKey key;
+  /*@Nullable*/ private RecyclerKey key;
   private FrameContext frameContext;
 
-  @Nullable private FrameLayout overlayView = null;
+  /*@Nullable*/ private FrameLayout overlayView = null;
   @VisibleForTesting final List<ElementListAdapter> overlays = new ArrayList<>();
 
   /**
@@ -339,7 +339,7 @@ abstract class ElementAdapter<V extends View, M> {
   }
 
   /** Returns a {@link RecyclerKey} which represents an instance of a Model based upon a type. */
-  @Nullable
+  /*@Nullable*/
   public RecyclerKey getKey() {
     // There are Adapters which don't hold on to their views.  How do we want to mark them?
     return key;
@@ -400,7 +400,7 @@ abstract class ElementAdapter<V extends View, M> {
 
   /** Returns the {@code model}, this is to support testing, it can be called at any time */
   @VisibleForTesting
-  @Nullable
+  /*@Nullable*/
   M getRawModel() {
     return model;
   }

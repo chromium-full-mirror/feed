@@ -35,7 +35,7 @@ public class ParameterizedTextEvaluator {
    *
    * @return the evaluated template, or {@code null} if there is no display string
    */
-  @Nullable
+  /*@Nullable*/
   public CharSequence evaluateHtml(
       FrameContext frameContext, Context context, ParameterizedText templatedString) {
     if (!templatedString.hasText()) {
@@ -87,7 +87,7 @@ public class ParameterizedTextEvaluator {
     }
   }
 
-  @Nullable
+  /*@Nullable*/
   private String evaluateParam(FrameContext frameContext, ParameterizedText.Parameter param) {
     if (param.hasTimestampSeconds()) {
       long elapsedTimeMillis =

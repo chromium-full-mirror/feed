@@ -39,18 +39,18 @@ public interface ModelProvider {
    * Returns a {@code ModelFeature} which represents the root of the stream tree. Returns {@code
    * null} if the stream is empty.
    */
-  @Nullable
+  /*@Nullable*/
   ModelFeature getRootFeature();
 
   /** Return a ModelChild for a String ContentId */
-  @Nullable
+  /*@Nullable*/
   ModelChild getModelChild(String contentId);
 
   /**
    * Returns a {@code StreamSharedState} containing shared state such as the Piet shard state.
    * Returns {@code null} if the shared state is not found.
    */
-  @Nullable
+  /*@Nullable*/
   StreamSharedState getSharedState(ContentId contentId);
 
   /**
@@ -83,7 +83,7 @@ public interface ModelProvider {
   int getCurrentState();
 
   /** A String which represents the session bound to the ModelProvider. */
-  @Nullable
+  /*@Nullable*/
   String getSessionToken();
 
   /**

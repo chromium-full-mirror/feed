@@ -75,7 +75,7 @@ public interface SessionManager {
    * Return the shared state. This operation will be fast, so it can be called on the UI Thread.
    * This method will return {@code null} if the shared state is not found.
    */
-  @Nullable
+  /*@Nullable*/
   StreamSharedState getSharedState(ContentId contentId);
 
   /**

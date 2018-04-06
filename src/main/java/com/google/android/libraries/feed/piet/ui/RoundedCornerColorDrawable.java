@@ -24,8 +24,8 @@ import javax.annotation.Nullable;
 
 /** Extension of {@code ColorDrawable} that will render with rounded corners. */
 public class RoundedCornerColorDrawable extends ColorDrawable {
-  @Nullable private Shape roundedRectangle;
-  @Nullable private Paint paint;
+  /*@Nullable*/ private Shape roundedRectangle;
+  /*@Nullable*/ private Paint paint;
   private float radius;
   private int cornerField;
 

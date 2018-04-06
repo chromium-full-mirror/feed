@@ -33,7 +33,7 @@ public interface Stream {
    * @param savedInstanceState state to restore to.
    * @throws IllegalStateException if method is called multiple times.
    */
-  void onCreate(@Nullable Bundle savedInstanceState);
+  void onCreate(/*@Nullable*/ Bundle savedInstanceState);
 
   /**
    * Called when the Stream is visible on the screen, may be partially obscured or about to be

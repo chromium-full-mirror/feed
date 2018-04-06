@@ -67,7 +67,7 @@ public class ContentCache implements Dumpable {
   }
 
   /** Return the {@link StreamPayload} or {@code null} if it is not found in the cache. */
-  @Nullable
+  /*@Nullable*/
   public StreamPayload get(String key) {
     StreamPayload value = mutationCache.get(key);
     lookupCount++;
@@ -80,7 +80,7 @@ public class ContentCache implements Dumpable {
   }
 
   /** Add a new value to the cache, returning the previous version or {@code null}. */
-  @Nullable
+  /*@Nullable*/
   public StreamPayload put(String key, StreamPayload payload) {
     return mutationCache.put(key, payload);
   }

@@ -238,7 +238,7 @@ public class ParameterizedTextElementAdapterTest {
     assertThat(textView).isNotNull();
   }
 
-  private TextElement getBindingTextElement(@Nullable StyleProvider styleProvider) {
+  private TextElement getBindingTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
     when(frameContext.getCurrentStyle()).thenReturn(sp);
@@ -249,7 +249,7 @@ public class ParameterizedTextElementAdapterTest {
     return getBaseTextElement(null);
   }
 
-  private TextElement getBaseTextElement(@Nullable StyleProvider styleProvider) {
+  private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
     when(frameContext.getCurrentStyle()).thenReturn(sp);

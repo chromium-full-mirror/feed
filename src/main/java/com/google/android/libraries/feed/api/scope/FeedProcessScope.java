@@ -234,12 +234,12 @@ public class FeedProcessScope implements Dumpable {
     private final SchedulerApi schedulerApi;
 
     // Optional fields - if they are not provided, we will use default implementations.
-    @Nullable private RequestManager requestManager = null;
-    @Nullable private SessionManager sessionManager = null;
-    @Nullable private FeedProtocolAdapter protocolAdapter = null;
-    @Nullable private ProtoExtensionProvider protoExtensionProvider = null;
-    @Nullable private ContentStorage contentStorage = null;
-    @Nullable private JournalStorage journalStorage = null;
+    /*@Nullable*/ private RequestManager requestManager = null;
+    /*@Nullable*/ private SessionManager sessionManager = null;
+    /*@Nullable*/ private FeedProtocolAdapter protocolAdapter = null;
+    /*@Nullable*/ private ProtoExtensionProvider protoExtensionProvider = null;
+    /*@Nullable*/ private ContentStorage contentStorage = null;
+    /*@Nullable*/ private JournalStorage journalStorage = null;
 
     // This will be overridden in tests.
     private ThreadUtils threadUtils = new ThreadUtils();

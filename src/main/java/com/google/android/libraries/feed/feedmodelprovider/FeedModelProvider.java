@@ -77,7 +77,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final Object lock = new Object();
 
   @GuardedBy("lock")
-  @Nullable
+  /*@Nullable*/
   private UpdatableModelChild root = null;
 
   // The tree is model as a parent with an list of children.  A container is created for every
@@ -111,7 +111,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
 
-  @Nullable private StreamSession streamSession;
+  /*@Nullable*/ private StreamSession streamSession;
 
   FeedModelProvider(
       SessionManager sessionManager,
@@ -143,7 +143,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
-  @Nullable
+  /*@Nullable*/
   public ModelFeature getRootFeature() {
     synchronized (lock) {
       if (root == null) {
@@ -159,7 +159,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
-  @Nullable
+  /*@Nullable*/
   public ModelChild getModelChild(String contentId) {
     synchronized (lock) {
       return contents.get(contentId);
@@ -167,7 +167,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
-  @Nullable
+  /*@Nullable*/
   public StreamSharedState getSharedState(ContentId contentId) {
     return sessionManager.getSharedState(contentId);
   }
@@ -198,7 +198,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
-  @Nullable
+  /*@Nullable*/
   public String getSessionToken() {
     if (streamSession == null) {
       Logger.w(TAG, "streamSession is null, this should have been set during population");
@@ -601,7 +601,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   @VisibleForTesting
   class TokenMutation extends MutationHandler {
     private final StreamToken mutationSourceToken;
-    @Nullable TokenTracking token = null;
+    /*@Nullable*/ TokenTracking token = null;
     int newCursorStart = -1;
 
     TokenMutation(StreamToken mutationSourceToken) {
@@ -743,7 +743,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           });
     }
 
-    @Nullable
+    /*@Nullable*/
     private FeatureChangeImpl getChange(String contentIdKey) {
       FeatureChangeImpl change = changes.get(contentIdKey);
       if (change == null) {

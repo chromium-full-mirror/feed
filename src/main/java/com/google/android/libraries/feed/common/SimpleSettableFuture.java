@@ -27,8 +27,8 @@ public class SimpleSettableFuture<V> implements Future<V> {
 
   private final CountDownLatch latch = new CountDownLatch(1);
   private boolean cancelled = false;
-  @Nullable private V value = null;
-  @Nullable private Exception exception = null;
+  /*@Nullable*/ private V value = null;
+  /*@Nullable*/ private Exception exception = null;
 
   /** Note that this will not interrupt tasks as tasks aren't running within the future */
   @Override

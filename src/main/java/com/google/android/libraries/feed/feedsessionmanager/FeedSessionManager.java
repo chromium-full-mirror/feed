@@ -113,7 +113,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     sessionFactory = new SessionFactory(store, executor, timingUtils, threadUtils, configuration);
     contentCache = new ContentCache();
 
-    // Suppress warning
+    // Suppress /*@UnderInitialization*/ warning
     @SuppressWarnings("nullness")
     Runnable initializationTask = this::initializationTask;
     executor.execute(initializationTask);
@@ -253,7 +253,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
-  @Nullable
+  /*@Nullable*/
   public StreamSharedState getSharedState(ContentId contentId) {
     threadUtils.checkMainThread();
     String sharedStateId = protocolAdapterSupplier.get().getStreamContentId(contentId);
@@ -447,7 +447,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       return true;
     }
 
-    @Nullable
+    /*@Nullable*/
     private StreamStructure addTokenRemoveOperation(StreamToken token) {
       // We need to add a mutation to remove the stream token from the structure.
       String tokenId = token.getContentId();

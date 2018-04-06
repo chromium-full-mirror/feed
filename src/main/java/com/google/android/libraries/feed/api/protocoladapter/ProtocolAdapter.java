@@ -25,7 +25,7 @@ public interface ProtocolAdapter {
    * Create the internal protocol from a wire protocol response definition. The {@code token} {@link
    * ByteString} represents the continuation token used to create the response.
    */
-  void createModel(Response response, @Nullable ByteString token);
+  void createModel(Response response, /*@Nullable*/ ByteString token);
 
   /** Convert a wire protocol ContentId into the {@code String} version used in Jardin. */
   String getStreamContentId(ContentId contentId);

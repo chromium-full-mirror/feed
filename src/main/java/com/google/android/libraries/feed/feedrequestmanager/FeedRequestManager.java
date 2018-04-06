@@ -152,7 +152,7 @@ public class FeedRequestManager implements RequestManager {
   }
 
   private void handleResponseBytes(
-      byte[] responseBytes, @Nullable ByteString pageToken, boolean isLengthPrefixed)
+      byte[] responseBytes, /*@Nullable*/ ByteString pageToken, boolean isLengthPrefixed)
       throws IOException {
     Response response =
         Response.parseFrom(
@@ -193,7 +193,7 @@ public class FeedRequestManager implements RequestManager {
       return this;
     }
 
-    @Nullable
+    /*@Nullable*/
     ByteString getPageToken() {
       return token;
     }

@@ -55,7 +55,7 @@ public class MockServerNetworkClient implements NetworkClient {
 
   @VisibleForTesting boolean hasQuit = false;
 
-  @Nullable @VisibleForTesting RequestManager requestManager;
+  /*@Nullable*/ @VisibleForTesting RequestManager requestManager;
 
   @SuppressWarnings("nullness")
   public MockServerNetworkClient(MockServerConfig config, List<MockUpdate> mockUpdates) {

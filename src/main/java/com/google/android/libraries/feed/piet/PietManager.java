@@ -29,7 +29,7 @@ public class PietManager {
   private final ActionHandler actionHandler;
   private final FrameModelBinder frameModelBinder;
 
-  @VisibleForTesting @Nullable AdapterParameters adapterParameters = null;
+  @VisibleForTesting /*@Nullable*/ AdapterParameters adapterParameters = null;
 
   public PietManager(
       PietStylesHelper pietStylesHelper,
@@ -42,7 +42,7 @@ public class PietManager {
   }
 
   public FrameAdapter createPietFrameAdapter(
-      Supplier<ViewGroup> cardViewProducer, Context context) {
+      Supplier</*@NullableType*/ ViewGroup> cardViewProducer, Context context) {
     AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
 
     return new FrameAdapter(context, parameters, frameModelBinder);
@@ -54,7 +54,7 @@ public class PietManager {
    */
   @VisibleForTesting
   AdapterParameters getAdapterParameters(
-      Context context, Supplier<ViewGroup> cardViewProducer) {
+      Context context, Supplier</*@NullableType*/ ViewGroup> cardViewProducer) {
     if (adapterParameters == null || adapterParameters.context != context) {
       adapterParameters = new AdapterParameters(context, cardViewProducer, actionHandler);
     }

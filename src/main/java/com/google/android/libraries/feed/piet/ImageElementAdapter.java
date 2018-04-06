@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
 class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageElement> {
   private static final String TAG = "ImageElementAdapter";
 
-  @Nullable private LoadImageCallback currentlyLoadingImage = null;
+  /*@Nullable*/ private LoadImageCallback currentlyLoadingImage = null;
 
   private ImageElementAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, createView(context), KeySupplier.SINGLETON_KEY);

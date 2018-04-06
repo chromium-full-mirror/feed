@@ -112,7 +112,7 @@ class FrameContext {
   FrameContext(
       Frame frame,
       Map<String, Style> stylesheet,
-      @Nullable Map<String, BindingValue> bindingValues,
+      /*@Nullable*/ Map<String, BindingValue> bindingValues,
       Style baseStyle,
       StyleProvider styleProvider,
       PietStylesHelper stylesHelper,
@@ -146,13 +146,13 @@ class FrameContext {
     return currentFrame;
   }
 
-  @Nullable
+  /*@Nullable*/
   public Template getTemplate(String templateId) {
     Template template = frameTemplates.get(templateId);
     return (template != null) ? template : stylesHelper.getTemplate(templateId);
   }
 
-  @Nullable
+  /*@Nullable*/
   public PietSharedState getPietSharedState() {
     return stylesHelper.getCurrentPietSharedState();
   }
@@ -163,7 +163,7 @@ class FrameContext {
    * level style which applies to all child elements.
    */
   // TODO: Why do we allow bindingContext to be null if it's an error?
-  FrameContext bindTemplate(Template template, @Nullable BindingContext bindingContext) {
+  FrameContext bindTemplate(Template template, /*@Nullable*/ BindingContext bindingContext) {
     if (bindingContext == null) {
       Logger.w(TAG, reportError(ErrorType.WARNING, "Template BindingContext was not provided"));
       return this;
@@ -236,7 +236,7 @@ class FrameContext {
    * Return a {@link Drawable} with the fill and rounded corners defined on the style; returns
    * {@code null} if the background has no color defined.
    */
-  @Nullable
+  /*@Nullable*/
   Drawable createBackground(StyleProvider style, Context context) {
     Fill background = style.getBackground();
     if (!background.hasColor()) {
@@ -254,7 +254,7 @@ class FrameContext {
    * Return a {@link GridCellWidth} for the binding if there is one defined; otherwise returns
    * {@code null}.
    */
-  @Nullable
+  /*@Nullable*/
   GridCellWidth getGridCellWidthFromBinding(GridCellWidthBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasCellWidth()
@@ -266,7 +266,7 @@ class FrameContext {
    * Return an {@link Actions} for the binding if there is one defined; otherwise returns {@code
    * null}.
    */
-  @Nullable
+  /*@Nullable*/
   Actions getActionsFromBinding(ActionsBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasActions() ? null : bindingValue.getActions();
@@ -276,7 +276,7 @@ class FrameContext {
    * Return a {@link BoundStyle} for the binding if there is one defined; otherwise returns {@code
    * null}.
    */
-  @Nullable
+  /*@Nullable*/
   BoundStyle getStyleFromBinding(StyleBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     return bindingValue == null || !bindingValue.hasBoundStyle()
@@ -288,7 +288,7 @@ class FrameContext {
    * Return a {@link TemplateInvocation} for the binding if there is one defined; otherwise returns
    * {@code null}.
    */
-  @Nullable
+  /*@Nullable*/
   TemplateInvocation getTemplateInvocationFromBinding(TemplateBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     if (bindingValue != null && bindingValue.hasVisibility()) {
@@ -404,7 +404,7 @@ class FrameContext {
    * Create a Linear Layout with all of the errors reported by {@link #reportError(String)}. This
    * will return {@code null} if the View shouldn't be displayed.
    */
-  @Nullable
+  /*@Nullable*/
   View getErrorView(Context context) {
     // TODO: This needs to be controlled by a DEBUG flag, this should always return
     // null in production.

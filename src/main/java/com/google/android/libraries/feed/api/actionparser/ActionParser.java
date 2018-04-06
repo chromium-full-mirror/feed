@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 /** Parses actions from Piet and directs the Stream to handle the action. */
 public interface ActionParser {
 
-  void parseAction(Action action, StreamActionApi streamActionApi, @Nullable String veLoggingToken);
+  void parseAction(Action action, StreamActionApi streamActionApi, /*@Nullable*/ String veLoggingToken);
 
   void parseFeedAction(FeedAction feedActionMetadata, StreamActionApi streamActionApi);
 }

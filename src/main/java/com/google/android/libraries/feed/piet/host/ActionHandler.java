@@ -28,5 +28,5 @@ public interface ActionHandler {
   // TODO: Do we need to pass back the thing that was pressed?
   // TODO: Do we need the veLoggingToken, one is defined in the Action
   // TODO: Handle long press actions.
-  void handleAction(Action action, Frame frame, @Nullable String veLoggingToken);
+  void handleAction(Action action, Frame frame, /*@Nullable*/ String veLoggingToken);
 }

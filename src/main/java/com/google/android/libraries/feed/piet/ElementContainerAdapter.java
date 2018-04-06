@@ -76,7 +76,7 @@ abstract class ElementContainerAdapter<
   void createAndBindChildListAdapter(
       ElementListAdapter adapter,
       ElementListBindingRef listBindingRef,
-      @Nullable Element optionalBaseElement,
+      /*@Nullable*/ Element optionalBaseElement,
       FrameContext frameContext) {
     Element baseElement =
         optionalBaseElement == null ? Element.getDefaultInstance() : optionalBaseElement;

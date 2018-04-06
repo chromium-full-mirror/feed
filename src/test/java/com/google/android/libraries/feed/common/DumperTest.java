@@ -135,14 +135,14 @@ public class DumperTest {
 
   private static class TestDumpable implements Dumpable {
 
-    @Nullable private Dumpable child;
+    /*@Nullable*/ private Dumpable child;
     private final String key;
 
     TestDumpable(String key) {
       this(null, key);
     }
 
-    TestDumpable(@Nullable Dumpable child, String key) {
+    TestDumpable(/*@Nullable*/ Dumpable child, String key) {
       this.child = child;
       this.key = key;
     }

@@ -52,7 +52,7 @@ public interface ModelChild {
   /**
    * Returns the parent contentId of the child, this may return {@code Null} if the child is a root.
    */
-  @Nullable
+  /*@Nullable*/
   String getParentId();
 
   /**

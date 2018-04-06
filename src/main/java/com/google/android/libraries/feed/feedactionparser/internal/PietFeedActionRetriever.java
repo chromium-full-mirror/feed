@@ -30,9 +30,9 @@ public class PietFeedActionRetriever {
    *
    * @param action the Piet Action to pull the feed action metadata out of.
    */
-  @Nullable
+  /*@Nullable*/
   public FeedAction getFeedAction(Action action) {
-    @Nullable
+    /*@Nullable*/
     PietFeedAction feedActionExtension =
         action.getExtension(PietFeedAction.pietFeedActionExtension);
     if (feedActionExtension != null && feedActionExtension.hasFeedAction()) {

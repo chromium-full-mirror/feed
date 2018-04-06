@@ -27,13 +27,13 @@ public class UpdatableModelChild implements ModelChild {
   private static final String TAG = "UpdatableModelChild";
 
   private final String contentId;
-  @Nullable private final String parentContentId;
+  /*@Nullable*/ private final String parentContentId;
 
   private @Type int type = Type.UNBOUND;
   private UpdatableModelFeature modelFeature;
   private UpdatableModelToken modelToken;
 
-  public UpdatableModelChild(String contentId, @Nullable String parentContentId) {
+  public UpdatableModelChild(String contentId, /*@Nullable*/ String parentContentId) {
     this.contentId = contentId;
     this.parentContentId = parentContentId;
   }
@@ -99,7 +99,7 @@ public class UpdatableModelChild implements ModelChild {
     return contentId;
   }
 
-  @Nullable
+  /*@Nullable*/
   @Override
   public String getParentId() {
     return parentContentId;

@@ -65,7 +65,7 @@ public class HeadSessionImpl implements Session, Dumpable {
 
   @Override
   public void updateSession(
-      List<StreamStructure> streamStructures, @Nullable StreamToken mutationSourceToken) {
+      List<StreamStructure> streamStructures, /*@Nullable*/ StreamToken mutationSourceToken) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     updateCount++;
 
@@ -141,7 +141,7 @@ public class HeadSessionImpl implements Session, Dumpable {
   }
 
   @Override
-  @Nullable
+  /*@Nullable*/
   public ModelProvider getModelProvider() {
     return null;
   }

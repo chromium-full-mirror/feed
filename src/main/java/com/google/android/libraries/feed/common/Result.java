@@ -19,10 +19,10 @@ import javax.annotation.Nullable;
 /** Wrapper that allows callbacks to return a value as well as whether the call was successful. */
 public class Result<T> {
 
-  @Nullable private final T value;
+  /*@Nullable*/ private final T value;
   private final boolean isSuccessful;
 
-  private Result(@Nullable T value, boolean isSuccessful) {
+  private Result(/*@Nullable*/ T value, boolean isSuccessful) {
     this.value = value;
     this.isSuccessful = isSuccessful;
   }

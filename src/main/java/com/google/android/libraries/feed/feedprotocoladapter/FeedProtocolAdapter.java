@@ -74,7 +74,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   /** Create the internal protocol based upon the FeedStream definition. */
   @Override
-  public void createModel(Response response, @Nullable ByteString pageTokenForMutation) {
+  public void createModel(Response response, /*@Nullable*/ ByteString pageTokenForMutation) {
     ElapsedTimeTracker totalTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
     responseHandlingCount++;
 
@@ -183,7 +183,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     totalTimeTracker.stop("", "convertWireProtocol", "mutations", dataOperations.size());
   }
 
-  @Nullable
+  /*@Nullable*/
   private StreamToken createStreamToken(String tokenId, ByteString continuationToken) {
     if (continuationToken.isEmpty()) {
       return null;
@@ -210,8 +210,8 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   private StreamDataOperation.Builder createFeatureDataOperation(
       Operation operation,
-      @Nullable String contentId,
-      @Nullable String parentId,
+      /*@Nullable*/ String contentId,
+      /*@Nullable*/ String parentId,
       StreamFeature streamFeature) {
     StreamDataOperation.Builder dataOperation = createDataOperation(operation, contentId, parentId);
     dataOperation.setStreamPayload(StreamPayload.newBuilder().setStreamFeature(streamFeature));
@@ -219,14 +219,14 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   }
 
   private StreamDataOperation.Builder createSharedStateDataOperation(
-      Operation operation, @Nullable String contentId, StreamSharedState sharedState) {
+      Operation operation, /*@Nullable*/ String contentId, StreamSharedState sharedState) {
     StreamDataOperation.Builder dataOperation = createDataOperation(operation, contentId, null);
     dataOperation.setStreamPayload(StreamPayload.newBuilder().setStreamSharedState(sharedState));
     return dataOperation;
   }
 
   private StreamDataOperation.Builder createTokenDataOperation(
-      @Nullable String contentId, @Nullable String parentId, StreamToken streamToken) {
+      /*@Nullable*/ String contentId, /*@Nullable*/ String parentId, StreamToken streamToken) {
     StreamDataOperation.Builder dataOperation =
         createDataOperation(Operation.UPDATE_OR_APPEND, contentId, parentId);
     dataOperation.setStreamPayload(StreamPayload.newBuilder().setStreamToken(streamToken));
@@ -234,7 +234,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   }
 
   private StreamDataOperation.Builder createDataOperation(
-      Operation operation, @Nullable String contentId, @Nullable String parentId) {
+      Operation operation, /*@Nullable*/ String contentId, /*@Nullable*/ String parentId) {
     StreamDataOperation.Builder streamDataOperation = StreamDataOperation.newBuilder();
     StreamStructure.Builder streamStructure = StreamStructure.newBuilder();
     streamStructure.setOperation(operation);

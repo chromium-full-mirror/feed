@@ -126,7 +126,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
     assertThat(textElementAdapter3).isNotSameAs(textElementAdapter);
   }
 
-  private TextElement getBaseTextElement(@Nullable StyleProvider styleProvider) {
+  private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
     when(frameContext.getCurrentStyle()).thenReturn(sp);

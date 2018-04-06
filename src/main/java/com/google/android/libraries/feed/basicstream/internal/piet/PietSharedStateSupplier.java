@@ -27,7 +27,7 @@ public class PietSharedStateSupplier implements Supplier<PietSharedState> {
 
   private static final String TAG = "PietSharedStateSupplier";
 
-  @Nullable private ModelProvider modelProvider;
+  /*@Nullable*/ private ModelProvider modelProvider;
 
   @Override
   public PietSharedState get() {

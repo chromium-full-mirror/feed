@@ -33,9 +33,9 @@ import javax.annotation.Nullable;
 /** {@link ImageView} which is able to show colors and bitmaps with rounded off the corners. */
 public class RoundedCornerImageView extends ImageView {
 
-  @Nullable @VisibleForTesting Shape roundedRectangle;
-  @Nullable @VisibleForTesting BitmapShader shader;
-  @Nullable private Paint paint;
+  /*@Nullable*/ @VisibleForTesting Shape roundedRectangle;
+  /*@Nullable*/ @VisibleForTesting BitmapShader shader;
+  /*@Nullable*/ private Paint paint;
   private float radius;
   private int cornerField;
 
@@ -47,13 +47,13 @@ public class RoundedCornerImageView extends ImageView {
     this(context, null, 0);
   }
 
-  public RoundedCornerImageView(Context context, @Nullable AttributeSet attrs) {
+  public RoundedCornerImageView(Context context, /*@Nullable*/ AttributeSet attrs) {
     this(context, attrs, 0);
   }
 
   // Nullness checker doesn't like null attrs in super call but this is valid.
   @SuppressWarnings("initialization")
-  public RoundedCornerImageView(Context context, @Nullable AttributeSet attrs, int defStyle) {
+  public RoundedCornerImageView(Context context, /*@Nullable*/ AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
     roundedRectangle = null;
     paint = null;
@@ -90,7 +90,7 @@ public class RoundedCornerImageView extends ImageView {
   }
 
   @Override
-  public void setImageDrawable(@Nullable Drawable drawable) {
+  public void setImageDrawable(/*@Nullable*/ Drawable drawable) {
     super.setImageDrawable(drawable);
 
     // Reset shaders.  We will need to recalculate them.

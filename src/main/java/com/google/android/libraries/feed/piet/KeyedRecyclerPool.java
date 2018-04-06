@@ -35,7 +35,7 @@ class KeyedRecyclerPool<A extends ElementAdapter<?, ?>> implements RecyclerPool<
   }
 
   @Override
-  @Nullable
+  /*@Nullable*/
   public A get(RecyclerKey key) {
     if (key == null) {
       return null;

@@ -38,7 +38,7 @@ public class Dumper {
   // ensure none are currently dumping a given dumpable, to prevent cycles. The WeakReference
   // itself is always non-null, but the Dumpable may be null.
   private final WeakReference<Dumpable> currentDumpable;
-  @Nullable private final Dumper parent;
+  /*@Nullable*/ private final Dumper parent;
 
   // The root Dumper will create the values used by all children Dumper instances.  This flattens
   // the output into one list.
@@ -54,7 +54,7 @@ public class Dumper {
   // Private constructor, these are created through the static newDefaultDumper} method.
   private Dumper(
       int indentLevel,
-      @Nullable Dumper parent,
+      /*@Nullable*/ Dumper parent,
       WeakReference<Dumpable> currentDumpable,
       List<DumperValue> values) {
     this.indentLevel = indentLevel;
@@ -73,7 +73,7 @@ public class Dumper {
     return getChildDumper(null);
   }
 
-  private Dumper getChildDumper(@Nullable Dumpable dumpable) {
+  private Dumper getChildDumper(/*@Nullable*/ Dumpable dumpable) {
     return new Dumper(indentLevel + 1, this, new WeakReference<>(dumpable), values);
   }
 
@@ -98,7 +98,7 @@ public class Dumper {
   }
 
   /** Dump a Dumpable as a child of the current Dumper */
-  public void dump(@Nullable Dumpable dumpable) {
+  public void dump(/*@Nullable*/ Dumpable dumpable) {
     if (dumpable == null) {
       return;
     }

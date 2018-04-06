@@ -34,7 +34,7 @@ public class PietStylesHelper {
   private static final String TAG = "PietStylesHelper";
 
   private final Supplier<PietSharedState> pietSharedStateSupplier;
-  @Nullable private PietSharedState currentPietSharedState;
+  /*@Nullable*/ private PietSharedState currentPietSharedState;
 
   private final Map<String, Map<String, Style>> stylesheetScopes = new HashMap<>();
   private final Map<String, Stylesheet> stylesheets = new HashMap<>();
@@ -69,13 +69,13 @@ public class PietStylesHelper {
   }
 
   /** Returns a {@link Template} for the template */
-  @Nullable
+  /*@Nullable*/
   public Template getTemplate(String templateId) {
     checkCurrent();
     return templates.get(templateId);
   }
 
-  @Nullable
+  /*@Nullable*/
   public PietSharedState getCurrentPietSharedState() {
     return currentPietSharedState;
   }
@@ -88,7 +88,7 @@ public class PietStylesHelper {
       Style baseStyle,
       StyleIdsStack stack,
       Map<String, Style> styleMap,
-      @Nullable FrameContext frameContext) {
+      /*@Nullable*/ FrameContext frameContext) {
     Style.Builder mergedStyle = baseStyle.toBuilder();
     for (String style : stack.getStyleIdsList()) {
       if (styleMap.containsKey(style)) {

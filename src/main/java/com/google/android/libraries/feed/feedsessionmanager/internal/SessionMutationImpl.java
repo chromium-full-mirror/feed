@@ -30,7 +30,7 @@ public class SessionMutationImpl implements SessionMutation {
   /** Structure containing the change to the session manager. */
   public static class Change {
     public final List<StreamDataOperation> dataOperations = new ArrayList<>();
-    @Nullable public StreamToken mutationSourceToken;
+    /*@Nullable*/ public StreamToken mutationSourceToken;
   }
 
   private final Change change = new Change();

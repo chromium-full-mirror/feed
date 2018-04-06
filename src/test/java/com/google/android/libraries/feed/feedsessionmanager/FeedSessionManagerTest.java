@@ -224,7 +224,7 @@ public class FeedSessionManagerTest {
       int featureCnt,
       int idStart,
       boolean reset,
-      @Nullable String sharedStateId) {
+      /*@Nullable*/ String sharedStateId) {
     int operationCount = 0;
 
     InternalProtocolBuilder internalProtocolBuilder = new InternalProtocolBuilder();

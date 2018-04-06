@@ -32,7 +32,7 @@ class SingleKeyRecyclerPool<A extends ElementAdapter<?, ?>> implements RecyclerP
     pool = new SimplePool<>(capacity);
   }
 
-  @Nullable
+  /*@Nullable*/
   @Override
   public A get(RecyclerKey key) {
     if (!singletonKey.equals(key)) {

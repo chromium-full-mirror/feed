@@ -551,7 +551,7 @@ public class ImageElementAdapterTest {
         .contains("Missing ImageElement");
   }
 
-  private void setStyle(@Nullable Integer height, @Nullable Integer width) {
+  private void setStyle(/*@Nullable*/ Integer height, /*@Nullable*/ Integer width) {
     if (height != null) {
       when(styleProvider.hasHeight()).thenReturn(true);
       when(styleProvider.getHeight()).thenReturn(height);

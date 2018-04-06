@@ -176,7 +176,7 @@ public class SingleKeyRecyclerPoolTest {
     }
 
     @Override
-    public boolean equals(@Nullable Object obj) {
+    public boolean equals(/*@Nullable*/ Object obj) {
       if (obj == this) {
         return true;
       }

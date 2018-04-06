@@ -71,8 +71,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final PietSharedStateSupplier pietSharedStateSupplier;
   private final ModelProviderFactory modelProviderFactory;
 
-  @Nullable private ModelToken streamToken = null;
-  @Nullable private ModelProvider modelProvider;
+  /*@Nullable*/ private ModelToken streamToken = null;
+  /*@Nullable*/ private ModelProvider modelProvider;
 
   public BasicStream(
       Context context,
@@ -81,7 +81,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ImageLoaderApi imageLoaderApi,
       ActionParser actionParser,
       ActionApi actionApi,
-      @Nullable CustomElementProvider customElementProvider,
+      /*@Nullable*/ CustomElementProvider customElementProvider,
       ThreadUtils threadUtils,
       List<View> headers,
       Clock clock,
@@ -146,7 +146,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   @Override
-  public void onCreate(@Nullable Bundle savedInstanceState) {
+  public void onCreate(/*@Nullable*/ Bundle savedInstanceState) {
     // TODO: Implement save/restore.
   }
 

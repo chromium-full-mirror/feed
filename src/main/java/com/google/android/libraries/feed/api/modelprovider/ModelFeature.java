@@ -42,8 +42,8 @@ public interface ModelFeature {
    * If {@code startingChild} is {@code null}, the cursor starts at the start (beginning or end) of
    * the child list.
    */
-  @Nullable
-  ModelCursor getDirectionalCursor(boolean forward, @Nullable String startingChild);
+  /*@Nullable*/
+  ModelCursor getDirectionalCursor(boolean forward, /*@Nullable*/ String startingChild);
 
   /**
    * Register a {@link FeatureChangeObserver} for changes on this feature. The types of changes

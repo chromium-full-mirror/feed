@@ -46,8 +46,8 @@ public class UpdatableModelFeature extends Observable<FeatureChangeObserver>
   }
 
   @Override
-  @Nullable
-  public ModelCursor getDirectionalCursor(boolean forward, @Nullable String startingChild) {
+  /*@Nullable*/
+  public ModelCursor getDirectionalCursor(boolean forward, /*@Nullable*/ String startingChild) {
     return null;
   }
 
