@@ -47,9 +47,7 @@ import org.robolectric.annotation.Config;
 
 /** Tests for {@link FeedStreamScope}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(
-  manifest = "AndroidManifest.xml"
-)
+@Config(manifest = Config.NONE)
 public class FeedStreamScopeTest {
 
   // Mocks for required fields
@@ -96,7 +94,9 @@ public class FeedStreamScopeTest {
                 threadUtils,
                 timingUtils,
                 uiRunnableHandler,
-                clock)
+                clock,
+                streamConfiguration,
+                cardConfiguration)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -115,10 +115,10 @@ public class FeedStreamScopeTest {
                 threadUtils,
                 timingUtils,
                 uiRunnableHandler,
-                clock)
+                clock,
+                streamConfiguration,
+                cardConfiguration)
             .setActionParser(actionParser)
-            .setStreamConfiguration(streamConfiguration)
-            .setCardConfiguration(cardConfiguration)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)
             .setCustomElementProvider(customElementProvider)

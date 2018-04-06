@@ -52,7 +52,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/network",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
-        "//src/main/java/com/google/android/libraries/feed/hostimpl/stream",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",
