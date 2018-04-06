@@ -27,7 +27,7 @@ public class Result<T> {
     this.isSuccessful = isSuccessful;
   }
 
-  public static <T> Result<T> success(@Nullable T value) {
+  public static <T> Result<T> success(T value) {
     return new Result<>(value, /* isSuccessful= */ true);
   }
 
@@ -38,14 +38,14 @@ public class Result<T> {
   /**
    * Retrieves the value for the result.
    *
-   * <p>Warning: if called on an unsuccessful result, {@link IllegalStateException} will occur
+   * @throws {@link IllegalStateException} throw when result {@code #isSuccessful} == {@code false}
+   * @throws {@link NullPointerException} if result is null (should not happen)
    */
-  @Nullable
   public T getValue() {
     if (!isSuccessful) {
       throw new IllegalStateException("Cannot retrieve value for failed result");
     }
-    return value;
+    return Validators.checkNotNull(value);
   }
 
   public boolean isSuccessful() {

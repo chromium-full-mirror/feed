@@ -36,6 +36,20 @@ public class ResultTest {
   }
 
   @Test
+  public void success_nullValue() throws Exception {
+    Result<String> result = Result.success(null);
+    assertThat(result.isSuccessful()).isTrue();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                result.getValue();
+              }
+            })
+        .throwsAnExceptionOfType(NullPointerException.class);
+  }
+
+  @Test
   public void error() throws Exception {
     Result<String> result = Result.failure();
     assertThat(result.isSuccessful()).isFalse();
