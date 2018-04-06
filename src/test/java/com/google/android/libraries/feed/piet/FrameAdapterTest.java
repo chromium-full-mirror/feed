@@ -101,7 +101,7 @@ public class FrameAdapterTest {
             new Answer<Object>() {
               @Override
               public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                throw new RuntimeException(invocationOnMock.getArgumentAt(1, String.class));
+                throw new RuntimeException((String) invocationOnMock.getArguments()[1]);
               }
             });
     when(frameModelBinder.bindFrame(any(Frame.class))).thenReturn(frameContext);
