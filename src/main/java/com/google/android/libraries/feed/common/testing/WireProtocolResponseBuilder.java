@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.common.testing;
 
-import android.support.annotation.NonNull;
 import com.google.protobuf.ByteString;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -57,7 +56,7 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
-  public WireProtocolResponseBuilder addStreamToken(@NonNull ByteString token) {
+  public WireProtocolResponseBuilder addStreamToken(ByteString token) {
     this.token = token;
     return this;
   }

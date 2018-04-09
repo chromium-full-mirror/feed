@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -81,22 +80,22 @@ public class FeedStreamScope {
       this.debugBehavior = debugBehavior;
     }
 
-    public Builder setActionParser(@NonNull ActionParser actionParser) {
+    public Builder setActionParser(ActionParser actionParser) {
       this.actionParser = actionParser;
       return this;
     }
 
-    public Builder setStream(@NonNull Stream stream) {
+    public Builder setStream(Stream stream) {
       this.stream = stream;
       return this;
     }
 
-    public Builder setModelProviderFactory(@NonNull ModelProviderFactory modelProviderFactory) {
+    public Builder setModelProviderFactory(ModelProviderFactory modelProviderFactory) {
       this.modelProviderFactory = modelProviderFactory;
       return this;
     }
 
-    public Builder setCustomElementProvider(@NonNull CustomElementProvider customElementProvider) {
+    public Builder setCustomElementProvider(CustomElementProvider customElementProvider) {
       this.customElementProvider = customElementProvider;
       return this;
     }
@@ -153,10 +152,10 @@ public class FeedStreamScope {
     private final DebugBehavior debugBehavior;
 
     // Optional internal components to override the default implementations.
-    /*@Nullable*/ private ActionParser actionParser = null;
-    /*@Nullable*/ private ModelProviderFactory modelProviderFactory = null;
-    /*@Nullable*/ private Stream stream = null;
-    /*@Nullable*/ private CustomElementProvider customElementProvider = null;
+    /*@MonotonicNonNull*/ private ActionParser actionParser = null;
+    /*@MonotonicNonNull*/ private ModelProviderFactory modelProviderFactory = null;
+    /*@MonotonicNonNull*/ private Stream stream = null;
+    /*@MonotonicNonNull*/ private CustomElementProvider customElementProvider = null;
   }
 
   private FeedStreamScope(

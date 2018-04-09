@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
@@ -128,28 +127,27 @@ public class FeedProcessScope implements Dumpable {
       this.debugBehavior = debugBehavior;
     }
 
-    public Builder setProtocolAdapter(@NonNull FeedProtocolAdapter protocolAdapter) {
+    public Builder setProtocolAdapter(FeedProtocolAdapter protocolAdapter) {
       this.protocolAdapter = protocolAdapter;
       return this;
     }
 
-    public Builder setRequestManager(@NonNull RequestManager requestManager) {
+    public Builder setRequestManager(RequestManager requestManager) {
       this.requestManager = requestManager;
       return this;
     }
 
-    public Builder setSessionManager(@NonNull SessionManager sessionManager) {
+    public Builder setSessionManager(SessionManager sessionManager) {
       this.sessionManager = sessionManager;
       return this;
     }
 
-    public Builder setProtoExtensionProvider(
-        @NonNull ProtoExtensionProvider protoExtensionProvider) {
+    public Builder setProtoExtensionProvider(ProtoExtensionProvider protoExtensionProvider) {
       this.protoExtensionProvider = protoExtensionProvider;
       return this;
     }
 
-    public Builder setContentStorage(@NonNull ContentStorage contentStorage) {
+    public Builder setContentStorage(ContentStorage contentStorage) {
       this.contentStorage = contentStorage;
       return this;
     }
@@ -247,12 +245,12 @@ public class FeedProcessScope implements Dumpable {
     private final DebugBehavior debugBehavior;
 
     // Optional fields - if they are not provided, we will use default implementations.
-    /*@Nullable*/ private RequestManager requestManager = null;
-    /*@Nullable*/ private SessionManager sessionManager = null;
-    /*@Nullable*/ private FeedProtocolAdapter protocolAdapter = null;
-    /*@Nullable*/ private ProtoExtensionProvider protoExtensionProvider = null;
-    /*@Nullable*/ private ContentStorage contentStorage = null;
-    /*@Nullable*/ private JournalStorage journalStorage = null;
+    /*@MonotonicNonNull*/ private RequestManager requestManager = null;
+    /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
+    /*@MonotonicNonNull*/ private FeedProtocolAdapter protocolAdapter = null;
+    /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
+    /*@MonotonicNonNull*/ private ContentStorage contentStorage = null;
+    /*@MonotonicNonNull*/ private JournalStorage journalStorage = null;
 
     // This will be overridden in tests.
     private ThreadUtils threadUtils = new ThreadUtils();
