@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
-import com.google.android.libraries.feed.host.scheduler.testing.SchedulerConformanceTest;
+import com.google.android.libraries.feed.testing.conformance.scheduler.SchedulerConformanceTest;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.runner.RunWith;

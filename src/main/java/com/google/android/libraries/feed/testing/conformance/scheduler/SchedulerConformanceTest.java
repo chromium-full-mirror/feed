@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.host.scheduler.testing;
+package com.google.android.libraries.feed.testing.conformance.scheduler;
 
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import org.junit.Test;
