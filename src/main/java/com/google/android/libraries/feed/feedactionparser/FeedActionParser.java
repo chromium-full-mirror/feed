@@ -14,12 +14,20 @@
 
 package com.google.android.libraries.feed.feedactionparser;
 
+import static com.google.android.libraries.feed.common.Validators.checkState;
+import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_CONTEXT_MENU;
+import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL;
+import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_INCOGNITO;
+import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_NEW_WINDOW;
+
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
+import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
+import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 
 /**
@@ -52,21 +60,84 @@ public class FeedActionParser implements ActionParser {
     FeedActionMetadata feedActionMetadata = feedAction.getMetadata();
     switch (feedActionMetadata.getType()) {
       case OPEN_URL:
-        if (!feedActionMetadata.getOpenUrlData().hasUrl()) {
-          Logger.e(TAG, "Cannot open url: openUrlData is null, or the url is missing.");
-          break;
-        }
-        streamActionApi.openUrl(feedActionMetadata.getOpenUrlData().getUrl());
+      case OPEN_URL_NEW_WINDOW:
+      case OPEN_URL_INCOGNITO:
+        handleOpenUrl(
+            feedActionMetadata.getType(), feedActionMetadata.getOpenUrlData(), streamActionApi);
         break;
       case OPEN_CONTEXT_MENU:
         if (!feedActionMetadata.hasOpenContextMenuData()) {
-          Logger.e(TAG, "Cannot open context menu: does not have context menu data");
+          Logger.e(TAG, "Cannot open context menu: does not have context menu data.");
           break;
         }
+
+        if (!streamActionApi.canOpenContextMenu()) {
+          Logger.e(TAG, "Cannot open context menu: StreamActionApi does not support it.");
+          break;
+        }
+
         streamActionApi.openContextMenu(feedActionMetadata.getOpenContextMenuData());
         break;
       default:
         Logger.e(TAG, "Haven't implemented host handling of %s", feedActionMetadata.getType());
     }
+  }
+
+  private void handleOpenUrl(
+      Type urlType, OpenUrlData openUrlData, StreamActionApi streamActionApi) {
+    checkState(
+        urlType.equals(OPEN_URL)
+            || urlType.equals(OPEN_URL_NEW_WINDOW)
+            || urlType.equals(OPEN_URL_INCOGNITO),
+        "Attempting to handle URL that is not a URL type: %s",
+        urlType);
+    if (!openUrlData.hasUrl()) {
+      Logger.e(TAG, "Cannot open URL action: %s, no URL available.", urlType);
+      return;
+    }
+
+    if (!canPerformAction(urlType, streamActionApi)) {
+      Logger.e(TAG, "Cannot open URL action: %s, not supported.", urlType);
+      return;
+    }
+
+    String url = openUrlData.getUrl();
+    switch (urlType) {
+      case OPEN_URL:
+        streamActionApi.openUrl(url);
+        break;
+      case OPEN_URL_NEW_WINDOW:
+        streamActionApi.openUrlInNewWindow(url);
+        break;
+      case OPEN_URL_INCOGNITO:
+        streamActionApi.openUrlInIncognitoMode(url);
+        break;
+      default:
+        throw new AssertionError("Unhandled URL type: " + urlType);
+    }
+  }
+
+  @Override
+  public boolean canPerformAction(FeedAction feedAction, StreamActionApi streamActionApi) {
+    return canPerformAction(feedAction.getMetadata().getType(), streamActionApi);
+  }
+
+  private boolean canPerformAction(Type type, StreamActionApi streamActionApi) {
+    switch (type) {
+      case OPEN_URL:
+        return streamActionApi.canOpenUrl();
+      case OPEN_URL_NEW_WINDOW:
+        return streamActionApi.canOpenUrlInNewWindow();
+      case OPEN_URL_INCOGNITO:
+        return streamActionApi.canOpenUrlInIncognitoMode();
+      case OPEN_CONTEXT_MENU:
+        return streamActionApi.canOpenContextMenu();
+      case DISMISS:
+        return streamActionApi.canDismiss();
+      case UNKNOWN:
+        break;
+    }
+    Logger.e(TAG, "Unhandled feed action type: %s", type);
+    return false;
   }
 }

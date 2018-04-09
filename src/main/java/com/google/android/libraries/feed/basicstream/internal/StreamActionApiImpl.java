@@ -41,20 +41,37 @@ public class StreamActionApiImpl implements StreamActionApi {
   @Override
   public void openContextMenu(OpenContextMenuData openContextMenuData) {
     AlertDialog.Builder dialogBuilder = new Builder(context);
+
+    List<LabelledFeedActionData> enabledActions = new ArrayList<>();
     List<CharSequence> items = new ArrayList<>();
+
     for (LabelledFeedActionData labelledFeedActionData :
         openContextMenuData.getContextMenuDataList()) {
-      items.add(labelledFeedActionData.getLabel());
+      if (actionParser.canPerformAction(labelledFeedActionData.getFeedAction(), this)) {
+        items.add(labelledFeedActionData.getLabel());
+        enabledActions.add(labelledFeedActionData);
+      }
     }
+
     CharSequence[] itemArray = new String[items.size()];
     dialogBuilder.setItems(
         items.toArray(itemArray),
         (dialogInterface, i) ->
             actionParser.parseFeedAction(
-                openContextMenuData.getContextMenuDataList().get(i).getFeedAction(),
-                StreamActionApiImpl.this));
+                enabledActions.get(i).getFeedAction(), StreamActionApiImpl.this));
     // TODO: Make dialog show up near the click location.
     dialogBuilder.create().show();
+  }
+
+  @Override
+  public boolean canOpenContextMenu() {
+    return true;
+  }
+
+  @Override
+  public boolean canDismiss() {
+    // TODO: Implement dismiss/remove.
+    return false;
   }
 
   @Override
@@ -69,51 +86,51 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void openUrlInIncognitoMode(String url) {
-    // TODO: Implement open in Incognito Mode.
+    actionApi.openUrlInIncognitoMode(url);
   }
 
   @Override
   public boolean canOpenUrlInIncognitoMode() {
-    return false;
+    return actionApi.canOpenUrlInIncognitoMode();
   }
 
   @Override
   public void openUrlInNewTab(String url) {
-    // TODO: Implement open in new tab.
+    actionApi.openUrlInNewTab(url);
   }
 
   @Override
   public boolean canOpenUrlInNewTab() {
-    return false;
+    return actionApi.canOpenUrlInNewTab();
   }
 
   @Override
   public void openUrlInNewWindow(String url) {
-    // TODO: Implement open in new window.
+    actionApi.openUrlInNewWindow(url);
   }
 
   @Override
   public boolean canOpenUrlInNewWindow() {
-    return false;
+    return actionApi.canOpenUrlInNewWindow();
   }
 
   @Override
   public void downloadUrl(String url) {
-    // TODO: Implement download.
+    actionApi.downloadUrl(url);
   }
 
   @Override
   public boolean canDownloadUrl() {
-    return false;
+    return actionApi.canDownloadUrl();
   }
 
   @Override
   public void learnMore() {
-    // TODO: Implement learn more.
+    actionApi.learnMore();
   }
 
   @Override
   public boolean canLearnMore() {
-    return false;
+    return actionApi.canLearnMore();
   }
 }

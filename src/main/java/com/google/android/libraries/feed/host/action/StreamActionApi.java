@@ -22,6 +22,12 @@ import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
  */
 public interface StreamActionApi extends ActionApi {
 
+  /** Whether or not a context menu can be opened */
+  boolean canOpenContextMenu();
+
   /** Opens context menu. */
   void openContextMenu(OpenContextMenuData openContextMenuData);
+
+  /** Whether or not a card can be dismissed. */
+  boolean canDismiss();
 }

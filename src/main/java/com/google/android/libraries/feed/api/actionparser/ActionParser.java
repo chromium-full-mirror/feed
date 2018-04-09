@@ -24,4 +24,6 @@ public interface ActionParser {
   void parseAction(Action action, StreamActionApi streamActionApi, /*@Nullable*/ String veLoggingToken);
 
   void parseFeedAction(FeedAction feedActionMetadata, StreamActionApi streamActionApi);
+
+  boolean canPerformAction(FeedAction feedAction, StreamActionApi streamActionApi);
 }
