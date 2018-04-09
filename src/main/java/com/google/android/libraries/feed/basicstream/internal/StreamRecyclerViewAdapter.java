@@ -17,8 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.support.v7.widget.CardView;
+import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
@@ -54,8 +53,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
 
   private final ViewHolderBindingObserver viewHolderBindingObserver;
 
-  private static final int TYPE_HEADER = 0;
-  private static final int TYPE_CARD = 1;
+  @VisibleForTesting static final int TYPE_HEADER = 0;
+  @VisibleForTesting static final int TYPE_CARD = 1;
 
   /** A callback called when the last item is bound to a view holder */
   public interface ViewHolderBindingObserver {
@@ -87,10 +86,10 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
     }
 
     // create card views
-    final CardView cardView = createCardView();
+    final FrameLayout cardView = createCardView();
     FrameAdapter frameAdapter = pietManager.createPietFrameAdapter(() -> cardView, context);
     cardView.addView(frameAdapter.getFrameContainer());
-    return new PietViewHolder(cardView, frameAdapter);
+    return new PietViewHolder(cardConfiguration, cardView, frameAdapter);
   }
 
   @Override
@@ -158,19 +157,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
     return position - headers.size();
   }
 
-  private CardView createCardView() {
-    CardView cardView = new CardView(context);
-    cardView.setRadius(cardConfiguration.getDefaultCornerRadius());
-    cardView.setCardBackgroundColor(Color.WHITE);
-    cardView.setCardElevation(cardConfiguration.getDefaultCardElevation());
-    cardView.setMaxCardElevation(cardConfiguration.getMaxDefaultCardElevation());
-    cardView.setPreventCornerOverlap(false);
-
-    LinearLayout.LayoutParams lp =
-        new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-    lp.bottomMargin = (int) cardConfiguration.getCardBottomPadding();
-    cardView.setLayoutParams(lp);
+  private FrameLayout createCardView() {
+    FrameLayout cardView = new FrameLayout(context);
     return cardView;
   }
 
@@ -225,11 +213,16 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
 
   static class PietViewHolder extends ViewHolder {
 
+    private final CardConfiguration cardConfiguration;
+    private final FrameLayout cardView;
     private final FrameAdapter frameAdapter;
     private boolean bound;
 
-    public PietViewHolder(View itemView, FrameAdapter frameAdapter) {
-      super(itemView);
+    public PietViewHolder(
+        CardConfiguration cardConfiguration, FrameLayout cardView, FrameAdapter frameAdapter) {
+      super(cardView);
+      this.cardConfiguration = cardConfiguration;
+      this.cardView = cardView;
       this.frameAdapter = frameAdapter;
     }
 
@@ -237,6 +230,17 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
       if (bound) {
         return;
       }
+
+      // Need to reset padding here.  Setting a background can affect padding so if we switch from
+      // a background which has padding to one that does not, then the padding needs to be removed.
+      cardView.setPadding(0, 0, 0, 0);
+      cardView.setBackground(cardConfiguration.getCardBackground());
+      LinearLayout.LayoutParams lp =
+          new LinearLayout.LayoutParams(
+              LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+      lp.bottomMargin = (int) cardConfiguration.getCardBottomPadding();
+      cardView.setLayoutParams(lp);
+
       frameAdapter.bindModel(frame, (ShardingControl) null);
       bound = true;
     }

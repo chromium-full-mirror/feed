@@ -21,5 +21,6 @@ android_library(
         "//src/main/proto/search/now/proto/wire/feed:feed_java_proto_lite",
         "@androidsdk//com.android.support:cardview-v7-25.3.1",
         "@androidsdk//com.android.support:recyclerview-v7-25.3.1",
+        "@androidsdk//com.android.support:support-annotations-25.3.1",
     ],
 )

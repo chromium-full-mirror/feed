@@ -14,15 +14,15 @@
 
 package com.google.android.libraries.feed.host.stream;
 
+import android.graphics.drawable.Drawable;
+
 /** Class which is able to provide host configuration for default card look and feel. */
 // TODO: Look into allowing server configuration of this.
 public interface CardConfiguration {
 
   int getDefaultCornerRadius();
 
-  float getDefaultCardElevation();
-
-  float getMaxDefaultCardElevation();
+  Drawable getCardBackground();
 
   /** Returns the amount of padding (in px) at the end of a card in the Stream */
   float getCardBottomPadding();
