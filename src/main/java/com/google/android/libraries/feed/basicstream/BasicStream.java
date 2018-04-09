@@ -44,6 +44,7 @@ import com.google.android.libraries.feed.basicstream.internal.piet.PietCustomEle
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -81,6 +82,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ActionParser actionParser,
       ActionApi actionApi,
       /*@Nullable*/ CustomElementProvider customElementProvider,
+      DebugBehavior debugBehavior,
       ThreadUtils threadUtils,
       List<View> headers,
       Clock clock,
@@ -91,6 +93,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.pietManager =
         new PietManager(
             new PietStylesHelper(pietSharedStateSupplier),
+            debugBehavior,
             new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
             (action, frame, veLoggingToken) ->
                 actionParser.parseAction(

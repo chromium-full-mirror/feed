@@ -31,6 +31,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -45,6 +46,7 @@ import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
+import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
@@ -152,9 +154,12 @@ public class FrameAdapterTest {
     FrameModelBinder frameModelBinder =
         new FrameModelBinder(
             new PietStylesHelper(Suppliers.of(pietSharedState)),
+            DebugBehavior.SILENT,
             mock(AssetProvider.class),
             mock(CustomElementProvider.class));
-    FrameContext frameContext = frameModelBinder.bindFrame(Frame.getDefaultInstance());
+    FrameContext frameContext =
+        frameModelBinder.bindFrame(
+            Frame.newBuilder().setStylesheet(Stylesheet.getDefaultInstance()).build());
 
     frameAdapter = new FrameAdapter(context, adapterParameters, frameModelBinder);
 

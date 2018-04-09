@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -39,14 +40,17 @@ class FrameModelBinder {
   private static final String TAG = "FrameModelBinder";
 
   private final PietStylesHelper stylesHelper;
+  private final DebugBehavior debugBehavior;
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
 
   FrameModelBinder(
       PietStylesHelper stylesHelper,
+      DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider) {
     this.stylesHelper = stylesHelper;
+    this.debugBehavior = debugBehavior;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
   }
@@ -97,6 +101,7 @@ class FrameModelBinder {
             DEFAULT_STYLE,
             styleProvider,
             stylesHelper,
+            debugBehavior,
             assetProvider,
             customElementProvider);
     for (String error : errors) {

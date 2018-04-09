@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.feedactionparser.FeedActionParser;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -62,6 +63,7 @@ public class FeedStreamScope {
         TimingUtils timingUtils,
         UiRunnableHandler uiRunnableHandler,
         Clock clock,
+        DebugBehavior debugBehavior,
         StreamConfiguration streamConfiguration,
         CardConfiguration cardConfiguration) {
       this.context = context;
@@ -76,6 +78,7 @@ public class FeedStreamScope {
       this.streamConfiguration = streamConfiguration;
       this.cardConfiguration = cardConfiguration;
       this.clock = clock;
+      this.debugBehavior = debugBehavior;
     }
 
     public Builder setActionParser(@NonNull ActionParser actionParser) {
@@ -117,6 +120,7 @@ public class FeedStreamScope {
                 Validators.checkNotNull(actionParser),
                 actionApi,
                 customElementProvider,
+                debugBehavior,
                 threadUtils,
                 /* headers = */ new ArrayList<>(0),
                 clock,
@@ -146,6 +150,7 @@ public class FeedStreamScope {
     private final Clock clock;
     private CardConfiguration cardConfiguration;
     private StreamConfiguration streamConfiguration;
+    private final DebugBehavior debugBehavior;
 
     // Optional internal components to override the default implementations.
     /*@Nullable*/ private ActionParser actionParser = null;

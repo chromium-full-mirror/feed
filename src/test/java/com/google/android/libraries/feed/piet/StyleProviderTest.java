@@ -23,6 +23,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -57,7 +58,8 @@ public class StyleProviderTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     FrameModelBinder frameBinder =
-        new FrameModelBinder(mockStylesHelper, mockAssetProvider, mockCustomElementProvider);
+        new FrameModelBinder(
+            mockStylesHelper, DebugBehavior.VERBOSE, mockAssetProvider, mockCustomElementProvider);
     FrameContext frameContextTemp = frameBinder.bindFrame(Frame.getDefaultInstance());
     assertThat(frameContextTemp).isInstanceOf(FrameContext.class);
     frameContext = frameContextTemp;

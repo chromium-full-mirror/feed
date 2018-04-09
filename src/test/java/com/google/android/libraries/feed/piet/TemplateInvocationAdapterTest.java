@@ -28,6 +28,7 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.TemplateKey;
 import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.TemplateKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -140,7 +141,8 @@ public class TemplateInvocationAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
     when(stylesHelper.getCurrentPietSharedState()).thenReturn(PietSharedState.getDefaultInstance());
     frameContext =
-        new FrameModelBinder(stylesHelper, assetProvider, customElementProvider)
+        new FrameModelBinder(
+                stylesHelper, DebugBehavior.VERBOSE, assetProvider, customElementProvider)
             .bindFrame(DEFAULT_FRAME);
     adapterParameters = new AdapterParameters(context, Suppliers.of(null), actionHandler);
 
@@ -201,7 +203,8 @@ public class TemplateInvocationAdapterTest {
     assertThat(equivalentTemplate).isNotSameAs(DEFAULT_TEMPLATE);
     assertThat(equivalentTemplate).isEqualTo(DEFAULT_TEMPLATE);
     frameContext =
-        new FrameModelBinder(stylesHelper, assetProvider, customElementProvider)
+        new FrameModelBinder(
+                stylesHelper, DebugBehavior.VERBOSE, assetProvider, customElementProvider)
             .bindFrame(
                 DEFAULT_FRAME
                     .toBuilder()
@@ -310,7 +313,8 @@ public class TemplateInvocationAdapterTest {
     Template defaultTemplateWithLocalStylesheet =
         DEFAULT_TEMPLATE.toBuilder().setStylesheet(TEMPLATE_STYLESHEET).build();
     frameContext =
-        new FrameModelBinder(stylesHelper, assetProvider, customElementProvider)
+        new FrameModelBinder(
+                stylesHelper, DebugBehavior.VERBOSE, assetProvider, customElementProvider)
             .bindFrame(
                 DEFAULT_FRAME
                     .toBuilder()

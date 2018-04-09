@@ -18,6 +18,7 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.common.Supplier;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -32,12 +33,13 @@ public class PietManager {
 
   public PietManager(
       PietStylesHelper pietStylesHelper,
+      DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       ActionHandler actionHandler,
       CustomElementProvider customElementProvider) {
     this.actionHandler = actionHandler;
     this.frameModelBinder =
-        new FrameModelBinder(pietStylesHelper, assetProvider, customElementProvider);
+        new FrameModelBinder(pietStylesHelper, debugBehavior, assetProvider, customElementProvider);
   }
 
   public FrameAdapter createPietFrameAdapter(

@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
@@ -65,7 +66,9 @@ public class FrameModelBinderTest {
   @Before
   public void setUp() {
     initMocks(this);
-    frameModelBinder = new FrameModelBinder(stylesHelper, assetProvider, customElementProvider);
+    frameModelBinder =
+        new FrameModelBinder(
+            stylesHelper, DebugBehavior.VERBOSE, assetProvider, customElementProvider);
   }
 
   @Test

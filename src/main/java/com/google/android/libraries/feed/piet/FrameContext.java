@@ -23,6 +23,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
@@ -68,6 +69,7 @@ class FrameContext {
   }
 
   private final PietStylesHelper stylesHelper;
+  private final DebugBehavior debugBehavior;
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
   private final Map<String, Template> frameTemplates = new HashMap<>();
@@ -95,6 +97,7 @@ class FrameContext {
       Style baseStyle,
       StyleProvider styleProvider,
       PietStylesHelper stylesHelper,
+      DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider) {
     this(
@@ -104,6 +107,7 @@ class FrameContext {
         baseStyle,
         styleProvider,
         stylesHelper,
+        debugBehavior,
         assetProvider,
         customElementProvider);
   }
@@ -115,6 +119,7 @@ class FrameContext {
       Style baseStyle,
       StyleProvider styleProvider,
       PietStylesHelper stylesHelper,
+      DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider) {
     currentFrame = frame;
@@ -123,6 +128,7 @@ class FrameContext {
     this.baseStyle = baseStyle;
     currentStyleProvider = styleProvider;
     this.stylesHelper = stylesHelper;
+    this.debugBehavior = debugBehavior;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
 
@@ -131,6 +137,10 @@ class FrameContext {
         frameTemplates.put(template.getTemplateId(), template);
       }
     }
+  }
+
+  public DebugBehavior getDebugBehavior() {
+    return debugBehavior;
   }
 
   public AssetProvider getAssetProvider() {
@@ -199,6 +209,7 @@ class FrameContext {
         templateBaseStyle,
         templateStyleProvider,
         stylesHelper,
+        debugBehavior,
         assetProvider,
         customElementProvider);
   }
@@ -216,6 +227,7 @@ class FrameContext {
         baseStyle,
         styleProvider,
         stylesHelper,
+        debugBehavior,
         assetProvider,
         customElementProvider);
   }
@@ -405,9 +417,7 @@ class FrameContext {
    */
   /*@Nullable*/
   View getErrorView(Context context) {
-    // TODO: This needs to be controlled by a DEBUG flag, this should always return
-    // null in production.
-    if (errors.isEmpty()) {
+    if (errors.isEmpty() || !getDebugBehavior().getShowDebugViews()) {
       return null;
     }
     return new ErrorViewUtils(context).getErrorView(errors);

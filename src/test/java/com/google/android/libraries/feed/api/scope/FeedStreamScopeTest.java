@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.testing.TestClockImpl;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -95,6 +96,7 @@ public class FeedStreamScopeTest {
                 timingUtils,
                 uiRunnableHandler,
                 clock,
+                DebugBehavior.VERBOSE,
                 streamConfiguration,
                 cardConfiguration)
             .build();
@@ -116,6 +118,7 @@ public class FeedStreamScopeTest {
                 timingUtils,
                 uiRunnableHandler,
                 clock,
+                DebugBehavior.VERBOSE,
                 streamConfiguration,
                 cardConfiguration)
             .setActionParser(actionParser)

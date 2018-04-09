@@ -26,6 +26,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -63,7 +64,12 @@ public class PietManagerTest {
     viewGroup1 = new LinearLayout(context);
     viewGroup2 = new FrameLayout(context);
     pietManager =
-        new PietManager(pietStylesHelper, assetProvider, actionHandler, customElementProvider);
+        new PietManager(
+            pietStylesHelper,
+            DebugBehavior.VERBOSE,
+            assetProvider,
+            actionHandler,
+            customElementProvider);
   }
 
   @Test

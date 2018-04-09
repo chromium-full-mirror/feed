@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerView
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.testing.TestClockImpl;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -90,6 +91,7 @@ public class BasicStreamTest {
             actionParser,
             actionApi,
             customElementProvider,
+            DebugBehavior.VERBOSE,
             threadUtils,
             headers,
             new TestClockImpl(),

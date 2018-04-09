@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
@@ -79,7 +80,8 @@ public class FeedProcessScopeTest {
                 imageLoaderApi,
                 loggingApi,
                 networkClient,
-                schedulerApi)
+                schedulerApi,
+                DebugBehavior.VERBOSE)
             .setThreadUtils(threadUtils)
             .build();
 
@@ -99,7 +101,8 @@ public class FeedProcessScopeTest {
                 imageLoaderApi,
                 loggingApi,
                 networkClient,
-                schedulerApi)
+                schedulerApi,
+                DebugBehavior.VERBOSE)
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)

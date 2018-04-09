@@ -25,6 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
@@ -117,6 +118,7 @@ public class FrameContextTest {
             SAMPLE_STYLE,
             styleProvider,
             stylesHelper,
+            DebugBehavior.VERBOSE,
             assetProvider,
             customElementProvider);
 
@@ -716,6 +718,7 @@ public class FrameContextTest {
         BASE_STYLE,
         styleProvider,
         stylesHelper,
+        DebugBehavior.VERBOSE,
         assetProvider,
         customElementProvider);
   }
@@ -730,6 +733,7 @@ public class FrameContextTest {
         BASE_STYLE,
         styleProvider,
         stylesHelper,
+        DebugBehavior.VERBOSE,
         assetProvider,
         customElementProvider);
   }
@@ -744,6 +748,7 @@ public class FrameContextTest {
         BASE_STYLE,
         styleProvider,
         stylesHelper,
+        DebugBehavior.VERBOSE,
         assetProvider,
         customElementProvider);
   }
