@@ -3,7 +3,7 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])  # Apache 2
 
 java_library(
-    name = "testing",
+    name = "storage",
     testonly = 1,
     srcs = glob(["*.java"]),
     deps = [

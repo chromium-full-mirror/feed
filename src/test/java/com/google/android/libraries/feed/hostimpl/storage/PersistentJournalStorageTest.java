@@ -19,7 +19,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.content.Context;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.host.storage.testing.JournalStorageConformanceTest;
+import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageConformanceTest;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.robolectric.RobolectricTestRunner;
 import org.junit.After;
