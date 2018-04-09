@@ -20,7 +20,7 @@ import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
-import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
@@ -52,7 +52,7 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
           Logger.e(
               TAG,
               frameContext.reportError(
-                  ErrorType.ERROR,
+                  MessageType.ERROR,
                   String.format(
                       "TextElement Binding not found for %s",
                       textLine.getParameterizedTextBinding())));
@@ -88,7 +88,7 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
       Logger.e(
           TAG,
           frameContext.reportError(
-              ErrorType.ERROR,
+              MessageType.ERROR,
               "ParameterizedText missing for TextElement, setting to empty String"));
       textView.setText("");
       return;

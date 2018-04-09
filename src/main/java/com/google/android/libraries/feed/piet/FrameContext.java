@@ -19,11 +19,9 @@ import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.IntDef;
-import android.support.annotation.VisibleForTesting;
-import android.view.View;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
@@ -49,9 +47,7 @@ import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -61,23 +57,15 @@ import java.util.Map;
 class FrameContext {
   private static final String TAG = "FrameContext";
 
-  /** What kind of error are we reporting when calling {@link #reportError(ErrorType, String)}. */
-  @IntDef({ErrorType.ERROR, ErrorType.WARNING})
-  @interface ErrorType {
-    int ERROR = 1;
-    int WARNING = 2;
-  }
-
   private final PietStylesHelper stylesHelper;
   private final DebugBehavior debugBehavior;
+  private final DebugLogger debugLogger;
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
   private final Map<String, Template> frameTemplates = new HashMap<>();
 
   // This is the Frame which contains all the slices being processed.
   private final Frame currentFrame;
-
-  @VisibleForTesting final List<String> errors = new ArrayList<>();
 
   // The Current Stylesheet as a map from style_id to Style.
   private final Map<String, Style> stylesheet;
@@ -98,6 +86,7 @@ class FrameContext {
       StyleProvider styleProvider,
       PietStylesHelper stylesHelper,
       DebugBehavior debugBehavior,
+      DebugLogger debugLogger,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider) {
     this(
@@ -108,6 +97,7 @@ class FrameContext {
         styleProvider,
         stylesHelper,
         debugBehavior,
+        debugLogger,
         assetProvider,
         customElementProvider);
   }
@@ -120,6 +110,7 @@ class FrameContext {
       StyleProvider styleProvider,
       PietStylesHelper stylesHelper,
       DebugBehavior debugBehavior,
+      DebugLogger debugLogger,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider) {
     currentFrame = frame;
@@ -129,6 +120,7 @@ class FrameContext {
     currentStyleProvider = styleProvider;
     this.stylesHelper = stylesHelper;
     this.debugBehavior = debugBehavior;
+    this.debugLogger = debugLogger;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
 
@@ -141,6 +133,10 @@ class FrameContext {
 
   public DebugBehavior getDebugBehavior() {
     return debugBehavior;
+  }
+
+  public DebugLogger getDebugLogger() {
+    return debugLogger;
   }
 
   public AssetProvider getAssetProvider() {
@@ -174,7 +170,7 @@ class FrameContext {
   // TODO: Why do we allow bindingContext to be null if it's an error?
   FrameContext bindTemplate(Template template, /*@Nullable*/ BindingContext bindingContext) {
     if (bindingContext == null) {
-      Logger.w(TAG, reportError(ErrorType.WARNING, "Template BindingContext was not provided"));
+      Logger.w(TAG, reportError(MessageType.WARNING, "Template BindingContext was not provided"));
       return this;
     }
     Map<String, BindingValue> binding = createBindingValueMap(bindingContext);
@@ -210,6 +206,7 @@ class FrameContext {
         templateStyleProvider,
         stylesHelper,
         debugBehavior,
+        debugLogger,
         assetProvider,
         customElementProvider);
   }
@@ -228,6 +225,7 @@ class FrameContext {
         styleProvider,
         stylesHelper,
         debugBehavior,
+        debugLogger,
         assetProvider,
         customElementProvider);
   }
@@ -319,7 +317,7 @@ class FrameContext {
     if (!returnValue.hasCustomElementData() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
-              ErrorType.ERROR,
+              MessageType.ERROR,
               String.format("Custom element binding not found for %s", binding.getBindingId())));
     } else {
       return returnValue;
@@ -335,7 +333,7 @@ class FrameContext {
     if (!returnValue.hasChunkedText() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
-              ErrorType.ERROR,
+              MessageType.ERROR,
               String.format("Chunked text binding not found for %s", binding.getBindingId())));
     } else {
       return returnValue;
@@ -351,7 +349,7 @@ class FrameContext {
     if (!returnValue.hasParameterizedText() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
-              ErrorType.ERROR,
+              MessageType.ERROR,
               String.format(
                   "Parameterized text binding not found for %s", binding.getBindingId())));
     } else {
@@ -368,7 +366,7 @@ class FrameContext {
     if (!returnValue.hasImage() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
-              ErrorType.ERROR,
+              MessageType.ERROR,
               String.format("Image binding not found for %s", binding.getBindingId())));
     } else {
       return returnValue;
@@ -384,7 +382,7 @@ class FrameContext {
     if (!returnValue.hasElementList() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
-              ErrorType.ERROR,
+              MessageType.ERROR,
               String.format("ElementList binding not found for %s", binding.getBindingId())));
     } else {
       return returnValue;
@@ -403,24 +401,10 @@ class FrameContext {
    * Report user errors in frames. This will return the fully formed error so it can be logged at
    * the site of the error.
    */
-  public String reportError(@ErrorType int errorType, String error) {
-    String e =
-        String.format(
-            "[%s] %s - %s", currentFrame.getTag(), errorType == ErrorType.ERROR ? "E" : "W", error);
-    errors.add(e);
+  public String reportError(@MessageType int errorType, String error) {
+    String e = String.format("[%s] %s", currentFrame.getTag(), error);
+    debugLogger.recordMessage(errorType, e);
     return e;
-  }
-
-  /**
-   * Create a Linear Layout with all of the errors reported by {@link #reportError(String)}. This
-   * will return {@code null} if the View shouldn't be displayed.
-   */
-  /*@Nullable*/
-  View getErrorView(Context context) {
-    if (errors.isEmpty() || !getDebugBehavior().getShowDebugViews()) {
-      return null;
-    }
-    return new ErrorViewUtils(context).getErrorView(errors);
   }
 
   public int getRoundedCornerRadius(StyleProvider style, Context context) {

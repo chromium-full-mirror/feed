@@ -87,7 +87,6 @@ public class FrameContextTest {
   private static final Style BASE_STYLE = Style.newBuilder().setColor(BASE_STYLE_COLOR).build();
   private static final StyleIdsStack SAMPLE_STYLE_IDS =
       StyleIdsStack.newBuilder().addStyleIds(SAMPLE_STYLE_ID).build();
-
   private static final String BINDING_ID = "BINDING_ID";
   private static final String INVALID_BINDING_ID = "NOT_A_REAL_BINDING_ID";
 
@@ -97,6 +96,8 @@ public class FrameContextTest {
   @Mock private StyleProvider styleProvider;
 
   private final Map<String, Style> defaultStylesheet = new HashMap<>();
+  private final DebugLogger debugLogger = new DebugLogger();
+
   private Context context;
 
   private FrameContext frameContext;
@@ -119,6 +120,7 @@ public class FrameContextTest {
             styleProvider,
             stylesHelper,
             DebugBehavior.VERBOSE,
+            debugLogger,
             assetProvider,
             customElementProvider);
 
@@ -719,6 +721,7 @@ public class FrameContextTest {
         styleProvider,
         stylesHelper,
         DebugBehavior.VERBOSE,
+        debugLogger,
         assetProvider,
         customElementProvider);
   }
@@ -734,6 +737,7 @@ public class FrameContextTest {
         styleProvider,
         stylesHelper,
         DebugBehavior.VERBOSE,
+        debugLogger,
         assetProvider,
         customElementProvider);
   }
@@ -749,6 +753,7 @@ public class FrameContextTest {
         styleProvider,
         stylesHelper,
         DebugBehavior.VERBOSE,
+        debugLogger,
         assetProvider,
         customElementProvider);
   }

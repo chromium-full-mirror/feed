@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
@@ -275,7 +275,7 @@ public class ElementAdapterFactoryTest {
     adapterFactory.createAdapterForElement(element, frameContext);
 
     ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-    verify(frameContext).reportError(eq(ErrorType.ERROR), captor.capture());
+    verify(frameContext).reportError(eq(MessageType.ERROR), captor.capture());
     verify(templateFactory).get(TemplateInvocation.getDefaultInstance(), frameContext);
   }
 

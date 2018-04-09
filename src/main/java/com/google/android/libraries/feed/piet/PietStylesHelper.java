@@ -18,7 +18,7 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Supplier;
-import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
@@ -96,7 +96,7 @@ public class PietStylesHelper {
         String error =
             String.format("Unable to bind style [%s], style not found in Stylesheet", style);
         if (frameContext != null) {
-          frameContext.reportError(ErrorType.ERROR, error);
+          frameContext.reportError(MessageType.ERROR, error);
         }
         Logger.w(TAG, error);
       }

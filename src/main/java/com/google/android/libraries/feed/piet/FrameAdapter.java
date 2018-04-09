@@ -25,7 +25,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.Slice;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -90,7 +90,7 @@ public class FrameAdapter {
     } catch (RuntimeException e) {
       // TODO: Remove this once error reporting is fully implemented.
       Logger.e(TAG, e, "Catch top level exception");
-      frameContext.reportError(ErrorType.ERROR, "Top Level Exception was caught - see logcat");
+      frameContext.reportError(MessageType.ERROR, "Top Level Exception was caught - see logcat");
     }
     startTime = System.nanoTime() - startTime;
     // TODO: We should be targeting < 15ms and warn at 10ms?
@@ -100,13 +100,19 @@ public class FrameAdapter {
       Logger.w(
           TAG,
           frameContext.reportError(
-              ErrorType.WARNING,
+              MessageType.WARNING,
               String.format("Slow Bind (%s) time: %s ps", frame.getTag(), startTime / 1000)));
     }
     // If there were errors add an error slice to the frame
-    View v = frameContext.getErrorView(context);
-    if (v != null) {
-      frameView.addView(v);
+    if (frameContext.getDebugBehavior().getShowDebugViews()) {
+      View errorView = frameContext.getDebugLogger().getReportView(MessageType.ERROR, context);
+      if (errorView != null) {
+        frameView.addView(errorView);
+      }
+      View warningView = frameContext.getDebugLogger().getReportView(MessageType.WARNING, context);
+      if (warningView != null) {
+        frameView.addView(warningView);
+      }
     }
   }
 

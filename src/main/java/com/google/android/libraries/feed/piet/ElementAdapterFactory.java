@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
-import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -129,7 +129,7 @@ class ElementAdapterFactory {
           return templateInvocationFactory.get(templateInvocation, frameContext);
         } else {
           frameContext.reportError(
-              ErrorType.ERROR,
+              MessageType.ERROR,
               String.format("Could not get template for %s", element.getTemplateBinding()));
           return templateInvocationFactory.get(
               TemplateInvocation.getDefaultInstance(), frameContext);

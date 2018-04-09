@@ -18,7 +18,7 @@ import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE
 
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
-import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -94,6 +94,7 @@ class FrameModelBinder {
     if (stylesheetMap == null) {
       stylesheetMap = new HashMap<>();
     }
+    DebugLogger debugLogger = new DebugLogger();
     FrameContext frameContext =
         new FrameContext(
             frame,
@@ -102,10 +103,11 @@ class FrameModelBinder {
             styleProvider,
             stylesHelper,
             debugBehavior,
+            debugLogger,
             assetProvider,
             customElementProvider);
     for (String error : errors) {
-      frameContext.reportError(ErrorType.ERROR, error);
+      frameContext.reportError(MessageType.ERROR, error);
     }
     return frameContext;
   }

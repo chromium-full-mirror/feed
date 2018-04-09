@@ -27,12 +27,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
-import com.google.android.libraries.feed.piet.FrameContext.ErrorType;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -68,6 +69,7 @@ public class FrameAdapterTest {
   @Mock private AssetProvider assetProvider;
   @Mock private ElementAdapterFactory adapterFactory;
   @Mock private FrameContext frameContext;
+  @Mock private DebugLogger debugLogger;
   @Mock private FrameModelBinder frameModelBinder;
   @Mock private StyleProvider styleProvider;
   @Mock private ElementListAdapter elementListAdapter;
@@ -99,7 +101,7 @@ public class FrameAdapterTest {
         .thenReturn(templateAdapter);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(frameContext.getAssetProvider()).thenReturn(assetProvider);
-    when(frameContext.reportError(eq(ErrorType.ERROR), anyString()))
+    when(frameContext.reportError(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
             new Answer<Object>() {
               @Override
@@ -107,6 +109,8 @@ public class FrameAdapterTest {
                 throw new RuntimeException((String) invocationOnMock.getArguments()[1]);
               }
             });
+    when(frameContext.getDebugLogger()).thenReturn(debugLogger);
+    when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.VERBOSE);
     when(frameModelBinder.bindFrame(any(Frame.class))).thenReturn(frameContext);
 
     frameAdapter = new FrameAdapter(context, adapterParameters, frameModelBinder);
@@ -135,6 +139,7 @@ public class FrameAdapterTest {
     verify(frameContext, never()).reportError(anyInt(), anyString());
   }
 
+  /** This test sets up all real objects to ensure that real adapters are bound and unbound, etc. */
   @Test
   public void testBindAndUnbind_respectsAdapterLifecycle() {
     String templateId = "template";
@@ -168,6 +173,7 @@ public class FrameAdapterTest {
     ElementAdapter<?, ?> viewAdapter = frameAdapter.getBoundAdapterForSlice(slice, frameContext);
     assertThat(viewAdapter.getModel()).isEqualTo(slice.getInlineSlice());
     frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
     frameAdapter.unbindModel();
 
     slice =
@@ -177,6 +183,7 @@ public class FrameAdapterTest {
     viewAdapter = frameAdapter.getBoundAdapterForSlice(slice, frameContext);
     assertThat(viewAdapter.getModel()).isEqualTo(slice.getTemplateSlice());
     frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
     frameAdapter.unbindModel();
   }
 
@@ -284,6 +291,32 @@ public class FrameAdapterTest {
 
     frameAdapter.unbindModel();
     verify(adapterFactory).releaseAdapter(templateAdapter);
+  }
+
+  @Test
+  public void testErrorViewReporting() {
+    View warningView = new View(context);
+    View errorView = new View(context);
+    when(debugLogger.getReportView(MessageType.WARNING, context)).thenReturn(warningView);
+    when(debugLogger.getReportView(MessageType.ERROR, context)).thenReturn(errorView);
+
+    Slice slice = getBaseSlice();
+    Frame frame = Frame.newBuilder().addSlices(slice).build();
+
+    when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.SILENT);
+    frameAdapter.bindModel(frame, (ShardingControl) null);
+
+    assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
+    verify(debugLogger, never()).getReportView(anyInt(), any());
+
+    frameAdapter.unbindModel();
+
+    when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.VERBOSE);
+    frameAdapter.bindModel(frame, (ShardingControl) null);
+
+    assertThat(frameAdapter.getView().getChildCount()).isEqualTo(3);
+    assertThat(frameAdapter.getView().getChildAt(1)).isSameAs(errorView);
+    assertThat(frameAdapter.getView().getChildAt(2)).isSameAs(warningView);
   }
 
   private static Slice getBaseSlice() {

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.host.config.DebugBehavior;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
@@ -76,7 +77,7 @@ public class FrameModelBinderTest {
     Frame frame = Frame.getDefaultInstance();
     FrameContext frameContext = frameModelBinder.bindFrame(frame);
     assertThat(frameContext).isNotNull();
-    assertThat(frameContext.errors.size()).isEqualTo(1);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
   }
 
   @Test
@@ -85,7 +86,7 @@ public class FrameModelBinderTest {
     when(stylesHelper.getStylesheet(STYLESHEET_ID)).thenReturn(new HashMap<>());
     FrameContext frameContext = frameModelBinder.bindFrame(frame);
     assertThat(frameContext).isNotNull();
-    assertThat(frameContext.errors.size()).isEqualTo(1);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
   }
 
   @Test
@@ -94,7 +95,7 @@ public class FrameModelBinderTest {
     when(stylesHelper.getStylesheet(STYLESHEET_ID)).thenReturn(new HashMap<>());
     FrameContext frameContext = frameModelBinder.bindFrame(frame);
     assertThat(frameContext).isNotNull();
-    assertThat(frameContext.errors.size()).isEqualTo(1);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
   }
 
   @Test
@@ -102,7 +103,7 @@ public class FrameModelBinderTest {
     Frame frame = getWorkingFrame();
     FrameContext frameContext = frameModelBinder.bindFrame(frame);
     assertThat(frameContext).isNotNull();
-    assertThat(frameContext.errors.size()).isEqualTo(0);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
   @Test
@@ -117,6 +118,7 @@ public class FrameModelBinderTest {
     // The style is not currently bound, but available from the stylesheet.
     assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(FRAME_COLOR);
     assertThat(frameContext.makeStyleFor(FRAME_STYLE_IDS).getColor()).isEqualTo(FRAME_COLOR);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
   @Test
@@ -129,6 +131,7 @@ public class FrameModelBinderTest {
     // The style is not currently bound, but available from the stylesheet.
     assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(FRAME_COLOR);
     assertThat(frameContext.makeStyleFor(FRAME_STYLE_IDS).getColor()).isEqualTo(FRAME_COLOR);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
   @Test
@@ -142,6 +145,7 @@ public class FrameModelBinderTest {
     FrameContext frameContext = frameModelBinder.bindFrame(frame);
 
     assertThat(frameContext.getCurrentStyle().getColor()).isEqualTo(FRAME_COLOR);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
   @Test
@@ -152,6 +156,7 @@ public class FrameModelBinderTest {
     FrameContext frameContext = frameModelBinder.bindFrame(frame);
 
     assertThat(frameContext.getCurrentStyle()).isSameAs(DEFAULT_STYLE_PROVIDER);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
   @Test
@@ -176,6 +181,7 @@ public class FrameModelBinderTest {
     // default, not the frame color.
     assertThat(baseStyleWithHeight.getColor()).isEqualTo(DEFAULT_STYLE.getColor());
     assertThat(baseStyleWithHeight.getHeight()).isEqualTo(styleHeight);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
   @Test
@@ -228,7 +234,7 @@ public class FrameModelBinderTest {
                         .addStops(ColorStop.newBuilder().setColor(1234))
                         .setDirectionDeg(321))
                 .build());
-    assertThat(frameContext.errors.size()).isEqualTo(0);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
   @Test
@@ -237,7 +243,8 @@ public class FrameModelBinderTest {
     Template template = Template.getDefaultInstance();
     FrameContext boundCardContext2 = frameContext.bindTemplate(template, null);
     assertThat(boundCardContext2).isEqualTo(frameContext);
-    assertThat(frameContext.errors.size()).isEqualTo(1);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.WARNING)).hasSize(1);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
   private Frame getWorkingFrame() {
