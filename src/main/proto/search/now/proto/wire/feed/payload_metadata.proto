@@ -15,6 +15,7 @@
 syntax = "proto2";
 
 import "src/main/proto/search/now/proto/wire/feed/content_id.proto";
+import "src/main/proto/search/now/proto/wire/feed/semantic_properties.proto";
 
 package search.now.proto.wire.feed;
 
@@ -28,4 +29,7 @@ message PayloadMetadata {
 
   // The unique identifier of the payload.
   optional ContentId content_id = 1;
+
+  // Payload semantic properties
+  optional SemanticProperties semantic_properties = 2;
 }
