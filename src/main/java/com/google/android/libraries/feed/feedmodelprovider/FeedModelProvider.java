@@ -177,6 +177,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
+  public void forceRefresh() {
+    sessionManager.forceRefresh(streamSession);
+  }
+
+  @Override
   public void registerObserver(ModelProviderObserver observer) {
     super.registerObserver(observer);
     synchronized (lock) {

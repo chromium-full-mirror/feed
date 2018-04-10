@@ -18,6 +18,7 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -62,6 +63,9 @@ public interface SessionManager {
    * continuation token. This could be called from multiple Model Providers.
    */
   void handleToken(StreamToken streamToken);
+
+  /** Method which causes a refresh */
+  void forceRefresh(/*@Nullable*/ StreamSession streamSession);
 
   /**
    * Returns a List of {@link StreamPayload} for each of the keys. This operation may perform disk

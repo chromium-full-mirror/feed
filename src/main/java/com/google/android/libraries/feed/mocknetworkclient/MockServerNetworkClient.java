@@ -47,6 +47,7 @@ import java.util.List;
 public class MockServerNetworkClient implements NetworkClient {
   private static final String TAG = "MockServerNetworkClient";
 
+  private final Response oneTimeResponse;
   private final MockServerConfig config;
   private final ExtensionRegistryLite extensionRegistry;
 
@@ -57,7 +58,9 @@ public class MockServerNetworkClient implements NetworkClient {
   /*@Nullable*/ @VisibleForTesting RequestManager requestManager;
 
   @SuppressWarnings("nullness")
-  public MockServerNetworkClient(MockServerConfig config, List<MockUpdate> mockUpdates) {
+  public MockServerNetworkClient(
+      /*@Nullable*/ Response oneTimeResponse, MockServerConfig config, List<MockUpdate> mockUpdates) {
+    this.oneTimeResponse = oneTimeResponse;
     this.config = config;
     this.looper = new MockServerLooper();
     Handler handler = looper.getHandler();
@@ -93,7 +96,16 @@ public class MockServerNetworkClient implements NetworkClient {
         }
       }
 
-      responseConsumer.accept(createHttpResponse(config.getDefaultResponse()));
+      Response response;
+      if (oneTimeResponse != null) {
+        response = oneTimeResponse;
+      } else if (config.hasDefaultResponse()) {
+        response = config.getDefaultResponse();
+      } else {
+        Logger.e(TAG, "Unable to find the Response from the MockServer file: %s");
+        response = Response.getDefaultInstance();
+      }
+      responseConsumer.accept(createHttpResponse(response));
 
     } catch (IOException e) {
       // TODO : handle errors here

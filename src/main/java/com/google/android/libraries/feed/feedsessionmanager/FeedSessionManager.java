@@ -49,6 +49,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -215,6 +216,16 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     threadUtils.checkMainThread();
     handleTokenCount++;
     requestManagerSupplier.get().loadMore(streamToken.getNextPageToken());
+  }
+
+  @Override
+  public void forceRefresh(/*@Nullable*/ StreamSession streamSession) {
+    if (streamSession == null) {
+      // TODO: see [INTERNAL LINK]  We create a new session and then call forceRefresh on
+      // it before we have even populated the session in Audrey2.
+      Logger.w(TAG, "Found a null streamSession");
+    }
+    requestManagerSupplier.get().triggerRefresh(RequestReason.MANUAL_REFRESH);
   }
 
   @Override

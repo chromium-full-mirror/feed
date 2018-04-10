@@ -59,6 +59,12 @@ public interface ModelProvider {
    */
   void handleToken(ModelToken modelToken);
 
+  /**
+   * Allow the stream to force a refresh. This will result in the current model being invalidated if
+   * the requested refresh is successful.
+   */
+  void forceRefresh();
+
   /** Defines the Lifecycle of the ModelProvider */
   @IntDef({State.INITIALIZING, State.READY, State.INVALIDATED})
   @interface State {

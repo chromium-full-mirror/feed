@@ -57,6 +57,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
@@ -64,7 +65,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -194,6 +194,14 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.handleToken(streamToken);
     verify(requestManager).loadMore(bytes);
+  }
+
+  @Test
+  public void testForceRefresh() {
+    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    sessionManager.forceRefresh(streamSession);
+    verify(requestManager).triggerRefresh(RequestReason.MANUAL_REFRESH);
   }
 
   @Test

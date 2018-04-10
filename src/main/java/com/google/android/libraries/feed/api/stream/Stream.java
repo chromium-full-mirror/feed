@@ -134,4 +134,7 @@ public interface Stream {
   void addOnContentChangedListener(ContentChangedListener listener);
 
   void removeOnContentChangedListener(ContentChangedListener listener);
+
+  /** Allow the container to force a refresh of the stream. */
+  void forceRefresh();
 }

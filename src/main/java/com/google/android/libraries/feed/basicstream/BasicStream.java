@@ -215,6 +215,14 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @Override
   public void removeOnContentChangedListener(ContentChangedListener listener) {}
 
+  @Override
+  public void forceRefresh() {
+    // We need to clear the token, or we will call modelProvider.handleToken() when we build the
+    // the new stream.
+    streamToken = null;
+    modelProvider.forceRefresh();
+  }
+
   private void updateAdapter(ModelProvider modelProvider) {
     ModelFeature root = modelProvider.getRootFeature();
     if (root == null) {
