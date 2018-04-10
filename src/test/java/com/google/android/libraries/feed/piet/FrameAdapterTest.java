@@ -303,6 +303,7 @@ public class FrameAdapterTest {
     Slice slice = getBaseSlice();
     Frame frame = Frame.newBuilder().addSlices(slice).build();
 
+    // Errors silenced by debug behavior
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.SILENT);
     frameAdapter.bindModel(frame, (ShardingControl) null);
 
@@ -311,12 +312,23 @@ public class FrameAdapterTest {
 
     frameAdapter.unbindModel();
 
+    // Errors displayed in extra views
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.VERBOSE);
     frameAdapter.bindModel(frame, (ShardingControl) null);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(3);
     assertThat(frameAdapter.getView().getChildAt(1)).isSameAs(errorView);
     assertThat(frameAdapter.getView().getChildAt(2)).isSameAs(warningView);
+
+    frameAdapter.unbindModel();
+
+    // No errors
+    when(debugLogger.getReportView(MessageType.WARNING, context)).thenReturn(null);
+    when(debugLogger.getReportView(MessageType.ERROR, context)).thenReturn(null);
+
+    frameAdapter.bindModel(frame, (ShardingControl) null);
+
+    assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
   }
 
   private static Slice getBaseSlice() {

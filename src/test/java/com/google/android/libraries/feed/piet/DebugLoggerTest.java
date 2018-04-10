@@ -101,8 +101,7 @@ public class DebugLoggerTest {
   public void testGetReportView_zeroErrors() {
     LinearLayout errorView = (LinearLayout) debugLogger.getReportView(MessageType.ERROR, context);
 
-    // Only a divider
-    assertThat(errorView.getChildCount()).isEqualTo(1);
+    assertThat(errorView).isNull();
   }
 
   @Test

@@ -63,8 +63,13 @@ class DebugLogger {
     messages.get(messageType).add(error);
   }
 
-  /** Create a {@code View} containing all the messages of a certain type. */
+  /** Create a {@code View} containing all the messages of a certain type; null for no messages. */
+  /*@Nullable*/
   View getReportView(@MessageType int messageType, Context context) {
+    List<String> messages = this.messages.get(messageType);
+    if (messages.isEmpty()) {
+      return null;
+    }
     LinearLayout view = new LinearLayout(context);
     view.setOrientation(LinearLayout.VERTICAL);
     LayoutParams layoutParams =
@@ -72,7 +77,6 @@ class DebugLogger {
     view.setLayoutParams(layoutParams);
     view.setBackgroundColor(backgroundColors.get(messageType));
     view.addView(getDivider(context));
-    List<String> messages = this.messages.get(messageType);
     for (String message : messages) {
       view.addView(getMessageTextView(message, context));
     }
