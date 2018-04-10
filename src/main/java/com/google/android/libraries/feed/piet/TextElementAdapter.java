@@ -21,6 +21,7 @@ import android.os.Build;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.widget.TextViewCompat;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -70,6 +71,18 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     } else {
       // MAX_VALUE is the value used in the Android implementation for the default
       textView.setMaxLines(Integer.MAX_VALUE);
+    }
+    switch (getHorizontalGravity()) {
+      case GRAVITY_START:
+        textView.setGravity(Gravity.START);
+        break;
+      case GRAVITY_CENTER:
+        textView.setGravity(Gravity.CENTER_HORIZONTAL);
+        break;
+      case GRAVITY_END:
+        textView.setGravity(Gravity.END);
+        break;
+      default:
     }
   }
 

@@ -29,19 +29,20 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.TextUtils.TruncateAt;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
+import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.robolectric.RobolectricTestRunner;
-import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -224,6 +225,51 @@ public class TextElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Missing TextElement");
+  }
+
+  @Test
+  public void testHorizontalAlignment_start() {
+    Element startElement =
+        Element.newBuilder()
+            .setGravityHorizontal(GravityHorizontal.GRAVITY_START)
+            .setTextElement(getBaseTextElement())
+            .build();
+    adapter.createAdapter(startElement, frameContext);
+    assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.START);
+  }
+
+  @Test
+  public void testHorizontalAlignment_center() {
+    Element startElement =
+        Element.newBuilder()
+            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)
+            .setTextElement(getBaseTextElement())
+            .build();
+    adapter.createAdapter(startElement, frameContext);
+    assertThat(adapter.getBaseView().getGravity())
+        .isEqualTo(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+  }
+
+  @Test
+  public void testHorizontalAlignment_end() {
+    Element startElement =
+        Element.newBuilder()
+            .setGravityHorizontal(GravityHorizontal.GRAVITY_END)
+            .setTextElement(getBaseTextElement())
+            .build();
+    adapter.createAdapter(startElement, frameContext);
+    assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.END);
+  }
+
+  @Test
+  public void testHorizontalAlignment_unspecified() {
+    Element startElement =
+        Element.newBuilder()
+            .setGravityHorizontal(GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED)
+            .setTextElement(getBaseTextElement())
+            .build();
+    adapter.createAdapter(startElement, frameContext);
+    assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.START);
   }
 
   private TextElement getBaseTextElement() {
