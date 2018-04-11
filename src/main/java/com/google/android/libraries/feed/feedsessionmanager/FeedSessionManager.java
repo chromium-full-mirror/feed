@@ -208,20 +208,26 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   @Override
   public void invalidateHead() {
-    executor.execute(this::resetHead);
+    executor.execute(() -> resetHead(null));
   }
 
   @Override
-  public void handleToken(StreamToken streamToken) {
-    // TODO: This should only create the request once.
-    Logger.i(TAG, "HandleToken %s", streamToken.getContentId());
+  public void handleToken(StreamSession streamSession, StreamToken streamToken) {
+    Logger.i(
+        TAG,
+        "HandleToken on stream %s, token %s",
+        streamSession.getStreamToken(),
+        streamToken.getContentId());
     threadUtils.checkMainThread();
+
+    // TODO: This should only create the request once.
     handleTokenCount++;
     requestManagerSupplier
         .get()
         .loadMore(
             new MutationContext.Builder()
-                .setContinuationToken(streamToken.getNextPageToken())
+                .setContinuationToken(streamToken)
+                .setRequestingSession(streamSession)
                 .build());
   }
 
@@ -230,7 +236,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     if (streamSession == null) {
       // TODO: see [INTERNAL LINK]  We create a new session and then call forceRefresh on
       // it before we have even populated the session in Audrey2.
-      Logger.w(TAG, "Found a null streamSession");
+      Logger.w(TAG, "Found a null streamSession in forceRefresh");
     }
     requestManagerSupplier.get().triggerRefresh(RequestReason.MANUAL_REFRESH);
   }
@@ -311,8 +317,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
   }
 
-  private void resetHead() {
-    Logger.i(TAG, "Task: ResetHead");
+  /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
+  private void resetHead(/*@Nullable*/ StreamSession streamSession) {
+    Logger.i(TAG, "Task: resetHead");
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     Collection<Session> currentSessions;
     synchronized (lock) {
@@ -320,21 +327,43 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
 
     List<String> sessionsRemoved = new ArrayList<>();
-    // TODO: Think through how this should work.  Only $HEAD is cleared
-    // Do we still invalidate everything?
     store.clearHead();
     for (Session session : currentSessions) {
       ModelProvider modelProvider = session.getModelProvider();
-      if (modelProvider != null) {
+      if (modelProvider != null && invalidateSession(streamSession, modelProvider)) {
         modelProvider.invalidate();
         store.removeSession(session.getStreamSession());
         sessionsRemoved.add(session.getStreamSession().getStreamToken());
       }
     }
     synchronized (lock) {
+      Logger.i(TAG, "Clearing %s sessions", sessionsRemoved.size());
       sessions.keySet().removeAll(sessionsRemoved);
     }
-    timeTracker.stop("");
+    timeTracker.stop("task", "resetHead");
+  }
+
+  /**
+   * This will determine if the ModelProvider (session) should be invalidated. There are three
+   * situations which will cause a session to be invalidated:
+   *
+   * <ol>
+   *   <li>Clearing head was initiated externally, not from an existing session
+   *   <li>Clearing head was initiated by the ModelProvider
+   *   <li>The ModelProvider doesn't yet have a session, so we'll create the session from the new
+   *       $HEAD
+   * </ol>
+   */
+  private boolean invalidateSession(
+      /*@Nullable*/ StreamSession streamSession, ModelProvider modelProvider) {
+    // Clear was done outside of any session.
+    if (streamSession == null) {
+      return true;
+    }
+    // Invalidate if the ModelProvider doesn't yet have a session or if it matches the session
+    // which initiated the request clearing $HEAD.
+    String sessionToken = modelProvider.getSessionToken();
+    return (sessionToken == null || sessionToken.equals(streamSession.getStreamToken()));
   }
 
   /**
@@ -376,7 +405,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         Operation operation = dataOperation.getStreamStructure().getOperation();
         if (operation == Operation.CLEAR_ALL) {
           streamStructures.add(dataOperation.getStreamStructure());
-          resetHead();
+          resetHead(
+              (change.mutationContext != null)
+                  ? change.mutationContext.getRequestingSession()
+                  : null);
           continue;
         }
         if (operation == Operation.UPDATE_OR_APPEND) {
@@ -443,11 +475,14 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     private void commitSessionUpdates() {
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
       ArrayList<Session> updates;
+      /*@Nullable*/
+      StreamToken mutationSourceToken =
+          (change.mutationContext != null) ? change.mutationContext.getContinuationToken() : null;
       synchronized (lock) {
         // For sessions we want to add the remove operation if the mutation source was a
         // continuation token.
-        if (change.mutationSourceToken != null) {
-          StreamStructure removeOperation = addTokenRemoveOperation(change.mutationSourceToken);
+        if (mutationSourceToken != null) {
+          StreamStructure removeOperation = addTokenRemoveOperation(mutationSourceToken);
           if (removeOperation != null) {
             streamStructures.add(0, removeOperation);
           }
@@ -455,7 +490,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         updates = new ArrayList<>(sessions.values());
       }
       for (Session session : updates) {
-          session.updateSession(streamStructures, change.mutationSourceToken);
+        session.updateSession(streamStructures, mutationSourceToken);
         }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
     }

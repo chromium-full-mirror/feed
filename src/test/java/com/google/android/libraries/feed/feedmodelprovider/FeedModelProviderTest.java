@@ -48,6 +48,7 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -249,8 +250,10 @@ public class FeedModelProviderTest {
     when(modelToken.getStreamToken()).thenReturn(streamToken);
 
     FeedModelProvider modelProvider = createFeedModelProvider();
+    StreamSession mockSession = StreamSession.getDefaultInstance();
+    modelProvider.streamSession = mockSession;
     modelProvider.handleToken(modelToken);
-    verify(sessionManager).handleToken(streamToken);
+    verify(sessionManager).handleToken(mockSession, streamToken);
   }
 
   @Test

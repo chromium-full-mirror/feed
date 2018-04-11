@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedprotocoladapter;
 
-import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -42,9 +41,7 @@ import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import com.google.search.now.wire.feed.ResponseProto.Response;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A ProtocolAdapter which converts from the wire protocol to the internal protocol. This is written
@@ -60,8 +57,6 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   private final SessionManager sessionManager;
   private final TimingUtils timingUtils;
   private int nextTokenId = 1;
-
-  @VisibleForTesting Map<Integer, StreamToken> streamTokens = new HashMap<>();
 
   // Operation counts for #dump(Dumpable)
   private int responseHandlingCount = 0;
@@ -79,16 +74,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     responseHandlingCount++;
 
     SessionMutation sessionMutation = sessionManager.edit();
-    ByteString continuationToken = mutationContext.getContinuationToken();
-    if (continuationToken != null) {
-      StreamToken token = streamTokens.remove(continuationToken.hashCode());
-      if (token == null) {
-        // TODO: What do we do about this failure?
-        Logger.e(TAG, "Didn't find the StreamToken");
-      } else {
-        sessionMutation.setMutationContext(token);
-      }
-    }
+    sessionMutation.setMutationContext(mutationContext);
     List<DataOperation> dataOperations =
         response.getExtension(FeedResponse.feedResponse).getDataOperationList();
     for (DataOperation operation : dataOperations) {
@@ -180,7 +166,6 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
                   .build());
       StreamToken streamToken =
           Validators.checkNotNull(createStreamToken(contentId, newContinuationToken));
-      streamTokens.put(newContinuationToken.hashCode(), streamToken);
       sessionMutation.addOperation(
           createTokenDataOperation(contentId, streamToken.getParentId(), streamToken).build());
     }

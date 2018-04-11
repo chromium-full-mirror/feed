@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
@@ -89,10 +90,16 @@ public class MockServerNetworkClient implements NetworkClient {
   public void send(HttpRequest httpRequest, Consumer<HttpResponse> responseConsumer) {
     try {
       Request request = getRequest(httpRequest);
-      for (ConditionalResponse conditionalResponse : config.getConditionalResponsesList()) {
-        if (allConditionsMatch(conditionalResponse.getConditionsList(), request)) {
-          responseConsumer.accept(createHttpResponse(conditionalResponse.getResponse()));
-          return;
+      ByteString requestToken =
+          (request.getExtension(FeedRequest.feedRequest).getFeedQuery().hasPageToken())
+              ? request.getExtension(FeedRequest.feedRequest).getFeedQuery().getPageToken()
+              : null;
+      if (requestToken != null) {
+        for (ConditionalResponse conditionalResponse : config.getConditionalResponsesList()) {
+          if (allConditionsMatch(conditionalResponse.getConditionsList(), request)) {
+            responseConsumer.accept(createHttpResponse(conditionalResponse.getResponse()));
+            return;
+          }
         }
       }
 

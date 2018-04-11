@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
@@ -82,12 +83,12 @@ public class FeedRequestManager implements RequestManager {
   @Override
   public void loadMore(MutationContext mutationContext) {
     threadUtils.checkMainThread();
-    ByteString token = Validators.checkNotNull(mutationContext.getContinuationToken());
+    StreamToken streamToken = Validators.checkNotNull(mutationContext.getContinuationToken());
     executor.execute(
         () -> {
           Logger.i(TAG, "Task: FeedRequestManager LoadMore");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-          RequestBuilder request = newDefaultRequest().setPageToken(token);
+          RequestBuilder request = newDefaultRequest().setPageToken(streamToken.getNextPageToken());
           executeRequest(request, mutationContext);
           timeTracker.stop("task", "FeedRequestManager LoadMore");
         });

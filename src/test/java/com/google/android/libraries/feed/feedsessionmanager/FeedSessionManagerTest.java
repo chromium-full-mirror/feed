@@ -201,9 +201,12 @@ public class FeedSessionManagerTest {
     StreamToken streamToken =
         StreamToken.newBuilder().setNextPageToken(bytes).setParentId(rootContentId).build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
-    sessionManager.handleToken(streamToken);
+    StreamSession streamSession = StreamSession.getDefaultInstance();
+    sessionManager.handleToken(streamSession, streamToken);
     verify(requestManager).loadMore(mutationContextCaptor.capture());
-    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(bytes);
+    MutationContext mutationContext = mutationContextCaptor.getValue();
+    assertThat(mutationContext.getContinuationToken()).isEqualTo(streamToken);
+    assertThat(mutationContext.getRequestingSession()).isEqualTo(streamSession);
   }
 
   @Test

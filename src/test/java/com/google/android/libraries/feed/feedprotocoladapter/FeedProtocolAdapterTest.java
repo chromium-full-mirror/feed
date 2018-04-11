@@ -79,11 +79,10 @@ public class FeedProtocolAdapterTest {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     ByteString token = ByteString.copyFromUtf8("token");
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
-    protocolAdapter.streamTokens.put(token.hashCode(), streamToken);
 
     Response response = responseBuilder.addClearOperation().build();
     protocolAdapter.createModel(
-        response, new MutationContext.Builder().setContinuationToken(token).build());
+        response, new MutationContext.Builder().setContinuationToken(streamToken).build());
     assertThat(sessionMutation.streamToken.getNextPageToken()).isEqualTo(token);
     assertThat(sessionMutation.operations).hasSize(1);
   }
@@ -190,10 +189,11 @@ public class FeedProtocolAdapterTest {
   public void testContinuationToken_nextPageToken() {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
+    StreamToken token = StreamToken.newBuilder().setNextPageToken(tokenForMutation).build();
     Response response = responseBuilder.addStreamToken(tokenForMutation).build();
 
     protocolAdapter.createModel(
-        response, new MutationContext.Builder().setContinuationToken(tokenForMutation).build());
+        response, new MutationContext.Builder().setContinuationToken(token).build());
     assertThat(sessionMutation.operations).hasSize(1);
     StreamDataOperation sdo = sessionMutation.operations.get(0);
     assertThat(sdo.hasStreamPayload()).isTrue();
@@ -206,15 +206,15 @@ public class FeedProtocolAdapterTest {
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
     Response response = responseBuilder.addStreamToken(tokenForMutation).build();
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(tokenForMutation).build();
-    protocolAdapter.streamTokens.put(tokenForMutation.hashCode(), streamToken);
 
     protocolAdapter.createModel(
-        response, new MutationContext.Builder().setContinuationToken(tokenForMutation).build());
+        response, new MutationContext.Builder().setContinuationToken(streamToken).build());
     assertThat(sessionMutation.streamToken.getNextPageToken()).isEqualTo(tokenForMutation);
   }
 
   private static class FakeSessionMutation implements SessionMutation {
     List<StreamDataOperation> operations = new ArrayList<>();
+    MutationContext mutationContext;
     StreamToken streamToken;
 
     @Override
@@ -223,8 +223,9 @@ public class FeedProtocolAdapterTest {
     }
 
     @Override
-    public void setMutationContext(StreamToken streamToken) {
-      this.streamToken = streamToken;
+    public void setMutationContext(MutationContext mutationContext) {
+      this.mutationContext = mutationContext;
+      streamToken = mutationContext.getContinuationToken();
     }
 
     @Override

@@ -62,7 +62,7 @@ public interface SessionManager {
    * Method which causes a request to be created for the next page of content based upon the
    * continuation token. This could be called from multiple Model Providers.
    */
-  void handleToken(StreamToken streamToken);
+  void handleToken(StreamSession session, StreamToken streamToken);
 
   /** Method which causes a refresh */
   void forceRefresh(/*@Nullable*/ StreamSession streamSession);

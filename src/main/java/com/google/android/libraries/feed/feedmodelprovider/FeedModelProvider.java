@@ -110,7 +110,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
 
-  /*@Nullable*/ private StreamSession streamSession;
+  /*@Nullable*/ @VisibleForTesting StreamSession streamSession;
 
   FeedModelProvider(
       SessionManager sessionManager,
@@ -173,7 +173,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   public void handleToken(ModelToken modelToken) {
-    sessionManager.handleToken(modelToken.getStreamToken());
+    StreamSession streamSession = Validators.checkNotNull(this.streamSession);
+    sessionManager.handleToken(streamSession, modelToken.getStreamToken());
   }
 
   @Override

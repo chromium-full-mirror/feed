@@ -14,10 +14,10 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.common.Committer;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +28,11 @@ import java.util.List;
 public class SessionMutationImpl implements SessionMutation {
   /** Structure containing the change to the session manager. */
   public static class Change {
+    // These are the data operations in the mutation
     public final List<StreamDataOperation> dataOperations = new ArrayList<>();
-    /*@Nullable*/ public StreamToken mutationSourceToken;
+
+    // The context which results in the request for this mutation.
+    /*@Nullable*/ public MutationContext mutationContext;
   }
 
   private final Change change = new Change();
@@ -45,8 +48,8 @@ public class SessionMutationImpl implements SessionMutation {
   }
 
   @Override
-  public void setMutationContext(StreamToken mutationSourceToken) {
-    change.mutationSourceToken = mutationSourceToken;
+  public void setMutationContext(MutationContext mutationContext) {
+    change.mutationContext = mutationContext;
   }
 
   @Override

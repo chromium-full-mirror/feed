@@ -14,26 +14,26 @@
 
 package com.google.android.libraries.feed.api.common;
 
-import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 
 /**
  * This tracks the context of a mutation. When a request is made, this will track the reason for the
  * request and pass this information back with the response.
  */
 public class MutationContext {
-  /*@Nullable*/ private final ByteString continuationToken;
+  /*@Nullable*/ private final StreamToken continuationToken;
   /*@Nullable*/ private final StreamSession requestingSession;
 
   private MutationContext(
-      /*@Nullable*/ ByteString continuationToken, /*@Nullable*/ StreamSession requestingSession) {
+      /*@Nullable*/ StreamToken continuationToken, /*@Nullable*/ StreamSession requestingSession) {
     this.continuationToken = continuationToken;
     this.requestingSession = requestingSession;
   }
 
   /** Returns the continuation token used to make the request. */
   /*@Nullable*/
-  public ByteString getContinuationToken() {
+  public StreamToken getContinuationToken() {
     return continuationToken;
   }
 
@@ -45,12 +45,12 @@ public class MutationContext {
 
   /** Builder for creating a {@link com.google.android.libraries.feed.api.common.MutationContext */
   public static class Builder {
-    /*@MonotonicNonNull*/ private ByteString continuationToken;
+    /*@MonotonicNonNull*/ private StreamToken continuationToken;
     /*@MonotonicNonNull*/ private StreamSession requestingSession;
 
     public Builder() {}
 
-    public Builder setContinuationToken(ByteString continuationToken) {
+    public Builder setContinuationToken(StreamToken continuationToken) {
       this.continuationToken = continuationToken;
       return this;
     }

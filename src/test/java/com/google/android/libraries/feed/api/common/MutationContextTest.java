@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.android.libraries.feed.api.common.MutationContext.Builder;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
 import org.junit.Test;
@@ -31,7 +32,8 @@ public class MutationContextTest {
   @Test
   public void testBuilder() {
     MutationContext.Builder builder = new Builder();
-    ByteString token = ByteString.copyFrom("token", Charset.defaultCharset());
+    ByteString tokenBytes = ByteString.copyFrom("token", Charset.defaultCharset());
+    StreamToken token = StreamToken.newBuilder().setNextPageToken(tokenBytes).build();
     builder.setContinuationToken(token);
     StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
     builder.setRequestingSession(streamSession);

@@ -41,6 +41,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.ResponseProto.Response.ResponseVersion;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig;
@@ -196,6 +197,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     Response response =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
     ByteString token = ByteString.copyFromUtf8("fooToken");
+    StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
     MockServerConfig mockServerConfig =
         MockServerConfig.newBuilder()
             .addConditionalResponses(
@@ -219,11 +221,12 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             timingUtils,
             threadUtils);
 
-    feedRequestManager.loadMore(new MutationContext.Builder().setContinuationToken(token).build());
+    feedRequestManager.loadMore(
+        new MutationContext.Builder().setContinuationToken(streamToken).build());
 
     verify(protocolAdapter).createModel(responseCaptor.capture(), mutationContextCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
-    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(token);
+    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(streamToken);
   }
 
   @Test
@@ -253,10 +256,12 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             threadUtils);
 
     ByteString token = ByteString.copyFromUtf8("fooToken");
-    feedRequestManager.loadMore(new MutationContext.Builder().setContinuationToken(token).build());
+    StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
+    feedRequestManager.loadMore(
+        new MutationContext.Builder().setContinuationToken(streamToken).build());
 
     verify(protocolAdapter).createModel(responseCaptor.capture(), mutationContextCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualToDefaultInstance();
-    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(token);
+    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(streamToken);
   }
 }

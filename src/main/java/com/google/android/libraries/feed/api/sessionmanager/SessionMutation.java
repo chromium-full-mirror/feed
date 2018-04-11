@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.api.sessionmanager;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 
 /** Apply a set of DataOperations to the SessionManager. */
 public interface SessionMutation {
@@ -23,7 +23,7 @@ public interface SessionMutation {
   void addOperation(StreamDataOperation dataOperation);
 
   /** This indicates the SessionMutation was due to a response from a continuation token */
-  void setMutationContext(StreamToken streamToken);
+  void setMutationContext(MutationContext mutationContext);
 
   /** Commit the Mutation. */
   void commit();
