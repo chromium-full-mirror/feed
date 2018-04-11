@@ -54,6 +54,9 @@ message StreamFeature {
     // Cards.
     search.now.ui.stream.Cluster cluster = 7;
   }
+
+  // The semantic data associated with this feature.
+  optional bytes semantic_data = 8;
 }
 
 message StreamToken {

@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
@@ -35,6 +36,7 @@ import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -45,7 +47,9 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import org.robolectric.RobolectricTestRunner;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -267,5 +271,38 @@ public class FeedStoreTest {
               }
             })
         .throwsAnExceptionOfType(IllegalStateException.class);
+  }
+
+  @Test
+  public void editSemanticProperties() {
+    assertThat(store.editSemanticProperties()).isNotNull();
+  }
+
+  @Test
+  public void getSemanticProperties() {
+    ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
+    store.editSemanticProperties().add(PAYLOAD_CONTENT_ID, semanticData).commit();
+    List<SemanticPropertiesWithId> semanticProperties =
+        store.getSemanticProperties(Collections.singletonList(PAYLOAD_CONTENT_ID));
+    assertThat(semanticProperties).hasSize(1);
+    assertThat(semanticProperties.get(0).contentId).isEqualTo(PAYLOAD_CONTENT_ID);
+    assertThat(semanticProperties.get(0).semanticData)
+        .isEqualTo(ByteBuffer.wrap(semanticData.toByteArray()));
+  }
+
+  @Test
+  public void getSemanticProperties_requestDifferentKey() {
+    ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
+    store.editSemanticProperties().add(PAYLOAD_CONTENT_ID, semanticData).commit();
+    List<SemanticPropertiesWithId> semanticProperties =
+        store.getSemanticProperties(Collections.singletonList(OPERATION_CONTENT_ID));
+    assertThat(semanticProperties).isEmpty();
+  }
+
+  @Test
+  public void getSemanticProperties_doesNotExist() {
+    List<SemanticPropertiesWithId> semanticProperties =
+        store.getSemanticProperties(Collections.singletonList(PAYLOAD_CONTENT_ID));
+    assertThat(semanticProperties).isEmpty();
   }
 }

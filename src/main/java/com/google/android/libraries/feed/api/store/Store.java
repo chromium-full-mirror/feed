@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.store;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -48,6 +49,9 @@ public interface Store {
   /** Returns a list of all the sessions, excluding the $HEAD session. */
   List<StreamSession> getAllSessions();
 
+  /** Gets all semantic properties objects associated with a given list of contentIds */
+  List<SemanticPropertiesWithId> getSemanticProperties(List<String> contentIds);
+
   /**
    * Create a new session. The session is defined by all the {@link StreamDataOperation}s which are
    * currently stored in $HEAD.
@@ -72,4 +76,7 @@ public interface Store {
 
   /** Returns a session mutation applied to a Session. */
   SessionMutation editSession(StreamSession streamSession);
+
+  /** Returns a semantic properties mutation used to modify the properties in the store */
+  SemanticPropertiesMutation editSemanticProperties();
 }

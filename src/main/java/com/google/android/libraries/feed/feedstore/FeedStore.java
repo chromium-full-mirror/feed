@@ -15,20 +15,24 @@
 package com.google.android.libraries.feed.feedstore;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.store.ContentMutation;
+import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.SynchronousConsumerLatch;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
+import com.google.android.libraries.feed.feedstore.internal.FeedSemanticPropertiesMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
 import com.google.android.libraries.feed.feedstore.internal.SessionState;
 import com.google.android.libraries.feed.host.storage.CommitResult;
@@ -36,11 +40,13 @@ import com.google.android.libraries.feed.host.storage.ContentMutation.Builder;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +64,7 @@ public class FeedStore implements Store, Dumpable {
       StreamSession.newBuilder().setStreamToken("$HEAD").build();
   private static final String SHARED_STATE_PREFIX = "ss::";
   private static final String SESSION_NAME_PREFIX = "_session:";
+  private static final String SEMANTIC_PROPERTIES_PREFIX = "sp::";
 
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
@@ -232,6 +239,45 @@ public class FeedStore implements Store, Dumpable {
   }
 
   @Override
+  public List<SemanticPropertiesWithId> getSemanticProperties(List<String> contentIds) {
+    threadUtils.checkNotMainThread();
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    List<SemanticPropertiesWithId> semanticPropertiesWithIds = new ArrayList<>(contentIds.size());
+    SimpleSettableFuture<Result<Map<String, byte[]>>> mapResultFuture =
+        new SimpleSettableFuture<>();
+    uiRunnableHandler.post(
+        TAG,
+        () -> {
+          // TODO: replace with a call to batch get (when added)
+          contentStorage.getAll(SEMANTIC_PROPERTIES_PREFIX, mapResultFuture::put);
+        });
+    Result<Map<String, byte[]>> mapResult;
+    try {
+      mapResult = mapResultFuture.get();
+    } catch (InterruptedException | ExecutionException e) {
+      Logger.e(TAG, e, "Error getting semantic properties for content ids %s", contentIds);
+      tracker.stop("getSemanticProperties failed", contentIds);
+      return semanticPropertiesWithIds;
+    }
+
+    if (mapResult.isSuccessful()) {
+      for (Map.Entry<String, byte[]> entry : mapResult.getValue().entrySet()) {
+        String contentId = entry.getKey().replace(SEMANTIC_PROPERTIES_PREFIX, "");
+        if (contentIds.contains(contentId)) {
+          semanticPropertiesWithIds.add(
+              new SemanticPropertiesWithId(contentId, ByteBuffer.wrap(entry.getValue())));
+        }
+      }
+    } else {
+      Logger.e(TAG, "Error fetching semantic properties for content ids %s", contentIds);
+      tracker.stop("getSemanticProperties failed", contentIds);
+    }
+
+    tracker.stop("getSemanticProperties", semanticPropertiesWithIds);
+    return semanticPropertiesWithIds;
+  }
+
+  @Override
   public StreamSession createNewSession() {
     threadUtils.checkNotMainThread();
 
@@ -325,6 +371,39 @@ public class FeedStore implements Store, Dumpable {
   public SessionMutation editSession(StreamSession streamSession) {
     return new FeedSessionMutation(
         feedSessionMutation -> commitSessionMutation(streamSession, feedSessionMutation));
+  }
+
+  @Override
+  public SemanticPropertiesMutation editSemanticProperties() {
+    return new FeedSemanticPropertiesMutation(this::commitSemanticPropertiesMutation);
+  }
+
+  private CommitResult commitSemanticPropertiesMutation(
+      Map<String, ByteString> semanticPropertiesMap) {
+    threadUtils.checkNotMainThread();
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    Builder mutationBuilder = new Builder();
+    for (Map.Entry<String, ByteString> entry : semanticPropertiesMap.entrySet()) {
+      mutationBuilder.upsert(
+          SEMANTIC_PROPERTIES_PREFIX + entry.getKey(), entry.getValue().toByteArray());
+    }
+    SimpleSettableFuture<CommitResult> resultFuture = new SimpleSettableFuture<>();
+    uiRunnableHandler.post(
+        TAG,
+        () -> {
+          // TODO: handle errors
+          contentStorage.commit(mutationBuilder.build(), resultFuture::put);
+        });
+    CommitResult commitResult;
+    try {
+      commitResult = resultFuture.get();
+    } catch (InterruptedException | ExecutionException e) {
+      tracker.stop("", "commitSemanticPropertiesMutation failed");
+      Logger.e(TAG, e, "Error committing semantic properties");
+      return CommitResult.FAILURE;
+    }
+    tracker.stop("", "commitSemanticPropertiesMutation", "mutations", semanticPropertiesMap.size());
+    return commitResult;
   }
 
   private Boolean commitSessionMutation(
