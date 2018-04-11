@@ -14,6 +14,7 @@
 
 syntax = "proto2";
 
+import "src/main/proto/search/now/proto/ui/piet/actions.proto";
 import "src/main/proto/search/now/proto/ui/piet/binding_refs.proto";
 import "src/main/proto/search/now/proto/ui/piet/images.proto";
 import "src/main/proto/search/now/proto/ui/piet/styles.proto";
@@ -126,6 +127,19 @@ message Chunk {
 
     // A styled piece of image content.
     StyledImageChunk image_chunk = 2;
+  }
+
+  // Defines Actions that may be associated with this chunk, e.g. for creating
+  // clickable links or images within text. The server is responsible for
+  // ensuring that the size of this content is large enough to present a clear
+  // click target for the user.
+  // NOTE: on_partial_view is not supported for Chunks.
+  oneof actions_data {
+    // Inlined actions.
+    Actions actions = 3;
+
+    // Actions from a template, bound at runtime.
+    ActionsBindingRef actions_binding = 4;
   }
 }
 
