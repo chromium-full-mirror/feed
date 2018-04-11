@@ -45,7 +45,7 @@ public class SessionMutationImpl implements SessionMutation {
   }
 
   @Override
-  public void setMutationSourceToken(StreamToken mutationSourceToken) {
+  public void setMutationContext(StreamToken mutationSourceToken) {
     change.mutationSourceToken = mutationSourceToken;
   }
 

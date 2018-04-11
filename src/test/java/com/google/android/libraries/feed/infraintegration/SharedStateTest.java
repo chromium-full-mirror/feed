@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -60,7 +61,7 @@ public class SharedStateTest {
     // ModelProvider is created from $HEAD containing content, simple shared state added
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addPietSharedState().addRootFeature();
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
 
     ModelProvider modelProvider = modelProviderFactory.createNew();
     StreamSharedState sharedState =
@@ -81,7 +82,7 @@ public class SharedStateTest {
 
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addPietSharedState().addRootFeature();
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
 
     sharedState = modelProvider.getSharedState(WireProtocolResponseBuilder.PIET_SHARED_STATE);
     assertThat(sharedState).isNotNull();

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
@@ -68,6 +69,8 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
 /** Tests of the {@link FeedSessionManager} class. */
@@ -83,6 +86,7 @@ public class FeedSessionManagerTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
+  @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
 
   private int cursorCount = 0;
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
@@ -193,7 +197,8 @@ public class FeedSessionManagerTest {
         StreamToken.newBuilder().setNextPageToken(bytes).setParentId(rootContentId).build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.handleToken(streamToken);
-    verify(requestManager).loadMore(bytes);
+    verify(requestManager).loadMore(mutationContextCaptor.capture());
+    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(bytes);
   }
 
   @Test

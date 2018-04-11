@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -70,9 +72,9 @@ public class ExistingSessionTest {
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
     for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ModelProvider modelProvider = modelProviderFactory.createNew();
 
     ModelFeature initRoot = modelProvider.getRootFeature();
@@ -109,9 +111,9 @@ public class ExistingSessionTest {
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
     for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ModelProvider modelProvider = modelProviderFactory.createNew();
 
     ModelFeature initRoot = modelProvider.getRootFeature();

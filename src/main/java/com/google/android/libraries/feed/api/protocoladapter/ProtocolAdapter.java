@@ -14,17 +14,18 @@
 
 package com.google.android.libraries.feed.api.protocoladapter;
 
-import com.google.protobuf.ByteString;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 
 /** Converts the wire protocol (protos sent from the server) into an internal representation. */
 public interface ProtocolAdapter {
   /**
-   * Create the internal protocol from a wire protocol response definition. The {@code token} {@link
-   * ByteString} represents the continuation token used to create the response.
+   * Create the internal protocol from a wire protocol response definition. The {@link
+   * MutationContext} contains the information such as the token or session which initiated the
+   * request.
    */
-  void createModel(Response response, /*@Nullable*/ ByteString token);
+  void createModel(Response response, MutationContext mutationContext);
 
   /** Convert a wire protocol ContentId into the {@code String} version used in Jardin. */
   String getStreamContentId(ContentId contentId);

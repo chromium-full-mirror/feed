@@ -23,7 +23,7 @@ public interface SessionMutation {
   void addOperation(StreamDataOperation dataOperation);
 
   /** This indicates the SessionMutation was due to a response from a continuation token */
-  void setMutationSourceToken(StreamToken streamToken);
+  void setMutationContext(StreamToken streamToken);
 
   /** Commit the Mutation. */
   void commit();

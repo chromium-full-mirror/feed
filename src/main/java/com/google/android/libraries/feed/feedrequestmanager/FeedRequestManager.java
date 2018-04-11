@@ -16,12 +16,14 @@ package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.net.Uri;
 import android.util.Base64;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -78,14 +80,15 @@ public class FeedRequestManager implements RequestManager {
   }
 
   @Override
-  public void loadMore(ByteString pageToken) {
+  public void loadMore(MutationContext mutationContext) {
     threadUtils.checkMainThread();
+    ByteString token = Validators.checkNotNull(mutationContext.getContinuationToken());
     executor.execute(
         () -> {
           Logger.i(TAG, "Task: FeedRequestManager LoadMore");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-          RequestBuilder request = newDefaultRequest().setPageToken(pageToken);
-          executeRequest(request);
+          RequestBuilder request = newDefaultRequest().setPageToken(token);
+          executeRequest(request, mutationContext);
           timeTracker.stop("task", "FeedRequestManager LoadMore");
         });
   }
@@ -93,13 +96,15 @@ public class FeedRequestManager implements RequestManager {
   @Override
   public void triggerRefresh(RequestReason reason) {
     RequestBuilder request = newDefaultRequest();
-    executeRequest(request);
+    executeRequest(request, new MutationContext.Builder().build());
   }
 
   @Override
   public void handlePushedResponseBytes(byte[] responseBytes) {
     try {
-      handleResponseBytes(responseBytes, null, /* isLengthPrefixed= */ false);
+      // TODO: Does this have a MutationContext?
+      handleResponseBytes(
+          responseBytes, new MutationContext.Builder().build(), /* isLengthPrefixed= */ false);
     } catch (IOException e) {
       Logger.e(TAG, e, "Error handling pushed response bytes.");
     }
@@ -109,7 +114,7 @@ public class FeedRequestManager implements RequestManager {
     return new RequestBuilder();
   }
 
-  private void executeRequest(RequestBuilder requestBuilder) {
+  private void executeRequest(RequestBuilder requestBuilder, MutationContext mutationContext) {
     String host = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_HOST, "");
     String path = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_PATH_AND_PARAMS, "");
     Uri.Builder uriBuilder = Uri.parse(host + path).buildUpon();
@@ -141,9 +146,7 @@ public class FeedRequestManager implements RequestManager {
 
           try {
             handleResponseBytes(
-                input.getResponseBody().array(),
-                requestBuilder.getPageToken(),
-                /* isLengthPrefixed= */ true);
+                input.getResponseBody().array(), mutationContext, /* isLengthPrefixed= */ true);
           } catch (IOException e) {
             Logger.e(TAG, "Error handling response bytes", e);
           }
@@ -151,13 +154,13 @@ public class FeedRequestManager implements RequestManager {
   }
 
   private void handleResponseBytes(
-      byte[] responseBytes, /*@Nullable*/ ByteString pageToken, boolean isLengthPrefixed)
+      byte[] responseBytes, MutationContext mutationContext, boolean isLengthPrefixed)
       throws IOException {
     Response response =
         Response.parseFrom(
             isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,
             extensionRegistry.getExtensionRegistry());
-    protocolAdapter.createModel(response, pageToken);
+    protocolAdapter.createModel(response, mutationContext);
   }
 
   /**

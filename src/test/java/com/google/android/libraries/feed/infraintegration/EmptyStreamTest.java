@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -97,7 +98,7 @@ public class EmptyStreamTest {
   public void emptyStream_emptyResponse() {
     // Create an empty stream through a response
     WireProtocolResponseBuilder responseBuilder = new WireProtocolResponseBuilder();
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ModelProvider modelProvider = modelProviderFactory.createNew();
 
     assertThat(modelProvider).isNotNull();

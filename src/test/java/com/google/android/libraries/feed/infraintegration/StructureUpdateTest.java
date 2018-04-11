@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -83,9 +85,9 @@ public class StructureUpdateTest {
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
     for (ContentId contentId : startingCards) {
-      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ModelProvider modelProvider = modelProviderFactory.createNew();
 
     ModelFeature root = modelProvider.getRootFeature();
@@ -97,9 +99,9 @@ public class StructureUpdateTest {
     // Append new children to root
     responseBuilder = new WireProtocolResponseBuilder();
     for (ContentId contentId : appendedCards) {
-      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
 
     // assert the new state of the stream
     modelValidator.assertCursorSize(root.getCursor(), startingCards.length + appendedCards.length);
@@ -137,9 +139,9 @@ public class StructureUpdateTest {
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
     for (ContentId contentId : startingCards) {
-      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ModelProvider modelProvider = modelProviderFactory.createNew();
 
     ModelFeature root = modelProvider.getRootFeature();
@@ -158,9 +160,9 @@ public class StructureUpdateTest {
     // Now append additional children to the stream (and cursor)
     responseBuilder = new WireProtocolResponseBuilder();
     for (ContentId contentId : appendedCards) {
-      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     modelValidator.assertCursorSize(cursor, 3);
   }
 }

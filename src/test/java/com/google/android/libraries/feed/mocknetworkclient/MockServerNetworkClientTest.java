@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.net.Uri;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -66,7 +67,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   @Mock private RequestManager requestManager;
   @Mock private SchedulerApi scheduler;
   @Mock private ThreadUtils threadUtils;
-  @Captor private ArgumentCaptor<ByteString> tokenCaptor;
+  @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
   @Captor private ArgumentCaptor<Response> responseCaptor;
 
   private final FeedExtensionRegistry extensionRegistry =
@@ -218,11 +219,11 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             timingUtils,
             threadUtils);
 
-    feedRequestManager.loadMore(token);
+    feedRequestManager.loadMore(new MutationContext.Builder().setContinuationToken(token).build());
 
-    verify(protocolAdapter).createModel(responseCaptor.capture(), tokenCaptor.capture());
+    verify(protocolAdapter).createModel(responseCaptor.capture(), mutationContextCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
-    assertThat(tokenCaptor.getValue()).isEqualTo(token);
+    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(token);
   }
 
   @Test
@@ -252,10 +253,10 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             threadUtils);
 
     ByteString token = ByteString.copyFromUtf8("fooToken");
-    feedRequestManager.loadMore(token);
+    feedRequestManager.loadMore(new MutationContext.Builder().setContinuationToken(token).build());
 
-    verify(protocolAdapter).createModel(responseCaptor.capture(), tokenCaptor.capture());
+    verify(protocolAdapter).createModel(responseCaptor.capture(), mutationContextCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualToDefaultInstance();
-    assertThat(tokenCaptor.getValue()).isEqualTo(token);
+    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(token);
   }
 }

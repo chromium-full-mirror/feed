@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedprotocoladapter;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
@@ -73,18 +74,19 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   /** Create the internal protocol based upon the FeedStream definition. */
   @Override
-  public void createModel(Response response, /*@Nullable*/ ByteString pageTokenForMutation) {
+  public void createModel(Response response, MutationContext mutationContext) {
     ElapsedTimeTracker totalTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
     responseHandlingCount++;
 
     SessionMutation sessionMutation = sessionManager.edit();
-    if (pageTokenForMutation != null) {
-      StreamToken token = streamTokens.remove(pageTokenForMutation.hashCode());
+    ByteString continuationToken = mutationContext.getContinuationToken();
+    if (continuationToken != null) {
+      StreamToken token = streamTokens.remove(continuationToken.hashCode());
       if (token == null) {
         // TODO: What do we do about this failure?
         Logger.e(TAG, "Didn't find the StreamToken");
       } else {
-        sessionMutation.setMutationSourceToken(token);
+        sessionMutation.setMutationContext(token);
       }
     }
     List<DataOperation> dataOperations =
@@ -162,9 +164,9 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     }
 
     // if there is a continuation token it should be the last thing added to the root.
-    ByteString continuationToken =
+    ByteString newContinuationToken =
         response.getExtension(FeedResponse.feedResponse).getNextPageToken();
-    if (continuationToken != null && !continuationToken.isEmpty()) {
+    if (newContinuationToken != null && !newContinuationToken.isEmpty()) {
       String contentId =
           createContentId(
               ContentId.newBuilder()
@@ -173,8 +175,8 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
                   .setTable("feature")
                   .build());
       StreamToken streamToken =
-          Validators.checkNotNull(createStreamToken(contentId, continuationToken));
-      streamTokens.put(continuationToken.hashCode(), streamToken);
+          Validators.checkNotNull(createStreamToken(contentId, newContinuationToken));
+      streamTokens.put(newContinuationToken.hashCode(), streamToken);
       sessionMutation.addOperation(
           createTokenDataOperation(contentId, streamToken.getParentId(), streamToken).build());
     }

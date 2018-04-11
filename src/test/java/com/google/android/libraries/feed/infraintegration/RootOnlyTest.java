@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -66,7 +67,7 @@ public class RootOnlyTest {
     // ModelProvider is created from $HEAD containing content
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ModelProvider modelProvider = modelProviderFactory.createNew();
 
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
@@ -101,7 +102,7 @@ public class RootOnlyTest {
 
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addRootFeature();
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     verify(changeObserver).onRootSet();
     verify(changeObserver, never()).onSessionFinished();
 
@@ -125,7 +126,7 @@ public class RootOnlyTest {
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ModelProvider modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(changeObserver);
     verify(changeObserver, never()).onRootSet();
@@ -138,7 +139,7 @@ public class RootOnlyTest {
             .setTable("feature")
             .build();
     responseBuilder = new WireProtocolResponseBuilder().addRootFeature(anotherRoot);
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     verify(changeObserver).onRootSet();
     modelValidator.assertRoot(modelProvider, anotherRoot);
   }

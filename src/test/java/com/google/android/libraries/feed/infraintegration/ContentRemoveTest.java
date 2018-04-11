@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -78,9 +80,9 @@ public class ContentRemoveTest {
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
     for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider.getRootFeature()).isNotNull();
     ModelFeature rootFeature = modelProvider.getRootFeature();
@@ -95,11 +97,9 @@ public class ContentRemoveTest {
     ModelCursor advancedCursor3 = advanceCursor(rootFeature.getCursor(), 3);
     ModelCursor advancedCursor4 = advanceCursor(rootFeature.getCursor(), 4);
 
-    responseBuilder =
-        new WireProtocolResponseBuilder()
-            .removeFeature(cards[1], WireProtocolResponseBuilder.ROOT_CONTENT_ID);
+    responseBuilder = new WireProtocolResponseBuilder().removeFeature(cards[1], ROOT_CONTENT_ID);
 
-    protocolAdapter.createModel(responseBuilder.build(), null);
+    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ArgumentCaptor<FeatureChange> capture = ArgumentCaptor.forClass(FeatureChange.class);
     verify(observer).onChange(capture.capture());
     List<FeatureChange> featureChanges = capture.getAllValues();

@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedsessionmanager;
 
 import android.text.TextUtils;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -215,7 +216,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     Logger.i(TAG, "HandleToken %s", streamToken.getContentId());
     threadUtils.checkMainThread();
     handleTokenCount++;
-    requestManagerSupplier.get().loadMore(streamToken.getNextPageToken());
+    requestManagerSupplier
+        .get()
+        .loadMore(
+            new MutationContext.Builder()
+                .setContinuationToken(streamToken.getNextPageToken())
+                .build());
   }
 
   @Override

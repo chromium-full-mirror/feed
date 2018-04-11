@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.api.requestmanager;
 
-import com.google.protobuf.ByteString;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 
 /** Creates and issues requests to the server. */
@@ -26,9 +26,10 @@ public interface RequestManager {
    * <p>Called when the user scrolls near the end of the feed to fetch the next page, or more of the
    * carousel.
    *
-   * @param continuationToken the token provided in the wire protocol to maintain state.
+   * @param mutationContext This must contain the token and optionally the session making the
+   *     request.
    */
-  void loadMore(ByteString continuationToken);
+  void loadMore(MutationContext mutationContext);
 
   /**
    * Issues a request to refresh the entire feed.

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.util.Base64;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Consumer;
@@ -35,7 +36,6 @@ import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
@@ -66,7 +66,7 @@ public class FeedRequestManagerTest {
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SchedulerApi scheduler;
   @Mock private ThreadUtils threadUtils;
-  @Captor private ArgumentCaptor<ByteString> byteStringCaptor;
+  @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
   @Captor private ArgumentCaptor<Response> responseCaptor;
@@ -136,9 +136,9 @@ public class FeedRequestManagerTest {
     Response response = Response.getDefaultInstance();
     responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
 
-    verify(protocolAdapter).createModel(responseCaptor.capture(), byteStringCaptor.capture());
+    verify(protocolAdapter).createModel(responseCaptor.capture(), mutationContextCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
-    assertThat(byteStringCaptor.getValue()).isNull();
+    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isNull();
 
     verify(scheduler).onReceiveNewContent();
   }
@@ -176,9 +176,9 @@ public class FeedRequestManagerTest {
     Response response = Response.getDefaultInstance();
     requestManager.handlePushedResponseBytes(response.toByteArray());
 
-    verify(protocolAdapter).createModel(responseCaptor.capture(), byteStringCaptor.capture());
+    verify(protocolAdapter).createModel(responseCaptor.capture(), mutationContextCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
-    assertThat(byteStringCaptor.getValue()).isNull();
+    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isNull();
   }
 
   private HttpResponse createHttpResponse(int responseCode, Response response) throws IOException {
