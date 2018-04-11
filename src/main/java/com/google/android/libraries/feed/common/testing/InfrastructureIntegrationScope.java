@@ -49,6 +49,7 @@ public class InfrastructureIntegrationScope {
   private final FeedSessionManager feedSessionManager;
   private final FeedProtocolAdapter feedProtocolAdapter;
   private final FeedModelProviderFactory modelProviderFactory;
+  private final FeedStore store;
 
   InfrastructureIntegrationScope(
       ThreadUtils threadUtils, RequestManager mockRequestManager, ExecutorService executorService) {
@@ -60,7 +61,7 @@ public class InfrastructureIntegrationScope {
     JournalStorage journalStorage = new InMemoryJournalStorage();
     Configuration configuration =
         new Configuration.Builder().put(ConfigKey.OPTIMISTIC_SESSION_WRITES, true).build();
-    FeedStore store =
+    store =
         new FeedStore(
             timingUtils,
             extensionRegistry,
@@ -97,6 +98,10 @@ public class InfrastructureIntegrationScope {
 
   public ModelProviderFactory getModelProviderFactory() {
     return modelProviderFactory;
+  }
+
+  public FeedStore getStore() {
+    return store;
   }
 
   private static class ExtensionProvider implements ProtoExtensionProvider {

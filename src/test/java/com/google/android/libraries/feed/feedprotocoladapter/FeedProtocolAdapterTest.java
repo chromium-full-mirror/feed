@@ -27,14 +27,7 @@ import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
-import com.google.search.now.wire.feed.DataOperationProto.DataOperation.Operation;
-import com.google.search.now.wire.feed.FeatureProto.Feature;
-import com.google.search.now.wire.feed.FeatureProto.Feature.RenderableUnit;
-import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
-import com.google.search.now.wire.feed.PayloadMetadataProto.PayloadMetadata;
 import com.google.search.now.wire.feed.ResponseProto.Response;
-import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
 import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -109,22 +102,8 @@ public class FeedProtocolAdapterTest {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
     ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
-    FeedResponse.Builder feedResponseBuilder =
-        FeedResponse.newBuilder()
-            .addDataOperation(
-                DataOperation.newBuilder()
-                    .setOperation(Operation.UPDATE_OR_APPEND)
-                    .setFeature(Feature.newBuilder().setRenderableUnit(RenderableUnit.CARD))
-                    .setMetadata(
-                        PayloadMetadata.newBuilder()
-                            .setContentId(contentId)
-                            .setSemanticProperties(
-                                SemanticProperties.newBuilder()
-                                    .setSemanticPropertiesData(semanticData))));
     Response response =
-        Response.newBuilder()
-            .setExtension(FeedResponse.feedResponse, feedResponseBuilder.build())
-            .build();
+        new WireProtocolResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
 
     protocolAdapter.createModel(response, new MutationContext.Builder().build());
     StreamDataOperation sdo = sessionMutation.operations.get(0);

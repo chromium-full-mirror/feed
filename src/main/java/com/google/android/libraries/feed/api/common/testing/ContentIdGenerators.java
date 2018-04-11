@@ -43,7 +43,7 @@ public class ContentIdGenerators {
         ContentId.newBuilder().setContentDomain("stream_root").setId(id).setTable(FEATURE).build());
   }
 
-  private String createContentId(ContentId contentId) {
+  public String createContentId(ContentId contentId) {
     // Using String concat for performance reasons.  This is called a lot for large feed responses.
     return contentId.getTable() + "::" + contentId.getContentDomain() + "::" + contentId.getId();
   }

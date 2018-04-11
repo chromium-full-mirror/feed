@@ -25,6 +25,7 @@ import com.google.search.now.wire.feed.FeatureProto.Feature.RenderableUnit;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
 import com.google.search.now.wire.feed.PayloadMetadataProto.PayloadMetadata;
 import com.google.search.now.wire.feed.ResponseProto.Response;
+import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -142,6 +143,21 @@ public class WireProtocolResponseBuilder {
             .setMetadata(payloadMetadata)
             .build());
     wireProtocolInfo.featuresAdded.add(payloadMetadata.getContentId());
+    return this;
+  }
+
+  public WireProtocolResponseBuilder addCardWithSemanticData(
+      ContentId contentId, ByteString semanticData) {
+    feedResponseBuilder.addDataOperation(
+        DataOperation.newBuilder()
+            .setOperation(Operation.UPDATE_OR_APPEND)
+            .setFeature(Feature.newBuilder().setRenderableUnit(RenderableUnit.CARD))
+            .setMetadata(
+                PayloadMetadata.newBuilder()
+                    .setContentId(contentId)
+                    .setSemanticProperties(
+                        SemanticProperties.newBuilder().setSemanticPropertiesData(semanticData))));
+    wireProtocolInfo.featuresAdded.add(contentId);
     return this;
   }
 
