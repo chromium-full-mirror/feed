@@ -34,6 +34,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
+import com.google.android.libraries.feed.api.store.ContentMutation;
+import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.TimingUtils;
@@ -53,9 +55,12 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
@@ -230,6 +235,52 @@ public class FeedSessionManagerTest {
     when(protocolAdapter.getStreamContentId(undefinedSharedStateId))
         .thenReturn(undefinedStreamSharedStateId);
     assertThat(sessionManager.getSharedState(undefinedSharedStateId)).isNull();
+  }
+
+  @Test
+  public void testEdit_semanticProperties() {
+    Store store = mock(Store.class);
+    when(store.getHeadSession()).thenReturn(HEAD);
+    com.google.android.libraries.feed.api.store.SessionMutation session =
+        mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
+    when(store.editSession(any(StreamSession.class))).thenReturn(session);
+    ContentMutation content = mock(ContentMutation.class);
+    when(store.editContent()).thenReturn(content);
+
+    SemanticPropertiesMutation semanticPropertiesMutation = mock(SemanticPropertiesMutation.class);
+    when(store.editSemanticProperties()).thenReturn(semanticPropertiesMutation);
+
+    FeedSessionManager sessionManager =
+        new FeedSessionManager(
+            MoreExecutors.newDirectExecutorService(),
+            store,
+            timingUtils,
+            threadUtils,
+            Suppliers.of(protocolAdapter),
+            Suppliers.of(requestManager),
+            configuration);
+
+    ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
+    StreamDataOperation streamDataOperation =
+        StreamDataOperation.newBuilder()
+            .setStreamPayload(
+                StreamPayload.newBuilder()
+                    .setStreamFeature(
+                        StreamFeature.newBuilder()
+                            .setSemanticData(semanticData)
+                            .setContentId(rootContentId)))
+            .setStreamStructure(
+                StreamStructure.newBuilder()
+                    .setContentId(rootContentId)
+                    .setOperation(Operation.UPDATE_OR_APPEND))
+            .build();
+
+    SessionMutation sessionMutation = sessionManager.edit();
+    sessionMutation.addOperation(streamDataOperation);
+    sessionMutation.commit();
+
+    verify(semanticPropertiesMutation).add(rootContentId, semanticData);
+    verify(semanticPropertiesMutation).commit();
   }
 
   private int populateSession(

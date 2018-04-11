@@ -129,6 +129,10 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
           parentId = createContentId(operation.getFeature().getParentId());
           streamFeature.setParentId(parentId);
         }
+        if (operation.getMetadata().getSemanticProperties().hasSemanticPropertiesData()) {
+          streamFeature.setSemanticData(
+              operation.getMetadata().getSemanticProperties().getSemanticPropertiesData());
+        }
         switch (operation.getFeature().getRenderableUnit()) {
           case STREAM:
             streamFeature.setStream(operation.getFeature().getExtension(Stream.streamExtension));

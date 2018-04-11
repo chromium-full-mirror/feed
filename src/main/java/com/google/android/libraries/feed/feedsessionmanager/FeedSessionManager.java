@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
+import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Committer;
 import com.google.android.libraries.feed.common.Consumer;
@@ -370,6 +371,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
       ContentMutation contentMutation = store.editContent();
+      SemanticPropertiesMutation semanticPropertiesMutation = store.editSemanticProperties();
       for (StreamDataOperation dataOperation : change.dataOperations) {
         Operation operation = dataOperation.getStreamStructure().getOperation();
         if (operation == Operation.CLEAR_ALL) {
@@ -408,6 +410,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
                 tokenMap.put(payload.getStreamToken().getContentId(), dataOperation);
               }
             }
+            if (payload.getStreamFeature().hasSemanticData()) {
+              semanticPropertiesMutation.add(
+                  contentId, payload.getStreamFeature().getSemanticData());
+            }
           } else {
             Logger.e(TAG, "Unsupported UPDATE_OR_APPEND payload");
           }
@@ -424,8 +430,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       }
       if (optimisticWrites) {
         executor.execute(contentMutation::commit);
+        // TODO: currently there is a small window in which an action could occur and the
+        // request be sent to the server before this is written, fix
+        executor.execute(semanticPropertiesMutation::commit);
       } else {
         contentMutation.commit();
+        semanticPropertiesMutation.commit();
       }
       timeTracker.stop("", "contentUpdate", "items", change.dataOperations.size());
     }
