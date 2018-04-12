@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.testing.TestClockImpl;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -62,7 +61,6 @@ public class BasicStreamTest {
   @Mock private ActionApi actionApi;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private PietSharedStateSupplier pietSharedStateSupplier;
-  @Mock private StreamRecyclerViewAdapter streamRecyclerViewAdapter;
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private ModelProvider initialModelProvider;
   @Mock private ModelProvider modelProvider;
@@ -101,6 +99,7 @@ public class BasicStreamTest {
             return pietSharedStateSupplier;
           }
         };
+    basicStream.onCreate(null);
   }
 
   @Test

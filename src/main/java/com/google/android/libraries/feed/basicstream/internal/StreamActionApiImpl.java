@@ -54,8 +54,9 @@ public class StreamActionApiImpl implements StreamActionApi {
     }
 
     CharSequence[] itemArray = new String[items.size()];
+    items.toArray(itemArray);
     dialogBuilder.setItems(
-        items.toArray(itemArray),
+        itemArray,
         (dialogInterface, i) ->
             actionParser.parseFeedActionPayload(
                 enabledActions.get(i).getFeedActionPayload(), StreamActionApiImpl.this));

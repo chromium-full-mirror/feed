@@ -62,6 +62,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
     void onBindLastItem();
   }
 
+  // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
+  @SuppressWarnings("initialization")
   public StreamRecyclerViewAdapter(
       Context context,
       CardConfiguration cardConfiguration,

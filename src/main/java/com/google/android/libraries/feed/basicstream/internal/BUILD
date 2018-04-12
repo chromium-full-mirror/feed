@@ -22,5 +22,6 @@ android_library(
         "@androidsdk//com.android.support:cardview-v7-25.3.1",
         "@androidsdk//com.android.support:recyclerview-v7-25.3.1",
         "@androidsdk//com.android.support:support-annotations-25.3.1",
+        "@com_google_code_findbugs_jsr305//jar",
     ],
 )

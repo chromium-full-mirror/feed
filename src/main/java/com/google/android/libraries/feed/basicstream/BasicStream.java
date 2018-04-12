@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.basicstream;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+
 import android.content.Context;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -65,14 +67,17 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final RecyclerView recyclerView;
   private final CardConfiguration cardConfiguration;
   private final ThreadUtils threadUtils;
-  private final StreamRecyclerViewAdapter adapter;
-  private final ViewHolderBindingObserver viewHolderBindingObserver;
   private final PietManager pietManager;
   private final PietSharedStateSupplier pietSharedStateSupplier;
   private final ModelProviderFactory modelProviderFactory;
 
   /*@Nullable*/ private ModelToken streamToken = null;
-  /*@Nullable*/ private ModelProvider modelProvider;
+  private ModelProvider modelProvider;
+  private Context context;
+  private List<View> headers;
+  private StreamConfiguration streamConfiguration;
+  private StreamRecyclerViewAdapter adapter;
+  private ViewHolderBindingObserver viewHolderBindingObserver;
 
   public BasicStream(
       Context context,
@@ -103,10 +108,18 @@ public class BasicStream implements Stream, ModelProviderObserver {
             new PietCustomElementProvider(context, customElementProvider));
     recyclerView = new RecyclerView(context);
     recyclerView.setLayoutManager(new LinearLayoutManager(context));
+    this.context = context;
+    this.headers = headers;
+    this.modelProviderFactory = modelProviderFactory;
+    this.streamConfiguration = streamConfiguration;
+  }
+
+  @Override
+  public void onCreate(/*@Nullable*/ Bundle savedInstanceState) {
     viewHolderBindingObserver = initializeBindingObserver();
     adapter =
         new StreamRecyclerViewAdapter(
-            context, this.cardConfiguration, pietManager, viewHolderBindingObserver);
+            context, cardConfiguration, pietManager, viewHolderBindingObserver);
     adapter.setHeaders(headers);
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);
@@ -123,34 +136,31 @@ public class BasicStream implements Stream, ModelProviderObserver {
           streamConfiguration.getPaddingEnd(),
           streamConfiguration.getPaddingBottom());
     }
-    this.modelProviderFactory = modelProviderFactory;
     modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(this);
+    // TODO: Implement save/restore.
   }
 
   private ViewHolderBindingObserver initializeBindingObserver() {
     return () -> {
-      if (streamToken != null && modelProvider != null) {
+      ModelToken token = streamToken;
+      if (token != null && modelProvider != null) {
         // TODO: Show a Spinner until the observer is called
         Logger.i(TAG, "Handle the continuation Token.");
-        streamToken.registerObserver(
+        token.registerObserver(
             change -> {
               // Add the new cursor to the adapter.
-              threadUtils.checkMainThread();
+              checkNotNull(threadUtils).checkMainThread();
               List<ModelFeature> modelFeatures = processCursor(change.getCursor());
               Logger.i(TAG, "TokenCompletedObserver - added Features: %s", modelFeatures.size());
-              adapter.addModelFeatures(modelFeatures);
+              checkNotNull(adapter).addModelFeatures(modelFeatures);
             });
-        modelProvider.handleToken(streamToken);
+        modelProvider.handleToken(token);
         streamToken = null;
       }
     };
   }
 
-  @Override
-  public void onCreate(/*@Nullable*/ Bundle savedInstanceState) {
-    // TODO: Implement save/restore.
-  }
 
   @Override
   public void onShow() {}
@@ -199,7 +209,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public boolean isChildAtPositionVisible(int position) {
-    return recyclerView.getLayoutManager().findViewByPosition(position).getVisibility()
+    return checkNotNull(recyclerView.getLayoutManager())
+            .findViewByPosition(position)
+            .getVisibility()
         == View.VISIBLE;
   }
 
@@ -263,7 +275,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   @VisibleForTesting
-  PietSharedStateSupplier createPietSharedStateSupplier() {
+  PietSharedStateSupplier createPietSharedStateSupplier(/*@UnderInitialization*/ BasicStream this) {
     return new PietSharedStateSupplier();
   }
 
