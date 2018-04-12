@@ -25,6 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
@@ -54,34 +55,46 @@ public class StreamActionApiImplTest {
   private static final LabelledFeedActionData OPEN_IN_NEW_WINDOW =
       LabelledFeedActionData.newBuilder()
           .setLabel(OPEN_IN_NEW_WINDOW_LABEL)
-          .setFeedAction(
-              FeedAction.newBuilder()
-                  .setMetadata(
-                      FeedActionMetadata.newBuilder()
-                          .setType(Type.OPEN_URL_NEW_WINDOW)
-                          .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL))))
+          .setFeedActionPayload(
+              FeedActionPayload.newBuilder()
+                  .setExtension(
+                      FeedAction.feedActionExtension,
+                      FeedAction.newBuilder()
+                          .setMetadata(
+                              FeedActionMetadata.newBuilder()
+                                  .setType(Type.OPEN_URL_NEW_WINDOW)
+                                  .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                          .build()))
           .build();
   private static final String OPEN_IN_INCOGNITO_MODE_LABEL = "Open in incognito mode";
   public static final LabelledFeedActionData OPEN_IN_INCOGNITO_MODE =
       LabelledFeedActionData.newBuilder()
           .setLabel(OPEN_IN_INCOGNITO_MODE_LABEL)
-          .setFeedAction(
-              FeedAction.newBuilder()
-                  .setMetadata(
-                      FeedActionMetadata.newBuilder()
-                          .setType(Type.OPEN_URL_INCOGNITO)
-                          .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL))))
+          .setFeedActionPayload(
+              FeedActionPayload.newBuilder()
+                  .setExtension(
+                      FeedAction.feedActionExtension,
+                      FeedAction.newBuilder()
+                          .setMetadata(
+                              FeedActionMetadata.newBuilder()
+                                  .setType(Type.OPEN_URL_INCOGNITO)
+                                  .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                          .build()))
           .build();
 
   private static final LabelledFeedActionData NORMAL_OPEN_URL =
       LabelledFeedActionData.newBuilder()
           .setLabel(OPEN_LABEL)
-          .setFeedAction(
-              FeedAction.newBuilder()
-                  .setMetadata(
-                      FeedActionMetadata.newBuilder()
-                          .setType(Type.OPEN_URL)
-                          .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL))))
+          .setFeedActionPayload(
+              FeedActionPayload.newBuilder()
+                  .setExtension(
+                      FeedAction.feedActionExtension,
+                      FeedAction.newBuilder()
+                          .setMetadata(
+                              FeedActionMetadata.newBuilder()
+                                  .setType(Type.OPEN_URL)
+                                  .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                          .build()))
           .build();
 
   @Mock private ActionApi actionApi;
@@ -173,7 +186,7 @@ public class StreamActionApiImplTest {
 
   @Test
   public void openContextMenuTest() {
-    when(actionParser.canPerformAction(any(FeedAction.class), eq(streamActionApi)))
+    when(actionParser.canPerformAction(any(FeedActionPayload.class), eq(streamActionApi)))
         .thenReturn(true);
 
     List<LabelledFeedActionData> labelledFeedActionDataList = new ArrayList<>();
@@ -196,22 +209,25 @@ public class StreamActionApiImplTest {
 
     InOrder inOrder = Mockito.inOrder(actionParser);
 
-    inOrder.verify(actionParser).parseFeedAction(NORMAL_OPEN_URL.getFeedAction(), streamActionApi);
     inOrder
         .verify(actionParser)
-        .parseFeedAction(OPEN_IN_NEW_WINDOW.getFeedAction(), streamActionApi);
+        .parseFeedActionPayload(NORMAL_OPEN_URL.getFeedActionPayload(), streamActionApi);
     inOrder
         .verify(actionParser)
-        .parseFeedAction(OPEN_IN_INCOGNITO_MODE.getFeedAction(), streamActionApi);
+        .parseFeedActionPayload(OPEN_IN_NEW_WINDOW.getFeedActionPayload(), streamActionApi);
+    inOrder
+        .verify(actionParser)
+        .parseFeedActionPayload(OPEN_IN_INCOGNITO_MODE.getFeedActionPayload(), streamActionApi);
   }
 
   @Test
   public void openContextMenuTest_noNewWindow() {
-    when(actionParser.canPerformAction(NORMAL_OPEN_URL.getFeedAction(), streamActionApi))
+    when(actionParser.canPerformAction(NORMAL_OPEN_URL.getFeedActionPayload(), streamActionApi))
         .thenReturn(true);
-    when(actionParser.canPerformAction(OPEN_IN_INCOGNITO_MODE.getFeedAction(), streamActionApi))
+    when(actionParser.canPerformAction(
+            OPEN_IN_INCOGNITO_MODE.getFeedActionPayload(), streamActionApi))
         .thenReturn(true);
-    when(actionParser.canPerformAction(OPEN_IN_NEW_WINDOW.getFeedAction(), streamActionApi))
+    when(actionParser.canPerformAction(OPEN_IN_NEW_WINDOW.getFeedActionPayload(), streamActionApi))
         .thenReturn(false);
 
     List<LabelledFeedActionData> labelledFeedActionDataList = new ArrayList<>();
@@ -232,11 +248,12 @@ public class StreamActionApiImplTest {
 
   @Test
   public void openContextMenuTest_noIncognitoWindow() {
-    when(actionParser.canPerformAction(NORMAL_OPEN_URL.getFeedAction(), streamActionApi))
+    when(actionParser.canPerformAction(NORMAL_OPEN_URL.getFeedActionPayload(), streamActionApi))
         .thenReturn(true);
-    when(actionParser.canPerformAction(OPEN_IN_NEW_WINDOW.getFeedAction(), streamActionApi))
+    when(actionParser.canPerformAction(OPEN_IN_NEW_WINDOW.getFeedActionPayload(), streamActionApi))
         .thenReturn(true);
-    when(actionParser.canPerformAction(OPEN_IN_INCOGNITO_MODE.getFeedAction(), streamActionApi))
+    when(actionParser.canPerformAction(
+            OPEN_IN_INCOGNITO_MODE.getFeedActionPayload(), streamActionApi))
         .thenReturn(false);
 
     List<LabelledFeedActionData> labelledFeedActionDataList = new ArrayList<>();

@@ -15,15 +15,15 @@
 package com.google.android.libraries.feed.feedactionparser;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
-import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_CONTEXT_MENU;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_INCOGNITO;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_NEW_WINDOW;
 
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.common.Logger;
-import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionRetriever;
+import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPaylaodRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
@@ -38,26 +38,29 @@ public class FeedActionParser implements ActionParser {
 
   private static final String TAG = "FeedActionParser";
 
-  private final PietFeedActionRetriever pietFeedActionRetriever;
+  private final PietFeedActionPaylaodRetriever pietFeedActionPaylaodRetriever;
 
   public FeedActionParser() {
-    this.pietFeedActionRetriever = new PietFeedActionRetriever();
+    this.pietFeedActionPaylaodRetriever = new PietFeedActionPaylaodRetriever();
   }
 
   @Override
   public void parseAction(
       Action action, StreamActionApi streamActionApi, /*@Nullable*/ String veLoggingToken) {
-    FeedAction feedAction = pietFeedActionRetriever.getFeedAction(action);
-    if (feedAction == null) {
-      Logger.w(TAG, "Unable to get FeedAction from PietFeedActionRetriever");
+    FeedActionPayload feedActionPayload =
+        pietFeedActionPaylaodRetriever.getFeedActionPayload(action);
+    if (feedActionPayload == null) {
+      Logger.w(TAG, "Unable to get FeedActionPayload from PietFeedActionPaylaodRetriever");
       return;
     }
-    parseFeedAction(feedAction, streamActionApi);
+    parseFeedActionPayload(feedActionPayload, streamActionApi);
   }
 
   @Override
-  public void parseFeedAction(FeedAction feedAction, StreamActionApi streamActionApi) {
-    FeedActionMetadata feedActionMetadata = feedAction.getMetadata();
+  public void parseFeedActionPayload(
+      FeedActionPayload feedActionPayload, StreamActionApi streamActionApi) {
+    FeedActionMetadata feedActionMetadata =
+        feedActionPayload.getExtension(FeedAction.feedActionExtension).getMetadata();
     switch (feedActionMetadata.getType()) {
       case OPEN_URL:
       case OPEN_URL_NEW_WINDOW:
@@ -118,8 +121,11 @@ public class FeedActionParser implements ActionParser {
   }
 
   @Override
-  public boolean canPerformAction(FeedAction feedAction, StreamActionApi streamActionApi) {
-    return canPerformAction(feedAction.getMetadata().getType(), streamActionApi);
+  public boolean canPerformAction(
+      FeedActionPayload feedActionPayload, StreamActionApi streamActionApi) {
+    return canPerformAction(
+        feedActionPayload.getExtension(FeedAction.feedActionExtension).getMetadata().getType(),
+        streamActionApi);
   }
 
   private boolean canPerformAction(Type type, StreamActionApi streamActionApi) {

@@ -47,7 +47,7 @@ public class StreamActionApiImpl implements StreamActionApi {
 
     for (LabelledFeedActionData labelledFeedActionData :
         openContextMenuData.getContextMenuDataList()) {
-      if (actionParser.canPerformAction(labelledFeedActionData.getFeedAction(), this)) {
+      if (actionParser.canPerformAction(labelledFeedActionData.getFeedActionPayload(), this)) {
         items.add(labelledFeedActionData.getLabel());
         enabledActions.add(labelledFeedActionData);
       }
@@ -57,8 +57,8 @@ public class StreamActionApiImpl implements StreamActionApi {
     dialogBuilder.setItems(
         items.toArray(itemArray),
         (dialogInterface, i) ->
-            actionParser.parseFeedAction(
-                enabledActions.get(i).getFeedAction(), StreamActionApiImpl.this));
+            actionParser.parseFeedActionPayload(
+                enabledActions.get(i).getFeedActionPayload(), StreamActionApiImpl.this));
     // TODO: Make dialog show up near the click location.
     dialogBuilder.create().show();
   }

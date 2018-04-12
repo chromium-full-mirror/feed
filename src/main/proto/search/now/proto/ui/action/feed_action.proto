@@ -17,12 +17,16 @@ syntax = "proto2";
 package search.now.ui.action;
 
 option optimize_for=LITE_RUNTIME;
+import "src/main/proto/search/now/proto/ui/action/feed_action_payload.proto";
 
 option java_package = "com.google.search.now.ui.action";
 option java_outer_classname = "FeedActionProto";
 
 // Specification of an action to be taken within the feed.
 message FeedAction {
+  extend FeedActionPayload {
+    optional FeedAction feed_action_extension = 192348469;
+  }
 
   // The metadata, which is used by the client to update the client UI in
   // real-time.
@@ -73,5 +77,5 @@ message OpenContextMenuData {
 // FeedActionMetadata with a label to show in a context menu.
 message LabelledFeedActionData {
   optional string label = 1;
-  optional FeedAction feed_action = 2;
+  optional FeedActionPayload feed_action_payload = 2;
 }

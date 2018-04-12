@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.api.actionparser;
 
 import com.google.android.libraries.feed.host.action.StreamActionApi;
-import com.google.search.now.ui.action.FeedActionProto.FeedAction;
+import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 
 /** Parses actions from Piet and directs the Stream to handle the action. */
@@ -23,7 +23,7 @@ public interface ActionParser {
 
   void parseAction(Action action, StreamActionApi streamActionApi, /*@Nullable*/ String veLoggingToken);
 
-  void parseFeedAction(FeedAction feedActionMetadata, StreamActionApi streamActionApi);
+  void parseFeedActionPayload(FeedActionPayload feedActionPayload, StreamActionApi streamActionApi);
 
-  boolean canPerformAction(FeedAction feedAction, StreamActionApi streamActionApi);
+  boolean canPerformAction(FeedActionPayload feedActionPayload, StreamActionApi streamActionApi);
 }

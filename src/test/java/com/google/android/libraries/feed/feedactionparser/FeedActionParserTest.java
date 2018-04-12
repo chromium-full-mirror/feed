@@ -21,13 +21,14 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
-import com.google.search.now.ui.action.PietExtensionsProto.PietFeedAction;
+import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,61 +41,81 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedActionParserTest {
   public static final String URL = "www.google.com";
 
-  private static final FeedAction OPEN_URL_FEED_ACTION =
-      FeedAction.newBuilder()
-          .setMetadata(
-              FeedActionMetadata.newBuilder()
-                  .setType(Type.OPEN_URL)
-                  .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+  private static final FeedActionPayload OPEN_URL_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_URL)
+                          .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                  .build())
           .build();
-  private static final FeedAction CONTEXT_MENU_FEED_ACTION =
-      FeedAction.newBuilder()
-          .setMetadata(
-              FeedActionMetadata.newBuilder()
-                  .setType(Type.OPEN_CONTEXT_MENU)
-                  .setOpenContextMenuData(
-                      OpenContextMenuData.newBuilder()
-                          .addContextMenuData(
-                              LabelledFeedActionData.newBuilder()
-                                  .setLabel("Open url")
-                                  .setFeedAction(OPEN_URL_FEED_ACTION))))
+  private static final FeedActionPayload CONTEXT_MENU_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_CONTEXT_MENU)
+                          .setOpenContextMenuData(
+                              OpenContextMenuData.newBuilder()
+                                  .addContextMenuData(
+                                      LabelledFeedActionData.newBuilder()
+                                          .setLabel("Open url")
+                                          .setFeedActionPayload(OPEN_URL_FEED_ACTION))))
+                  .build())
           .build();
 
-  private static final FeedAction OPEN_URL_NEW_WINDOW_FEED_ACTION =
-      FeedAction.newBuilder()
-          .setMetadata(
-              FeedActionMetadata.newBuilder()
-                  .setType(Type.OPEN_URL_NEW_WINDOW)
-                  .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+  private static final FeedActionPayload OPEN_URL_NEW_WINDOW_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_URL_NEW_WINDOW)
+                          .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                  .build())
           .build();
 
-  private static final FeedAction OPEN_URL_INCOGNITO_FEED_ACTION =
-      FeedAction.newBuilder()
-          .setMetadata(
-              FeedActionMetadata.newBuilder()
-                  .setType(Type.OPEN_URL_INCOGNITO)
-                  .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+  private static final FeedActionPayload OPEN_URL_INCOGNITO_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_URL_INCOGNITO)
+                          .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                  .build())
           .build();
 
   private static final Action OPEN_URL_ACTION =
       Action.newBuilder()
           .setExtension(
-              PietFeedAction.pietFeedActionExtension,
-              PietFeedAction.newBuilder().setFeedAction(OPEN_URL_FEED_ACTION).build())
+              PietFeedActionPayload.pietFeedActionPayloadExtension,
+              PietFeedActionPayload.newBuilder().setFeedActionPayload(OPEN_URL_FEED_ACTION).build())
           .build();
 
   private static final Action OPEN_INCOGNITO_ACTION =
       Action.newBuilder()
           .setExtension(
-              PietFeedAction.pietFeedActionExtension,
-              PietFeedAction.newBuilder().setFeedAction(OPEN_URL_INCOGNITO_FEED_ACTION).build())
+              PietFeedActionPayload.pietFeedActionPayloadExtension,
+              PietFeedActionPayload.newBuilder()
+                  .setFeedActionPayload(OPEN_URL_INCOGNITO_FEED_ACTION)
+                  .build())
           .build();
 
   private static final Action OPEN_NEW_WINDOW_ACTION =
       Action.newBuilder()
           .setExtension(
-              PietFeedAction.pietFeedActionExtension,
-              PietFeedAction.newBuilder().setFeedAction(OPEN_URL_NEW_WINDOW_FEED_ACTION).build())
+              PietFeedActionPayload.pietFeedActionPayloadExtension,
+              PietFeedActionPayload.newBuilder()
+                  .setFeedActionPayload(OPEN_URL_NEW_WINDOW_FEED_ACTION)
+                  .build())
           .build();
 
   @Mock private StreamActionApi streamActionApi;
@@ -135,19 +156,24 @@ public class FeedActionParserTest {
   @Test
   public void testParseAction_contextMenu() {
     when(streamActionApi.canOpenContextMenu()).thenReturn(true);
-    PietFeedAction contextMenuPietFeedAction =
-        PietFeedAction.newBuilder().setFeedAction(CONTEXT_MENU_FEED_ACTION).build();
+    PietFeedActionPayload contextMenuPietFeedAction =
+        PietFeedActionPayload.newBuilder().setFeedActionPayload(CONTEXT_MENU_FEED_ACTION).build();
 
     feedActionParser.parseAction(
         Action.newBuilder()
-            .setExtension(PietFeedAction.pietFeedActionExtension, contextMenuPietFeedAction)
+            .setExtension(
+                PietFeedActionPayload.pietFeedActionPayloadExtension, contextMenuPietFeedAction)
             .build(),
         streamActionApi,
         /* veLoggingToken= */ null);
 
     verify(streamActionApi)
         .openContextMenu(
-            contextMenuPietFeedAction.getFeedAction().getMetadata().getOpenContextMenuData());
+            contextMenuPietFeedAction
+                .getFeedActionPayload()
+                .getExtension(FeedAction.feedActionExtension)
+                .getMetadata()
+                .getOpenContextMenuData());
   }
 
   @Test

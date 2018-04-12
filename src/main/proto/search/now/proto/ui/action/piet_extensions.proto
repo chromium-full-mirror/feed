@@ -15,7 +15,7 @@
 syntax = "proto2";
 
 import "src/main/proto/search/now/proto/ui/piet/actions.proto";
-import "src/main/proto/search/now/proto/ui/action/feed_action.proto";
+import "src/main/proto/search/now/proto/ui/action/feed_action_payload.proto";
 
 package search.now.ui.action;
 
@@ -24,13 +24,14 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.action";
 option java_outer_classname = "PietExtensionsProto";
 
-// This is an extension message which adds the FeedAction as an extension
+// This is an extension message which adds the FeedActionPayload as an extension
 // to the Piet Action.
-message PietFeedAction {
+message PietFeedActionPayload {
 
   extend search.now.ui.piet.Action {
-    optional PietFeedAction piet_feed_action_extension = 182220593;
+    optional PietFeedActionPayload piet_feed_action_payload_extension =
+        182220593;
   }
 
-  optional FeedAction feed_action = 1;
+  optional FeedActionPayload feed_action_payload = 1;
 }

@@ -17,7 +17,8 @@ package com.google.android.libraries.feed.common.protoextensions;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
-import com.google.search.now.ui.action.PietExtensionsProto.PietFeedAction;
+import com.google.search.now.ui.action.FeedActionProto.FeedAction;
+import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
 import com.google.search.now.ui.stream.StreamStructureProto;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
@@ -41,10 +42,11 @@ public class FeedExtensionRegistry {
     // Set up all the extensions we use inside the Feed.
     extensionRegistry.add(Card.cardExtension);
     extensionRegistry.add(Content.contentExtension);
+    extensionRegistry.add(FeedAction.feedActionExtension);
     extensionRegistry.add(FeedRequest.feedRequest);
     extensionRegistry.add(FeedResponse.feedResponse);
     extensionRegistry.add(PietContent.pietContentExtension);
-    extensionRegistry.add(PietFeedAction.pietFeedActionExtension);
+    extensionRegistry.add(PietFeedActionPayload.pietFeedActionPayloadExtension);
     extensionRegistry.add(StreamStructureProto.Stream.streamExtension);
 
     // Call the host and add all the extensions it uses.

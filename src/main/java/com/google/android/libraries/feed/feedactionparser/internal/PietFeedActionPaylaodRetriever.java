@@ -15,14 +15,14 @@
 package com.google.android.libraries.feed.feedactionparser.internal;
 
 import com.google.android.libraries.feed.common.Logger;
-import com.google.search.now.ui.action.FeedActionProto.FeedAction;
-import com.google.search.now.ui.action.PietExtensionsProto.PietFeedAction;
+import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
+import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 
 /** Class which is able to retrieve FeedActions from Piet actions */
-public class PietFeedActionRetriever {
+public class PietFeedActionPaylaodRetriever {
 
-  private static final String TAG = "PietFeedActionRetriever";
+  private static final String TAG = "PietFAPRetriever";
 
   /**
    * Gets the feed action from a Piet Action.
@@ -30,14 +30,14 @@ public class PietFeedActionRetriever {
    * @param action the Piet Action to pull the feed action metadata out of.
    */
   /*@Nullable*/
-  public FeedAction getFeedAction(Action action) {
+  public FeedActionPayload getFeedActionPayload(Action action) {
     /*@Nullable*/
-    PietFeedAction feedActionExtension =
-        action.getExtension(PietFeedAction.pietFeedActionExtension);
-    if (feedActionExtension != null && feedActionExtension.hasFeedAction()) {
-      return feedActionExtension.getFeedAction();
+    PietFeedActionPayload feedActionPayloadExtension =
+        action.getExtension(PietFeedActionPayload.pietFeedActionPayloadExtension);
+    if (feedActionPayloadExtension != null && feedActionPayloadExtension.hasFeedActionPayload()) {
+      return feedActionPayloadExtension.getFeedActionPayload();
     }
-    Logger.e(TAG, "FeedActionExtension was null or did not contain a feed action");
+    Logger.e(TAG, "FeedActionExtension was null or did not contain a feed action payload");
     return null;
   }
 }
