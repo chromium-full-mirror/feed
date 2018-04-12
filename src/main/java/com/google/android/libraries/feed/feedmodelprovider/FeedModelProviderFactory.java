@@ -19,7 +19,7 @@ import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 
 /**
  * Factory for creating instances of {@link ModelProviderFactory} using the {@link

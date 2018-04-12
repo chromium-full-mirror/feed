@@ -21,7 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
-import com.google.android.libraries.feed.common.TimingUtils;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
