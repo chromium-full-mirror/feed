@@ -442,10 +442,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
                 tokenMap.put(payload.getStreamToken().getContentId(), dataOperation);
               }
             }
-            if (payload.getStreamFeature().hasSemanticData()) {
-              semanticPropertiesMutation.add(
-                  contentId, payload.getStreamFeature().getSemanticData());
-            }
           } else {
             Logger.e(TAG, "Unsupported UPDATE_OR_APPEND payload");
           }
@@ -455,6 +451,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           // This is required because a session may not remove the item.
           // Add the Remove to the structure changes
           streamStructures.add(dataOperation.getStreamStructure());
+          continue;
+        }
+        if (dataOperation.getStreamPayload().hasSemanticData()) {
+          String contentId = dataOperation.getStreamStructure().getContentId();
+          semanticPropertiesMutation.add(
+              contentId, dataOperation.getStreamPayload().getSemanticData());
           continue;
         }
         Logger.e(

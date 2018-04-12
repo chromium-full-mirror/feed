@@ -55,12 +55,10 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
@@ -266,16 +264,8 @@ public class FeedSessionManagerTest {
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     StreamDataOperation streamDataOperation =
         StreamDataOperation.newBuilder()
-            .setStreamPayload(
-                StreamPayload.newBuilder()
-                    .setStreamFeature(
-                        StreamFeature.newBuilder()
-                            .setSemanticData(semanticData)
-                            .setContentId(rootContentId)))
-            .setStreamStructure(
-                StreamStructure.newBuilder()
-                    .setContentId(rootContentId)
-                    .setOperation(Operation.UPDATE_OR_APPEND))
+            .setStreamPayload(StreamPayload.newBuilder().setSemanticData(semanticData))
+            .setStreamStructure(StreamStructure.newBuilder().setContentId(rootContentId))
             .build();
 
     SessionMutation sessionMutation = sessionManager.edit();

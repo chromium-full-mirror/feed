@@ -54,9 +54,6 @@ message StreamFeature {
     // Cards.
     search.now.ui.stream.Cluster cluster = 7;
   }
-
-  // The semantic data associated with this feature.
-  optional bytes semantic_data = 8;
 }
 
 message StreamToken {
@@ -124,6 +121,9 @@ message StreamPayload {
 
     // Continuation Token for a parent.
     StreamToken stream_token = 5;
+
+    // The semantic data associated with this feature.
+    bytes semantic_data = 7;
   }
 }
 

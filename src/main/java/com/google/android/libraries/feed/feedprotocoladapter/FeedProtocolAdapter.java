@@ -115,10 +115,6 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
           parentId = createContentId(operation.getFeature().getParentId());
           streamFeature.setParentId(parentId);
         }
-        if (operation.getMetadata().getSemanticProperties().hasSemanticPropertiesData()) {
-          streamFeature.setSemanticData(
-              operation.getMetadata().getSemanticProperties().getSemanticPropertiesData());
-        }
         switch (operation.getFeature().getRenderableUnit()) {
           case STREAM:
             streamFeature.setStream(operation.getFeature().getExtension(Stream.streamExtension));
@@ -150,6 +146,14 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
                 .build();
         sessionMutation.addOperation(
             createSharedStateDataOperation(streamOperation, contentId, state).build());
+      }
+
+      if (operation.getMetadata().getSemanticProperties().hasSemanticPropertiesData()) {
+        sessionMutation.addOperation(
+            createSemanticDataOperation(
+                    contentId,
+                    operation.getMetadata().getSemanticProperties().getSemanticPropertiesData())
+                .build());
       }
     }
 
@@ -236,6 +240,13 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     }
     streamDataOperation.setStreamStructure(streamStructure);
     return streamDataOperation;
+  }
+
+  private StreamDataOperation.Builder createSemanticDataOperation(
+      String contentId, ByteString semanticData) {
+    return StreamDataOperation.newBuilder()
+        .setStreamPayload(StreamPayload.newBuilder().setSemanticData(semanticData))
+        .setStreamStructure(StreamStructure.newBuilder().setContentId(contentId));
   }
 
   private String createContentId(ContentId contentId) {

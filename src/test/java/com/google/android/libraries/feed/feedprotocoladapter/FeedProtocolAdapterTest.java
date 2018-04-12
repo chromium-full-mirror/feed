@@ -106,9 +106,10 @@ public class FeedProtocolAdapterTest {
         new WireProtocolResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
 
     protocolAdapter.createModel(response, new MutationContext.Builder().build());
-    StreamDataOperation sdo = sessionMutation.operations.get(0);
-    assertThat(sdo.getStreamPayload().getStreamFeature().hasSemanticData()).isTrue();
-    assertThat(sdo.getStreamPayload().getStreamFeature().getSemanticData()).isEqualTo(semanticData);
+    // Note that 2 operations are created (the card and the semantic data). We want the latter.
+    StreamDataOperation sdo = sessionMutation.operations.get(1);
+    assertThat(sdo.getStreamPayload().hasSemanticData()).isTrue();
+    assertThat(sdo.getStreamPayload().getSemanticData()).isEqualTo(semanticData);
   }
 
   @Test
