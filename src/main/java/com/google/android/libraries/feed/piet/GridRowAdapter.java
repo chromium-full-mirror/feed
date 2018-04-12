@@ -128,7 +128,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
 
   private void setLayoutParamsOnCell(
       ElementListAdapter cellAdapter, GridCell cell, FrameContext frameContext) {
-    LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+    LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
 
     GridCellWidth gridCellWidth = null;
     if (cell.hasWidth()) {
@@ -137,6 +137,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
       gridCellWidth = frameContext.getGridCellWidthFromBinding(cell.getWidthBinding());
     }
 
+    // If we have a requested width, use it; otherwise, WRAP_CONTENT.
     if (gridCellWidth != null) {
       if (gridCellWidth.hasWeight()) {
         params.weight = gridCellWidth.getWeight();

@@ -30,6 +30,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.Space;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
@@ -119,6 +120,14 @@ public class GridRowAdapterTest {
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
     assertThat(adapter.getBaseView().getBaseline()).isEqualTo(-1);
     assertThat(adapter.childAdapters).hasSize(2);
+    assertThat(adapter.getBaseView().getChildAt(0))
+        .isSameAs(adapter.childAdapters.get(0).getView());
+    assertThat(adapter.getBaseView().getChildAt(1))
+        .isSameAs(adapter.childAdapters.get(1).getView());
+    LayoutParams cellLayoutParams =
+        (LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
+    assertThat(cellLayoutParams.width).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(cellLayoutParams.height).isEqualTo(LayoutParams.MATCH_PARENT);
   }
 
   @Test
@@ -236,8 +245,31 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_verticalGravity() {
-    GridRow gridRow =
+  public void testOnCreateAdapter_setsLayoutParamsOnCell_verticalGravityTop() {
+    GridRow gridRowTop =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setElementList(
+                        DEFAULT_CONTENTS
+                            .toBuilder()
+                            .setGravityVertical(GravityVertical.GRAVITY_TOP)))
+            .build();
+
+    adapter.createAdapter(gridRowTop, frameContext);
+
+    ElementListAdapter cellAdapter = adapter.childAdapters.get(0);
+    LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
+    assertThat(params.gravity).isEqualTo(Gravity.TOP);
+    assertThat(cellAdapter.getBaseView().getChildCount()).isEqualTo(2);
+    assertThat(cellAdapter.getBaseView().getChildAt(0))
+        .isSameAs(cellAdapter.childAdapters.get(0).getView());
+    assertThat(cellAdapter.getBaseView().getChildAt(1)).isInstanceOf(Space.class);
+  }
+
+  @Test
+  public void testOnCreateAdapter_setsLayoutParamsOnCell_verticalGravityCenter() {
+    GridRow gridRowCenter =
         GridRow.newBuilder()
             .addCells(
                 GridCell.newBuilder()
@@ -247,13 +279,39 @@ public class GridRowAdapterTest {
                             .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)))
             .build();
 
-    adapter.createAdapter(gridRow, frameContext);
+    adapter.createAdapter(gridRowCenter, frameContext);
 
-    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
-        .isInstanceOf(LinearLayout.LayoutParams.class);
-    LayoutParams params =
-        (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
+    ElementListAdapter cellAdapter = adapter.childAdapters.get(0);
+    LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
     assertThat(params.gravity).isEqualTo(Gravity.CENTER_VERTICAL);
+    assertThat(cellAdapter.getBaseView().getChildCount()).isEqualTo(3);
+    assertThat(cellAdapter.getBaseView().getChildAt(0)).isInstanceOf(Space.class);
+    assertThat(cellAdapter.getBaseView().getChildAt(1))
+        .isSameAs(cellAdapter.childAdapters.get(0).getView());
+    assertThat(cellAdapter.getBaseView().getChildAt(2)).isInstanceOf(Space.class);
+  }
+
+  @Test
+  public void testOnCreateAdapter_setsLayoutParamsOnCell_verticalGravityBottom() {
+    GridRow gridRowBottom =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setElementList(
+                        DEFAULT_CONTENTS
+                            .toBuilder()
+                            .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)))
+            .build();
+
+    adapter.createAdapter(gridRowBottom, frameContext);
+
+    ElementListAdapter cellAdapter = adapter.childAdapters.get(0);
+    LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
+    assertThat(params.gravity).isEqualTo(Gravity.BOTTOM);
+    assertThat(cellAdapter.getBaseView().getChildCount()).isEqualTo(2);
+    assertThat(cellAdapter.getBaseView().getChildAt(0)).isInstanceOf(Space.class);
+    assertThat(cellAdapter.getBaseView().getChildAt(1))
+        .isSameAs(cellAdapter.childAdapters.get(0).getView());
   }
 
   @Test
