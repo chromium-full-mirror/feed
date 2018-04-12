@@ -24,11 +24,11 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link PietSharedStateSupplier}. */
 @RunWith(RobolectricTestRunner.class)

@@ -18,10 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.net.Uri;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
-import org.robolectric.RobolectricTestRunner;
 import java.nio.ByteBuffer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Test class for {@link HttpRequest} */
 @RunWith(RobolectricTestRunner.class)

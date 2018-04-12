@@ -37,7 +37,6 @@ import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -45,6 +44,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests which update content within an existing model. */
 @RunWith(RobolectricTestRunner.class)

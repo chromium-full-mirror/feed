@@ -17,9 +17,9 @@ package com.google.android.libraries.feed.common;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link Logger}. */
 @RunWith(RobolectricTestRunner.class)

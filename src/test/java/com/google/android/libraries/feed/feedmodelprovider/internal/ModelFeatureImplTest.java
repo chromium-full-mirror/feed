@@ -20,11 +20,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link UpdatableModelFeature}. */
 @RunWith(RobolectricTestRunner.class)

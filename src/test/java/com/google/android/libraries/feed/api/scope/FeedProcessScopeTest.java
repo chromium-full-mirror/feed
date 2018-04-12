@@ -32,13 +32,13 @@ import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
-import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link FeedProcessScope}. */
 @RunWith(RobolectricTestRunner.class)

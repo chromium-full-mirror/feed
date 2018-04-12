@@ -49,7 +49,6 @@ import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,12 +58,10 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FrameAdapter}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(
-    manifest = "AndroidManifest.xml")
 public class FrameAdapterTest {
   @Mock private AssetProvider assetProvider;
   @Mock private ElementAdapterFactory adapterFactory;

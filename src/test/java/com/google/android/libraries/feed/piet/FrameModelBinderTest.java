@@ -34,20 +34,16 @@ import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import org.robolectric.RobolectricTestRunner;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FrameModelBinder}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(
-  manifest = "AndroidManifest.xml"
-)
 // TODO: Need to fully test FrameModelBinder.
 public class FrameModelBinderTest {
   private static final String STYLESHEET_ID = "styleseheet-id";

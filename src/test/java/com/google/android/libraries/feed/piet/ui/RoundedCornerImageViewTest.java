@@ -23,17 +23,15 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
-import org.robolectric.RobolectricTestRunner;
 import java.lang.ref.WeakReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link RoundedCornerImageView}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
 public class RoundedCornerImageViewTest {
 
   private RoundedCornerImageView view;

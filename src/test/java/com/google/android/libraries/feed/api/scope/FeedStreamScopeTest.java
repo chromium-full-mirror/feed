@@ -38,17 +38,15 @@ import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link FeedStreamScope}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
 public class FeedStreamScopeTest {
 
   // Mocks for required fields

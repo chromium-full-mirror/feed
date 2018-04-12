@@ -35,23 +35,18 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
-import org.robolectric.RobolectricTestRunner;
-import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /**
  * Tests of the {@link ParameterizedTextElementAdapter}; also tests base features of {@link
  * TextElementAdapter}.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(
-  manifest = "AndroidManifest.xml"
-)
 public class ParameterizedTextElementAdapterTest {
   private static final String TEXT_LINE_CONTENT = "Content";
   private static final String BINDING = "binding";

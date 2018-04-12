@@ -25,13 +25,13 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl.CursorIterator;
-import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link ModelCursorImpl}. */
 @RunWith(RobolectricTestRunner.class)

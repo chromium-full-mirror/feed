@@ -31,20 +31,15 @@ import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
-import org.robolectric.RobolectricTestRunner;
-import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link TextElementAdapter} instance of the {@link AdapterFactory}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(
-  manifest = "AndroidManifest.xml"
-)
 public class ParameterizedTextElementAdapterFactoryTest {
   private static final String TEXT_LINE_CONTENT = "Content";
 

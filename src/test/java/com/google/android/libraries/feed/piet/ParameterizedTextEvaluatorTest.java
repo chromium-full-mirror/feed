@@ -22,18 +22,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText.Parameter;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link ParameterizedTextEvaluator} */
 @RunWith(RobolectricTestRunner.class)
-@Config(
-  manifest = "AndroidManifest.xml"
-)
 // TODO: Create a test of evaluteHtml
 public class ParameterizedTextEvaluatorTest {
 

@@ -26,13 +26,13 @@ import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link HeadSessionImpl} class. */
 @RunWith(RobolectricTestRunner.class)

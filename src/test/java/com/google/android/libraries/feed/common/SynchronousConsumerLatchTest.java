@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.common;
 
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Test class for {@link SynchronousConsumerLatch} */
 @RunWith(RobolectricTestRunner.class)

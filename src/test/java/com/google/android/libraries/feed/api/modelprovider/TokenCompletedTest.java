@@ -17,11 +17,11 @@ package com.google.android.libraries.feed.api.modelprovider;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link TokenCompleted} class. */
 @RunWith(RobolectricTestRunner.class)

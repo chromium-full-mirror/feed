@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.hostimpl.storage;
 
 import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageConformanceTest;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link InMemoryJournalStorage}. */
 @RunWith(RobolectricTestRunner.class)

@@ -27,19 +27,15 @@ import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.PietProto.Frame;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 /** Tests of the {@link ViewUtils}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(
-  manifest = "AndroidManifest.xml"
-)
 public class ViewUtilsTest {
   private final Context context = RuntimeEnvironment.application;
 

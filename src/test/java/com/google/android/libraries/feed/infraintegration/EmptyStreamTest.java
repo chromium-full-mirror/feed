@@ -32,11 +32,11 @@ import com.google.android.libraries.feed.common.testing.InfrastructureIntegratio
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Test which verifies the ModelProvider state for the empty stream cases. */
 @RunWith(RobolectricTestRunner.class)

@@ -46,18 +46,16 @@ import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link ElementAdapter}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
 public class ElementAdapterTest {
   private static final int WIDTH = 123;
   private static final int HEIGHT = 456;

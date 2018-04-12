@@ -21,12 +21,12 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageConformanceTest;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 /** Tests for {@link PersistentContentStorage}. */

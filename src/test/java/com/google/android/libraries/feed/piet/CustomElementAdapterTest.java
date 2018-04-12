@@ -36,17 +36,15 @@ import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link CustomElementAdapter}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
 public class CustomElementAdapterTest {
 
   private static final CustomElementData DUMMY_DATA = CustomElementData.getDefaultInstance();

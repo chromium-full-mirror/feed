@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.hostimpl.storage;
 
 import com.google.android.libraries.feed.testing.conformance.storage.ContentStorageConformanceTest;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link InMemoryContentStorage}. */
 @RunWith(RobolectricTestRunner.class)

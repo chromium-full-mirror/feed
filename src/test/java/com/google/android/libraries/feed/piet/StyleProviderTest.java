@@ -32,17 +32,15 @@ import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Style;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** TODO: Test remaining methods of StyleProvider. */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
 public class StyleProviderTest {
 
   @Mock private AssetProvider mockAssetProvider;

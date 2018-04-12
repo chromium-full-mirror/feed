@@ -18,13 +18,13 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import org.robolectric.RobolectricTestRunner;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link SimpleSettableFuture} */
 @RunWith(RobolectricTestRunner.class)

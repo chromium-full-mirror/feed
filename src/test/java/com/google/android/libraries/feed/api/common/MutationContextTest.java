@@ -20,10 +20,10 @@ import com.google.android.libraries.feed.api.common.MutationContext.Builder;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link MutationContext} class. */
 @RunWith(RobolectricTestRunner.class)

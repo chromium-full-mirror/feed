@@ -41,7 +41,6 @@ import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
-import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -49,11 +48,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for the ElementAdapterFactory. */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
 public class ElementAdapterFactoryTest {
 
   @Mock private FrameContext frameContext;

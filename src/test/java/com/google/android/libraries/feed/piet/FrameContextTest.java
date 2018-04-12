@@ -60,7 +60,6 @@ import com.google.search.now.ui.piet.TextProto.Chunk;
 import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import com.google.search.now.ui.piet.TextProto.StyledTextChunk;
-import org.robolectric.RobolectricTestRunner;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
@@ -68,11 +67,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FrameContext}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
 public class FrameContextTest {
   private static final String DEFAULT_TEMPLATE_ID = "TEMPLATE_ID";
   private static final Template DEFAULT_TEMPLATE =

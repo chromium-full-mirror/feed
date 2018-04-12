@@ -45,7 +45,6 @@ import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
 import com.google.search.now.wire.feed.ResponseProto.Response;
-import org.robolectric.RobolectricTestRunner;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -56,6 +55,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Test of the {@link FeedRequestManager} class. */
 @RunWith(RobolectricTestRunner.class)

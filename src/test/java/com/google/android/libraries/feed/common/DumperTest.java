@@ -17,11 +17,10 @@ package com.google.android.libraries.feed.common;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.common.Dumper.DumperValue;
-import org.robolectric.RobolectricTestRunner;
 import java.io.StringWriter;
-import javax.annotation.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link Dumper}. */
 @RunWith(RobolectricTestRunner.class)

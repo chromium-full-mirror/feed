@@ -18,9 +18,9 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link Validators} class. */
 @RunWith(RobolectricTestRunner.class)

@@ -48,7 +48,6 @@ import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConf
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig.ConditionalResponse;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig.ConditionalResponse.Condition;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
-import org.robolectric.RobolectricTestRunner;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -59,6 +58,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link MockServerNetworkClient} class. */
 @RunWith(RobolectricTestRunner.class)

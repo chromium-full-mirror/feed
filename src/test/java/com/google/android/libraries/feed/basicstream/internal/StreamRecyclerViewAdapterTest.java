@@ -47,7 +47,6 @@ import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
-import org.robolectric.RobolectricTestRunner;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,6 +56,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link StreamRecyclerViewAdapter}. */
 @RunWith(RobolectricTestRunner.class)

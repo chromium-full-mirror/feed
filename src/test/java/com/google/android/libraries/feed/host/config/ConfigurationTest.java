@@ -18,9 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.fail;
 
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link Configuration}. */
 @RunWith(RobolectricTestRunner.class)

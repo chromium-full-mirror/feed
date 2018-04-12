@@ -19,10 +19,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link ContentCache} class. */
 @RunWith(RobolectricTestRunner.class)

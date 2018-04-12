@@ -20,17 +20,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.view.View;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
-import org.robolectric.RobolectricTestRunner;
-import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link SingleKeyRecyclerPool} */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
 public class SingleKeyRecyclerPoolTest {
 
   public static final TestRecyclerKey DEFAULT_KEY = new TestRecyclerKey("HappyKey");

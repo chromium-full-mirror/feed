@@ -58,13 +58,13 @@ import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import com.google.search.now.ui.piet.TextProto.StyledImageChunk;
 import com.google.search.now.ui.piet.TextProto.StyledTextChunk;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
@@ -74,10 +74,7 @@ import org.robolectric.shadows.ShadowTextView;
 
 /** Tests of the {@link ChunkedTextElementAdapter}. */
 @RunWith(RobolectricTestRunner.class)
-@Config(
-  manifest = "AndroidManifest.xml",
-  shadows = ShadowTextViewWithHeight.class
-)
+@Config(shadows = ShadowTextViewWithHeight.class)
 public class ChunkedTextElementAdapterTest {
   private static final StyleIdsStack CHUNK_STYLE =
       StyleIdsStack.newBuilder().addStyleIds("roasted").build();

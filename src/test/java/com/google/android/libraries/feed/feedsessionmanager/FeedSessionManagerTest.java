@@ -65,7 +65,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
-import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +76,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FeedSessionManager} class. */
 @RunWith(RobolectricTestRunner.class)

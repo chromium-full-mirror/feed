@@ -34,12 +34,12 @@ import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuil
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import org.robolectric.RobolectricTestRunner;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Simple tests of a stream with multiple cards. */
 @RunWith(RobolectricTestRunner.class)

@@ -24,12 +24,12 @@ import android.content.Context;
 import android.view.View;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link PietCustomElementProvider}. */
 @RunWith(RobolectricTestRunner.class)

@@ -29,11 +29,11 @@ import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
-import org.robolectric.RobolectricTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link FeedActionParser}. */
 @RunWith(RobolectricTestRunner.class)

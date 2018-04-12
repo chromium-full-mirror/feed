@@ -55,7 +55,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operati
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import org.robolectric.RobolectricTestRunner;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +66,7 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FeedModelProvider}. */
 @RunWith(RobolectricTestRunner.class)
