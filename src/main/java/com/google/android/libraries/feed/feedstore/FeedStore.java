@@ -26,7 +26,7 @@ import com.google.android.libraries.feed.common.Dumpable;
 import com.google.android.libraries.feed.common.Dumper;
 import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.SimpleSettableFuture;
+import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.SynchronousConsumerLatch;
 import com.google.android.libraries.feed.common.TimingUtils;
 import com.google.android.libraries.feed.common.TimingUtils.ElapsedTimeTracker;

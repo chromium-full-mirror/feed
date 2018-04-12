@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.common;
+package com.google.android.libraries.feed.common.concurrent;
 
+import com.google.android.libraries.feed.common.Validators;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
