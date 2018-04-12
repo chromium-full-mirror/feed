@@ -125,6 +125,62 @@ public abstract class ContentStorageConformanceTest {
   }
 
   @Test
+  public void storeAndOverwrite_chained() throws Exception {
+    RequiredConsumer<CommitResult> consumer =
+        new RequiredConsumer<>(
+            new Consumer<CommitResult>() {
+              @Override
+              public void accept(CommitResult input) {
+                assertThat(input).isEqualTo(CommitResult.SUCCESS);
+
+                RequiredConsumer<Result<byte[]>> byteConsumer = new RequiredConsumer<>(isData1);
+                storage.get(KEY_0, byteConsumer);
+                assertThat(byteConsumer.isCalled()).isTrue();
+              }
+            });
+    storage.commit(
+        new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_0, DATA_1).build(),
+        consumer);
+    assertThat(consumer.isCalled()).isTrue();
+  }
+
+  @Test
+  public void storeAndOverwrite_separate() throws Exception {
+    RequiredConsumer<CommitResult> consumer =
+        new RequiredConsumer<>(
+            new Consumer<CommitResult>() {
+              @Override
+              public void accept(CommitResult input) {
+                assertThat(input).isEqualTo(CommitResult.SUCCESS);
+
+                RequiredConsumer<Result<byte[]>> byteConsumer = new RequiredConsumer<>(isData0);
+                storage.get(KEY_0, byteConsumer);
+                assertThat(byteConsumer.isCalled()).isTrue();
+
+                // Second consumer required to be nested to ensure that it executes in sequence
+                RequiredConsumer<CommitResult> consumer2 =
+                    new RequiredConsumer<>(
+                        new Consumer<CommitResult>() {
+                          @Override
+                          public void accept(CommitResult input) {
+                            assertThat(input).isEqualTo(CommitResult.SUCCESS);
+
+                            RequiredConsumer<Result<byte[]>> byteConsumer2 =
+                                new RequiredConsumer<>(isData1);
+                            storage.get(KEY_0, byteConsumer2);
+                            assertThat(byteConsumer2.isCalled()).isTrue();
+                          }
+                        });
+                storage.commit(
+                    new ContentMutation.Builder().upsert(KEY_0, DATA_1).build(), consumer2);
+                assertThat(consumer2.isCalled()).isTrue();
+              }
+            });
+    storage.commit(new ContentMutation.Builder().upsert(KEY_0, DATA_0).build(), consumer);
+    assertThat(consumer.isCalled()).isTrue();
+  }
+
+  @Test
   public void storeAndDelete() throws Exception {
     RequiredConsumer<CommitResult> consumer =
         new RequiredConsumer<>(
