@@ -52,6 +52,24 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
   private int updateCount = 0;
 
   @Override
+  public void get(List<String> keys, Consumer<Result<Map<String, byte[]>>> consumer) {
+    threadUtils.checkMainThread();
+
+    getCount++;
+
+    Map<String, byte[]> valueMap = new HashMap<>(keys.size());
+    for (String key : keys) {
+      byte[] value = store.get(key);
+      if (value == null || value.length == 0) {
+        Logger.w(TAG, "Didn't find value for %s, not adding to map", key);
+      } else {
+        valueMap.put(key, value);
+      }
+    }
+    consumer.accept(Result.success(valueMap));
+  }
+
+  @Override
   public void get(String key, Consumer<Result<byte[]>> consumer) {
     threadUtils.checkMainThread();
 

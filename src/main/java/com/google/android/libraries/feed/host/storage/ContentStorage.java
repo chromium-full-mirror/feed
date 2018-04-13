@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.host.storage;
 
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Result;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,7 +27,14 @@ import java.util.Map;
 public interface ContentStorage {
 
   /** Asynchronously requests the value for a key. */
+  @Deprecated
   void get(String key, Consumer<Result<byte[]>> consumer);
+
+  /**
+   * Asynchronously requests the value for multiple keys. If a key does not have a value, it will
+   * not be included in the map.
+   */
+  void get(List<String> keys, Consumer<Result<Map<String, byte[]>>> consumer);
 
   /** Asynchronously requests all key/value pairs from storage with a matching key prefix. */
   void getAll(String prefix, Consumer<Result<Map<String, byte[]>>> consumer);

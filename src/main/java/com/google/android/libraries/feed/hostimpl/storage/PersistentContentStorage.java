@@ -36,6 +36,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -74,6 +75,30 @@ public class PersistentContentStorage implements ContentStorage {
             Logger.e(TAG, e, "Error getting file contents");
             consumer.accept(Result.failure());
           }
+        });
+  }
+
+  @Override
+  public void get(List<String> keys, Consumer<Result<Map<String, byte[]>>> consumer) {
+    threadUtils.checkMainThread();
+
+    executor.execute(
+        () -> {
+          initializeContentDir();
+
+          Map<String, byte[]> valueMap = new HashMap<>(keys.size());
+          for (String key : keys) {
+            File keyFile = new File(contentDir, key);
+            if (keyFile.exists()) {
+              try {
+                valueMap.put(key, getFileContents(keyFile));
+              } catch (IOException e) {
+                Logger.e(TAG, e, "Error getting file contents");
+                consumer.accept(Result.failure());
+              }
+            }
+          }
+          consumer.accept(Result.success(valueMap));
         });
   }
 
