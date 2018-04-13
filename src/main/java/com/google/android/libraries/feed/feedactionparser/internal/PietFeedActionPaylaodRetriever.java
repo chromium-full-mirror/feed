@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedactionparser.internal;
 
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;

@@ -21,10 +21,10 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChange.ChildCh
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.common.Consumer;
-import com.google.android.libraries.feed.common.Dumpable;
-import com.google.android.libraries.feed.common.Dumper;
-import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.common.logging.Dumpable;
+import com.google.android.libraries.feed.common.logging.Dumper;
+import com.google.android.libraries.feed.common.logging.Logger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

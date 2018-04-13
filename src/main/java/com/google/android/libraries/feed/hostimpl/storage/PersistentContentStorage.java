@@ -21,8 +21,8 @@ import static com.google.android.libraries.feed.host.storage.ContentOperation.Ty
 import android.content.Context;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Consumer;
-import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;

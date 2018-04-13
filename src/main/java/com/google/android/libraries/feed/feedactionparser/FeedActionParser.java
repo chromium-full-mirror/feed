@@ -20,7 +20,7 @@ import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_NEW_WINDOW;
 
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPaylaodRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;

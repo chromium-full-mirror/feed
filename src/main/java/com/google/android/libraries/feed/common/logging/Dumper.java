@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.common;
+package com.google.android.libraries.feed.common.logging;
 
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
@@ -184,7 +184,7 @@ public class Dumper {
 
     /** Add a Date value. It will be formatted as Logcat Dates are formatted */
     public DumperValue value(Date value) {
-      this.content.append(DateUtils.formatLogDate(value));
+      this.content.append(StringFormattingUtils.formatLogDate(value));
       return this;
     }
 

@@ -8,6 +8,7 @@ android_library(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/logging",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
         "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",
         "//src/main/java/com/google/android/libraries/feed/host/network",

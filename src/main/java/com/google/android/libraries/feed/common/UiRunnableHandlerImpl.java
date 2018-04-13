@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.common;
 import android.os.Handler;
 import android.os.Looper;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
+import com.google.android.libraries.feed.common.logging.Logger;
 
 /** Default implementation of the {@link UiRunnableHandler}. */
 public class UiRunnableHandlerImpl implements UiRunnableHandler {

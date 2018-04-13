@@ -16,8 +16,8 @@ package com.google.android.libraries.feed.basicstream.internal.piet;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Supplier;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 

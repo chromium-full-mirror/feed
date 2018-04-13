@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.basicstream.internal.piet;
 
 import android.content.Context;
 import android.view.View;
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 

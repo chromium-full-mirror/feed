@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
-import com.google.android.libraries.feed.common.Dumpable;
-import com.google.android.libraries.feed.common.Dumper;
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Dumpable;
+import com.google.android.libraries.feed.common.logging.Dumper;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import java.util.HashMap;
 import java.util.Map;

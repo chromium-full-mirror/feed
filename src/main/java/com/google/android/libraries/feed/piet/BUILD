@@ -22,6 +22,7 @@ android_library(
     resource_files = glob(["res/**/*"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/logging",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/ui",

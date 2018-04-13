@@ -23,7 +23,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;

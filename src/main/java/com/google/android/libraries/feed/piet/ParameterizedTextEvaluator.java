@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.text.Html;
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;

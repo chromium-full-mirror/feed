@@ -11,6 +11,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/store",
         "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/logging",
         "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/feedmodelprovider",
         "//src/main/java/com/google/android/libraries/feed/host/config",

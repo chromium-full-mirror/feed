@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;

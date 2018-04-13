@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.common;
+package com.google.android.libraries.feed.common.logging;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 /** Date-formatting static methods. */
-public class DateUtils {
+public class StringFormattingUtils {
 
   // Do not instantiate
-  private DateUtils() {}
+  private StringFormattingUtils() {}
 
   private static SimpleDateFormat logDateFormat;
 

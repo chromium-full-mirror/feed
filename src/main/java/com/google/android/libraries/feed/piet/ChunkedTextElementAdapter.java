@@ -32,7 +32,7 @@ import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.Consumer;
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;

@@ -44,7 +44,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerView
 import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;

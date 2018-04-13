@@ -8,5 +8,6 @@ android_library(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/lifecycle",
         "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/logging",
     ],
 )

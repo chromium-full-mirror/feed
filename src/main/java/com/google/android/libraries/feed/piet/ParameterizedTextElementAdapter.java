@@ -18,7 +18,7 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;

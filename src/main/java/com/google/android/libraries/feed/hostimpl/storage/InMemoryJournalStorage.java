@@ -19,10 +19,10 @@ import static com.google.android.libraries.feed.host.storage.JournalOperation.Ty
 import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.DELETE;
 
 import com.google.android.libraries.feed.common.Consumer;
-import com.google.android.libraries.feed.common.Dumpable;
-import com.google.android.libraries.feed.common.Dumper;
-import com.google.android.libraries.feed.common.Logger;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.logging.Dumpable;
+import com.google.android.libraries.feed.common.logging.Dumper;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalOperation;

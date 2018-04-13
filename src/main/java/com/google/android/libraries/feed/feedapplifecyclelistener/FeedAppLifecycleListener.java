@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.feedapplifecyclelistener;
 
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
-import com.google.android.libraries.feed.common.Logger;
+import com.google.android.libraries.feed.common.logging.Logger;
 
 /** Default implementation of {@link AppLifecycleListener} */
 public class FeedAppLifecycleListener implements AppLifecycleListener {

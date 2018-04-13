@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.common;
+package com.google.android.libraries.feed.common.logging;
 
 /** Interface for objects that know how to dump details of their state to a {@link Dumper}. */
 public interface Dumpable {
