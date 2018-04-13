@@ -36,19 +36,26 @@ import android.text.style.AbsoluteSizeSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ActionsClickableSpan;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ImageSpanDrawableCallback;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapterTest.ShadowTextViewWithHeight;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.ActionsProto.Actions;
+import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
+import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
@@ -119,6 +126,7 @@ public class ChunkedTextElementAdapterTest {
   @Mock private StyleProvider mockStyleProvider;
   @Mock private ParameterizedTextEvaluator mockTextEvaluator;
   @Mock private AssetProvider mockAssetProvider;
+  @Mock private ActionHandler mockActionHandler;
 
   private Drawable drawable;
   private ShadowDrawable shadowDrawable;
@@ -135,7 +143,8 @@ public class ChunkedTextElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    adapterParameters = new AdapterParameters(null, null, null, mockTextEvaluator, null);
+    adapterParameters =
+        new AdapterParameters(null, null, mockActionHandler, mockTextEvaluator, null);
 
     drawable = new ColorDrawable(Color.GREEN);
     shadowDrawable = Shadows.shadowOf(drawable);
@@ -447,6 +456,86 @@ public class ChunkedTextElementAdapterTest {
     int widthPx = (int) ViewUtils.dpToPx(STYLE_WIDTH_DP, context);
     int heightPx = (int) ViewUtils.dpToPx(STYLE_HEIGHT_DP, context);
     assertThat(imageDrawable.getBounds()).isEqualTo(new Rect(0, 0, widthPx, heightPx));
+  }
+
+  @Test
+  public void testBindSetsActions_inline() {
+    TextElement imageChunkWithActions =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(
+                        IMAGE_CHUNK
+                            .toBuilder()
+                            .setActions(
+                                Actions.newBuilder().setOnClick(Action.getDefaultInstance()))))
+            .build();
+    when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
+    when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
+
+    adapter.createAdapter(imageChunkWithActions, frameContext);
+    adapter.bindModel(imageChunkWithActions, frameContext);
+
+    assertThat(
+            ((SpannedString) adapter.getBaseView().getText())
+                .getSpans(0, 1, ActionsClickableSpan.class))
+        .hasLength(1);
+    MotionEvent motionEvent = MotionEvent.obtain(0, 0, MotionEvent.ACTION_UP, 0, 0, 0);
+    adapter.getBaseView().dispatchTouchEvent(motionEvent);
+    verify(mockActionHandler)
+        .handleAction(Action.getDefaultInstance(), Frame.getDefaultInstance(), null);
+  }
+
+  @Test
+  public void testBindSetsActions_bind() {
+    String bindingId = "ACTION";
+    ActionsBindingRef binding = ActionsBindingRef.newBuilder().setBindingId(bindingId).build();
+    TextElement imageChunkWithActions =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(IMAGE_CHUNK.toBuilder().setActionsBinding(binding)))
+            .build();
+    when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
+    when(frameContext.getActionsFromBinding(binding))
+        .thenReturn(Actions.newBuilder().setOnClick(Action.getDefaultInstance()).build());
+    when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
+
+    adapter.createAdapter(imageChunkWithActions, frameContext);
+    adapter.bindModel(imageChunkWithActions, frameContext);
+
+    assertThat(
+            ((SpannedString) adapter.getBaseView().getText())
+                .getSpans(0, 1, ActionsClickableSpan.class))
+        .hasLength(1);
+    MotionEvent motionEvent = MotionEvent.obtain(0, 0, MotionEvent.ACTION_UP, 0, 0, 0);
+    adapter.getBaseView().dispatchTouchEvent(motionEvent);
+    verify(mockActionHandler)
+        .handleAction(Action.getDefaultInstance(), Frame.getDefaultInstance(), null);
+  }
+
+  @Test
+  public void testBindSetsActions_bindingNotFound() {
+    String bindingId = "ACTION";
+    ActionsBindingRef binding = ActionsBindingRef.newBuilder().setBindingId(bindingId).build();
+    TextElement imageChunkWithActions =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(IMAGE_CHUNK.toBuilder().setActionsBinding(binding)))
+            .build();
+    when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
+    when(frameContext.getActionsFromBinding(binding)).thenReturn(null);
+    when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
+
+    adapter.createAdapter(imageChunkWithActions, frameContext);
+    adapter.bindModel(imageChunkWithActions, frameContext);
+
+    // Completes successfully, but doesn't add the clickable span.
+    assertThat(
+            ((SpannedString) adapter.getBaseView().getText())
+                .getSpans(0, 1, ActionsClickableSpan.class))
+        .isEmpty();
   }
 
   @Test

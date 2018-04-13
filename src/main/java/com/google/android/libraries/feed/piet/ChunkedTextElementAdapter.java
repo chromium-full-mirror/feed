@@ -23,20 +23,29 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.support.annotation.VisibleForTesting;
+import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.style.AbsoluteSizeSpan;
+import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.TextProto.Chunk;
@@ -93,7 +102,9 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
   private void bindChunkedText(ChunkedText chunkedText, FrameContext frameContext) {
     TextView textView = getBaseView();
     SpannableStringBuilder spannable = new SpannableStringBuilder();
+    boolean hasTouchListener = false;
     for (Chunk chunk : chunkedText.getChunksList()) {
+      int chunkStart = spannable.length();
       switch (chunk.getContentCase()) {
         case TEXT_CHUNK:
           addTextChunk(frameContext, spannable, chunk);
@@ -107,8 +118,59 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
               String.format(
                   "Unhandled type of ChunkedText Chunk; had content %s", chunk.getContentCase()));
       }
+      int chunkEnd = spannable.length();
+      switch (chunk.getActionsDataCase()) {
+        case ACTIONS:
+          setChunkActions(
+              chunk.getActions(),
+              spannable,
+              textView,
+              frameContext,
+              chunkStart,
+              chunkEnd,
+              hasTouchListener);
+          hasTouchListener = true;
+          break;
+        case ACTIONS_BINDING:
+          Actions boundActions = frameContext.getActionsFromBinding(chunk.getActionsBinding());
+          if (boundActions == null) {
+            break;
+          }
+          setChunkActions(
+              boundActions,
+              spannable,
+              textView,
+              frameContext,
+              chunkStart,
+              chunkEnd,
+              hasTouchListener);
+          hasTouchListener = true;
+          break;
+        default:
+          // No actions
+      }
     }
     textView.setText(spannable);
+  }
+
+  private void setChunkActions(
+      Actions actions,
+      SpannableStringBuilder spannable,
+      TextView textView,
+      FrameContext frameContext,
+      int chunkStart,
+      int chunkEnd,
+      boolean hasTouchListener) {
+    // TODO: Also support long click actions.
+    spannable.setSpan(
+        new ActionsClickableSpan(
+            actions.getOnClick(), getParameters().actionHandler, frameContext.getFrame()),
+        chunkStart,
+        chunkEnd,
+        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    if (!hasTouchListener) {
+      textView.setOnTouchListener(new ChunkedTextTouchListener(spannable));
+    }
   }
 
   @VisibleForTesting
@@ -230,6 +292,75 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     }
 
     imageDrawable.setBounds(0, 0, width, height);
+  }
+
+  static class ActionsClickableSpan extends ClickableSpan {
+    private final Action action;
+    private final ActionHandler handler;
+    private final Frame frame;
+
+    ActionsClickableSpan(Action action, ActionHandler handler, Frame frame) {
+      this.action = action;
+      this.handler = handler;
+      this.frame = frame;
+    }
+
+    @Override
+    public void onClick(View widget) {
+      // TODO: Pass VE information with the action.
+      handler.handleAction(action, frame, null);
+    }
+
+    @Override
+    public void updateDrawState(TextPaint textPaint) {
+      textPaint.setUnderlineText(false);
+    }
+  }
+
+  /**
+   * Triggers click handlers when text is touched; copied from LinkMovementMethod.onTouchEvent.
+   *
+   * <p>We can't use LinkMovementMethod because that makes the TextView scrollable (relevant when
+   * max_lines is set). We could extend TextView and override onScroll to no-op, but ellipsizing
+   * will still be broken in that case.
+   */
+  static class ChunkedTextTouchListener implements View.OnTouchListener {
+    private final SpannableStringBuilder spannable;
+
+    ChunkedTextTouchListener(SpannableStringBuilder spannable) {
+      this.spannable = spannable;
+    }
+
+    @Override
+    public boolean onTouch(View widget, MotionEvent event) {
+      int action = event.getAction();
+
+      if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_DOWN) {
+        TextView textView = (TextView) widget;
+        int x = (int) event.getX();
+        int y = (int) event.getY();
+
+        x -= textView.getTotalPaddingLeft();
+        y -= textView.getTotalPaddingTop();
+
+        x += textView.getScrollX();
+        y += textView.getScrollY();
+
+        Layout layout = textView.getLayout();
+        int line = layout.getLineForVertical(y);
+        int off = layout.getOffsetForHorizontal(line, x);
+
+        ClickableSpan[] links = spannable.getSpans(off, off, ClickableSpan.class);
+
+        if (links.length != 0) {
+          if (action == MotionEvent.ACTION_UP) {
+            links[0].onClick(textView);
+          }
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   @VisibleForTesting
