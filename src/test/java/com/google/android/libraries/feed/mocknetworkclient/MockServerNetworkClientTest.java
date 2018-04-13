@@ -25,9 +25,9 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Consumer;
-import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -44,9 +44,8 @@ import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.ResponseProto.Response.ResponseVersion;
-import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig;
-import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig.ConditionalResponse;
-import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig.ConditionalResponse.Condition;
+import com.google.search.now.wire.feed.mockserver.MockServerProto.ConditionalResponse;
+import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServer;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -86,17 +85,15 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   public void setUp() throws Exception {
     initMocks(this);
 
-    MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
-    List<MockUpdate> mockUpdates = new ArrayList<>();
-    networkClient = new MockServerNetworkClient(null, mockServerConfig, mockUpdates);
+    MockServer mockServer = MockServer.getDefaultInstance();
+    networkClient = new MockServerNetworkClient(mockServer);
   }
 
   @Test
   public void testMockServerNetworkClient() {
-    MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
+    MockServer mockServer = MockServer.getDefaultInstance();
     List<MockUpdate> mockUpdates = new ArrayList<>();
-    MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(null, mockServerConfig, mockUpdates);
+    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServer);
     assertThat(networkClient.hasQuit).isFalse();
     assertThat(networkClient.looper).isNotNull();
 
@@ -106,13 +103,11 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   @Test
   public void testSend() throws IOException {
-    Response defaultResponse =
+    MockServer.Builder mockServerBuilder = MockServer.newBuilder();
+    Response initialResponse =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
-    MockServerConfig mockServerConfig =
-        MockServerConfig.newBuilder().setDefaultResponse(defaultResponse).build();
-    List<MockUpdate> mockUpdates = new ArrayList<>();
-    MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(null, mockServerConfig, mockUpdates);
+    mockServerBuilder.setInitialResponse(initialResponse);
+    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServerBuilder.build());
     Consumer<HttpResponse> responseConsumer =
         new Consumer<HttpResponse>() {
           @Override
@@ -121,7 +116,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
               CodedInputStream inputStream =
                   CodedInputStream.newInstance(input.getResponseBody().array());
               int length = inputStream.readRawVarint32();
-              assertThat(inputStream.readRawBytes(length)).isEqualTo(defaultResponse.toByteArray());
+              assertThat(inputStream.readRawBytes(length)).isEqualTo(initialResponse.toByteArray());
               assertThat(input.getResponseCode()).isEqualTo(200);
             } catch (IOException e) {
               throw new RuntimeException(e);
@@ -134,12 +129,11 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   @Test
   public void testSend_oneTimeResponse() throws IOException {
-    MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
-    List<MockUpdate> mockUpdates = new ArrayList<>();
-    Response oneTimeResponse =
+    MockServer.Builder mockServerBuilder = MockServer.newBuilder();
+    Response initialResponse =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
-    MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(oneTimeResponse, mockServerConfig, mockUpdates);
+    mockServerBuilder.setInitialResponse(initialResponse);
+    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServerBuilder.build());
     Consumer<HttpResponse> responseConsumer =
         new Consumer<HttpResponse>() {
           @Override
@@ -148,7 +142,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
               CodedInputStream inputStream =
                   CodedInputStream.newInstance(input.getResponseBody().array());
               int length = inputStream.readRawVarint32();
-              assertThat(inputStream.readRawBytes(length)).isEqualTo(oneTimeResponse.toByteArray());
+              assertThat(inputStream.readRawBytes(length)).isEqualTo(initialResponse.toByteArray());
               assertThat(input.getResponseCode()).isEqualTo(200);
             } catch (IOException e) {
               throw new RuntimeException(e);
@@ -161,10 +155,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   @Test
   public void testHandleUpdate() {
-    MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
-    List<MockUpdate> mockUpdates = new ArrayList<>();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(null, mockServerConfig, mockUpdates);
+        new MockServerNetworkClient(MockServer.getDefaultInstance());
     assertThat(networkClient.requestManager).isNull();
     networkClient.setRequestManager(requestManager);
     assertThat(networkClient.requestManager).isEqualTo(requestManager);
@@ -176,10 +168,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   @Test
   public void testHandleUpdate_notInitialized() {
-    MockServerConfig mockServerConfig = MockServerConfig.getDefaultInstance();
-    List<MockUpdate> mockUpdates = new ArrayList<>();
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(null, mockServerConfig, mockUpdates);
+        new MockServerNetworkClient(MockServer.getDefaultInstance());
 
     Response response = Response.getDefaultInstance();
     assertThatRunnable(
@@ -194,22 +184,15 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   @Test
   public void testPaging() {
+    MockServer.Builder mockServerBuilder = MockServer.newBuilder();
     Response response =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
     ByteString token = ByteString.copyFromUtf8("fooToken");
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
-    MockServerConfig mockServerConfig =
-        MockServerConfig.newBuilder()
-            .addConditionalResponses(
-                ConditionalResponse.newBuilder()
-                    .addConditions(
-                        Condition.newBuilder()
-                            .setType(Condition.Type.CONTINUATION_TOKEN_MATCH)
-                            .setContinuationToken(token))
-                    .setResponse(response))
-            .build();
-    MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(null, mockServerConfig, new ArrayList<>());
+    ConditionalResponse.Builder conditionalResponseBuilder = ConditionalResponse.newBuilder();
+    conditionalResponseBuilder.setContinuationToken(token).setResponse(response);
+    mockServerBuilder.addConditionalResponses(conditionalResponseBuilder.build());
+    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServerBuilder.build());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
             configuration,
@@ -231,19 +214,14 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   @Test
   public void testPaging_noMatch() {
+    MockServer.Builder mockServerBuilder = MockServer.newBuilder();
     Response response =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
     // Create a MockServerConfig without a matching token.
-    MockServerConfig mockServerConfig =
-        MockServerConfig.newBuilder()
-            .addConditionalResponses(
-                ConditionalResponse.newBuilder()
-                    .addConditions(
-                        Condition.newBuilder().setType(Condition.Type.CONTINUATION_TOKEN_MATCH))
-                    .setResponse(response))
-            .build();
-    MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(null, mockServerConfig, new ArrayList<>());
+    ConditionalResponse.Builder conditionalResponseBuilder = ConditionalResponse.newBuilder();
+    conditionalResponseBuilder.setResponse(response);
+    mockServerBuilder.addConditionalResponses(conditionalResponseBuilder.build());
+    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServerBuilder.build());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
             configuration,

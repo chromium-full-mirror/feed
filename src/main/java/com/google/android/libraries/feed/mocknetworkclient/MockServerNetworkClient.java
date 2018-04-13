@@ -35,21 +35,19 @@ import com.google.protobuf.ExtensionRegistryLite;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.ResponseProto.Response;
-import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig;
-import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig.ConditionalResponse;
-import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServerConfig.ConditionalResponse.Condition;
+import com.google.search.now.wire.feed.mockserver.MockServerProto.ConditionalResponse;
+import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServer;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 
 /** A network client that returns mock responses provided via a config proto */
 public class MockServerNetworkClient implements NetworkClient {
   private static final String TAG = "MockServerNetworkClient";
 
-  private final Response oneTimeResponse;
-  private final MockServerConfig config;
+  private final Response initialResponse;
+  private final List<ConditionalResponse> conditionalResponses;
   private final ExtensionRegistryLite extensionRegistry;
 
   @VisibleForTesting final MockServerLooper looper;
@@ -59,17 +57,17 @@ public class MockServerNetworkClient implements NetworkClient {
   /*@Nullable*/ @VisibleForTesting RequestManager requestManager;
 
   @SuppressWarnings("nullness")
-  public MockServerNetworkClient(
-      /*@Nullable*/ Response oneTimeResponse, MockServerConfig config, List<MockUpdate> mockUpdates) {
-    this.oneTimeResponse = oneTimeResponse;
-    this.config = config;
+  public MockServerNetworkClient(MockServer mockServer) {
+    this.initialResponse = mockServer.getInitialResponse();
+    conditionalResponses = mockServer.getConditionalResponsesList();
+
     this.looper = new MockServerLooper();
     Handler handler = looper.getHandler();
     extensionRegistry = ExtensionRegistryLite.newInstance();
     extensionRegistry.add(FeedRequest.feedRequest);
     // This triggers a nullness warning, suppressing above.  This should be ok since this is a mock
     // class.
-    for (MockUpdate update : mockUpdates) {
+    for (MockUpdate update : mockServer.getMockUpdatesList()) {
       handler.postDelayed(() -> handleUpdate(update.getResponse()), update.getUpdateTriggerTime());
     }
   }
@@ -95,25 +93,18 @@ public class MockServerNetworkClient implements NetworkClient {
               ? request.getExtension(FeedRequest.feedRequest).getFeedQuery().getPageToken()
               : null;
       if (requestToken != null) {
-        for (ConditionalResponse conditionalResponse : config.getConditionalResponsesList()) {
-          if (allConditionsMatch(conditionalResponse.getConditionsList(), request)) {
-            responseConsumer.accept(createHttpResponse(conditionalResponse.getResponse()));
+        for (ConditionalResponse response : conditionalResponses) {
+          if (!response.hasContinuationToken()) {
+            Logger.w(TAG, "Conditional response without a token");
+            continue;
+          }
+          if (requestToken.equals(response.getContinuationToken())) {
+            responseConsumer.accept(createHttpResponse(response.getResponse()));
             return;
           }
         }
       }
-
-      Response response;
-      if (oneTimeResponse != null) {
-        response = oneTimeResponse;
-      } else if (config.hasDefaultResponse()) {
-        response = config.getDefaultResponse();
-      } else {
-        Logger.e(TAG, "Unable to find the Response from the MockServer file: %s");
-        response = Response.getDefaultInstance();
-      }
-      responseConsumer.accept(createHttpResponse(response));
-
+      responseConsumer.accept(createHttpResponse(initialResponse));
     } catch (IOException e) {
       // TODO : handle errors here
       Logger.e(TAG, e.getMessage());
@@ -169,31 +160,6 @@ public class MockServerNetworkClient implements NetworkClient {
     } catch (IOException e) {
       Logger.e(TAG, "Error creating response", e);
       return new HttpResponse(500, ByteBuffer.allocate(0));
-    }
-  }
-
-  private boolean allConditionsMatch(List<Condition> conditions, Request request) {
-    for (Condition condition : conditions) {
-      if (!conditionMatches(condition, request)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private boolean conditionMatches(Condition condition, Request request) {
-    switch (condition.getType()) {
-      case CONTINUATION_TOKEN_MATCH:
-        return request.getExtension(FeedRequest.feedRequest).getFeedQuery().hasPageToken()
-            && Arrays.equals(
-                request
-                    .getExtension(FeedRequest.feedRequest)
-                    .getFeedQuery()
-                    .getPageToken()
-                    .toByteArray(),
-                condition.getContinuationToken().toByteArray());
-      default:
-        return false;
     }
   }
 

@@ -24,13 +24,12 @@ option java_package = "com.google.search.now.wire.feed.mockserver";
 option java_outer_classname = "MockServerProto";
 
 message MockServer {
-  oneof payload {
-    // The response is treated like an immediate push
-    search.now.proto.wire.feed.Response one_time_push = 1;
 
-    // Configuration for the mock server to handle multiple responses
-    MockServerConfig mock_server_config = 2;
-  }
+  // The initial response
+  optional search.now.proto.wire.feed.Response initial_response = 1;
+
+  // conditional responses represent responses for paged content
+  repeated ConditionalResponse conditional_responses = 2;
 
   // Mock updates to existing cards
   repeated MockUpdate mock_updates = 3;
@@ -46,34 +45,12 @@ message MockUpdate {
   optional int32 update_trigger_time = 2;
 }
 
-message MockServerConfig {
+// Conditional responses are served based upon a continuation token.
+message ConditionalResponse {
 
-  // The mock server returns the first conditional response that matches
-  repeated ConditionalResponse conditional_responses = 1;
+  // The continuation token in the request must match this value
+  optional bytes continuation_token = 1;
 
-  // Default response returned if no conditional responses match
-  optional search.now.proto.wire.feed.Response default_response = 2;
-
-  message ConditionalResponse {
-
-    // All conditions must be met for this response to be used
-    repeated Condition conditions = 1;
-
-    // The response to use
-    optional search.now.proto.wire.feed.Response response = 2;
-
-    message Condition {
-
-      enum Type {
-
-        CONTINUATION_TOKEN_MATCH = 1;
-      }
-
-      // The type of condition
-      optional Type type = 1;
-
-      // The continuation token in the request must match this value
-      optional bytes continuation_token = 2;
-    }
-  }
+  // The response to use
+  optional search.now.proto.wire.feed.Response response = 2;
 }
