@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSemanticPropertiesMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
@@ -94,38 +95,36 @@ public class FeedStore implements Store, Dumpable {
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<PayloadWithId> payloads = new ArrayList<>();
-    for (String contentId : contentIds) {
-      try {
-        SimpleSettableFuture<byte[]> contentFuture = new SimpleSettableFuture<>();
+    try {
+      SimpleSettableFuture<Map<String, byte[]>> contentFuture = new SimpleSettableFuture<>();
 
-        uiRunnableHandler.post(
-            TAG,
-            () -> {
-              contentStorage.get(
-                  contentId,
-                  result -> {
-                    if (result.isSuccessful()) {
-                      byte[] input = result.getValue();
-                      contentFuture.put(input);
-                    } else {
-                      // todo(rbonick): handle errors
-                    }
-                  });
-            });
+      uiRunnableHandler.post(
+          TAG,
+          () -> {
+            contentStorage.get(
+                contentIds,
+                result -> {
+                  if (result.isSuccessful()) {
+                    Map<String, byte[]> input = result.getValue();
+                    contentFuture.put(input);
+                  } else {
+                    // todo(rbonick): handle errors
+                  }
+                });
+          });
 
-        byte[] content = contentFuture.get();
-        if (content.length > 0) {
+      Map<String, byte[]> content = contentFuture.get();
+      for (Map.Entry<String, byte[]> entry : content.entrySet()) {
+        try {
           StreamPayload streamPayload =
-              StreamPayload.parseFrom(content, extensionRegistry.getExtensionRegistry());
-          payloads.add(new PayloadWithId(contentId, streamPayload));
-        } else {
-          Logger.e(TAG, "Didn't find Content for %s", contentId);
+              StreamPayload.parseFrom(entry.getValue(), extensionRegistry.getExtensionRegistry());
+          payloads.add(new PayloadWithId(entry.getKey(), streamPayload));
+        } catch (InvalidProtocolBufferException e) {
+          Logger.e(TAG, "Couldn't parse content proto for id %s", entry.getKey());
         }
-      } catch (InvalidProtocolBufferException e) {
-        Logger.e(TAG, "Couldn't parse content proto for %s", contentId);
-      } catch (ExecutionException | InterruptedException e) {
-        Logger.e(TAG, e, "Exception getting payload for %s", contentId);
       }
+    } catch (ExecutionException | InterruptedException e) {
+      Logger.e(TAG, e, "Exception getting payload for ids: %s", contentIds);
     }
     tracker.stop("", "getPayloads", "items", contentIds.size());
     return payloads;
@@ -491,3 +490,4 @@ public class FeedStore implements Store, Dumpable {
     }
   }
 }
+

@@ -61,24 +61,6 @@ public class PersistentContentStorage implements ContentStorage {
   }
 
   @Override
-  public void get(String key, Consumer<Result<byte[]>> consumer) {
-    threadUtils.checkMainThread();
-
-    executor.execute(
-        () -> {
-          initializeContentDir();
-
-          File keyFile = new File(contentDir, key);
-          try {
-            consumer.accept(Result.success(getFileContents(keyFile)));
-          } catch (IOException e) {
-            Logger.e(TAG, e, "Error getting file contents");
-            consumer.accept(Result.failure());
-          }
-        });
-  }
-
-  @Override
   public void get(List<String> keys, Consumer<Result<Map<String, byte[]>>> consumer) {
     threadUtils.checkMainThread();
 

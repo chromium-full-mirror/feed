@@ -70,19 +70,6 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
   }
 
   @Override
-  public void get(String key, Consumer<Result<byte[]>> consumer) {
-    threadUtils.checkMainThread();
-
-    getCount++;
-    byte[] value = store.get(key);
-    if (value == null) {
-      Logger.w(TAG, "Didn't find value for %s, returning default", key);
-      value = new byte[0];
-    }
-    consumer.accept(Result.success(value));
-  }
-
-  @Override
   public void getAll(String prefix, Consumer<Result<Map<String, byte[]>>> consumer) {
     threadUtils.checkMainThread();
 
