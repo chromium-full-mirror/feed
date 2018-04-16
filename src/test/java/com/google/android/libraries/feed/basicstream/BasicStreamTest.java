@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,8 +26,12 @@ import android.os.Build.VERSION_CODES;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.basicstream.BasicStream.PietContentModel;
+import com.google.android.libraries.feed.basicstream.internal.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.testing.TestClockImpl;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -35,6 +40,14 @@ import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
+import com.google.common.collect.Lists;
+import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.ui.stream.StreamStructureProto.Card;
+import com.google.search.now.ui.stream.StreamStructureProto.Content;
+import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
+import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -53,7 +66,15 @@ public class BasicStreamTest {
   private static final int END_PADDING = 2;
   private static final int TOP_PADDING = 3;
   private static final int BOTTOM_PADDING = 4;
-
+  private static final PietContent PIET_CONTENT =
+      PietContent.newBuilder().addPietSharedStates(ContentId.newBuilder().setId(123L)).build();
+  private static final StreamFeature STREAM_FEATURE_WITH_PIET_CONTENT =
+      StreamFeature.newBuilder()
+          .setContent(
+              Content.newBuilder()
+                  .setType(Type.PIET)
+                  .setExtension(PietContent.pietContentExtension, PIET_CONTENT))
+          .build();
   @Mock private StreamConfiguration streamConfiguration;
   @Mock private CardConfiguration cardConfiguration;
   @Mock private ImageLoaderApi imageLoaderApi;
@@ -79,7 +100,6 @@ public class BasicStreamTest {
     when(streamConfiguration.getPaddingTop()).thenReturn(TOP_PADDING);
     when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
     when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
-
     basicStream =
         new BasicStream(
             Robolectric.setupActivity(Activity.class),
@@ -104,9 +124,46 @@ public class BasicStreamTest {
 
   @Test
   public void testOnSessionStart() {
+    ModelFeature rootFeature = mock(ModelFeature.class);
+    when(initialModelProvider.getRootFeature()).thenReturn(rootFeature);
+
+    // Represents final payload which includes Piet content.
+    ModelFeature pietModelFeature = mock(ModelFeature.class);
+    when(pietModelFeature.getStreamFeature()).thenReturn(STREAM_FEATURE_WITH_PIET_CONTENT);
+
+    // ModelChild containing Piet content.
+    ModelChild pietModelChild = mock(ModelChild.class);
+    when(pietModelChild.getModelFeature()).thenReturn(pietModelFeature);
+
+    // Cursor to transverse the content of a card, which is Piet content.
+    FakeModelCursor cardCursor = new FakeModelCursor();
+    cardCursor.setModelChildren(Lists.newArrayList(pietModelChild));
+
+    // A ModelFeature with a Card payload.
+    ModelFeature cardModelFeature = mock(ModelFeature.class);
+    when(cardModelFeature.getCursor()).thenReturn(cardCursor);
+    when(cardModelFeature.getStreamFeature())
+        .thenReturn(StreamFeature.newBuilder().setCard(Card.newBuilder()).build());
+
+    // The root child, which contains one card.
+    ModelChild rootChild = mock(ModelChild.class);
+    when(rootChild.getModelFeature()).thenReturn(cardModelFeature);
+    when(rootChild.getType()).thenReturn(ModelChild.Type.FEATURE);
+
+    // The cursor for the foot feature
+    FakeModelCursor rootCursor = new FakeModelCursor();
+    rootCursor.setModelChildren(Lists.newArrayList(rootChild));
+    when(rootFeature.getCursor()).thenReturn(rootCursor);
     basicStream.onSessionStart();
 
+
     verify(pietSharedStateSupplier).setModelProvider(initialModelProvider);
+
+    List<ContentModel> contentModels = basicStream.getAdapter().getContentModels();
+
+    assertThat(contentModels).hasSize(1);
+    assertThat(contentModels.get(0)).isInstanceOf(PietContentModel.class);
+    assertThat(((PietContentModel) contentModels.get(0)).getPietContent()).isEqualTo(PIET_CONTENT);
   }
 
   @Test

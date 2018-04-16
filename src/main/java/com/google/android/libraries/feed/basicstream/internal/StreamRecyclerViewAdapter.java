@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
-import static com.google.android.libraries.feed.common.Validators.checkState;
+import static com.google.android.libraries.feed.basicstream.internal.ViewHolderType.TYPE_HEADER;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -24,19 +24,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
-import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
-import com.google.search.now.ui.piet.PietProto.Frame;
-import com.google.search.now.ui.stream.StreamStructureProto.Content;
-import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
-import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,13 +39,10 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
   private final CardConfiguration cardConfiguration;
   private final PietManager pietManager;
   // TODO: convert to ModelChild so the adapter can properly add a spinner
-  private final List<PietContent> pietContents;
+  private final List<ContentModel> contentModels;
   private final List<View> headers;
 
   private final ViewHolderBindingObserver viewHolderBindingObserver;
-
-  @VisibleForTesting static final int TYPE_HEADER = 0;
-  @VisibleForTesting static final int TYPE_CARD = 1;
 
   /** A callback called when the last item is bound to a view holder */
   public interface ViewHolderBindingObserver {
@@ -74,7 +62,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
     this.pietManager = pietManager;
     this.viewHolderBindingObserver = viewHolderBindingObserver;
     headers = new ArrayList<>();
-    pietContents = new ArrayList<>();
+    contentModels = new ArrayList<>();
     setHasStableIds(true);
   }
 
@@ -87,8 +75,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
       return new HeaderViewHolder(frameLayout);
     }
 
-    // create card views
-    final FrameLayout cardView = createCardView();
+    // TODO: add logic about which ViewHolder to create
+    FrameLayout cardView = new FrameLayout(context);
     FrameAdapter frameAdapter = pietManager.createPietFrameAdapter(() -> cardView, context);
     cardView.addView(frameAdapter.getFrameContainer());
     return new PietViewHolder(cardConfiguration, cardView, frameAdapter);
@@ -101,8 +89,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
       return;
     }
     Logger.d(TAG, "onBindViewHolder %s", i);
-    PietContent pietContent = pietContents.get(positionToStreamIndex(i));
-    ((PietViewHolder) viewHolder).bind(pietContent.getFrame());
+    ContentModel contentModel = contentModels.get(positionToStreamIndex(i));
+    contentModel.bind(viewHolder);
 
     if (i == getItemCount() - 1) {
       // when binding the last item, check to see if it's a continuation token
@@ -130,16 +118,16 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
 
   @Override
   public int getItemCount() {
-    return pietContents.size() + headers.size();
+    return contentModels.size() + headers.size();
   }
 
   @Override
   public int getItemViewType(int position) {
     if (isHeader(position)) {
-      return TYPE_HEADER;
+      return ViewHolderType.TYPE_HEADER;
     }
 
-    return TYPE_CARD;
+    return contentModels.get(positionToStreamIndex(position)).getItemViewType();
   }
 
   @Override
@@ -148,7 +136,12 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
       return headers.get(position).hashCode();
     }
 
-    return pietContents.get(positionToStreamIndex(position)).hashCode();
+    return contentModels.get(positionToStreamIndex(position)).itemId();
+  }
+
+  @VisibleForTesting
+  public List<ContentModel> getContentModels() {
+    return contentModels;
   }
 
   private boolean isHeader(int position) {
@@ -159,47 +152,19 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
     return position - headers.size();
   }
 
-  private FrameLayout createCardView() {
-    FrameLayout cardView = new FrameLayout(context);
-    return cardView;
-  }
-
   public void setHeaders(List<View> newHeaders) {
     headers.clear();
     headers.addAll(newHeaders);
     notifyDataSetChanged();
   }
 
-  public void setModelFeatures(List<ModelFeature> newModelFeatures) {
-    pietContents.clear();
-    addPietContent(newModelFeatures);
+  public void setContentModels(List<ContentModel> newContentModels) {
+    contentModels.clear();
+    addContentModels(newContentModels);
   }
 
-  public void addModelFeatures(List<ModelFeature> newModelFeatures) {
-    addPietContent(newModelFeatures);
-  }
-
-  private void addPietContent(List<ModelFeature> newModelFeatures) {
-    for (ModelFeature modelFeature : newModelFeatures) {
-      if (!modelFeature.getStreamFeature().hasCard()) {
-        throw new RuntimeException("Expected card feature as a StreamFeature");
-      }
-
-      ModelCursor cardCursor = modelFeature.getCursor();
-      while (cardCursor.advanceCursor(
-          child -> {
-            StreamFeature streamFeature = child.getModelFeature().getStreamFeature();
-            checkState(streamFeature.hasContent(), "Expected content for feature");
-
-            Content content = streamFeature.getContent();
-            checkState(content.getType() == Type.PIET, "Expected Piet type for feature");
-
-            checkState(
-                content.hasExtension(PietContent.pietContentExtension),
-                "Expected Piet content for feature");
-            pietContents.add(content.getExtension(PietContent.pietContentExtension));
-          })) {}
-    }
+  public void addContentModels(List<ContentModel> newContentModels) {
+    contentModels.addAll(newContentModels);
     notifyDataSetChanged();
   }
 
@@ -213,46 +178,4 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
     }
   }
 
-  static class PietViewHolder extends ViewHolder {
-
-    private final CardConfiguration cardConfiguration;
-    private final FrameLayout cardView;
-    private final FrameAdapter frameAdapter;
-    private boolean bound;
-
-    public PietViewHolder(
-        CardConfiguration cardConfiguration, FrameLayout cardView, FrameAdapter frameAdapter) {
-      super(cardView);
-      this.cardConfiguration = cardConfiguration;
-      this.cardView = cardView;
-      this.frameAdapter = frameAdapter;
-    }
-
-    void bind(Frame frame) {
-      if (bound) {
-        return;
-      }
-
-      // Need to reset padding here.  Setting a background can affect padding so if we switch from
-      // a background which has padding to one that does not, then the padding needs to be removed.
-      cardView.setPadding(0, 0, 0, 0);
-      cardView.setBackground(cardConfiguration.getCardBackground());
-      LinearLayout.LayoutParams lp =
-          new LinearLayout.LayoutParams(
-              LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-      lp.bottomMargin = (int) cardConfiguration.getCardBottomPadding();
-      cardView.setLayoutParams(lp);
-
-      frameAdapter.bindModel(frame, (ShardingControl) null);
-      bound = true;
-    }
-
-    void unbind() {
-      if (!bound) {
-        return;
-      }
-      frameAdapter.unbindModel();
-      bound = false;
-    }
-  }
 }

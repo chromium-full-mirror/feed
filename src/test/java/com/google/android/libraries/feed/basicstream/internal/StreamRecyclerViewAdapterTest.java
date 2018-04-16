@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -29,31 +28,27 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
-import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
-import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Supplier;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
+import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -70,6 +65,7 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private PietManager pietManager;
   @Mock private ViewHolderBindingObserver viewHolderBindingObserver;
   @Mock private FrameAdapter frameAdapter;
+  @Mock private ContentModel contentModel;
 
   private Context context;
   private List<View> headers;
@@ -108,28 +104,20 @@ public class StreamRecyclerViewAdapterTest {
     ModelCursor modelCursor = mock(ModelCursor.class);
     when(modelFeature.getCursor()).thenReturn(modelCursor);
 
-    ArgumentCaptor<Consumer> modelChildArgumentCaptor = ArgumentCaptor.forClass(Consumer.class);
-    // Return true first to allow one ModelChild to be processed.  Return false second to stop
-    // processing of cursor advancement.
-    when(modelCursor.advanceCursor(any(Consumer.class))).thenReturn(true, false);
-
     ModelFeature childModelFeature = mock(ModelFeature.class);
     when(childModelFeature.getStreamFeature()).thenReturn(createStreamFeature(PIET_CONTENT));
 
     ModelChild modelChild = mock(ModelChild.class);
     when(modelChild.getModelFeature()).thenReturn(childModelFeature);
 
-    streamRecyclerViewAdapter.setModelFeatures(Arrays.asList(modelFeature));
-
-    verify(modelCursor, times(2)).advanceCursor(modelChildArgumentCaptor.capture());
-    modelChildArgumentCaptor.getAllValues().get(0).accept(modelChild);
+    streamRecyclerViewAdapter.setContentModels(Lists.newArrayList(contentModel));
   }
 
   @Test
   public void testCreateViewHolderPiet() {
     FrameLayout parent = new FrameLayout(context);
     ViewHolder viewHolder =
-        streamRecyclerViewAdapter.onCreateViewHolder(parent, StreamRecyclerViewAdapter.TYPE_CARD);
+        streamRecyclerViewAdapter.onCreateViewHolder(parent, ViewHolderType.TYPE_CARD);
 
     FrameLayout cardView = getCardView(viewHolder);
     assertThat(cardView.getChildAt(0)).isEqualTo(frameContainer);
@@ -139,53 +127,28 @@ public class StreamRecyclerViewAdapterTest {
   public void testBindPiet() {
     FrameLayout parent = new FrameLayout(context);
     ViewHolder viewHolder =
-        streamRecyclerViewAdapter.onCreateViewHolder(parent, StreamRecyclerViewAdapter.TYPE_CARD);
+        streamRecyclerViewAdapter.onCreateViewHolder(parent, ViewHolderType.TYPE_CARD);
 
     FrameLayout cardView = getCardView(viewHolder);
     cardView.setPadding(1, 2, 3, 4);
 
     streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getPietBindingIndex(0));
 
-    // Assert paddings are reset
-    assertThat(cardView.getPaddingLeft()).isEqualTo(0);
-    assertThat(cardView.getPaddingRight()).isEqualTo(0);
-    assertThat(cardView.getPaddingTop()).isEqualTo(0);
-    assertThat(cardView.getPaddingBottom()).isEqualTo(0);
-    assertThat(cardView.getBackground()).isEqualTo(background);
-
-    // Assert theming
-    assertThat(((MarginLayoutParams) cardView.getLayoutParams()).bottomMargin)
-        .isEqualTo(CARD_BOTTOM_PADDING);
-
-    // Make sure Piet is bound
-    verify(frameAdapter).bindModel(Frame.getDefaultInstance(), /* shardingControl = */ null);
-
-    streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getPietBindingIndex(0));
-
-    // Verify that bind was not called again, would need times(2) for test to pass if it was.
-    verify(frameAdapter).bindModel(Frame.getDefaultInstance(), /* shardingControl = */ null);
+    verify(contentModel).bind(viewHolder);
   }
 
   @Test
   public void testUnBindPiet() {
-    FrameLayout parent = new FrameLayout(context);
-    ViewHolder viewHolder =
-        streamRecyclerViewAdapter.onCreateViewHolder(parent, StreamRecyclerViewAdapter.TYPE_CARD);
+    PietViewHolder viewHolder = mock(PietViewHolder.class);
 
     streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getPietBindingIndex(0));
 
-    // Make sure Piet is bound
-    verify(frameAdapter).bindModel(Frame.getDefaultInstance(), /* shardingControl = */ null);
+    // Make sure the content model is bound
+    verify(contentModel).bind(viewHolder);
 
     streamRecyclerViewAdapter.onViewRecycled(viewHolder);
 
-    verify(frameAdapter).unbindModel();
-
-    // Call recycle again to make sure we don't unbind again
-    streamRecyclerViewAdapter.onViewRecycled(viewHolder);
-
-    // Verify that unbind was not called again, would need times(2) for test to pass if it was.
-    verify(frameAdapter).unbindModel();
+    verify(viewHolder).unbind();
   }
 
   private StreamFeature createStreamFeature(PietContent pietContent) {
