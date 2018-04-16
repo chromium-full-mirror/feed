@@ -628,7 +628,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           Logger.e(TAG, "Token was not found, positioning to end of list");
           return;
         }
-        newCursorStart = token.location.size();
+        // adjust the location because we will remove the token
+        newCursorStart = token.location.size() - 1;
       }
     }
 

@@ -31,8 +31,9 @@ import java.util.List;
 
 /** Builder making creation of wire protocol Response object easier. */
 public class WireProtocolResponseBuilder {
+  // this needs to match the root content_id defined in the FeedProtocolAdapter.
   public static final ContentId ROOT_CONTENT_ID =
-      ContentId.newBuilder().setContentDomain("root-feature").setId(1).setTable("feature").build();
+      ContentId.newBuilder().setContentDomain("stream_root").setId(0).setTable("feature").build();
   public static final MutationContext EMPTY_MUTATION_CONTEXT =
       new MutationContext.Builder().build();
   public static final ContentId PIET_SHARED_STATE =
@@ -62,6 +63,7 @@ public class WireProtocolResponseBuilder {
 
   public WireProtocolResponseBuilder addStreamToken(ByteString token) {
     this.token = token;
+    wireProtocolInfo.hasToken = true;
     return this;
   }
 
@@ -191,6 +193,7 @@ public class WireProtocolResponseBuilder {
   /** Captures information about the wire protocol that was created. */
   public static class WireProtocolInfo {
     public boolean hasClearOperation = false;
+    public boolean hasToken = false;
     public List<ContentId> featuresAdded = new ArrayList<>();
   }
 

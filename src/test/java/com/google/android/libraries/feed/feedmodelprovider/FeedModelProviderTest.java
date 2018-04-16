@@ -412,7 +412,7 @@ public class FeedModelProviderTest {
 
     tokenMutation.preMutation();
     assertThat(tokenTracking.location.size()).isEqualTo(featureCnt + 1);
-    assertThat(tokenMutation.newCursorStart).isEqualTo(tokenTracking.location.size());
+    assertThat(tokenMutation.newCursorStart).isEqualTo(tokenTracking.location.size() - 1);
     tokens = modelProvider.getTokensForTest();
     assertThat(tokens).hasSize(0);
 

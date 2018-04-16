@@ -183,6 +183,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       return null;
     }
     StreamToken.Builder tokenBuilder = StreamToken.newBuilder();
+    // TODO: This needs to be the real root id.  How do we get the root id?
     String rootContentId =
         createContentId(
             ContentId.newBuilder()

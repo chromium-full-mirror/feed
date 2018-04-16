@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /** Helper class providing validation method for a ModelProvider. */
 public class ModelProviderValidator {
@@ -94,5 +95,23 @@ public class ModelProviderValidator {
           assertStreamContentId(child.getContentId(), args[pos]);
         })) {}
     assertThat(cursor.isAtEnd()).isTrue();
+  }
+
+  public ModelChild assertCursorContentsWithToken(ModelCursor cursor, ContentId... args) {
+    AtomicInteger size = new AtomicInteger(0);
+    AtomicReference<ModelChild> tokenFeature = new AtomicReference<>();
+    while (cursor.advanceCursor(
+        child -> {
+          int pos = size.getAndIncrement();
+          if (pos == args.length) {
+            assertThat(child.getType()).isEqualTo(Type.TOKEN);
+            tokenFeature.set(child);
+          } else {
+            assertStreamContentId(child.getContentId(), args[pos]);
+          }
+        })) {}
+
+    assertThat(cursor.isAtEnd()).isTrue();
+    return tokenFeature.get();
   }
 }
