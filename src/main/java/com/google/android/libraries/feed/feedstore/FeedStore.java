@@ -23,7 +23,6 @@ import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.SynchronousConsumerLatch;
 import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
@@ -51,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -287,7 +287,7 @@ public class FeedStore implements Store, Dumpable {
     session.addAll(getStreamStructures(HEAD));
 
     // While journal storage is async, we want FeedStore calls to be synchronous (for now)
-    SynchronousConsumerLatch<CommitResult> latch = new SynchronousConsumerLatch<>();
+    CountDownLatch latch = new CountDownLatch(1);
     uiRunnableHandler.post(
         TAG,
         () ->
@@ -295,7 +295,7 @@ public class FeedStore implements Store, Dumpable {
                 new JournalMutation.Builder(HEAD.getStreamToken())
                     .copy(streamSession.getStreamToken())
                     .build(),
-                latch));
+                ignored -> latch.countDown()));
     try {
       latch.await();
     } catch (InterruptedException e) {
@@ -320,12 +320,13 @@ public class FeedStore implements Store, Dumpable {
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
     // While journal storage is async, we want FeedStore calls to be synchronous (for now)
-    SynchronousConsumerLatch<CommitResult> latch = new SynchronousConsumerLatch<>();
+    CountDownLatch latch = new CountDownLatch(1);
     uiRunnableHandler.post(
         TAG,
         () ->
             journalStorage.commit(
-                new JournalMutation.Builder(session.getStreamToken()).delete().build(), latch));
+                new JournalMutation.Builder(session.getStreamToken()).delete().build(),
+                ignored -> latch.countDown()));
     try {
       latch.await();
     } catch (InterruptedException e) {
@@ -341,7 +342,7 @@ public class FeedStore implements Store, Dumpable {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
     // While journal storage is async, we want FeedStore calls to be synchronous (for now)
-    SynchronousConsumerLatch<CommitResult> latch = new SynchronousConsumerLatch<>();
+    CountDownLatch latch = new CountDownLatch(1);
     uiRunnableHandler.post(
         TAG,
         () ->
@@ -350,7 +351,7 @@ public class FeedStore implements Store, Dumpable {
                     .delete()
                     .append(new byte[0])
                     .build(),
-                latch));
+                ignored -> latch.countDown()));
     try {
       latch.await();
     } catch (InterruptedException e) {
