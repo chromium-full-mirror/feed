@@ -23,6 +23,5 @@ java_test(
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "@com_google_truth_truth//jar",
         "@junit_junit//jar",
-        "@org_mockito_mockito_all//jar",
     ],
 )

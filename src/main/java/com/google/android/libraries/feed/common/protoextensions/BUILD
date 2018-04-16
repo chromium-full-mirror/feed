@@ -6,14 +6,11 @@ android_library(
     name = "protoextensions",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/host/common",
         "//src/main/proto/search/now/proto/ui/action:feed_action_java_proto_lite",
         "//src/main/proto/search/now/proto/ui/action:piet_extensions_java_proto_lite",
         "//src/main/proto/search/now/proto/ui/stream:stream_java_proto_lite",
         "//src/main/proto/search/now/proto/wire/feed:feed_java_proto_lite",
-        "@androidsdk//com.android.support:support-annotations-25.3.1",
-        "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
     ],
 )
