@@ -26,7 +26,10 @@ java_lite_proto_library(
 proto_library(
     name = "feed_action_proto",
     srcs = ["feed_action.proto"],
-    deps = [":feed_action_payload_proto"],
+    deps = [
+        ":feed_action_payload_proto",
+        "//src/main/proto/search/now/proto/wire/feed:feed_proto",
+    ],
 )
 
 java_proto_library(

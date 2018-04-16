@@ -69,20 +69,32 @@ public class FeedActionParser implements ActionParser {
             feedActionMetadata.getType(), feedActionMetadata.getOpenUrlData(), streamActionApi);
         break;
       case OPEN_CONTEXT_MENU:
-        if (!feedActionMetadata.hasOpenContextMenuData()) {
-          Logger.e(TAG, "Cannot open context menu: does not have context menu data.");
-          break;
-        }
-
         if (!streamActionApi.canOpenContextMenu()) {
           Logger.e(TAG, "Cannot open context menu: StreamActionApi does not support it.");
           break;
         }
 
+        if (!feedActionMetadata.hasOpenContextMenuData()) {
+          Logger.e(TAG, "Cannot open context menu: does not have context menu data.");
+          break;
+        }
+
         streamActionApi.openContextMenu(feedActionMetadata.getOpenContextMenuData());
         break;
+      case DISMISS:
+        if (!streamActionApi.canDismiss()) {
+          Logger.e(TAG, "Cannot dismiss: StreamActionApi does not support it");
+          break;
+        }
+
+        if (!feedActionMetadata.getDismissData().hasContentId()) {
+          Logger.e(TAG, "Cannot dismiss: no Content Id");
+        }
+
+        streamActionApi.dismiss(feedActionMetadata.getDismissData().getContentId());
+        break;
       default:
-        Logger.e(TAG, "Haven't implemented host handling of %s", feedActionMetadata.getType());
+        Logger.wtf(TAG, "Haven't implemented host handling of %s", feedActionMetadata.getType());
     }
   }
 
@@ -94,13 +106,13 @@ public class FeedActionParser implements ActionParser {
             || urlType.equals(OPEN_URL_INCOGNITO),
         "Attempting to handle URL that is not a URL type: %s",
         urlType);
-    if (!openUrlData.hasUrl()) {
-      Logger.e(TAG, "Cannot open URL action: %s, no URL available.", urlType);
+    if (!canPerformAction(urlType, streamActionApi)) {
+      Logger.e(TAG, "Cannot open URL action: %s, not supported.", urlType);
       return;
     }
 
-    if (!canPerformAction(urlType, streamActionApi)) {
-      Logger.e(TAG, "Cannot open URL action: %s, not supported.", urlType);
+    if (!openUrlData.hasUrl()) {
+      Logger.e(TAG, "Cannot open URL action: %s, no URL available.", urlType);
       return;
     }
 

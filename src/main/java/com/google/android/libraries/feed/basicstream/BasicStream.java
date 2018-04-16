@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
+import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl.DismissListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
@@ -53,6 +54,7 @@ import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.PietStylesHelper;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,7 +105,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             (action, frame, veLoggingToken) ->
                 actionParser.parseAction(
                     action,
-                    new StreamActionApiImpl(context, actionApi, actionParser),
+                    new StreamActionApiImpl(
+                        context, actionApi, actionParser, new StreamDismissListener()),
                     veLoggingToken),
             new PietCustomElementProvider(context, customElementProvider));
     recyclerView = new RecyclerView(context);
@@ -296,5 +299,13 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @Override
   public void onRootSet() {
     // TODO: Handle onRootSet
+  }
+
+  private static class StreamDismissListener implements DismissListener {
+    @Override
+    public void performDismiss(ContentId contentId) {
+      // TODO: Inform SessionManager about dismiss.
+      Logger.i(TAG, "Dismiss performed.");
+    }
   }
 }

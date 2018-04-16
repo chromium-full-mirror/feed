@@ -24,6 +24,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl.DismissListener;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -32,6 +33,7 @@ import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -100,6 +102,7 @@ public class StreamActionApiImplTest {
   @Mock private ActionApi actionApi;
   @Mock private ActionParser actionParser;
 
+  private FakeDismissListener fakeDismissListener = new FakeDismissListener();
   private StreamActionApiImpl streamActionApi;
 
   @Before
@@ -107,12 +110,20 @@ public class StreamActionApiImplTest {
     initMocks(this);
 
     Context context = Robolectric.setupActivity(Activity.class);
-    streamActionApi = new StreamActionApiImpl(context, actionApi, actionParser);
+
+    streamActionApi =
+        new StreamActionApiImpl(context, actionApi, actionParser, fakeDismissListener);
   }
 
   @Test
   public void testCanDismiss() {
-    assertThat(streamActionApi.canDismiss()).isFalse();
+    assertThat(streamActionApi.canDismiss()).isTrue();
+  }
+
+  @Test
+  public void testDismiss() {
+    streamActionApi.dismiss(ContentId.getDefaultInstance());
+    assertThat(fakeDismissListener.dismissPerformed()).isTrue();
   }
 
   @Test
@@ -270,5 +281,18 @@ public class StreamActionApiImplTest {
     assertThat(shadowAlertDialog.getItems())
         .asList()
         .containsExactly(OPEN_LABEL, OPEN_IN_NEW_WINDOW_LABEL);
+  }
+
+  private class FakeDismissListener implements DismissListener {
+    private boolean dismissPerformed;
+
+    @Override
+    public void performDismiss(ContentId contentId) {
+      dismissPerformed = true;
+    }
+
+    boolean dismissPerformed() {
+      return dismissPerformed;
+    }
   }
 }

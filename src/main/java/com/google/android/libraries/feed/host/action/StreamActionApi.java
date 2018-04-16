@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.host.action;
 
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 
 /**
  * Allows the {@link com.google.android.libraries.feed.api.actionparser.ActionParser} to communicate
@@ -30,4 +31,7 @@ public interface StreamActionApi extends ActionApi {
 
   /** Whether or not a card can be dismissed. */
   boolean canDismiss();
+
+  /** Dismisses card. */
+  void dismiss(ContentId contentId);
 }
