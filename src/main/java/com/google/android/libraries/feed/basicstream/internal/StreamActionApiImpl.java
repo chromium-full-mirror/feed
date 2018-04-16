@@ -18,6 +18,7 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
@@ -33,17 +34,11 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final Context context;
   private final ActionApi actionApi;
   private final ActionParser actionParser;
-  private final DismissListener dismissListener;
 
-  public StreamActionApiImpl(
-      Context context,
-      ActionApi actionApi,
-      ActionParser actionParser,
-      DismissListener dismissListener) {
+  public StreamActionApiImpl(Context context, ActionApi actionApi, ActionParser actionParser) {
     this.context = context;
     this.actionApi = actionApi;
     this.actionParser = actionParser;
-    this.dismissListener = dismissListener;
   }
 
   @Override
@@ -84,7 +79,8 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void dismiss(ContentId contentId) {
-    dismissListener.performDismiss(contentId);
+    // TODO: Inform SessionManager/ActionManager about dismiss.
+    Logger.i(TAG, "Dismiss performed.");
   }
 
   @Override
@@ -145,9 +141,5 @@ public class StreamActionApiImpl implements StreamActionApi {
   @Override
   public boolean canLearnMore() {
     return actionApi.canLearnMore();
-  }
-
-  public interface DismissListener {
-    void performDismiss(ContentId contentId);
   }
 }

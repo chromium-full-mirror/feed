@@ -43,7 +43,6 @@ import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
-import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl.DismissListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
 import com.google.android.libraries.feed.basicstream.internal.ViewHolderType;
@@ -62,7 +61,6 @@ import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.stream.StreamStructureProto;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
-import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,8 +111,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
             (action, frame, veLoggingToken) ->
                 actionParser.parseAction(
                     action,
-                    new StreamActionApiImpl(
-                        context, actionApi, actionParser, new StreamDismissListener()),
+                    new StreamActionApiImpl(context, actionApi, actionParser),
                     veLoggingToken),
             new PietCustomElementProvider(context, customElementProvider));
     recyclerView = new RecyclerView(context);
@@ -338,14 +335,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @Override
   public void onRootSet() {
     // TODO: Handle onRootSet
-  }
-
-  private static class StreamDismissListener implements DismissListener {
-    @Override
-    public void performDismiss(ContentId contentId) {
-      // TODO: Inform SessionManager about dismiss.
-      Logger.i(TAG, "Dismiss performed.");
-    }
   }
 
   // TODO: Move this out of the BasicStream into its own class.
