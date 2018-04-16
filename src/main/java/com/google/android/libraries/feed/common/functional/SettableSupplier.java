@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.common;
+package com.google.android.libraries.feed.common.functional;
 
 /**
  * A settable version of {@link Supplier} allowing the value to be set or changed after the Supplier
@@ -22,17 +22,24 @@ package com.google.android.libraries.feed.common;
  */
 public class SettableSupplier<T> implements Supplier<T> {
   private T value;
-
-  @Override
-  public T get() {
-    return Validators.checkNotNull(value);
-  }
+  private boolean hasBeenSet;
 
   /**
-   * Set the value, overriding the previous value. This must be called before {@link #get()} is
-   * called. {@link #get()} will throw and {@link NullPointerException} if the value is not set.
+   * {@inheritDoc}
+   *
+   * @throws IllegalStateException if {@link #get()} has not yet been called.
    */
+  @Override
+  public T get() {
+    if (!hasBeenSet) {
+      throw new IllegalStateException("get() cannot be called before set(value).");
+    }
+    return value;
+  }
+
+  /** Set the value. Subsequent calls will override previous values. */
   public void set(T value) {
     this.value = value;
+    hasBeenSet = true;
   }
 }

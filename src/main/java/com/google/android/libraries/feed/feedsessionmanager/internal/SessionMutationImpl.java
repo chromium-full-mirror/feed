@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
-import com.google.android.libraries.feed.common.Committer;
+import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import java.util.ArrayList;
 import java.util.List;

@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.host.imageloader;
 
 import android.graphics.drawable.Drawable;
-import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import java.util.List;
 
 /** Feed Host API to load images. */

@@ -16,8 +16,8 @@ package com.google.android.libraries.feed.testing.conformance.storage;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;

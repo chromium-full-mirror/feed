@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.testing.modelprovider;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import java.util.List;
 
 /** A fake {@link ModelCursor} for testing. */

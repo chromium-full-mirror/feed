@@ -23,7 +23,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl.CursorIterator;
 import java.util.ArrayList;
 import java.util.List;

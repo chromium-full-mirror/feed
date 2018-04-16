@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.common.testing;
 
-import com.google.android.libraries.feed.common.Supplier;
+import com.google.android.libraries.feed.common.functional.Supplier;
 
 /** Utility methods for working with the {@link Supplier} class. */
 public class Suppliers {

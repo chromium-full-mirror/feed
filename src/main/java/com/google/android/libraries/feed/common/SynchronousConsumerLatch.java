@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.common;
 
+import com.google.android.libraries.feed.common.functional.Consumer;
 import java.util.concurrent.CountDownLatch;
 
 /**

@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.common.testing;
 
-import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.functional.Consumer;
 
 /** Test helper class that ensures that the asynchronous consumer is called. */
 public class RequiredConsumer<T> implements Consumer<T> {

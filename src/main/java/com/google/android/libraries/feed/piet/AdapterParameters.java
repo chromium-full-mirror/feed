@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
-import com.google.android.libraries.feed.common.Supplier;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 
 /**

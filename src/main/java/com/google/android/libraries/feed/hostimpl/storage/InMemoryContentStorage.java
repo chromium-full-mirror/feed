@@ -19,8 +19,8 @@ import static com.google.android.libraries.feed.host.storage.ContentOperation.Ty
 import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.UPSERT;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;

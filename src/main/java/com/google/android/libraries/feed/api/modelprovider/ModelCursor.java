@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.functional.Consumer;
 
 /**
  * This represents a Cursor through the children of a {@link ModelFeature}. A Cursor will provide

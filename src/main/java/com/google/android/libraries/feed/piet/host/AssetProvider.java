@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.piet.host;
 
 import android.graphics.drawable.Drawable;
-import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 
 /** Provide Assets from the host */

@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.common.testing;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -18,8 +18,8 @@ import static com.google.android.libraries.feed.host.storage.JournalOperation.Ty
 import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.COPY;
 import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.DELETE;
 
-import com.google.android.libraries.feed.common.Consumer;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;

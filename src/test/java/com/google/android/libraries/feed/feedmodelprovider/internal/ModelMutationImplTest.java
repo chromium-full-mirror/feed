@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.common.Committer;
+import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutationImpl.Change;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;

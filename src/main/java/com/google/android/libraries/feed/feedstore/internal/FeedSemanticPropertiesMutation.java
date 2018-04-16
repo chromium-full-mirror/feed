@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
-import com.google.android.libraries.feed.common.Committer;
+import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.protobuf.ByteString;
 import java.util.HashMap;

@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.host.network;
 
-import com.google.android.libraries.feed.common.Consumer;
+import com.google.android.libraries.feed.common.functional.Consumer;
 
 /**
  * An object that can send an {@link HttpRequest} and receive an {@link HttpResponse} in response.
