@@ -33,4 +33,7 @@ public interface Session {
   /** Returns a ModelProvider for a Session, if one is defined. */
   /*@Nullable*/
   ModelProvider getModelProvider();
+
+  /** Cause the access time to be updated. */
+  void updateAccessTime(long time);
 }

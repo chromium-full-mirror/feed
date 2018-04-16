@@ -60,8 +60,6 @@ import java.util.concurrent.ExecutionException;
 public class FeedStore implements Store, Dumpable {
 
   private static final String TAG = "FeedStore";
-  private static final StreamSession HEAD =
-      StreamSession.newBuilder().setStreamToken("$HEAD").build();
   private static final String SHARED_STATE_PREFIX = "ss::";
   private static final String SESSION_NAME_PREFIX = "_session:";
   private static final String SEMANTIC_PROPERTIES_PREFIX = "sp::";

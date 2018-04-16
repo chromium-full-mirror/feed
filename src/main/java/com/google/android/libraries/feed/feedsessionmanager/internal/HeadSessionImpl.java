@@ -27,6 +27,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +40,7 @@ import java.util.Set;
 public class HeadSessionImpl implements Session, Dumpable {
   private static final String TAG = "HeadSessionImpl";
 
-  private final StreamSession streamSession;
+  private StreamSession streamSession;
   private final Store store;
   private final TimingUtils timingUtils;
 
@@ -140,6 +141,11 @@ public class HeadSessionImpl implements Session, Dumpable {
   }
 
   @Override
+  public void updateAccessTime(long time) {
+    streamSession = streamSession.toBuilder().setLastAccessed(time).build();
+  }
+
+  @Override
   /*@Nullable*/
   public ModelProvider getModelProvider() {
     return null;
@@ -154,7 +160,8 @@ public class HeadSessionImpl implements Session, Dumpable {
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("sessionName").value(streamSession.getStreamToken());
-    dumper.forKey("contentInSession").value(contentInSession.size()).compactPrevious();
+    dumper.forKey("accessTime").value(new Date(streamSession.getLastAccessed())).compactPrevious();
+    dumper.forKey("contentInSession").value(contentInSession.size());
     dumper.forKey("updateCount").value(updateCount).compactPrevious();
     dumper.forKey("storeMutationFailures").value(storeMutationFailures).compactPrevious();
   }

@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedsessionmanager;
 
 import static com.google.android.libraries.feed.api.sessionmanager.SessionManager.GLOBAL_SHARED_STATE;
+import static com.google.android.libraries.feed.api.store.Store.HEAD;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -22,7 +23,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
@@ -38,17 +41,19 @@ import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Consumer;
-import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
+import com.google.android.libraries.feed.feedsessionmanager.internal.UnboundSession;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -57,6 +62,7 @@ import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
+import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -82,13 +88,13 @@ public class FeedSessionManagerTest {
 
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
-  private static final StreamSession HEAD =
-      StreamSession.newBuilder().setStreamToken("$HEAD").build();
 
   @Mock private UiRunnableHandler uiRunnableHandler;
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
+  @Mock private Store store;
+  @Mock private Clock clock;
   @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
 
   private int cursorCount = 0;
@@ -108,11 +114,11 @@ public class FeedSessionManagerTest {
   @Before
   public void setUp() {
     initMocks(this);
+    when(store.getHeadSession()).thenReturn(HEAD);
   }
 
   @Test
   public void testInitialization() {
-    Store store = mock(Store.class);
     StreamSharedState sharedState =
         StreamSharedState.newBuilder()
             .setContentId(idGenerators.createFeatureContentId(0))
@@ -121,7 +127,6 @@ public class FeedSessionManagerTest {
     List<StreamSharedState> sharedStates = new ArrayList<>();
     sharedStates.add(sharedState);
     when(store.getSharedStates()).thenReturn(sharedStates);
-    when(store.getHeadSession()).thenReturn(HEAD);
 
     List<StreamStructure> streamStructures = new ArrayList<>();
     StreamStructure operation =
@@ -144,7 +149,8 @@ public class FeedSessionManagerTest {
             threadUtils,
             Suppliers.of(protocolAdapter),
             Suppliers.of(requestManager),
-            configuration);
+            configuration,
+            clock);
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
@@ -240,8 +246,6 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testEdit_semanticProperties() {
-    Store store = mock(Store.class);
-    when(store.getHeadSession()).thenReturn(HEAD);
     com.google.android.libraries.feed.api.store.SessionMutation session =
         mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
     when(store.editSession(any(StreamSession.class))).thenReturn(session);
@@ -259,7 +263,8 @@ public class FeedSessionManagerTest {
             threadUtils,
             Suppliers.of(protocolAdapter),
             Suppliers.of(requestManager),
-            configuration);
+            configuration,
+            clock);
 
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     StreamDataOperation streamDataOperation =
@@ -274,6 +279,148 @@ public class FeedSessionManagerTest {
 
     verify(semanticPropertiesMutation).add(rootContentId, semanticData);
     verify(semanticPropertiesMutation).commit();
+  }
+
+  @Test
+  public void testIsSessionAlive() {
+    StreamSession session1 =
+        StreamSession.newBuilder().setStreamToken("stream:1").setLastAccessed(0).build();
+    StreamSession session2 =
+        StreamSession.newBuilder()
+            .setStreamToken("stream:2")
+            .setLastAccessed(FeedSessionManager.DEFAULT_LIFETIME_MS - 1)
+            .build();
+    FeedSessionManager sessionManager =
+        new FeedSessionManager(
+            MoreExecutors.newDirectExecutorService(),
+            store,
+            timingUtils,
+            threadUtils,
+            Suppliers.of(protocolAdapter),
+            Suppliers.of(requestManager),
+            configuration,
+            clock);
+    when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
+    assertThat(sessionManager.isSessionAlive(session1)).isFalse();
+    assertThat(sessionManager.isSessionAlive(session2)).isTrue();
+  }
+
+  @Test
+  public void testGetPersistedSessions() {
+    List<PayloadWithId> persistedSessions = new ArrayList<>();
+    StreamSessions streamSessions = StreamSessions.getDefaultInstance();
+    StreamPayload payload = StreamPayload.newBuilder().setStreamSessions(streamSessions).build();
+    persistedSessions.add(new PayloadWithId(FeedSessionManager.STREAM_SESSION_CONTENT_ID, payload));
+    when(store.getPayloads(any(List.class))).thenReturn(persistedSessions);
+
+    FeedSessionManager sessionManager =
+        new FeedSessionManager(
+            MoreExecutors.newDirectExecutorService(),
+            store,
+            timingUtils,
+            threadUtils,
+            Suppliers.of(protocolAdapter),
+            Suppliers.of(requestManager),
+            configuration,
+            clock);
+    StreamSessions sessions = sessionManager.getPersistedSessions();
+    assertThat(sessions).isEqualTo(streamSessions);
+  }
+
+  @Test
+  public void testCleanupJournals() {
+    List<StreamSession> storedSessions = new ArrayList<>();
+    StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
+    StreamSession session2 = StreamSession.newBuilder().setStreamToken("stream:2").build();
+    storedSessions.add(session1);
+    storedSessions.add(session2);
+    when(store.getAllSessions()).thenReturn(storedSessions);
+
+    FeedSessionManager sessionManager =
+        new FeedSessionManager(
+            MoreExecutors.newDirectExecutorService(),
+            store,
+            timingUtils,
+            threadUtils,
+            Suppliers.of(protocolAdapter),
+            Suppliers.of(requestManager),
+            configuration,
+            clock);
+    Session s2 = new UnboundSession(session2);
+    sessionManager.setSessionsForTest(s2);
+    sessionManager.cleanupSessionJournals();
+    verify(store).removeSession(session1);
+    assertThat(sessionManager.getSessionsMapForTest().get(session2.getStreamToken())).isEqualTo(s2);
+  }
+
+  @Test
+  public void testInitializePersistedSessions() {
+    List<PayloadWithId> persistedSessions = new ArrayList<>();
+    StreamSessions.Builder streamSessionsBuilder = StreamSessions.newBuilder();
+    StreamSession session1 =
+        StreamSession.newBuilder().setStreamToken("stream:1").setLastAccessed(0).build();
+    streamSessionsBuilder.addStreamSessions(session1);
+    StreamSession session2 =
+        StreamSession.newBuilder()
+            .setStreamToken("stream:2")
+            .setLastAccessed(FeedSessionManager.DEFAULT_LIFETIME_MS - 1)
+            .build();
+    streamSessionsBuilder.addStreamSessions(session2);
+    StreamPayload payload =
+        StreamPayload.newBuilder().setStreamSessions(streamSessionsBuilder.build()).build();
+    persistedSessions.add(new PayloadWithId(FeedSessionManager.STREAM_SESSION_CONTENT_ID, payload));
+    when(store.getPayloads(any(List.class))).thenReturn(persistedSessions);
+
+    when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
+    FeedSessionManager sessionManager =
+        new FeedSessionManager(
+            MoreExecutors.newDirectExecutorService(),
+            store,
+            timingUtils,
+            threadUtils,
+            Suppliers.of(protocolAdapter),
+            Suppliers.of(requestManager),
+            configuration,
+            clock);
+    sessionManager.initializePersistedSessions();
+    Map<String, Session> sessionMap = sessionManager.getSessionsMapForTest();
+    // Sessions will include $HEAD
+    assertThat(sessionMap).hasSize(2);
+    assertThat(sessionMap.get(session2.getStreamToken()).getStreamSession()).isEqualTo(session2);
+    assertThat(sessionMap.get(HEAD.getStreamToken())).isNotNull();
+  }
+
+  @Test
+  public void testUpdateStoredSessions() {
+    FeedSessionManager sessionManager =
+        new FeedSessionManager(
+            MoreExecutors.newDirectExecutorService(),
+            store,
+            timingUtils,
+            threadUtils,
+            Suppliers.of(protocolAdapter),
+            Suppliers.of(requestManager),
+            configuration,
+            clock);
+    StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
+    StreamSession session2 = StreamSession.newBuilder().setStreamToken("stream:2").build();
+    Session s1 = new UnboundSession(session1);
+    Session s2 = new UnboundSession(session2);
+    sessionManager.setSessionsForTest(s1, s2);
+
+    FakeContentMutation contentMutation = new FakeContentMutation();
+    when(store.editContent()).thenReturn(contentMutation);
+
+    sessionManager.updateStoredSessions();
+    assertThat(contentMutation.commited).isTrue();
+    assertThat(contentMutation.contentId).isEqualTo(FeedSessionManager.STREAM_SESSION_CONTENT_ID);
+    assertThat(contentMutation.payload.hasStreamSessions()).isTrue();
+    List<StreamSession> streamSessionList =
+        contentMutation.payload.getStreamSessions().getStreamSessionsList();
+    // There is also a $HEAD session added during initialization
+    assertThat(streamSessionList).hasSize(3);
+    assertThat(streamSessionList).contains(session1);
+    assertThat(streamSessionList).contains(session2);
   }
 
   private int populateSession(
@@ -324,7 +471,8 @@ public class FeedSessionManagerTest {
             threadUtils,
             Suppliers.of(protocolAdapter),
             Suppliers.of(requestManager),
-            configuration);
+            configuration,
+            clock);
     return sessionManager;
   }
 
@@ -335,5 +483,24 @@ public class FeedSessionManagerTest {
         cursorCount++;
       }
     };
+  }
+
+  private static class FakeContentMutation implements ContentMutation {
+    String contentId;
+    StreamPayload payload;
+    boolean commited = false;
+
+    @Override
+    public ContentMutation add(String contentId, StreamPayload payload) {
+      this.contentId = contentId;
+      this.payload = payload;
+      return this;
+    }
+
+    @Override
+    public CommitResult commit() {
+      commited = true;
+      return CommitResult.SUCCESS;
+    }
   }
 }

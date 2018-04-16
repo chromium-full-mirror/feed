@@ -163,6 +163,11 @@ public class FeedProcessScope implements Dumpable {
       return this;
     }
 
+    Builder setClock(Clock clock) {
+      this.clock = clock;
+      return this;
+    }
+
     public FeedProcessScope build() {
       // Build default component instances if necessary.
       if (protoExtensionProvider == null) {
@@ -175,6 +180,9 @@ public class FeedProcessScope implements Dumpable {
       }
       if (journalStorage == null) {
         journalStorage = new InMemoryJournalStorage();
+      }
+      if (clock == null) {
+        clock = new SystemClockImpl();
       }
       TimingUtils timingUtils = new TimingUtils();
       UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
@@ -197,7 +205,8 @@ public class FeedProcessScope implements Dumpable {
                 threadUtils,
                 protocolAdapterSupplier,
                 requestManagerSupplier,
-                configuration);
+                configuration,
+                clock);
       }
       if (protocolAdapter == null) {
         protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
@@ -231,7 +240,7 @@ public class FeedProcessScope implements Dumpable {
           threadUtils,
           uiRunnableHandler,
           appLifecycleListener,
-          new SystemClockImpl(),
+          clock,
           debugBehavior);
     }
 
@@ -251,6 +260,7 @@ public class FeedProcessScope implements Dumpable {
     /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
     /*@MonotonicNonNull*/ private ContentStorage contentStorage = null;
     /*@MonotonicNonNull*/ private JournalStorage journalStorage = null;
+    /*@MonotonicNonNull*/ private Clock clock;
 
     // This will be overridden in tests.
     private ThreadUtils threadUtils = new ThreadUtils();

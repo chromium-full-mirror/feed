@@ -32,6 +32,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -191,10 +192,16 @@ public class SessionImpl implements InitializableSession, Dumpable {
   }
 
   @Override
+  public void updateAccessTime(long time) {
+    streamSession = streamSession.toBuilder().setLastAccessed(time).build();
+  }
+
+  @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("sessionName").value(streamSession.getStreamToken());
-    dumper.forKey("contentInSession").value(contentInSession.size()).compactPrevious();
+    dumper.forKey("accessTime").value(new Date(streamSession.getLastAccessed())).compactPrevious();
+    dumper.forKey("contentInSession").value(contentInSession.size());
     dumper.forKey("updateCount").value(updateCount).compactPrevious();
     dumper.forKey("storeMutationFailures").value(storeMutationFailures).compactPrevious();
     if (modelProvider instanceof Dumpable) {

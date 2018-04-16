@@ -14,7 +14,9 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
+import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -41,11 +43,13 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.Change;
+import com.google.android.libraries.feed.feedsessionmanager.internal.UnboundSession;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
+import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -64,6 +68,9 @@ import javax.annotation.concurrent.GuardedBy;
 public class FeedSessionManager implements SessionManager, Dumpable {
 
   private static final String TAG = "FeedSessionManager";
+
+  @VisibleForTesting static final String STREAM_SESSION_CONTENT_ID = "FSM::Sessions::0";
+  @VisibleForTesting static final long DEFAULT_LIFETIME_MS = 3_600_000; // 1 Hour
 
   // Used to synchronize the stored data
   private final Object lock = new Object();
@@ -88,13 +95,16 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final TimingUtils timingUtils;
   private final Supplier<ProtocolAdapter> protocolAdapterSupplier;
   private final Supplier<RequestManager> requestManagerSupplier;
+  private final Clock clock;
   private final boolean optimisticWrites;
+  private final long lifetimeMs;
 
   // operation counts for the dumper
   private int commitCount = 0;
   private int newSessionCount = 0;
   private int existingSessionCount = 0;
   private int handleTokenCount = 0;
+  private int expiredSessionsCleared = 0;
 
   public FeedSessionManager(
       ExecutorService executor,
@@ -103,15 +113,19 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       ThreadUtils threadUtils,
       Supplier<ProtocolAdapter> protocolAdapterSupplier,
       Supplier<RequestManager> requestManagerSupplier,
-      Configuration configuration) {
+      Configuration configuration,
+      Clock clock) {
     this.executor = executor;
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.protocolAdapterSupplier = protocolAdapterSupplier;
     this.requestManagerSupplier = requestManagerSupplier;
+    this.clock = clock;
 
     optimisticWrites = configuration.getValueOrDefault(ConfigKey.OPTIMISTIC_SESSION_WRITES, false);
+    lifetimeMs =
+        configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
     sessionFactory = new SessionFactory(store, executor, timingUtils, threadUtils, configuration);
     contentCache = new ContentCache();
 
@@ -140,9 +154,84 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     synchronized (lock) {
       sessions.put(head.getStreamSession().getStreamToken(), head);
     }
+    head.updateAccessTime(clock.currentTimeMillis());
     List<StreamStructure> streamStructures = store.getStreamStructures(head.getStreamSession());
     head.initializeSession(streamStructures);
+    initializePersistedSessions();
     timeTracker.stop("task", "Initialization");
+  }
+
+  @VisibleForTesting
+  void initializePersistedSessions() {
+    StreamSessions persistedSessions = getPersistedSessions();
+    if (persistedSessions == null) {
+      return;
+    }
+
+    boolean cleanupSessions = false;
+    List<StreamSession> sessionList = persistedSessions.getStreamSessionsList();
+    for (StreamSession session : sessionList) {
+      if (!isSessionAlive(session)) {
+        Logger.i(TAG, "Found expired session %s", session.getStreamToken());
+        cleanupSessions = true;
+        continue;
+      }
+      synchronized (lock) {
+        if (sessions.containsKey(session.getStreamToken())) {
+          // Don't replace sessions already found in sessions
+          continue;
+        }
+        // Unbound sessions are sessions that are able to be created through restore
+        UnboundSession unboundSession = new UnboundSession(session);
+        sessions.put(session.getStreamToken(), unboundSession);
+      }
+    }
+
+    if (cleanupSessions) {
+      // Queue up a task to clear the session journals.
+      executor.execute(this::cleanupSessionJournals);
+    }
+  }
+
+  /**
+   * Remove all session journals which are not currently found in {@code sessions} which contains
+   * all of the known sessions. This is a garbage collection task.
+   */
+  @VisibleForTesting
+  void cleanupSessionJournals() {
+    Logger.i(TAG, "Task: cleanupSessionJournals");
+    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+
+    List<StreamSession> storedSessions = store.getAllSessions();
+    synchronized (lock) {
+      for (StreamSession session : storedSessions) {
+        if (!sessions.containsKey(session.getStreamToken())) {
+          store.removeSession(session);
+          expiredSessionsCleared++;
+        }
+      }
+    }
+    timeTracker.stop("task", "cleanupSessionJournals");
+  }
+
+  /** Returns the persisted {@link StreamSessions} or {@code null} if it's not found. */
+  /*@Nullable*/
+  @VisibleForTesting
+  StreamSessions getPersistedSessions() {
+    List<String> sessionIds = new ArrayList<>();
+    sessionIds.add(STREAM_SESSION_CONTENT_ID);
+    List<PayloadWithId> sessionPayload = store.getPayloads(sessionIds);
+
+    if (sessionPayload.isEmpty()) {
+      Logger.w(TAG, "Persisted Sessions were not found");
+      return null;
+    }
+    StreamPayload payload = sessionPayload.get(0).payload;
+    if (!payload.hasStreamSessions()) {
+      Logger.e(TAG, "Persisted Sessions StreamSessions was not set");
+      return null;
+    }
+    return payload.getStreamSessions();
   }
 
   @Override
@@ -158,25 +247,50 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
           StreamSession streamSession = store.createNewSession();
-          session.populateModelProvider(streamSession, store.getStreamStructures(streamSession));
+          StreamSession recordedSession =
+              streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
+
+          session.populateModelProvider(recordedSession, store.getStreamStructures(streamSession));
           synchronized (lock) {
             sessions.put(session.getStreamSession().getStreamToken(), session);
           }
+          updateStoredSessions();
+
           timeTracker.stop("task", "Create/Populate New Session");
           newSessionCount++;
         });
   }
 
+  @VisibleForTesting
+  void updateStoredSessions() {
+    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+    StreamSessions.Builder sessionsBuilder = StreamSessions.newBuilder();
+    synchronized (lock) {
+      for (Session s : sessions.values()) {
+        sessionsBuilder.addStreamSessions(s.getStreamSession());
+      }
+    }
+    StreamSessions currentSessions = sessionsBuilder.build();
+    StreamPayload payload = StreamPayload.newBuilder().setStreamSessions(currentSessions).build();
+    ContentMutation contentMutation = store.editContent();
+    contentMutation.add(STREAM_SESSION_CONTENT_ID, payload);
+    contentMutation.commit();
+    timeTracker.stop("task", "Update Stored Session Information");
+  }
+
   @Override
   public void getExistingSession(String sessionToken, ModelProvider modelProvider) {
     threadUtils.checkMainThread();
-    InitializableSession session = sessionFactory.getSession(modelProvider);
-    // TODO: We need to deal with all sessions, some may be stored on disk an not yet
-    // loaded.
     Session existingSession;
     synchronized (lock) {
       existingSession = sessions.get(sessionToken);
     }
+    if (existingSession == null) {
+      // We didn't find the existing session so it probably expired and was cleaned up.
+      // TODO: What we should do is return null so the UI can ask for a new session.
+      Logger.w(TAG, "getExistingSession didn't find the requested session %s", sessionToken);
+    }
+    InitializableSession session = sessionFactory.getSession(modelProvider);
     if (existingSession != null) {
       ModelProvider existingModelProvider = existingSession.getModelProvider();
       if (existingModelProvider != null) {
@@ -302,6 +416,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       dumper.forKey("commitCount").value(commitCount);
       dumper.forKey("newSessionCount").value(newSessionCount).compactPrevious();
       dumper.forKey("existingSessionCount").value(existingSessionCount).compactPrevious();
+      dumper.forKey("expiredSessionsCleared").value(expiredSessionsCleared).compactPrevious();
       dumper.forKey("handleTokenCount").value(handleTokenCount).compactPrevious();
       dumper.forKey("sharedStateCount").value(sharedStateCache.size());
       dumper.forKey("sessionCount").value(sessions.size()).compactPrevious();
@@ -315,6 +430,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         }
       }
     }
+  }
+
+  @VisibleForTesting
+  boolean isSessionAlive(StreamSession streamSession) {
+    // Today HEAD will does not time out
+    return (Store.HEAD.getStreamToken().equals(streamSession.getStreamToken()))
+        || ((streamSession.getLastAccessed() + lifetimeMs) > clock.currentTimeMillis());
   }
 
   /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
@@ -337,8 +459,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       }
     }
     synchronized (lock) {
-      Logger.i(TAG, "Clearing %s sessions", sessionsRemoved.size());
       sessions.keySet().removeAll(sessionsRemoved);
+      Logger.i(
+          TAG,
+          "Cleared %s sessions, remaining sessions %s",
+          sessionsRemoved.size(),
+          sessions.size());
     }
     timeTracker.stop("task", "resetHead");
   }
@@ -540,6 +666,14 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   Map<String, Session> getSessionsMapForTest() {
     synchronized (lock) {
       return new HashMap<>(sessions);
+    }
+  }
+
+  void setSessionsForTest(Session... testSessions) {
+    synchronized (lock) {
+      for (Session session : testSessions) {
+        sessions.put(session.getStreamSession().getStreamToken(), session);
+      }
     }
   }
 }

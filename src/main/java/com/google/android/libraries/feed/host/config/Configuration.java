@@ -27,12 +27,14 @@ public class Configuration {
   @StringDef({
     ConfigKey.FEED_SERVER_HOST,
     ConfigKey.FEED_SERVER_PATH_AND_PARAMS,
-    ConfigKey.OPTIMISTIC_SESSION_WRITES
+    ConfigKey.OPTIMISTIC_SESSION_WRITES,
+    ConfigKey.SESSION_LIFETIME_MS,
   })
   public @interface ConfigKey {
     String FEED_SERVER_HOST = "feed_server_host";
     String FEED_SERVER_PATH_AND_PARAMS = "feed_server_path_and_params";
     String OPTIMISTIC_SESSION_WRITES = "optimistic_session_writes";
+    String SESSION_LIFETIME_MS = "session_lifetime_ms";
   }
 
   private final HashMap<String, Object> values;

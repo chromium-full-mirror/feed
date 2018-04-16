@@ -31,6 +31,9 @@ import java.util.List;
  * an instance of the stream defined by a possible subset of $HEAD.
  */
 public interface Store {
+  /** The StreamSession representing $HEAD */
+  StreamSession HEAD = StreamSession.newBuilder().setStreamToken("$HEAD").build();
+
   /**
    * Returns an {@code List} of the {@link PayloadWithId}s for the ContentId Strings passed in
    * through {@code contentIds}.

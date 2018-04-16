@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.common.testing;
 
+import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -21,9 +22,10 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.SettableSupplier;
-import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.time.SystemClockImpl;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
@@ -69,6 +71,7 @@ public class InfrastructureIntegrationScope {
             journalStorage,
             threadUtils,
             uiRunnableHandler);
+    Clock clock = new SystemClockImpl();
     SettableSupplier<ProtocolAdapter> protocolAdapterSupplier = new SettableSupplier<>();
     SettableSupplier<RequestManager> requestManagerSupplier = new SettableSupplier<>();
     feedSessionManager =
@@ -79,7 +82,8 @@ public class InfrastructureIntegrationScope {
             threadUtils,
             protocolAdapterSupplier,
             requestManagerSupplier,
-            configuration);
+            configuration,
+            clock);
     modelProviderFactory =
         new FeedModelProviderFactory(
             feedSessionManager, threadUtils, timingUtils, uiRunnableHandler);

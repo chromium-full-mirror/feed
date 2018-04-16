@@ -110,19 +110,38 @@ message StreamDataOperation {
 }
 
 // This defines the content payload associated with a StreamDataOperation.
+// Payload is what is stored in the Content portion of the persisted storage
+// layer.  Each of the items defined here are persisted using the
+// StreamContentId (String) as the key to the payload.  By default, the
+// StreamContentId is formed by concatenation of the ContentId Table, followed
+// by ContentDomain, then Id.  In addition, for content requiring prefix based
+// queries, the Store will prefix the StreamContentId.
 message StreamPayload {
 
   oneof payload {
-    // This represents a feature within the tree.
+    // This contains a feature within the tree.  These are stored based upon
+    // the server defined StreamContentId (created by the ProtocolAdapter).
     StreamFeature stream_feature = 3;
 
-    // This represents the shared state, such as the Piet shared state.
+    // This contains a shared state, such as the Piet shared state.  The
+    // Feed store prepends a prefix (see FeedStore.SHARED_STATE_PREFIX) so these
+    // can be retrieved through a prefix query.
     StreamSharedState stream_shared_state = 4;
 
-    // Continuation Token for a parent.
+    // Continuation Token for a parent.  These are stored in the same way other
+    // the stream_feature are stored.  They are treated the same as other
+    // feature content when persisted.
     StreamToken stream_token = 5;
 
-    // The semantic data associated with this feature.
+    // This is stored as a single content record.  It contains information about
+    // each known session including $HEAD.  This is a list of the individual
+    // sessions which are currently active.  This has a StreamContentId defined
+    // by the SessionManager (see FeedSessionManager.STREAM_SESSION_CONTENT_ID).
+    StreamSessions stream_sessions = 6;
+
+    // The semantic data associated with a Feature.  These are stored as content
+    // with a prefix added by the Store (see
+    // FeedStore.SEMANTIC_PROPERTIES_PREFIX) allowing prefix queries.
     bytes semantic_data = 7;
   }
 }
@@ -137,9 +156,19 @@ message StreamCursor {
   optional string last_accessed_content = 2;
 }
 
+// List of all the sessions.
+message StreamSessions {
+  // Represents the current sessions
+  repeated StreamSession stream_sessions = 1;
+}
+
 // Persistence for a Session.  This allows the UI to create a ModelProvider
 // from an existing session.
 message StreamSession {
   // Unique identifier for the session.
   optional string stream_token = 1;
+
+  // This is the ms of the last time the session was accessed, used to manage
+  // the lifetime of a session.
+  optional int64 last_accessed = 2;
 }
