@@ -14,10 +14,3 @@ package_group(
     ],
     packages = ["//..."],
 )
-
-android_library(
-    name = "feed",
-    srcs = glob(["*.java"]),
-    deps = [
-    ],
-)
