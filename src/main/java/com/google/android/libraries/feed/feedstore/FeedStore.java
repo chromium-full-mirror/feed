@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSemanticPropertiesMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
@@ -242,13 +241,16 @@ public class FeedStore implements Store, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<SemanticPropertiesWithId> semanticPropertiesWithIds = new ArrayList<>(contentIds.size());
+    List<String> contentIdKeys = new ArrayList<>(contentIds.size());
+    for (String contentId : contentIds) {
+      contentIdKeys.add(SEMANTIC_PROPERTIES_PREFIX + contentId);
+    }
     SimpleSettableFuture<Result<Map<String, byte[]>>> mapResultFuture =
         new SimpleSettableFuture<>();
     uiRunnableHandler.post(
         TAG,
         () -> {
-          // TODO: replace with a call to batch get (when added)
-          contentStorage.getAll(SEMANTIC_PROPERTIES_PREFIX, mapResultFuture::put);
+          contentStorage.get(contentIdKeys, mapResultFuture::put);
         });
     Result<Map<String, byte[]>> mapResult;
     try {
