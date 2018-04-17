@@ -32,7 +32,7 @@ abstract class AbstractRunner {
 
   /** Executes the {@code runnable} on the {@link Executor} used to initialize this class. */
   public void execute(String name, Runnable runnable) {
-    Logger.i(TAG, "Running task [%s] on [%s]", name, executorDescription);
+    Logger.d(TAG, "Running task [%s] on [%s]", name, executorDescription);
     executor.execute(runnable);
   }
 }
