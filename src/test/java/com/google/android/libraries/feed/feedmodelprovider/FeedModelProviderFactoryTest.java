@@ -18,8 +18,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +33,7 @@ public class FeedModelProviderFactoryTest {
 
   @Mock private ThreadUtils threadUtils;
   @Mock private TimingUtils timingUtils;
-  @Mock private UiRunnableHandler uiRunnableHandler;
+  @Mock private MainThreadRunner mainThreadRunner;
   @Mock private SessionManager sessionManager;
 
   @Before
@@ -44,7 +44,7 @@ public class FeedModelProviderFactoryTest {
   @Test
   public void testModelProviderFactory() {
     FeedModelProviderFactory factory =
-        new FeedModelProviderFactory(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+        new FeedModelProviderFactory(sessionManager, threadUtils, timingUtils, mainThreadRunner);
     assertThat(factory.createNew()).isNotNull();
   }
 }

@@ -20,16 +20,15 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
@@ -98,7 +97,7 @@ public class FeedStoreTest {
           });
   private final ContentStorage contentStorage = new InMemoryContentStorage();
   private final JournalStorage journalStorage = new InMemoryJournalStorage();
-  private final UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
+  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
   @Before
   public void setUp() throws Exception {
@@ -111,7 +110,7 @@ public class FeedStoreTest {
             contentStorage,
             journalStorage,
             threadUtils,
-            uiRunnableHandler);
+            mainThreadRunner);
   }
 
   @Test
@@ -123,7 +122,7 @@ public class FeedStoreTest {
             contentStorage,
             journalStorage,
             threadUtils,
-            uiRunnableHandler);
+            mainThreadRunner);
     assertThat(feedStore.getHeadSession()).isNotNull();
   }
 
@@ -136,7 +135,7 @@ public class FeedStoreTest {
             contentStorage,
             journalStorage,
             threadUtils,
-            uiRunnableHandler);
+            mainThreadRunner);
     ContentMutation contentMutation = feedStore.editContent();
     assertThat(contentMutation).isNotNull();
   }

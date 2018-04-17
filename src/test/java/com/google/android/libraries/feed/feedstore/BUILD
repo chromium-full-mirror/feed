@@ -12,6 +12,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/common/testing",
         "//src/main/java/com/google/android/libraries/feed/api/store",
         "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time",

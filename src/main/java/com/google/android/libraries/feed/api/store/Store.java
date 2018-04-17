@@ -29,6 +29,8 @@ import java.util.List;
  * of {@link StreamDataOperation} which define the structure of the stream. $HEAD defines the full
  * set of {@code StreamDataOperation}s defining the full stream. A {@link StreamSession} represents
  * an instance of the stream defined by a possible subset of $HEAD.
+ *
+ * <p>This object should not be used on the UI thread, as it may block on slow IO operations.
  */
 public interface Store {
   /** The StreamSession representing $HEAD */

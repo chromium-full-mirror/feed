@@ -17,12 +17,12 @@ package com.google.android.libraries.feed.feedstore;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
@@ -69,7 +69,7 @@ public class FeedStore implements Store, Dumpable {
   private final ContentStorage contentStorage;
   private final JournalStorage journalStorage;
   private final ThreadUtils threadUtils;
-  private final UiRunnableHandler uiRunnableHandler;
+  private final MainThreadRunner mainThreadRunner;
 
   public FeedStore(
       TimingUtils timingUtils,
@@ -77,13 +77,13 @@ public class FeedStore implements Store, Dumpable {
       ContentStorage contentStorage,
       JournalStorage journalStorage,
       ThreadUtils threadUtils,
-      UiRunnableHandler uiRunnableHandler) {
+      MainThreadRunner mainThreadRunner) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
     this.contentStorage = contentStorage;
     this.journalStorage = journalStorage;
     this.threadUtils = threadUtils;
-    this.uiRunnableHandler = uiRunnableHandler;
+    this.mainThreadRunner = mainThreadRunner;
   }
 
   @Override
@@ -95,20 +95,18 @@ public class FeedStore implements Store, Dumpable {
     try {
       SimpleSettableFuture<Map<String, byte[]>> contentFuture = new SimpleSettableFuture<>();
 
-      uiRunnableHandler.post(
+      mainThreadRunner.execute(
           TAG,
-          () -> {
-            contentStorage.get(
-                contentIds,
-                result -> {
-                  if (result.isSuccessful()) {
-                    Map<String, byte[]> input = result.getValue();
-                    contentFuture.put(input);
-                  } else {
-                    // todo(rbonick): handle errors
-                  }
-                });
-          });
+          () ->
+              contentStorage.get(
+                  contentIds,
+                  result -> {
+                    if (result.isSuccessful()) {
+                      contentFuture.put(result.getValue());
+                    } else {
+                      // TODO: handle errors
+                    }
+                  }));
 
       Map<String, byte[]> content = contentFuture.get();
       for (Map.Entry<String, byte[]> entry : content.entrySet()) {
@@ -131,22 +129,21 @@ public class FeedStore implements Store, Dumpable {
   public List<StreamSharedState> getSharedStates() {
     List<StreamSharedState> sharedStates = new ArrayList<>();
     SimpleSettableFuture<List<byte[]>> sharedStatesFuture = new SimpleSettableFuture<>();
-    uiRunnableHandler.post(
+    mainThreadRunner.execute(
         TAG,
-        () -> {
-          contentStorage.getAll(
-              SHARED_STATE_PREFIX,
-              result -> {
-                if (result.isSuccessful()) {
-                  Map<String, byte[]> input = result.getValue();
-                  sharedStatesFuture.put(new ArrayList<>(input.values()));
-                } else {
-                  sharedStatesFuture.putException(
-                      new RuntimeException("Error fetching shared states"));
-                  // TODO: handle errors
-                }
-              });
-        });
+        () ->
+            contentStorage.getAll(
+                SHARED_STATE_PREFIX,
+                result -> {
+                  if (result.isSuccessful()) {
+                    Map<String, byte[]> input = result.getValue();
+                    sharedStatesFuture.put(new ArrayList<>(input.values()));
+                  } else {
+                    sharedStatesFuture.putException(
+                        new RuntimeException("Error fetching shared states"));
+                    // TODO: handle errors
+                  }
+                }));
     try {
       List<byte[]> bytes = sharedStatesFuture.get();
       for (byte[] byteArray : bytes) {
@@ -166,7 +163,7 @@ public class FeedStore implements Store, Dumpable {
     List<StreamStructure> streamStructures = new ArrayList<>();
     try {
       SimpleSettableFuture<List<byte[]>> operationsFuture = new SimpleSettableFuture<>();
-      uiRunnableHandler.post(
+      mainThreadRunner.execute(
           TAG,
           () ->
               journalStorage.read(
@@ -203,21 +200,20 @@ public class FeedStore implements Store, Dumpable {
 
     try {
       SimpleSettableFuture<List<String>> contentFuture = new SimpleSettableFuture<>();
-      uiRunnableHandler.post(
+      mainThreadRunner.execute(
           TAG,
-          () -> {
-            journalStorage.getAllJournals(
-                result -> {
-                  if (result.isSuccessful()) {
-                    List<String> value = result.getValue();
-                    contentFuture.put(value);
-                  } else {
-                    // todo(rbonick): handle errors
-                    contentFuture.putException(
-                        new RuntimeException("Could not fetch all journals"));
-                  }
-                });
-          });
+          () ->
+              journalStorage.getAllJournals(
+                  result -> {
+                    if (result.isSuccessful()) {
+                      List<String> value = result.getValue();
+                      contentFuture.put(value);
+                    } else {
+                      // todo(rbonick): handle errors
+                      contentFuture.putException(
+                          new RuntimeException("Could not fetch all journals"));
+                    }
+                  }));
 
       List<String> names = contentFuture.get();
       for (String name : names) {
@@ -245,11 +241,7 @@ public class FeedStore implements Store, Dumpable {
     }
     SimpleSettableFuture<Result<Map<String, byte[]>>> mapResultFuture =
         new SimpleSettableFuture<>();
-    uiRunnableHandler.post(
-        TAG,
-        () -> {
-          contentStorage.get(contentIdKeys, mapResultFuture::put);
-        });
+    mainThreadRunner.execute(TAG, () -> contentStorage.get(contentIdKeys, mapResultFuture::put));
     Result<Map<String, byte[]>> mapResult;
     try {
       mapResult = mapResultFuture.get();
@@ -288,7 +280,7 @@ public class FeedStore implements Store, Dumpable {
 
     // While journal storage is async, we want FeedStore calls to be synchronous (for now)
     CountDownLatch latch = new CountDownLatch(1);
-    uiRunnableHandler.post(
+    mainThreadRunner.execute(
         TAG,
         () ->
             journalStorage.commit(
@@ -321,7 +313,7 @@ public class FeedStore implements Store, Dumpable {
     }
     // While journal storage is async, we want FeedStore calls to be synchronous (for now)
     CountDownLatch latch = new CountDownLatch(1);
-    uiRunnableHandler.post(
+    mainThreadRunner.execute(
         TAG,
         () ->
             journalStorage.commit(
@@ -343,7 +335,7 @@ public class FeedStore implements Store, Dumpable {
 
     // While journal storage is async, we want FeedStore calls to be synchronous (for now)
     CountDownLatch latch = new CountDownLatch(1);
-    uiRunnableHandler.post(
+    mainThreadRunner.execute(
         TAG,
         () ->
             journalStorage.commit(
@@ -388,7 +380,7 @@ public class FeedStore implements Store, Dumpable {
           SEMANTIC_PROPERTIES_PREFIX + entry.getKey(), entry.getValue().toByteArray());
     }
     SimpleSettableFuture<CommitResult> resultFuture = new SimpleSettableFuture<>();
-    uiRunnableHandler.post(
+    mainThreadRunner.execute(
         TAG,
         () -> {
           // TODO: handle errors
@@ -419,7 +411,7 @@ public class FeedStore implements Store, Dumpable {
       mutation.append(streamStructure.toByteArray());
     }
     SimpleSettableFuture<CommitResult> resultFuture = new SimpleSettableFuture<>();
-    uiRunnableHandler.post(
+    mainThreadRunner.execute(
         TAG,
         () -> {
           // TOOD(rbonick): handle errors
@@ -465,7 +457,7 @@ public class FeedStore implements Store, Dumpable {
         SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
         Builder finalContentMutationBuilder = contentMutationBuilder;
         // TODO: handle errors
-        uiRunnableHandler.post(
+        mainThreadRunner.execute(
             TAG,
             () ->
                 contentStorage.commit(

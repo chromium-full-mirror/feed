@@ -18,14 +18,14 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.BasicStream;
-import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedactionparser.FeedActionParser;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -60,7 +60,7 @@ public class FeedStreamScope {
         SessionManager sessionManager,
         ThreadUtils threadUtils,
         TimingUtils timingUtils,
-        UiRunnableHandler uiRunnableHandler,
+        MainThreadRunner mainThreadRunner,
         Clock clock,
         DebugBehavior debugBehavior,
         StreamConfiguration streamConfiguration,
@@ -73,7 +73,7 @@ public class FeedStreamScope {
       this.sessionManager = sessionManager;
       this.threadUtils = threadUtils;
       this.timingUtils = timingUtils;
-      this.uiRunnableHandler = uiRunnableHandler;
+      this.mainThreadRunner = mainThreadRunner;
       this.streamConfiguration = streamConfiguration;
       this.cardConfiguration = cardConfiguration;
       this.clock = clock;
@@ -104,7 +104,7 @@ public class FeedStreamScope {
       if (modelProviderFactory == null) {
         modelProviderFactory =
             new FeedModelProviderFactory(
-                sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+                sessionManager, threadUtils, timingUtils, mainThreadRunner);
       }
       if (actionParser == null) {
         actionParser = new FeedActionParser();
@@ -145,7 +145,7 @@ public class FeedStreamScope {
     private final SessionManager sessionManager;
     private final ThreadUtils threadUtils;
     private final TimingUtils timingUtils;
-    private final UiRunnableHandler uiRunnableHandler;
+    private final MainThreadRunner mainThreadRunner;
     private final Clock clock;
     private CardConfiguration cardConfiguration;
     private StreamConfiguration streamConfiguration;

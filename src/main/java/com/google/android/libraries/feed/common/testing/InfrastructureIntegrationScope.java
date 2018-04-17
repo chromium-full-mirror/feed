@@ -16,12 +16,11 @@ package com.google.android.libraries.feed.common.testing;
 
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.SettableSupplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
@@ -56,7 +55,7 @@ public class InfrastructureIntegrationScope {
   InfrastructureIntegrationScope(
       ThreadUtils threadUtils, RequestManager mockRequestManager, ExecutorService executorService) {
     TimingUtils timingUtils = new TimingUtils();
-    UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
+    MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorage contentStorage = new InMemoryContentStorage();
@@ -70,7 +69,7 @@ public class InfrastructureIntegrationScope {
             contentStorage,
             journalStorage,
             threadUtils,
-            uiRunnableHandler);
+            mainThreadRunner);
     Clock clock = new SystemClockImpl();
     SettableSupplier<ProtocolAdapter> protocolAdapterSupplier = new SettableSupplier<>();
     SettableSupplier<RequestManager> requestManagerSupplier = new SettableSupplier<>();
@@ -86,7 +85,7 @@ public class InfrastructureIntegrationScope {
             clock);
     modelProviderFactory =
         new FeedModelProviderFactory(
-            feedSessionManager, threadUtils, timingUtils, uiRunnableHandler);
+            feedSessionManager, threadUtils, timingUtils, mainThreadRunner);
     feedProtocolAdapter = new FeedProtocolAdapter(feedSessionManager, timingUtils);
     protocolAdapterSupplier.set(feedProtocolAdapter);
     requestManagerSupplier.set(mockRequestManager);

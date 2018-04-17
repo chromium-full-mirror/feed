@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.feedmodelprovider;
 import android.database.Observable;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -31,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
@@ -106,7 +106,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
-  private final UiRunnableHandler uiRunnableHandler;
+  private final MainThreadRunner mainThreadRunner;
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
 
@@ -116,11 +116,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       SessionManager sessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
-      UiRunnableHandler uiRunnableHandler) {
+      MainThreadRunner mainThreadRunner) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
-    this.uiRunnableHandler = uiRunnableHandler;
+    this.mainThreadRunner = mainThreadRunner;
 
     CursorProvider cursorProvider =
         parentId -> {
@@ -236,10 +236,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
     // Always run the observers on the UI Thread
     List<ModelProviderObserver> observers = getObserversToNotify();
-    uiRunnableHandler.post(
+    mainThreadRunner.execute(
         TAG + " - onSessionFinished",
         () -> {
-          threadUtils.checkMainThread();
           for (ModelProviderObserver observer : observers) {
             observer.onSessionFinished();
           }
@@ -509,11 +508,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             // check if we need to notify that the root was changed
             if (rootChanged && currentState == State.READY) {
               List<ModelProviderObserver> observers = getObserversToNotify();
-              uiRunnableHandler.post(
+              mainThreadRunner.execute(
                   TAG + " - onRootSet",
                   () -> {
-                    // Always run the observers on the UI Thread
-                    threadUtils.checkMainThread();
                     for (ModelProviderObserver observer : observers) {
                       observer.onRootSet();
                     }
@@ -586,11 +583,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         currentState = State.READY;
       }
       List<ModelProviderObserver> observers = getObserversToNotify();
-      uiRunnableHandler.post(
+      mainThreadRunner.execute(
           TAG + " - onSessionStart",
           () -> {
-            // Always run the observers on the UI Thread
-            threadUtils.checkMainThread();
             for (ModelProviderObserver observer : observers) {
               observer.onSessionStart();
             }
@@ -646,11 +641,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
               threadUtils);
       TokenCompleted tokenCompleted = new TokenCompleted(cursor);
       List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
-      uiRunnableHandler.post(
+      mainThreadRunner.execute(
           TAG + " - onTokenChange",
           () -> {
-            // Always run the observers on the UI Thread
-            threadUtils.checkMainThread();
             for (TokenCompletedObserver observer : observers) {
               observer.onChange(tokenCompleted);
             }
@@ -735,7 +728,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       }
 
       // Update the Observers on the UI Thread
-      uiRunnableHandler.post(
+      mainThreadRunner.execute(
           TAG + " - onFeatureChange",
           () -> {
             for (FeatureChangeImpl change : changes.values()) {

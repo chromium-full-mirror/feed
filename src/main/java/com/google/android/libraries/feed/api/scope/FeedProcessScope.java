@@ -17,14 +17,13 @@ package com.google.android.libraries.feed.api.scope;
 import android.content.Context;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
 import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.SettableSupplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
@@ -76,7 +75,7 @@ public class FeedProcessScope implements Dumpable {
         sessionManager,
         threadUtils,
         timingUtils,
-        uiRunnableHandler,
+        mainThreadRunner,
         clock,
         debugBehavior,
         streamConfiguration,
@@ -185,7 +184,7 @@ public class FeedProcessScope implements Dumpable {
         clock = new SystemClockImpl();
       }
       TimingUtils timingUtils = new TimingUtils();
-      UiRunnableHandler uiRunnableHandler = new UiRunnableHandlerImpl();
+      MainThreadRunner mainThreadRunner = new MainThreadRunner();
       FeedStore store =
           new FeedStore(
               timingUtils,
@@ -193,7 +192,7 @@ public class FeedProcessScope implements Dumpable {
               contentStorage,
               journalStorage,
               threadUtils,
-              uiRunnableHandler);
+              mainThreadRunner);
       SettableSupplier<ProtocolAdapter> protocolAdapterSupplier = new SettableSupplier<>();
       SettableSupplier<RequestManager> requestManagerSupplier = new SettableSupplier<>();
       if (sessionManager == null) {
@@ -238,7 +237,7 @@ public class FeedProcessScope implements Dumpable {
           store,
           timingUtils,
           threadUtils,
-          uiRunnableHandler,
+          mainThreadRunner,
           appLifecycleListener,
           clock,
           debugBehavior);
@@ -276,7 +275,7 @@ public class FeedProcessScope implements Dumpable {
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      UiRunnableHandler uiRunnableHandler,
+      MainThreadRunner mainThreadRunner,
       AppLifecycleListener appLifecycleListener,
       Clock clock,
       DebugBehavior debugBehavior) {
@@ -289,7 +288,7 @@ public class FeedProcessScope implements Dumpable {
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    this.uiRunnableHandler = uiRunnableHandler;
+    this.mainThreadRunner = mainThreadRunner;
     this.appLifecycleListener = appLifecycleListener;
     this.clock = clock;
     this.debugBehavior = debugBehavior;
@@ -304,7 +303,7 @@ public class FeedProcessScope implements Dumpable {
   private final Store store;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
-  private final UiRunnableHandler uiRunnableHandler;
+  private final MainThreadRunner mainThreadRunner;
   private final AppLifecycleListener appLifecycleListener;
   private final Clock clock;
   private final DebugBehavior debugBehavior;
@@ -325,8 +324,8 @@ public class FeedProcessScope implements Dumpable {
     return timingUtils;
   }
 
-  public UiRunnableHandler getUiRunnableHandler() {
-    return uiRunnableHandler;
+  public MainThreadRunner getMainThreadRunner() {
+    return mainThreadRunner;
   }
 
   public AppLifecycleListener getAppLifecycleListener() {

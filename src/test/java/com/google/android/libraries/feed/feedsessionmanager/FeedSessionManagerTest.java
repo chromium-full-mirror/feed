@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -40,7 +39,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.Suppliers;
@@ -89,7 +88,7 @@ public class FeedSessionManagerTest {
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
 
-  @Mock private UiRunnableHandler uiRunnableHandler;
+  private MainThreadRunner mainThreadRunner;
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
@@ -114,6 +113,7 @@ public class FeedSessionManagerTest {
   @Before
   public void setUp() {
     initMocks(this);
+    mainThreadRunner = new MainThreadRunner();
     when(store.getHeadSession()).thenReturn(HEAD);
   }
 
@@ -170,7 +170,7 @@ public class FeedSessionManagerTest {
     populateSession(sessionManager, featureCnt, 1, true, null);
 
     ModelProviderFactory modelProviderFactory =
-        new FeedModelProviderFactory(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+        new FeedModelProviderFactory(sessionManager, threadUtils, timingUtils, mainThreadRunner);
     ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider).isNotNull();
 
@@ -462,7 +462,7 @@ public class FeedSessionManagerTest {
             new InMemoryContentStorage(),
             new InMemoryJournalStorage(),
             threadUtils,
-            new UiRunnableHandlerImpl());
+            mainThreadRunner);
     FeedSessionManager sessionManager =
         new FeedSessionManager(
             MoreExecutors.newDirectExecutorService(),

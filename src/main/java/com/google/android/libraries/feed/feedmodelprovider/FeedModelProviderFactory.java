@@ -15,10 +15,10 @@
 package com.google.android.libraries.feed.feedmodelprovider;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 
 /**
@@ -29,23 +29,23 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
-  private final UiRunnableHandler uiRunnableHandler;
+  private final MainThreadRunner mainThreadRunner;
 
   public FeedModelProviderFactory(
       SessionManager sessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
-      UiRunnableHandler uiRunnableHandler) {
+      MainThreadRunner mainThreadRunner) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
-    this.uiRunnableHandler = uiRunnableHandler;
+    this.mainThreadRunner = mainThreadRunner;
   }
 
   @Override
   public ModelProvider create(String sessionToken) {
     FeedModelProvider modelProvider =
-        new FeedModelProvider(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+        new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner);
     sessionManager.getExistingSession(sessionToken, modelProvider);
     return modelProvider;
   }
@@ -53,7 +53,7 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   @Override
   public ModelProvider createNew() {
     FeedModelProvider modelProvider =
-        new FeedModelProvider(sessionManager, threadUtils, timingUtils, uiRunnableHandler);
+        new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner);
     sessionManager.getNewSession(modelProvider);
     return modelProvider;
   }

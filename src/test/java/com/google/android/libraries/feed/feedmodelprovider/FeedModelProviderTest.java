@@ -37,7 +37,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.InitializeModel;
@@ -444,11 +444,7 @@ public class FeedModelProviderTest {
   }
 
   private FeedModelProvider createFeedModelProvider() {
-    return new FeedModelProvider(
-        sessionManager,
-        threadUtils,
-        timingUtils,
-        new UiRunnableHandlerImpl());
+    return new FeedModelProvider(sessionManager, threadUtils, timingUtils, new MainThreadRunner());
   }
 
   private StreamFeature createFeature(int i, String parentContentId) {

@@ -12,10 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.common;
+package com.google.android.libraries.feed.common.concurrent;
 
-/** Interface providing the ability to run a {@link Runnable} on the UI Thread. */
-public interface UiRunnableHandler {
-  /** Post a {@link Runnable} to run on the UI Thread Looper */
-  boolean post(String tag, Runnable runnable);
+import android.os.Handler;
+import android.os.Looper;
+
+/** A {@link AbstractRunner} that executes on the main thread (UI thread). */
+public class MainThreadRunner extends AbstractRunner {
+  private static final Handler handler = new Handler(Looper.getMainLooper());
+
+  public MainThreadRunner() {
+    super(handler::post, "UI thread");
+  }
 }

@@ -22,14 +22,13 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.common.UiRunnableHandler;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
-import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.common.UiRunnableHandlerImpl;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.testing.TestClockImpl;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -65,7 +64,7 @@ public class FeedStreamScopeTest {
   @Mock private CustomElementProvider customElementProvider;
 
   private Context context;
-  private UiRunnableHandler uiRunnableHandler;
+  private MainThreadRunner mainThreadRunner;
   private ThreadUtils threadUtils;
   private TimingUtils timingUtils;
   private Clock clock;
@@ -74,7 +73,7 @@ public class FeedStreamScopeTest {
   public void setUp() {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    uiRunnableHandler = new UiRunnableHandlerImpl();
+    mainThreadRunner = new MainThreadRunner();
     threadUtils = new ThreadUtils();
     timingUtils = new TimingUtils();
     clock = new TestClockImpl();
@@ -92,7 +91,7 @@ public class FeedStreamScopeTest {
                 sessionManager,
                 threadUtils,
                 timingUtils,
-                uiRunnableHandler,
+                mainThreadRunner,
                 clock,
                 DebugBehavior.VERBOSE,
                 streamConfiguration,
@@ -114,7 +113,7 @@ public class FeedStreamScopeTest {
                 sessionManager,
                 threadUtils,
                 timingUtils,
-                uiRunnableHandler,
+                mainThreadRunner,
                 clock,
                 DebugBehavior.VERBOSE,
                 streamConfiguration,
