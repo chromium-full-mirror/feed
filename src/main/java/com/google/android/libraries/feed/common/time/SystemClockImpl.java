@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.common.time;
 
 import android.os.Build;
 import android.os.SystemClock;
-import com.google.android.libraries.feed.api.common.Clock;
 
 /**
  * Implementation of {@link Clock} that delegates to the system clock.
@@ -25,9 +24,6 @@ import com.google.android.libraries.feed.api.common.Clock;
  * prefer to simply inject a {@link Clock}.
  */
 public class SystemClockImpl implements Clock {
-  /** Number of nanoseconds in a single millisecond. */
-  public static final long NS_IN_MS = 1000000;
-
   @Override
   public long currentTimeMillis() {
     return System.currentTimeMillis();
@@ -54,10 +50,5 @@ public class SystemClockImpl implements Clock {
   @Override
   public long uptimeMillis() {
     return SystemClock.uptimeMillis();
-  }
-
-  @Override
-  public long elapsedToCurrentTime(long elapsedRealtime) {
-    return elapsedRealtime - elapsedRealtime() + currentTimeMillis();
   }
 }

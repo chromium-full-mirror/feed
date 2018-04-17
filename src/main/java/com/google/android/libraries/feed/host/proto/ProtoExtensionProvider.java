@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.host.common;
+package com.google.android.libraries.feed.host.proto;
 
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.List;

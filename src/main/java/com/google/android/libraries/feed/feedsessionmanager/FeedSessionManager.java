@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedsessionmanager;
 
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
-import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -34,6 +33,7 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;

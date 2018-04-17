@@ -33,7 +33,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.basicstream.BasicStream.PietContentModel;
 import com.google.android.libraries.feed.basicstream.internal.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
-import com.google.android.libraries.feed.common.testing.TestClockImpl;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
@@ -112,7 +112,7 @@ public class BasicStreamTest {
             DebugBehavior.VERBOSE,
             threadUtils,
             headers,
-            new TestClockImpl(),
+            new FakeClock(),
             modelProviderFactory) {
           @Override
           PietSharedStateSupplier createPietSharedStateSupplier() {

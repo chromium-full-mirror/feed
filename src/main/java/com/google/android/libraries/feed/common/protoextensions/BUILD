@@ -6,7 +6,7 @@ android_library(
     name = "protoextensions",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/host/common",
+        "//src/main/java/com/google/android/libraries/feed/host/proto",
         "//src/main/proto/search/now/proto/ui/action:feed_action_java_proto_lite",
         "//src/main/proto/search/now/proto/ui/action:piet_extensions_java_proto_lite",
         "//src/main/proto/search/now/proto/ui/stream:stream_java_proto_lite",

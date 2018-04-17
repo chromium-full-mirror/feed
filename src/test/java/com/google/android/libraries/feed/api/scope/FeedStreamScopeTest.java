@@ -20,14 +20,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.testing.TestClockImpl;
+import com.google.android.libraries.feed.common.testing.FakeClock;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -76,7 +76,7 @@ public class FeedStreamScopeTest {
     mainThreadRunner = new MainThreadRunner();
     threadUtils = new ThreadUtils();
     timingUtils = new TimingUtils();
-    clock = new TestClockImpl();
+    clock = new FakeClock();
   }
 
   @Test

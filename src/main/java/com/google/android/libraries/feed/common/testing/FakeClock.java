@@ -14,18 +14,18 @@
 
 package com.google.android.libraries.feed.common.testing;
 
-import com.google.android.libraries.feed.api.common.Clock;
+import com.google.android.libraries.feed.common.time.Clock;
 
 /** Fake implementation of {@link Clock} for testing. */
-public class TestClockImpl implements Clock {
+public class FakeClock implements Clock {
   private long currentTime;
   private long elapsedRealtimeMs;
 
-  public TestClockImpl() {
+  public FakeClock() {
     this(0, 0);
   }
 
-  public TestClockImpl(long currentTime, long elapsedRealtime) {
+  public FakeClock(long currentTime, long elapsedRealtime) {
     this.currentTime = currentTime;
     elapsedRealtimeMs = elapsedRealtime;
   }
@@ -34,14 +34,14 @@ public class TestClockImpl implements Clock {
    * Sets the current time and elapsed real time to the same value. Returns {@code this} for
    * convenience.
    */
-  public TestClockImpl set(long millis) {
+  public FakeClock set(long millis) {
     return set(millis, millis);
   }
 
   /**
    * Sets the current time and elapsed real time individually. Returns {@code this} for convenience.
    */
-  public TestClockImpl set(long currentTime, long elapsedRealtime) {
+  public FakeClock set(long currentTime, long elapsedRealtime) {
     this.currentTime = currentTime;
     elapsedRealtimeMs = elapsedRealtime;
     return this;
@@ -67,17 +67,7 @@ public class TestClockImpl implements Clock {
   }
 
   @Override
-  public long elapsedRealtimeNanos() {
-    return elapsedRealtimeMs * 1000000;
-  }
-
-  @Override
   public long uptimeMillis() {
     return elapsedRealtimeMs;
-  }
-
-  @Override
-  public long elapsedToCurrentTime(long elapsedRealtime) {
-    return elapsedRealtime - elapsedRealtime() + currentTimeMillis();
   }
 }

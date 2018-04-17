@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.common.protoextensions;
 
-import com.google.android.libraries.feed.host.common.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;

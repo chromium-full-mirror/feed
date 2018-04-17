@@ -21,7 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.testing.TestClockImpl;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.search.now.ui.piet.ImagesProto.Image;
@@ -44,7 +44,7 @@ public class PietAssetProviderTest {
   @Mock private CardConfiguration cardConfiguration;
   @Mock private ImageLoaderApi imageLoaderApi;
 
-  private TestClockImpl clock;
+  private FakeClock clock;
   private PietAssetProvider pietAssetProvider;
 
   @Before
@@ -53,7 +53,7 @@ public class PietAssetProviderTest {
 
     when(cardConfiguration.getDefaultCornerRadius()).thenReturn(DEFAULT_CORNER_RADIUS);
 
-    clock = new TestClockImpl();
+    clock = new FakeClock();
     clock.set(TimeUnit.MINUTES.toMillis(1));
     pietAssetProvider = new PietAssetProvider(imageLoaderApi, cardConfiguration, clock);
   }

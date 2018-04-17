@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -25,6 +24,7 @@ import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.BasicStream;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedactionparser.FeedActionParser;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;

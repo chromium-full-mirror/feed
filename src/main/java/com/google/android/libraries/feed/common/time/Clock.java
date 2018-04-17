@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.api.common;
+package com.google.android.libraries.feed.common.time;
 
 /**
  * Interface of SystemClock; real instances should just delegate the calls to the static methods,
@@ -21,6 +21,9 @@ package com.google.android.libraries.feed.api.common;
  * mocked if needed
  */
 public interface Clock {
+  /** Number of nanoseconds in a single millisecond. */
+  long NS_IN_MS = 1_000_000;
+
   /**
    * Returns the current system time in milliseconds since January 1, 1970 00:00:00 UTC. This method
    * shouldn't be used for measuring timeouts or other elapsed time measurements, as changing the
@@ -42,7 +45,9 @@ public interface Clock {
    *
    * @return elapsed nanoseconds since boot.
    */
-  long elapsedRealtimeNanos();
+  default long elapsedRealtimeNanos() {
+    return NS_IN_MS * elapsedRealtime();
+  }
 
   /**
    * Returns milliseconds since boot, not counting time spent in deep sleep.
@@ -50,10 +55,4 @@ public interface Clock {
    * @return milliseconds of non-sleep uptime since boot.
    */
   long uptimeMillis();
-
-  /**
-   * Given a timestamp from {@link #elapsedRealtime()}, convert it to a timestamp on the scale of
-   * {@link #currentTimeMillis()}.
-   */
-  long elapsedToCurrentTime(long elapsedRealtime);
 }

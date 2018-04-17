@@ -16,8 +16,8 @@ package com.google.android.libraries.feed.basicstream.internal.piet;
 
 import android.graphics.drawable.Drawable;
 import android.text.format.DateUtils;
-import com.google.android.libraries.feed.api.common.Clock;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
