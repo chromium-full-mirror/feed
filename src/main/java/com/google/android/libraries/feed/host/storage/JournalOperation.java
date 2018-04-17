@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.host.storage;
 
 import android.support.annotation.IntDef;
-import java.nio.ByteBuffer;
 
 /** A mutation to the underlying {@link JournalStorage}. */
 public abstract class JournalOperation {
@@ -42,14 +41,14 @@ public abstract class JournalOperation {
    * A {@link JournalOperation} created by calling {@link JournalMutation.Builder#append(byte[])}.
    */
   public static class Append extends JournalOperation {
-    private final ByteBuffer value;
+    private final byte[] value;
 
-    Append(ByteBuffer value) {
+    Append(byte[] value) {
       super(Type.APPEND);
       this.value = value;
     }
 
-    public ByteBuffer getValue() {
+    public byte[] getValue() {
       return value;
     }
   }

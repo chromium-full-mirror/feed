@@ -42,7 +42,6 @@ import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 
 /** Default implementation of RequestManager. */
@@ -125,15 +124,14 @@ public class FeedRequestManager implements RequestManager {
             requestBuilder.build().toByteArray(), Base64.URL_SAFE | Base64.NO_WRAP));
     uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
 
-    HttpRequest httpRequest =
-        new HttpRequest(uriBuilder.build(), ByteBuffer.allocate(0), HttpMethod.GET);
+    HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), HttpMethod.GET);
     networkClient.send(
         httpRequest,
         input -> {
           if (input.getResponseCode() != 200) {
             String errorBody = null;
             try {
-              errorBody = new String(input.getResponseBody().array(), "UTF-8");
+              errorBody = new String(input.getResponseBody(), "UTF-8");
             } catch (UnsupportedEncodingException e) {
               Logger.e(TAG, "Error handling http error logging", e);
             }
@@ -147,7 +145,7 @@ public class FeedRequestManager implements RequestManager {
 
           try {
             handleResponseBytes(
-                input.getResponseBody().array(), mutationContext, /* isLengthPrefixed= */ true);
+                input.getResponseBody(), mutationContext, /* isLengthPrefixed= */ true);
           } catch (IOException e) {
             Logger.e(TAG, "Error handling response bytes", e);
           }

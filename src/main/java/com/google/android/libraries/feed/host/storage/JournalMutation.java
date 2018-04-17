@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.host.storage;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Copy;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Delete;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +62,7 @@ public class JournalMutation {
      * <p>This method can be called repeatedly to append multiple times.
      */
     public Builder append(byte[] value) {
-      operations.add(new Append(ByteBuffer.wrap(value)));
+      operations.add(new Append(value));
       return this;
     }
 

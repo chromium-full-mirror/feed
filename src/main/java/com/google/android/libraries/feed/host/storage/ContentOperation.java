@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.host.storage;
 
 import android.support.annotation.IntDef;
-import java.nio.ByteBuffer;
 
 /** A mutation to the underlying {@link ContentStorage}. */
 public abstract class ContentOperation {
@@ -44,9 +43,9 @@ public abstract class ContentOperation {
    */
   public static class Upsert extends ContentOperation {
     private final String key;
-    private final ByteBuffer value;
+    private final byte[] value;
 
-    Upsert(String key, ByteBuffer value) {
+    Upsert(String key, byte[] value) {
       super(Type.UPSERT);
       this.key = key;
       this.value = value;
@@ -56,7 +55,7 @@ public abstract class ContentOperation {
       return key;
     }
 
-    public ByteBuffer getValue() {
+    public byte[] getValue() {
       return value;
     }
   }

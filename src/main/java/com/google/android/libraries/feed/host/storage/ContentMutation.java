@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.host.storage;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Delete;
 import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteByPrefix;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +52,7 @@ public class ContentMutation {
      * assigned multiple times, only the last value will be persisted.
      */
     public Builder upsert(String key, byte[] value) {
-      operations.add(new Upsert(key, ByteBuffer.wrap(value)));
+      operations.add(new Upsert(key, value));
       return this;
     }
 

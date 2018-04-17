@@ -45,7 +45,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -255,8 +254,7 @@ public class FeedStore implements Store, Dumpable {
       for (Map.Entry<String, byte[]> entry : mapResult.getValue().entrySet()) {
         String contentId = entry.getKey().replace(SEMANTIC_PROPERTIES_PREFIX, "");
         if (contentIds.contains(contentId)) {
-          semanticPropertiesWithIds.add(
-              new SemanticPropertiesWithId(contentId, ByteBuffer.wrap(entry.getValue())));
+          semanticPropertiesWithIds.add(new SemanticPropertiesWithId(contentId, entry.getValue()));
         }
       }
     } else {

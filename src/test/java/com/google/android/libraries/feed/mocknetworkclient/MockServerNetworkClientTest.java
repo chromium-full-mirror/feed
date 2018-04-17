@@ -48,7 +48,6 @@ import com.google.search.now.wire.feed.mockserver.MockServerProto.ConditionalRes
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServer;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -113,8 +112,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
           @Override
           public void accept(HttpResponse input) {
             try {
-              CodedInputStream inputStream =
-                  CodedInputStream.newInstance(input.getResponseBody().array());
+              CodedInputStream inputStream = CodedInputStream.newInstance(input.getResponseBody());
               int length = inputStream.readRawVarint32();
               assertThat(inputStream.readRawBytes(length)).isEqualTo(initialResponse.toByteArray());
               assertThat(input.getResponseCode()).isEqualTo(200);
@@ -123,8 +121,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             }
           }
         };
-    networkClient.send(
-        new HttpRequest(Uri.EMPTY, ByteBuffer.allocate(0), HttpMethod.POST), responseConsumer);
+    networkClient.send(new HttpRequest(Uri.EMPTY, HttpMethod.POST), responseConsumer);
   }
 
   @Test
@@ -139,8 +136,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
           @Override
           public void accept(HttpResponse input) {
             try {
-              CodedInputStream inputStream =
-                  CodedInputStream.newInstance(input.getResponseBody().array());
+              CodedInputStream inputStream = CodedInputStream.newInstance(input.getResponseBody());
               int length = inputStream.readRawVarint32();
               assertThat(inputStream.readRawBytes(length)).isEqualTo(initialResponse.toByteArray());
               assertThat(input.getResponseCode()).isEqualTo(200);
@@ -149,8 +145,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             }
           }
         };
-    networkClient.send(
-        new HttpRequest(Uri.EMPTY, ByteBuffer.allocate(0), HttpMethod.POST), responseConsumer);
+    networkClient.send(new HttpRequest(Uri.EMPTY, HttpMethod.POST), responseConsumer);
   }
 
   @Test

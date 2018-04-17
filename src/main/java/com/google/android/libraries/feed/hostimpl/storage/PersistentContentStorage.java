@@ -201,7 +201,7 @@ public class PersistentContentStorage implements ContentStorage {
 
     File file = new File(contentDir, operation.getKey());
     try (FileOutputStream fos = new FileOutputStream(file)) {
-      fos.write(operation.getValue().array());
+      fos.write(operation.getValue());
       return true;
     } catch (IOException e) {
       Logger.e(

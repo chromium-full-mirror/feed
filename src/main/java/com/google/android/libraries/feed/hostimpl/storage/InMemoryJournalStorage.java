@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Copy;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -99,8 +98,7 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
     consumer.accept(Result.success(new ArrayList<>(journals.keySet())));
   }
 
-  @SuppressWarnings("ByteBufferBackingArray")
-  private boolean append(ByteBuffer value, String journalName) {
+  private boolean append(byte[] value, String journalName) {
     List<byte[]> journal = journals.get(journalName);
     if (value == null) {
       Logger.e(TAG, "Journal not found: %s", journalName);
@@ -111,7 +109,7 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
       journals.put(journalName, journal);
     }
     appendCount++;
-    journal.add(value.array());
+    journal.add(value);
     return true;
   }
 

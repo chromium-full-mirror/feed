@@ -14,8 +14,6 @@
 
 package com.google.android.libraries.feed.api.common;
 
-import java.nio.ByteBuffer;
-
 /**
  * Structure style class which binds a String contentId with the semantic properties data for that
  * contentId. The class is immutable and provides access to the fields directly.
@@ -23,9 +21,9 @@ import java.nio.ByteBuffer;
 public class SemanticPropertiesWithId {
 
   public final String contentId;
-  public final ByteBuffer semanticData;
+  public final byte[] semanticData;
 
-  public SemanticPropertiesWithId(String contentId, ByteBuffer semanticData) {
+  public SemanticPropertiesWithId(String contentId, byte[] semanticData) {
     this.contentId = contentId;
     this.semanticData = semanticData;
   }

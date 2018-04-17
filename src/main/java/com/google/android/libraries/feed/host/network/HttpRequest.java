@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.host.network;
 import android.net.Uri;
 import android.support.annotation.StringDef;
 import java.net.HttpURLConnection;
-import java.nio.ByteBuffer;
 
 /** Representation of an HTTP request. */
 public class HttpRequest {
@@ -40,20 +39,24 @@ public class HttpRequest {
   }
 
   private final Uri uri;
-  private final ByteBuffer body;
+  private final byte[] body;
   private final @HttpMethod String method;
 
-  public HttpRequest(Uri uri, ByteBuffer body, String method) {
+  public HttpRequest(Uri uri, String method, byte[] body) {
     this.uri = uri;
     this.body = body;
     this.method = method;
+  }
+
+  public HttpRequest(Uri uri, String method) {
+    this(uri, method, new byte[] {});
   }
 
   public Uri getUri() {
     return uri;
   }
 
-  public ByteBuffer getBody() {
+  public byte[] getBody() {
     return body;
   }
 

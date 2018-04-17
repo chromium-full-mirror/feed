@@ -73,7 +73,6 @@ public class SemanticPropertiesTest {
         store.getSemanticProperties(Collections.singletonList(contentIdString));
     assertThat(semanticProperties).hasSize(1);
     assertThat(semanticProperties.get(0).contentId).isEqualTo(contentIdString);
-    assertThat(semanticProperties.get(0).semanticData)
-        .isEqualTo(semanticData.asReadOnlyByteBuffer());
+    assertThat(semanticProperties.get(0).semanticData).isEqualTo(semanticData.toByteArray());
   }
 }

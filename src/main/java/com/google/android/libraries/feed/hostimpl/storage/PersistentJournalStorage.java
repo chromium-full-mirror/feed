@@ -176,15 +176,12 @@ public class PersistentJournalStorage implements JournalStorage {
 
   private boolean append(Append operation, File journal) {
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(journal, /* append= */ true))) {
-      writer.write(new String(operation.getValue().array(), CHARSET));
+      writer.write(new String(operation.getValue(), CHARSET));
       writer.newLine();
       return true;
     } catch (IOException e) {
       Logger.e(
-          TAG,
-          "Error appending byte buffer %s for journal %s",
-          operation.getValue(),
-          journal.getName());
+          TAG, "Error appending byte[] %s for journal %s", operation.getValue(), journal.getName());
       return false;
     }
   }

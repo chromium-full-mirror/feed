@@ -45,7 +45,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -285,8 +284,7 @@ public class FeedStoreTest {
         store.getSemanticProperties(Collections.singletonList(PAYLOAD_CONTENT_ID));
     assertThat(semanticProperties).hasSize(1);
     assertThat(semanticProperties.get(0).contentId).isEqualTo(PAYLOAD_CONTENT_ID);
-    assertThat(semanticProperties.get(0).semanticData)
-        .isEqualTo(ByteBuffer.wrap(semanticData.toByteArray()));
+    assertThat(semanticProperties.get(0).semanticData).isEqualTo(semanticData.toByteArray());
   }
 
   @Test

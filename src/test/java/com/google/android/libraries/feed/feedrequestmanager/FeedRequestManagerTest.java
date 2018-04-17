@@ -109,7 +109,7 @@ public class FeedRequestManagerTest {
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
     HttpRequest httpRequest = requestCaptor.getValue();
-    assertThat(httpRequest.getBody().array()).hasLength(0);
+    assertThat(httpRequest.getBody()).hasLength(0);
     assertThat(httpRequest.getMethod()).isEqualTo(HttpMethod.GET);
     assertThat(httpRequest.getUri().getQueryParameter("fmt")).isEqualTo("bin");
     assertThat(httpRequest.getUri().getQueryParameter("reqpld")).isNotNull();
@@ -164,9 +164,7 @@ public class FeedRequestManagerTest {
     responseConsumerCaptor
         .getValue()
         .accept(
-            new HttpResponse(
-                /* responseCode= */ 200,
-                ByteBuffer.wrap(Response.getDefaultInstance().toByteArray())));
+            new HttpResponse(/* responseCode= */ 200, Response.getDefaultInstance().toByteArray()));
 
     verify(protocolAdapter, never()).createModel(any(), any());
   }
@@ -188,6 +186,8 @@ public class FeedRequestManagerTest {
     codedOutputStream.writeUInt32NoTag(rawResponse.length);
     codedOutputStream.writeRawBytes(rawResponse);
     codedOutputStream.flush();
-    return new HttpResponse(responseCode, buffer);
+    byte[] newResponse = new byte[buffer.remaining()];
+    buffer.get(newResponse);
+    return new HttpResponse(responseCode, newResponse);
   }
 }

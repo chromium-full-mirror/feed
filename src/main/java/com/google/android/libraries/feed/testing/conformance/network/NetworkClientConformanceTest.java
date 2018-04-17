@@ -22,7 +22,6 @@ import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
-import java.nio.ByteBuffer;
 import org.junit.Test;
 
 public abstract class NetworkClientConformanceTest {
@@ -32,10 +31,7 @@ public abstract class NetworkClientConformanceTest {
   @Test
   public void send_get() {
     HttpRequest request =
-        new HttpRequest(
-            new Uri.Builder().path("http://www.google.com/").build(),
-            ByteBuffer.allocate(0),
-            HttpMethod.GET);
+        new HttpRequest(new Uri.Builder().path("http://www.google.com/").build(), HttpMethod.GET);
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {
@@ -52,8 +48,8 @@ public abstract class NetworkClientConformanceTest {
     HttpRequest request =
         new HttpRequest(
             new Uri.Builder().path("http://www.google.com/").build(),
-            ByteBuffer.wrap("helloWorld".getBytes()),
-            HttpMethod.POST);
+            HttpMethod.POST,
+            "helloWorld".getBytes());
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {
@@ -70,8 +66,8 @@ public abstract class NetworkClientConformanceTest {
     HttpRequest request =
         new HttpRequest(
             new Uri.Builder().path("http://www.google.com/").build(),
-            ByteBuffer.wrap("helloWorld".getBytes()),
-            HttpMethod.PUT);
+            HttpMethod.PUT,
+            "helloWorld".getBytes());
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {
@@ -87,9 +83,7 @@ public abstract class NetworkClientConformanceTest {
   public void send_delete() {
     HttpRequest request =
         new HttpRequest(
-            new Uri.Builder().path("http://www.google.com/").build(),
-            ByteBuffer.allocate(0),
-            HttpMethod.DELETE);
+            new Uri.Builder().path("http://www.google.com/").build(), HttpMethod.DELETE);
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {

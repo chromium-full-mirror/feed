@@ -39,7 +39,6 @@ import com.google.search.now.wire.feed.mockserver.MockServerProto.ConditionalRes
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServer;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 /** A network client that returns mock responses provided via a config proto */
@@ -51,7 +50,6 @@ public class MockServerNetworkClient implements NetworkClient {
   private final ExtensionRegistryLite extensionRegistry;
 
   @VisibleForTesting final MockServerLooper looper;
-
   @VisibleForTesting boolean hasQuit = false;
 
   /*@Nullable*/ @VisibleForTesting RequestManager requestManager;
@@ -108,7 +106,7 @@ public class MockServerNetworkClient implements NetworkClient {
     } catch (IOException e) {
       // TODO : handle errors here
       Logger.e(TAG, e.getMessage());
-      responseConsumer.accept(new HttpResponse(400, ByteBuffer.allocate(0)));
+      responseConsumer.accept(new HttpResponse(400));
     }
   }
 
@@ -123,7 +121,7 @@ public class MockServerNetworkClient implements NetworkClient {
                 Base64.URL_SAFE);
       }
     } else {
-      rawRequest = httpRequest.getBody().array();
+      rawRequest = httpRequest.getBody();
     }
     return Request.parseFrom(rawRequest, extensionRegistry);
   }
@@ -146,20 +144,20 @@ public class MockServerNetworkClient implements NetworkClient {
 
   private HttpResponse createHttpResponse(Response response) {
     if (response == null) {
-      return new HttpResponse(500, ByteBuffer.allocate(0));
+      return new HttpResponse(500);
     }
 
     try {
       byte[] rawResponse = response.toByteArray();
-      ByteBuffer buffer = ByteBuffer.allocate(rawResponse.length + (Integer.SIZE / 8));
-      CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
+      byte[] newResponse = new byte[rawResponse.length + (Integer.SIZE / 8)];
+      CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(newResponse);
       codedOutputStream.writeUInt32NoTag(rawResponse.length);
       codedOutputStream.writeRawBytes(rawResponse);
       codedOutputStream.flush();
-      return new HttpResponse(200, buffer);
+      return new HttpResponse(200, newResponse);
     } catch (IOException e) {
       Logger.e(TAG, "Error creating response", e);
-      return new HttpResponse(500, ByteBuffer.allocate(0));
+      return new HttpResponse(500);
     }
   }
 

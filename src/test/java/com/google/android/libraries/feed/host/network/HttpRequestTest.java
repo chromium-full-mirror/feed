@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.net.Uri;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
-import java.nio.ByteBuffer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -30,12 +29,12 @@ public class HttpRequestTest {
   @Test
   public void testConstructor() throws Exception {
     Uri uri = Uri.EMPTY;
-    ByteBuffer byteBuffer = ByteBuffer.allocate(0);
+    byte[] bytes = new byte[] {};
     String httpMethod = HttpMethod.GET;
-    HttpRequest httpRequest = new HttpRequest(uri, byteBuffer, httpMethod);
+    HttpRequest httpRequest = new HttpRequest(uri, httpMethod, bytes);
 
     assertThat(httpRequest.getUri()).isEqualTo(uri);
-    assertThat(httpRequest.getBody()).isEqualTo(byteBuffer);
+    assertThat(httpRequest.getBody()).isEqualTo(bytes);
     assertThat(httpRequest.getMethod()).isEqualTo(httpMethod);
   }
 }

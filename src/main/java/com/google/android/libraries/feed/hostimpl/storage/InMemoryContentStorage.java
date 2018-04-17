@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.host.storage.ContentOperation.Delete;
 import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteByPrefix;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -136,12 +135,11 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
       Logger.e(TAG, "Invalid ContentMutation: null key");
       return false;
     }
-    ByteBuffer valueBuffer = operation.getValue();
-    if (valueBuffer == null) {
+    byte[] value = operation.getValue();
+    if (value == null) {
       Logger.e(TAG, "Invalid ContentMutation: null value");
       return false;
     }
-    byte[] value = valueBuffer.array();
     if (value.length == 0) {
       Logger.e(TAG, "Invalid ContentMutation: empty value");
       return false;
