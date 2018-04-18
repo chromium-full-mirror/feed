@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -48,6 +49,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -59,9 +61,11 @@ import java.util.concurrent.ExecutionException;
 public class FeedStore implements Store, Dumpable {
 
   private static final String TAG = "FeedStore";
-  private static final String SHARED_STATE_PREFIX = "ss::";
   private static final String SESSION_NAME_PREFIX = "_session:";
-  private static final String SEMANTIC_PROPERTIES_PREFIX = "sp::";
+
+  // These are the prefixes on content ids used to create keys for segments of the content
+  static final String SHARED_STATE_PREFIX = "ss::";
+  static final String SEMANTIC_PROPERTIES_PREFIX = "sp::";
 
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
@@ -366,6 +370,14 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public SemanticPropertiesMutation editSemanticProperties() {
     return new FeedSemanticPropertiesMutation(this::commitSemanticPropertiesMutation);
+  }
+
+  @Override
+  public Runnable triggerContentGc(
+      Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
+    return new ContentGc(
+            accessibleContent, reservedContentIds, contentStorage, mainThreadRunner, timingUtils)
+        ::gc;
   }
 
   private CommitResult commitSemanticPropertiesMutation(

@@ -21,12 +21,17 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 /**
  * This is a session which is known by the FeedSessionManager but is not currently associated with a
  * ModelProvider.
+ *
+ * <p>TODO: We need to support getContentInSession and also update the journal when
+ * updateSession is called.
  */
 public class UnboundSession implements Session, Dumpable {
   private static final String TAG = "UnboundSession";
@@ -40,7 +45,7 @@ public class UnboundSession implements Session, Dumpable {
   @Override
   public void updateSession(
       List<StreamStructure> streamStructures, /*@Nullable*/ StreamToken mutationSourceToken) {
-    // TODO: Should this actually update the journal?  Seems like it should
+    // TODO: Implement this
     Logger.i(TAG, "Attempt to update unbound session is ignored");
   }
 
@@ -58,6 +63,12 @@ public class UnboundSession implements Session, Dumpable {
   @Override
   public void updateAccessTime(long time) {
     streamSession = streamSession.toBuilder().setLastAccessed(time).build();
+  }
+
+  @Override
+  public Collection<String> getContentInSession() {
+    // TODO: Implement this
+    return new ArrayList<>();
   }
 
   @Override

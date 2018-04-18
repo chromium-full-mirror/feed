@@ -59,8 +59,10 @@ import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -201,7 +203,21 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       // Queue up a task to clear the session journals.
       executor.execute(this::cleanupSessionJournals);
     }
+    Set<String> reservedContentIds = new HashSet<>();
+    reservedContentIds.add(STREAM_SESSION_CONTENT_ID);
+    executor.execute(store.triggerContentGc(reservedContentIds, accessibleContentSupplier));
   }
+
+  private Supplier<Set<String>> accessibleContentSupplier =
+      () -> {
+        Set<String> accessibleContent = new HashSet<>();
+        synchronized (lock) {
+          for (Session session : sessions.values()) {
+            accessibleContent.addAll(session.getContentInSession());
+          }
+        }
+        return accessibleContent;
+      };
 
   /**
    * Remove all session journals which are not currently found in {@code sessions} which contains

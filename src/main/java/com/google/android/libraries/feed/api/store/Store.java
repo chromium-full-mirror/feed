@@ -16,11 +16,13 @@ package com.google.android.libraries.feed.api.store;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Interface defining the Store API used by the feed library to persist the internal proto objects
@@ -84,4 +86,11 @@ public interface Store {
 
   /** Returns a semantic properties mutation used to modify the properties in the store */
   SemanticPropertiesMutation editSemanticProperties();
+
+  /**
+   * Returns a runnable which will garbage collect the persisted content. This is called by the
+   * SessionManager which controls the scheduling of cleanup tasks.
+   */
+  Runnable triggerContentGc(
+      Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent);
 }
