@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-
 import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -35,20 +34,20 @@ public class ViewUtils {
 
   /** Attaches the onClick action from actions to the view, executed by the handler. */
   static void setOnClickActions(
-      Actions actions, View view, ActionHandler handler, FrameContext frameContext) {
-    if (actions != null && actions.hasOnLongClick()) {
+      Actions actions, /*@Nullable*/ View view, ActionHandler handler, FrameContext frameContext) {
+    if (actions != null && actions.hasOnLongClick() && view != null) {
       view.setOnLongClickListener(
           v -> {
-            handler.handleAction(actions.getOnLongClick(), frameContext.getFrame(), view, null);
+            handler.handleAction(actions.getOnLongClick(), frameContext.getFrame(), null);
             return true;
           });
     } else {
       clearOnLongClickActions(view);
     }
-    if (actions != null && actions.hasOnClick()) {
+    if (actions != null && actions.hasOnClick() && view != null) {
       view.setOnClickListener(
           v -> {
-            handler.handleAction(actions.getOnClick(), frameContext.getFrame(), view, null);
+            handler.handleAction(actions.getOnClick(), frameContext.getFrame(), null);
           });
     } else {
       clearOnClickActions(view);
@@ -60,7 +59,7 @@ public class ViewUtils {
    */
   static void setOnClickActions(
       /*@Nullable*/ ActionsBindingRef actionsBindingRef,
-      View view,
+      /*@Nullable*/ View view,
       ActionHandler handler,
       FrameContext frameContext) {
     if (actionsBindingRef == null) {
@@ -77,18 +76,22 @@ public class ViewUtils {
     }
   }
 
-  static void clearOnLongClickActions(View view) {
-    view.setOnLongClickListener(null);
-    view.setLongClickable(false);
+  static void clearOnLongClickActions(/*@Nullable*/ View view) {
+    if (view != null) {
+      view.setOnLongClickListener(null);
+      view.setLongClickable(false);
+    }
   }
 
   /** Sets clickability to false. */
-  static void clearOnClickActions(View view) {
-    if (view.hasOnClickListeners()) {
-      view.setOnClickListener(null);
-    }
+  static void clearOnClickActions(/*@Nullable*/ View view) {
+    if (view != null) {
+      if (view.hasOnClickListeners()) {
+        view.setOnClickListener(null);
+      }
 
-    view.setClickable(false);
+      view.setClickable(false);
+    }
   }
 
   /** Private constructor to prevent instantiation. */

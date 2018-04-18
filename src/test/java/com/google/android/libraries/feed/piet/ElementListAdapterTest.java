@@ -211,8 +211,7 @@ public class ElementListAdapterTest {
     adapter.getView().callOnClick();
 
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
-    verify(actionHandler)
-        .handleAction(eq(action), any(Frame.class), eq(adapter.getView()), any(String.class));
+    verify(actionHandler).handleAction(eq(action), any(Frame.class), any(String.class));
   }
 
   @Test
@@ -233,8 +232,7 @@ public class ElementListAdapterTest {
     adapter.getView().callOnClick();
 
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
-    verify(actionHandler)
-        .handleAction(eq(action), any(Frame.class), eq(adapter.getView()), any(String.class));
+    verify(actionHandler).handleAction(eq(action), any(Frame.class), any(String.class));
   }
 
   @Test
@@ -254,11 +252,7 @@ public class ElementListAdapterTest {
 
     assertThat(listAdapter.getView().hasOnClickListeners()).isTrue();
     verify(actionHandler)
-        .handleAction(
-            eq(Action.getDefaultInstance()),
-            any(Frame.class),
-            eq(listAdapter.getView()),
-            any(String.class));
+        .handleAction(eq(Action.getDefaultInstance()), any(Frame.class), any(String.class));
   }
 
   @Test
@@ -279,11 +273,7 @@ public class ElementListAdapterTest {
 
     assertThat(listAdapter.getView().hasOnClickListeners()).isTrue();
     verify(actionHandler)
-        .handleAction(
-            eq(Action.getDefaultInstance()),
-            any(Frame.class),
-            eq(listAdapter.getView()),
-            any(String.class));
+        .handleAction(eq(Action.getDefaultInstance()), any(Frame.class), any(String.class));
   }
 
   @Test

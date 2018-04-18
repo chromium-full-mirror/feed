@@ -19,7 +19,6 @@ import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_INCOGNITO;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_NEW_WINDOW;
 
-import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPaylaodRetriever;
@@ -47,19 +46,19 @@ public class FeedActionParser implements ActionParser {
 
   @Override
   public void parseAction(
-      Action action, StreamActionApi streamActionApi, View view, /*@Nullable*/ String veLoggingToken) {
+      Action action, StreamActionApi streamActionApi, /*@Nullable*/ String veLoggingToken) {
     FeedActionPayload feedActionPayload =
         pietFeedActionPaylaodRetriever.getFeedActionPayload(action);
     if (feedActionPayload == null) {
       Logger.w(TAG, "Unable to get FeedActionPayload from PietFeedActionPaylaodRetriever");
       return;
     }
-    parseFeedActionPayload(feedActionPayload, streamActionApi, view);
+    parseFeedActionPayload(feedActionPayload, streamActionApi);
   }
 
   @Override
   public void parseFeedActionPayload(
-      FeedActionPayload feedActionPayload, StreamActionApi streamActionApi, View view) {
+      FeedActionPayload feedActionPayload, StreamActionApi streamActionApi) {
     FeedActionMetadata feedActionMetadata =
         feedActionPayload.getExtension(FeedAction.feedActionExtension).getMetadata();
     switch (feedActionMetadata.getType()) {
@@ -80,7 +79,7 @@ public class FeedActionParser implements ActionParser {
           break;
         }
 
-        streamActionApi.openContextMenu(feedActionMetadata.getOpenContextMenuData(), view);
+        streamActionApi.openContextMenu(feedActionMetadata.getOpenContextMenuData());
         break;
       case DISMISS:
         if (!streamActionApi.canDismiss()) {

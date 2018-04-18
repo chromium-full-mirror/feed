@@ -102,11 +102,10 @@ public class BasicStream implements Stream, ModelProviderObserver {
             new PietStylesHelper(pietSharedStateSupplier),
             debugBehavior,
             new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
-            (action, frame, view, veLoggingToken) ->
+            (action, frame, veLoggingToken) ->
                 actionParser.parseAction(
                     action,
                     new StreamActionApiImpl(context, actionApi, actionParser),
-                    view,
                     veLoggingToken),
             new PietCustomElementProvider(context, customElementProvider),
             new PietHostBindingProvider(hostBindingProvider));

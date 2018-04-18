@@ -14,17 +14,18 @@
 
 package com.google.android.libraries.feed.piet.host;
 
-import android.view.View;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.PietProto.Frame;
 
 /**
  * Interface from the Piet host which provides handling of {@link Action} from the UI. An instance
  * of this is provided by the host. When an action is raised by the client {@link
- * #handleAction(Action, Frame, View, String)} will be called.
+ * #handleAction(Action, Frame, String)} will be called.
  */
 public interface ActionHandler {
-  /** Called on a event, such as a click of a view, on a UI element */
+  /** Called on a touch event on a UI element */
+  // TODO: Do we need to pass back the thing that was pressed?
   // TODO: Do we need the veLoggingToken, one is defined in the Action
-  void handleAction(Action action, Frame frame, View view, /*@Nullable*/ String veLoggingToken);
+  // TODO: Handle long press actions.
+  void handleAction(Action action, Frame frame, /*@Nullable*/ String veLoggingToken);
 }

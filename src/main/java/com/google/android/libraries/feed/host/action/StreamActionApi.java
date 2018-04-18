@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.host.action;
 
-import android.view.View;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 
@@ -28,7 +27,7 @@ public interface StreamActionApi extends ActionApi {
   boolean canOpenContextMenu();
 
   /** Opens context menu. */
-  void openContextMenu(OpenContextMenuData openContextMenuData, View anchorView);
+  void openContextMenu(OpenContextMenuData openContextMenuData);
 
   /** Whether or not a card can be dismissed. */
   boolean canDismiss();
