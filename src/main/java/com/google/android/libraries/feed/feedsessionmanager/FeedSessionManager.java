@@ -205,7 +205,14 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
     Set<String> reservedContentIds = new HashSet<>();
     reservedContentIds.add(STREAM_SESSION_CONTENT_ID);
-    executor.execute(store.triggerContentGc(reservedContentIds, accessibleContentSupplier));
+    Runnable gcRunnable = store.triggerContentGc(reservedContentIds, accessibleContentSupplier);
+    synchronized (lock) {
+      if (invalidatedHead) {
+        delayedRunnables.add(gcRunnable);
+      } else {
+        executor.execute(gcRunnable);
+      }
+    }
   }
 
   private Supplier<Set<String>> accessibleContentSupplier =
@@ -287,8 +294,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         };
     synchronized (lock) {
       if (invalidatedHead) {
-        // don't create and populate the session until $HEAD has been updated
-        delayedRunnables.add(populateSession);
+        // don't create and populate the session until $HEAD has been updated, push to front of
+        // the queue
+        delayedRunnables.add(0, populateSession);
       } else {
         executor.execute(populateSession);
       }
