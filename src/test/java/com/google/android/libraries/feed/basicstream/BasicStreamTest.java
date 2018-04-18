@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -113,7 +114,8 @@ public class BasicStreamTest {
             threadUtils,
             headers,
             new FakeClock(),
-            modelProviderFactory) {
+            modelProviderFactory,
+            new HostBindingProvider()) {
           @Override
           PietSharedStateSupplier createPietSharedStateSupplier() {
             return pietSharedStateSupplier;

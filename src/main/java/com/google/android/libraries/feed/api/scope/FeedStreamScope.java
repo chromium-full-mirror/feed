@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import java.util.ArrayList;
 
 /** Per-stream instance of the feed library. */
@@ -100,6 +101,11 @@ public class FeedStreamScope {
       return this;
     }
 
+    public Builder setHostBindingProvider(HostBindingProvider hostBindingProvider) {
+      this.hostBindingProvider = hostBindingProvider;
+      return this;
+    }
+
     public FeedStreamScope build() {
       if (modelProviderFactory == null) {
         modelProviderFactory =
@@ -123,7 +129,8 @@ public class FeedStreamScope {
                 threadUtils,
                 /* headers = */ new ArrayList<>(0),
                 clock,
-                Validators.checkNotNull(modelProviderFactory));
+                Validators.checkNotNull(modelProviderFactory),
+                hostBindingProvider);
       }
       return new FeedStreamScope(
           actionApi,
@@ -152,10 +159,11 @@ public class FeedStreamScope {
     private final DebugBehavior debugBehavior;
 
     // Optional internal components to override the default implementations.
-    /*@MonotonicNonNull*/ private ActionParser actionParser = null;
-    /*@MonotonicNonNull*/ private ModelProviderFactory modelProviderFactory = null;
-    /*@MonotonicNonNull*/ private Stream stream = null;
-    /*@MonotonicNonNull*/ private CustomElementProvider customElementProvider = null;
+    /*@MonotonicNonNull*/ private ActionParser actionParser;
+    /*@MonotonicNonNull*/ private ModelProviderFactory modelProviderFactory;
+    /*@MonotonicNonNull*/ private Stream stream;
+    /*@MonotonicNonNull*/ private CustomElementProvider customElementProvider;
+    /*@MonotonicNonNull*/ private HostBindingProvider hostBindingProvider;
   }
 
   private FeedStreamScope(

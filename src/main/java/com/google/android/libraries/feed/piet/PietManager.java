@@ -45,8 +45,24 @@ public class PietManager {
             debugBehavior,
             assetProvider,
             customElementProvider,
-            // TODO: Allow hosts to pass in a real HostBindingProvider.
             new HostBindingProvider());
+  }
+
+  public PietManager(
+      PietStylesHelper pietStylesHelper,
+      DebugBehavior debugBehavior,
+      AssetProvider assetProvider,
+      ActionHandler actionHandler,
+      CustomElementProvider customElementProvider,
+      HostBindingProvider hostBindingProvider) {
+    this.actionHandler = actionHandler;
+    this.frameModelBinder =
+        new FrameModelBinder(
+            pietStylesHelper,
+            debugBehavior,
+            assetProvider,
+            customElementProvider,
+            hostBindingProvider);
   }
 
   public FrameAdapter createPietFrameAdapter(

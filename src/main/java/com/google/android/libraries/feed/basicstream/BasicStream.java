@@ -47,6 +47,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerView
 import com.google.android.libraries.feed.basicstream.internal.ViewHolderType;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietCustomElementProvider;
+import com.google.android.libraries.feed.basicstream.internal.piet.PietHostBindingProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -58,6 +59,7 @@ import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.PietStylesHelper;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.stream.StreamStructureProto;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
@@ -99,7 +101,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ThreadUtils threadUtils,
       List<View> headers,
       Clock clock,
-      ModelProviderFactory modelProviderFactory) {
+      ModelProviderFactory modelProviderFactory,
+      /*@Nullable*/ HostBindingProvider hostBindingProvider) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
     this.pietSharedStateSupplier = createPietSharedStateSupplier();
@@ -113,7 +116,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
                     action,
                     new StreamActionApiImpl(context, actionApi, actionParser),
                     veLoggingToken),
-            new PietCustomElementProvider(context, customElementProvider));
+            new PietCustomElementProvider(context, customElementProvider),
+            new PietHostBindingProvider(hostBindingProvider));
     recyclerView = new RecyclerView(context);
     recyclerView.setLayoutManager(new LinearLayoutManager(context));
     this.context = context;

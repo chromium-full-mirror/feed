@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -122,6 +123,7 @@ public class FeedStreamScopeTest {
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)
             .setCustomElementProvider(customElementProvider)
+            .setHostBindingProvider(new HostBindingProvider())
             .build();
     assertThat(streamScope.getStream()).isEqualTo(stream);
     assertThat(streamScope.getModelProviderFactory()).isEqualTo(modelProviderFactory);
