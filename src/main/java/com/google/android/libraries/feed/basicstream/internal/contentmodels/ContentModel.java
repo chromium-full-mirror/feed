@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal;
+package com.google.android.libraries.feed.basicstream.internal.contentmodels;
 
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 
-// TODO: Move this file into its own subdirectory of basicstream/internal.
 /** A ContentModel is responsible for binding and unbinding data to a {@link ViewHolder}. */
 public interface ContentModel {
 
@@ -34,5 +34,6 @@ public interface ContentModel {
    * Returns an integer representing the type of ViewHolder for the {@link RecyclerView.Adapter} to
    * provide.
    */
+  @ViewHolderType
   int getItemViewType();
 }

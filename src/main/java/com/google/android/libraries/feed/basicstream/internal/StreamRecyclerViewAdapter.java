@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
-import static com.google.android.libraries.feed.basicstream.internal.ViewHolderType.TYPE_HEADER;
+import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_HEADER;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -24,6 +24,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
@@ -42,25 +44,13 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
   private final List<ContentModel> contentModels;
   private final List<View> headers;
 
-  private final ViewHolderBindingObserver viewHolderBindingObserver;
-
-  /** A callback called when the last item is bound to a view holder */
-  public interface ViewHolderBindingObserver {
-    /** called when the last item in the model in bound */
-    void onBindLastItem();
-  }
-
   // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
   @SuppressWarnings("initialization")
   public StreamRecyclerViewAdapter(
-      Context context,
-      CardConfiguration cardConfiguration,
-      PietManager pietManager,
-      ViewHolderBindingObserver viewHolderBindingObserver) {
+      Context context, CardConfiguration cardConfiguration, PietManager pietManager) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
-    this.viewHolderBindingObserver = viewHolderBindingObserver;
     headers = new ArrayList<>();
     contentModels = new ArrayList<>();
     setHasStableIds(true);
@@ -91,11 +81,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
     Logger.d(TAG, "onBindViewHolder %s", i);
     ContentModel contentModel = contentModels.get(positionToStreamIndex(i));
     contentModel.bind(viewHolder);
-
-    if (i == getItemCount() - 1) {
-      // when binding the last item, check to see if it's a continuation token
-      viewHolderBindingObserver.onBindLastItem();
-    }
   }
 
   private void injectHeader(HeaderViewHolder headerViewHolder, int position) {
@@ -123,8 +108,9 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
 
   @Override
   public int getItemViewType(int position) {
+    // TODO: Create ViewHolders and ContentModels for headers.
     if (isHeader(position)) {
-      return ViewHolderType.TYPE_HEADER;
+      return TYPE_HEADER;
     }
 
     return contentModels.get(positionToStreamIndex(position)).getItemViewType();

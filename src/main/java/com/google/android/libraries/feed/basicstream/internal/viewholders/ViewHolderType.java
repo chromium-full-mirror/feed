@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal;
+package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
 import android.support.annotation.IntDef;
 
@@ -23,4 +23,5 @@ import android.support.annotation.IntDef;
 public @interface ViewHolderType {
   int TYPE_HEADER = 0;
   int TYPE_CARD = 1;
+  int TYPE_CONTINUATION = 2;
 }

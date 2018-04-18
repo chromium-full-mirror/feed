@@ -15,6 +15,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/contentmodels",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/piet",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/testing",

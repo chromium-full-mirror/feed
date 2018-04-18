@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.basicstream;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
-import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.os.Build.VERSION;
@@ -24,13 +23,9 @@ import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -39,16 +34,15 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
-import com.google.android.libraries.feed.basicstream.internal.ContentModel;
-import com.google.android.libraries.feed.basicstream.internal.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
-import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
-import com.google.android.libraries.feed.basicstream.internal.ViewHolderType;
+import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
+import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietHostBindingProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
+import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -60,9 +54,6 @@ import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.PietStylesHelper;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
-import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import com.google.search.now.ui.stream.StreamStructureProto;
-import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,13 +72,13 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final PietSharedStateSupplier pietSharedStateSupplier;
   private final ModelProviderFactory modelProviderFactory;
 
-  /*@Nullable*/ private ModelToken streamToken = null;
   private ModelProvider modelProvider;
   private Context context;
   private List<View> headers;
   private StreamConfiguration streamConfiguration;
   private StreamRecyclerViewAdapter adapter;
-  private ViewHolderBindingObserver viewHolderBindingObserver;
+
+  /*@Nullable*/ private StreamTokenHandler streamTokenHandler;
 
   public BasicStream(
       Context context,
@@ -129,10 +120,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public void onCreate(/*@Nullable*/ Bundle savedInstanceState) {
-    viewHolderBindingObserver = initializeBindingObserver();
-    adapter =
-        new StreamRecyclerViewAdapter(
-            context, cardConfiguration, pietManager, viewHolderBindingObserver);
+    // TODO: Implement save/restore.
+    adapter = new StreamRecyclerViewAdapter(context, cardConfiguration, pietManager);
     adapter.setHeaders(headers);
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);
@@ -151,27 +140,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
     }
     modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(this);
-    // TODO: Implement save/restore.
-  }
-
-  private ViewHolderBindingObserver initializeBindingObserver() {
-    return () -> {
-      ModelToken token = streamToken;
-      if (token != null && modelProvider != null) {
-        // TODO: Show a Spinner until the observer is called
-        Logger.i(TAG, "Handle the continuation Token.");
-        token.registerObserver(
-            change -> {
-              // Add the new cursor to the adapter.
-              checkNotNull(threadUtils).checkMainThread();
-              List<ModelFeature> modelFeatures = processCursor(change.getCursor());
-              Logger.i(TAG, "TokenCompletedObserver - added Features: %s", modelFeatures.size());
-              adapter.addContentModels(getContentModels(modelFeatures));
-            });
-        modelProvider.handleToken(token);
-        streamToken = null;
-      }
-    };
   }
 
 
@@ -247,75 +215,32 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public void forceRefresh() {
-    // We need to clear the token, or we will call modelProvider.handleToken() when we build the
-    // the new stream.
-    streamToken = null;
+    // This invalidates the modelProvider, which results in onSessionFinished() then
+    // onSessionStart() being called, leading to recreating the entire stream.
     modelProvider.forceRefresh();
   }
 
   private void updateAdapter(ModelProvider modelProvider) {
     ModelFeature root = modelProvider.getRootFeature();
+
+    if (streamTokenHandler != null) {
+      // Prevents a previous StreamDriver from successfully interacting with the TokenHandler
+      streamTokenHandler.disable();
+      streamTokenHandler = null;
+    }
+
     if (root == null) {
       adapter.setContentModels(new ArrayList<>());
       return;
     }
-    List<ModelFeature> modelFeatures = processCursor(root.getCursor());
-    Logger.i(TAG, "updateAdapter - New Features: %s", modelFeatures.size());
-    adapter.setContentModels(getContentModels(modelFeatures));
-  }
 
-  private List<ContentModel> getContentModels(List<ModelFeature> modelFeatures) {
-    List<ContentModel> contentModels = new ArrayList<>();
-    for (ModelFeature modelFeature : modelFeatures) {
-      if (!modelFeature.getStreamFeature().hasCard()) {
-        throw new RuntimeException("Expected card feature as a StreamFeature");
-      }
+    streamTokenHandler = new StreamTokenHandler();
 
-      ModelCursor cardCursor = modelFeature.getCursor();
-      while (cardCursor.advanceCursor(
-          child -> {
-            StreamFeature streamFeature = child.getModelFeature().getStreamFeature();
-            checkState(streamFeature.hasContent(), "Expected content for feature");
+    StreamDriver streamDriver = new StreamDriver(root, threadUtils, streamTokenHandler);
 
-            StreamStructureProto.Content content = streamFeature.getContent();
-            checkState(
-                content.getType() == StreamStructureProto.Content.Type.PIET,
-                "Expected Piet type for feature");
-
-            checkState(
-                content.hasExtension(PietContent.pietContentExtension),
-                "Expected Piet content for feature");
-            contentModels.add(
-                new PietContentModel(content.getExtension(PietContent.pietContentExtension)));
-          })) {}
-    }
-
-    return contentModels;
-  }
-
-  private List<ModelFeature> processCursor(ModelCursor modelCursor) {
-    List<ModelFeature> cardFeatures = new ArrayList<>();
-    while (modelCursor.advanceCursor(
-        (ModelChild child) -> {
-          Logger.i(TAG, "Advance Cursor");
-          if (child.getType() == Type.FEATURE) {
-            ModelFeature content = child.getModelFeature();
-            if (content == null) {
-              Logger.w(TAG, "Content not found");
-              return;
-            }
-
-            if (content.getStreamFeature().hasCard()) {
-              cardFeatures.add(content);
-            } else if (content.getStreamFeature().hasCluster()) {
-              cardFeatures.addAll(processCursor(content.getCursor()));
-            }
-          } else if (child.getType() == Type.TOKEN) {
-            streamToken = child.getModelToken();
-          }
-        })) {}
-
-    return cardFeatures;
+    List<ContentModel> contentModels = streamDriver.getContentModels();
+    Logger.i(TAG, "updateAdapter - New Features: %s", contentModels.size());
+    adapter.setContentModels(contentModels);
   }
 
   @VisibleForTesting
@@ -342,38 +267,30 @@ public class BasicStream implements Stream, ModelProviderObserver {
     // TODO: Handle onRootSet
   }
 
-  // TODO: Move this out of the BasicStream into its own class.
-  static class PietContentModel implements ContentModel {
+  private class StreamTokenHandler implements TokenHandler {
 
-    private final PietContent pietContent;
+    private boolean enabled;
 
-    public PietContentModel(PietContent pietContent) {
-      this.pietContent = pietContent;
+    StreamTokenHandler() {
+      enabled = true;
     }
 
     @Override
-    public void bind(ViewHolder viewHolder) {
-      ((PietViewHolder) viewHolder).bind(pietContent.getFrame());
+    public void addContentModels(List<ContentModel> newContentModels) {
+      if (enabled) {
+        adapter.addContentModels(newContentModels);
+      }
     }
 
     @Override
-    public void unbind(ViewHolder viewHolder) {
-      ((PietViewHolder) viewHolder).unbind();
+    public void handleToken(ModelToken token) {
+      if (enabled) {
+        modelProvider.handleToken(token);
+      }
     }
 
-    @Override
-    public int itemId() {
-      return pietContent.hashCode();
-    }
-
-    @Override
-    public int getItemViewType() {
-      return ViewHolderType.TYPE_CARD;
-    }
-
-    @VisibleForTesting
-    public PietContent getPietContent() {
-      return pietContent;
+    public void disable() {
+      enabled = true;
     }
   }
 }

@@ -33,8 +33,9 @@ import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter.ViewHolderBindingObserver;
-import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
@@ -64,7 +65,6 @@ public class StreamRecyclerViewAdapterTest {
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private PietManager pietManager;
-  @Mock private ViewHolderBindingObserver viewHolderBindingObserver;
   @Mock private FrameAdapter frameAdapter;
   @Mock private ContentModel contentModel;
 
@@ -95,8 +95,7 @@ public class StreamRecyclerViewAdapterTest {
       headers.add(new View(context));
     }
     streamRecyclerViewAdapter =
-        new StreamRecyclerViewAdapter(
-            context, cardConfiguration, pietManager, viewHolderBindingObserver);
+        new StreamRecyclerViewAdapter(context, cardConfiguration, pietManager);
     streamRecyclerViewAdapter.setHeaders(headers);
 
     ModelFeature modelFeature = mock(ModelFeature.class);
