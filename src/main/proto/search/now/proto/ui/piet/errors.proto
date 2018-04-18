@@ -294,6 +294,17 @@ enum ErrorCode {
     (client_error) = QUIET
   ];
 
+  // If an Action Handler delegate (which is part of a Piet Host) encounters an
+  // `Action` proto that it cannot handle (e.g. because none of the extensions
+  // it can process are present), this error will be raised.
+  ERR_MISSING_ACTION_HANDLER = 106 [
+    // Server cannot know about the availability of action handlers at runtime.
+    (server_error) = UNKNOWN,
+    // Interacting with such a Piet view will cause a warning to be displayed to
+    // the user.
+    (client_error) = WARNING
+  ];
+
   // ---------------------------------------------------------------------------
   // Performance Related.
   // Fields start at ID 201.
