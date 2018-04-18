@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -92,6 +93,8 @@ public class FeedSessionManagerTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
+  @Mock private ModelProvider modelProvider;
+  @Mock private ModelMutation modelMutation;
   @Mock private Store store;
   @Mock private Clock clock;
   @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
@@ -115,6 +118,7 @@ public class FeedSessionManagerTest {
     initMocks(this);
     mainThreadRunner = new MainThreadRunner();
     when(store.getHeadSession()).thenReturn(HEAD);
+    when(modelProvider.edit()).thenReturn(modelMutation);
   }
 
   @Test
@@ -421,6 +425,43 @@ public class FeedSessionManagerTest {
     assertThat(streamSessionList).hasSize(3);
     assertThat(streamSessionList).contains(session1);
     assertThat(streamSessionList).contains(session2);
+  }
+
+  @Test
+  public void testInvalidateHead() {
+    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
+    when(store.createNewSession()).thenReturn(streamSession);
+    ContentMutation content = mock(ContentMutation.class);
+    when(store.editContent()).thenReturn(content);
+    FeedSessionManager sessionManager =
+        new FeedSessionManager(
+            MoreExecutors.newDirectExecutorService(),
+            store,
+            timingUtils,
+            threadUtils,
+            Suppliers.of(protocolAdapter),
+            Suppliers.of(requestManager),
+            configuration,
+            clock);
+    assertThat(sessionManager.getInvalidateHeadStateForTest()).isFalse();
+    Map<String, Session> sessionMap = sessionManager.getSessionsMapForTest();
+    assertThat(sessionMap).hasSize(1);
+
+    sessionManager.invalidateHead();
+    assertThat(sessionManager.getInvalidateHeadStateForTest()).isTrue();
+    sessionManager.getNewSession(modelProvider);
+
+    // The session hasn't been added yet.
+    sessionMap = sessionManager.getSessionsMapForTest();
+    assertThat(sessionMap).hasSize(1);
+
+    List<Runnable> delayedRunnables = sessionManager.getDelayedRunnables();
+    assertThat(delayedRunnables).hasSize(1);
+    delayedRunnables.get(0).run();
+
+    // The session hasn't been added yet.
+    sessionMap = sessionManager.getSessionsMapForTest();
+    assertThat(sessionMap).hasSize(2);
   }
 
   private int populateSession(

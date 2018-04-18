@@ -100,8 +100,8 @@ public class HeadSessionImpl implements Session, Dumpable {
         addFeatureCnt++;
         continue;
       } else if (streamStructure.getOperation() == Operation.REMOVE) {
-        Logger.i(TAG, "Removing Item from HEAD");
         String contentKey = streamStructure.getContentId();
+        Logger.i(TAG, "Removing Item %s from $HEAD", contentKey);
         if (contentInSession.contains(contentKey)) {
           sessionMutation.add(streamStructure);
           contentInSession.remove(contentKey);

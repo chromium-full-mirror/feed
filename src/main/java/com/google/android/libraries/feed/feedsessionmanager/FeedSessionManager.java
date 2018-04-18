@@ -106,6 +106,16 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private int handleTokenCount = 0;
   private int expiredSessionsCleared = 0;
 
+  // When we invalidate head, we will delay creation of any new sessions until head is populated.
+  // In order to do that, the getNewSession() method will queue the task to create and populate
+  // the new session on the delayedRunnables List.  Once we process the first mutation on head
+  // we will run these tasks.
+  @GuardedBy("lock")
+  private boolean invalidatedHead;
+
+  @GuardedBy("lock")
+  private final List<Runnable> delayedRunnables = new ArrayList<>();
+
   public FeedSessionManager(
       ExecutorService executor,
       Store store,
@@ -239,9 +249,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     threadUtils.checkMainThread();
     InitializableSession session = sessionFactory.getSession(modelProvider);
 
-    // Task which populates the newly created session.  This must be done
+    // Task which creates and populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
-    executor.execute(
+    Runnable populateSession =
         () -> {
           Logger.i(TAG, "Task: Create/Populate New Session");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -258,7 +268,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
           timeTracker.stop("task", "Create/Populate New Session");
           newSessionCount++;
-        });
+        };
+    synchronized (lock) {
+      if (invalidatedHead) {
+        // don't create and populate the session until $HEAD has been updated
+        delayedRunnables.add(populateSession);
+      } else {
+        executor.execute(populateSession);
+      }
+    }
   }
 
   @VisibleForTesting
@@ -322,6 +340,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   @Override
   public void invalidateHead() {
+    synchronized (lock) {
+      invalidatedHead = true;
+    }
     executor.execute(() -> resetHead(null));
   }
 
@@ -618,8 +639,20 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         updates = new ArrayList<>(sessions.values());
       }
       for (Session session : updates) {
+        Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
         session.updateSession(streamStructures, mutationSourceToken);
+      }
+      synchronized (lock) {
+        if (invalidatedHead) {
+          Logger.i(
+              TAG, "Processing runnables created since invalidate %s", delayedRunnables.size());
+          invalidatedHead = false;
+          for (Runnable runnable : delayedRunnables) {
+            executor.execute(runnable);
+          }
+          delayedRunnables.clear();
         }
+      }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
     }
 
@@ -666,6 +699,18 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   Map<String, Session> getSessionsMapForTest() {
     synchronized (lock) {
       return new HashMap<>(sessions);
+    }
+  }
+
+  boolean getInvalidateHeadStateForTest() {
+    synchronized (lock) {
+      return invalidatedHead;
+    }
+  }
+
+  List<Runnable> getDelayedRunnables() {
+    synchronized (lock) {
+      return new ArrayList<>(delayedRunnables);
     }
   }
 
