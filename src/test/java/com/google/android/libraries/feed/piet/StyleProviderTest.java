@@ -26,6 +26,7 @@ import android.view.ViewGroup.MarginLayoutParams;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
@@ -57,7 +58,11 @@ public class StyleProviderTest {
     context = Robolectric.setupActivity(Activity.class);
     FrameModelBinder frameBinder =
         new FrameModelBinder(
-            mockStylesHelper, DebugBehavior.VERBOSE, mockAssetProvider, mockCustomElementProvider);
+            mockStylesHelper,
+            DebugBehavior.VERBOSE,
+            mockAssetProvider,
+            mockCustomElementProvider,
+            new HostBindingProvider());
     FrameContext frameContextTemp = frameBinder.bindFrame(Frame.getDefaultInstance());
     assertThat(frameContextTemp).isInstanceOf(FrameContext.class);
     frameContext = frameContextTemp;

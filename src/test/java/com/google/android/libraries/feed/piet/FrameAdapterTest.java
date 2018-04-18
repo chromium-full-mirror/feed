@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
@@ -158,7 +159,8 @@ public class FrameAdapterTest {
             new PietStylesHelper(Suppliers.of(pietSharedState)),
             DebugBehavior.SILENT,
             mock(AssetProvider.class),
-            mock(CustomElementProvider.class));
+            mock(CustomElementProvider.class),
+            new HostBindingProvider());
     FrameContext frameContext =
         frameModelBinder.bindFrame(
             Frame.newBuilder().setStylesheet(Stylesheet.getDefaultInstance()).build());

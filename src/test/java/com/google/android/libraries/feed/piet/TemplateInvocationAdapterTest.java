@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.Template
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
@@ -138,7 +139,11 @@ public class TemplateInvocationAdapterTest {
     when(stylesHelper.getCurrentPietSharedState()).thenReturn(PietSharedState.getDefaultInstance());
     frameContext =
         new FrameModelBinder(
-                stylesHelper, DebugBehavior.VERBOSE, assetProvider, customElementProvider)
+                stylesHelper,
+                DebugBehavior.VERBOSE,
+                assetProvider,
+                customElementProvider,
+                new HostBindingProvider())
             .bindFrame(DEFAULT_FRAME);
     adapterParameters = new AdapterParameters(context, Suppliers.of(null), actionHandler);
 
@@ -200,7 +205,11 @@ public class TemplateInvocationAdapterTest {
     assertThat(equivalentTemplate).isEqualTo(DEFAULT_TEMPLATE);
     frameContext =
         new FrameModelBinder(
-                stylesHelper, DebugBehavior.VERBOSE, assetProvider, customElementProvider)
+                stylesHelper,
+                DebugBehavior.VERBOSE,
+                assetProvider,
+                customElementProvider,
+                new HostBindingProvider())
             .bindFrame(
                 DEFAULT_FRAME
                     .toBuilder()
@@ -310,7 +319,11 @@ public class TemplateInvocationAdapterTest {
         DEFAULT_TEMPLATE.toBuilder().setStylesheet(TEMPLATE_STYLESHEET).build();
     frameContext =
         new FrameModelBinder(
-                stylesHelper, DebugBehavior.VERBOSE, assetProvider, customElementProvider)
+                stylesHelper,
+                DebugBehavior.VERBOSE,
+                assetProvider,
+                customElementProvider,
+                new HostBindingProvider())
             .bindFrame(
                 DEFAULT_FRAME
                     .toBuilder()

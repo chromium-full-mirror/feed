@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.common.testing.RunnableSubject.Throwing
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
@@ -46,6 +47,7 @@ import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
+import com.google.search.now.ui.piet.ElementsProto.HostBindingData;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.ImagesProto.Image;
@@ -97,13 +99,15 @@ public class FrameContextTest {
   private final DebugLogger debugLogger = new DebugLogger();
 
   private Context context;
-
+  private HostBindingProvider hostBindingProvider;
   private FrameContext frameContext;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
+
+    hostBindingProvider = new HostBindingProvider();
 
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);
   }
@@ -120,7 +124,8 @@ public class FrameContextTest {
             DebugBehavior.VERBOSE,
             debugLogger,
             assetProvider,
-            customElementProvider);
+            customElementProvider,
+            hostBindingProvider);
 
     assertThat(frameContext.getAssetProvider()).isEqualTo(assetProvider);
     assertThat(frameContext.getCustomElementProvider()).isEqualTo(customElementProvider);
@@ -330,6 +335,25 @@ public class FrameContextTest {
   }
 
   @Test
+  public void testGetText_hostBinding() {
+    ParameterizedText text = ParameterizedText.newBuilder().setText("tabby").build();
+    BindingValue textBindingValue = defaultBinding().setParameterizedText(text).build();
+    BindingValue hostTextBindingValue =
+        defaultBinding()
+            .setHostBindingData(HostBindingData.newBuilder())
+            .setParameterizedText(text)
+            .build();
+    ParameterizedTextBindingRef textBindingRef =
+        ParameterizedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(hostTextBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getParameterizedTextBindingValue(textBindingRef))
+        .isEqualTo(textBindingValue);
+  }
+
+  @Test
   public void testGetImage() {
     Image image = Image.newBuilder().setTintColor(12345).build();
     BindingValue imageBindingValue = defaultBinding().setImage(image).build();
@@ -394,6 +418,20 @@ public class FrameContextTest {
         ImageBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
     assertThat(makeFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRefOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
+  }
+
+  @Test
+  public void testGetImage_hostBinding() {
+    Image image = Image.newBuilder().setTintColor(12345).build();
+    BindingValue imageBindingValue = defaultBinding().setImage(image).build();
+    BindingValue hostImageBindingValue =
+        defaultBinding().setHostBindingData(HostBindingData.newBuilder()).setImage(image).build();
+    ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(hostImageBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getImageBindingValue(imageBindingRef)).isEqualTo(imageBindingValue);
   }
 
   @Test
@@ -471,6 +509,25 @@ public class FrameContextTest {
   }
 
   @Test
+  public void testGetElementList_hostBinding() {
+    ElementList list =
+        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+    BindingValue listBindingValue = defaultBinding().setElementList(list).build();
+    BindingValue hostListBindingValue =
+        defaultBinding()
+            .setHostBindingData(HostBindingData.newBuilder())
+            .setElementList(list)
+            .build();
+    ElementListBindingRef listBindingRef =
+        ElementListBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(hostListBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getElementListBindingValue(listBindingRef)).isEqualTo(listBindingValue);
+  }
+
+  @Test
   public void testGetGridCellWidthFromBinding() {
     GridCellWidth cellWidth = GridCellWidth.newBuilder().setWeight(123).build();
     frameContext = makeFrameContextWithBinding(defaultBinding().setCellWidth(cellWidth).build());
@@ -488,6 +545,21 @@ public class FrameContextTest {
             frameContext.getGridCellWidthFromBinding(
                 GridCellWidthBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
         .isNull();
+  }
+
+  @Test
+  public void testGetGridCellWidthFromBinding_hostBinding() {
+    GridCellWidth cellWidth = GridCellWidth.newBuilder().setWeight(123).build();
+    frameContext =
+        makeFrameContextWithBinding(
+            defaultBinding()
+                .setHostBindingData(HostBindingData.newBuilder())
+                .setCellWidth(cellWidth)
+                .build());
+    assertThat(
+            frameContext.getGridCellWidthFromBinding(
+                GridCellWidthBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+        .isEqualTo(cellWidth);
   }
 
   @Test
@@ -512,6 +584,20 @@ public class FrameContextTest {
   }
 
   @Test
+  public void testGetActionsFromBinding_hostBinding() {
+    frameContext =
+        makeFrameContextWithBinding(
+            defaultBinding()
+                .setHostBindingData(HostBindingData.newBuilder())
+                .setActions(Actions.getDefaultInstance())
+                .build());
+    assertThat(
+            frameContext.getActionsFromBinding(
+                ActionsBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+        .isEqualTo(Actions.getDefaultInstance());
+  }
+
+  @Test
   public void testGetStyleFromBinding() {
     BoundStyle boundStyle = BoundStyle.newBuilder().setColor(12345).build();
     frameContext = makeFrameContextWithBinding(defaultBinding().setBoundStyle(boundStyle).build());
@@ -529,6 +615,21 @@ public class FrameContextTest {
             frameContext.getStyleFromBinding(
                 StyleBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
         .isNull();
+  }
+
+  @Test
+  public void testGetStyleFromBinding_hostBinding() {
+    BoundStyle boundStyle = BoundStyle.newBuilder().setColor(12345).build();
+    frameContext =
+        makeFrameContextWithBinding(
+            defaultBinding()
+                .setHostBindingData(HostBindingData.newBuilder())
+                .setBoundStyle(boundStyle)
+                .build());
+    assertThat(
+            frameContext.getStyleFromBinding(
+                StyleBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+        .isEqualTo(boundStyle);
   }
 
   @Test
@@ -552,6 +653,18 @@ public class FrameContextTest {
             frameContext.getTemplateInvocationFromBinding(
                 TemplateBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
         .isNull();
+  }
+
+  @Test
+  public void testGetTemplateInvocationFromBinding_hostBinding() {
+    TemplateInvocation templateInvocation =
+        TemplateInvocation.newBuilder().setTemplateId("carboncopy").build();
+    frameContext =
+        makeFrameContextWithBinding(
+            defaultBinding()
+                .setHostBindingData(HostBindingData.newBuilder())
+                .setTemplateInvocation(templateInvocation)
+                .build());
   }
 
   @Test
@@ -625,6 +738,26 @@ public class FrameContextTest {
             makeFrameContextWithEmptyBinding()
                 .getCustomElementBindingValue(customBindingRefOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
+  }
+
+  @Test
+  public void testGetCustomElementBindingValue_hostBinding() {
+    CustomElementData customElement = CustomElementData.getDefaultInstance();
+    BindingValue customElementBindingValue =
+        defaultBinding().setCustomElementData(customElement).build();
+    BindingValue hostCustomElementBindingValue =
+        defaultBinding()
+            .setHostBindingData(HostBindingData.newBuilder())
+            .setCustomElementData(customElement)
+            .build();
+    CustomBindingRef customBindingRef =
+        CustomBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(hostCustomElementBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getCustomElementBindingValue(customBindingRef))
+        .isEqualTo(customElementBindingValue);
   }
 
   @Test
@@ -707,6 +840,31 @@ public class FrameContextTest {
         .isEqualTo(BindingValue.getDefaultInstance());
   }
 
+  @Test
+  public void testGetChunkedTextBindingValue_hostBinding() {
+    ChunkedText text =
+        ChunkedText.newBuilder()
+            .addChunks(
+                Chunk.newBuilder()
+                    .setTextChunk(
+                        StyledTextChunk.newBuilder()
+                            .setParameterizedText(ParameterizedText.newBuilder().setText("text"))))
+            .build();
+    BindingValue textBindingValue = defaultBinding().setChunkedText(text).build();
+    BindingValue hostTextBindingValue =
+        defaultBinding()
+            .setHostBindingData(HostBindingData.newBuilder())
+            .setChunkedText(text)
+            .build();
+    ChunkedTextBindingRef textBindingRef =
+        ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(hostTextBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getChunkedTextBindingValue(textBindingRef)).isEqualTo(textBindingValue);
+  }
+
   private FrameContext defaultFrameContext() {
     return makeFrameContextWithNoBindings();
   }
@@ -721,7 +879,8 @@ public class FrameContextTest {
         DebugBehavior.VERBOSE,
         debugLogger,
         assetProvider,
-        customElementProvider);
+        customElementProvider,
+        hostBindingProvider);
   }
 
   private FrameContext makeFrameContextWithBinding(BindingValue bindingValue) {
@@ -737,7 +896,8 @@ public class FrameContextTest {
         DebugBehavior.VERBOSE,
         debugLogger,
         assetProvider,
-        customElementProvider);
+        customElementProvider,
+        hostBindingProvider);
   }
 
   private FrameContext makeFrameContextWithEmptyBinding() {
@@ -753,7 +913,8 @@ public class FrameContextTest {
         DebugBehavior.VERBOSE,
         debugLogger,
         assetProvider,
-        customElementProvider);
+        customElementProvider,
+        hostBindingProvider);
   }
 
   private BindingValue.Builder defaultBinding() {

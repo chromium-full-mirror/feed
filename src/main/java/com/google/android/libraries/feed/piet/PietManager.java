@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 
 /** Manages a top-level session of Piet. */
 public class PietManager {
@@ -39,7 +40,13 @@ public class PietManager {
       CustomElementProvider customElementProvider) {
     this.actionHandler = actionHandler;
     this.frameModelBinder =
-        new FrameModelBinder(pietStylesHelper, debugBehavior, assetProvider, customElementProvider);
+        new FrameModelBinder(
+            pietStylesHelper,
+            debugBehavior,
+            assetProvider,
+            customElementProvider,
+            // TODO: Allow hosts to pass in a real HostBindingProvider.
+            new HostBindingProvider());
   }
 
   public FrameAdapter createPietFrameAdapter(

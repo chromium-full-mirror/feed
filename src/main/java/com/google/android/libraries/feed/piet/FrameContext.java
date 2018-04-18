@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
@@ -62,6 +63,7 @@ class FrameContext {
   private final DebugLogger debugLogger;
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
+  private final HostBindingProvider hostBindingProvider;
   private final Map<String, Template> frameTemplates = new HashMap<>();
 
   // This is the Frame which contains all the slices being processed.
@@ -88,7 +90,8 @@ class FrameContext {
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       AssetProvider assetProvider,
-      CustomElementProvider customElementProvider) {
+      CustomElementProvider customElementProvider,
+      HostBindingProvider hostBindingProvider) {
     this(
         frame,
         stylesheet,
@@ -99,7 +102,8 @@ class FrameContext {
         debugBehavior,
         debugLogger,
         assetProvider,
-        customElementProvider);
+        customElementProvider,
+        hostBindingProvider);
   }
 
   FrameContext(
@@ -112,7 +116,8 @@ class FrameContext {
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       AssetProvider assetProvider,
-      CustomElementProvider customElementProvider) {
+      CustomElementProvider customElementProvider,
+      HostBindingProvider hostBindingProvider) {
     currentFrame = frame;
     this.stylesheet = stylesheet;
     this.bindingValues = bindingValues == null ? new HashMap<>() : bindingValues;
@@ -123,6 +128,7 @@ class FrameContext {
     this.debugLogger = debugLogger;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
+    this.hostBindingProvider = hostBindingProvider;
 
     if (frame.getTemplatesCount() > 0) {
       for (Template template : frame.getTemplatesList()) {
@@ -208,7 +214,8 @@ class FrameContext {
         debugBehavior,
         debugLogger,
         assetProvider,
-        customElementProvider);
+        customElementProvider,
+        hostBindingProvider);
   }
 
   /**
@@ -227,7 +234,8 @@ class FrameContext {
         debugBehavior,
         debugLogger,
         assetProvider,
-        customElementProvider);
+        customElementProvider,
+        hostBindingProvider);
   }
 
   /** Return the current {@link StyleProvider}. */
@@ -266,6 +274,11 @@ class FrameContext {
   /*@Nullable*/
   GridCellWidth getGridCellWidthFromBinding(GridCellWidthBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
+    // Purposefully check for host binding and overwrite here as we want to perform the hasCellWidth
+    // checks on host binding.   This allows the host to act more like the server.
+    if (bindingValue != null && bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getGridCellWidthBindingForValue(bindingValue);
+    }
     return bindingValue == null || !bindingValue.hasCellWidth()
         ? null
         : bindingValue.getCellWidth();
@@ -278,6 +291,9 @@ class FrameContext {
   /*@Nullable*/
   Actions getActionsFromBinding(ActionsBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
+    if (bindingValue != null && bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getActionsBindingForValue(bindingValue);
+    }
     return bindingValue == null || !bindingValue.hasActions() ? null : bindingValue.getActions();
   }
 
@@ -288,6 +304,9 @@ class FrameContext {
   /*@Nullable*/
   BoundStyle getStyleFromBinding(StyleBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
+    if (bindingValue != null && bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getStyleBindingForValue(bindingValue);
+    }
     return bindingValue == null || !bindingValue.hasBoundStyle()
         ? null
         : bindingValue.getBoundStyle();
@@ -300,6 +319,9 @@ class FrameContext {
   /*@Nullable*/
   TemplateInvocation getTemplateInvocationFromBinding(TemplateBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
+    if (bindingValue != null && bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getTemplateBindingForValue(bindingValue);
+    }
     if (bindingValue != null && bindingValue.hasVisibility()) {
       Logger.e(TAG, "Visibility not supported for templates; got %s", bindingValue.getVisibility());
     }
@@ -313,14 +335,17 @@ class FrameContext {
    * does not point to a custom element resource.
    */
   BindingValue getCustomElementBindingValue(CustomBindingRef binding) {
-    BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasCustomElementData() && !binding.getIsOptional()) {
+    BindingValue bindingValue = getBindingValue(binding.getBindingId());
+    if (bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getCustomElementDataBindingForValue(bindingValue);
+    }
+    if (!bindingValue.hasCustomElementData() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               MessageType.ERROR,
               String.format("Custom element binding not found for %s", binding.getBindingId())));
     } else {
-      return returnValue;
+      return bindingValue;
     }
   }
 
@@ -329,14 +354,17 @@ class FrameContext {
    * does not point to a chunked text resource.
    */
   BindingValue getChunkedTextBindingValue(ChunkedTextBindingRef binding) {
-    BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasChunkedText() && !binding.getIsOptional()) {
+    BindingValue bindingValue = getBindingValue(binding.getBindingId());
+    if (bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getChunkedTextBindingForValue(bindingValue);
+    }
+    if (!bindingValue.hasChunkedText() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               MessageType.ERROR,
               String.format("Chunked text binding not found for %s", binding.getBindingId())));
     } else {
-      return returnValue;
+      return bindingValue;
     }
   }
 
@@ -345,15 +373,18 @@ class FrameContext {
    * does not point to a parameterized text resource.
    */
   BindingValue getParameterizedTextBindingValue(ParameterizedTextBindingRef binding) {
-    BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasParameterizedText() && !binding.getIsOptional()) {
+    BindingValue bindingValue = getBindingValue(binding.getBindingId());
+    if (bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getParameterizedTextBindingForValue(bindingValue);
+    }
+    if (!bindingValue.hasParameterizedText() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               MessageType.ERROR,
               String.format(
                   "Parameterized text binding not found for %s", binding.getBindingId())));
     } else {
-      return returnValue;
+      return bindingValue;
     }
   }
 
@@ -362,14 +393,17 @@ class FrameContext {
    * does not point to a image resource.
    */
   BindingValue getImageBindingValue(ImageBindingRef binding) {
-    BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasImage() && !binding.getIsOptional()) {
+    BindingValue bindingValue = getBindingValue(binding.getBindingId());
+    if (bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getImageBindingForValue(bindingValue);
+    }
+    if (!bindingValue.hasImage() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               MessageType.ERROR,
               String.format("Image binding not found for %s", binding.getBindingId())));
     } else {
-      return returnValue;
+      return bindingValue;
     }
   }
 
@@ -378,14 +412,17 @@ class FrameContext {
    * does not point to a ElementList.
    */
   BindingValue getElementListBindingValue(ElementListBindingRef binding) {
-    BindingValue returnValue = getBindingValue(binding.getBindingId());
-    if (!returnValue.hasElementList() && !binding.getIsOptional()) {
+    BindingValue bindingValue = getBindingValue(binding.getBindingId());
+    if (bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getElementListBindingForValue(bindingValue);
+    }
+    if (!bindingValue.hasElementList() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
               MessageType.ERROR,
               String.format("ElementList binding not found for %s", binding.getBindingId())));
     } else {
-      return returnValue;
+      return bindingValue;
     }
   }
 

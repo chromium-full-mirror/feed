@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import java.util.ArrayList;
@@ -43,16 +44,19 @@ class FrameModelBinder {
   private final DebugBehavior debugBehavior;
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
+  private final HostBindingProvider hostBindingProvider;
 
   FrameModelBinder(
       PietStylesHelper stylesHelper,
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
-      CustomElementProvider customElementProvider) {
+      CustomElementProvider customElementProvider,
+      HostBindingProvider hostBindingProvider) {
     this.stylesHelper = stylesHelper;
     this.debugBehavior = debugBehavior;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
+    this.hostBindingProvider = hostBindingProvider;
   }
 
   FrameContext bindFrame(Frame frame) {
@@ -105,7 +109,8 @@ class FrameModelBinder {
             debugBehavior,
             debugLogger,
             assetProvider,
-            customElementProvider);
+            customElementProvider,
+            hostBindingProvider);
     for (String error : errors) {
       frameContext.reportError(MessageType.ERROR, error);
     }

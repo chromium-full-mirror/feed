@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
@@ -65,7 +66,11 @@ public class FrameModelBinderTest {
     initMocks(this);
     frameModelBinder =
         new FrameModelBinder(
-            stylesHelper, DebugBehavior.VERBOSE, assetProvider, customElementProvider);
+            stylesHelper,
+            DebugBehavior.VERBOSE,
+            assetProvider,
+            customElementProvider,
+            new HostBindingProvider());
   }
 
   @Test
