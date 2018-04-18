@@ -308,7 +308,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     @Override
     public void onClick(View widget) {
       // TODO: Pass VE information with the action.
-      handler.handleAction(action, frame, null);
+      handler.handleAction(action, frame, widget, /* veLoggingToken= */ null);
     }
 
     @Override

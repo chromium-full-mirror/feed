@@ -483,7 +483,8 @@ public class ChunkedTextElementAdapterTest {
     MotionEvent motionEvent = MotionEvent.obtain(0, 0, MotionEvent.ACTION_UP, 0, 0, 0);
     adapter.getBaseView().dispatchTouchEvent(motionEvent);
     verify(mockActionHandler)
-        .handleAction(Action.getDefaultInstance(), Frame.getDefaultInstance(), null);
+        .handleAction(
+            Action.getDefaultInstance(), Frame.getDefaultInstance(), adapter.getBaseView(), null);
   }
 
   @Test
@@ -511,7 +512,8 @@ public class ChunkedTextElementAdapterTest {
     MotionEvent motionEvent = MotionEvent.obtain(0, 0, MotionEvent.ACTION_UP, 0, 0, 0);
     adapter.getBaseView().dispatchTouchEvent(motionEvent);
     verify(mockActionHandler)
-        .handleAction(Action.getDefaultInstance(), Frame.getDefaultInstance(), null);
+        .handleAction(
+            Action.getDefaultInstance(), Frame.getDefaultInstance(), adapter.getBaseView(), null);
   }
 
   @Test

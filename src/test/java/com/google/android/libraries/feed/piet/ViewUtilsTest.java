@@ -70,7 +70,7 @@ public class ViewUtilsTest {
     assertThat(view.hasOnClickListeners()).isTrue();
 
     view.callOnClick();
-    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, null);
+    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, view, null);
   }
 
   @Test
@@ -78,7 +78,7 @@ public class ViewUtilsTest {
     ViewUtils.setOnClickActions(LONG_CLICK_ACTIONS, view, mockActionHandler, mockFrameContext);
 
     view.performLongClick();
-    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, null);
+    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, view, null);
   }
 
   @Test
@@ -92,7 +92,7 @@ public class ViewUtilsTest {
     assertThat(view.hasOnClickListeners()).isTrue();
 
     view.callOnClick();
-    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, null);
+    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, view, null);
   }
 
   @Test
@@ -104,7 +104,7 @@ public class ViewUtilsTest {
     ViewUtils.setOnClickActions(actionsBinding, view, mockActionHandler, mockFrameContext);
 
     view.performLongClick();
-    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, null);
+    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, view, null);
   }
 
   @Test
@@ -152,11 +152,6 @@ public class ViewUtilsTest {
   }
 
   @Test
-  public void testSetOnClickActions_nullViewDoesNothing() {
-    ViewUtils.setOnClickActions(DEFAULT_ACTIONS, null, mockActionHandler, mockFrameContext);
-  }
-
-  @Test
   public void testSetOnClickActions_noOnClickActionsDefinedClearsActions() {
     view.setOnClickListener(mockListener);
     assertThat(view.hasOnClickListeners()).isTrue();
@@ -196,18 +191,6 @@ public class ViewUtilsTest {
     ViewUtils.clearOnLongClickActions(view);
 
     assertThat(view.isLongClickable()).isFalse();
-  }
-
-  @Test
-  public void testClearOnClickActions_nullViewDoesNothing() {
-    // Checks that clearing the click actions of a null view does not crash.
-    ViewUtils.clearOnClickActions(null);
-  }
-
-  @Test
-  public void testClearOnLongClickActions_nullViewDoesNothing() {
-    // Checks that clearing the long click actions of a null view does not crash.
-    ViewUtils.clearOnLongClickActions(null);
   }
 
   private void assertViewNotClickable() {

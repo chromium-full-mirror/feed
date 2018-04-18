@@ -23,6 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
@@ -66,8 +67,10 @@ public class StreamActionApiImplTest {
                                   .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
                           .build()))
           .build();
+
   private static final String OPEN_IN_INCOGNITO_MODE_LABEL = "Open in incognito mode";
-  public static final LabelledFeedActionData OPEN_IN_INCOGNITO_MODE =
+
+  private static final LabelledFeedActionData OPEN_IN_INCOGNITO_MODE =
       LabelledFeedActionData.newBuilder()
           .setLabel(OPEN_IN_INCOGNITO_MODE_LABEL)
           .setFeedActionPayload(
@@ -101,13 +104,14 @@ public class StreamActionApiImplTest {
   @Mock private ActionParser actionParser;
 
   private StreamActionApiImpl streamActionApi;
+  private View view;
 
   @Before
   public void setup() {
     initMocks(this);
 
     Context context = Robolectric.setupActivity(Activity.class);
-
+    view = new View(context);
     streamActionApi = new StreamActionApiImpl(context, actionApi, actionParser);
   }
 
@@ -196,7 +200,8 @@ public class StreamActionApiImplTest {
     labelledFeedActionDataList.add(OPEN_IN_INCOGNITO_MODE);
 
     streamActionApi.openContextMenu(
-        OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build());
+        OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
+        view);
 
     ShadowAlertDialog shadowAlertDialog =
         Shadows.shadowOf(ShadowAlertDialog.getLatestAlertDialog());
@@ -212,13 +217,14 @@ public class StreamActionApiImplTest {
 
     inOrder
         .verify(actionParser)
-        .parseFeedActionPayload(NORMAL_OPEN_URL.getFeedActionPayload(), streamActionApi);
+        .parseFeedActionPayload(NORMAL_OPEN_URL.getFeedActionPayload(), streamActionApi, view);
     inOrder
         .verify(actionParser)
-        .parseFeedActionPayload(OPEN_IN_NEW_WINDOW.getFeedActionPayload(), streamActionApi);
+        .parseFeedActionPayload(OPEN_IN_NEW_WINDOW.getFeedActionPayload(), streamActionApi, view);
     inOrder
         .verify(actionParser)
-        .parseFeedActionPayload(OPEN_IN_INCOGNITO_MODE.getFeedActionPayload(), streamActionApi);
+        .parseFeedActionPayload(
+            OPEN_IN_INCOGNITO_MODE.getFeedActionPayload(), streamActionApi, view);
   }
 
   @Test
@@ -237,7 +243,8 @@ public class StreamActionApiImplTest {
     labelledFeedActionDataList.add(OPEN_IN_INCOGNITO_MODE);
 
     streamActionApi.openContextMenu(
-        OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build());
+        OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
+        view);
 
     ShadowAlertDialog shadowAlertDialog =
         Shadows.shadowOf(ShadowAlertDialog.getLatestAlertDialog());
@@ -263,7 +270,8 @@ public class StreamActionApiImplTest {
     labelledFeedActionDataList.add(OPEN_IN_INCOGNITO_MODE);
 
     streamActionApi.openContextMenu(
-        OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build());
+        OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
+        view);
 
     ShadowAlertDialog shadowAlertDialog =
         Shadows.shadowOf(ShadowAlertDialog.getLatestAlertDialog());
