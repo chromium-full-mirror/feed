@@ -338,7 +338,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
-  public void getExistingSession(String sessionToken, ModelProvider modelProvider) {
+  public boolean getExistingSession(String sessionToken, ModelProvider modelProvider) {
     threadUtils.checkMainThread();
     Session existingSession;
     synchronized (lock) {
@@ -346,21 +346,14 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
     if (existingSession == null) {
       // We didn't find the existing session so it probably expired and was cleaned up.
-      // TODO: What we should do is return null so the UI can ask for a new session.
-      Logger.w(TAG, "getExistingSession didn't find the requested session %s", sessionToken);
+      Logger.i(TAG, "getExistingSession didn't find the requested session %s", sessionToken);
+      return false;
     }
     InitializableSession session = sessionFactory.getSession();
     session.bindModelProvider(modelProvider);
-    if (existingSession != null) {
-      ModelProvider existingModelProvider = existingSession.getModelProvider();
-      if (existingModelProvider != null) {
-        existingModelProvider.invalidate();
-      }
-    } else {
-      Logger.w(
-          TAG, "Didn't find an existing Session called %s, creating new Session", sessionToken);
-      getNewSession(modelProvider);
-      return;
+    ModelProvider existingModelProvider = existingSession.getModelProvider();
+    if (existingModelProvider != null) {
+      existingModelProvider.invalidate();
     }
     StreamSession streamSession = existingSession.getStreamSession();
 
@@ -378,6 +371,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           timeTracker.stop("task", "CreateExistingSession");
           existingSessionCount++;
         });
+    return true;
   }
 
   @Override

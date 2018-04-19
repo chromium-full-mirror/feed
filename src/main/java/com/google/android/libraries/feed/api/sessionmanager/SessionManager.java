@@ -47,10 +47,11 @@ public interface SessionManager {
 
   /**
    * Create a new Session attached to the ModelProvider for an existing sessionId. This will
-   * invalidate any existing ModelProvider instances attached to the session. This will also throw
-   * an {@link IllegalStateException} if the session is not found.
+   * invalidate any existing ModelProvider instances attached to the session.
+   *
+   * @return false if the existing session is not found.
    */
-  void getExistingSession(String sessionToken, ModelProvider modelProvider);
+  boolean getExistingSession(String sessionToken, ModelProvider modelProvider);
 
   /**
    * This method will invalidate head. All {@link #getNewSession(ModelProvider)} will block until a

@@ -43,11 +43,12 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   }
 
   @Override
+  /*@Nullable*/
   public ModelProvider create(String sessionToken) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner);
-    sessionManager.getExistingSession(sessionToken, modelProvider);
-    return modelProvider;
+    boolean success = sessionManager.getExistingSession(sessionToken, modelProvider);
+    return (success) ? modelProvider : null;
   }
 
   @Override

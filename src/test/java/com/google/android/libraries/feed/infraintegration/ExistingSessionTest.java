@@ -124,8 +124,12 @@ public class ExistingSessionTest {
     String sessionToken = modelProvider.getSessionToken();
     assertThat(sessionToken).isNotEmpty();
 
-    // Create a second model provider using an unknown session token
+    // Create a second model provider using an unknown session token, this should return null
     ModelProvider modelProvider2 = modelProviderFactory.create("unknown-session");
+    assertThat(modelProvider2).isNull();
+
+    // Now create one from head
+    modelProvider2 = modelProviderFactory.createNew();
     assertThat(modelProvider2).isNotNull();
     ModelFeature root2 = modelProvider2.getRootFeature();
     assertThat(root2).isNotNull();
@@ -133,10 +137,8 @@ public class ExistingSessionTest {
     assertThat(cursor2).isNotNull();
     modelValidator.assertCursorContents(cursor2, cards);
 
-    // Creating the new session will invalidate the previous ModelProvider and Cursor
-    assertThat(modelProvider2.getSessionToken()).isNotEqualTo(sessionToken);
+    // two sessions against the same $HEAD instance
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
-    assertThat(initCursor.isAtEnd()).isFalse();
-    modelValidator.assertCursorContents(initCursor, cards);
+    assertThat(modelProvider2.getCurrentState()).isEqualTo(State.READY);
   }
 }
