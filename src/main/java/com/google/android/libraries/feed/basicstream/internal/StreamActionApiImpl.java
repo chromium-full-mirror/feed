@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -42,7 +43,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   @Override
-  public void openContextMenu(OpenContextMenuData openContextMenuData) {
+  public void openContextMenu(OpenContextMenuData openContextMenuData, View anchorView) {
     AlertDialog.Builder dialogBuilder = new Builder(context);
 
     List<LabelledFeedActionData> enabledActions = new ArrayList<>();
@@ -62,7 +63,9 @@ public class StreamActionApiImpl implements StreamActionApi {
         itemArray,
         (dialogInterface, i) ->
             actionParser.parseFeedActionPayload(
-                enabledActions.get(i).getFeedActionPayload(), StreamActionApiImpl.this));
+                enabledActions.get(i).getFeedActionPayload(),
+                StreamActionApiImpl.this,
+                anchorView));
     // TODO: Make dialog show up near the click location.
     dialogBuilder.create().show();
   }

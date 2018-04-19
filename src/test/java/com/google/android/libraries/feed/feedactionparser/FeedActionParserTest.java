@@ -20,6 +20,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
+import android.view.View;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -34,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link FeedActionParser}. */
@@ -130,7 +134,8 @@ public class FeedActionParserTest {
   @Test
   public void testParseAction() {
     when(streamActionApi.canOpenUrl()).thenReturn(true);
-    feedActionParser.parseAction(OPEN_URL_ACTION, streamActionApi, /* veLoggingToken= */ null);
+    feedActionParser.parseAction(
+        OPEN_URL_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
 
     verify(streamActionApi).openUrl(URL);
   }
@@ -139,7 +144,7 @@ public class FeedActionParserTest {
   public void testParseAction_newWindow() {
     when(streamActionApi.canOpenUrlInNewWindow()).thenReturn(true);
     feedActionParser.parseAction(
-        OPEN_NEW_WINDOW_ACTION, streamActionApi, /* veLoggingToken= */ null);
+        OPEN_NEW_WINDOW_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
 
     verify(streamActionApi).openUrlInNewWindow(URL);
   }
@@ -148,13 +153,16 @@ public class FeedActionParserTest {
   public void testParseAction_incognito() {
     when(streamActionApi.canOpenUrlInIncognitoMode()).thenReturn(true);
     feedActionParser.parseAction(
-        OPEN_INCOGNITO_ACTION, streamActionApi, /* veLoggingToken= */ null);
+        OPEN_INCOGNITO_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
 
     verify(streamActionApi).openUrlInIncognitoMode(URL);
   }
 
   @Test
   public void testParseAction_contextMenu() {
+    Context context = Robolectric.setupActivity(Activity.class);
+    View view = new View(context);
+
     when(streamActionApi.canOpenContextMenu()).thenReturn(true);
     PietFeedActionPayload contextMenuPietFeedAction =
         PietFeedActionPayload.newBuilder().setFeedActionPayload(CONTEXT_MENU_FEED_ACTION).build();
@@ -165,6 +173,7 @@ public class FeedActionParserTest {
                 PietFeedActionPayload.pietFeedActionPayloadExtension, contextMenuPietFeedAction)
             .build(),
         streamActionApi,
+        /* view= */ view,
         /* veLoggingToken= */ null);
 
     verify(streamActionApi)
@@ -173,7 +182,8 @@ public class FeedActionParserTest {
                 .getFeedActionPayload()
                 .getExtension(FeedAction.feedActionExtension)
                 .getMetadata()
-                .getOpenContextMenuData());
+                .getOpenContextMenuData(),
+            view);
   }
 
   @Test
