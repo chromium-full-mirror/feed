@@ -44,16 +44,17 @@ import java.util.concurrent.ExecutorService;
 public class SessionImpl implements InitializableSession, Dumpable {
   private static final String TAG = "SessionImpl";
 
-  private final ModelProvider modelProvider;
   private final Store store;
   private final ExecutorService sessionManagerExecutor;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final boolean optimisticWrites;
 
-  @VisibleForTesting final Set<String> contentInSession = new HashSet<>();
-
+  // Allow creation of the session without a model provider, this becomes an unbound session
+  private /*@Nullable*/ ModelProvider modelProvider;
   private StreamSession streamSession;
+
+  @VisibleForTesting final Set<String> contentInSession = new HashSet<>();
 
   // operation counts for the dumper
   private int updateCount = 0;
@@ -61,13 +62,11 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
   SessionImpl(
       Store store,
-      ModelProvider modelProvider,
       ExecutorService sessionManagerExecutor,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
       Configuration configuration) {
     this.store = store;
-    this.modelProvider = modelProvider;
     this.sessionManagerExecutor = sessionManagerExecutor;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
@@ -75,6 +74,17 @@ public class SessionImpl implements InitializableSession, Dumpable {
   }
 
   @Override
+  public void bindModelProvider(ModelProvider modelProvider) {
+    this.modelProvider = modelProvider;
+  }
+
+  @Override
+  public void setStreamSession(StreamSession streamSession) {
+    this.streamSession = streamSession;
+  }
+
+  @Override
+  /*@Nullable*/
   public ModelProvider getModelProvider() {
     return modelProvider;
   }
@@ -85,7 +95,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    ModelMutation modelMutation = modelProvider.edit();
+    ModelMutation modelMutation = (modelProvider != null) ? modelProvider.edit() : null;
 
     // Walk through head and add all the DataOperations to the session.
     for (StreamStructure streamStructure : head) {
@@ -96,14 +106,18 @@ public class SessionImpl implements InitializableSession, Dumpable {
           continue;
         } else {
           contentInSession.add(streamStructure.getContentId());
-          modelMutation.addChild(streamStructure);
+          if (modelMutation != null) {
+            modelMutation.addChild(streamStructure);
+          }
         }
         continue;
       }
       Logger.e(TAG, "unsupported StreamDataOperation: %s", streamStructure.getOperation());
     }
-    modelMutation.setStreamSession(streamSession);
-    modelMutation.commit();
+    if (modelMutation != null) {
+      modelMutation.setStreamSession(streamSession);
+      modelMutation.commit();
+    }
     timeTracker.stop("populateSession", streamSession.getStreamToken(), "operations", head.size());
   }
 
@@ -115,20 +129,19 @@ public class SessionImpl implements InitializableSession, Dumpable {
     updateCount++;
 
     if (mutationSourceToken != null) {
-      // Make sure that mutationSourceToken is a token in this session, if not, ignore it
       String contentId = mutationSourceToken.getContentId();
-      if (contentId == null) {
-        // TODO: What do we do if there isnt' a ContentId?
-        Logger.e(TAG, "Found a StreamToken without a ContentId");
-      }
-      if (!contentInSession.contains(contentId)) {
-        Logger.i(TAG, "Session without a Continuation Token %s, ignoring update", contentId);
+      if (contentId != null && !contentInSession.contains(contentId)) {
+        // Make sure that mutationSourceToken is a token in this session, if not, we don't update
+        // the session.
+        timeTracker.stop(
+            "updateSessionIgnored", streamSession.getStreamToken(), "Token Not Found", contentId);
+        Logger.i(TAG, "Token %s not found in session, ignoring update", contentId);
         return;
       }
     }
 
-    ModelMutation modelMutation = modelProvider.edit();
-    if (mutationSourceToken != null) {
+    ModelMutation modelMutation = (modelProvider != null) ? modelProvider.edit() : null;
+    if (modelMutation != null && mutationSourceToken != null) {
       modelMutation.setMutationSourceToken(mutationSourceToken);
     }
 
@@ -139,14 +152,18 @@ public class SessionImpl implements InitializableSession, Dumpable {
       String contentKey = streamStructure.getContentId();
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
         if (contentInSession.contains(contentKey)) {
-          // this is an update operation so we can ignore it
-          Logger.i(TAG, "Found update to content in session");
-          modelMutation.updateChild(streamStructure);
-          updateCnt++;
+          if (modelMutation != null) {
+            // this is an update operation so we can ignore it
+            Logger.i(TAG, "Found update to content in session");
+            modelMutation.updateChild(streamStructure);
+            updateCnt++;
+          }
         } else {
-          sessionMutation.add(streamStructure);
           contentInSession.add(contentKey);
-          modelMutation.addChild(streamStructure);
+          if (modelMutation != null) {
+            sessionMutation.add(streamStructure);
+            modelMutation.addChild(streamStructure);
+          }
           addFeatureCnt++;
         }
       } else if (streamStructure.getOperation() == Operation.REMOVE) {
@@ -154,10 +171,10 @@ public class SessionImpl implements InitializableSession, Dumpable {
             TAG, "Removing Item %s from session %s", contentKey, streamSession.getStreamToken());
         sessionMutation.add(streamStructure);
         contentInSession.remove(contentKey);
-        modelMutation.removeChild(streamStructure);
+        if (modelMutation != null) {
+          modelMutation.removeChild(streamStructure);
+        }
       } else if (streamStructure.getOperation() == Operation.CLEAR_ALL) {
-        // Sessions are never cleared.
-        // TODO: Defined the behavior for sessions when $HEAD is cleared
         Logger.i(TAG, "CLEAR_ALL not support on this session type");
       } else {
         Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
@@ -173,7 +190,9 @@ public class SessionImpl implements InitializableSession, Dumpable {
     }
     // TODO: When we only support optimistic writes remove the if statement
     if (success) {
-      modelMutation.commit();
+      if (modelMutation != null) {
+        modelMutation.commit();
+      }
       timeTracker.stop(
           "updateSession",
           streamSession.getStreamToken(),
@@ -208,6 +227,10 @@ public class SessionImpl implements InitializableSession, Dumpable {
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("sessionName").value(streamSession.getStreamToken());
+    dumper
+        .forKey("")
+        .value((modelProvider == null) ? "sessionIsUnbound" : "sessionIsBound")
+        .compactPrevious();
     dumper.forKey("accessTime").value(new Date(streamSession.getLastAccessed())).compactPrevious();
     dumper.forKey("contentInSession").value(contentInSession.size());
     dumper.forKey("updateCount").value(updateCount).compactPrevious();

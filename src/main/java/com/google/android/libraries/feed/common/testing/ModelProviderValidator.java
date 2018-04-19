@@ -87,6 +87,14 @@ public class ModelProviderValidator {
     assertThat(size.get()).isEqualTo(expectedSize);
   }
 
+  @SuppressWarnings("nullness")
+  public void assertCursorContents(ModelProvider modelProvider, ContentId... cards) {
+    ModelFeature rootFeature = modelProvider.getRootFeature();
+    assertThat(rootFeature).isNotNull();
+    ModelCursor cursor = rootFeature.getCursor();
+    assertCursorContents(cursor, cards);
+  }
+
   public void assertCursorContents(ModelCursor cursor, ContentId... args) {
     AtomicInteger size = new AtomicInteger(0);
     while (cursor.advanceCursor(
@@ -95,6 +103,16 @@ public class ModelProviderValidator {
           assertStreamContentId(child.getContentId(), args[pos]);
         })) {}
     assertThat(cursor.isAtEnd()).isTrue();
+  }
+
+  @SuppressWarnings("nullness")
+  public ModelChild assertCursorContentsWithToken(ModelProvider modelProvider, ContentId... cards) {
+    ModelFeature rootFeature = modelProvider.getRootFeature();
+    assertThat(rootFeature).isNotNull();
+    ModelCursor cursor = rootFeature.getCursor();
+    ModelChild tokenFeature = assertCursorContentsWithToken(cursor, cards);
+    assertThat(tokenFeature).isNotNull();
+    return tokenFeature;
   }
 
   public ModelChild assertCursorContentsWithToken(ModelCursor cursor, ContentId... args) {

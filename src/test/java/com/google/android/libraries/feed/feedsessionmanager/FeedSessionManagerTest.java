@@ -49,7 +49,6 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
-import com.google.android.libraries.feed.feedsessionmanager.internal.UnboundSession;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -357,7 +356,8 @@ public class FeedSessionManagerTest {
             Suppliers.of(requestManager),
             configuration,
             clock);
-    Session s2 = new UnboundSession(session2);
+    Session s2 = mock(Session.class);
+    when(s2.getStreamSession()).thenReturn(session2);
     sessionManager.setSessionsForTest(s2);
     sessionManager.cleanupSessionJournals();
     verify(store).removeSession(session1);
@@ -415,8 +415,10 @@ public class FeedSessionManagerTest {
             clock);
     StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
     StreamSession session2 = StreamSession.newBuilder().setStreamToken("stream:2").build();
-    Session s1 = new UnboundSession(session1);
-    Session s2 = new UnboundSession(session2);
+    Session s1 = mock(Session.class);
+    when(s1.getStreamSession()).thenReturn(session1);
+    Session s2 = mock(Session.class);
+    when(s2.getStreamSession()).thenReturn(session2);
     sessionManager.setSessionsForTest(s1, s2);
 
     FakeContentMutation contentMutation = new FakeContentMutation();

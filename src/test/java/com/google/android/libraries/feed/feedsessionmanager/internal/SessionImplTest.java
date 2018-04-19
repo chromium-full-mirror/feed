@@ -26,8 +26,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -241,13 +241,15 @@ public class SessionImplTest {
   }
 
   private SessionImpl getSessionImpl() {
-    return new SessionImpl(
-        store,
-        modelProvider,
-        MoreExecutors.newDirectExecutorService(),
-        timingUtils,
-        threadUtils,
-        configuration);
+    SessionImpl session =
+        new SessionImpl(
+            store,
+            MoreExecutors.newDirectExecutorService(),
+            timingUtils,
+            threadUtils,
+            configuration);
+    session.bindModelProvider(modelProvider);
+    return session;
   }
 
   private class FakeSessionMutation implements SessionMutation {

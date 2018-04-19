@@ -72,14 +72,13 @@ public class HeadSessionImpl implements Session, Dumpable {
     updateCount++;
 
     if (mutationSourceToken != null) {
-      // Make sure that mutationSourceToken is a token in this session, if not, ignore it
       String contentId = mutationSourceToken.getContentId();
-      if (contentId == null) {
-        // TODO: What do we do if there isnt' a ContentId?
-        Logger.e(TAG, "Found a StreamToken without a ContentId");
-      }
-      if (!contentInSession.contains(contentId)) {
-        Logger.i(TAG, "Session without a Continuation Token %s, ignoring update", contentId);
+      if (contentId != null && !contentInSession.contains(contentId)) {
+        // Make sure that mutationSourceToken is a token in this session, if not, we don't update
+        // the session.
+        timeTracker.stop(
+            "updateSessionIgnored", streamSession.getStreamToken(), "Token Not Found", contentId);
+        Logger.i(TAG, "Token %s not found in session, ignoring update", contentId);
         return;
       }
     }

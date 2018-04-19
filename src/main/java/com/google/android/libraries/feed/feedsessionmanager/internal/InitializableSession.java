@@ -14,12 +14,21 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.List;
 
 /** A {@link Session} which supports initialization from $HEAD. */
 public interface InitializableSession extends Session {
+
+  /** Bind a ModelProvider to an existing, unbound session. */
+  void bindModelProvider(ModelProvider modelProvider);
+
+  /**
+   * Set the StreamSession on the Sessions, this is often done in the populateModelProvider method.
+   */
+  void setStreamSession(StreamSession streamSession);
 
   /** Called to initialize the session from $HEAD */
   void populateModelProvider(StreamSession streamSession, List<StreamStructure> session);
