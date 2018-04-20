@@ -23,7 +23,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.Menu;
 import android.view.View;
+import android.widget.PopupMenu;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
@@ -45,6 +47,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 import org.robolectric.shadows.ShadowAlertDialog;
+import org.robolectric.shadows.ShadowPopupMenu;
 
 /** Tests for {@link StreamActionApiImpl}. */
 @RunWith(RobolectricTestRunner.class)
@@ -203,15 +206,15 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
-    ShadowAlertDialog shadowAlertDialog =
-        Shadows.shadowOf(ShadowAlertDialog.getLatestAlertDialog());
+    Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
+    assertThat(menu.getItem(0).getTitle()).isEqualTo(OPEN_LABEL);
+    assertThat(menu.getItem(1).getTitle()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
+    assertThat(menu.getItem(2).getTitle()).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
 
-    assertThat(shadowAlertDialog.getItems())
-        .asList()
-        .containsExactly(OPEN_LABEL, OPEN_IN_NEW_WINDOW_LABEL, OPEN_IN_INCOGNITO_MODE_LABEL);
-    shadowAlertDialog.clickOnItem(0);
-    shadowAlertDialog.clickOnItem(1);
-    shadowAlertDialog.clickOnItem(2);
+    ShadowPopupMenu shadowPopupMenu = Shadows.shadowOf(ShadowPopupMenu.getLatestPopupMenu());
+    shadowPopupMenu.getOnMenuItemClickListener().onMenuItemClick(menu.getItem(0));
+    shadowPopupMenu.getOnMenuItemClickListener().onMenuItemClick(menu.getItem(1));
+    shadowPopupMenu.getOnMenuItemClickListener().onMenuItemClick(menu.getItem(2));
 
     InOrder inOrder = Mockito.inOrder(actionParser);
 
@@ -246,12 +249,11 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
-    ShadowAlertDialog shadowAlertDialog =
-        Shadows.shadowOf(ShadowAlertDialog.getLatestAlertDialog());
+    Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
 
-    assertThat(shadowAlertDialog.getItems())
-        .asList()
-        .containsExactly(OPEN_LABEL, OPEN_IN_INCOGNITO_MODE_LABEL);
+    assertThat(menu.size()).isEqualTo(2);
+    assertThat(menu.getItem(0).getTitle()).isEqualTo(OPEN_LABEL);
+    assertThat(menu.getItem(1).getTitle()).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
   }
 
   @Test
@@ -273,11 +275,10 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
-    ShadowAlertDialog shadowAlertDialog =
-        Shadows.shadowOf(ShadowAlertDialog.getLatestAlertDialog());
+    Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
 
-    assertThat(shadowAlertDialog.getItems())
-        .asList()
-        .containsExactly(OPEN_LABEL, OPEN_IN_NEW_WINDOW_LABEL);
+    assertThat(menu.size()).isEqualTo(2);
+    assertThat(menu.getItem(0).getTitle()).isEqualTo(OPEN_LABEL);
+    assertThat(menu.getItem(1).getTitle()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
   }
 }

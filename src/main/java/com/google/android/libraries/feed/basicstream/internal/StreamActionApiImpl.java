@@ -14,10 +14,10 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.view.Menu;
 import android.view.View;
+import android.widget.PopupMenu;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -44,30 +44,28 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void openContextMenu(OpenContextMenuData openContextMenuData, View anchorView) {
-    AlertDialog.Builder dialogBuilder = new Builder(context);
-
     List<LabelledFeedActionData> enabledActions = new ArrayList<>();
-    List<CharSequence> items = new ArrayList<>();
 
+    PopupMenu popupMenu = new PopupMenu(context, anchorView);
+    int itemId = 0;
     for (LabelledFeedActionData labelledFeedActionData :
         openContextMenuData.getContextMenuDataList()) {
       if (actionParser.canPerformAction(labelledFeedActionData.getFeedActionPayload(), this)) {
-        items.add(labelledFeedActionData.getLabel());
+        popupMenu.getMenu().add(Menu.NONE, itemId++, Menu.NONE, labelledFeedActionData.getLabel());
         enabledActions.add(labelledFeedActionData);
       }
     }
 
-    CharSequence[] itemArray = new String[items.size()];
-    items.toArray(itemArray);
-    dialogBuilder.setItems(
-        itemArray,
-        (dialogInterface, i) ->
-            actionParser.parseFeedActionPayload(
-                enabledActions.get(i).getFeedActionPayload(),
-                StreamActionApiImpl.this,
-                anchorView));
-    // TODO: Make dialog show up near the click location.
-    dialogBuilder.create().show();
+    popupMenu.setOnMenuItemClickListener(
+        item -> {
+          actionParser.parseFeedActionPayload(
+              enabledActions.get(item.getItemId()).getFeedActionPayload(),
+              StreamActionApiImpl.this,
+              anchorView);
+          return true;
+        });
+
+    popupMenu.show();
   }
 
   @Override
