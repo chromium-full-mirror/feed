@@ -26,8 +26,6 @@ import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -48,7 +46,6 @@ public class SessionImpl implements InitializableSession, Dumpable {
   private final ExecutorService sessionManagerExecutor;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
-  private final boolean optimisticWrites;
 
   // Allow creation of the session without a model provider, this becomes an unbound session
   private /*@Nullable*/ ModelProvider modelProvider;
@@ -58,19 +55,16 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
   // operation counts for the dumper
   private int updateCount = 0;
-  private int storeMutationFailures = 0;
 
   SessionImpl(
       Store store,
       ExecutorService sessionManagerExecutor,
       TimingUtils timingUtils,
-      ThreadUtils threadUtils,
-      Configuration configuration) {
+      ThreadUtils threadUtils) {
     this.store = store;
     this.sessionManagerExecutor = sessionManagerExecutor;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    optimisticWrites = configuration.getValueOrDefault(ConfigKey.OPTIMISTIC_SESSION_WRITES, false);
   }
 
   @Override
@@ -180,32 +174,20 @@ public class SessionImpl implements InitializableSession, Dumpable {
         Logger.e(TAG, "Unknown operation, ignoring: %s", streamStructure.getOperation());
       }
     }
+
     // Commit the Model Provider mutation after the store is updated.
-    boolean success;
-    if (optimisticWrites) {
-      sessionManagerExecutor.execute(sessionMutation::commit);
-      success = true;
-    } else {
-      success = sessionMutation.commit();
-    }
+    sessionManagerExecutor.execute(sessionMutation::commit);
     // TODO: When we only support optimistic writes remove the if statement
-    if (success) {
-      if (modelMutation != null) {
-        modelMutation.commit();
-      }
-      timeTracker.stop(
-          "updateSession",
-          streamSession.getStreamToken(),
-          "features",
-          addFeatureCnt,
-          "updates",
-          updateCnt);
-    } else {
-      // TODO: What do we do, should we reverse the content added to the session?
-      storeMutationFailures++;
-      timeTracker.stop("updateSessionFailure", streamSession.getStreamToken());
-      Logger.e(TAG, "Session %s session mutation failed", streamSession.getStreamToken());
+    if (modelMutation != null) {
+      modelMutation.commit();
     }
+    timeTracker.stop(
+        "updateSession",
+        streamSession.getStreamToken(),
+        "features",
+        addFeatureCnt,
+        "updates",
+        updateCnt);
   }
 
   @Override
@@ -234,7 +216,6 @@ public class SessionImpl implements InitializableSession, Dumpable {
     dumper.forKey("accessTime").value(new Date(streamSession.getLastAccessed())).compactPrevious();
     dumper.forKey("contentInSession").value(contentInSession.size());
     dumper.forKey("updateCount").value(updateCount).compactPrevious();
-    dumper.forKey("storeMutationFailures").value(storeMutationFailures).compactPrevious();
     if (modelProvider instanceof Dumpable) {
       dumper.dump((Dumpable) modelProvider);
     }

@@ -51,7 +51,6 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSession
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
@@ -110,8 +109,7 @@ public class FeedSessionManagerTest {
               return new ArrayList<>();
             }
           });
-  private final Configuration configuration =
-      new Configuration.Builder().put(ConfigKey.OPTIMISTIC_SESSION_WRITES, true).build();
+  private final Configuration configuration = new Configuration.Builder().build();
 
   @Before
   public void setUp() {

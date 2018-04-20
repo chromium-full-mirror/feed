@@ -23,7 +23,6 @@ import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
@@ -62,8 +61,7 @@ public class FeedProcessScopeTest {
           return new ArrayList<>();
         }
       };
-  private final Configuration configuration =
-      new Configuration.Builder().put(ConfigKey.OPTIMISTIC_SESSION_WRITES, true).build();
+  private final Configuration configuration = new Configuration.Builder().build();
 
   @Before
   public void setUp() {

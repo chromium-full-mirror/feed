@@ -26,14 +26,16 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ConfigurationTest {
 
-  @ConfigKey
-  private static final String CONFIG_KEY_WITH_DEFAULT = ConfigKey.OPTIMISTIC_SESSION_WRITES;
+  @ConfigKey private static final String CONFIG_KEY_WITH_DEFAULT = "config-test";
 
   private static final boolean CONFIG_KEY_WITH_DEFAULT_VALUE = false;
 
   @Test
   public void defaultConfig_hasDefaultValues() {
-    Configuration configuration = new Configuration.Builder().build();
+    Configuration configuration =
+        new Configuration.Builder()
+            .put(CONFIG_KEY_WITH_DEFAULT, CONFIG_KEY_WITH_DEFAULT_VALUE)
+            .build();
 
     boolean valueOrDefault =
         configuration.getValueOrDefault(CONFIG_KEY_WITH_DEFAULT, !CONFIG_KEY_WITH_DEFAULT_VALUE);

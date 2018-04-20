@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.host.config.Configuration;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -29,23 +28,20 @@ public class SessionFactory {
   private final ExecutorService sessionManagerExecutor;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
-  private final Configuration configuration;
 
   public SessionFactory(
       Store store,
       ExecutorService sessionManagerExecutor,
       TimingUtils timingUtils,
-      ThreadUtils threadUtils,
-      Configuration configuration) {
+      ThreadUtils threadUtils) {
     this.store = store;
     this.sessionManagerExecutor = sessionManagerExecutor;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    this.configuration = configuration;
   }
 
   public InitializableSession getSession() {
-    return new SessionImpl(store, sessionManagerExecutor, timingUtils, threadUtils, configuration);
+    return new SessionImpl(store, sessionManagerExecutor, timingUtils, threadUtils);
   }
 
   public HeadSessionImpl getHeadSession() {

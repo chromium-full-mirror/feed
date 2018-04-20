@@ -97,7 +97,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final Supplier<ProtocolAdapter> protocolAdapterSupplier;
   private final Supplier<RequestManager> requestManagerSupplier;
   private final Clock clock;
-  private final boolean optimisticWrites;
   private final long lifetimeMs;
 
   // operation counts for the dumper
@@ -135,10 +134,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.requestManagerSupplier = requestManagerSupplier;
     this.clock = clock;
 
-    optimisticWrites = configuration.getValueOrDefault(ConfigKey.OPTIMISTIC_SESSION_WRITES, false);
     lifetimeMs =
         configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
-    sessionFactory = new SessionFactory(store, executor, timingUtils, threadUtils, configuration);
+    sessionFactory = new SessionFactory(store, executor, timingUtils, threadUtils);
     contentCache = new ContentCache();
 
     // Suppress /*@UnderInitialization*/ warning
@@ -414,36 +412,32 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   @Override
   public void getStreamFeatures(List<String> contentIds, Consumer<List<PayloadWithId>> consumer) {
-    if (optimisticWrites) {
-      List<PayloadWithId> results = new ArrayList<>();
-      List<String> cacheMisses = new ArrayList<>();
-      int contentSize;
-      synchronized (lock) {
-        contentSize = contentCache.size();
-        for (String contentId : contentIds) {
-          StreamPayload payload = contentCache.get(contentId);
-          if (payload != null) {
-            results.add(new PayloadWithId(contentId, payload));
-          } else {
-            cacheMisses.add(contentId);
-          }
+    List<PayloadWithId> results = new ArrayList<>();
+    List<String> cacheMisses = new ArrayList<>();
+    int contentSize;
+    synchronized (lock) {
+      contentSize = contentCache.size();
+      for (String contentId : contentIds) {
+        StreamPayload payload = contentCache.get(contentId);
+        if (payload != null) {
+          results.add(new PayloadWithId(contentId, payload));
+        } else {
+          cacheMisses.add(contentId);
         }
       }
-
-      if (!cacheMisses.isEmpty()) {
-        List<PayloadWithId> content = store.getPayloads(cacheMisses);
-        results.addAll(content);
-      }
-      Logger.i(
-          TAG,
-          "Caching getStreamFeatures - items %s, cache misses %s, cache size %s",
-          contentIds.size(),
-          cacheMisses.size(),
-          contentSize);
-      consumer.accept(results);
-    } else {
-      consumer.accept(store.getPayloads(contentIds));
     }
+
+    if (!cacheMisses.isEmpty()) {
+      List<PayloadWithId> content = store.getPayloads(cacheMisses);
+      results.addAll(content);
+    }
+    Logger.i(
+        TAG,
+        "Caching getStreamFeatures - items %s, cache misses %s, cache size %s",
+        contentIds.size(),
+        cacheMisses.size(),
+        contentSize);
+    consumer.accept(results);
   }
 
   @Override
@@ -600,12 +594,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           }
           StreamPayload payload = dataOperation.getStreamPayload();
           String contentId = dataOperation.getStreamStructure().getContentId();
-          if (optimisticWrites) {
-            // TODO: When optimisticWrites is the default move synchronized outside the
-            // for loop
-            synchronized (lock) {
-              contentCache.put(contentId, payload);
-            }
+          // TODO: Should we move this outside of the loop?
+          synchronized (lock) {
+            contentCache.put(contentId, payload);
           }
           if (payload.hasStreamSharedState()) {
             contentMutation.add(contentId, payload);
@@ -645,15 +636,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         Logger.e(
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
-      if (optimisticWrites) {
-        executor.execute(contentMutation::commit);
-        // TODO: currently there is a small window in which an action could occur and the
-        // request be sent to the server before this is written, fix
-        executor.execute(semanticPropertiesMutation::commit);
-      } else {
-        contentMutation.commit();
-        semanticPropertiesMutation.commit();
-      }
+      executor.execute(contentMutation::commit);
+      // TODO: currently there is a small window in which an action could occur and the
+      // request be sent to the server before this is written, fix
+      executor.execute(semanticPropertiesMutation::commit);
       timeTracker.stop("", "contentUpdate", "items", change.dataOperations.size());
     }
 
@@ -728,7 +714,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       }
     }
   }
-  
+
   // This is only used in tests to verify the contents of the shared state cache.
   Map<String, StreamSharedState> getSharedStateCacheForTest() {
     synchronized (lock) {

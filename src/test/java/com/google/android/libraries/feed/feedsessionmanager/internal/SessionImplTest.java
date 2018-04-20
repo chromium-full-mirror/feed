@@ -28,8 +28,6 @@ import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -61,8 +59,6 @@ public class SessionImplTest {
   private FakeSessionMutation fakeSessionMutation;
   private FakeModelMutation fakeModelMutator;
   private final TimingUtils timingUtils = new TimingUtils();
-  private final Configuration configuration =
-      new Configuration.Builder().put(ConfigKey.OPTIMISTIC_SESSION_WRITES, true).build();
 
   @Before
   public void setUp() {
@@ -242,12 +238,7 @@ public class SessionImplTest {
 
   private SessionImpl getSessionImpl() {
     SessionImpl session =
-        new SessionImpl(
-            store,
-            MoreExecutors.newDirectExecutorService(),
-            timingUtils,
-            threadUtils,
-            configuration);
+        new SessionImpl(store, MoreExecutors.newDirectExecutorService(), timingUtils, threadUtils);
     session.bindModelProvider(modelProvider);
     return session;
   }
