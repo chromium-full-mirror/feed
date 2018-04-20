@@ -308,6 +308,10 @@ public class FeedProcessScope implements Dumpable {
   private final Clock clock;
   private final DebugBehavior debugBehavior;
 
+  public Clock getClock() {
+    return clock;
+  }
+
   public ProtocolAdapter getProtocolAdapter() {
     return protocolAdapter;
   }
