@@ -15,6 +15,7 @@
 syntax = "proto2";
 
 import "src/main/proto/search/now/proto/wire/feed/client_info.proto";
+import "src/main/proto/search/now/proto/wire/feed/feed_action_query_data.proto";
 import "src/main/proto/search/now/proto/wire/feed/feed_query.proto";
 import "src/main/proto/search/now/proto/wire/feed/request.proto";
 
@@ -36,4 +37,7 @@ message FeedRequest {
 
   // Query parameters to fetch feed data.
   optional FeedQuery feed_query = 2;
+
+  // Data related to actions performed on the client.
+  repeated FeedActionQueryData feed_action_query_data = 3;
 }
