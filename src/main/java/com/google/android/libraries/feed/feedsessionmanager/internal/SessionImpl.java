@@ -105,6 +105,12 @@ public class SessionImpl implements InitializableSession, Dumpable {
           }
         }
         continue;
+      } else if (streamStructure.getOperation() == Operation.REMOVE) {
+        contentInSession.remove(streamStructure.getContentId());
+        if (modelMutation != null) {
+          modelMutation.removeChild(streamStructure);
+        }
+        continue;
       }
       Logger.e(TAG, "unsupported StreamDataOperation: %s", streamStructure.getOperation());
     }

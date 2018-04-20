@@ -89,7 +89,8 @@ public class FeedRequestManager implements RequestManager {
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
           RequestBuilder request = newDefaultRequest().setPageToken(streamToken.getNextPageToken());
           executeRequest(request, mutationContext);
-          timeTracker.stop("task", "FeedRequestManager LoadMore");
+          timeTracker.stop(
+              "task", "FeedRequestManager LoadMore", "token", streamToken.getNextPageToken());
         });
   }
 

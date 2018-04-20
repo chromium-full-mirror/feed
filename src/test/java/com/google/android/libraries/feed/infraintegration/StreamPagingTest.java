@@ -44,6 +44,7 @@ import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
@@ -79,6 +80,19 @@ public class StreamPagingTest {
     modelValidator = new ModelProviderValidator(protocolAdapter);
   }
 
+  /**
+   * This test will create a Session and page it. Fully validating the observer and results.
+   *
+   * <ol>
+   *   <li>Setup the initial response and the paged response
+   *   <li>Setup the paging handling for the RequestManager
+   *   <li>Create the Initial $HEAD from the initial response
+   *   <li>Create a Session/ModelProvider
+   *   <li>Setup the MutationContext and the ModelToken observer
+   *   <li>ModelProvider.handleToken to cause the paging response to be loaded
+   *   <li>Validate...
+   * </ol>
+   */
   @Test
   public void testPaging() {
     // ModelProvider created after $HEAD has content, one root, and two Cards and a token
@@ -87,25 +101,12 @@ public class StreamPagingTest {
           WireProtocolResponseBuilder.createFeatureContentId(1),
           WireProtocolResponseBuilder.createFeatureContentId(2)
         };
-    WireProtocolResponseBuilder responseBuilder =
-        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
-    for (ContentId contentId : cards) {
-      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    ByteString token = ByteString.copyFrom("1", Charset.defaultCharset());
-    responseBuilder.addStreamToken(token);
-    StreamToken streamToken = getStreamToken(token);
-
-    // Response for the second page of
     ContentId[] pageCards =
         new ContentId[] {
           WireProtocolResponseBuilder.createFeatureContentId(3),
           WireProtocolResponseBuilder.createFeatureContentId(4)
         };
-    WireProtocolResponseBuilder pageResponseBuilder = new WireProtocolResponseBuilder();
-    for (ContentId contentId : pageCards) {
-      pageResponseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
+    PagingState state = new PagingState(cards, pageCards);
 
     // wire up the request manager to handle the paging request
     AtomicReference<MutationContext> mutationContextRef = new AtomicReference<>();
@@ -113,7 +114,7 @@ public class StreamPagingTest {
             new Answer<Void>() {
               public Void answer(InvocationOnMock invocation) throws Throwable {
                 // when we ask the RequestManager to load more, here is the next response
-                protocolAdapter.createModel(pageResponseBuilder.build(), mutationContextRef.get());
+                protocolAdapter.createModel(state.pageResponse, mutationContextRef.get());
                 return null;
               }
             })
@@ -121,11 +122,9 @@ public class StreamPagingTest {
         .loadMore(Matchers.any());
 
     // Create an initial model
-    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
+    protocolAdapter.createModel(state.initialResponse, EMPTY_MUTATION_CONTEXT);
     ModelProvider modelProvider = modelProviderFactory.createNew();
     modelValidator.assertRoot(modelProvider);
-    WireProtocolInfo protocolInfo = responseBuilder.getWireProtocolInfo();
-    assertThat(protocolInfo.hasToken).isTrue();
 
     // For the page request build the proper mutation.  this is used above in the doAnswer
     // when the protocol adapter processes that response.
@@ -133,7 +132,7 @@ public class StreamPagingTest {
         StreamSession.newBuilder().setStreamToken(modelProvider.getSessionToken()).build();
     mutationContextRef.set(
         new MutationContext.Builder()
-            .setContinuationToken(streamToken)
+            .setContinuationToken(state.streamToken)
             .setRequestingSession(streamSession)
             .build());
 
@@ -165,15 +164,113 @@ public class StreamPagingTest {
     modelValidator.assertCursorContents(cursor, cards[0], cards[1], pageCards[0], pageCards[1]);
   }
 
-  private StreamToken getStreamToken(ByteString token) {
-    ContentId tokenId =
-        ContentId.newBuilder().setContentDomain("token").setId(1).setTable("feature").build();
+  /**
+   * This test will create a session and page it. Then create a new session from $HEAD to verify
+   * that Head is correctly handling the token add/remove combination.
+   *
+   * <ul>
+   *   <li>Setup the initial response and the paged response
+   *   <li>Setup the paging handling for the RequestManager
+   *   <li>Create the Initial $HEAD from the initial response
+   *   <li>Create a Session/ModelProvider
+   *   <li>Page the Session/ModelProvider
+   *   <li>Create a new Session from $HEAD
+   *   <li>Validate that the PageToken are not in the cursor
+   * </ul>
+   */
+  @Test
+  public void testPostPagingSessionCreation() {
+    ContentId[] cards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(1),
+          WireProtocolResponseBuilder.createFeatureContentId(2)
+        };
+    ContentId[] pageCards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(3),
+          WireProtocolResponseBuilder.createFeatureContentId(4)
+        };
+    PagingState state = new PagingState(cards, pageCards);
 
-    StreamToken.Builder tokenBuilder = StreamToken.newBuilder();
-    // TODO: This needs to be the real root id.  How do we get the root id?
-    tokenBuilder.setParentId(contentIdGenerators.createContentId(ROOT_CONTENT_ID));
-    tokenBuilder.setContentId(contentIdGenerators.createContentId(tokenId));
-    tokenBuilder.setNextPageToken(token);
-    return tokenBuilder.build();
+    AtomicReference<MutationContext> mutationContextRef = new AtomicReference<>();
+    doAnswer(
+            new Answer<Void>() {
+              public Void answer(InvocationOnMock invocation) throws Throwable {
+                // when we ask the RequestManager to load more, here is the next response
+                protocolAdapter.createModel(state.pageResponse, mutationContextRef.get());
+                return null;
+              }
+            })
+        .when(requestManager)
+        .loadMore(Matchers.any());
+
+    // Create an initial model
+    protocolAdapter.createModel(state.initialResponse, EMPTY_MUTATION_CONTEXT);
+    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelFeature rootFeature = modelProvider.getRootFeature();
+    ModelCursor cursor = rootFeature.getCursor();
+    ModelChild tokenFeature = modelValidator.assertCursorContentsWithToken(cursor, cards);
+    StreamSession streamSession =
+        StreamSession.newBuilder().setStreamToken(modelProvider.getSessionToken()).build();
+    mutationContextRef.set(
+        new MutationContext.Builder()
+            .setContinuationToken(state.streamToken)
+            .setRequestingSession(streamSession)
+            .build());
+    ModelToken modelToken = tokenFeature.getModelToken();
+    modelProvider.handleToken(modelToken);
+    cursor = rootFeature.getCursor();
+    modelValidator.assertCursorContents(cursor, cards[0], cards[1], pageCards[0], pageCards[1]);
+
+    // Now create a second ModelProvider and verify the cursor.
+    ModelProvider session2 = modelProviderFactory.createNew();
+    rootFeature = session2.getRootFeature();
+    cursor = rootFeature.getCursor();
+    modelValidator.assertCursorContents(cursor, cards[0], cards[1], pageCards[0], pageCards[1]);
+  }
+
+  private class PagingState {
+    final Response initialResponse;
+    final Response pageResponse;
+    final StreamToken streamToken;
+
+    PagingState(ContentId[] initialCards, ContentId[] pageCards) {
+      ByteString token = ByteString.copyFrom("1", Charset.defaultCharset());
+      initialResponse = getInitialResponse(initialCards, token);
+      streamToken = getStreamToken(token);
+      pageResponse = getPageResponse(pageCards);
+    }
+
+    private Response getInitialResponse(ContentId[] cards, ByteString token) {
+      WireProtocolResponseBuilder responseBuilder =
+          new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+      for (ContentId contentId : cards) {
+        responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+      }
+      responseBuilder.addStreamToken(token);
+      WireProtocolInfo info = responseBuilder.getWireProtocolInfo();
+      assertThat(info.hasToken).isTrue();
+      return responseBuilder.build();
+    }
+
+    private Response getPageResponse(ContentId[] pagedCards) {
+      WireProtocolResponseBuilder pageResponseBuilder = new WireProtocolResponseBuilder();
+      for (ContentId contentId : pagedCards) {
+        pageResponseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+      }
+      return pageResponseBuilder.build();
+    }
+
+    private StreamToken getStreamToken(ByteString token) {
+      ContentId tokenId =
+          ContentId.newBuilder().setContentDomain("token").setId(1).setTable("feature").build();
+
+      StreamToken.Builder tokenBuilder = StreamToken.newBuilder();
+      // TODO: This needs to be the real root id.  How do we get the root id?
+      tokenBuilder.setParentId(contentIdGenerators.createContentId(ROOT_CONTENT_ID));
+      tokenBuilder.setContentId(contentIdGenerators.createContentId(tokenId));
+      tokenBuilder.setNextPageToken(token);
+      return tokenBuilder.build();
+    }
   }
 }
