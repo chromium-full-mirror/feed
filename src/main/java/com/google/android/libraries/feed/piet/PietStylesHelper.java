@@ -105,14 +105,12 @@ public class PietStylesHelper {
       FrameContext localFrameContext =
           checkNotNull(frameContext, "Binding styles not supported when frameContext is null");
       BoundStyle boundStyle = localFrameContext.getStyleFromBinding(stack.getStyleBinding());
-      if (boundStyle != null) {
-        if (boundStyle.hasBackground()) {
-          mergedStyle.setBackground(
-              mergedStyle.getBackground().toBuilder().mergeFrom(boundStyle.getBackground()));
-        }
-        if (boundStyle.hasColor()) {
-          mergedStyle.setColor(boundStyle.getColor());
-        }
+      if (boundStyle.hasBackground()) {
+        mergedStyle.setBackground(
+            mergedStyle.getBackground().toBuilder().mergeFrom(boundStyle.getBackground()));
+      }
+      if (boundStyle.hasColor()) {
+        mergedStyle.setColor(boundStyle.getColor());
       }
     }
     return mergedStyle.build();

@@ -285,31 +285,35 @@ class FrameContext {
   }
 
   /**
-   * Return an {@link Actions} for the binding if there is one defined; otherwise returns {@code
-   * null}.
+   * Return an {@link Actions} for the binding if there is one defined; otherwise returns the
+   * default instance.
    */
-  /*@Nullable*/
   Actions getActionsFromBinding(ActionsBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     if (bindingValue != null && bindingValue.hasHostBindingData()) {
       bindingValue = hostBindingProvider.getActionsBindingForValue(bindingValue);
     }
-    return bindingValue == null || !bindingValue.hasActions() ? null : bindingValue.getActions();
+    if (bindingValue == null || !bindingValue.hasActions()) {
+      Logger.w(TAG, "No actions found for binding %s", binding.getBindingId());
+      return Actions.getDefaultInstance();
+    }
+    return bindingValue.getActions();
   }
 
   /**
-   * Return a {@link BoundStyle} for the binding if there is one defined; otherwise returns {@code
-   * null}.
+   * Return a {@link BoundStyle} for the binding if there is one defined; otherwise returns the
+   * default instance.
    */
-  /*@Nullable*/
   BoundStyle getStyleFromBinding(StyleBindingRef binding) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     if (bindingValue != null && bindingValue.hasHostBindingData()) {
       bindingValue = hostBindingProvider.getStyleBindingForValue(bindingValue);
     }
-    return bindingValue == null || !bindingValue.hasBoundStyle()
-        ? null
-        : bindingValue.getBoundStyle();
+    if (bindingValue == null || !bindingValue.hasBoundStyle()) {
+      Logger.w(TAG, "No style found for binding %s", binding.getBindingId());
+      return BoundStyle.getDefaultInstance();
+    }
+    return bindingValue.getBoundStyle();
   }
 
   /**

@@ -564,23 +564,22 @@ public class FrameContextTest {
 
   @Test
   public void testGetActionsFromBinding() {
-    frameContext =
-        makeFrameContextWithBinding(
-            defaultBinding().setActions(Actions.getDefaultInstance()).build());
+    Actions actions = Actions.newBuilder().build();
+    frameContext = makeFrameContextWithBinding(defaultBinding().setActions(actions).build());
     assertThat(
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isEqualTo(Actions.getDefaultInstance());
+        .isSameAs(actions);
     assertThat(
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .isNull();
+        .isSameAs(Actions.getDefaultInstance());
 
     frameContext = makeFrameContextWithEmptyBinding();
     assertThat(
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isNull();
+        .isSameAs(Actions.getDefaultInstance());
   }
 
   @Test
@@ -608,13 +607,13 @@ public class FrameContextTest {
     assertThat(
             frameContext.getStyleFromBinding(
                 StyleBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .isNull();
+        .isEqualTo(BoundStyle.getDefaultInstance());
 
     frameContext = makeFrameContextWithEmptyBinding();
     assertThat(
             frameContext.getStyleFromBinding(
                 StyleBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isNull();
+        .isEqualTo(BoundStyle.getDefaultInstance());
   }
 
   @Test

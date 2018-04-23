@@ -108,28 +108,6 @@ public class ViewUtilsTest {
   }
 
   @Test
-  public void testSetOnClickActions_nullActionsClearsActions() {
-    view.setOnClickListener(mockListener);
-    assertThat(view.hasOnClickListeners()).isTrue();
-
-    ViewUtils.setOnClickActions((Actions) null, view, mockActionHandler, mockFrameContext);
-
-    assertViewNotClickable();
-  }
-
-  @Test
-  public void testSetOnClickActions_nullActionsClearsLongActions() {
-    when(mockLongClickListener.onLongClick(any())).thenReturn(true);
-    view.setOnLongClickListener(mockLongClickListener);
-
-    assertThat(view.isLongClickable()).isTrue();
-
-    ViewUtils.setOnClickActions((Actions) null, view, mockActionHandler, mockFrameContext);
-
-    assertThat(view.isLongClickable()).isFalse();
-  }
-
-  @Test
   public void testSetOnClickActions_nullActionsBindingClearsActions() {
     view.setOnClickListener(mockListener);
     assertThat(view.hasOnClickListeners()).isTrue();
