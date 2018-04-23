@@ -16,11 +16,11 @@ package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.net.Uri;
 import android.util.Base64;
-import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
@@ -42,6 +43,7 @@ import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /** Default implementation of RequestManager. */
@@ -80,42 +82,33 @@ public class FeedRequestManager implements RequestManager {
   }
 
   @Override
-  public void loadMore(MutationContext mutationContext) {
+  public void loadMore(
+      StreamToken streamToken, Consumer<Result<List<StreamDataOperation>>> consumer) {
     threadUtils.checkMainThread();
-    StreamToken streamToken = Validators.checkNotNull(mutationContext.getContinuationToken());
     executor.execute(
         () -> {
           Logger.i(TAG, "Task: FeedRequestManager LoadMore");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
           RequestBuilder request = newDefaultRequest().setPageToken(streamToken.getNextPageToken());
-          executeRequest(request, mutationContext);
+          executeRequest(request, consumer);
           timeTracker.stop(
               "task", "FeedRequestManager LoadMore", "token", streamToken.getNextPageToken());
         });
   }
 
   @Override
-  public void triggerRefresh(RequestReason reason) {
+  public void triggerRefresh(
+      RequestReason reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
     RequestBuilder request = newDefaultRequest();
-    executeRequest(request, new MutationContext.Builder().build());
-  }
-
-  @Override
-  public void handlePushedResponseBytes(byte[] responseBytes) {
-    try {
-      // TODO: Does this have a MutationContext?
-      handleResponseBytes(
-          responseBytes, new MutationContext.Builder().build(), /* isLengthPrefixed= */ false);
-    } catch (IOException e) {
-      Logger.e(TAG, e, "Error handling pushed response bytes.");
-    }
+    executeRequest(request, consumer);
   }
 
   private RequestBuilder newDefaultRequest() {
     return new RequestBuilder();
   }
 
-  private void executeRequest(RequestBuilder requestBuilder, MutationContext mutationContext) {
+  private void executeRequest(
+      RequestBuilder requestBuilder, Consumer<Result<List<StreamDataOperation>>> consumer) {
     String host = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_HOST, "");
     String path = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_PATH_AND_PARAMS, "");
     Uri.Builder uriBuilder = Uri.parse(host + path).buildUpon();
@@ -144,23 +137,30 @@ public class FeedRequestManager implements RequestManager {
             scheduler.onReceiveNewContent();
           }
 
-          try {
-            handleResponseBytes(
-                input.getResponseBody(), mutationContext, /* isLengthPrefixed= */ true);
-          } catch (IOException e) {
-            Logger.e(TAG, "Error handling response bytes", e);
-          }
+          handleResponseBytes(input.getResponseBody(), consumer);
         });
   }
 
   private void handleResponseBytes(
-      byte[] responseBytes, MutationContext mutationContext, boolean isLengthPrefixed)
-      throws IOException {
-    Response response =
-        Response.parseFrom(
-            isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,
-            extensionRegistry.getExtensionRegistry());
-    protocolAdapter.createModel(response, mutationContext);
+      byte[] responseBytes, Consumer<Result<List<StreamDataOperation>>> consumer) {
+    Response response;
+    try {
+      response =
+          Response.parseFrom(
+              getLengthPrefixedValue(responseBytes), extensionRegistry.getExtensionRegistry());
+    } catch (IOException e) {
+      Logger.e(TAG, e, "Response parse failed");
+      consumer.accept(Result.failure());
+      return;
+    }
+    Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
+    Result<List<StreamDataOperation>> contextResult;
+    if (result.isSuccessful()) {
+      contextResult = Result.success(result.getValue());
+    } else {
+      contextResult = Result.failure();
+    }
+    consumer.accept(contextResult);
   }
 
   /**
@@ -193,11 +193,6 @@ public class FeedRequestManager implements RequestManager {
     RequestBuilder setPageToken(ByteString token) {
       this.token = token;
       return this;
-    }
-
-    /*@Nullable*/
-    ByteString getPageToken() {
-      return token;
     }
 
     public Request build() {

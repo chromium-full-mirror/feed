@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.common.testing;
 
-import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.protobuf.ByteString;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -34,8 +33,6 @@ public class WireProtocolResponseBuilder {
   // this needs to match the root content_id defined in the FeedProtocolAdapter.
   public static final ContentId ROOT_CONTENT_ID =
       ContentId.newBuilder().setContentDomain("stream_root").setId(0).setTable("feature").build();
-  public static final MutationContext EMPTY_MUTATION_CONTEXT =
-      new MutationContext.Builder().build();
   public static final ContentId PIET_SHARED_STATE =
       ContentId.newBuilder()
           .setContentDomain("piet-shared-state")

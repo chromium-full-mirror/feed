@@ -19,6 +19,7 @@ import static com.google.android.libraries.feed.api.store.Store.HEAD;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,14 +37,13 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
-import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
@@ -85,6 +85,8 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedSessionManagerTest {
 
+  private static final MutationContext EMPTY_MUTATION = new MutationContext.Builder().build();
+
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
 
@@ -96,7 +98,8 @@ public class FeedSessionManagerTest {
   @Mock private ModelMutation modelMutation;
   @Mock private Store store;
   @Mock private Clock clock;
-  @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
+
+  @Captor private ArgumentCaptor<Consumer<Result<List<StreamDataOperation>>>> resultCapture;
 
   private int cursorCount = 0;
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
@@ -155,8 +158,8 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
-            Suppliers.of(protocolAdapter),
-            Suppliers.of(requestManager),
+            protocolAdapter,
+            requestManager,
             configuration,
             clock);
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
@@ -181,10 +184,11 @@ public class FeedSessionManagerTest {
         new FeedModelProviderFactory(sessionManager, threadUtils, timingUtils, mainThreadRunner);
     ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider).isNotNull();
+    assertThat(modelProvider.getRootFeature()).isNotNull();
 
     ModelCursor cursor = modelProvider.getRootFeature().getCursor();
     cursorCount = 0;
-    while (cursor.advanceCursor(incrementChildCountProcessor())) ;
+    while (cursor.advanceCursor(incrementChildCountProcessor())) {}
     assertThat(cursorCount).isEqualTo(featureCnt);
 
     // append a couple of others
@@ -192,7 +196,7 @@ public class FeedSessionManagerTest {
 
     cursor = modelProvider.getRootFeature().getCursor();
     cursorCount = 0;
-    while (cursor.advanceCursor(incrementChildCountProcessor())) ;
+    while (cursor.advanceCursor(incrementChildCountProcessor())) {}
     assertThat(cursorCount).isEqualTo(featureCnt * 2);
   }
 
@@ -215,10 +219,7 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     StreamSession streamSession = StreamSession.getDefaultInstance();
     sessionManager.handleToken(streamSession, streamToken);
-    verify(requestManager).loadMore(mutationContextCaptor.capture());
-    MutationContext mutationContext = mutationContextCaptor.getValue();
-    assertThat(mutationContext.getContinuationToken()).isEqualTo(streamToken);
-    assertThat(mutationContext.getRequestingSession()).isEqualTo(streamSession);
+    verify(requestManager).loadMore(eq(streamToken), resultCapture.capture());
   }
 
   @Test
@@ -226,7 +227,8 @@ public class FeedSessionManagerTest {
     StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.forceRefresh(streamSession);
-    verify(requestManager).triggerRefresh(RequestReason.MANUAL_REFRESH);
+    verify(requestManager)
+        .triggerRefresh(eq(RequestReason.MANUAL_REFRESH), resultCapture.capture());
   }
 
   @Test
@@ -269,8 +271,8 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
-            Suppliers.of(protocolAdapter),
-            Suppliers.of(requestManager),
+            protocolAdapter,
+            requestManager,
             configuration,
             clock);
 
@@ -281,9 +283,12 @@ public class FeedSessionManagerTest {
             .setStreamStructure(StreamStructure.newBuilder().setContentId(rootContentId))
             .build();
 
-    SessionMutation sessionMutation = sessionManager.edit();
-    sessionMutation.addOperation(streamDataOperation);
-    sessionMutation.commit();
+    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
+        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    List<StreamDataOperation> operations = new ArrayList<>();
+    operations.add(streamDataOperation);
+    Result<List<StreamDataOperation>> result = Result.success(operations);
+    updateConsumer.accept(result);
 
     verify(semanticPropertiesMutation).add(rootContentId, semanticData);
     verify(semanticPropertiesMutation).commit();
@@ -304,8 +309,8 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
-            Suppliers.of(protocolAdapter),
-            Suppliers.of(requestManager),
+            protocolAdapter,
+            requestManager,
             configuration,
             clock);
     when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
@@ -327,8 +332,8 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
-            Suppliers.of(protocolAdapter),
-            Suppliers.of(requestManager),
+            protocolAdapter,
+            requestManager,
             configuration,
             clock);
     StreamSessions sessions = sessionManager.getPersistedSessions();
@@ -350,8 +355,8 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
-            Suppliers.of(protocolAdapter),
-            Suppliers.of(requestManager),
+            protocolAdapter,
+            requestManager,
             configuration,
             clock);
     Session s2 = mock(Session.class);
@@ -387,8 +392,8 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
-            Suppliers.of(protocolAdapter),
-            Suppliers.of(requestManager),
+            protocolAdapter,
+            requestManager,
             configuration,
             clock);
     sessionManager.initializePersistedSessions();
@@ -407,8 +412,8 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
-            Suppliers.of(protocolAdapter),
-            Suppliers.of(requestManager),
+            protocolAdapter,
+            requestManager,
             configuration,
             clock);
     StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
@@ -446,8 +451,8 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
-            Suppliers.of(protocolAdapter),
-            Suppliers.of(requestManager),
+            protocolAdapter,
+            requestManager,
             configuration,
             clock);
     assertThat(sessionManager.getInvalidateHeadStateForTest()).isFalse();
@@ -494,11 +499,12 @@ public class FeedSessionManagerTest {
       internalProtocolBuilder.addSharedState(sharedStateId);
       operationCount++;
     }
-    SessionMutation sessionMutation = sessionManager.edit();
-    for (StreamDataOperation operation : internalProtocolBuilder.build()) {
-      sessionMutation.addOperation(operation);
-    }
-    sessionMutation.commit();
+    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
+        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    List<StreamDataOperation> operations = new ArrayList<>();
+    operations.addAll(internalProtocolBuilder.build());
+    Result<List<StreamDataOperation>> result = Result.success(operations);
+    updateConsumer.accept(result);
     return operationCount;
   }
 
@@ -511,17 +517,15 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(),
             threadUtils,
             mainThreadRunner);
-    FeedSessionManager sessionManager =
-        new FeedSessionManager(
-            MoreExecutors.newDirectExecutorService(),
-            store,
-            timingUtils,
-            threadUtils,
-            Suppliers.of(protocolAdapter),
-            Suppliers.of(requestManager),
-            configuration,
-            clock);
-    return sessionManager;
+    return new FeedSessionManager(
+        MoreExecutors.newDirectExecutorService(),
+        store,
+        timingUtils,
+        threadUtils,
+        protocolAdapter,
+        requestManager,
+        configuration,
+        clock);
   }
 
   private Consumer<ModelChild> incrementChildCountProcessor() {

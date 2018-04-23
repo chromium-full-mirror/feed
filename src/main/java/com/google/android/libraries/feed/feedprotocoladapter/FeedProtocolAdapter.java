@@ -14,10 +14,8 @@
 
 package com.google.android.libraries.feed.feedprotocoladapter;
 
-import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
@@ -41,20 +39,14 @@ import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import com.google.search.now.wire.feed.ResponseProto.Response;
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A ProtocolAdapter which converts from the wire protocol to the internal protocol. This is written
- * for the Feed Library implementation.
- *
- * <p>NOTE: This is prototype code. It still uses the FeedStream/FeedCard representation of the wire
- * feed.
- */
+/** A ProtocolAdapter which converts from the wire protocol to the internal protocol. */
 public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   private static final String TAG = "FeedProtocolAdapter";
 
-  private final SessionManager sessionManager;
   private final TimingUtils timingUtils;
   private int nextTokenId = 1;
 
@@ -62,19 +54,22 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   private int responseHandlingCount = 0;
   private int convertContentIdCount = 0;
 
-  public FeedProtocolAdapter(SessionManager sessionManager, TimingUtils timingUtils) {
-    this.sessionManager = sessionManager;
+  public FeedProtocolAdapter(TimingUtils timingUtils) {
     this.timingUtils = timingUtils;
   }
 
-  /** Create the internal protocol based upon the FeedStream definition. */
   @Override
-  public void createModel(Response response, MutationContext mutationContext) {
+  public String getStreamContentId(ContentId contentId) {
+    convertContentIdCount++;
+    return createContentId(contentId);
+  }
+
+  @Override
+  public Result<List<StreamDataOperation>> createModel(Response response) {
     ElapsedTimeTracker totalTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
+    List<StreamDataOperation> streamDataOperations = new ArrayList<>();
     responseHandlingCount++;
 
-    SessionMutation sessionMutation = sessionManager.edit();
-    sessionMutation.setMutationContext(mutationContext);
     List<DataOperation> dataOperations =
         response.getExtension(FeedResponse.feedResponse).getDataOperationList();
     for (DataOperation operation : dataOperations) {
@@ -83,7 +78,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       Operation streamOperation = Operation.forNumber(operation.getOperation().getNumber());
       String contentId;
       if (streamOperation == Operation.CLEAR_ALL) {
-        sessionMutation.addOperation(createDataOperation(Operation.CLEAR_ALL, null, null).build());
+        streamDataOperations.add(createDataOperation(Operation.CLEAR_ALL, null, null).build());
         continue;
       } else if (streamOperation == Operation.REMOVE) {
         if (operation.getMetadata().hasContentId()) {
@@ -92,7 +87,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
           if (operation.getFeature().hasParentId()) {
             parentId = createContentId(operation.getFeature().getParentId());
           }
-          sessionMutation.addOperation(
+          streamDataOperations.add(
               createDataOperation(Operation.REMOVE, contentId, parentId).build());
 
         } else {
@@ -131,7 +126,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
           default:
             throw new RuntimeException("Unknown feature payload");
         }
-        sessionMutation.addOperation(
+        streamDataOperations.add(
             createFeatureDataOperation(streamOperation, contentId, parentId, streamFeature.build())
                 .build());
       } else if (operation.hasPietSharedState()) {
@@ -144,12 +139,12 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
                 .setPietSharedStateItem(item)
                 .setContentId(contentId)
                 .build();
-        sessionMutation.addOperation(
+        streamDataOperations.add(
             createSharedStateDataOperation(streamOperation, contentId, state).build());
       }
 
       if (operation.getMetadata().getSemanticProperties().hasSemanticPropertiesData()) {
-        sessionMutation.addOperation(
+        streamDataOperations.add(
             createSemanticDataOperation(
                     contentId,
                     operation.getMetadata().getSemanticProperties().getSemanticPropertiesData())
@@ -170,11 +165,11 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
                   .build());
       StreamToken streamToken =
           Validators.checkNotNull(createStreamToken(contentId, newContinuationToken));
-      sessionMutation.addOperation(
+      streamDataOperations.add(
           createTokenDataOperation(contentId, streamToken.getParentId(), streamToken).build());
     }
-    sessionMutation.commit();
     totalTimeTracker.stop("", "convertWireProtocol", "mutations", dataOperations.size());
+    return Result.success(streamDataOperations);
   }
 
   /*@Nullable*/
@@ -195,12 +190,6 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     tokenBuilder.setContentId(tokenId);
     tokenBuilder.setNextPageToken(continuationToken);
     return tokenBuilder.build();
-  }
-
-  @Override
-  public String getStreamContentId(ContentId contentId) {
-    convertContentIdCount++;
-    return createContentId(contentId);
   }
 
   private StreamDataOperation.Builder createFeatureDataOperation(

@@ -34,12 +34,7 @@ public class Result<T> {
     return new Result<>(null, false);
   }
 
-  /**
-   * Retrieves the value for the result.
-   *
-   * @throws {@link IllegalStateException} throw when result {@code #isSuccessful} == {@code false}
-   * @throws {@link NullPointerException} if result is null (should not happen)
-   */
+  /** Retrieves the value for the result. */
   public T getValue() {
     if (!isSuccessful) {
       throw new IllegalStateException("Cannot retrieve value for failed result");

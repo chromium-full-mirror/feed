@@ -23,11 +23,10 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.functional.Committer;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -41,8 +40,6 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSession
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
-import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl;
-import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMutationImpl.Change;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -94,8 +91,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
-  private final Supplier<ProtocolAdapter> protocolAdapterSupplier;
-  private final Supplier<RequestManager> requestManagerSupplier;
+  private final ProtocolAdapter protocolAdapter;
+  private final RequestManager requestManager;
   private final Clock clock;
   private final long lifetimeMs;
 
@@ -122,16 +119,16 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      Supplier<ProtocolAdapter> protocolAdapterSupplier,
-      Supplier<RequestManager> requestManagerSupplier,
+      ProtocolAdapter protocolAdapter,
+      RequestManager requestManager,
       Configuration configuration,
       Clock clock) {
     this.executor = executor;
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    this.protocolAdapterSupplier = protocolAdapterSupplier;
-    this.requestManagerSupplier = requestManagerSupplier;
+    this.protocolAdapter = protocolAdapter;
+    this.requestManager = requestManager;
     this.clock = clock;
 
     lifetimeMs =
@@ -391,13 +388,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     // TODO: This should only create the request once.
     handleTokenCount++;
-    requestManagerSupplier
-        .get()
-        .loadMore(
+    requestManager.loadMore(
+        streamToken,
+        new CommitterTask(
             new MutationContext.Builder()
                 .setContinuationToken(streamToken)
                 .setRequestingSession(streamSession)
-                .build());
+                .build()));
   }
 
   @Override
@@ -407,7 +404,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       // it before we have even populated the session in Audrey2.
       Logger.w(TAG, "Found a null streamSession in forceRefresh");
     }
-    requestManagerSupplier.get().triggerRefresh(RequestReason.MANUAL_REFRESH);
+    requestManager.triggerRefresh(
+        RequestReason.MANUAL_REFRESH, new CommitterTask(MutationContext.EMPTY_CONTEXT));
   }
 
   @Override
@@ -444,7 +442,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   /*@Nullable*/
   public StreamSharedState getSharedState(ContentId contentId) {
     threadUtils.checkMainThread();
-    String sharedStateId = protocolAdapterSupplier.get().getStreamContentId(contentId);
+    String sharedStateId = protocolAdapter.getStreamContentId(contentId);
     StreamSharedState state;
     synchronized (lock) {
       state = sharedStateCache.get(sharedStateId);
@@ -456,8 +454,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
-  public SessionMutation edit() {
-    return new SessionMutationImpl(new CommitterTask());
+  public Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(
+      MutationContext mutationContext) {
+    return new CommitterTask(mutationContext);
   }
 
   @Override
@@ -542,19 +541,35 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   /**
-   * This class will commit a session mutation. This will queue the actual work onto the Session
-   * Manager thread. We will update the content first followed by updates to each session.
+   * This class will process a List of {@link StreamDataOperation}. The {@link MutationContext} is
+   * stored here and contains the context which made the request resulting in the List of data
+   * operations.
    */
-  private class CommitterTask implements Committer<Void, Change> {
-    private Change change;
-    private boolean clearedHead = false;
+  private class CommitterTask implements Consumer<Result<List<StreamDataOperation>>> {
     private final List<StreamStructure> streamStructures = new ArrayList<>();
+    private final MutationContext mutationContext;
+
+    private boolean clearedHead = false;
+    private List<StreamDataOperation> dataOperations;
+
+    CommitterTask(MutationContext mutationContext) {
+      this.mutationContext = mutationContext;
+    }
 
     @Override
-    public Void commit(Change change) {
-      this.change = change;
+    public void accept(Result<List<StreamDataOperation>> updateResults) {
+      if (!updateResults.isSuccessful()) {
+        if (mutationContext.getContinuationToken() != null) {
+          Logger.e(
+              TAG, "Error found with a token request %s", mutationContext.getContinuationToken());
+          // TODO: We need to route this issue through the UI for display
+        } else {
+          Logger.e(TAG, "Unexpected Update error found, the update is being ignored");
+        }
+        return;
+      }
+      dataOperations = updateResults.getValue();
       executor.execute(this::commitTask);
-      return null;
     }
 
     private void commitTask() {
@@ -577,15 +592,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
       ContentMutation contentMutation = store.editContent();
       SemanticPropertiesMutation semanticPropertiesMutation = store.editSemanticProperties();
-      for (StreamDataOperation dataOperation : change.dataOperations) {
+      for (StreamDataOperation dataOperation : dataOperations) {
         Operation operation = dataOperation.getStreamStructure().getOperation();
         if (operation == Operation.CLEAR_ALL) {
           clearedHead = true;
           streamStructures.add(dataOperation.getStreamStructure());
-          resetHead(
-              (change.mutationContext != null)
-                  ? change.mutationContext.getRequestingSession()
-                  : null);
+          resetHead((mutationContext != null) ? mutationContext.getRequestingSession() : null);
           continue;
         }
         if (operation == Operation.UPDATE_OR_APPEND) {
@@ -640,7 +652,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       // TODO: currently there is a small window in which an action could occur and the
       // request be sent to the server before this is written, fix
       executor.execute(semanticPropertiesMutation::commit);
-      timeTracker.stop("", "contentUpdate", "items", change.dataOperations.size());
+      timeTracker.stop("", "contentUpdate", "items", dataOperations.size());
     }
 
     private void commitSessionUpdates() {
@@ -648,7 +660,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       ArrayList<Session> updates;
       /*@Nullable*/
       StreamToken mutationSourceToken =
-          (change.mutationContext != null) ? change.mutationContext.getContinuationToken() : null;
+          (mutationContext != null) ? mutationContext.getContinuationToken() : null;
       synchronized (lock) {
         // For sessions we want to add the remove operation if the mutation source was a
         // continuation token.

@@ -14,13 +14,13 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
 import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
@@ -29,14 +29,15 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,9 +50,9 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ContentRemoveTest {
   @Mock private ThreadUtils threadUtils;
-  @Mock private RequestManager requestManager;
 
-  private ProtocolAdapter protocolAdapter;
+  private FakeRequestManager requestManager;
+  private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
 
@@ -60,11 +61,12 @@ public class ContentRemoveTest {
     initMocks(this);
     InfrastructureIntegrationScope scope =
         new InfrastructureIntegrationScope.Builder(
-                threadUtils, requestManager, MoreExecutors.newDirectExecutorService())
+                threadUtils, MoreExecutors.newDirectExecutorService())
             .build();
-    protocolAdapter = scope.getProtocolAdapter();
+    requestManager = scope.getRequestManager();
+    sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
-    modelValidator = new ModelProviderValidator(protocolAdapter);
+    modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
   }
 
   @Test
@@ -82,7 +84,11 @@ public class ContentRemoveTest {
     for (ContentId contentId : cards) {
       responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+
     ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider.getRootFeature()).isNotNull();
     ModelFeature rootFeature = modelProvider.getRootFeature();
@@ -98,8 +104,11 @@ public class ContentRemoveTest {
     ModelCursor advancedCursor4 = advanceCursor(rootFeature.getCursor(), 4);
 
     responseBuilder = new WireProtocolResponseBuilder().removeFeature(cards[1], ROOT_CONTENT_ID);
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
-    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
     ArgumentCaptor<FeatureChange> capture = ArgumentCaptor.forClass(FeatureChange.class);
     verify(observer).onChange(capture.capture());
     List<FeatureChange> featureChanges = capture.getAllValues();

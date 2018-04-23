@@ -14,14 +14,7 @@
 
 package com.google.android.libraries.feed.mocknetworkclient;
 
-import android.os.Build.VERSION;
-import android.os.Build.VERSION_CODES;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.support.annotation.VisibleForTesting;
 import android.util.Base64;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
@@ -37,7 +30,6 @@ import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.ConditionalResponse;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServer;
-import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import java.io.IOException;
 import java.util.List;
 
@@ -49,37 +41,13 @@ public class MockServerNetworkClient implements NetworkClient {
   private final List<ConditionalResponse> conditionalResponses;
   private final ExtensionRegistryLite extensionRegistry;
 
-  @VisibleForTesting final MockServerLooper looper;
-  @VisibleForTesting boolean hasQuit = false;
-
-  /*@Nullable*/ @VisibleForTesting RequestManager requestManager;
-
   @SuppressWarnings("nullness")
   public MockServerNetworkClient(MockServer mockServer) {
     this.initialResponse = mockServer.getInitialResponse();
     conditionalResponses = mockServer.getConditionalResponsesList();
 
-    this.looper = new MockServerLooper();
-    Handler handler = looper.getHandler();
     extensionRegistry = ExtensionRegistryLite.newInstance();
     extensionRegistry.add(FeedRequest.feedRequest);
-    // This triggers a nullness warning, suppressing above.  This should be ok since this is a mock
-    // class.
-    for (MockUpdate update : mockServer.getMockUpdatesList()) {
-      handler.postDelayed(() -> handleUpdate(update.getResponse()), update.getUpdateTriggerTime());
-    }
-  }
-
-  /** Called to set the {@code RequestManager}. This is required to support updates */
-  public void setRequestManager(RequestManager requestManager) {
-    this.requestManager = requestManager;
-  }
-
-  /** Called to shutdown the Looper providing support for Mock Updates */
-  public void quitSafely() {
-    looper.getHandler().removeCallbacksAndMessages(null);
-    looper.quitSafely();
-    hasQuit = true;
   }
 
   @Override
@@ -127,20 +95,7 @@ public class MockServerNetworkClient implements NetworkClient {
   }
 
   @Override
-  public void close() {
-    quitSafely();
-  }
-
-  @VisibleForTesting
-  void handleUpdate(Response response) {
-    RequestManager rm = Validators.checkNotNull(requestManager);
-    if (hasQuit) {
-      Logger.i(TAG, "Calling update after MockServerNetworkClient has quit");
-      return;
-    }
-    Logger.i(TAG, "Calling handlePushedResponse");
-    rm.handlePushedResponseBytes(response.toByteArray());
-  }
+  public void close() {}
 
   private HttpResponse createHttpResponse(Response response) {
     if (response == null) {
@@ -158,32 +113,6 @@ public class MockServerNetworkClient implements NetworkClient {
     } catch (IOException e) {
       Logger.e(TAG, "Error creating response", e);
       return new HttpResponse(500);
-    }
-  }
-
-  @VisibleForTesting
-  static class MockServerLooper {
-    private final HandlerThread updateThread;
-    private final Handler handler;
-
-    private MockServerLooper() {
-      Logger.i(TAG, "createing MockServerLooperImpl");
-      updateThread = new HandlerThread("UpdateThread");
-      updateThread.start();
-      handler = new Handler(updateThread.getLooper());
-    }
-
-    Handler getHandler() {
-      return handler;
-    }
-
-    void quitSafely() {
-      Logger.i(TAG, "Looper quitSafely");
-      if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN_MR2) {
-        updateThread.quitSafely();
-      } else {
-        updateThread.quit();
-      }
     }
   }
 }

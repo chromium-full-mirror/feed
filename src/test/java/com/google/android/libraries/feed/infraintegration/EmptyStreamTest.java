@@ -14,24 +14,25 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,9 +43,9 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class EmptyStreamTest {
   @Mock private ThreadUtils threadUtils;
-  @Mock private RequestManager requstManager;
 
-  private ProtocolAdapter protocolAdapter;
+  private FakeRequestManager requestManager;
+  private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
 
   @Before
@@ -52,10 +53,11 @@ public class EmptyStreamTest {
     initMocks(this);
     InfrastructureIntegrationScope scope =
         new InfrastructureIntegrationScope.Builder(
-                threadUtils, requstManager, MoreExecutors.newDirectExecutorService())
+                threadUtils, MoreExecutors.newDirectExecutorService())
             .build();
+    requestManager = scope.getRequestManager();
+    sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
-    protocolAdapter = scope.getProtocolAdapter();
   }
 
   @Test
@@ -98,7 +100,10 @@ public class EmptyStreamTest {
   public void emptyStream_emptyResponse() {
     // Create an empty stream through a response
     WireProtocolResponseBuilder responseBuilder = new WireProtocolResponseBuilder();
-    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew();
 
     assertThat(modelProvider).isNotNull();

@@ -25,6 +25,9 @@ public class MutationContext {
   /*@Nullable*/ private final StreamToken continuationToken;
   /*@Nullable*/ private final StreamSession requestingSession;
 
+  /** Static used to represent an empty Mutation Context */
+  public static final MutationContext EMPTY_CONTEXT = new MutationContext(null, null);
+
   private MutationContext(
       /*@Nullable*/ StreamToken continuationToken, /*@Nullable*/ StreamSession requestingSession) {
     this.continuationToken = continuationToken;

@@ -14,19 +14,18 @@
 
 package com.google.android.libraries.feed.mocknetworkclient;
 
-import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.net.Uri;
-import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -41,12 +40,12 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.ResponseProto.Response.ResponseVersion;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.ConditionalResponse;
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServer;
-import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,10 +62,8 @@ import org.robolectric.RobolectricTestRunner;
 public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   @Mock private ProtocolAdapter protocolAdapter;
-  @Mock private RequestManager requestManager;
   @Mock private SchedulerApi scheduler;
   @Mock private ThreadUtils threadUtils;
-  @Captor private ArgumentCaptor<MutationContext> mutationContextCaptor;
   @Captor private ArgumentCaptor<Response> responseCaptor;
 
   private final FeedExtensionRegistry extensionRegistry =
@@ -86,18 +83,6 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
     MockServer mockServer = MockServer.getDefaultInstance();
     networkClient = new MockServerNetworkClient(mockServer);
-  }
-
-  @Test
-  public void testMockServerNetworkClient() {
-    MockServer mockServer = MockServer.getDefaultInstance();
-    List<MockUpdate> mockUpdates = new ArrayList<>();
-    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServer);
-    assertThat(networkClient.hasQuit).isFalse();
-    assertThat(networkClient.looper).isNotNull();
-
-    networkClient.quitSafely();
-    assertThat(networkClient.hasQuit).isTrue();
   }
 
   @Test
@@ -149,35 +134,6 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   }
 
   @Test
-  public void testHandleUpdate() {
-    MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(MockServer.getDefaultInstance());
-    assertThat(networkClient.requestManager).isNull();
-    networkClient.setRequestManager(requestManager);
-    assertThat(networkClient.requestManager).isEqualTo(requestManager);
-
-    Response response = Response.getDefaultInstance();
-    networkClient.handleUpdate(response);
-    verify(requestManager).handlePushedResponseBytes(response.toByteArray());
-  }
-
-  @Test
-  public void testHandleUpdate_notInitialized() {
-    MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(MockServer.getDefaultInstance());
-
-    Response response = Response.getDefaultInstance();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                networkClient.handleUpdate(response);
-              }
-            })
-        .throwsAnExceptionOfType(NullPointerException.class);
-  }
-
-  @Test
   public void testPaging() {
     MockServer.Builder mockServerBuilder = MockServer.newBuilder();
     Response response =
@@ -198,13 +154,22 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             MoreExecutors.newDirectExecutorService(),
             timingUtils,
             threadUtils);
+    when(protocolAdapter.createModel(any(Response.class)))
+        .thenReturn(Result.success(new ArrayList<>()));
 
     feedRequestManager.loadMore(
-        new MutationContext.Builder().setContinuationToken(streamToken).build());
+        streamToken,
+        new Consumer<Result<List<StreamDataOperation>>>() {
 
-    verify(protocolAdapter).createModel(responseCaptor.capture(), mutationContextCaptor.capture());
+          @Override
+          public void accept(Result<List<StreamDataOperation>> result) {
+            assertThat(result.isSuccessful()).isTrue();
+            assertThat(result.getValue()).hasSize(0);
+          }
+        });
+
+    verify(protocolAdapter).createModel(responseCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
-    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(streamToken);
   }
 
   @Test
@@ -227,14 +192,23 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             MoreExecutors.newDirectExecutorService(),
             timingUtils,
             threadUtils);
+    when(protocolAdapter.createModel(any(Response.class)))
+        .thenReturn(Result.success(new ArrayList<>()));
 
     ByteString token = ByteString.copyFromUtf8("fooToken");
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
     feedRequestManager.loadMore(
-        new MutationContext.Builder().setContinuationToken(streamToken).build());
+        streamToken,
+        new Consumer<Result<List<StreamDataOperation>>>() {
 
-    verify(protocolAdapter).createModel(responseCaptor.capture(), mutationContextCaptor.capture());
+          @Override
+          public void accept(Result<List<StreamDataOperation>> result) {
+            assertThat(result.isSuccessful()).isTrue();
+            assertThat(result.getValue()).hasSize(0);
+          }
+        });
+
+    verify(protocolAdapter).createModel(responseCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualToDefaultInstance();
-    assertThat(mutationContextCaptor.getValue().getContinuationToken()).isEqualTo(streamToken);
   }
 }

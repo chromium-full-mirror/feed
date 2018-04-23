@@ -14,18 +14,19 @@
 
 package com.google.android.libraries.feed.api.protocoladapter;
 
-import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.common.Result;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
+import java.util.List;
 
 /** Converts the wire protocol (protos sent from the server) into an internal representation. */
 public interface ProtocolAdapter {
   /**
-   * Create the internal protocol from a wire protocol response definition. The {@link
-   * MutationContext} contains the information such as the token or session which initiated the
-   * request.
+   * Create the internal protocol from a wire protocol response definition. The wire protocol is
+   * turned into a List of {@link StreamDataOperation} which are sent to the SessionManager.
    */
-  void createModel(Response response, MutationContext mutationContext);
+  Result<List<StreamDataOperation>> createModel(Response response);
 
   /** Convert a wire protocol ContentId into the {@code String} version used in Jardin. */
   String getStreamContentId(ContentId contentId);

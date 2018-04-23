@@ -14,9 +14,12 @@
 
 package com.google.android.libraries.feed.api.sessionmanager;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -55,7 +58,7 @@ public interface SessionManager {
 
   /**
    * This method will invalidate head. All {@link #getNewSession(ModelProvider)} will block until a
-   * new {@link SessionMutation} completes providing the new head.
+   * new a response updates the SessionManager providing the new head.
    */
   void invalidateHead();
 
@@ -83,8 +86,9 @@ public interface SessionManager {
   StreamSharedState getSharedState(ContentId contentId);
 
   /**
-   * Begin and edit against HEAD$. The SessionManager will update HEAD$ and determine which sessions
-   * should be updated.
+   * Return a {@link Consumer} which is able to handle an update to the SessionManager. An update
+   * consists of a List of {@link StreamDataOperation} objects. The {@link MutationContext} captures
+   * the context which is initiating the update operation.
    */
-  SessionMutation edit();
+  Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(MutationContext mutationContext);
 }

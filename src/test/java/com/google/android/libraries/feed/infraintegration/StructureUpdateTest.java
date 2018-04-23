@@ -14,13 +14,13 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
 import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
@@ -30,13 +30,15 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,8 +51,9 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class StructureUpdateTest {
   @Mock private ThreadUtils threadUtils;
-  @Mock private RequestManager requestManager;
 
+  private FakeRequestManager requestManager;
+  private SessionManager sessionManager;
   private ProtocolAdapter protocolAdapter;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
@@ -60,10 +63,12 @@ public class StructureUpdateTest {
     initMocks(this);
     InfrastructureIntegrationScope scope =
         new InfrastructureIntegrationScope.Builder(
-                threadUtils, requestManager, MoreExecutors.newDirectExecutorService())
+                threadUtils, MoreExecutors.newDirectExecutorService())
             .build();
-    protocolAdapter = scope.getProtocolAdapter();
+    requestManager = scope.getRequestManager();
+    sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
+    protocolAdapter = scope.getProtocolAdapter();
     modelValidator = new ModelProviderValidator(protocolAdapter);
   }
 
@@ -87,7 +92,10 @@ public class StructureUpdateTest {
     for (ContentId contentId : startingCards) {
       responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew();
 
     ModelFeature root = modelProvider.getRootFeature();
@@ -101,7 +109,10 @@ public class StructureUpdateTest {
     for (ContentId contentId : appendedCards) {
       responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // assert the new state of the stream
     modelValidator.assertCursorSize(root.getCursor(), startingCards.length + appendedCards.length);
@@ -141,7 +152,10 @@ public class StructureUpdateTest {
     for (ContentId contentId : startingCards) {
       responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew();
 
     ModelFeature root = modelProvider.getRootFeature();
@@ -162,7 +176,10 @@ public class StructureUpdateTest {
     for (ContentId contentId : appendedCards) {
       responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    protocolAdapter.createModel(responseBuilder.build(), EMPTY_MUTATION_CONTEXT);
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     modelValidator.assertCursorSize(cursor, 3);
   }
 }

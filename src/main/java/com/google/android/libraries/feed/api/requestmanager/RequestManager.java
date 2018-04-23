@@ -14,32 +14,23 @@
 
 package com.google.android.libraries.feed.api.requestmanager;
 
-import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
+import java.util.List;
 
 /** Creates and issues requests to the server. */
 public interface RequestManager {
 
   /**
-   * Issues a request for the next page of data.
-   *
-   * <p>Called when the user scrolls near the end of the feed to fetch the next page, or more of the
-   * carousel.
-   *
-   * @param mutationContext This must contain the token and optionally the session making the
-   *     request.
+   * Issues a request for the next page of data. The {@code streamToken} described to the server
+   * what the next page means. The response will be sent to a {@link Consumer} a set of {@link
+   * StreamDataOperation} created by the ProtocolAdapter.
    */
-  void loadMore(MutationContext mutationContext);
+  void loadMore(StreamToken streamToken, Consumer<Result<List<StreamDataOperation>>> consumer);
 
-  /**
-   * Issues a request to refresh the entire feed.
-   *
-   * <p>This allows the host app to manually control refresh behavior.
-   *
-   * @param reason the reason why the refresh is being requested.
-   */
-  void triggerRefresh(RequestReason reason);
-
-  /** Handle a asynchronous response from the Network Client */
-  void handlePushedResponseBytes(byte[] responseBytes);
+  /** Issues a request to refresh the entire feed. */
+  void triggerRefresh(RequestReason reason, Consumer<Result<List<StreamDataOperation>>> consumer);
 }

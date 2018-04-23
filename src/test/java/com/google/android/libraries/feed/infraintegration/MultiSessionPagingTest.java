@@ -14,10 +14,8 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
 import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
@@ -27,10 +25,11 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
+import com.google.android.libraries.feed.common.testing.PagingState;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -38,15 +37,12 @@ import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.nio.charset.Charset;
-import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 
 /**
@@ -71,9 +67,9 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class MultiSessionPagingTest {
   @Mock private ThreadUtils threadUtils;
-  @Mock private RequestManager requestManager;
 
-  private ProtocolAdapter protocolAdapter;
+  private FakeRequestManager requestManager;
+  private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
   private ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
@@ -83,11 +79,12 @@ public class MultiSessionPagingTest {
     initMocks(this);
     InfrastructureIntegrationScope scope =
         new InfrastructureIntegrationScope.Builder(
-                threadUtils, requestManager, MoreExecutors.newDirectExecutorService())
+                threadUtils, MoreExecutors.newDirectExecutorService())
             .build();
-    protocolAdapter = scope.getProtocolAdapter();
+    requestManager = scope.getRequestManager();
+    sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
-    modelValidator = new ModelProviderValidator(protocolAdapter);
+    modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
   }
 
   @Test
@@ -103,6 +100,7 @@ public class MultiSessionPagingTest {
           WireProtocolResponseBuilder.createFeatureContentId(3),
           WireProtocolResponseBuilder.createFeatureContentId(4)
         };
+    PagingState s1State = new PagingState(s1Cards, s1PageCards, 1, contentIdGenerators);
     ByteString token1 = ByteString.copyFrom("s1-page", Charset.defaultCharset());
     StreamToken streamToken1 = getStreamToken(token1, 1);
     WireProtocolResponseBuilder s1InitialResponse = getInitialResponse(s1Cards, token1);
@@ -119,13 +117,18 @@ public class MultiSessionPagingTest {
           WireProtocolResponseBuilder.createFeatureContentId(103),
           WireProtocolResponseBuilder.createFeatureContentId(104)
         };
+    PagingState s2State = new PagingState(s2Cards, s2PageCards, 2, contentIdGenerators);
     ByteString token2 = ByteString.copyFrom("s2-page", Charset.defaultCharset());
     StreamToken streamToken2 = getStreamToken(token2, 2);
     WireProtocolResponseBuilder s2InitialResponse = getInitialResponse(s2Cards, token2);
     WireProtocolResponseBuilder s2PageResponse = getPageResponse(s2PageCards);
 
     // Create an initial S1 $HEAD session
-    protocolAdapter.createModel(s1InitialResponse.build(), EMPTY_MUTATION_CONTEXT);
+    requestManager.queueResponse(s1State.initialResponse);
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+
     ModelProvider mp1 = modelProviderFactory.createNew();
     modelValidator.assertRoot(mp1);
     WireProtocolInfo protocolInfo = s1InitialResponse.getWireProtocolInfo();
@@ -136,14 +139,16 @@ public class MultiSessionPagingTest {
     // Create a second session against the S1 head.
     ModelProvider mp2 = modelProviderFactory.createNew();
     assertThat(mp2.getCurrentState()).isEqualTo(State.READY);
-    ModelChild mp2Token = modelValidator.assertCursorContentsWithToken(mp2, s1Cards);
+    modelValidator.assertCursorContentsWithToken(mp2, s1Cards);
 
     // Refresh the Stream with the S2 initial response
     StreamSession streamSession =
         StreamSession.newBuilder().setStreamToken(mp2.getSessionToken()).build();
-    protocolAdapter.createModel(
-        s2InitialResponse.build(),
-        new MutationContext.Builder().setRequestingSession(streamSession).build());
+    requestManager.queueResponse(s2State.initialResponse);
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(
+            new MutationContext.Builder().setRequestingSession(streamSession).build()));
     assertThat(mp1.getCurrentState()).isEqualTo(State.READY);
     assertThat(mp2.getCurrentState()).isEqualTo(State.INVALIDATED);
 
@@ -152,7 +157,7 @@ public class MultiSessionPagingTest {
     modelValidator.assertRoot(mp2);
     protocolInfo = s1InitialResponse.getWireProtocolInfo();
     assertThat(protocolInfo.hasToken).isTrue();
-    modelValidator.assertCursorContentsWithToken(mp2, s2Cards);
+    ModelChild mp2Token = modelValidator.assertCursorContentsWithToken(mp2, s2Cards);
     assertThat(mp2.getCurrentState()).isEqualTo(State.READY);
 
     // Verify that we didn't change the first session
@@ -160,46 +165,14 @@ public class MultiSessionPagingTest {
     assertThat(mp1.getCurrentState()).isEqualTo(State.READY);
 
     // now page S1
-    streamSession = StreamSession.newBuilder().setStreamToken(mp1.getSessionToken()).build();
-    AtomicReference<MutationContext> mutationContextRef = new AtomicReference<>();
-    mutationContextRef.set(
-        new MutationContext.Builder()
-            .setContinuationToken(streamToken1)
-            .setRequestingSession(streamSession)
-            .build());
-    // wire up the request manager to handle the paging request
-    doAnswer(
-            new Answer<Void>() {
-              public Void answer(InvocationOnMock invocation) throws Throwable {
-                // when we ask the RequestManager to load more, here is the next response
-                protocolAdapter.createModel(s1PageResponse.build(), mutationContextRef.get());
-                return null;
-              }
-            })
-        .when(requestManager)
-        .loadMore(Matchers.any());
+    requestManager.queueResponse(s1State.pageResponse);
     mp1.handleToken(mp1Token.getModelToken());
     modelValidator.assertCursorContents(
         mp1, s1Cards[0], s1Cards[1], s1PageCards[0], s1PageCards[1]);
     modelValidator.assertCursorContentsWithToken(mp2, s2Cards);
 
     // now page S2
-    streamSession = StreamSession.newBuilder().setStreamToken(mp2.getSessionToken()).build();
-    mutationContextRef.set(
-        new MutationContext.Builder()
-            .setContinuationToken(streamToken2)
-            .setRequestingSession(streamSession)
-            .build());
-    doAnswer(
-            new Answer<Void>() {
-              public Void answer(InvocationOnMock invocation) throws Throwable {
-                // when we ask the RequestManager to load more, here is the next response
-                protocolAdapter.createModel(s2PageResponse.build(), mutationContextRef.get());
-                return null;
-              }
-            })
-        .when(requestManager)
-        .loadMore(Matchers.any());
+    requestManager.queueResponse(s2State.pageResponse);
     mp2.handleToken(mp2Token.getModelToken());
     modelValidator.assertCursorContents(
         mp1, s1Cards[0], s1Cards[1], s1PageCards[0], s1PageCards[1]);

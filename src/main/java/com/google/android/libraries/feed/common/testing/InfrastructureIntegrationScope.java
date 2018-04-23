@@ -17,10 +17,8 @@ package com.google.android.libraries.feed.common.testing;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.functional.SettableSupplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
@@ -49,10 +47,10 @@ public class InfrastructureIntegrationScope {
   private final FeedSessionManager feedSessionManager;
   private final FeedProtocolAdapter feedProtocolAdapter;
   private final FeedModelProviderFactory modelProviderFactory;
+  private final FakeRequestManager fakeRequestManager;
   private final FeedStore store;
 
-  InfrastructureIntegrationScope(
-      ThreadUtils threadUtils, RequestManager mockRequestManager, ExecutorService executorService) {
+  InfrastructureIntegrationScope(ThreadUtils threadUtils, ExecutorService executorService) {
     TimingUtils timingUtils = new TimingUtils();
     MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
@@ -69,24 +67,21 @@ public class InfrastructureIntegrationScope {
             threadUtils,
             mainThreadRunner);
     Clock clock = new SystemClockImpl();
-    SettableSupplier<ProtocolAdapter> protocolAdapterSupplier = new SettableSupplier<>();
-    SettableSupplier<RequestManager> requestManagerSupplier = new SettableSupplier<>();
+    feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
+    fakeRequestManager = new FakeRequestManager(feedProtocolAdapter);
     feedSessionManager =
         new FeedSessionManager(
             executorService,
             store,
             timingUtils,
             threadUtils,
-            protocolAdapterSupplier,
-            requestManagerSupplier,
+            feedProtocolAdapter,
+            fakeRequestManager,
             configuration,
             clock);
     modelProviderFactory =
         new FeedModelProviderFactory(
             feedSessionManager, threadUtils, timingUtils, mainThreadRunner);
-    feedProtocolAdapter = new FeedProtocolAdapter(feedSessionManager, timingUtils);
-    protocolAdapterSupplier.set(feedProtocolAdapter);
-    requestManagerSupplier.set(mockRequestManager);
   }
 
   public ProtocolAdapter getProtocolAdapter() {
@@ -105,6 +100,10 @@ public class InfrastructureIntegrationScope {
     return store;
   }
 
+  public FakeRequestManager getRequestManager() {
+    return fakeRequestManager;
+  }
+
   private static class ExtensionProvider implements ProtoExtensionProvider {
     @Override
     public List<GeneratedExtension<?, ?>> getProtoExtensions() {
@@ -115,21 +114,15 @@ public class InfrastructureIntegrationScope {
   /** Builder for creating the {@link InfrastructureIntegrationScope} */
   public static class Builder {
     private final ThreadUtils mockThreadUtils;
-    private final RequestManager mockRequestManager;
     private final ExecutorService executorService;
 
-    public Builder(
-        ThreadUtils mockThreadUtils,
-        RequestManager mockRequestManager,
-        ExecutorService executorService) {
+    public Builder(ThreadUtils mockThreadUtils, ExecutorService executorService) {
       this.mockThreadUtils = mockThreadUtils;
-      this.mockRequestManager = mockRequestManager;
       this.executorService = executorService;
     }
 
     public InfrastructureIntegrationScope build() {
-      return new InfrastructureIntegrationScope(
-          mockThreadUtils, mockRequestManager, executorService);
+      return new InfrastructureIntegrationScope(mockThreadUtils, executorService);
     }
   }
 }

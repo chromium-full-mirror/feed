@@ -23,7 +23,6 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.functional.SettableSupplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -193,22 +192,8 @@ public class FeedProcessScope implements Dumpable {
               journalStorage,
               threadUtils,
               mainThreadRunner);
-      SettableSupplier<ProtocolAdapter> protocolAdapterSupplier = new SettableSupplier<>();
-      SettableSupplier<RequestManager> requestManagerSupplier = new SettableSupplier<>();
-      if (sessionManager == null) {
-        sessionManager =
-            new FeedSessionManager(
-                singleThreadExecutor,
-                store,
-                timingUtils,
-                threadUtils,
-                protocolAdapterSupplier,
-                requestManagerSupplier,
-                configuration,
-                clock);
-      }
       if (protocolAdapter == null) {
-        protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
+        protocolAdapter = new FeedProtocolAdapter(timingUtils);
       }
       if (requestManager == null) {
         requestManager =
@@ -222,8 +207,18 @@ public class FeedProcessScope implements Dumpable {
                 timingUtils,
                 threadUtils);
       }
-      protocolAdapterSupplier.set(protocolAdapter);
-      requestManagerSupplier.set(Validators.checkNotNull(requestManager));
+      if (sessionManager == null) {
+        sessionManager =
+            new FeedSessionManager(
+                singleThreadExecutor,
+                store,
+                timingUtils,
+                threadUtils,
+                protocolAdapter,
+                requestManager,
+                configuration,
+                clock);
+      }
 
       AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener();
 

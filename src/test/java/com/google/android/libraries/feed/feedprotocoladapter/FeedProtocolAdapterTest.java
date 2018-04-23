@@ -15,50 +15,38 @@
 package com.google.android.libraries.feed.feedprotocoladapter;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.api.sessionmanager.SessionMutation;
-import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FeedProtocolAdapter} class. */
 @RunWith(RobolectricTestRunner.class)
 public class FeedProtocolAdapterTest {
-  @Mock private SessionManager sessionManager;
-
-  private static final MutationContext EMPTY_CONTEXT = new MutationContext.Builder().build();
 
   private final TimingUtils timingUtils = new TimingUtils();
-  private FakeSessionMutation sessionMutation;
   private WireProtocolResponseBuilder responseBuilder;
 
   @Before
   public void init() {
     initMocks(this);
-    sessionMutation = new FakeSessionMutation();
-    when(sessionManager.edit()).thenReturn(sessionMutation);
     responseBuilder = new WireProtocolResponseBuilder();
   }
 
   @Test
   public void testConvertContentId() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
     String streamContentId = protocolAdapter.getStreamContentId(contentId);
     assertThat(streamContentId).isNotNull();
@@ -69,26 +57,23 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testSimpleResponse_clear() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
-    ByteString token = ByteString.copyFromUtf8("token");
-    StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
-
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     Response response = responseBuilder.addClearOperation().build();
-    protocolAdapter.createModel(
-        response, new MutationContext.Builder().setContinuationToken(streamToken).build());
-    assertThat(sessionMutation.streamToken.getNextPageToken()).isEqualTo(token);
-    assertThat(sessionMutation.operations).hasSize(1);
+    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    assertThat(results.isSuccessful()).isTrue();
+    assertThat(results.getValue()).hasSize(1);
   }
 
   @Test
   public void testSimpleResponse_feature() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     Response response = responseBuilder.addRootFeature().build();
 
-    protocolAdapter.createModel(response, EMPTY_CONTEXT);
-    assertThat(sessionMutation.streamToken).isNull();
-    assertThat(sessionMutation.operations).hasSize(1);
-    StreamDataOperation sdo = sessionMutation.operations.get(0);
+    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    assertThat(results.isSuccessful()).isTrue();
+    assertThat(results.getValue()).hasSize(1);
+
+    StreamDataOperation sdo = results.getValue().get(0);
     assertThat(sdo.hasStreamPayload()).isTrue();
     assertThat(sdo.getStreamPayload().hasStreamFeature()).isTrue();
     assertThat(sdo.hasStreamStructure()).isTrue();
@@ -99,15 +84,17 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testSimpleResponse_feature_semanticProperties() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     Response response =
         new WireProtocolResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
 
-    protocolAdapter.createModel(response, new MutationContext.Builder().build());
+    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    assertThat(results.isSuccessful()).isTrue();
     // Note that 2 operations are created (the card and the semantic data). We want the latter.
-    StreamDataOperation sdo = sessionMutation.operations.get(1);
+    assertThat(results.getValue()).hasSize(2);
+    StreamDataOperation sdo = results.getValue().get(1);
     assertThat(sdo.getStreamPayload().hasSemanticData()).isTrue();
     assertThat(sdo.getStreamPayload().getSemanticData()).isEqualTo(semanticData);
   }
@@ -123,42 +110,39 @@ public class FeedProtocolAdapterTest {
             .addClusterFeature(clusterId, rootId)
             .addCard(cardId, clusterId)
             .build();
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
 
-    protocolAdapter.createModel(response, EMPTY_CONTEXT);
+    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    assertThat(results.isSuccessful()).isTrue();
+    List<StreamDataOperation> operations = results.getValue();
 
-    assertThat(sessionMutation.streamToken).isNull();
-    assertThat(sessionMutation.operations).hasSize(4);
-    assertThat(sessionMutation.operations.get(0).getStreamPayload().getStreamFeature().hasStream())
-        .isTrue();
-    assertThat(sessionMutation.operations.get(1).getStreamPayload().getStreamFeature().hasCluster())
-        .isTrue();
-    assertThat(sessionMutation.operations.get(2).getStreamPayload().getStreamFeature().hasCard())
-        .isTrue();
-    assertThat(sessionMutation.operations.get(3).getStreamPayload().getStreamFeature().hasContent())
-        .isTrue();
+    assertThat(operations).hasSize(4);
+    assertThat(operations.get(0).getStreamPayload().getStreamFeature().hasStream()).isTrue();
+    assertThat(operations.get(1).getStreamPayload().getStreamFeature().hasCluster()).isTrue();
+    assertThat(operations.get(2).getStreamPayload().getStreamFeature().hasCard()).isTrue();
+    assertThat(operations.get(3).getStreamPayload().getStreamFeature().hasContent()).isTrue();
   }
 
   @Test
   public void testResponse_remove() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     Response response =
         responseBuilder
             .removeFeature(ContentId.getDefaultInstance(), ContentId.getDefaultInstance())
             .build();
-    protocolAdapter.createModel(response, EMPTY_CONTEXT);
-    assertThat(sessionMutation.streamToken).isNull();
-    assertThat(sessionMutation.operations).hasSize(1);
+    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    assertThat(results.isSuccessful()).isTrue();
+    assertThat(results.getValue()).hasSize(1);
   }
 
   @Test
   public void testPietSharedState() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     Response response = responseBuilder.addPietSharedState().build();
-    protocolAdapter.createModel(response, EMPTY_CONTEXT);
-    assertThat(sessionMutation.streamToken).isNull();
-    assertThat(sessionMutation.operations).hasSize(1);
-    StreamDataOperation sdo = sessionMutation.operations.get(0);
+    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    assertThat(results.isSuccessful()).isTrue();
+    assertThat(results.getValue()).hasSize(1);
+    StreamDataOperation sdo = results.getValue().get(0);
     assertThat(sdo.hasStreamPayload()).isTrue();
     assertThat(sdo.getStreamPayload().hasStreamSharedState()).isTrue();
     assertThat(sdo.hasStreamStructure()).isTrue();
@@ -167,50 +151,15 @@ public class FeedProtocolAdapterTest {
 
   @Test
   public void testContinuationToken_nextPageToken() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
-    StreamToken token = StreamToken.newBuilder().setNextPageToken(tokenForMutation).build();
     Response response = responseBuilder.addStreamToken(tokenForMutation).build();
 
-    protocolAdapter.createModel(
-        response, new MutationContext.Builder().setContinuationToken(token).build());
-    assertThat(sessionMutation.operations).hasSize(1);
-    StreamDataOperation sdo = sessionMutation.operations.get(0);
+    Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
+    assertThat(results.isSuccessful()).isTrue();
+    assertThat(results.getValue()).hasSize(1);
+    StreamDataOperation sdo = results.getValue().get(0);
     assertThat(sdo.hasStreamPayload()).isTrue();
     assertThat(sdo.getStreamPayload().hasStreamToken()).isTrue();
-  }
-
-  @Test
-  public void testContinuationToken_responseFromToken() {
-    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(sessionManager, timingUtils);
-    ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
-    Response response = responseBuilder.addStreamToken(tokenForMutation).build();
-    StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(tokenForMutation).build();
-
-    protocolAdapter.createModel(
-        response, new MutationContext.Builder().setContinuationToken(streamToken).build());
-    assertThat(sessionMutation.streamToken.getNextPageToken()).isEqualTo(tokenForMutation);
-  }
-
-  private static class FakeSessionMutation implements SessionMutation {
-    List<StreamDataOperation> operations = new ArrayList<>();
-    MutationContext mutationContext;
-    StreamToken streamToken;
-
-    @Override
-    public void addOperation(StreamDataOperation dataOperation) {
-      operations.add(dataOperation);
-    }
-
-    @Override
-    public void setMutationContext(MutationContext mutationContext) {
-      this.mutationContext = mutationContext;
-      streamToken = mutationContext.getContinuationToken();
-    }
-
-    @Override
-    public void commit() {
-      // do nothing...
-    }
   }
 }

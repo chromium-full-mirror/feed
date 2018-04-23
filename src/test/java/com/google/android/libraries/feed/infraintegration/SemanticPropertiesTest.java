@@ -14,21 +14,22 @@
 
 package com.google.android.libraries.feed.infraintegration;
 
-import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.EMPTY_MUTATION_CONTEXT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.Collections;
 import java.util.List;
@@ -42,9 +43,9 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class SemanticPropertiesTest {
   @Mock private ThreadUtils threadUtils;
-  @Mock private RequestManager requestManager;
 
-  private ProtocolAdapter protocolAdapter;
+  private FakeRequestManager requestManager;
+  private SessionManager sessionManager;
   private Store store;
 
   @Before
@@ -52,9 +53,10 @@ public class SemanticPropertiesTest {
     initMocks(this);
     InfrastructureIntegrationScope scope =
         new InfrastructureIntegrationScope.Builder(
-                threadUtils, requestManager, MoreExecutors.newDirectExecutorService())
+                threadUtils, MoreExecutors.newDirectExecutorService())
             .build();
-    protocolAdapter = scope.getProtocolAdapter();
+    requestManager = scope.getRequestManager();
+    sessionManager = scope.getSessionManager();
     store = scope.getStore();
   }
 
@@ -65,7 +67,10 @@ public class SemanticPropertiesTest {
 
     Response response =
         new WireProtocolResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
-    protocolAdapter.createModel(response, EMPTY_MUTATION_CONTEXT);
+    requestManager.queueResponse(response);
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     ContentIdGenerators idGenerators = new ContentIdGenerators();
     String contentIdString = idGenerators.createContentId(contentId);
