@@ -73,18 +73,20 @@ public class ModelProviderValidator {
     assertThat(modelChild.getType()).isEqualTo(Type.FEATURE);
     ModelFeature feature = modelChild.getModelFeature();
     ModelCursor cursor = feature.getCursor();
-    while (cursor.advanceCursor(
-        child -> {
-          cursorCount.incrementAndGet();
-          assertThat(child.getType()).isEqualTo(Type.FEATURE);
-        })) {}
+    ModelChild child;
+    while ((child = cursor.getNextItem()) != null) {
+      cursorCount.incrementAndGet();
+      assertThat(child.getType()).isEqualTo(Type.FEATURE);
+    }
     assertThat(cursorCount.get()).isEqualTo(1);
   }
 
   public void assertCursorSize(ModelCursor cursor, int expectedSize) {
-    AtomicInteger size = new AtomicInteger(0);
-    while (cursor.advanceCursor(child -> size.incrementAndGet())) {}
-    assertThat(size.get()).isEqualTo(expectedSize);
+    int size = 0;
+    while (cursor.getNextItem() != null) {
+      size++;
+    }
+    assertThat(size).isEqualTo(expectedSize);
   }
 
   @SuppressWarnings("nullness")
@@ -97,11 +99,11 @@ public class ModelProviderValidator {
 
   public void assertCursorContents(ModelCursor cursor, ContentId... args) {
     AtomicInteger size = new AtomicInteger(0);
-    while (cursor.advanceCursor(
-        child -> {
-          int pos = size.getAndIncrement();
-          assertStreamContentId(child.getContentId(), args[pos]);
-        })) {}
+    ModelChild child;
+    while ((child = cursor.getNextItem()) != null) {
+      int pos = size.getAndIncrement();
+      assertStreamContentId(child.getContentId(), args[pos]);
+    }
     assertThat(cursor.isAtEnd()).isTrue();
   }
 
@@ -118,16 +120,16 @@ public class ModelProviderValidator {
   public ModelChild assertCursorContentsWithToken(ModelCursor cursor, ContentId... args) {
     AtomicInteger size = new AtomicInteger(0);
     AtomicReference<ModelChild> tokenFeature = new AtomicReference<>();
-    while (cursor.advanceCursor(
-        child -> {
-          int pos = size.getAndIncrement();
-          if (pos == args.length) {
-            assertThat(child.getType()).isEqualTo(Type.TOKEN);
-            tokenFeature.set(child);
-          } else {
-            assertStreamContentId(child.getContentId(), args[pos]);
-          }
-        })) {}
+    ModelChild child;
+    while ((child = cursor.getNextItem()) != null) {
+      int pos = size.getAndIncrement();
+      if (pos == args.length) {
+        assertThat(child.getType()).isEqualTo(Type.TOKEN);
+        tokenFeature.set(child);
+      } else {
+        assertStreamContentId(child.getContentId(), args[pos]);
+      }
+    }
 
     assertThat(cursor.isAtEnd()).isTrue();
     return tokenFeature.get();

@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -163,13 +162,7 @@ public class StructureUpdateTest {
     FeatureChangeObserver rootObserver = mock(FeatureChangeObserver.class);
     root.registerObserver(rootObserver);
     ModelCursor cursor = root.getCursor();
-    cursor.advanceCursor(
-        new Consumer<ModelChild>() {
-          @Override
-          public void accept(ModelChild child) {
-            // ignore, just moving things forward by one.
-          }
-        });
+    cursor.getNextItem();
 
     // Now append additional children to the stream (and cursor)
     responseBuilder = new WireProtocolResponseBuilder();

@@ -78,7 +78,6 @@ public class FeedModelProviderTest {
   @Mock private SessionManager sessionManager;
   @Mock private ThreadUtils threadUtils;
 
-  private int cursorCount = 0;
   private ModelChild continuationToken = null;
   private TimingUtils timingUtils = new TimingUtils();
 
@@ -154,9 +153,11 @@ public class FeedModelProviderTest {
     assertThat(modelCursor).isNotNull();
     assertThat(modelCursor.isAtEnd()).isFalse();
 
-    cursorCount = 0;
-    while (modelCursor.advanceCursor(incrementChildCountProcessor())) {}
-    assertThat(cursorCount).isEqualTo(featureCnt);
+    int cnt = 0;
+    while (modelCursor.getNextItem() != null) {
+      cnt++;
+    }
+    assertThat(cnt).isEqualTo(featureCnt);
     assertThat(modelCursor.isAtEnd()).isTrue();
   }
 
@@ -176,9 +177,11 @@ public class FeedModelProviderTest {
     ModelCursor modelCursor = rootFeature.getCursor();
 
     // Verify that one of the features was removed by a the last operation
-    cursorCount = 0;
-    while (modelCursor.advanceCursor(incrementChildCountProcessor())) ;
-    assertThat(cursorCount).isEqualTo(featureCnt - 1);
+    int cnt = 0;
+    while (modelCursor.getNextItem() != null) {
+      cnt++;
+    }
+    assertThat(cnt).isEqualTo(featureCnt - 1);
   }
 
   @Test
@@ -203,23 +206,19 @@ public class FeedModelProviderTest {
     assertThat(modelCursor).isNotNull();
     assertThat(modelCursor.isAtEnd()).isFalse();
 
-    cursorCount = 0;
-    while (modelCursor.advanceCursor(
-        new Consumer<ModelChild>() {
-          @Override
-          public void accept(ModelChild child) {
-            cursorCount++;
-            if (child.getType() == Type.FEATURE) {
-              ModelFeature feature = child.getModelFeature();
-              ModelCursor nextCursor = feature.getCursor();
-              if (!nextCursor.isAtEnd()) {
-                while (nextCursor.advanceCursor(incrementChildCountProcessor())) {;
-                }
-              }
-            }
-          }
-        })) {}
-    assertThat(cursorCount).isEqualTo(featureCnt + featureCnt);
+    int cnt = 0;
+    ModelChild child;
+    while ((child = modelCursor.getNextItem()) != null) {
+      cnt++;
+      if (child.getType() == Type.FEATURE) {
+        ModelFeature feature = child.getModelFeature();
+        ModelCursor nextCursor = feature.getCursor();
+        while (nextCursor.getNextItem() != null) {
+          cnt++;
+        }
+      }
+    }
+    assertThat(cnt).isEqualTo(featureCnt + featureCnt);
   }
 
   @Test
@@ -365,19 +364,16 @@ public class FeedModelProviderTest {
     ModelFeature rootFeature = modelProvider.getRootFeature();
     assertThat(rootFeature).isNotNull();
     ModelCursor modelCursor = rootFeature.getCursor();
-    cursorCount = 0;
+    int cnt = 0;
     continuationToken = null;
-    while (modelCursor.advanceCursor(
-        new Consumer<ModelChild>() {
-          @Override
-          public void accept(ModelChild child) {
-            cursorCount++;
-            if (child.getType() == Type.TOKEN) {
-              continuationToken = child;
-            }
-          }
-        })) {}
-    assertThat(cursorCount).isEqualTo(featureCnt + 1);
+    ModelChild child;
+    while ((child = modelCursor.getNextItem()) != null) {
+      cnt++;
+      if (child.getType() == Type.TOKEN) {
+        continuationToken = child;
+      }
+    }
+    assertThat(cnt).isEqualTo(featureCnt + 1);
     assertThat(continuationToken).isNotNull();
     assertThat(continuationToken.getModelToken().getStreamToken()).isEqualTo(streamToken);
   }
@@ -395,15 +391,12 @@ public class FeedModelProviderTest {
     assertThat(rootFeature).isNotNull();
     ModelCursor modelCursor = rootFeature.getCursor();
     continuationToken = null;
-    while (modelCursor.advanceCursor(
-        new Consumer<ModelChild>() {
-          @Override
-          public void accept(ModelChild child) {
-            if (child.getType() == Type.TOKEN) {
-              continuationToken = child;
-            }
-          }
-        })) {}
+    ModelChild child;
+    while ((child = modelCursor.getNextItem()) != null) {
+      if (child.getType() == Type.TOKEN) {
+        continuationToken = child;
+      }
+    }
     assertThat(continuationToken).isNotNull();
 
     TokenMutation tokenMutation = modelProvider.new TokenMutation(streamToken);
@@ -513,14 +506,5 @@ public class FeedModelProviderTest {
 
   private StreamFeature getRootFeature() {
     return StreamFeature.newBuilder().setContentId(rootContentId).build();
-  }
-
-  private Consumer<ModelChild> incrementChildCountProcessor() {
-    return new Consumer<ModelChild>() {
-      @Override
-      public void accept(ModelChild child) {
-        cursorCount++;
-      }
-    };
   }
 }

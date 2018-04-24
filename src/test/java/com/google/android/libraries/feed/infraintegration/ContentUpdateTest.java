@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -98,32 +97,22 @@ public class ContentUpdateTest {
     List<FeatureChangeObserver> observers = new ArrayList<>();
     List<FeatureChangeObserver> contentObservers = new ArrayList<>();
     for (ContentId contentId : cards) {
-      cursor.advanceCursor(
-          new Consumer<ModelChild>() {
-            @Override
-            public void accept(ModelChild child) {
-              modelValidator.assertStreamContentId(
-                  child.getContentId(), protocolAdapter.getStreamContentId(contentId));
-              modelValidator.assertCardStructure(child);
-              // register observer on the card
-              ModelFeature feature = child.getModelFeature();
-              FeatureChangeObserver observer = mock(FeatureChangeObserver.class);
-              observers.add(observer);
-              feature.registerObserver(observer);
+      ModelChild child = cursor.getNextItem();
+      modelValidator.assertStreamContentId(
+          child.getContentId(), protocolAdapter.getStreamContentId(contentId));
+      modelValidator.assertCardStructure(child);
+      // register observer on the card
+      ModelFeature feature = child.getModelFeature();
+      FeatureChangeObserver observer = mock(FeatureChangeObserver.class);
+      observers.add(observer);
+      feature.registerObserver(observer);
 
-              // register observer on the content of the card
-              FeatureChangeObserver contentObserver = mock(FeatureChangeObserver.class);
-              contentObservers.add(contentObserver);
-              ModelCursor cardCursor = feature.getCursor();
-              cardCursor.advanceCursor(
-                  new Consumer<ModelChild>() {
-                    @Override
-                    public void accept(ModelChild child) {
-                      child.getModelFeature().registerObserver(contentObserver);
-                    }
-                  });
-            }
-          });
+      // register observer on the content of the card
+      FeatureChangeObserver contentObserver = mock(FeatureChangeObserver.class);
+      contentObservers.add(contentObserver);
+      ModelCursor cardCursor = feature.getCursor();
+      ModelChild cardCursorNextItem = cardCursor.getNextItem();
+      cardCursorNextItem.getModelFeature().registerObserver(contentObserver);
     }
     assertThat(cursor.isAtEnd()).isTrue();
 

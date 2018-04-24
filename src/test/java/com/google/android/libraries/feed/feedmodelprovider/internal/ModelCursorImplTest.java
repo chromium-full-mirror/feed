@@ -21,9 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelCursorImpl.CursorIterator;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +38,6 @@ public class ModelCursorImplTest {
   @Mock private ThreadUtils threadUtils;
 
   private List<UpdatableModelChild> modelChildren;
-  private int childCount = 0;
   private String parentContentId;
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
 
@@ -66,15 +63,7 @@ public class ModelCursorImplTest {
     cursor.release();
     assertThat(cursor.isAtEnd()).isTrue();
 
-    assertThat(
-            cursor.advanceCursor(
-                new Consumer<ModelChild>() {
-                  @Override
-                  public void accept(ModelChild child) {
-                    // Do nothing
-                  }
-                }))
-        .isFalse();
+    assertThat(cursor.getNextItem()).isNull();
   }
 
   @Test
@@ -84,11 +73,12 @@ public class ModelCursorImplTest {
       modelChildren.add(mock(UpdatableModelChild.class));
     }
     ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren, threadUtils);
-    childCount = 0;
+    int childCount = 0;
     for (int i = 0; i < childrenToAdd; i++) {
-      assertThat(cursor.advanceCursor(incrementChildCountProcessor())).isTrue();
+      childCount++;
+      assertThat(cursor.getNextItem()).isNotNull();
     }
-    assertThat(cursor.advanceCursor(incrementChildCountProcessor())).isFalse();
+    assertThat(cursor.getNextItem()).isNull();
     assertThat(cursor.isAtEnd()).isTrue();
     assertThat(childCount).isEqualTo(childrenToAdd);
   }
@@ -140,14 +130,5 @@ public class ModelCursorImplTest {
     assertThat(cursorIterator.hasNext()).isTrue();
     assertThat(cursorIterator.next()).isEqualTo(modelChildren.get(0));
     assertThat(cursorIterator.getPosition()).isEqualTo(1);
-  }
-
-  private Consumer<ModelChild> incrementChildCountProcessor() {
-    return new Consumer<ModelChild>() {
-      @Override
-      public void accept(ModelChild child) {
-        childCount++;
-      }
-    };
   }
 }

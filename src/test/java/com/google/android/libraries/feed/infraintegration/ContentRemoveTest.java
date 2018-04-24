@@ -24,13 +24,11 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -129,16 +127,8 @@ public class ContentRemoveTest {
 
   private ModelCursor advanceCursor(ModelCursor cursor, int count) {
     for (int i = 0; i < count; i++) {
-      cursor.advanceCursor(NOOP_PROCESSOR);
+      cursor.getNextItem();
     }
     return cursor;
   }
-
-  private static final Consumer<ModelChild> NOOP_PROCESSOR =
-      new Consumer<ModelChild>() {
-        @Override
-        public void accept(ModelChild child) {
-          // no-op
-        }
-      };
 }

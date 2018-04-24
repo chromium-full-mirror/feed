@@ -40,9 +40,8 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
 
   private final String parentContentId;
 
-
   @GuardedBy("lock")
-  private List<UpdatableModelChild> childList;
+  private final List<UpdatableModelChild> childList;
 
   /*@Nullable*/
   @GuardedBy("lock")
@@ -144,6 +143,26 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
     }
     modelChildConsumer.accept(nextChild);
     return true;
+  }
+
+  @Override
+  /*@Nullable*/
+  public ModelChild getNextItem() {
+    // This should only be called on the UI thread.
+    threadUtils.checkMainThread();
+    ModelChild nextChild;
+    synchronized (lock) {
+      if (iterator == null || !iterator.hasNext()) {
+        release();
+        return null;
+      }
+      nextChild = iterator.next();
+      // If we just hit the last element in the iterator, free all the resources for this cursor.
+      if (!iterator.hasNext()) {
+        release();
+      }
+    }
+    return nextChild;
   }
 
   /** Release all the state assocated with this cursor */

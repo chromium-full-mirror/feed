@@ -101,7 +101,6 @@ public class FeedSessionManagerTest {
 
   @Captor private ArgumentCaptor<Consumer<Result<List<StreamDataOperation>>>> resultCapture;
 
-  private int cursorCount = 0;
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final TimingUtils timingUtils = new TimingUtils();
   private final FeedExtensionRegistry extensionRegistry =
@@ -187,8 +186,10 @@ public class FeedSessionManagerTest {
     assertThat(modelProvider.getRootFeature()).isNotNull();
 
     ModelCursor cursor = modelProvider.getRootFeature().getCursor();
-    cursorCount = 0;
-    while (cursor.advanceCursor(incrementChildCountProcessor())) {}
+    int cursorCount = 0;
+    while (cursor.getNextItem() != null) {
+      cursorCount++;
+    }
     assertThat(cursorCount).isEqualTo(featureCnt);
 
     // append a couple of others
@@ -196,7 +197,9 @@ public class FeedSessionManagerTest {
 
     cursor = modelProvider.getRootFeature().getCursor();
     cursorCount = 0;
-    while (cursor.advanceCursor(incrementChildCountProcessor())) {}
+    while (cursor.getNextItem() != null) {
+      cursorCount++;
+    }
     assertThat(cursorCount).isEqualTo(featureCnt * 2);
   }
 
@@ -526,15 +529,6 @@ public class FeedSessionManagerTest {
         requestManager,
         configuration,
         clock);
-  }
-
-  private Consumer<ModelChild> incrementChildCountProcessor() {
-    return new Consumer<ModelChild>() {
-      @Override
-      public void accept(ModelChild child) {
-        cursorCount++;
-      }
-    };
   }
 
   private static class FakeContentMutation implements ContentMutation {

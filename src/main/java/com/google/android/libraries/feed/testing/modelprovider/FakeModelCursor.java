@@ -35,9 +35,17 @@ public class FakeModelCursor implements ModelCursor {
     if (isAtEnd()) {
       return false;
     }
-    processor.accept(modelChildren.get(currentIndex));
-    currentIndex += 1;
+    processor.accept(modelChildren.get(currentIndex++));
     return !isAtEnd();
+  }
+
+  @Override
+  /*@Nullable*/
+  public ModelChild getNextItem() {
+    if (isAtEnd()) {
+      return null;
+    }
+    return modelChildren.get(currentIndex++);
   }
 
   @Override

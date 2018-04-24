@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -36,7 +35,6 @@ import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuil
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -94,25 +92,16 @@ public class SimpleStreamTest {
     ModelFeature root = modelProvider.getRootFeature();
     assertThat(root).isNotNull();
     ModelCursor cursor = root.getCursor();
-    AtomicInteger cursorCount = new AtomicInteger();
-    while (cursor.advanceCursor(
-        new Consumer<ModelChild>() {
-          @Override
-          public void accept(ModelChild child) {
-            cursorCount.incrementAndGet();
-          }
-        })) {}
-    assertThat(cursorCount.get()).isEqualTo(1);
+    int cursorCount = 0;
+    while (cursor.getNextItem() != null) {
+      cursorCount++;
+    }
+    assertThat(cursorCount).isEqualTo(1);
 
     // Validate that the structure of the card
     cursor = root.getCursor();
-    cursor.advanceCursor(
-        new Consumer<ModelChild>() {
-          @Override
-          public void accept(ModelChild child) {
-            modelValidator.assertCardStructure(child);
-          }
-        });
+    ModelChild child = cursor.getNextItem();
+    modelValidator.assertCardStructure(child);
   }
 
   @Test
@@ -146,15 +135,10 @@ public class SimpleStreamTest {
     assertThat(root).isNotNull();
     ModelCursor cursor = root.getCursor();
     for (ContentId contentId : cards) {
-      cursor.advanceCursor(
-          new Consumer<ModelChild>() {
-            @Override
-            public void accept(ModelChild child) {
-              modelValidator.assertStreamContentId(
-                  child.getContentId(), protocolAdapter.getStreamContentId(contentId));
-              modelValidator.assertCardStructure(child);
-            }
-          });
+      ModelChild child = cursor.getNextItem();
+      modelValidator.assertStreamContentId(
+          child.getContentId(), protocolAdapter.getStreamContentId(contentId));
+      modelValidator.assertCardStructure(child);
     }
     assertThat(cursor.isAtEnd()).isTrue();
   }

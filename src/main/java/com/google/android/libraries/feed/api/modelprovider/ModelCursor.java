@@ -31,8 +31,15 @@ public interface ModelCursor {
    * <p>The cursor is designed to support a callback instead of a {@code hasNext(), next()} model to
    * avoid race conditions which can occur with multiple calls on an object. This is designed to
    * allow Lambda function use at the calling site.
+   *
+   * @deprecated call {@link #getNextItem()}
    */
+  @Deprecated
   boolean advanceCursor(Consumer<ModelChild> processor);
+
+  /** Returns the next {@link ModelChild} in the cursor or {@code null} if at end. */
+  /*@Nullable*/
+  ModelChild getNextItem();
 
   /** Returns {@literal true} if the cursor is at the end. */
   boolean isAtEnd();
