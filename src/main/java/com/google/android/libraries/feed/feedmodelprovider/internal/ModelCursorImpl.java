@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChange.ChildCh
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.common.Validators;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -122,27 +121,6 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
       childList.removeAll(realRemoves);
       Logger.i(TAG, "Removed %s children from the Cursor", realRemoves.size());
     }
-  }
-
-  @Override
-  public boolean advanceCursor(Consumer<ModelChild> modelChildConsumer) {
-    // This should only be called on the UI thread.
-    threadUtils.checkMainThread();
-
-    ModelChild nextChild;
-    synchronized (lock) {
-      if (iterator == null || !iterator.hasNext()) {
-        release();
-        return false;
-      }
-      nextChild = iterator.next();
-      // If we just hit the last element in the iterator, free all the resources for this cursor.
-      if (!iterator.hasNext()) {
-        release();
-      }
-    }
-    modelChildConsumer.accept(nextChild);
-    return true;
   }
 
   @Override

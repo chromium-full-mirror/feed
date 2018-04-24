@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.common.logging.Logger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /** {@link FeatureDriver} for Clusters. */
 public class ClusterDriver implements FeatureDriver {
@@ -52,32 +51,29 @@ public class ClusterDriver implements FeatureDriver {
   private CardDriver createCardChild(ModelFeature clusterFeature) {
     ModelCursor cursor = clusterFeature.getCursor();
     // TODO: add change listener to clusterCursor.
-    // TODO: Remove AtomicReference.
-    AtomicReference</*@Nullable*/ CardDriver> cardDriverReference = new AtomicReference<>();
-    while (cardDriverReference.get() == null
-        && cursor.advanceCursor(
-            (ModelChild child) -> {
-              if (child.getType() != Type.FEATURE) {
-                Logger.e(TAG, "Child of cursor is not a feature");
-                return;
-              }
+    ModelChild child;
+    while ((child = cursor.getNextItem()) != null) {
+      if (child.getType() != Type.FEATURE) {
+        Logger.e(TAG, "Child of cursor is not a feature");
+        continue;
+      }
 
-              ModelFeature content = child.getModelFeature();
+      ModelFeature content = child.getModelFeature();
 
-              if (content == null) {
-                Logger.e(TAG, "Content not found");
-                return;
-              }
+      if (content == null) {
+        Logger.e(TAG, "Content not found");
+        continue;
+      }
 
-              if (!content.getStreamFeature().hasCard()) {
-                Logger.e(TAG, "Content not card.");
-                return;
-              }
+      if (!content.getStreamFeature().hasCard()) {
+        Logger.e(TAG, "Content not card.");
+        continue;
+      }
 
-              cardDriverReference.set(createCardDriver(content));
-            })) {}
+      return createCardDriver(content);
+    }
 
-    return cardDriverReference.get();
+    return null;
   }
 
   @VisibleForTesting

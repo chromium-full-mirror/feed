@@ -24,19 +24,6 @@ import com.google.android.libraries.feed.common.functional.Consumer;
  * next child.
  */
 public interface ModelCursor {
-  /**
-   * Return {@literal true} if the child was valid and passed to ProcessNextChild method. If the
-   * cursor is at the end of the list, then this will always return {@literal false}.
-   *
-   * <p>The cursor is designed to support a callback instead of a {@code hasNext(), next()} model to
-   * avoid race conditions which can occur with multiple calls on an object. This is designed to
-   * allow Lambda function use at the calling site.
-   *
-   * @deprecated call {@link #getNextItem()}
-   */
-  @Deprecated
-  boolean advanceCursor(Consumer<ModelChild> processor);
-
   /** Returns the next {@link ModelChild} in the cursor or {@code null} if at end. */
   /*@Nullable*/
   ModelChild getNextItem();

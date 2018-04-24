@@ -68,18 +68,18 @@ public class StreamDriver {
 
   private List<FeatureDriver> createChildren(ModelCursor streamCursor, TokenHandler tokenHandler) {
     List<FeatureDriver> children = new ArrayList<>();
-    while (streamCursor.advanceCursor(
-        (ModelChild child) -> {
-          Logger.i(TAG, "Advancing Cursor");
-          if (child.getType() == Type.FEATURE) {
-            FeatureDriver featureDriver = createFeatureChild(child.getModelFeature());
-            if (featureDriver != null) {
-              children.add(featureDriver);
-            }
-          } else if (child.getType() == Type.TOKEN) {
-            populateFromToken(child.getModelToken(), tokenHandler);
-          }
-        })) {}
+    ModelChild child;
+    while ((child = streamCursor.getNextItem()) != null) {
+      Logger.i(TAG, "Advancing Cursor");
+      if (child.getType() == Type.FEATURE) {
+        FeatureDriver featureDriver = createFeatureChild(child.getModelFeature());
+        if (featureDriver != null) {
+          children.add(featureDriver);
+        }
+      } else if (child.getType() == Type.TOKEN) {
+        populateFromToken(child.getModelToken(), tokenHandler);
+      }
+    }
     return children;
   }
 

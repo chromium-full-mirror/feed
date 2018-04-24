@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.testing.modelprovider;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import java.util.List;
 
 /** A fake {@link ModelCursor} for testing. */
@@ -28,15 +27,6 @@ public class FakeModelCursor implements ModelCursor {
   public void setModelChildren(List<ModelChild> modelChildren) {
     currentIndex = 0;
     this.modelChildren = modelChildren;
-  }
-
-  @Override
-  public boolean advanceCursor(Consumer<ModelChild> processor) {
-    if (isAtEnd()) {
-      return false;
-    }
-    processor.accept(modelChildren.get(currentIndex++));
-    return !isAtEnd();
   }
 
   @Override

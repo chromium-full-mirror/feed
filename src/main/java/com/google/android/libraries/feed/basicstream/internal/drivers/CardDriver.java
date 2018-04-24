@@ -17,10 +17,10 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import java.util.concurrent.atomic.AtomicReference;
 
 /** {@link FeatureDriver} for cards. */
 public class CardDriver implements FeatureDriver {
@@ -51,18 +51,14 @@ public class CardDriver implements FeatureDriver {
   private ContentDriver createContentChild(ModelFeature modelFeature) {
     ModelCursor cursor = modelFeature.getCursor();
     // TODO: add change listener to ModelFeature.
-    // TODO: Remove AtomicReference.
-    AtomicReference</*@Nullable*/ ContentDriver> contentDriverReference = new AtomicReference<>();
-    while (contentDriverReference.get() == null
-        && cursor.advanceCursor(
-            child -> {
-              ModelFeature contentModel = child.getModelFeature();
-              checkState(
-                  contentModel.getStreamFeature().hasContent(), "Expected content for feature");
+    ModelChild child;
+    if ((child = cursor.getNextItem()) != null) {
+      ModelFeature contentModel = child.getModelFeature();
+      checkState(contentModel.getStreamFeature().hasContent(), "Expected content for feature");
+      return createContentDriver(contentModel);
+    }
 
-              contentDriverReference.set(createContentDriver(contentModel));
-            })) {}
-    return contentDriverReference.get();
+    return null;
   }
 
   @VisibleForTesting
