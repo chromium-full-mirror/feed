@@ -69,7 +69,7 @@ public interface SessionManager {
   void handleToken(StreamSession session, StreamToken streamToken);
 
   /** Method which causes a refresh */
-  void forceRefresh(/*@Nullable*/ StreamSession streamSession);
+  void triggerRefresh(/*@Nullable*/ StreamSession streamSession);
 
   /**
    * Returns a List of {@link StreamPayload} for each of the keys. This operation may perform disk

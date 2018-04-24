@@ -258,8 +258,8 @@ public class FeedModelProviderTest {
   @Test
   public void testForceRefresh() {
     FeedModelProvider modelProvider = createFeedModelProvider();
-    modelProvider.forceRefresh();
-    verify(sessionManager).forceRefresh(null);
+    modelProvider.triggerRefresh();
+    verify(sessionManager).triggerRefresh(null);
   }
 
   @Test

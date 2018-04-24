@@ -30,7 +30,6 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -229,7 +228,7 @@ public class FeedSessionManagerTest {
   public void testForceRefresh() {
     StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
-    sessionManager.forceRefresh(streamSession);
+    sessionManager.triggerRefresh(streamSession);
     verify(requestManager)
         .triggerRefresh(eq(RequestReason.MANUAL_REFRESH), resultCapture.capture());
   }

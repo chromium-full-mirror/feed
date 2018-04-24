@@ -143,7 +143,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
     modelProvider.registerObserver(this);
   }
 
-
   @Override
   public void onShow() {}
 
@@ -218,7 +217,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   public void forceRefresh() {
     // This invalidates the modelProvider, which results in onSessionFinished() then
     // onSessionStart() being called, leading to recreating the entire stream.
-    modelProvider.forceRefresh();
+    modelProvider.triggerRefresh();
   }
 
   private void updateAdapter(ModelProvider modelProvider) {

@@ -178,8 +178,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
-  public void forceRefresh() {
-    sessionManager.forceRefresh(streamSession);
+  public void triggerRefresh() {
+    sessionManager.triggerRefresh(streamSession);
   }
 
   @Override

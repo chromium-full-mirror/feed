@@ -398,11 +398,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
-  public void forceRefresh(/*@Nullable*/ StreamSession streamSession) {
+  public void triggerRefresh(/*@Nullable*/ StreamSession streamSession) {
     if (streamSession == null) {
-      // TODO: see [INTERNAL LINK]  We create a new session and then call forceRefresh on
+      // TODO: see [INTERNAL LINK]  We create a new session and then call triggerRefresh on
       // it before we have even populated the session in Audrey2.
-      Logger.w(TAG, "Found a null streamSession in forceRefresh");
+      Logger.w(TAG, "Found a null streamSession in triggerRefresh");
     }
     requestManager.triggerRefresh(
         RequestReason.MANUAL_REFRESH, new CommitterTask(MutationContext.EMPTY_CONTEXT));
