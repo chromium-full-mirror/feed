@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
@@ -23,13 +24,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
 import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import com.google.search.now.ui.stream.StreamStructureProto;
-import com.google.search.now.ui.stream.StreamStructureProto.Content;
-import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +37,8 @@ public class StreamDriver {
   private final ThreadUtils threadUtils;
   private final TokenHandler tokenHandler;
 
+  private List<FeatureDriver> featureDrivers;
+
   public StreamDriver(
       ModelFeature streamFeature, ThreadUtils threadUtils, TokenHandler tokenHandler) {
     this.streamFeature = streamFeature;
@@ -48,73 +46,89 @@ public class StreamDriver {
     this.tokenHandler = tokenHandler;
   }
 
+  /**
+   * Returns a the list of {@link ContentModel} instances for the children generated from the given
+   * {@link ModelFeature}.
+   */
   public List<ContentModel> getContentModels() {
-    return getContentModelsFromModelFeatures(processCursor(streamFeature.getCursor()));
-  }
-
-  private List<ContentModel> getContentModelsFromModelFeatures(List<ModelFeature> modelFeatures) {
-    List<ContentModel> contentModels = new ArrayList<>();
-    for (ModelFeature modelFeature : modelFeatures) {
-      if (!modelFeature.getStreamFeature().hasCard()) {
-        throw new RuntimeException("Expected card feature as a StreamFeature");
-      }
-
-      ModelCursor cardCursor = modelFeature.getCursor();
-      while (cardCursor.advanceCursor(
-          child -> {
-            StreamFeature streamFeature = child.getModelFeature().getStreamFeature();
-            checkState(streamFeature.hasContent(), "Expected content for feature");
-
-            Content content = streamFeature.getContent();
-            checkState(
-                content.getType() == StreamStructureProto.Content.Type.PIET,
-                "Expected Piet type for feature");
-
-            checkState(
-                content.hasExtension(PietContent.pietContentExtension),
-                "Expected Piet content for feature");
-            contentModels.add(
-                new PietContentModel(content.getExtension(PietContent.pietContentExtension)));
-          })) {}
+    if (featureDrivers == null) {
+      featureDrivers = createChildren(streamFeature, tokenHandler);
     }
 
+    checkState(featureDrivers != null);
+    return buildContentModels(featureDrivers);
+  }
+
+  private List<FeatureDriver> createChildren(
+      ModelFeature streamFeature, TokenHandler tokenHandler) {
+    checkState(featureDrivers == null);
+
+    return createChildren(streamFeature.getCursor(), tokenHandler);
+  }
+
+  private List<FeatureDriver> createChildren(ModelCursor streamCursor, TokenHandler tokenHandler) {
+    List<FeatureDriver> children = new ArrayList<>();
+    while (streamCursor.advanceCursor(
+        (ModelChild child) -> {
+          Logger.i(TAG, "Advancing Cursor");
+          if (child.getType() == Type.FEATURE) {
+            FeatureDriver featureDriver = createFeatureChild(child.getModelFeature());
+            if (featureDriver != null) {
+              children.add(featureDriver);
+            }
+          } else if (child.getType() == Type.TOKEN) {
+            populateFromToken(child.getModelToken(), tokenHandler);
+          }
+        })) {}
+    return children;
+  }
+
+  private /*@Nullable*/ FeatureDriver createFeatureChild(ModelFeature modelFeature) {
+    if (modelFeature.getStreamFeature().hasCard()) {
+      return createCardDriver(modelFeature);
+    } else if (modelFeature.getStreamFeature().hasCluster()) {
+      return createClusterDriver(modelFeature);
+    }
+
+    Logger.w(
+        TAG,
+        "Invalid StreamFeature Type, must be Card or Cluster but was %s",
+        modelFeature.getStreamFeature().getFeaturePayloadCase());
+    return null;
+  }
+
+  private void populateFromToken(ModelToken modelToken, TokenHandler tokenHandler) {
+    modelToken.registerObserver(
+        tokenCompleted -> {
+          threadUtils.checkMainThread();
+
+          // TODO: Instead of immediately consuming the token, instead create a
+          // FeatureDriver/ViewHolder/ContentModel to handle the token.
+          featureDrivers.addAll(createChildren(tokenCompleted.getCursor(), tokenHandler));
+          tokenHandler.tokenConsumed();
+        });
+
+    tokenHandler.requestTokenHandling(modelToken);
+  }
+
+  private List<ContentModel> buildContentModels(List<FeatureDriver> featureDrivers) {
+    List<ContentModel> contentModels = new ArrayList<>();
+    for (FeatureDriver featureDriver : featureDrivers) {
+      ContentModel childContentModel = featureDriver.getContentModel();
+      if (childContentModel != null) {
+        contentModels.add(childContentModel);
+      }
+    }
     return contentModels;
   }
 
-  private List<ModelFeature> processCursor(ModelCursor modelCursor) {
-    List<ModelFeature> cardFeatures = new ArrayList<>();
-    while (modelCursor.advanceCursor(
-        (ModelChild child) -> {
-          Logger.i(TAG, "Advance Cursor");
-          if (child.getType() == Type.FEATURE) {
-            ModelFeature content = child.getModelFeature();
-            if (content == null) {
-              Logger.w(TAG, "Content not found");
-              return;
-            }
+  @VisibleForTesting
+  FeatureDriver createClusterDriver(ModelFeature modelFeature) {
+    return new ClusterDriver(modelFeature);
+  }
 
-            if (content.getStreamFeature().hasCard()) {
-              cardFeatures.add(content);
-            } else if (content.getStreamFeature().hasCluster()) {
-              cardFeatures.addAll(processCursor(content.getCursor()));
-            }
-          } else if (child.getType() == Type.TOKEN) {
-            ModelToken token = child.getModelToken();
-            token.registerObserver(
-                change -> {
-                  // Add the new cursor to the adapter.
-                  threadUtils.checkMainThread();
-                  List<ModelFeature> modelFeatures = processCursor(change.getCursor());
-                  Logger.i(
-                      TAG, "TokenCompletedObserver - added Features: %s", modelFeatures.size());
-                  tokenHandler.addContentModels(getContentModelsFromModelFeatures(modelFeatures));
-                });
-            // TODO: This should only be called after the user has clicked on a button
-            // to request more.
-            tokenHandler.handleToken(token);
-          }
-        })) {}
-
-    return cardFeatures;
+  @VisibleForTesting
+  FeatureDriver createCardDriver(ModelFeature modelFeature) {
+    return new CardDriver(modelFeature);
   }
 }

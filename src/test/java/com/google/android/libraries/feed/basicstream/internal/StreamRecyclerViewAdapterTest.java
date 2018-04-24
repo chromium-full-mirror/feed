@@ -24,15 +24,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
@@ -41,11 +36,6 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.common.collect.Lists;
-import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import com.google.search.now.ui.stream.StreamStructureProto.Card;
-import com.google.search.now.ui.stream.StreamStructureProto.Content;
-import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
-import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -61,7 +51,6 @@ public class StreamRecyclerViewAdapterTest {
 
   private static final int CARD_BOTTOM_PADDING = 42;
   private static final int HEADER_COUNT = 2;
-  private static final PietContent PIET_CONTENT = PietContent.getDefaultInstance();
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private PietManager pietManager;
@@ -70,7 +59,6 @@ public class StreamRecyclerViewAdapterTest {
 
   private Context context;
   private List<View> headers;
-  private ColorDrawable background;
   private LinearLayout frameContainer;
   private StreamRecyclerViewAdapter streamRecyclerViewAdapter;
 
@@ -82,8 +70,6 @@ public class StreamRecyclerViewAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
     frameContainer = new LinearLayout(context);
 
-    background = new ColorDrawable(Color.RED);
-    when(cardConfiguration.getCardBackground()).thenReturn(background);
     when(cardConfiguration.getCardBottomPadding()).thenReturn((float) CARD_BOTTOM_PADDING);
 
     when(pietManager.createPietFrameAdapter(any(Supplier.class), eq(context)))
@@ -98,18 +84,8 @@ public class StreamRecyclerViewAdapterTest {
         new StreamRecyclerViewAdapter(context, cardConfiguration, pietManager);
     streamRecyclerViewAdapter.setHeaders(headers);
 
-    ModelFeature modelFeature = mock(ModelFeature.class);
-    when(modelFeature.getStreamFeature())
-        .thenReturn(StreamFeature.newBuilder().setCard(Card.newBuilder()).build());
-    ModelCursor modelCursor = mock(ModelCursor.class);
-    when(modelFeature.getCursor()).thenReturn(modelCursor);
-
-    ModelFeature childModelFeature = mock(ModelFeature.class);
-    when(childModelFeature.getStreamFeature()).thenReturn(createStreamFeature(PIET_CONTENT));
-
-    ModelChild modelChild = mock(ModelChild.class);
-    when(modelChild.getModelFeature()).thenReturn(childModelFeature);
-
+    // TODO: Update this test to properly test StreamRecyclerViewAdapter or remove if no
+    // longer relevant.
     streamRecyclerViewAdapter.setContentModels(Lists.newArrayList(contentModel));
   }
 
@@ -149,15 +125,6 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.onViewRecycled(viewHolder);
 
     verify(viewHolder).unbind();
-  }
-
-  private StreamFeature createStreamFeature(PietContent pietContent) {
-    return StreamFeature.newBuilder()
-        .setContent(
-            Content.newBuilder()
-                .setType(Type.PIET)
-                .setExtension(PietContent.pietContentExtension, pietContent))
-        .build();
   }
 
   private FrameLayout getCardView(ViewHolder viewHolder) {

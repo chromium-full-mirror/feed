@@ -77,6 +77,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private List<View> headers;
   private StreamConfiguration streamConfiguration;
   private StreamRecyclerViewAdapter adapter;
+  private StreamDriver streamDriver;
 
   /*@Nullable*/ private StreamTokenHandler streamTokenHandler;
 
@@ -235,10 +236,10 @@ public class BasicStream implements Stream, ModelProviderObserver {
     }
 
     streamTokenHandler = new StreamTokenHandler();
-
-    StreamDriver streamDriver = new StreamDriver(root, threadUtils, streamTokenHandler);
+    streamDriver = new StreamDriver(root, threadUtils, streamTokenHandler);
 
     List<ContentModel> contentModels = streamDriver.getContentModels();
+
     Logger.i(TAG, "updateAdapter - New Features: %s", contentModels.size());
     adapter.setContentModels(contentModels);
   }
@@ -276,14 +277,14 @@ public class BasicStream implements Stream, ModelProviderObserver {
     }
 
     @Override
-    public void addContentModels(List<ContentModel> newContentModels) {
+    public void tokenConsumed() {
       if (enabled) {
-        adapter.addContentModels(newContentModels);
+        adapter.setContentModels(streamDriver.getContentModels());
       }
     }
 
     @Override
-    public void handleToken(ModelToken token) {
+    public void requestTokenHandling(ModelToken token) {
       if (enabled) {
         modelProvider.handleToken(token);
       }

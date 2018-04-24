@@ -152,7 +152,7 @@ public class BasicStreamTest {
     when(rootChild.getModelFeature()).thenReturn(cardModelFeature);
     when(rootChild.getType()).thenReturn(ModelChild.Type.FEATURE);
 
-    // The cursor for the foot feature
+    // The cursor for the root feature
     FakeModelCursor rootCursor = new FakeModelCursor();
     rootCursor.setModelChildren(Lists.newArrayList(rootChild));
     when(rootFeature.getCursor()).thenReturn(rootCursor);

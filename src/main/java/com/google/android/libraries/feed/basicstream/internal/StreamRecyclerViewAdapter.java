@@ -65,7 +65,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
       return new HeaderViewHolder(frameLayout);
     }
 
-    // TODO: add logic about which ViewHolder to create
     FrameLayout cardView = new FrameLayout(context);
     FrameAdapter frameAdapter = pietManager.createPietFrameAdapter(() -> cardView, context);
     cardView.addView(frameAdapter.getFrameContainer());
@@ -92,6 +91,9 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
 
   @Override
   public void onViewRecycled(ViewHolder viewHolder) {
+    // TODO: Make custom ViewHolder descendent that has an unbind() to avoid code
+    // duplication.
+    // TODO: Create ViewHolders and ContentModels for headers.
     if (viewHolder instanceof HeaderViewHolder) {
       Logger.d(TAG, "onViewRecycled - HeaderViewHolder");
       ((HeaderViewHolder) viewHolder).frameLayout.removeAllViews();

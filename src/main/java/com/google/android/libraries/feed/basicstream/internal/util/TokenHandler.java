@@ -15,17 +15,13 @@
 package com.google.android.libraries.feed.basicstream.internal.util;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import java.util.List;
 
 /** Used to communicate the handling of a continuation token in the {@link BasicStream}. */
 public interface TokenHandler {
 
-  // TODO: Replace with a method indicating the BasicStream should re-query for
-  // new contents instead of directly adding them.
-  /** Adds the given {@link List} of {@link ContentModel} to the adapter. */
-  void addContentModels(List<ContentModel> newContentModels);
+  /** Indicates the token has been successfully consumed. */
+  void tokenConsumed();
 
   /** Instructs the {@link BasicStream} to handle the token. */
-  void handleToken(ModelToken token);
+  void requestTokenHandling(ModelToken token);
 }
