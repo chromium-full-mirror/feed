@@ -214,7 +214,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   public void removeOnContentChangedListener(ContentChangedListener listener) {}
 
   @Override
-  public void forceRefresh() {
+  public void triggerRefresh() {
     // This invalidates the modelProvider, which results in onSessionFinished() then
     // onSessionStart() being called, leading to recreating the entire stream.
     modelProvider.triggerRefresh();

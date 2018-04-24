@@ -135,6 +135,6 @@ public interface Stream {
 
   void removeOnContentChangedListener(ContentChangedListener listener);
 
-  /** Allow the container to force a refresh of the stream. */
-  void forceRefresh();
+  /** Allow the container to trigger a refresh of the stream. */
+  void triggerRefresh();
 }
