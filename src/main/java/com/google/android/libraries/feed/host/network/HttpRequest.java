@@ -17,6 +17,9 @@ package com.google.android.libraries.feed.host.network;
 import android.net.Uri;
 import android.support.annotation.StringDef;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /** Representation of an HTTP request. */
 public class HttpRequest {
@@ -41,15 +44,25 @@ public class HttpRequest {
   private final Uri uri;
   private final byte[] body;
   private final @HttpMethod String method;
+  private final List<HttpHeader> headers;
 
-  public HttpRequest(Uri uri, String method, byte[] body) {
+  public HttpRequest(Uri uri, @HttpMethod String method, List<HttpHeader> headers, byte[] body) {
     this.uri = uri;
     this.body = body;
     this.method = method;
+    this.headers = Collections.unmodifiableList(new ArrayList<>(headers));
   }
 
-  public HttpRequest(Uri uri, String method) {
-    this(uri, method, new byte[] {});
+  public HttpRequest(Uri uri, @HttpMethod String method, List<HttpHeader> headers) {
+    this(uri, method, headers, new byte[] {});
+  }
+
+  public HttpRequest(Uri uri, @HttpMethod String method, byte[] body) {
+    this(uri, method, Collections.emptyList(), body);
+  }
+
+  public HttpRequest(Uri uri, @HttpMethod String method) {
+    this(uri, method, Collections.emptyList(), new byte[] {});
   }
 
   public Uri getUri() {
@@ -62,5 +75,9 @@ public class HttpRequest {
 
   public @HttpMethod String getMethod() {
     return method;
+  }
+
+  public List<HttpHeader> getHeaders() {
+    return headers;
   }
 }
