@@ -35,15 +35,35 @@ message Actions {
   // element.
   optional Action on_long_click = 2;
 
+  // These actions will fire once a view with visibility below the threshold
+  // goes above the threshold
+  //
+  // Ex. A view action at 0.5 will trigger when a view that was less than half
+  // visible becomes half visible, and not trigger again until the view has
+  // become less than half visible (reset) and then becomes more than half
+  // visible.
+  repeated VisibilityAction on_view_actions = 3;
+
+  // These actions will fire once a view with visibility above the threshold
+  // goes below the threshold.
+  //
+  // Ex. A hide action at 0.5 will trigger when a view that was half visible
+  // becomes less than half visible, and not trigger again until the view has
+  // become more than half visible (reset) and then becomes less than half
+  // visible.
+  repeated VisibilityAction on_hide_actions = 4;
+
+  // DEPRECATED
+
   // Action to be executed when the UI element comes completely into view,
   // meaning that the entire UI element's bounds are contained in the viewport.
   // Note: if the content is too large to fit entirely in the viewport, then the
   // on_full_view action will never trigger.
-  optional Action on_full_view = 3;
+  optional Action on_full_view = 1003 [deprecated = true];
 
   // Action to be executed when the UI element comes partially into view,
   // meaning that any pixel of the element's bounds are within the viewport.
-  optional Action on_partial_view = 4;
+  optional Action on_partial_view = 1004 [deprecated = true];
 }
 
 // Defines an Action which can be raised when the user clicks a UI element. The
@@ -54,4 +74,17 @@ message Action {
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
+}
+
+// Actions that trigger based on the proportion of the parent Element that is
+// visible.
+message VisibilityAction {
+
+  // Proportion of the view that should be visible for this action to trigger
+  // [0.0 to 1.0]
+  // Defaults to 1.0 to make this an "on full view" action.
+  optional float proportion_visible = 1 [default = 1.0];
+
+  // Action to trigger at the given visibility threshold
+  optional Action action = 2;
 }
