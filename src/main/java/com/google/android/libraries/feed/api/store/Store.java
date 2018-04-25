@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.api.store;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -42,28 +43,28 @@ public interface Store {
    * Returns an {@code List} of the {@link PayloadWithId}s for the ContentId Strings passed in
    * through {@code contentIds}.
    */
-  List<PayloadWithId> getPayloads(List<String> contentIds);
+  Result<List<PayloadWithId>> getPayloads(List<String> contentIds);
 
   /** Get the {@link StreamSharedState}s stored as content. */
-  List<StreamSharedState> getSharedStates();
+  Result<List<StreamSharedState>> getSharedStates();
 
   /**
    * Returns a list of all {@link StreamStructure}s for the session. The Stream Structure does not
    * contain the content. This represents the full structure of the stream for a particular session.
    */
-  List<StreamStructure> getStreamStructures(StreamSession session);
+  Result<List<StreamStructure>> getStreamStructures(StreamSession session);
 
   /** Returns a list of all the sessions, excluding the $HEAD session. */
-  List<StreamSession> getAllSessions();
+  Result<List<StreamSession>> getAllSessions();
 
   /** Gets all semantic properties objects associated with a given list of contentIds */
-  List<SemanticPropertiesWithId> getSemanticProperties(List<String> contentIds);
+  Result<List<SemanticPropertiesWithId>> getSemanticProperties(List<String> contentIds);
 
   /**
    * Create a new session. The session is defined by all the {@link StreamDataOperation}s which are
    * currently stored in $HEAD.
    */
-  StreamSession createNewSession();
+  Result<StreamSession> createNewSession();
 
   /** Returns the {@link StreamSession} for $HEAD. */
   StreamSession getHeadSession();

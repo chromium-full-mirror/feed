@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
@@ -152,10 +153,12 @@ public class FeedStoreTest {
     mutation.add(STREAM_DATA_OPERATION.getStreamStructure());
     mutation.commit();
 
-    List<StreamStructure> results = store.getStreamStructures(headSession);
+    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(headSession);
 
-    assertThat(results).hasSize(1);
-    assertThat(results.get(0).getContentId()).isEqualTo(OPERATION_CONTENT_ID);
+    assertThat(streamStructuresResult.isSuccessful()).isTrue();
+    List<StreamStructure> streamStructures = streamStructuresResult.getValue();
+    assertThat(streamStructures).hasSize(1);
+    assertThat(streamStructures.get(0).getContentId()).isEqualTo(OPERATION_CONTENT_ID);
   }
 
   @Test
@@ -174,11 +177,16 @@ public class FeedStoreTest {
     mutation.add(STREAM_STRUCTURE);
     mutation.commit();
 
-    StreamSession session = store.createNewSession();
+    Result<StreamSession> sessionResult = store.createNewSession();
+    assertThat(sessionResult.isSuccessful()).isTrue();
+    StreamSession session = sessionResult.getValue();
 
-    List<StreamStructure> results = store.getStreamStructures(session);
-    assertThat(results).hasSize(1);
-    StreamStructure streamStructure = results.get(0);
+    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(session);
+
+    assertThat(streamStructuresResult.isSuccessful()).isTrue();
+    List<StreamStructure> streamStructures = streamStructuresResult.getValue();
+    assertThat(streamStructures).hasSize(1);
+    StreamStructure streamStructure = streamStructures.get(0);
     assertThat(streamStructure.getContentId()).contains(Integer.toString(OPERATION_ID));
   }
 
@@ -189,11 +197,16 @@ public class FeedStoreTest {
     mutation.add(STREAM_STRUCTURE);
     mutation.commit();
 
-    StreamSession session = store.createNewSession();
+    Result<StreamSession> sessionResult = store.createNewSession();
+    assertThat(sessionResult.isSuccessful()).isTrue();
+    StreamSession session = sessionResult.getValue();
+
     store.removeSession(session);
 
-    List<StreamStructure> results = store.getStreamStructures(session);
-    assertThat(results).isEmpty();
+    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(session);
+
+    assertThat(streamStructuresResult.isSuccessful()).isTrue();
+    assertThat(streamStructuresResult.getValue()).isEmpty();
   }
 
   @Test
@@ -205,8 +218,11 @@ public class FeedStoreTest {
 
     store.clearHead();
 
-    List<StreamStructure> results = store.getStreamStructures(store.getHeadSession());
-    assertThat(results).isEmpty();
+    Result<List<StreamStructure>> streamStructuresResult =
+        store.getStreamStructures(store.getHeadSession());
+
+    assertThat(streamStructuresResult.isSuccessful()).isTrue();
+    assertThat(streamStructuresResult.getValue()).isEmpty();
   }
 
   @Test
@@ -216,16 +232,28 @@ public class FeedStoreTest {
     mutation.add(STREAM_STRUCTURE);
     mutation.commit();
 
-    List<StreamSession> sessions = store.getAllSessions();
+    Result<List<StreamSession>> sessionsResult = store.getAllSessions();
+    assertThat(sessionsResult.isSuccessful()).isTrue();
+    List<StreamSession> sessions = sessionsResult.getValue();
     assertThat(sessions).isEmpty();
 
-    StreamSession session = store.createNewSession();
-    sessions = store.getAllSessions();
+    Result<StreamSession> sessionResult = store.createNewSession();
+    assertThat(sessionResult.isSuccessful()).isTrue();
+    StreamSession session = sessionResult.getValue();
+
+    sessionsResult = store.getAllSessions();
+    assertThat(sessionsResult.isSuccessful()).isTrue();
+    sessions = sessionsResult.getValue();
     assertThat(sessions).hasSize(1);
     assertThat(sessions.get(0).getStreamToken()).isEqualTo(session.getStreamToken());
 
-    session = store.createNewSession();
-    sessions = store.getAllSessions();
+    sessionResult = store.createNewSession();
+    assertThat(sessionResult.isSuccessful()).isTrue();
+    session = sessionResult.getValue();
+
+    sessionsResult = store.getAllSessions();
+    assertThat(sessionsResult.isSuccessful()).isTrue();
+    sessions = sessionsResult.getValue();
     assertThat(sessions).hasSize(2);
   }
 
@@ -245,7 +273,9 @@ public class FeedStoreTest {
             String.valueOf(PAYLOAD_ID),
             StreamPayload.newBuilder().setStreamSharedState(streamSharedState).build())
         .commit();
-    List<StreamSharedState> sharedStates = store.getSharedStates();
+    Result<List<StreamSharedState>> sharedStatesResult = store.getSharedStates();
+    assertThat(sharedStatesResult.isSuccessful()).isTrue();
+    List<StreamSharedState> sharedStates = sharedStatesResult.getValue();
     assertThat(sharedStates).hasSize(1);
     assertThat(sharedStates.get(0)).isEqualTo(streamSharedState);
   }
@@ -255,8 +285,10 @@ public class FeedStoreTest {
     List<String> contentIds = new ArrayList<>();
     contentIds.add(PAYLOAD_CONTENT_ID);
 
-    List<PayloadWithId> results = store.getPayloads(contentIds);
-    assertThat(results).isEmpty();
+    Result<List<PayloadWithId>> payloadsResult = store.getPayloads(contentIds);
+    assertThat(payloadsResult.isSuccessful()).isTrue();
+    List<PayloadWithId> payloads = payloadsResult.getValue();
+    assertThat(payloads).isEmpty();
   }
 
   @Test
@@ -280,8 +312,10 @@ public class FeedStoreTest {
   public void getSemanticProperties() {
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     store.editSemanticProperties().add(PAYLOAD_CONTENT_ID, semanticData).commit();
-    List<SemanticPropertiesWithId> semanticProperties =
+    Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
         store.getSemanticProperties(Collections.singletonList(PAYLOAD_CONTENT_ID));
+    assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
+    List<SemanticPropertiesWithId> semanticProperties = semanticPropertiesResult.getValue();
     assertThat(semanticProperties).hasSize(1);
     assertThat(semanticProperties.get(0).contentId).isEqualTo(PAYLOAD_CONTENT_ID);
     assertThat(semanticProperties.get(0).semanticData).isEqualTo(semanticData.toByteArray());
@@ -291,15 +325,19 @@ public class FeedStoreTest {
   public void getSemanticProperties_requestDifferentKey() {
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     store.editSemanticProperties().add(PAYLOAD_CONTENT_ID, semanticData).commit();
-    List<SemanticPropertiesWithId> semanticProperties =
+    Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
         store.getSemanticProperties(Collections.singletonList(OPERATION_CONTENT_ID));
+    assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
+    List<SemanticPropertiesWithId> semanticProperties = semanticPropertiesResult.getValue();
     assertThat(semanticProperties).isEmpty();
   }
 
   @Test
   public void getSemanticProperties_doesNotExist() {
-    List<SemanticPropertiesWithId> semanticProperties =
+    Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
         store.getSemanticProperties(Collections.singletonList(PAYLOAD_CONTENT_ID));
+    assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
+    List<SemanticPropertiesWithId> semanticProperties = semanticPropertiesResult.getValue();
     assertThat(semanticProperties).isEmpty();
   }
 }

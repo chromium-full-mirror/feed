@@ -149,11 +149,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     timingUtils.pinThread(Thread.currentThread(), "SessionManager");
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     // Initialize the Shared States cached here.
-    List<StreamSharedState> sharedStates = store.getSharedStates();
-    synchronized (lock) {
-      for (StreamSharedState sharedState : sharedStates) {
-        sharedStateCache.put(sharedState.getContentId(), sharedState);
+    Result<List<StreamSharedState>> sharedStatesResult = store.getSharedStates();
+    if (sharedStatesResult.isSuccessful()) {
+      synchronized (lock) {
+        for (StreamSharedState sharedState : sharedStatesResult.getValue()) {
+          sharedStateCache.put(sharedState.getContentId(), sharedState);
+        }
       }
+    } else {
+      // TODO: handle errors
     }
 
     // create the head session from the data in the Store
@@ -162,9 +166,14 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       sessions.put(head.getStreamSession().getStreamToken(), head);
     }
     head.updateAccessTime(clock.currentTimeMillis());
-    List<StreamStructure> streamStructures = store.getStreamStructures(head.getStreamSession());
-    head.initializeSession(streamStructures);
-    initializePersistedSessions();
+    Result<List<StreamStructure>> streamStructuresResult =
+        store.getStreamStructures(head.getStreamSession());
+    if (streamStructuresResult.isSuccessful()) {
+      head.initializeSession(streamStructuresResult.getValue());
+      initializePersistedSessions();
+    } else {
+      // TODO: handle errors
+    }
     timeTracker.stop("task", "Initialization");
   }
 
@@ -198,7 +207,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             () -> {
               Logger.i(TAG, "Task: createUnboundSession");
               ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-              unboundSession.populateModelProvider(session, store.getStreamStructures(session));
+              Result<List<StreamStructure>> streamStructuresResult =
+                  store.getStreamStructures(session);
+              if (streamStructuresResult.isSuccessful()) {
+                unboundSession.populateModelProvider(session, streamStructuresResult.getValue());
+              } else {
+                // TODO: handle errors
+              }
               timeTracker.stop("task", "createUnboundSession");
               unboundSessionCount++;
             });
@@ -242,14 +257,18 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     int sessionCleared = expiredSessionsCleared;
 
-    List<StreamSession> storedSessions = store.getAllSessions();
-    synchronized (lock) {
-      for (StreamSession session : storedSessions) {
-        if (!sessions.containsKey(session.getStreamToken())) {
-          store.removeSession(session);
-          expiredSessionsCleared++;
+    Result<List<StreamSession>> storedSessionsResult = store.getAllSessions();
+    if (storedSessionsResult.isSuccessful()) {
+      synchronized (lock) {
+        for (StreamSession session : storedSessionsResult.getValue()) {
+          if (!sessions.containsKey(session.getStreamToken())) {
+            store.removeSession(session);
+            expiredSessionsCleared++;
+          }
         }
       }
+    } else {
+      // TODO: handle errors
     }
     timeTracker.stop(
         "task",
@@ -264,8 +283,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   StreamSessions getPersistedSessions() {
     List<String> sessionIds = new ArrayList<>();
     sessionIds.add(STREAM_SESSION_CONTENT_ID);
-    List<PayloadWithId> sessionPayload = store.getPayloads(sessionIds);
+    Result<List<PayloadWithId>> sessionPayloadResult = store.getPayloads(sessionIds);
+    if (!sessionPayloadResult.isSuccessful()) {
+      // TODO: handle errors
+      return null;
+    }
 
+    List<PayloadWithId> sessionPayload = sessionPayloadResult.getValue();
     if (sessionPayload.isEmpty()) {
       Logger.w(TAG, "Persisted Sessions were not found");
       return null;
@@ -291,16 +315,26 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           Logger.i(TAG, "Task: Create/Populate New Session");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
-          StreamSession streamSession = store.createNewSession();
-          StreamSession recordedSession =
-              streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
+          Result<StreamSession> streamSessionResult = store.createNewSession();
+          if (streamSessionResult.isSuccessful()) {
+            StreamSession streamSession = streamSessionResult.getValue();
+            StreamSession recordedSession =
+                streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
 
-          session.populateModelProvider(recordedSession, store.getStreamStructures(streamSession));
-          synchronized (lock) {
-            sessions.put(session.getStreamSession().getStreamToken(), session);
+            Result<List<StreamStructure>> streamStructuresResult =
+                store.getStreamStructures(streamSession);
+            if (streamStructuresResult.isSuccessful()) {
+              session.populateModelProvider(recordedSession, streamStructuresResult.getValue());
+              synchronized (lock) {
+                sessions.put(session.getStreamSession().getStreamToken(), session);
+              }
+              updateStoredSessions();
+            } else {
+              // TODO: handle errors
+            }
+          } else {
+            // TODO: handle errors
           }
-          updateStoredSessions();
-
           timeTracker.stop("task", "Create/Populate New Session");
           newSessionCount++;
         };
@@ -359,9 +393,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           Logger.i(TAG, "Task: CreateExistingSession");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
-          session.populateModelProvider(streamSession, store.getStreamStructures(streamSession));
-          synchronized (lock) {
-            sessions.put(session.getStreamSession().getStreamToken(), session);
+          Result<List<StreamStructure>> streamStructuresResult =
+              store.getStreamStructures(streamSession);
+          if (streamStructuresResult.isSuccessful()) {
+            session.populateModelProvider(streamSession, streamStructuresResult.getValue());
+            synchronized (lock) {
+              sessions.put(session.getStreamSession().getStreamToken(), session);
+            }
+          } else {
+            // TODO: handle errors
           }
           timeTracker.stop("task", "CreateExistingSession");
           existingSessionCount++;
@@ -426,8 +466,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
 
     if (!cacheMisses.isEmpty()) {
-      List<PayloadWithId> content = store.getPayloads(cacheMisses);
-      results.addAll(content);
+      Result<List<PayloadWithId>> contentResult = store.getPayloads(cacheMisses);
+      if (contentResult.isSuccessful()) {
+        results.addAll(contentResult.getValue());
+      } else {
+        // TODO: handle errors
+      }
     }
     Logger.i(
         TAG,

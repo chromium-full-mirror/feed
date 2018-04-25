@@ -90,29 +90,25 @@ public class FeedStore implements Store, Dumpable {
   }
 
   @Override
-  public List<PayloadWithId> getPayloads(List<String> contentIds) {
+  public Result<List<PayloadWithId>> getPayloads(List<String> contentIds) {
     threadUtils.checkNotMainThread();
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<PayloadWithId> payloads = new ArrayList<>();
     try {
-      SimpleSettableFuture<Map<String, byte[]>> contentFuture = new SimpleSettableFuture<>();
+      SimpleSettableFuture<Result<Map<String, byte[]>>> contentFuture =
+          new SimpleSettableFuture<>();
 
-      mainThreadRunner.execute(
-          TAG,
-          () ->
-              contentStorage.get(
-                  contentIds,
-                  result -> {
-                    if (result.isSuccessful()) {
-                      contentFuture.put(result.getValue());
-                    } else {
-                      // TODO: handle errors
-                    }
-                  }));
+      mainThreadRunner.execute(TAG, () -> contentStorage.get(contentIds, contentFuture::put));
 
-      Map<String, byte[]> content = contentFuture.get();
-      for (Map.Entry<String, byte[]> entry : content.entrySet()) {
+      Result<Map<String, byte[]>> contentResult = contentFuture.get();
+      if (!contentResult.isSuccessful()) {
+        Logger.e(TAG, "Unsuccessful fetching payloads for content ids %s", contentIds);
+        tracker.stop("getPayloads failed", "items", contentIds);
+        return Result.failure();
+      }
+
+      for (Map.Entry<String, byte[]> entry : contentResult.getValue().entrySet()) {
         try {
           StreamPayload streamPayload =
               StreamPayload.parseFrom(entry.getValue(), extensionRegistry.getExtensionRegistry());
@@ -123,15 +119,17 @@ public class FeedStore implements Store, Dumpable {
       }
     } catch (ExecutionException | InterruptedException e) {
       Logger.e(TAG, e, "Exception getting payload for ids: %s", contentIds);
+      tracker.stop("getPayloads failed", "items", contentIds);
+      return Result.failure();
     }
     tracker.stop("", "getPayloads", "items", contentIds.size());
-    return payloads;
+    return Result.success(payloads);
   }
 
   @Override
-  public List<StreamSharedState> getSharedStates() {
+  public Result<List<StreamSharedState>> getSharedStates() {
     List<StreamSharedState> sharedStates = new ArrayList<>();
-    SimpleSettableFuture<List<byte[]>> sharedStatesFuture = new SimpleSettableFuture<>();
+    SimpleSettableFuture<Result<List<byte[]>>> sharedStatesFuture = new SimpleSettableFuture<>();
     mainThreadRunner.execute(
         TAG,
         () ->
@@ -140,86 +138,86 @@ public class FeedStore implements Store, Dumpable {
                 result -> {
                   if (result.isSuccessful()) {
                     Map<String, byte[]> input = result.getValue();
-                    sharedStatesFuture.put(new ArrayList<>(input.values()));
+                    sharedStatesFuture.put(Result.success(new ArrayList<>(input.values())));
                   } else {
-                    sharedStatesFuture.putException(
-                        new RuntimeException("Error fetching shared states"));
-                    // TODO: handle errors
+                    sharedStatesFuture.put(Result.failure());
                   }
                 }));
     try {
-      List<byte[]> bytes = sharedStatesFuture.get();
-      for (byte[] byteArray : bytes) {
-        sharedStates.add(StreamSharedState.parseFrom(byteArray));
+      Result<List<byte[]>> bytesResult = sharedStatesFuture.get();
+      if (!bytesResult.isSuccessful()) {
+        Logger.e(TAG, "Error fetching shared states");
+        return Result.failure();
       }
-    } catch (InvalidProtocolBufferException | InterruptedException | ExecutionException e) {
+
+      for (byte[] byteArray : bytesResult.getValue()) {
+        try {
+        sharedStates.add(StreamSharedState.parseFrom(byteArray));
+        } catch (InvalidProtocolBufferException e) {
+          Logger.e(TAG, e, "Error parsing protocol buffer from bytes %s", byteArray);
+        }
+      }
+    } catch (InterruptedException | ExecutionException e) {
       Logger.e(TAG, e, "Error occurred getting shared states");
+      return Result.failure();
     }
-    return sharedStates;
+    return Result.success(sharedStates);
   }
 
   @Override
-  public List<StreamStructure> getStreamStructures(StreamSession session) {
+  public Result<List<StreamStructure>> getStreamStructures(StreamSession session) {
     threadUtils.checkNotMainThread();
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamStructure> streamStructures = new ArrayList<>();
     try {
-      SimpleSettableFuture<List<byte[]>> operationsFuture = new SimpleSettableFuture<>();
+      SimpleSettableFuture<Result<List<byte[]>>> operationsFuture = new SimpleSettableFuture<>();
       mainThreadRunner.execute(
-          TAG,
-          () ->
-              journalStorage.read(
-                  session.getStreamToken(),
-                  result -> {
-                    if (result.isSuccessful()) {
-                      List<byte[]> value = result.getValue();
-                      operationsFuture.put(value);
-                    } else {
-                      operationsFuture.putException(
-                          new RuntimeException("Could not fetch stream structures"));
-                      // TODO: handle errors
-                    }
-                  }));
-      List<byte[]> operations = operationsFuture.get();
-      for (byte[] bytes : operations) {
+          TAG, () -> journalStorage.read(session.getStreamToken(), operationsFuture::put));
+      Result<List<byte[]>> operationsResult = operationsFuture.get();
+      if (!operationsResult.isSuccessful()) {
+        Logger.e(TAG, "Error fetching stream structures for stream session %s", session);
+        tracker.stop("getStreamStructures failed", "session", session);
+        return Result.failure();
+      }
+
+      for (byte[] bytes : operationsResult.getValue()) {
         if (bytes.length == 0) {
           continue;
         }
-        streamStructures.add(StreamStructure.parseFrom(bytes));
+        try {
+          streamStructures.add(StreamStructure.parseFrom(bytes));
+        } catch (InvalidProtocolBufferException e) {
+          Logger.e(TAG, e, "Error parsing stream structure.");
+        }
       }
-    } catch (InvalidProtocolBufferException | InterruptedException | ExecutionException e) {
-      throw new IllegalStateException("Couldn't read stream structures", e);
+    } catch (InterruptedException | ExecutionException e) {
+      Logger.e(TAG, e, "Couldn't read stream structures");
+      tracker.stop("getStreamStructures failed", "session", session);
+      return Result.failure();
     }
     tracker.stop("", "getStreamStructures", "items", streamStructures.size());
-    return streamStructures;
+    return Result.success(streamStructures);
   }
 
   @Override
-  public List<StreamSession> getAllSessions() {
+  public Result<List<StreamSession>> getAllSessions() {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamSession> sessions = new ArrayList<>();
 
     try {
-      SimpleSettableFuture<List<String>> contentFuture = new SimpleSettableFuture<>();
-      mainThreadRunner.execute(
-          TAG,
-          () ->
-              journalStorage.getAllJournals(
-                  result -> {
-                    if (result.isSuccessful()) {
-                      List<String> value = result.getValue();
-                      contentFuture.put(value);
-                    } else {
-                      // todo(rbonick): handle errors
-                      contentFuture.putException(
-                          new RuntimeException("Could not fetch all journals"));
-                    }
-                  }));
+      SimpleSettableFuture<Result<List<String>>> contentFuture = new SimpleSettableFuture<>();
+      mainThreadRunner.execute(TAG, () -> journalStorage.getAllJournals(contentFuture::put));
 
-      List<String> names = contentFuture.get();
-      for (String name : names) {
+      Result<List<String>> namesResult = contentFuture.get();
+      if (!namesResult.isSuccessful()) {
+        Logger.e(TAG, "Error fetching all journals");
+        tracker.stop("getAllSessions failed");
+        return Result.failure();
+      }
+
+      for (String name : namesResult.getValue()) {
         if (HEAD.getStreamToken().equals(name)) {
           // Don't add $HEAD to the sessions list
           continue;
@@ -228,13 +226,15 @@ public class FeedStore implements Store, Dumpable {
       }
     } catch (ExecutionException | InterruptedException e) {
       Logger.e(TAG, e, "Exception getting stream sessions");
+      tracker.stop("getAllSessions failed");
+      return Result.failure();
     }
     tracker.stop("", "getAllSessions", "items", sessions.size());
-    return sessions;
+    return Result.success(sessions);
   }
 
   @Override
-  public List<SemanticPropertiesWithId> getSemanticProperties(List<String> contentIds) {
+  public Result<List<SemanticPropertiesWithId>> getSemanticProperties(List<String> contentIds) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<SemanticPropertiesWithId> semanticPropertiesWithIds = new ArrayList<>(contentIds.size());
@@ -251,7 +251,7 @@ public class FeedStore implements Store, Dumpable {
     } catch (InterruptedException | ExecutionException e) {
       Logger.e(TAG, e, "Error getting semantic properties for content ids %s", contentIds);
       tracker.stop("getSemanticProperties failed", contentIds);
-      return semanticPropertiesWithIds;
+      return Result.failure();
     }
 
     if (mapResult.isSuccessful()) {
@@ -267,18 +267,25 @@ public class FeedStore implements Store, Dumpable {
     }
 
     tracker.stop("getSemanticProperties", semanticPropertiesWithIds);
-    return semanticPropertiesWithIds;
+    return Result.success(semanticPropertiesWithIds);
   }
 
   @Override
-  public StreamSession createNewSession() {
+  public Result<StreamSession> createNewSession() {
     threadUtils.checkNotMainThread();
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     String sessionName = SESSION_NAME_PREFIX + UUID.randomUUID();
     StreamSession streamSession = StreamSession.newBuilder().setStreamToken(sessionName).build();
     SessionState session = new SessionState();
-    session.addAll(getStreamStructures(HEAD));
+    Result<List<StreamStructure>> streamStructuresResult = getStreamStructures(HEAD);
+    if (!streamStructuresResult.isSuccessful()) {
+      Logger.e(TAG, "Could not retrieve stream structures");
+      tracker.stop("createNewSession failed");
+      return Result.failure();
+    }
+
+    session.addAll(streamStructuresResult.getValue());
 
     // While journal storage is async, we want FeedStore calls to be synchronous (for now)
     CountDownLatch latch = new CountDownLatch(1);
@@ -296,7 +303,7 @@ public class FeedStore implements Store, Dumpable {
       Logger.e(TAG, "Error creating new session due to interrupt", e);
     }
     tracker.stop("createNewSession", streamSession.getStreamToken());
-    return streamSession;
+    return Result.success(streamSession);
   }
 
   @Override

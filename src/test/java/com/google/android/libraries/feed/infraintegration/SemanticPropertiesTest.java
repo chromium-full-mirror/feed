@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
@@ -74,8 +75,10 @@ public class SemanticPropertiesTest {
 
     ContentIdGenerators idGenerators = new ContentIdGenerators();
     String contentIdString = idGenerators.createContentId(contentId);
-    List<SemanticPropertiesWithId> semanticProperties =
+    Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
         store.getSemanticProperties(Collections.singletonList(contentIdString));
+    assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
+    List<SemanticPropertiesWithId> semanticProperties = semanticPropertiesResult.getValue();
     assertThat(semanticProperties).hasSize(1);
     assertThat(semanticProperties.get(0).contentId).isEqualTo(contentIdString);
     assertThat(semanticProperties.get(0).semanticData).isEqualTo(semanticData.toByteArray());

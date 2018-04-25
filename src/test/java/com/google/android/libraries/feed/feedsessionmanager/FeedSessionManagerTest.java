@@ -124,6 +124,11 @@ public class FeedSessionManagerTest {
               @Override
               public void run() {}
             });
+    when(store.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
+    when(store.getStreamStructures(any(StreamSession.class)))
+        .thenReturn(Result.success(new ArrayList<>()));
+    when(store.getPayloads(any(List.class))).thenReturn(Result.success(new ArrayList<>()));
+    when(store.getAllSessions()).thenReturn(Result.success(new ArrayList<>()));
   }
 
   @Test
@@ -135,7 +140,7 @@ public class FeedSessionManagerTest {
             .build();
     List<StreamSharedState> sharedStates = new ArrayList<>();
     sharedStates.add(sharedState);
-    when(store.getSharedStates()).thenReturn(sharedStates);
+    when(store.getSharedStates()).thenReturn(Result.success(sharedStates));
 
     List<StreamStructure> streamStructures = new ArrayList<>();
     StreamStructure operation =
@@ -146,7 +151,8 @@ public class FeedSessionManagerTest {
     streamStructures.add(operation);
     com.google.android.libraries.feed.api.store.SessionMutation sessionMutation =
         mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
-    when(store.getStreamStructures(any(StreamSession.class))).thenReturn(streamStructures);
+    when(store.getStreamStructures(any(StreamSession.class)))
+        .thenReturn(Result.success(streamStructures));
     when(store.editSession(HEAD)).thenReturn(sessionMutation);
     when(sessionMutation.commit()).thenReturn(true);
 
@@ -326,7 +332,7 @@ public class FeedSessionManagerTest {
     StreamSessions streamSessions = StreamSessions.getDefaultInstance();
     StreamPayload payload = StreamPayload.newBuilder().setStreamSessions(streamSessions).build();
     persistedSessions.add(new PayloadWithId(FeedSessionManager.STREAM_SESSION_CONTENT_ID, payload));
-    when(store.getPayloads(any(List.class))).thenReturn(persistedSessions);
+    when(store.getPayloads(any(List.class))).thenReturn(Result.success(persistedSessions));
 
     FeedSessionManager sessionManager =
         new FeedSessionManager(
@@ -349,7 +355,7 @@ public class FeedSessionManagerTest {
     StreamSession session2 = StreamSession.newBuilder().setStreamToken("stream:2").build();
     storedSessions.add(session1);
     storedSessions.add(session2);
-    when(store.getAllSessions()).thenReturn(storedSessions);
+    when(store.getAllSessions()).thenReturn(Result.success(storedSessions));
 
     FeedSessionManager sessionManager =
         new FeedSessionManager(
@@ -385,7 +391,7 @@ public class FeedSessionManagerTest {
     StreamPayload payload =
         StreamPayload.newBuilder().setStreamSessions(streamSessionsBuilder.build()).build();
     persistedSessions.add(new PayloadWithId(FeedSessionManager.STREAM_SESSION_CONTENT_ID, payload));
-    when(store.getPayloads(any(List.class))).thenReturn(persistedSessions);
+    when(store.getPayloads(any(List.class))).thenReturn(Result.success(persistedSessions));
 
     when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
     FeedSessionManager sessionManager =
@@ -444,7 +450,7 @@ public class FeedSessionManagerTest {
   @Test
   public void testInvalidateHead() {
     StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
-    when(store.createNewSession()).thenReturn(streamSession);
+    when(store.createNewSession()).thenReturn(Result.success(streamSession));
     ContentMutation content = mock(ContentMutation.class);
     when(store.editContent()).thenReturn(content);
     FeedSessionManager sessionManager =
