@@ -49,6 +49,7 @@ message FeedActionMetadata {
     OPEN_URL_NEW_WINDOW = 3;
     OPEN_CONTEXT_MENU = 4;
     DISMISS = 5;
+    DOWNLOAD = 6;
   }
   optional Type type = 1;
 
@@ -62,6 +63,9 @@ message FeedActionMetadata {
 
     // The data needed by the Stream to perform a dismiss.
     DismissData dismiss_data = 4;
+
+    // The data needed by the Stream to perform a download
+    DownloadData download_data = 5;
   }
 }
 
@@ -86,4 +90,9 @@ message DismissData {
 message LabelledFeedActionData {
   optional string label = 1;
   optional FeedActionPayload feed_action_payload = 2;
+}
+
+// Data needed by Stream to perform a download.
+message DownloadData {
+  optional string url = 1;
 }

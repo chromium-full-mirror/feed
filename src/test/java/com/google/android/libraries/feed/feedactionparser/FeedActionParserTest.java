@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.feedactionparser;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -25,6 +27,7 @@ import android.content.Context;
 import android.view.View;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
+import com.google.search.now.ui.action.FeedActionProto.DownloadData;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
@@ -94,6 +97,29 @@ public class FeedActionParserTest {
                       FeedActionMetadata.newBuilder()
                           .setType(Type.OPEN_URL_INCOGNITO)
                           .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                  .build())
+          .build();
+
+  private static final FeedActionPayload DOWNLOAD_URL_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.DOWNLOAD)
+                          .setDownloadData(DownloadData.newBuilder().setUrl(URL)))
+                  .build())
+          .build();
+  private static final FeedActionPayload DOWNLOAD_URL_FEED_ACTION_NO_URL =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.DOWNLOAD)
+                          .setDownloadData(DownloadData.newBuilder()))
                   .build())
           .build();
 
@@ -220,5 +246,30 @@ public class FeedActionParserTest {
         .isTrue();
     verify(streamActionApi).canOpenContextMenu();
     verifyNoMoreInteractions(streamActionApi);
+  }
+
+  @Test
+  public void testCanPerformActionFromContextMenu_downloadUrl() {
+    when(streamActionApi.canDownloadUrl()).thenReturn(true);
+    assertThat(feedActionParser.canPerformAction(DOWNLOAD_URL_FEED_ACTION, streamActionApi))
+        .isTrue();
+    verify(streamActionApi).canDownloadUrl();
+    verifyNoMoreInteractions(streamActionApi);
+  }
+
+  @Test
+  public void testDownloadUrl_noUrlPresent() {
+    when(streamActionApi.canDownloadUrl()).thenReturn(true);
+    feedActionParser.parseFeedActionPayload(
+        DOWNLOAD_URL_FEED_ACTION_NO_URL, streamActionApi, /* view= */ null);
+    verify(streamActionApi, times(0)).downloadUrl(anyString());
+  }
+
+  @Test
+  public void testDownloadUrl_noHostSupport() {
+    when(streamActionApi.canDownloadUrl()).thenReturn(false);
+    feedActionParser.parseFeedActionPayload(
+        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
+    verify(streamActionApi, times(0)).downloadUrl(anyString());
   }
 }

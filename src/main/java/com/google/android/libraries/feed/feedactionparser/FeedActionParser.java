@@ -90,9 +90,23 @@ public class FeedActionParser implements ActionParser {
 
         if (!feedActionMetadata.getDismissData().hasContentId()) {
           Logger.e(TAG, "Cannot dismiss: no Content Id");
+          break;
         }
 
         streamActionApi.dismiss(feedActionMetadata.getDismissData().getContentId());
+        break;
+      case DOWNLOAD:
+        if (!streamActionApi.canDownloadUrl()) {
+          Logger.e(TAG, "Cannot download: StreamActionApi does not support it");
+          break;
+        }
+
+        if (!feedActionMetadata.getDownloadData().hasUrl()) {
+          Logger.e(TAG, " Cannot download: no URL");
+          break;
+        }
+
+        streamActionApi.downloadUrl(feedActionMetadata.getDownloadData().getUrl());
         break;
       default:
         Logger.wtf(TAG, "Haven't implemented host handling of %s", feedActionMetadata.getType());
@@ -153,6 +167,8 @@ public class FeedActionParser implements ActionParser {
         return streamActionApi.canOpenContextMenu();
       case DISMISS:
         return streamActionApi.canDismiss();
+      case DOWNLOAD:
+        return streamActionApi.canDownloadUrl();
       case UNKNOWN:
         break;
     }
