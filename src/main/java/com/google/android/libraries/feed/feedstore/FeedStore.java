@@ -94,7 +94,7 @@ public class FeedStore implements Store, Dumpable {
     threadUtils.checkNotMainThread();
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<PayloadWithId> payloads = new ArrayList<>();
+    List<PayloadWithId> payloads = new ArrayList<>(contentIds.size());
     try {
       SimpleSettableFuture<Result<Map<String, byte[]>>> contentFuture =
           new SimpleSettableFuture<>();
@@ -128,7 +128,6 @@ public class FeedStore implements Store, Dumpable {
 
   @Override
   public Result<List<StreamSharedState>> getSharedStates() {
-    List<StreamSharedState> sharedStates = new ArrayList<>();
     SimpleSettableFuture<Result<List<byte[]>>> sharedStatesFuture = new SimpleSettableFuture<>();
     mainThreadRunner.execute(
         TAG,
@@ -149,19 +148,20 @@ public class FeedStore implements Store, Dumpable {
         Logger.e(TAG, "Error fetching shared states");
         return Result.failure();
       }
-
-      for (byte[] byteArray : bytesResult.getValue()) {
+      List<byte[]> result = bytesResult.getValue();
+      List<StreamSharedState> sharedStates = new ArrayList<>(result.size());
+      for (byte[] byteArray : result) {
         try {
         sharedStates.add(StreamSharedState.parseFrom(byteArray));
         } catch (InvalidProtocolBufferException e) {
           Logger.e(TAG, e, "Error parsing protocol buffer from bytes %s", byteArray);
         }
       }
+      return Result.success(sharedStates);
     } catch (InterruptedException | ExecutionException e) {
       Logger.e(TAG, e, "Error occurred getting shared states");
       return Result.failure();
     }
-    return Result.success(sharedStates);
   }
 
   @Override
@@ -169,7 +169,7 @@ public class FeedStore implements Store, Dumpable {
     threadUtils.checkNotMainThread();
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<StreamStructure> streamStructures = new ArrayList<>();
+    List<StreamStructure> streamStructures;
     try {
       SimpleSettableFuture<Result<List<byte[]>>> operationsFuture = new SimpleSettableFuture<>();
       mainThreadRunner.execute(
@@ -180,8 +180,9 @@ public class FeedStore implements Store, Dumpable {
         tracker.stop("getStreamStructures failed", "session", session);
         return Result.failure();
       }
-
-      for (byte[] bytes : operationsResult.getValue()) {
+      List<byte[]> results = operationsResult.getValue();
+      streamStructures = new ArrayList<>(results.size());
+      for (byte[] bytes : results) {
         if (bytes.length == 0) {
           continue;
         }
@@ -204,7 +205,7 @@ public class FeedStore implements Store, Dumpable {
   public Result<List<StreamSession>> getAllSessions() {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<StreamSession> sessions = new ArrayList<>();
+    List<StreamSession> sessions;
 
     try {
       SimpleSettableFuture<Result<List<String>>> contentFuture = new SimpleSettableFuture<>();
@@ -217,7 +218,9 @@ public class FeedStore implements Store, Dumpable {
         return Result.failure();
       }
 
-      for (String name : namesResult.getValue()) {
+      List<String> result = namesResult.getValue();
+      sessions = new ArrayList<>(result.size());
+      for (String name : result) {
         if (HEAD.getStreamToken().equals(name)) {
           // Don't add $HEAD to the sessions list
           continue;
