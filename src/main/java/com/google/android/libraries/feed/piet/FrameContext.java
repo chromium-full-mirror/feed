@@ -49,6 +49,7 @@ import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,6 +60,7 @@ class FrameContext {
   private static final String TAG = "FrameContext";
 
   private final PietStylesHelper stylesHelper;
+  private final List<PietSharedState> pietSharedStates;
   private final DebugBehavior debugBehavior;
   private final DebugLogger debugLogger;
   private final AssetProvider assetProvider;
@@ -86,7 +88,7 @@ class FrameContext {
       Map<String, Style> stylesheet,
       Style baseStyle,
       StyleProvider styleProvider,
-      PietStylesHelper stylesHelper,
+      List<PietSharedState> pietSharedStates,
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       AssetProvider assetProvider,
@@ -95,10 +97,11 @@ class FrameContext {
     this(
         frame,
         stylesheet,
-        null,
+        /* bindingValues */ null,
         baseStyle,
         styleProvider,
-        stylesHelper,
+        pietSharedStates,
+        new PietStylesHelper(pietSharedStates),
         debugBehavior,
         debugLogger,
         assetProvider,
@@ -112,7 +115,8 @@ class FrameContext {
       /*@Nullable*/ Map<String, BindingValue> bindingValues,
       Style baseStyle,
       StyleProvider styleProvider,
-      PietStylesHelper stylesHelper,
+      List<PietSharedState> pietSharedStates,
+      PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       AssetProvider assetProvider,
@@ -123,7 +127,8 @@ class FrameContext {
     this.bindingValues = bindingValues == null ? new HashMap<>() : bindingValues;
     this.baseStyle = baseStyle;
     currentStyleProvider = styleProvider;
-    this.stylesHelper = stylesHelper;
+    this.stylesHelper = pietStylesHelper;
+    this.pietSharedStates = pietSharedStates;
     this.debugBehavior = debugBehavior;
     this.debugLogger = debugLogger;
     this.assetProvider = assetProvider;
@@ -135,6 +140,60 @@ class FrameContext {
         frameTemplates.put(template.getTemplateId(), template);
       }
     }
+  }
+
+  /**
+   * Creates a {@link FrameContext} and constructs the stylesheets from the frame and the list of
+   * {@link PietSharedState}. Any errors found with the styling will be reported.
+   */
+  public static FrameContext createFrameContext(
+      Frame frame,
+      Style baseStyle,
+      List<PietSharedState> pietSharedStates,
+      DebugBehavior debugBehavior,
+      DebugLogger debugLogger,
+      AssetProvider assetProvider,
+      CustomElementProvider customElementProvider,
+      HostBindingProvider hostBindingProvider) {
+    PietStylesHelper pietStylesHelper = new PietStylesHelper(pietSharedStates);
+    Map<String, Style> stylesheetMap = null;
+    if (frame.hasStylesheetId()) {
+      stylesheetMap = pietStylesHelper.getStylesheet(frame.getStylesheetId());
+    } else if (frame.hasStylesheet()) {
+      stylesheetMap = PietStylesHelper.createMapFromStylesheet(frame.getStylesheet());
+    }
+
+    Style frameStyle = null;
+    if (frame.hasStyleReferences()) {
+      if (stylesheetMap != null) {
+        frameStyle =
+            PietStylesHelper.mergeStyleIdsStack(
+                DEFAULT_STYLE, frame.getStyleReferences(), stylesheetMap, null);
+      }
+    }
+
+    StyleProvider styleProvider =
+        (frameStyle != null) ? new StyleProvider(frameStyle) : StyleProvider.DEFAULT_STYLE_PROVIDER;
+    if (stylesheetMap == null) {
+      stylesheetMap = new HashMap<>();
+    }
+    FrameContext frameContext =
+        new FrameContext(
+            frame,
+            stylesheetMap,
+            null,
+            baseStyle,
+            styleProvider,
+            pietSharedStates,
+            pietStylesHelper,
+            debugBehavior,
+            debugLogger,
+            assetProvider,
+            customElementProvider,
+            hostBindingProvider);
+    frameContext.computeErrors(frameStyle);
+
+    return frameContext;
   }
 
   public DebugBehavior getDebugBehavior() {
@@ -163,9 +222,8 @@ class FrameContext {
     return (template != null) ? template : stylesHelper.getTemplate(templateId);
   }
 
-  /*@Nullable*/
-  public PietSharedState getPietSharedState() {
-    return stylesHelper.getCurrentPietSharedState();
+  public List<PietSharedState> getPietSharedStates() {
+    return pietSharedStates;
   }
 
   /**
@@ -210,6 +268,7 @@ class FrameContext {
         binding,
         templateBaseStyle,
         templateStyleProvider,
+        pietSharedStates,
         stylesHelper,
         debugBehavior,
         debugLogger,
@@ -230,6 +289,7 @@ class FrameContext {
         bindingValues,
         baseStyle,
         styleProvider,
+        pietSharedStates,
         stylesHelper,
         debugBehavior,
         debugLogger,
@@ -446,6 +506,26 @@ class FrameContext {
     String e = String.format("[%s] %s", currentFrame.getTag(), error);
     debugLogger.recordMessage(errorType, e);
     return e;
+  }
+
+  private void computeErrors(/*@Nullable*/ Style frameStyle) {
+    if (currentFrame.hasStylesheetId() && stylesheet.isEmpty()) {
+      String error =
+          String.format(
+              "Stylesheet [%s] not found, no stylesheet used", currentFrame.getStylesheetId());
+      Logger.w(TAG, reportError(MessageType.ERROR, error));
+    } else if (!currentFrame.hasStylesheetId() && !currentFrame.hasStylesheet()) {
+      String error = "Frame defined without any Stylesheet";
+      Logger.w(TAG, reportError(MessageType.ERROR, error));
+    }
+
+    if (currentFrame.hasStyleReferences() && frameStyle == null) {
+      String error =
+          String.format(
+              "Couldn't find frame styles [%s] in the Stylesheet",
+              currentFrame.getStyleReferences());
+      Logger.e(TAG, reportError(MessageType.ERROR, error));
+    }
   }
 
   public int getRoundedCornerRadius(StyleProvider style, Context context) {

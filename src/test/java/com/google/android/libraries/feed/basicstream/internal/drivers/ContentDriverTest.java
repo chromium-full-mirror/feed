@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+import static com.google.android.libraries.feed.api.sessionmanager.SessionManager.GLOBAL_SHARED_STATE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -21,13 +22,16 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
+import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +53,13 @@ public class ContentDriverTest {
                   .setExtension(PietContent.pietContentExtension, PIET_CONTENT))
           .build();
 
+  private static final StreamSharedState STREAM_SHARED_STATE =
+      StreamSharedState.newBuilder()
+          .setPietSharedStateItem(PietSharedStateItem.getDefaultInstance())
+          .build();
+
   @Mock private ModelFeature modelFeature;
+  @Mock private ModelProvider modelProvider;
 
   private ContentDriver contentDriver;
 
@@ -57,7 +67,8 @@ public class ContentDriverTest {
   public void setup() {
     initMocks(this);
     when(modelFeature.getStreamFeature()).thenReturn(STREAM_FEATURE);
-    contentDriver = new ContentDriver(modelFeature);
+    when(modelProvider.getSharedState(GLOBAL_SHARED_STATE)).thenReturn(STREAM_SHARED_STATE);
+    contentDriver = new ContentDriver(modelFeature, modelProvider);
   }
 
   @Test
@@ -67,6 +78,16 @@ public class ContentDriverTest {
     assertThat(contentModel).isInstanceOf(PietContentModel.class);
 
     assertThat(((PietContentModel) contentModel).getPietContent()).isEqualTo(PIET_CONTENT);
+    verify(modelProvider).getSharedState(GLOBAL_SHARED_STATE);
+  }
+
+  @Test
+  public void testGetContentModel_sharedStateItemIsNull() {
+    when(modelProvider.getSharedState(GLOBAL_SHARED_STATE)).thenReturn(null);
+    ContentModel contentModel = contentDriver.getContentModel();
+
+    assertThat(contentModel).isNull();
+    verify(modelProvider).getSharedState(GLOBAL_SHARED_STATE);
   }
 
   @Test

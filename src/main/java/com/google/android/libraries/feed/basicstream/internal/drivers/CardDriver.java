@@ -20,6 +20,7 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 
 /** {@link FeatureDriver} for cards. */
@@ -27,10 +28,12 @@ public class CardDriver implements FeatureDriver {
   private static final String TAG = "CardDriver";
 
   private final ModelFeature cardModel;
+  private final ModelProvider modelProvider;
   /*@Nullable*/ private ContentDriver contentDriver;
 
-  public CardDriver(ModelFeature cardModel) {
+  public CardDriver(ModelFeature cardModel, ModelProvider modelProvider) {
     this.cardModel = cardModel;
+    this.modelProvider = modelProvider;
   }
 
   @Override
@@ -63,6 +66,6 @@ public class CardDriver implements FeatureDriver {
 
   @VisibleForTesting
   ContentDriver createContentDriver(ModelFeature contentModel) {
-    return new ContentDriver(contentModel);
+    return new ContentDriver(contentModel, modelProvider);
   }
 }

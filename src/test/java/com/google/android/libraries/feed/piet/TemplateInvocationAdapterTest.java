@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
@@ -51,6 +51,9 @@ import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -131,20 +134,23 @@ public class TemplateInvocationAdapterTest {
   private FrameContext frameContext;
 
   private TemplateInvocationAdapter adapter;
+  private List<PietSharedState> pietSharedStates;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    when(stylesHelper.getCurrentPietSharedState()).thenReturn(PietSharedState.getDefaultInstance());
+    pietSharedStates = new ArrayList<>();
     frameContext =
-        new FrameModelBinder(
-                stylesHelper,
-                DebugBehavior.VERBOSE,
-                assetProvider,
-                customElementProvider,
-                new HostBindingProvider())
-            .bindFrame(DEFAULT_FRAME);
+        FrameContext.createFrameContext(
+            DEFAULT_FRAME,
+            DEFAULT_STYLE,
+            pietSharedStates,
+            DebugBehavior.VERBOSE,
+            new DebugLogger(),
+            assetProvider,
+            customElementProvider,
+            new HostBindingProvider());
     adapterParameters = new AdapterParameters(context, Suppliers.of(null), actionHandler);
 
     adapter = new TemplateInvocationAdapter(context, adapterParameters);
@@ -204,18 +210,15 @@ public class TemplateInvocationAdapterTest {
     assertThat(equivalentTemplate).isNotSameAs(DEFAULT_TEMPLATE);
     assertThat(equivalentTemplate).isEqualTo(DEFAULT_TEMPLATE);
     frameContext =
-        new FrameModelBinder(
-                stylesHelper,
-                DebugBehavior.VERBOSE,
-                assetProvider,
-                customElementProvider,
-                new HostBindingProvider())
-            .bindFrame(
-                DEFAULT_FRAME
-                    .toBuilder()
-                    .clearTemplates()
-                    .addTemplates(equivalentTemplate)
-                    .build());
+        FrameContext.createFrameContext(
+            DEFAULT_FRAME.toBuilder().clearTemplates().addTemplates(equivalentTemplate).build(),
+            DEFAULT_STYLE,
+            pietSharedStates,
+            DebugBehavior.VERBOSE,
+            new DebugLogger(),
+            assetProvider,
+            customElementProvider,
+            new HostBindingProvider());
 
     adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
     assertThat(adapter.getKey()).isSameAs(originalKey);
@@ -284,8 +287,7 @@ public class TemplateInvocationAdapterTest {
     adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
 
     // Check the recycling key
-    assertThat(adapter.getKey())
-        .isEqualTo(new TemplateKey(DEFAULT_TEMPLATE, PietSharedState.getDefaultInstance()));
+    assertThat(adapter.getKey()).isEqualTo(new TemplateKey(DEFAULT_TEMPLATE, pietSharedStates));
 
     // Assert that all child views have been created
     LinearLayout templateView = adapter.getBaseView();
@@ -318,18 +320,19 @@ public class TemplateInvocationAdapterTest {
     Template defaultTemplateWithLocalStylesheet =
         DEFAULT_TEMPLATE.toBuilder().setStylesheet(TEMPLATE_STYLESHEET).build();
     frameContext =
-        new FrameModelBinder(
-                stylesHelper,
-                DebugBehavior.VERBOSE,
-                assetProvider,
-                customElementProvider,
-                new HostBindingProvider())
-            .bindFrame(
-                DEFAULT_FRAME
-                    .toBuilder()
-                    .clearTemplates()
-                    .addTemplates(defaultTemplateWithLocalStylesheet)
-                    .build());
+        FrameContext.createFrameContext(
+            DEFAULT_FRAME
+                .toBuilder()
+                .clearTemplates()
+                .addTemplates(defaultTemplateWithLocalStylesheet)
+                .build(),
+            DEFAULT_STYLE,
+            pietSharedStates,
+            DebugBehavior.VERBOSE,
+            new DebugLogger(),
+            assetProvider,
+            customElementProvider,
+            new HostBindingProvider());
 
     adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
 
@@ -431,9 +434,10 @@ public class TemplateInvocationAdapterTest {
   @Test
   public void testTemplateKay_equalWithSameObjects() {
     Template template = Template.newBuilder().setTemplateId("T").build();
-    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template).build();
-    TemplateKey key1 = new TemplateKey(template, sharedState);
-    TemplateKey key2 = new TemplateKey(template, sharedState);
+    List<PietSharedState> sharedStates =
+        convertToPietSharedState(PietSharedState.newBuilder().addTemplates(template).build());
+    TemplateKey key1 = new TemplateKey(template, sharedStates);
+    TemplateKey key2 = new TemplateKey(template, sharedStates);
 
     assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
     assertThat(key1).isEqualTo(key2);
@@ -444,11 +448,17 @@ public class TemplateInvocationAdapterTest {
     Template template1 = Template.newBuilder().setTemplateId("T").build();
     Template template2 = Template.newBuilder().setTemplateId("T").build();
     PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template1).build();
-    TemplateKey key1 = new TemplateKey(template1, sharedState);
-    TemplateKey key2 = new TemplateKey(template2, sharedState);
+    TemplateKey key1 = new TemplateKey(template1, convertToPietSharedState(sharedState));
+    TemplateKey key2 = new TemplateKey(template2, convertToPietSharedState(sharedState));
 
     assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
     assertThat(key1).isEqualTo(key2);
+  }
+
+  private List<PietSharedState> convertToPietSharedState(PietSharedState... pietSharedStates) {
+    List<PietSharedState> sharedStates = new ArrayList<>();
+    Collections.addAll(sharedStates, pietSharedStates);
+    return sharedStates;
   }
 
   @Test
@@ -456,20 +466,33 @@ public class TemplateInvocationAdapterTest {
     Template template = Template.newBuilder().setTemplateId("T").build();
     PietSharedState sharedState1 = PietSharedState.newBuilder().addTemplates(template).build();
     PietSharedState sharedState2 = PietSharedState.newBuilder().addTemplates(template).build();
-    TemplateKey key1 = new TemplateKey(template, sharedState1);
-    TemplateKey key2 = new TemplateKey(template, sharedState2);
+    TemplateKey key1 = new TemplateKey(template, convertToPietSharedState(sharedState1));
+    TemplateKey key2 = new TemplateKey(template, convertToPietSharedState(sharedState2));
 
     assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
     assertThat(key1).isEqualTo(key2);
   }
 
   @Test
+  public void testTemplateKey_differentWithDifferentLengthSharedStates() {
+    Template template = Template.newBuilder().setTemplateId("T").build();
+    PietSharedState sharedState1 = PietSharedState.newBuilder().addTemplates(template).build();
+    TemplateKey key1 = new TemplateKey(template, convertToPietSharedState(sharedState1));
+    TemplateKey key2 =
+        new TemplateKey(template, convertToPietSharedState(sharedState1, sharedState1));
+
+    assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
+    assertThat(key1).isNotEqualTo(key2);
+  }
+
+  @Test
   public void testTemplateKey_differentWithDifferentTemplate() {
     Template template1 = Template.newBuilder().setTemplateId("T1").build();
     Template template2 = Template.newBuilder().setTemplateId("T2").build();
-    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template1).build();
-    TemplateKey key1 = new TemplateKey(template1, sharedState);
-    TemplateKey key2 = new TemplateKey(template2, sharedState);
+    List<PietSharedState> sharedStates =
+        convertToPietSharedState(PietSharedState.newBuilder().addTemplates(template1).build());
+    TemplateKey key1 = new TemplateKey(template1, sharedStates);
+    TemplateKey key2 = new TemplateKey(template2, sharedStates);
 
     assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
     assertThat(key1).isNotEqualTo(key2);
@@ -480,8 +503,8 @@ public class TemplateInvocationAdapterTest {
     Template template = Template.newBuilder().setTemplateId("T").build();
     PietSharedState sharedState1 = PietSharedState.newBuilder().addTemplates(template).build();
     PietSharedState sharedState2 = PietSharedState.getDefaultInstance();
-    TemplateKey key1 = new TemplateKey(template, sharedState1);
-    TemplateKey key2 = new TemplateKey(template, sharedState2);
+    TemplateKey key1 = new TemplateKey(template, convertToPietSharedState(sharedState1));
+    TemplateKey key2 = new TemplateKey(template, convertToPietSharedState(sharedState2));
 
     assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
     assertThat(key1).isNotEqualTo(key2);
@@ -492,7 +515,7 @@ public class TemplateInvocationAdapterTest {
     TemplateKeySupplier keySupplier = new TemplateKeySupplier();
 
     assertThat(keySupplier.getKey(frameContext, DEFAULT_TEMPLATE_INVOCATION))
-        .isEqualTo(new TemplateKey(DEFAULT_TEMPLATE, PietSharedState.getDefaultInstance()));
+        .isEqualTo(new TemplateKey(DEFAULT_TEMPLATE, pietSharedStates));
 
     assertThatRunnable(
             new ThrowingRunnable() {

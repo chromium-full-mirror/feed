@@ -51,7 +51,6 @@ public class PietManagerTest {
   private Context context;
   private ViewGroup viewGroup1;
   private ViewGroup viewGroup2;
-  private PietStylesHelper pietStylesHelper = new PietStylesHelper(null);
 
   private PietManager pietManager;
 
@@ -63,7 +62,6 @@ public class PietManagerTest {
     viewGroup2 = new FrameLayout(context);
     pietManager =
         new PietManager(
-            pietStylesHelper,
             DebugBehavior.VERBOSE,
             assetProvider,
             actionHandler,

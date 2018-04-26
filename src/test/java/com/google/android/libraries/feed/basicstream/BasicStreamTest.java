@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream;
 
+import static com.google.android.libraries.feed.api.sessionmanager.SessionManager.GLOBAL_SHARED_STATE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -32,7 +33,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
-import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -44,11 +44,13 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -76,13 +78,16 @@ public class BasicStreamTest {
                   .setType(Type.PIET)
                   .setExtension(PietContent.pietContentExtension, PIET_CONTENT))
           .build();
+  private static final StreamSharedState STREAM_SHARED_STATE =
+      StreamSharedState.newBuilder()
+          .setPietSharedStateItem(PietSharedStateItem.getDefaultInstance())
+          .build();
   @Mock private StreamConfiguration streamConfiguration;
   @Mock private CardConfiguration cardConfiguration;
   @Mock private ImageLoaderApi imageLoaderApi;
   @Mock private ActionParser actionParser;
   @Mock private ActionApi actionApi;
   @Mock private CustomElementProvider customElementProvider;
-  @Mock private PietSharedStateSupplier pietSharedStateSupplier;
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private ModelProvider initialModelProvider;
   @Mock private ModelProvider modelProvider;
@@ -101,6 +106,7 @@ public class BasicStreamTest {
     when(streamConfiguration.getPaddingTop()).thenReturn(TOP_PADDING);
     when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
     when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
+    when(initialModelProvider.getSharedState(GLOBAL_SHARED_STATE)).thenReturn(STREAM_SHARED_STATE);
     basicStream =
         new BasicStream(
             Robolectric.setupActivity(Activity.class),
@@ -115,12 +121,7 @@ public class BasicStreamTest {
             headers,
             new FakeClock(),
             modelProviderFactory,
-            new HostBindingProvider()) {
-          @Override
-          PietSharedStateSupplier createPietSharedStateSupplier() {
-            return pietSharedStateSupplier;
-          }
-        };
+            new HostBindingProvider());
     basicStream.onCreate(null);
   }
 
@@ -157,9 +158,6 @@ public class BasicStreamTest {
     rootCursor.setModelChildren(Lists.newArrayList(rootChild));
     when(rootFeature.getCursor()).thenReturn(rootCursor);
     basicStream.onSessionStart();
-
-
-    verify(pietSharedStateSupplier).setModelProvider(initialModelProvider);
 
     List<ContentModel> contentModels = basicStream.getAdapter().getContentModels();
 

@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -33,6 +34,7 @@ import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Style;
+import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +48,6 @@ public class StyleProviderTest {
 
   @Mock private AssetProvider mockAssetProvider;
   @Mock private CustomElementProvider mockCustomElementProvider;
-  @Mock private PietStylesHelper mockStylesHelper;
 
   private FrameContext frameContext;
 
@@ -56,16 +57,16 @@ public class StyleProviderTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    FrameModelBinder frameBinder =
-        new FrameModelBinder(
-            mockStylesHelper,
+    frameContext =
+        FrameContext.createFrameContext(
+            Frame.getDefaultInstance(),
+            DEFAULT_STYLE,
+            new ArrayList<>(),
             DebugBehavior.VERBOSE,
+            new DebugLogger(),
             mockAssetProvider,
             mockCustomElementProvider,
             new HostBindingProvider());
-    FrameContext frameContextTemp = frameBinder.bindFrame(Frame.getDefaultInstance());
-    assertThat(frameContextTemp).isInstanceOf(FrameContext.class);
-    frameContext = frameContextTemp;
   }
 
   @Test

@@ -16,11 +16,9 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
@@ -34,7 +32,9 @@ import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,43 +46,80 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class PietStylesHelperTest {
 
-  private static final String STYLESHEET_ID = "ss1";
-  private static final String STYLE_ID = "s1";
-  private static final Style STYLE = Style.newBuilder().setStyleId(STYLE_ID).build();
-  private static final String TEMPLATE_ID = "t1";
-  private static final Template TEMPLATE = Template.newBuilder().setTemplateId(TEMPLATE_ID).build();
+  private static final String STYLESHEET_ID_1 = "ss1";
+  private static final String STYLESHEET_ID_2 = "ss2";
+  private static final String STYLE_ID_1 = "s1";
+  private static final String STYLE_ID_2 = "s2";
+  private static final Style STYLE_1 = Style.newBuilder().setStyleId(STYLE_ID_1).build();
+  private static final Style STYLE_2 = Style.newBuilder().setStyleId(STYLE_ID_2).build();
+  private static final String TEMPLATE_ID_1 = "t1";
+  private static final String TEMPLATE_ID_2 = "t2";
+  private static final Template TEMPLATE_1 =
+      Template.newBuilder().setTemplateId(TEMPLATE_ID_1).build();
+  private static final Template TEMPLATE_2 =
+      Template.newBuilder().setTemplateId(TEMPLATE_ID_2).build();
 
-  private PietSharedState sharedState;
-
-  @Mock Supplier<PietSharedState> sharedStateSupplier;
+  private List<PietSharedState> sharedStates = new ArrayList<>();
   @Mock FrameContext frameContext;
 
   private PietStylesHelper helper;
+  private PietSharedState sharedState1;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    Stylesheet.Builder stylesheet =
-        Stylesheet.newBuilder().setStylesheetId(STYLESHEET_ID).addStyles(STYLE);
+    Stylesheet.Builder stylesheet1 =
+        Stylesheet.newBuilder().setStylesheetId(STYLESHEET_ID_1).addStyles(STYLE_1);
 
-    sharedState =
+    Stylesheet.Builder stylesheet2 =
+        Stylesheet.newBuilder().setStylesheetId(STYLESHEET_ID_2).addStyles(STYLE_2);
+
+    sharedState1 =
         PietSharedState.newBuilder()
-            .addStylesheets(stylesheet.build())
-            .addTemplates(TEMPLATE)
+            .addStylesheets(stylesheet1.build())
+            .addTemplates(TEMPLATE_1)
             .build();
 
-    when(sharedStateSupplier.get()).thenReturn(sharedState);
+    PietSharedState sharedState2 =
+        PietSharedState.newBuilder()
+            .addStylesheets(stylesheet2.build())
+            .addTemplates(TEMPLATE_2)
+            .build();
+    sharedStates.add(sharedState1);
+    sharedStates.add(sharedState2);
 
-    helper = new PietStylesHelper(sharedStateSupplier);
+    helper = new PietStylesHelper(sharedStates);
   }
 
   @Test
   public void testGetStylesheet() {
-    Map<String, Style> resultMap = helper.getStylesheet(STYLESHEET_ID);
-    assertThat(resultMap).containsExactly(STYLE_ID, STYLE);
+    Map<String, Style> resultMap1 = helper.getStylesheet(STYLESHEET_ID_1);
+    assertThat(resultMap1).containsExactly(STYLE_ID_1, STYLE_1);
 
     // Retrieve map again to test caching
-    assertThat(helper.getStylesheet(STYLESHEET_ID)).isSameAs(resultMap);
+    assertThat(helper.getStylesheet(STYLESHEET_ID_1)).isSameAs(resultMap1);
+
+    Map<String, Style> resultMap2 = helper.getStylesheet(STYLESHEET_ID_2);
+    assertThat(resultMap2).containsExactly(STYLE_ID_2, STYLE_2);
+    assertThat(helper.getStylesheet(STYLESHEET_ID_2)).isSameAs(resultMap2);
+  }
+
+  @Test
+  public void testGetStylesheet_withSameStylesheetId() {
+    List<PietSharedState> sharedStates = new ArrayList<>();
+    Stylesheet.Builder stylesheet =
+        Stylesheet.newBuilder().setStylesheetId(STYLESHEET_ID_1).addStyles(STYLE_2);
+    PietSharedState sharedState2 =
+        PietSharedState.newBuilder()
+            .addStylesheets(stylesheet.build())
+            .addTemplates(TEMPLATE_2)
+            .build();
+    sharedStates.add(sharedState1);
+    sharedStates.add(sharedState2);
+    helper = new PietStylesHelper(sharedStates);
+
+    Map<String, Style> resultMap = helper.getStylesheet(STYLESHEET_ID_1);
+    assertThat(resultMap).containsExactly(STYLE_ID_2, STYLE_2);
   }
 
   @Test
@@ -104,64 +141,13 @@ public class PietStylesHelperTest {
 
   @Test
   public void testGetTemplate() {
-    assertThat(helper.getTemplate(TEMPLATE_ID)).isEqualTo(TEMPLATE);
+    assertThat(helper.getTemplate(TEMPLATE_ID_1)).isEqualTo(TEMPLATE_1);
+    assertThat(helper.getTemplate(TEMPLATE_ID_2)).isEqualTo(TEMPLATE_2);
   }
 
   @Test
   public void testGetTemplate_notExist() {
     assertThat(helper.getTemplate("NOT EXIST")).isNull();
-  }
-
-  @Test
-  public void testNewPietSharedState() {
-    // Set up the current state
-    helper.getTemplate(TEMPLATE_ID);
-    assertThat(helper.getCurrentPietSharedState()).isEqualTo(sharedState);
-
-    // Change to a new state
-    Style style2 = Style.newBuilder().setStyleId("s2").build();
-    Stylesheet stylesheet2 =
-        Stylesheet.newBuilder().setStylesheetId("ss2").addStyles(style2).build();
-    Template template2 = Template.newBuilder().setTemplateId("t2").build();
-
-    PietSharedState sharedState2 =
-        PietSharedState.newBuilder().addStylesheets(stylesheet2).addTemplates(template2).build();
-
-    when(sharedStateSupplier.get()).thenReturn(sharedState2);
-
-    // Then access the new data
-    assertThat(helper.getTemplate("t2")).isEqualTo(template2);
-    assertThat(helper.getStylesheet("ss2")).containsExactly("s2", style2);
-
-    // And the old data is gone
-    assertThat(helper.getTemplate(TEMPLATE_ID)).isNull();
-    assertThat(helper.getStylesheet(STYLESHEET_ID)).isEmpty();
-
-    assertThat(helper.getCurrentPietSharedState()).isEqualTo(sharedState2);
-  }
-
-  @Test
-  public void testUpdatesProtos() {
-    String templateId = "same";
-    Template template = Template.newBuilder().setTemplateId(templateId).build();
-    Template sameTemplate = Template.newBuilder().setTemplateId(templateId).build();
-    assertThat(template).isEqualTo(sameTemplate);
-
-    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template).build();
-    PietSharedState sameSharedState =
-        PietSharedState.newBuilder().addTemplates(sameTemplate).build();
-    assertThat(sharedState).isEqualTo(sameSharedState);
-
-    reset(sharedStateSupplier);
-    when(sharedStateSupplier.get()).thenReturn(sharedState).thenReturn(sameSharedState);
-
-    // checkCurrent sets up templates from "sharedState" and returns "template"
-    Template fetchTemplate = helper.getTemplate(templateId);
-    assertThat(fetchTemplate).isSameAs(template);
-
-    // checkCurrent updates templates from "sameSharedState" and returns "sameTemplate"
-    Template fetchSameTemplate = helper.getTemplate(templateId);
-    assertThat(fetchSameTemplate).isSameAs(sameTemplate);
   }
 
   @Test

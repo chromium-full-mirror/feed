@@ -28,48 +28,48 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 public class PietManager {
 
   private final ActionHandler actionHandler;
-  private final FrameModelBinder frameModelBinder;
-
+  private final AssetProvider assetProvider;
+  private final DebugBehavior debugBehavior;
+  private final CustomElementProvider customElementProvider;
+  private final HostBindingProvider hostBindingProvider;
   @VisibleForTesting /*@Nullable*/ AdapterParameters adapterParameters = null;
 
   public PietManager(
-      PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       ActionHandler actionHandler,
       CustomElementProvider customElementProvider) {
     this.actionHandler = actionHandler;
-    this.frameModelBinder =
-        new FrameModelBinder(
-            pietStylesHelper,
-            debugBehavior,
-            assetProvider,
-            customElementProvider,
-            new HostBindingProvider());
+    this.debugBehavior = debugBehavior;
+    this.assetProvider = assetProvider;
+    this.customElementProvider = customElementProvider;
+    this.hostBindingProvider = new HostBindingProvider();
   }
 
   public PietManager(
-      PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       ActionHandler actionHandler,
       CustomElementProvider customElementProvider,
       HostBindingProvider hostBindingProvider) {
     this.actionHandler = actionHandler;
-    this.frameModelBinder =
-        new FrameModelBinder(
-            pietStylesHelper,
-            debugBehavior,
-            assetProvider,
-            customElementProvider,
-            hostBindingProvider);
+    this.debugBehavior = debugBehavior;
+    this.assetProvider = assetProvider;
+    this.customElementProvider = customElementProvider;
+    this.hostBindingProvider = hostBindingProvider;
   }
 
   public FrameAdapter createPietFrameAdapter(
       Supplier</*@Nullable*/ ViewGroup> cardViewProducer, Context context) {
     AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
 
-    return new FrameAdapter(context, parameters, frameModelBinder);
+    return new FrameAdapter(
+        context,
+        parameters,
+        debugBehavior,
+        assetProvider,
+        customElementProvider,
+        hostBindingProvider);
   }
 
   /**

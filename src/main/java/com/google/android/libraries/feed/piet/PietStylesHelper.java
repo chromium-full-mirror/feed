@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
-import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
@@ -26,26 +25,43 @@ import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /** This class provides support helpers methods for managing styles in Piet. */
 public class PietStylesHelper {
   private static final String TAG = "PietStylesHelper";
 
-  private final Supplier<PietSharedState> pietSharedStateSupplier;
-  /*@Nullable*/ private PietSharedState currentPietSharedState;
-
   private final Map<String, Map<String, Style>> stylesheetScopes = new HashMap<>();
   private final Map<String, Stylesheet> stylesheets = new HashMap<>();
   private final Map<String, Template> templates = new HashMap<>();
 
-  public PietStylesHelper(Supplier<PietSharedState> pietSharedStateSupplier) {
-    this.pietSharedStateSupplier = pietSharedStateSupplier;
+  PietStylesHelper(List<PietSharedState> pietSharedStates) {
+    setupStylesheetsAndTemplates(pietSharedStates);
+  }
+
+  /**
+   * Sets up maps of stylesheets and templates from a list of {@link PietSharedState}. If a
+   * stylesheet or template id is shared between any number of PietSharedStates, the last
+   * stylesheet/template will be used.
+   */
+  private void setupStylesheetsAndTemplates(
+      /*@UnderInitialization*/ PietStylesHelper this, List<PietSharedState> pietSharedStates) {
+    for (PietSharedState sharedState : pietSharedStates) {
+      if (sharedState.getStylesheetsCount() > 0) {
+        for (Stylesheet stylesheet : sharedState.getStylesheetsList()) {
+          stylesheets.put(stylesheet.getStylesheetId(), stylesheet);
+        }
+      }
+
+      for (Template template : sharedState.getTemplatesList()) {
+        templates.put(template.getTemplateId(), template);
+      }
+    }
   }
 
   /** Returns a Map of style_id to Style. This represents the Stylesheet. */
   Map<String, Style> getStylesheet(String stylesheetId) {
-    checkCurrent();
     if (stylesheetScopes.containsKey(stylesheetId)) {
       return stylesheetScopes.get(stylesheetId);
     }
@@ -70,13 +86,7 @@ public class PietStylesHelper {
   /** Returns a {@link Template} for the template */
   /*@Nullable*/
   public Template getTemplate(String templateId) {
-    checkCurrent();
     return templates.get(templateId);
-  }
-
-  /*@Nullable*/
-  public PietSharedState getCurrentPietSharedState() {
-    return currentPietSharedState;
   }
 
   /**
@@ -114,34 +124,5 @@ public class PietStylesHelper {
       }
     }
     return mergedStyle.build();
-  }
-
-  // Make sure the data is all current
-  @SuppressWarnings("ReferenceEquality")
-  private void checkCurrent() {
-    PietSharedState pietSharedState = pietSharedStateSupplier.get();
-    if (pietSharedState == null) {
-      Logger.e(TAG, "Got null PietSharedState from supplier");
-      return;
-    }
-    // If the new pietSharedState is .equals() but not ==, we do an expensive proto equality
-    // calculation every time we call this method, and set ourselves up for more of these .equals
-    // on our Stylesheets and Templates. Better to update everything to the new instance.
-    // TODO: Maybe change this strategy; compare content ID or something.
-    if (pietSharedState != currentPietSharedState) {
-      stylesheetScopes.clear();
-      stylesheets.clear();
-      if (pietSharedState.getStylesheetsCount() > 0) {
-        for (Stylesheet stylesheet : pietSharedState.getStylesheetsList()) {
-          stylesheets.put(stylesheet.getStylesheetId(), stylesheet);
-        }
-      }
-
-      templates.clear();
-      for (Template template : pietSharedState.getTemplatesList()) {
-        templates.put(template.getTemplateId(), template);
-      }
-      currentPietSharedState = pietSharedState;
-    }
   }
 }

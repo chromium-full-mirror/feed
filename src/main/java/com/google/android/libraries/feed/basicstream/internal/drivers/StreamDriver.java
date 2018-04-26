@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
@@ -33,15 +34,17 @@ import java.util.List;
 public class StreamDriver {
 
   private static final String TAG = "StreamDriver";
-  private final ModelFeature streamFeature;
   private final ThreadUtils threadUtils;
   private final TokenHandler tokenHandler;
+  private final ModelProvider modelProvider;
+  /*@Nullable*/ private final ModelFeature streamFeature;
 
   private List<FeatureDriver> featureDrivers;
 
   public StreamDriver(
-      ModelFeature streamFeature, ThreadUtils threadUtils, TokenHandler tokenHandler) {
-    this.streamFeature = streamFeature;
+      ModelProvider modelProvider, ThreadUtils threadUtils, TokenHandler tokenHandler) {
+    this.modelProvider = modelProvider;
+    this.streamFeature = modelProvider.getRootFeature();
     this.threadUtils = threadUtils;
     this.tokenHandler = tokenHandler;
   }
@@ -60,9 +63,13 @@ public class StreamDriver {
   }
 
   private List<FeatureDriver> createChildren(
-      ModelFeature streamFeature, TokenHandler tokenHandler) {
+      /*@Nullable*/ ModelFeature streamFeature, TokenHandler tokenHandler) {
     checkState(featureDrivers == null);
 
+    if (streamFeature == null) {
+      Logger.i(TAG, "Root feature is null so returning empty content models.");
+      return new ArrayList<>();
+    }
     return createChildren(streamFeature.getCursor(), tokenHandler);
   }
 
@@ -124,11 +131,11 @@ public class StreamDriver {
 
   @VisibleForTesting
   FeatureDriver createClusterDriver(ModelFeature modelFeature) {
-    return new ClusterDriver(modelFeature);
+    return new ClusterDriver(modelFeature, modelProvider);
   }
 
   @VisibleForTesting
   FeatureDriver createCardDriver(ModelFeature modelFeature) {
-    return new CardDriver(modelFeature);
+    return new CardDriver(modelFeature, modelProvider);
   }
 }

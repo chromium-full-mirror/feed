@@ -14,23 +14,34 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+import static com.google.android.libraries.feed.api.sessionmanager.SessionManager.GLOBAL_SHARED_STATE;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
+import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
+import java.util.ArrayList;
+import java.util.List;
 
 /** {@link FeatureDriver} for content. */
 public class ContentDriver implements FeatureDriver {
 
+  private static final String TAG = "ContentDriver";
+
   private final ModelFeature contentFeatureModel;
+  private final ModelProvider modelProvider;
 
   /*@Nullable*/ private ContentModel contentModel;
 
-  ContentDriver(ModelFeature contentFeatureModel) {
+  ContentDriver(ModelFeature contentFeatureModel, ModelProvider modelProvider) {
     this.contentFeatureModel = contentFeatureModel;
+    this.modelProvider = modelProvider;
   }
 
   @Override
@@ -46,7 +57,20 @@ public class ContentDriver implements FeatureDriver {
       checkState(
           content.hasExtension(PietContent.pietContentExtension),
           "Expected Piet content for feature");
-      contentModel = new PietContentModel(content.getExtension(PietContent.pietContentExtension));
+      List<PietSharedState> pietSharedStates = new ArrayList<>();
+      StreamSharedState sharedState = modelProvider.getSharedState(GLOBAL_SHARED_STATE);
+      if (sharedState != null) {
+        pietSharedStates.add(sharedState.getPietSharedStateItem().getPietSharedState());
+      } else {
+        Logger.e(
+            TAG,
+            "Shared state was null. Stylesheets and templates on PietSharedState "
+                + "will not be loaded.");
+        return null;
+      }
+      contentModel =
+          new PietContentModel(
+              pietSharedStates, content.getExtension(PietContent.pietContentExtension));
     }
 
     return contentModel;

@@ -23,6 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
@@ -43,6 +44,7 @@ public class CardDriverTest {
 
   @Mock private ContentDriver contentDriverChild;
   @Mock private ModelFeature cardModelFeature;
+  @Mock private ModelProvider modelProvider;
   @Mock private ContentModel contentModel;
 
   private CardDriver cardDriver;
@@ -68,7 +70,7 @@ public class CardDriverTest {
 
     when(contentDriverChild.getContentModel()).thenReturn(contentModel);
 
-    cardDriver = new CardDriverForTest(cardModelFeature, contentDriverChild);
+    cardDriver = new CardDriverForTest(cardModelFeature, modelProvider, contentDriverChild);
   }
 
   @Test
@@ -91,8 +93,9 @@ public class CardDriverTest {
 
     private final ContentDriver child;
 
-    CardDriverForTest(ModelFeature cardModel, ContentDriver childContentDriver) {
-      super(cardModel);
+    CardDriverForTest(
+        ModelFeature cardModel, ModelProvider modelProvider, ContentDriver childContentDriver) {
+      super(cardModel, modelProvider);
       this.child = childContentDriver;
     }
 

@@ -19,20 +19,24 @@ import static com.google.android.libraries.feed.basicstream.internal.viewholders
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
+import java.util.List;
 
 /** {@link ContentModel} to render {@link PietContent} in a RecyclerView. */
 public class PietContentModel implements ContentModel {
 
   private final PietContent pietContent;
+  private final List<PietSharedState> pietSharedStates;
 
-  public PietContentModel(PietContent pietContent) {
+  public PietContentModel(List<PietSharedState> pietSharedStates, PietContent pietContent) {
+    this.pietSharedStates = pietSharedStates;
     this.pietContent = pietContent;
   }
 
   @Override
   public void bind(ViewHolder viewHolder) {
-    ((PietViewHolder) viewHolder).bind(pietContent.getFrame());
+    ((PietViewHolder) viewHolder).bind(pietContent.getFrame(), pietSharedStates);
   }
 
   @Override

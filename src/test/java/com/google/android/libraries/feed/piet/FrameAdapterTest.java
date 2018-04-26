@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -50,6 +51,8 @@ import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,15 +70,17 @@ public class FrameAdapterTest {
   @Mock private AssetProvider assetProvider;
   @Mock private ElementAdapterFactory adapterFactory;
   @Mock private FrameContext frameContext;
+  @Mock private DebugBehavior debugBehavior;
   @Mock private DebugLogger debugLogger;
-  @Mock private FrameModelBinder frameModelBinder;
   @Mock private StyleProvider styleProvider;
   @Mock private ElementListAdapter elementListAdapter;
   @Mock private TemplateInvocationAdapter templateAdapter;
+  @Mock private CustomElementProvider customElementProvider;
 
   @Captor private ArgumentCaptor<LayoutParams> layoutParamsCaptor;
 
   private Context context;
+  private List<PietSharedState> pietSharedStates;
   private AdapterParameters adapterParameters;
 
   private FrameAdapter frameAdapter;
@@ -109,9 +114,21 @@ public class FrameAdapterTest {
             });
     when(frameContext.getDebugLogger()).thenReturn(debugLogger);
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.VERBOSE);
-    when(frameModelBinder.bindFrame(any(Frame.class))).thenReturn(frameContext);
 
-    frameAdapter = new FrameAdapter(context, adapterParameters, frameModelBinder);
+    pietSharedStates = new ArrayList<>();
+    frameAdapter =
+        new FrameAdapter(
+            context,
+            adapterParameters,
+            debugBehavior,
+            assetProvider,
+            customElementProvider,
+            new HostBindingProvider()) {
+          @Override
+          FrameContext createFrameContext(Frame frame, List<PietSharedState> pietSharedStates) {
+            return frameContext;
+          }
+        };
   }
 
   @Test
@@ -146,32 +163,40 @@ public class FrameAdapterTest {
             .addElements(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
             .addElements(Element.newBuilder().setGridRow(GridRow.getDefaultInstance()))
             .build();
+    AdapterParameters adapterParameters =
+        new AdapterParameters(
+            context, Suppliers.of(new LinearLayout(context)), mock(ActionHandler.class));
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
             .addTemplates(
                 Template.newBuilder().setTemplateId(templateId).setElementList(defaultList))
             .build();
-    AdapterParameters adapterParameters =
-        new AdapterParameters(
-            context, Suppliers.of(new LinearLayout(context)), mock(ActionHandler.class));
-    FrameModelBinder frameModelBinder =
-        new FrameModelBinder(
-            new PietStylesHelper(Suppliers.of(pietSharedState)),
-            DebugBehavior.SILENT,
-            mock(AssetProvider.class),
-            mock(CustomElementProvider.class),
-            new HostBindingProvider());
+    pietSharedStates.add(pietSharedState);
     FrameContext frameContext =
-        frameModelBinder.bindFrame(
-            Frame.newBuilder().setStylesheet(Stylesheet.getDefaultInstance()).build());
+        FrameContext.createFrameContext(
+            Frame.newBuilder().setStylesheet(Stylesheet.getDefaultInstance()).build(),
+            DEFAULT_STYLE,
+            pietSharedStates,
+            debugBehavior,
+            new DebugLogger(),
+            assetProvider,
+            customElementProvider,
+            new HostBindingProvider());
 
-    frameAdapter = new FrameAdapter(context, adapterParameters, frameModelBinder);
+    frameAdapter =
+        new FrameAdapter(
+            context,
+            adapterParameters,
+            debugBehavior,
+            assetProvider,
+            customElementProvider,
+            new HostBindingProvider());
 
     Slice slice = Slice.newBuilder().setInlineSlice(defaultList).build();
 
     ElementAdapter<?, ?> viewAdapter = frameAdapter.getBoundAdapterForSlice(slice, frameContext);
     assertThat(viewAdapter.getModel()).isEqualTo(slice.getInlineSlice());
-    frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null);
+    frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null, pietSharedStates);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
     frameAdapter.unbindModel();
 
@@ -181,7 +206,7 @@ public class FrameAdapterTest {
             .build();
     viewAdapter = frameAdapter.getBoundAdapterForSlice(slice, frameContext);
     assertThat(viewAdapter.getModel()).isEqualTo(slice.getTemplateSlice());
-    frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null);
+    frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null, pietSharedStates);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
     frameAdapter.unbindModel();
   }
@@ -193,7 +218,7 @@ public class FrameAdapterTest {
     when(elementListAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
     when(elementListAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
 
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
 
@@ -211,7 +236,7 @@ public class FrameAdapterTest {
     when(elementListAdapter.getComputedWidthPx()).thenReturn(width);
     when(elementListAdapter.getComputedHeightPx()).thenReturn(height);
 
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
 
@@ -224,7 +249,7 @@ public class FrameAdapterTest {
   public void testBackgroundColor() {
     Slice slice = getBaseSlice();
     Frame frame = Frame.newBuilder().addSlices(slice).build();
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     verify(frameContext).createBackground(styleProvider, context);
   }
 
@@ -236,13 +261,13 @@ public class FrameAdapterTest {
     // Set background
     when(frameContext.createBackground(styleProvider, context))
         .thenReturn(new RoundedCornerColorDrawable(12345));
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNotNull();
     frameAdapter.unbindModel();
 
     // Re-bind and check that background is unset
     when(frameContext.createBackground(styleProvider, context)).thenReturn(null);
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNull();
   }
 
@@ -254,13 +279,13 @@ public class FrameAdapterTest {
     // Set background
     when(frameContext.createBackground(styleProvider, context))
         .thenReturn(new RoundedCornerColorDrawable(12345));
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNotNull();
     frameAdapter.unbindModel();
 
     // Re-bind and check that background is unset
     when(frameContext.createBackground(styleProvider, context)).thenReturn(null);
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNull();
   }
 
@@ -270,7 +295,7 @@ public class FrameAdapterTest {
         ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
     Frame inlineSliceFrame =
         Frame.newBuilder().addSlices(Slice.newBuilder().setInlineSlice(inlineSlice)).build();
-    frameAdapter.bindModel(inlineSliceFrame, (ShardingControl) null);
+    frameAdapter.bindModel(inlineSliceFrame, (ShardingControl) null, pietSharedStates);
     verify(adapterFactory).createElementListAdapter(inlineSlice, frameContext);
     verify(elementListAdapter).bindModel(inlineSlice, frameContext);
 
@@ -284,7 +309,7 @@ public class FrameAdapterTest {
         TemplateInvocation.newBuilder().setTemplateId("bread").build();
     Frame templateSliceFrame =
         Frame.newBuilder().addSlices(Slice.newBuilder().setTemplateSlice(templateSlice)).build();
-    frameAdapter.bindModel(templateSliceFrame, (ShardingControl) null);
+    frameAdapter.bindModel(templateSliceFrame, (ShardingControl) null, pietSharedStates);
     verify(adapterFactory).createTemplateAdapter(templateSlice, frameContext);
     verify(templateAdapter).bindModel(templateSlice, frameContext);
 
@@ -304,7 +329,7 @@ public class FrameAdapterTest {
 
     // Errors silenced by debug behavior
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.SILENT);
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
     verify(debugLogger, never()).getReportView(anyInt(), any());
@@ -313,7 +338,7 @@ public class FrameAdapterTest {
 
     // Errors displayed in extra views
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.VERBOSE);
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(3);
     assertThat(frameAdapter.getView().getChildAt(1)).isSameAs(errorView);
@@ -325,7 +350,7 @@ public class FrameAdapterTest {
     when(debugLogger.getReportView(MessageType.WARNING, context)).thenReturn(null);
     when(debugLogger.getReportView(MessageType.ERROR, context)).thenReturn(null);
 
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
   }

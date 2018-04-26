@@ -22,7 +22,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +39,7 @@ public class PietContentModelTest {
 
   PietContent pietContent =
       PietContent.newBuilder().setFrame(Frame.newBuilder().setStylesheetId(TEST_ID)).build();
+  List<PietSharedState> pietSharedStates = new ArrayList<>();
 
   @Mock PietViewHolder pietViewHolder;
 
@@ -44,14 +48,14 @@ public class PietContentModelTest {
   @Before
   public void setUp() {
     initMocks(this);
-    pietContentModel = new PietContentModel(pietContent);
+    pietContentModel = new PietContentModel(pietSharedStates, pietContent);
   }
 
   @Test
   public void testBind() {
     pietContentModel.bind(pietViewHolder);
 
-    verify(pietViewHolder).bind(pietContent.getFrame());
+    verify(pietViewHolder).bind(pietContent.getFrame(), pietSharedStates);
   }
 
   @Test

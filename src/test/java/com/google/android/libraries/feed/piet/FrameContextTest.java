@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -26,6 +26,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
@@ -49,20 +50,27 @@ import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.HostBindingData;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
+import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
+import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
+import com.google.search.now.ui.piet.StylesProto.Font;
+import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.Chunk;
 import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import com.google.search.now.ui.piet.TextProto.StyledTextChunk;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,13 +92,13 @@ public class FrameContextTest {
   private static final int SAMPLE_STYLE_COLOR = 888888;
   private static final Style SAMPLE_STYLE =
       Style.newBuilder().setStyleId(SAMPLE_STYLE_ID).setColor(SAMPLE_STYLE_COLOR).build();
+  private static final String STYLESHEET_ID = "STYLESHEET_ID";
   private static final Style BASE_STYLE = Style.newBuilder().setColor(BASE_STYLE_COLOR).build();
   private static final StyleIdsStack SAMPLE_STYLE_IDS =
       StyleIdsStack.newBuilder().addStyleIds(SAMPLE_STYLE_ID).build();
   private static final String BINDING_ID = "BINDING_ID";
   private static final String INVALID_BINDING_ID = "NOT_A_REAL_BINDING_ID";
 
-  @Mock private PietStylesHelper stylesHelper;
   @Mock private AssetProvider assetProvider;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private StyleProvider styleProvider;
@@ -101,6 +109,8 @@ public class FrameContextTest {
   private Context context;
   private HostBindingProvider hostBindingProvider;
   private FrameContext frameContext;
+  private List<PietSharedState> pietSharedStates;
+  private PietStylesHelper pietStylesHelper;
 
   @Before
   public void setUp() throws Exception {
@@ -110,17 +120,23 @@ public class FrameContextTest {
     hostBindingProvider = new HostBindingProvider();
 
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);
+    pietSharedStates = new ArrayList<>();
+    pietStylesHelper = new PietStylesHelper(pietSharedStates);
   }
 
   @Test
   public void testGetters() {
+    String template2BindingId = "TEMPLATE_2";
+    Template template2 = Template.newBuilder().setTemplateId(template2BindingId).build();
+    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template2).build();
+    pietSharedStates.add(sharedState);
     frameContext =
         new FrameContext(
             DEFAULT_FRAME,
             defaultStylesheet,
             SAMPLE_STYLE,
             styleProvider,
-            stylesHelper,
+            pietSharedStates,
             DebugBehavior.VERBOSE,
             debugLogger,
             assetProvider,
@@ -133,11 +149,8 @@ public class FrameContextTest {
     assertThat(frameContext.getCurrentStyle()).isEqualTo(styleProvider);
 
     assertThat(frameContext.getTemplate(DEFAULT_TEMPLATE_ID)).isEqualTo(DEFAULT_TEMPLATE);
-    verifyZeroInteractions(stylesHelper);
 
-    String template2BindingId = "TEMPLATE_2";
-    Template template2 = Template.newBuilder().setTemplateId(template2BindingId).build();
-    when(stylesHelper.getTemplate(template2BindingId)).thenReturn(template2);
+    // when(stylesHelper.getTemplate(template2BindingId)).thenReturn(template2);
     assertThat(frameContext.getTemplate(template2BindingId)).isEqualTo(template2);
   }
 
@@ -864,6 +877,185 @@ public class FrameContextTest {
     assertThat(frameContext.getChunkedTextBindingValue(textBindingRef)).isEqualTo(textBindingValue);
   }
 
+  @Test
+  public void testError_noStylesheet() {
+    Frame frame = Frame.getDefaultInstance();
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+    assertThat(frameContext).isNotNull();
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
+  }
+
+  @Test
+  public void testError_stylesheetNotFound() {
+    Frame frame = getBaseFrame();
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+    assertThat(frameContext).isNotNull();
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
+  }
+
+  @Test
+  public void testError_styleNotFound() {
+    Frame frame = getBaseFrame();
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+    assertThat(frameContext).isNotNull();
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
+  }
+
+  @Test
+  public void testCreateWithoutError() {
+    Frame frame = getWorkingFrame();
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+    assertThat(frameContext).isNotNull();
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
+  }
+
+  @Test
+  public void testBindFrame_withStylesheetId() {
+    Frame frame = Frame.newBuilder().setStylesheetId(STYLESHEET_ID).build();
+    setUpPietSharedStates();
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+
+    // The style is not currently bound, but available from the stylesheet.
+    assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
+        .isEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
+  }
+
+  @Test
+  public void testBindFrame_withStylesheet() {
+    Frame frame =
+        Frame.newBuilder().setStylesheet(Stylesheet.newBuilder().addStyles(SAMPLE_STYLE)).build();
+
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+
+    // The style is not currently bound, but available from the stylesheet.
+    assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
+        .isEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
+  }
+
+  @Test
+  public void testBindFrame_withFrameStyle() {
+    Frame frame =
+        Frame.newBuilder()
+            .setStylesheet(Stylesheet.newBuilder().addStyles(SAMPLE_STYLE))
+            .setStyleReferences(SAMPLE_STYLE_IDS)
+            .build();
+
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+
+    assertThat(frameContext.getCurrentStyle().getColor()).isEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
+  }
+
+  @Test
+  public void testBindFrame_withoutFrameStyle() {
+    Frame frame =
+        Frame.newBuilder().setStylesheet(Stylesheet.newBuilder().addStyles(SAMPLE_STYLE)).build();
+
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+
+    assertThat(frameContext.getCurrentStyle()).isSameAs(DEFAULT_STYLE_PROVIDER);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
+  }
+
+  @Test
+  public void testBindFrame_baseStyle() {
+    int styleHeight = 747;
+    String heightStyleId = "JUMBO";
+    Frame frame =
+        Frame.newBuilder()
+            .setStylesheet(
+                Stylesheet.newBuilder()
+                    .addStyles(SAMPLE_STYLE)
+                    .addStyles(Style.newBuilder().setStyleId(heightStyleId).setHeight(styleHeight)))
+            .setStyleReferences(SAMPLE_STYLE_IDS)
+            .build();
+
+    // Set up a frame with a color applied to the frame.
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+    StyleProvider baseStyleWithHeight =
+        frameContext.makeStyleFor(StyleIdsStack.newBuilder().addStyleIds(heightStyleId).build());
+
+    // Make a style for something that doesn't override color, and check that the base color is a
+    // default, not the frame color.
+    assertThat(baseStyleWithHeight.getColor()).isEqualTo(DEFAULT_STYLE.getColor());
+    assertThat(baseStyleWithHeight.getHeight()).isEqualTo(styleHeight);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
+  }
+
+  @Test
+  public void testMergeStyleIdsStack() {
+    String styleId1 = "STYLE1";
+    Style style1 =
+        Style.newBuilder()
+            .setColor(12345) // Not overridden
+            .setMaxLines(54321) // Overridden
+            .setFont(Font.newBuilder().setSize(11).setWeight(FontWeight.MEDIUM))
+            .setBackground(
+                Fill.newBuilder()
+                    .setLinearGradient(
+                        LinearGradient.newBuilder()
+                            .addStops(ColorStop.newBuilder().setColor(1234))))
+            .setStyleId(styleId1)
+            .build();
+    String styleId2 = "STYLE2";
+    Style style2 =
+        Style.newBuilder()
+            .setMaxLines(22222) // Overrides
+            .setMinHeight(33333) // Not an override
+            .setFont(Font.newBuilder().setSize(13))
+            .setBackground(
+                Fill.newBuilder()
+                    .setLinearGradient(LinearGradient.newBuilder().setDirectionDeg(321)))
+            .setStyleId(styleId2)
+            .build();
+    Frame frame =
+        Frame.newBuilder()
+            .setStylesheetId(STYLESHEET_ID)
+            .setStyleReferences(
+                StyleIdsStack.newBuilder().addStyleIds(styleId1).addStyleIds(styleId2))
+            .build();
+    pietSharedStates.add(
+        PietSharedState.newBuilder()
+            .addStylesheets(
+                Stylesheet.newBuilder()
+                    .setStylesheetId(STYLESHEET_ID)
+                    .addStyles(style1)
+                    .addStyles(style2)
+                    .build())
+            .build());
+
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+
+    assertThat(frameContext.getCurrentStyle().getColor()).isEqualTo(12345);
+    assertThat(frameContext.getCurrentStyle().getMaxLines()).isEqualTo(22222);
+    assertThat(frameContext.getCurrentStyle().getMinHeight()).isEqualTo(33333);
+    assertThat(frameContext.getCurrentStyle().getFont())
+        .isEqualTo(Font.newBuilder().setSize(13).setWeight(FontWeight.MEDIUM).build());
+    assertThat(frameContext.getCurrentStyle().getBackground())
+        .isEqualTo(
+            Fill.newBuilder()
+                .setLinearGradient(
+                    LinearGradient.newBuilder()
+                        .addStops(ColorStop.newBuilder().setColor(1234))
+                        .setDirectionDeg(321))
+                .build());
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
+  }
+
+  @Test
+  public void testError_bindingTemplate() {
+    FrameContext frameContext = makeFrameContextFromFrame(getWorkingFrame());
+    Template template = Template.getDefaultInstance();
+    FrameContext boundCardContext2 = frameContext.bindTemplate(template, null);
+    assertThat(boundCardContext2).isEqualTo(frameContext);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.WARNING)).hasSize(1);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
+  }
+
   private FrameContext defaultFrameContext() {
     return makeFrameContextWithNoBindings();
   }
@@ -874,7 +1066,7 @@ public class FrameContextTest {
         defaultStylesheet,
         BASE_STYLE,
         styleProvider,
-        stylesHelper,
+        pietSharedStates,
         DebugBehavior.VERBOSE,
         debugLogger,
         assetProvider,
@@ -891,7 +1083,8 @@ public class FrameContextTest {
         bindingValueMap,
         BASE_STYLE,
         styleProvider,
-        stylesHelper,
+        pietSharedStates,
+        pietStylesHelper,
         DebugBehavior.VERBOSE,
         debugLogger,
         assetProvider,
@@ -908,12 +1101,45 @@ public class FrameContextTest {
         bindingValueMap,
         BASE_STYLE,
         styleProvider,
-        stylesHelper,
+        pietSharedStates,
+        pietStylesHelper,
         DebugBehavior.VERBOSE,
         debugLogger,
         assetProvider,
         customElementProvider,
         hostBindingProvider);
+  }
+
+  private FrameContext makeFrameContextFromFrame(Frame frame) {
+    return FrameContext.createFrameContext(
+        frame,
+        DEFAULT_STYLE,
+        pietSharedStates,
+        DebugBehavior.VERBOSE,
+        debugLogger,
+        assetProvider,
+        customElementProvider,
+        hostBindingProvider);
+  }
+
+  private void setUpPietSharedStates() {
+    pietSharedStates.add(
+        PietSharedState.newBuilder()
+            .addStylesheets(
+                Stylesheet.newBuilder().setStylesheetId(STYLESHEET_ID).addStyles(SAMPLE_STYLE))
+            .build());
+  }
+
+  private Frame getWorkingFrame() {
+    setUpPietSharedStates();
+    return getBaseFrame();
+  }
+
+  private Frame getBaseFrame() {
+    return Frame.newBuilder()
+        .setStylesheetId(STYLESHEET_ID)
+        .setStyleReferences(SAMPLE_STYLE_IDS)
+        .build();
   }
 
   private BindingValue.Builder defaultBinding() {

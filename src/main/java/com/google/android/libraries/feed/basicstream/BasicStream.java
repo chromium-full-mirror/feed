@@ -26,7 +26,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
@@ -41,7 +40,6 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietHostBindingProvider;
-import com.google.android.libraries.feed.basicstream.internal.piet.PietSharedStateSupplier;
 import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -51,10 +49,8 @@ import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
-import com.google.android.libraries.feed.piet.PietStylesHelper;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -69,7 +65,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final CardConfiguration cardConfiguration;
   private final ThreadUtils threadUtils;
   private final PietManager pietManager;
-  private final PietSharedStateSupplier pietSharedStateSupplier;
   private final ModelProviderFactory modelProviderFactory;
 
   private ModelProvider modelProvider;
@@ -97,10 +92,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       /*@Nullable*/ HostBindingProvider hostBindingProvider) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
-    this.pietSharedStateSupplier = createPietSharedStateSupplier();
     this.pietManager =
         new PietManager(
-            new PietStylesHelper(pietSharedStateSupplier),
             debugBehavior,
             new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
             (action, frame, view, veLoggingToken) ->
@@ -221,21 +214,14 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   private void updateAdapter(ModelProvider modelProvider) {
-    ModelFeature root = modelProvider.getRootFeature();
-
     if (streamTokenHandler != null) {
       // Prevents a previous StreamDriver from successfully interacting with the TokenHandler
       streamTokenHandler.disable();
       streamTokenHandler = null;
     }
 
-    if (root == null) {
-      adapter.setContentModels(new ArrayList<>());
-      return;
-    }
-
     streamTokenHandler = new StreamTokenHandler();
-    streamDriver = new StreamDriver(root, threadUtils, streamTokenHandler);
+    streamDriver = new StreamDriver(modelProvider, threadUtils, streamTokenHandler);
 
     List<ContentModel> contentModels = streamDriver.getContentModels();
 
@@ -243,15 +229,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
     adapter.setContentModels(contentModels);
   }
 
-  @VisibleForTesting
-  PietSharedStateSupplier createPietSharedStateSupplier(/*@UnderInitialization*/ BasicStream this) {
-    return new PietSharedStateSupplier();
-  }
-
   @Override
   public void onSessionStart() {
     threadUtils.checkMainThread();
-    pietSharedStateSupplier.setModelProvider(modelProvider);
     updateAdapter(modelProvider);
   }
 

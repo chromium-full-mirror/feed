@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -25,11 +26,17 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.ElementsProto.Slice;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,19 +50,29 @@ public class FrameAdapter {
 
   private static final String TAG = "FrameAdapter";
 
-  private final FrameModelBinder frameModelBinder;
-
   private final Set<ElementAdapter<?, ?>> childAdapters;
 
   private final Context context;
   private final AdapterParameters parameters;
+  private final DebugBehavior debugBehavior;
+  private final AssetProvider assetProvider;
+  private final CustomElementProvider customElementProvider;
+  private final HostBindingProvider hostBindingProvider;
   /*@Nullable*/ private LinearLayout view = null;
 
   public FrameAdapter(
-      Context context, AdapterParameters parameters, FrameModelBinder frameModelBinder) {
+      Context context,
+      AdapterParameters parameters,
+      DebugBehavior debugBehavior,
+      AssetProvider assetProvider,
+      CustomElementProvider customElementProvider,
+      HostBindingProvider hostBindingProvider) {
     this.context = context;
     this.parameters = parameters;
-    this.frameModelBinder = frameModelBinder;
+    this.debugBehavior = debugBehavior;
+    this.assetProvider = assetProvider;
+    this.customElementProvider = customElementProvider;
+    this.hostBindingProvider = hostBindingProvider;
     childAdapters = new HashSet<>();
   }
 
@@ -65,9 +82,12 @@ public class FrameAdapter {
    * subset of the full set of slices defined for the frame.
    */
   // TODO: Need to implement support for sharding
-  public void bindModel(Frame frame, /*@Nullable*/ ShardingControl shardingControl) {
+  public void bindModel(
+      Frame frame,
+      /*@Nullable*/ ShardingControl shardingControl,
+      List<PietSharedState> pietSharedStates) {
     long startTime = System.nanoTime();
-    FrameContext frameContext = frameModelBinder.bindFrame(frame);
+    FrameContext frameContext = createFrameContext(frame, pietSharedStates);
     initialBind(parameters.parentViewSupplier.get());
     LinearLayout frameView = checkNotNull(view);
 
@@ -141,6 +161,19 @@ public class FrameAdapter {
   public LinearLayout getFrameContainer() {
     initialBind(parameters.parentViewSupplier.get());
     return checkNotNull(view);
+  }
+
+  @VisibleForTesting
+  FrameContext createFrameContext(Frame frame, List<PietSharedState> pietSharedStates) {
+    return FrameContext.createFrameContext(
+        frame,
+        DEFAULT_STYLE,
+        pietSharedStates,
+        debugBehavior,
+        new DebugLogger(),
+        assetProvider,
+        customElementProvider,
+        hostBindingProvider);
   }
 
   @VisibleForTesting

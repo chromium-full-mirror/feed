@@ -21,6 +21,8 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
+import java.util.List;
 
 /**
  * {@link ViewHolder} for {@link com.google.search.now.ui.stream.StreamStructureProto.PietContent}.
@@ -40,7 +42,7 @@ public class PietViewHolder extends ViewHolder {
     this.frameAdapter = frameAdapter;
   }
 
-  public void bind(Frame frame) {
+  public void bind(Frame frame, List<PietSharedState> pietSharedStates) {
     if (bound) {
       return;
     }
@@ -55,7 +57,7 @@ public class PietViewHolder extends ViewHolder {
     lp.bottomMargin = (int) cardConfiguration.getCardBottomPadding();
     cardView.setLayoutParams(lp);
 
-    frameAdapter.bindModel(frame, (ShardingControl) null);
+    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     bound = true;
   }
 

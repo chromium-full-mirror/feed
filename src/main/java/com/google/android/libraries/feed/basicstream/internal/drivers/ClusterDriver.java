@@ -19,6 +19,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.common.logging.Logger;
 
@@ -27,10 +28,12 @@ public class ClusterDriver implements FeatureDriver {
 
   private static final String TAG = "ClusterDriver";
   private final ModelFeature clusterModel;
+  private final ModelProvider modelProvider;
   /*@Nullable*/ private CardDriver cardDriver;
 
-  ClusterDriver(ModelFeature clusterModel) {
+  ClusterDriver(ModelFeature clusterModel, ModelProvider modelProvider) {
     this.clusterModel = clusterModel;
+    this.modelProvider = modelProvider;
   }
 
   @Override
@@ -78,6 +81,6 @@ public class ClusterDriver implements FeatureDriver {
 
   @VisibleForTesting
   CardDriver createCardDriver(ModelFeature content) {
-    return new CardDriver(content);
+    return new CardDriver(content, modelProvider);
   }
 }

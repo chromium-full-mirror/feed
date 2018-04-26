@@ -24,6 +24,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
@@ -44,6 +45,7 @@ public class ClusterDriverTest {
 
   @Mock private ContentModel contentModel;
   @Mock private ModelFeature clusterModelFeature;
+  @Mock private ModelProvider modelProvider;
 
   private ClusterDriverForTest clusterDriver;
 
@@ -69,7 +71,7 @@ public class ClusterDriverTest {
     CardDriver cardDriver = mock(CardDriver.class);
     when(cardDriver.getContentModel()).thenReturn(contentModel);
 
-    clusterDriver = new ClusterDriverForTest(clusterModelFeature, cardDriver);
+    clusterDriver = new ClusterDriverForTest(clusterModelFeature, modelProvider, cardDriver);
   }
 
   @Test
@@ -92,8 +94,9 @@ public class ClusterDriverTest {
 
     private final CardDriver cardDriver;
 
-    ClusterDriverForTest(ModelFeature clusterModel, CardDriver cardDriver) {
-      super(clusterModel);
+    ClusterDriverForTest(
+        ModelFeature clusterModel, ModelProvider modelProvider, CardDriver cardDriver) {
+      super(clusterModel, modelProvider);
       this.cardDriver = cardDriver;
     }
 

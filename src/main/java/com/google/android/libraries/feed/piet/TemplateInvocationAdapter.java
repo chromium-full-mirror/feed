@@ -31,6 +31,7 @@ import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
+import java.util.List;
 
 /** A {@link ElementContainerAdapter} which manages {@code TemplateInvocation} slices. */
 class TemplateInvocationAdapter
@@ -39,7 +40,7 @@ class TemplateInvocationAdapter
   private static final String TAG = "TemplateInvocationAdapter";
 
   /*@Nullable*/ private Template template = null;
-  /*@Nullable*/ private PietSharedState sharedState = null;
+  /*@Nullable*/ private List<PietSharedState> pietSharedStates = null;
 
   TemplateInvocationAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, createView(context));
@@ -72,7 +73,7 @@ class TemplateInvocationAdapter
     }
 
     template = modelTemplate;
-    sharedState = frameContext.getPietSharedState();
+    pietSharedStates = frameContext.getPietSharedStates();
     setKey(createKey());
 
     // TODO: Need to support Sharding.
@@ -153,7 +154,7 @@ class TemplateInvocationAdapter
 
   private RecyclerKey createKey() {
     return new TemplateKey(
-        checkNotNull(template, "Template is null; not created yet?"), sharedState);
+        checkNotNull(template, "Template is null; not created yet?"), pietSharedStates);
   }
 
   private void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
@@ -199,18 +200,18 @@ class TemplateInvocationAdapter
               frameContext.getTemplate(model.getTemplateId()),
               "Template was not found: ",
               model.getTemplateId());
-      return new TemplateKey(template, frameContext.getPietSharedState());
+      return new TemplateKey(template, frameContext.getPietSharedStates());
     }
   }
 
   /** Wrap the Template proto object as the recycler key. */
   static class TemplateKey extends RecyclerKey {
     private final Template template;
-    /*@Nullable*/ private final PietSharedState sharedState;
+    /*@Nullable*/ private final List<PietSharedState> pietSharedStates;
 
-    TemplateKey(Template template, /*@Nullable*/ PietSharedState sharedState) {
+    TemplateKey(Template template, /*@Nullable*/ List<PietSharedState> pietSharedStates) {
       this.template = template;
-      this.sharedState = sharedState;
+      this.pietSharedStates = pietSharedStates;
     }
 
     /** Equals checks the hashCode of template and sharedState to avoid expensive proto equals. */
@@ -229,17 +230,20 @@ class TemplateInvocationAdapter
       if (!templateEquals(template, that.template)) {
         return false;
       }
-      if (that.sharedState == null || this.sharedState == null) {
-        return this.sharedState == that.sharedState;
+      if (that.pietSharedStates == null || this.pietSharedStates == null) {
+        return this.pietSharedStates == that.pietSharedStates;
       } else {
-        return sharedState.hashCode() == that.sharedState.hashCode();
+        if (this.pietSharedStates.size() != that.pietSharedStates.size()) {
+          return false;
+        }
+        return this.pietSharedStates.hashCode() == that.pietSharedStates.hashCode();
       }
     }
 
     @Override
     public int hashCode() {
       int result = template.hashCode();
-      result = 31 * result + (sharedState != null ? sharedState.hashCode() : 0);
+      result = 31 * result + (pietSharedStates != null ? pietSharedStates.hashCode() : 0);
       return result;
     }
   }
