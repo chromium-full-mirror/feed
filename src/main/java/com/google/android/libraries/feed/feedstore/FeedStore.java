@@ -458,34 +458,29 @@ public class FeedStore implements Store, Dumpable {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
     CommitResult commitResult = CommitResult.FAILURE;
+    Builder contentMutationBuilder = new Builder();
     for (PayloadWithId mutation : mutations) {
       String payloadId = mutation.contentId;
       StreamPayload payload = mutation.payload;
-      try {
-        Builder contentMutationBuilder = new Builder();
         if (mutation.payload.hasStreamSharedState()) {
           StreamSharedState streamSharedState = mutation.payload.getStreamSharedState();
-          contentMutationBuilder =
               contentMutationBuilder.upsert(
                   SHARED_STATE_PREFIX + streamSharedState.getContentId(),
                   streamSharedState.toByteArray());
         } else {
           contentMutationBuilder.upsert(payloadId, payload.toByteArray());
         }
+    }
 
-        // Block waiting for the response from storage, to make this method synchronous.
-        SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
-        Builder finalContentMutationBuilder = contentMutationBuilder;
-        // TODO: handle errors
-        mainThreadRunner.execute(
-            TAG,
-            () ->
-                contentStorage.commit(
-                    finalContentMutationBuilder.build(), commitResultFuture::put));
-        commitResult = commitResultFuture.get();
-      } catch (ExecutionException | InterruptedException e) {
-        Logger.e(TAG, e, "Exception committing content mutation");
-      }
+    // Block waiting for the response from storage, to make this method synchronous.
+    SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
+    // TODO: handle errors
+    mainThreadRunner.execute(
+        TAG, () -> contentStorage.commit(contentMutationBuilder.build(), commitResultFuture::put));
+    try {
+      commitResult = commitResultFuture.get();
+    } catch (ExecutionException | InterruptedException e) {
+      Logger.e(TAG, e, "Exception committing content mutation");
     }
 
     tracker.stop("task", "commitContentMutation", "mutations", mutations.size());
