@@ -70,6 +70,7 @@ public class ModelChildBinder {
                 }
                 if (payload.hasStreamToken()) {
                   child.bindToken(new UpdatableModelToken(payload.getStreamToken()));
+                  continue;
                 }
                 child.updateFeature(childPayload.payload);
               } else {

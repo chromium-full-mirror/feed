@@ -78,13 +78,13 @@ public class UpdatableModelChild implements ModelChild {
         }
         break;
       case Type.TOKEN:
-        Logger.e(TAG, "Updated called for TOKEN is unsupported");
+        Logger.e(TAG, "Update called for TOKEN is unsupported");
         break;
       case Type.UNBOUND:
         Logger.e(TAG, "updateFeature called on UNBOUND child");
         break;
       default:
-        Logger.e(TAG, "Updated called for unsupported type: %s", type);
+        Logger.e(TAG, "Update called for unsupported type: %s", type);
     }
   }
 
