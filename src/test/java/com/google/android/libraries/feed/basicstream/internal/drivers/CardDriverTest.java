@@ -62,8 +62,7 @@ public class CardDriverTest {
     when(pietModelChild.getModelFeature()).thenReturn(childModelFeature);
 
     // Cursor to transverse the content of a card.
-    FakeModelCursor cardCursor = new FakeModelCursor();
-    cardCursor.setModelChildren(Lists.newArrayList(pietModelChild));
+    FakeModelCursor cardCursor = new FakeModelCursor(Lists.newArrayList(pietModelChild));
 
     // A ModelFeature representing a card.
     when(cardModelFeature.getCursor()).thenReturn(cardCursor);

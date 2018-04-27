@@ -19,7 +19,7 @@ import android.support.annotation.IntDef;
 /**
  * Constants to specify the type of ViewHolder to create in the {@link StreamRecyclerViewAdapter}.
  */
-@IntDef({ViewHolderType.TYPE_HEADER, ViewHolderType.TYPE_CARD})
+@IntDef({ViewHolderType.TYPE_HEADER, ViewHolderType.TYPE_CARD, ViewHolderType.TYPE_CONTINUATION})
 public @interface ViewHolderType {
   int TYPE_HEADER = 0;
   int TYPE_CARD = 1;

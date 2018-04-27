@@ -39,7 +39,7 @@ public class StreamDriver {
   private final ModelProvider modelProvider;
   /*@Nullable*/ private final ModelFeature streamFeature;
 
-  private List<FeatureDriver> featureDrivers;
+  /*@Nullable*/ private List<FeatureDriver> featureDrivers;
 
   public StreamDriver(
       ModelProvider modelProvider, ThreadUtils threadUtils, TokenHandler tokenHandler) {
@@ -58,7 +58,6 @@ public class StreamDriver {
       featureDrivers = createChildren(streamFeature, tokenHandler);
     }
 
-    checkState(featureDrivers != null);
     return buildContentModels(featureDrivers);
   }
 
@@ -78,13 +77,47 @@ public class StreamDriver {
     ModelChild child;
     while ((child = streamCursor.getNextItem()) != null) {
       Logger.i(TAG, "Advancing Cursor");
-      if (child.getType() == Type.FEATURE) {
-        FeatureDriver featureDriver = createFeatureChild(child.getModelFeature());
-        if (featureDriver != null) {
-          children.add(featureDriver);
-        }
-      } else if (child.getType() == Type.TOKEN) {
-        populateFromToken(child.getModelToken(), tokenHandler);
+      switch (child.getType()) {
+        case Type.FEATURE:
+          FeatureDriver featureDriver = createFeatureChild(child.getModelFeature());
+          if (featureDriver != null) {
+            children.add(featureDriver);
+          }
+          break;
+        case Type.TOKEN:
+          ModelToken modelToken = child.getModelToken();
+          ContinuationDriver continuationDriver =
+              createContinuationDriver(tokenHandler, modelToken);
+          children.add(continuationDriver);
+
+          // TODO: Place the observing of the token in the ContinuationDriver.
+          modelToken.registerObserver(
+              tokenCompleted -> {
+                if (featureDrivers == null) {
+                  Logger.e(TAG, "featureDrivers null while handling a token");
+                  return;
+                }
+                List<FeatureDriver> featureDrivers = this.featureDrivers;
+
+                threadUtils.checkMainThread();
+
+                int continuationIndex = featureDrivers.indexOf(continuationDriver);
+                if (continuationIndex == -1) {
+                  Logger.wtf(TAG, "continuationDriver not in list when attempting to remove");
+                  return;
+                }
+                featureDrivers.remove(continuationIndex);
+
+                featureDrivers.addAll(
+                    continuationIndex, createChildren(tokenCompleted.getCursor(), tokenHandler));
+
+                tokenHandler.tokenConsumed();
+              });
+          break;
+        case Type.UNBOUND:
+        default:
+          Logger.wtf(TAG, "Received illegal child: %s from cursor.", child.getType());
+          break;
       }
     }
     return children;
@@ -102,20 +135,6 @@ public class StreamDriver {
         "Invalid StreamFeature Type, must be Card or Cluster but was %s",
         modelFeature.getStreamFeature().getFeaturePayloadCase());
     return null;
-  }
-
-  private void populateFromToken(ModelToken modelToken, TokenHandler tokenHandler) {
-    modelToken.registerObserver(
-        tokenCompleted -> {
-          threadUtils.checkMainThread();
-
-          // TODO: Instead of immediately consuming the token, instead create a
-          // FeatureDriver/ViewHolder/ContentModel to handle the token.
-          featureDrivers.addAll(createChildren(tokenCompleted.getCursor(), tokenHandler));
-          tokenHandler.tokenConsumed();
-        });
-
-    tokenHandler.requestTokenHandling(modelToken);
   }
 
   private List<ContentModel> buildContentModels(List<FeatureDriver> featureDrivers) {
@@ -137,5 +156,10 @@ public class StreamDriver {
   @VisibleForTesting
   FeatureDriver createCardDriver(ModelFeature modelFeature) {
     return new CardDriver(modelFeature, modelProvider);
+  }
+
+  @VisibleForTesting
+  ContinuationDriver createContinuationDriver(TokenHandler tokenHandler, ModelToken modelToken) {
+    return new ContinuationDriver(tokenHandler, modelToken);
   }
 }

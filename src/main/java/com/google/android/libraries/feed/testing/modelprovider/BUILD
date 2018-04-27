@@ -8,7 +8,6 @@ java_library(
     srcs = ["FakeModelCursor.java"],
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
-        "//src/main/java/com/google/android/libraries/feed/common/functional",
         "@com_google_code_findbugs_jsr305//jar",
     ],
 )

@@ -139,8 +139,7 @@ public class BasicStreamTest {
     when(pietModelChild.getModelFeature()).thenReturn(pietModelFeature);
 
     // Cursor to transverse the content of a card, which is Piet content.
-    FakeModelCursor cardCursor = new FakeModelCursor();
-    cardCursor.setModelChildren(Lists.newArrayList(pietModelChild));
+    FakeModelCursor cardCursor = new FakeModelCursor(Lists.newArrayList(pietModelChild));
 
     // A ModelFeature with a Card payload.
     ModelFeature cardModelFeature = mock(ModelFeature.class);
@@ -154,8 +153,7 @@ public class BasicStreamTest {
     when(rootChild.getType()).thenReturn(ModelChild.Type.FEATURE);
 
     // The cursor for the root feature
-    FakeModelCursor rootCursor = new FakeModelCursor();
-    rootCursor.setModelChildren(Lists.newArrayList(rootChild));
+    FakeModelCursor rootCursor = new FakeModelCursor(Lists.newArrayList(rootChild));
     when(rootFeature.getCursor()).thenReturn(rootCursor);
     basicStream.onSessionStart();
 

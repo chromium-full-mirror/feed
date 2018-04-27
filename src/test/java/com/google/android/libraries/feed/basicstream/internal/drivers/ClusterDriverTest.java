@@ -63,8 +63,7 @@ public class ClusterDriverTest {
     when(cardChild.getModelFeature()).thenReturn(cardModelFeature);
 
     // Cursor representing the content of the cluster, which is one card.
-    FakeModelCursor clusterCursor = new FakeModelCursor();
-    clusterCursor.setModelChildren(Lists.newArrayList(cardChild));
+    FakeModelCursor clusterCursor = new FakeModelCursor(Lists.newArrayList(cardChild));
     when(clusterModelFeature.getCursor()).thenReturn(clusterCursor);
 
     // CardDriver created by ClusterDriverForTest

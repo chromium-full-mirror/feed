@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
+import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_CONTINUATION;
 import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_HEADER;
 
 import android.content.Context;
@@ -25,6 +26,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -63,6 +65,11 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
       frameLayout.setLayoutParams(
           new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
       return new HeaderViewHolder(frameLayout);
+    } else if (viewType == TYPE_CONTINUATION) {
+      FrameLayout frameLayout = new FrameLayout(parent.getContext());
+      frameLayout.setLayoutParams(
+          new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+      return new ContinuationViewHolder(parent.getContext(), frameLayout);
     }
 
     FrameLayout cardView = new FrameLayout(context);
@@ -97,6 +104,10 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
     if (viewHolder instanceof HeaderViewHolder) {
       Logger.d(TAG, "onViewRecycled - HeaderViewHolder");
       ((HeaderViewHolder) viewHolder).frameLayout.removeAllViews();
+
+    } else if (viewHolder instanceof ContinuationViewHolder) {
+      Logger.d(TAG, "onViewRecycled - ContinuationViewHolder");
+      ((ContinuationViewHolder) viewHolder).unbind();
     } else {
       Logger.d(TAG, "onViewRecycled - PietViewHolder");
       ((PietViewHolder) viewHolder).unbind();

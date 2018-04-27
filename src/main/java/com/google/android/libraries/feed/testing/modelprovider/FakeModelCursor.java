@@ -24,7 +24,7 @@ public class FakeModelCursor implements ModelCursor {
   private List<ModelChild> modelChildren;
   private int currentIndex = 0;
 
-  public void setModelChildren(List<ModelChild> modelChildren) {
+  public FakeModelCursor(List<ModelChild> modelChildren) {
     currentIndex = 0;
     this.modelChildren = modelChildren;
   }
@@ -41,5 +41,9 @@ public class FakeModelCursor implements ModelCursor {
   @Override
   public boolean isAtEnd() {
     return currentIndex >= modelChildren.size();
+  }
+
+  public ModelChild getChildAt(int i) {
+    return modelChildren.get(i);
   }
 }
