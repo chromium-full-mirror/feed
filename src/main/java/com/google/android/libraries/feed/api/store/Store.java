@@ -18,6 +18,7 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -61,6 +62,12 @@ public interface Store {
   Result<List<SemanticPropertiesWithId>> getSemanticProperties(List<String> contentIds);
 
   /**
+   * Gets an increasing, time-ordered list of ALL {@link StreamAction} dismisses. Note that this
+   * includes expired actions.
+   */
+  Result<List<StreamAction>> getAllDismissActions();
+
+  /**
    * Create a new session. The session is defined by all the {@link StreamDataOperation}s which are
    * currently stored in $HEAD.
    */
@@ -87,6 +94,9 @@ public interface Store {
 
   /** Returns a semantic properties mutation used to modify the properties in the store */
   SemanticPropertiesMutation editSemanticProperties();
+
+  /** Returns an action mutation used to modify actions in the store */
+  ActionMutation editActions();
 
   /**
    * Returns a runnable which will garbage collect the persisted content. This is called by the

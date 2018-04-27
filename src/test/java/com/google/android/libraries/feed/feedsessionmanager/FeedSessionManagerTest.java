@@ -524,7 +524,8 @@ public class FeedSessionManagerTest {
             new InMemoryContentStorage(),
             new InMemoryJournalStorage(),
             threadUtils,
-            mainThreadRunner);
+            mainThreadRunner,
+            clock);
     return new FeedSessionManager(
         MoreExecutors.newDirectExecutorService(),
         store,

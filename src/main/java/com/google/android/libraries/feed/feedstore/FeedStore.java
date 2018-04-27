@@ -17,6 +17,8 @@ package com.google.android.libraries.feed.feedstore;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.store.ActionMutation;
+import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
@@ -29,8 +31,10 @@ import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.feedstore.internal.FeedActionMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSemanticPropertiesMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
@@ -42,6 +46,7 @@ import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -53,6 +58,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of the Store. The FeedStore will call the host APIs {@link ContentStorage} and
@@ -67,12 +73,16 @@ public class FeedStore implements Store, Dumpable {
   static final String SHARED_STATE_PREFIX = "ss::";
   static final String SEMANTIC_PROPERTIES_PREFIX = "sp::";
 
+  // Specific Journal names
+  private static final String DISMISS_ACTION_JOURNAL = "action-dismiss";
+
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
   private final ContentStorage contentStorage;
   private final JournalStorage journalStorage;
   private final ThreadUtils threadUtils;
   private final MainThreadRunner mainThreadRunner;
+  private final Clock clock;
 
   public FeedStore(
       TimingUtils timingUtils,
@@ -80,13 +90,15 @@ public class FeedStore implements Store, Dumpable {
       ContentStorage contentStorage,
       JournalStorage journalStorage,
       ThreadUtils threadUtils,
-      MainThreadRunner mainThreadRunner) {
+      MainThreadRunner mainThreadRunner,
+      Clock clock) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
     this.contentStorage = contentStorage;
     this.journalStorage = journalStorage;
     this.threadUtils = threadUtils;
     this.mainThreadRunner = mainThreadRunner;
+    this.clock = clock;
   }
 
   @Override
@@ -274,6 +286,42 @@ public class FeedStore implements Store, Dumpable {
   }
 
   @Override
+  public Result<List<StreamAction>> getAllDismissActions() {
+    threadUtils.checkNotMainThread();
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+
+    SimpleSettableFuture<Result<List<byte[]>>> actionsJournalFuture = new SimpleSettableFuture<>();
+    mainThreadRunner.execute(
+        TAG, () -> journalStorage.read(DISMISS_ACTION_JOURNAL, actionsJournalFuture::put));
+    Result<List<byte[]>> listResult;
+    try {
+      listResult = actionsJournalFuture.get();
+    } catch (InterruptedException | ExecutionException e) {
+      Logger.e(TAG, e, "Error fetching dismiss journal");
+      tracker.stop("getAllDismissActions failed");
+      return Result.failure();
+    }
+    if (!listResult.isSuccessful()) {
+      Logger.e(TAG, "Error retrieving dismiss journal");
+      tracker.stop("getAllDismissActions failed");
+      return Result.failure();
+    } else {
+      List<byte[]> actionByteArrays = listResult.getValue();
+      List<StreamAction> actions = new ArrayList<>(actionByteArrays.size());
+      for (byte[] bytes : actionByteArrays) {
+        StreamAction action;
+        try {
+          action = StreamAction.parseFrom(bytes);
+          actions.add(action);
+        } catch (InvalidProtocolBufferException e) {
+          Logger.e(TAG, e, "Error parsing StreamAction for bytes: %s", bytes);
+        }
+      }
+      return Result.success(actions);
+    }
+  }
+
+  @Override
   public Result<StreamSession> createNewSession() {
     threadUtils.checkNotMainThread();
 
@@ -383,6 +431,11 @@ public class FeedStore implements Store, Dumpable {
   }
 
   @Override
+  public ActionMutation editActions() {
+    return new FeedActionMutation(this::commitActionMutation);
+  }
+
+  @Override
   public Runnable triggerContentGc(
       Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
     return new ContentGc(
@@ -484,6 +537,49 @@ public class FeedStore implements Store, Dumpable {
     }
 
     tracker.stop("task", "commitContentMutation", "mutations", mutations.size());
+    return commitResult;
+  }
+
+  private CommitResult commitActionMutation(Map<Integer, List<String>> actions) {
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+
+    CommitResult commitResult = CommitResult.SUCCESS;
+    for (Map.Entry<Integer, List<String>> entry : actions.entrySet()) {
+      Integer actionType = entry.getKey();
+      String journalName;
+      if (ActionType.DISMISS == entry.getKey()) {
+        journalName = DISMISS_ACTION_JOURNAL;
+      } else {
+        Logger.e(TAG, "Unknown journal name for action type %s", actionType);
+        continue;
+      }
+      JournalMutation.Builder builder = new JournalMutation.Builder(journalName);
+      for (String contentId : entry.getValue()) {
+        StreamAction action =
+            StreamAction.newBuilder()
+                .setAction(actionType)
+                .setFeatureContentId(contentId)
+                .setTimestampSeconds(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()))
+                .build();
+        builder.append(action.toByteArray());
+      }
+      SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
+      mainThreadRunner.execute(
+          TAG, () -> journalStorage.commit(builder.build(), commitResultFuture::put));
+      try {
+        commitResult = commitResultFuture.get();
+        if (commitResult == CommitResult.FAILURE) {
+          Logger.e(TAG, "Error committing action for type %s", actionType);
+          break;
+        }
+      } catch (InterruptedException | ExecutionException e) {
+        Logger.e(TAG, e, "Error committing action");
+        tracker.stop("commitActionMutation failed");
+        return CommitResult.FAILURE;
+      }
+    }
+
+    tracker.stop("task", "commitActionMutation", "actions", actions.size());
     return commitResult;
   }
 

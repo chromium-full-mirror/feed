@@ -58,6 +58,7 @@ public class InfrastructureIntegrationScope {
     ContentStorage contentStorage = new InMemoryContentStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage();
     Configuration configuration = new Configuration.Builder().build();
+    Clock clock = new SystemClockImpl();
     store =
         new FeedStore(
             timingUtils,
@@ -65,8 +66,8 @@ public class InfrastructureIntegrationScope {
             contentStorage,
             journalStorage,
             threadUtils,
-            mainThreadRunner);
-    Clock clock = new SystemClockImpl();
+            mainThreadRunner,
+            clock);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter);
     feedSessionManager =

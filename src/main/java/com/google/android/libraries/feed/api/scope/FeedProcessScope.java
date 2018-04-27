@@ -191,7 +191,8 @@ public class FeedProcessScope implements Dumpable {
               contentStorage,
               journalStorage,
               threadUtils,
-              mainThreadRunner);
+              mainThreadRunner,
+              clock);
       if (protocolAdapter == null) {
         protocolAdapter = new FeedProtocolAdapter(timingUtils);
       }

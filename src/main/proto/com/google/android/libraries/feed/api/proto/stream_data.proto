@@ -16,6 +16,7 @@ syntax = "proto2";
 
 import "src/main/proto/search/now/proto/ui/stream/stream_structure.proto";
 import "src/main/proto/search/now/proto/wire/feed/piet_shared_state_item.proto";
+import "src/main/proto/search/now/proto/wire/feed/content_id.proto";
 
 package search.now.feed.client;
 
@@ -171,4 +172,14 @@ message StreamSession {
   // This is the ms of the last time the session was accessed, used to manage
   // the lifetime of a session.
   optional int64 last_accessed = 2;
+}
+
+message StreamAction {
+  // See ActionMutation.ActionType
+  optional int32 action = 1;
+
+  optional string feature_content_id = 2;
+
+  // When the action was recorded
+  optional int64 timestamp_seconds = 3;
 }

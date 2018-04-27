@@ -15,12 +15,14 @@
 package com.google.android.libraries.feed.feedstore;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -29,6 +31,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.storage.CommitResult;
@@ -38,6 +41,7 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
+import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -49,6 +53,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operati
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,7 +64,13 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedStoreTest {
 
+  public static final long START_TIME = 50;
+  public static final long START_TIME_MILLIS = TimeUnit.SECONDS.toMillis(START_TIME);
+  public static final long THREE_DAYS_AFTER_START_TIME = START_TIME + TimeUnit.DAYS.toSeconds(3);
+  public static final long THREE_DAYS_AFTER_START_TIME_MILLIS =
+      TimeUnit.SECONDS.toMillis(THREE_DAYS_AFTER_START_TIME);
   @Mock private ThreadUtils threadUtils;
+  @Mock private Clock clock;
 
   private Store store;
   private static final ContentIdGenerators idGenerators = new ContentIdGenerators();
@@ -110,33 +121,18 @@ public class FeedStoreTest {
             contentStorage,
             journalStorage,
             threadUtils,
-            mainThreadRunner);
+            mainThreadRunner,
+            clock);
   }
 
   @Test
   public void testMinimalStore() {
-    FeedStore feedStore =
-        new FeedStore(
-            timingUtils,
-            extensionRegistry,
-            contentStorage,
-            journalStorage,
-            threadUtils,
-            mainThreadRunner);
-    assertThat(feedStore.getHeadSession()).isNotNull();
+    assertThat(store.getHeadSession()).isNotNull();
   }
 
   @Test
   public void testContentMutation() {
-    FeedStore feedStore =
-        new FeedStore(
-            timingUtils,
-            extensionRegistry,
-            contentStorage,
-            journalStorage,
-            threadUtils,
-            mainThreadRunner);
-    ContentMutation contentMutation = feedStore.editContent();
+    ContentMutation contentMutation = store.editContent();
     assertThat(contentMutation).isNotNull();
   }
 
@@ -339,5 +335,54 @@ public class FeedStoreTest {
     assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
     List<SemanticPropertiesWithId> semanticProperties = semanticPropertiesResult.getValue();
     assertThat(semanticProperties).isEmpty();
+  }
+
+  @Test
+  public void getDismissActions() {
+    when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
+    store.editActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
+    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
+    assertThat(dismissActionsResult.isSuccessful()).isTrue();
+    List<StreamAction> dismissActions = dismissActionsResult.getValue();
+    assertThat(dismissActions).isNotEmpty();
+    assertThat(dismissActions.get(0).getAction()).isEqualTo(ActionType.DISMISS);
+    assertThat(dismissActions.get(0).getFeatureContentId()).isEqualTo(OPERATION_CONTENT_ID);
+    assertThat(dismissActions.get(0).getTimestampSeconds()).isEqualTo(START_TIME);
+  }
+
+  @Test
+  public void getDismissActions_multipleDismisses() {
+    when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
+    store
+        .editActions()
+        .add(ActionType.DISMISS, OPERATION_CONTENT_ID)
+        .add(ActionType.DISMISS, PAYLOAD_CONTENT_ID)
+        .commit();
+    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
+    assertThat(dismissActionsResult.isSuccessful()).isTrue();
+    List<StreamAction> dismissActions = dismissActionsResult.getValue();
+    assertThat(dismissActions).isNotEmpty();
+    assertThat(dismissActions.get(0).getAction()).isEqualTo(ActionType.DISMISS);
+    assertThat(dismissActions.get(0).getFeatureContentId()).isEqualTo(OPERATION_CONTENT_ID);
+    assertThat(dismissActions.get(0).getTimestampSeconds()).isEqualTo(START_TIME);
+    assertThat(dismissActions.get(1).getAction()).isEqualTo(ActionType.DISMISS);
+    assertThat(dismissActions.get(1).getFeatureContentId()).isEqualTo(PAYLOAD_CONTENT_ID);
+    assertThat(dismissActions.get(1).getTimestampSeconds()).isEqualTo(START_TIME);
+  }
+
+  @Test
+  public void getDismissActions_expired() {
+    when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
+    store.editActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
+    when(clock.currentTimeMillis()).thenReturn(THREE_DAYS_AFTER_START_TIME_MILLIS);
+    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
+    assertThat(dismissActionsResult.isSuccessful()).isTrue();
+    List<StreamAction> dismissActions = dismissActionsResult.getValue();
+
+    // Should still return expired actions.
+    assertThat(dismissActions).isNotEmpty();
+    assertThat(dismissActions.get(0).getAction()).isEqualTo(ActionType.DISMISS);
+    assertThat(dismissActions.get(0).getFeatureContentId()).isEqualTo(OPERATION_CONTENT_ID);
+    assertThat(dismissActions.get(0).getTimestampSeconds()).isEqualTo(START_TIME);
   }
 }
