@@ -60,7 +60,7 @@ import java.util.concurrent.ExecutorService;
 public class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
-  FeedStreamScope.Builder createFeedStreamScopeBuilder(
+  public FeedStreamScope.Builder createFeedStreamScopeBuilder(
       Context context,
       ActionApi actionApi,
       StreamConfiguration streamConfiguration,
