@@ -162,10 +162,10 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
       int chunkEnd,
       boolean hasTouchListener) {
     // TODO: Also support long click actions.
-    if (actions.hasOnClick()) {
+    if (actions.hasOnClickAction()) {
       spannable.setSpan(
           new ActionsClickableSpan(
-              actions.getOnClick(), getParameters().actionHandler, frameContext.getFrame()),
+              actions.getOnClickAction(), getParameters().actionHandler, frameContext.getFrame()),
           chunkStart,
           chunkEnd,
           Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

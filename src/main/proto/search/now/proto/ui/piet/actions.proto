@@ -29,11 +29,11 @@ option cc_enable_arenas = true;
 message Actions {
 
   // Action to be executed when the user taps (clicks) on a UI element.
-  optional Action on_click = 1;
+  optional Action on_click_action = 1;
 
   // Action to be executed when the user long-clicks (taps & holds) a UI
   // element.
-  optional Action on_long_click = 2;
+  optional Action on_long_click_action = 2;
 
   // These actions will fire once a view with visibility below the threshold
   // goes above the threshold

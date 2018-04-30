@@ -278,7 +278,7 @@ public class ElementAdapterTest {
   public void testBindModel_setsActions() {
     Element elementWithActions =
         Element.newBuilder()
-            .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
+            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
             .build();
 
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
@@ -291,7 +291,7 @@ public class ElementAdapterTest {
         ActionsBindingRef.newBuilder().setBindingId("ACTION!").build();
     Element elementWithActions = Element.newBuilder().setActionsBinding(actionsBinding).build();
     when(frameContext.getActionsFromBinding(actionsBinding))
-        .thenReturn(Actions.newBuilder().setOnClick(Action.getDefaultInstance()).build());
+        .thenReturn(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build());
 
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
@@ -301,7 +301,7 @@ public class ElementAdapterTest {
   public void testBindModel_unsetsActions() {
     Element elementWithActions =
         Element.newBuilder()
-            .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
+            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
             .build();
     Element elementWithoutActions = Element.getDefaultInstance();
 
@@ -369,8 +369,8 @@ public class ElementAdapterTest {
         Element.newBuilder()
             .addOverlayElements(
                 ElementList.newBuilder()
-                    .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance())))
-            .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
+                    .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance())))
+            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
             .build();
 
     adapter.createAdapter(

@@ -468,7 +468,8 @@ public class ChunkedTextElementAdapterTest {
                         IMAGE_CHUNK
                             .toBuilder()
                             .setActions(
-                                Actions.newBuilder().setOnClick(Action.getDefaultInstance()))))
+                                Actions.newBuilder()
+                                    .setOnClickAction(Action.getDefaultInstance()))))
             .build();
     when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
@@ -499,7 +500,7 @@ public class ChunkedTextElementAdapterTest {
             .build();
     when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getActionsFromBinding(binding))
-        .thenReturn(Actions.newBuilder().setOnClick(Action.getDefaultInstance()).build());
+        .thenReturn(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build());
     when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
 
     adapter.createAdapter(imageChunkWithActions, frameContext);

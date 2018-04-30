@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-
 import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -36,19 +35,20 @@ public class ViewUtils {
   /** Attaches the onClick action from actions to the view, executed by the handler. */
   static void setOnClickActions(
       Actions actions, View view, ActionHandler handler, FrameContext frameContext) {
-    if (actions.hasOnLongClick()) {
+    if (actions.hasOnLongClickAction()) {
       view.setOnLongClickListener(
           v -> {
-            handler.handleAction(actions.getOnLongClick(), frameContext.getFrame(), view, null);
+            handler.handleAction(
+                actions.getOnLongClickAction(), frameContext.getFrame(), view, null);
             return true;
           });
     } else {
       clearOnLongClickActions(view);
     }
-    if (actions.hasOnClick()) {
+    if (actions.hasOnClickAction()) {
       view.setOnClickListener(
           v -> {
-            handler.handleAction(actions.getOnClick(), frameContext.getFrame(), view, null);
+            handler.handleAction(actions.getOnClickAction(), frameContext.getFrame(), view, null);
           });
     } else {
       clearOnClickActions(view);

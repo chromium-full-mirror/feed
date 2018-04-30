@@ -203,7 +203,7 @@ public class ElementListAdapterTest {
     ElementList listWithActions =
         ElementList.newBuilder()
             .addElements(DEFAULT_ELEMENT)
-            .setActions(Actions.newBuilder().setOnClick(action))
+            .setActions(Actions.newBuilder().setOnClickAction(action))
             .build();
 
     adapter.createAdapter(listWithActions, frameContext);
@@ -226,7 +226,7 @@ public class ElementListAdapterTest {
             .setActionsBinding(actionsBindingRef)
             .build();
     when(frameContext.getActionsFromBinding(actionsBindingRef))
-        .thenReturn(Actions.newBuilder().setOnClick(action).build());
+        .thenReturn(Actions.newBuilder().setOnClickAction(action).build());
 
     adapter.createAdapter(listWithActions, frameContext);
     adapter.bindModel(listWithActions, frameContext);
@@ -241,7 +241,7 @@ public class ElementListAdapterTest {
   public void testOnBindModel_ElementDoesntOverrideListActions() {
     ElementList baseListElement =
         ElementList.newBuilder()
-            .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
+            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
             .build();
     Element listElementWithActions = Element.newBuilder().setElementList(baseListElement).build();
 
@@ -267,7 +267,7 @@ public class ElementListAdapterTest {
     Element listElementWithActions =
         Element.newBuilder()
             .setElementList(baseListElement)
-            .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
+            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
             .build();
 
     ElementListAdapter listAdapter =
@@ -486,7 +486,7 @@ public class ElementListAdapterTest {
     ElementList listWithActions =
         ElementList.newBuilder()
             .addElements(DEFAULT_ELEMENT)
-            .setActions(Actions.newBuilder().setOnClick(Action.getDefaultInstance()))
+            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
             .build();
 
     adapter.createAdapter(listWithActions, frameContext);
