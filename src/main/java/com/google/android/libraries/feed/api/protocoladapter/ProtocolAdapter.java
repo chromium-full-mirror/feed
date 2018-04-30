@@ -28,6 +28,6 @@ public interface ProtocolAdapter {
    */
   Result<List<StreamDataOperation>> createModel(Response response);
 
-  /** Convert a wire protocol ContentId into the {@code String} version used in Jardin. */
+  /** Convert a wire protocol ContentId into the {@code String} version. */
   String getStreamContentId(ContentId contentId);
 }
