@@ -35,10 +35,10 @@ message Slice {
   // The content within this Slice.
   oneof slice_instance {
     // The slice is an ElementList.
-    ElementList inline_slice = 1;
+    ElementList inline_slice = 1 [deprecated = true];
 
     // The slice is defined by a Template.
-    TemplateInvocation template_slice = 2;
+    TemplateInvocation template_slice = 2 [deprecated = true];
   }
 }
 
@@ -51,7 +51,7 @@ message ElementList {
   // Vertical gravity of the elements in the list. All the elements in the list
   // are aligned the same way, in regards to this ElementList. The
   // ElementList spans over the whole vertical space of its parent.
-  optional GravityVertical gravity_vertical = 2;
+  optional GravityVertical gravity_vertical = 2 [deprecated = true];
 
   // Styles applied to this ElementList.
   optional StyleIdsStack style_references = 3;
@@ -59,12 +59,13 @@ message ElementList {
   // Defines Actions that may be associated with the content of the
   // ElementList. The server is responsible for ensuring that the size of this
   // content is large enough to present a clear click target for the user.
+  // Deprecated: use actions on Element instead
   oneof actions_data {
     // Inlined actions.
-    Actions actions = 4;
+    Actions actions = 4 [deprecated = true];
 
     // Actions coming from a template.
-    ActionsBindingRef actions_binding = 5;
+    ActionsBindingRef actions_binding = 5 [deprecated = true];
   }
 
   // Please use CL numbers you own for extension numbers.
@@ -94,8 +95,12 @@ message TemplateInvocation {
   extensions 10000 to max;
 }
 
-// These are the possible types of UI elements supported by Piet.
-// These define actual horizontal visible UI elements.
+// Element is the "superclass" of all container and content types, holding all
+// shared parameters (styles, actions, etc).
+//
+// Element size expands to fill its container, unless the content is taller than
+// the container, and the container height is not specified explicitly. In that
+// case, the Element and the container both get the height of the content.
 message Element {
 
   // The specific content represented by this Element.
@@ -135,7 +140,12 @@ message Element {
 
     // Allow binding of a template instance. If the referenced template has
     // several binding contexts, an Element instance will be created for each
-    // one, and all Element instances will be added to an ElementList.
+    // one.
+    //
+    // This may happen in one of two cases:
+    //
+    // The Element appears inside an ElementList, or repeated Element
+    // --------------------------------------------------------------
     //
     // For example:
     // In case there's an ElementList with the following Elements:
@@ -162,8 +172,34 @@ message Element {
     //  |         Template_3         |
     //  +----------------------------+
     //
+    // The Element appears in a GridCell
+    // ---------------------------------
+    // A GridCell is created for each invocation of the template. The created
+    // GridCells will be added to the GridRow containing this GridCell. The
+    // width of the created GridCells is duplicated from the GridCell containing
+    // this Element.
+    //
+    // For example:
+    // In case there's a GridRow with the following GridCells:
+    //  +----------+------------------------+----------+
+    //  |   Cell   | Cell with Element with |   Cell   |
+    //  |          |  Template 2 with data  |          |
+    //  |     1    |    bindings {a,b,c }   |    3     |
+    //  +----------+------------------------+----------+
+    //
+    // After the bindings are resolved, it will become:
+    //  +----------+------------+------------+------------+---------+
+    //  |   Cell   | Template 2 | Template 2 | Template 2 |   Cell  |
+    //  |     1    | {data "a"} | {data "b"} | {data "c"} |     3   |
+    //  +----------+------------+------------+------------+---------+
+    //
+    //
+    // IMPORTANT:
     // This feature may not be supported on all platforms; see [INTERNAL LINK].
     TemplateBindingRef template_binding = 8;
+
+    // Similar to template_binding, but defined inline.
+    TemplateInvocation template_invocation = 19;
   }
 
   // The value of the VED token to be used by this Element.
@@ -180,15 +216,18 @@ message Element {
   // Every UI element can have accessibility-related fields.
   optional Accessibility accessibility = 11;
 
-  // Horizontal gravity of elements in this slice.
+  // Horizontal gravity of this element's content within the parent container
   optional GravityHorizontal gravity_horizontal = 12;
+
+  // Vertical gravity of this element's content within the parent container
+  optional GravityVertical gravity_vertical = 18;
 
   // A set of ElementLists to be overlaid on top of this Element.
   // This field is repeated to allow overlaying multiple sets of Elements with
   // different gravity settings. The position of the ElementList inside the
   // repeated field determines the order in which views will be laid out. Later
   // ElementLists will appear above the earlier ones.
-  repeated ElementList overlay_elements = 13;
+  repeated ElementList overlay_elements = 13 [deprecated = true];
 
   // Defines Actions that may be associated with the content of the Element.
   // The server is responsible for ensuring that the size of this content is
@@ -217,6 +256,10 @@ message Element {
   //   a swipable card might be disabled).
   optional OverflowBehavior horizontal_overflow = 16
       [default = OVERFLOW_HIDDEN];
+
+  // Styles to apply to this Element. If any style_ids cannot be found,
+  // ERR_MISSING_STYLES is raised.
+  optional StyleIdsStack style_references = 17;
 }
 
 // Defines the behavior for elements that don't fit in the view
@@ -370,13 +413,13 @@ message GridRow {
 // The Grid Cell represents the contents within a GridRow.
 // In case the ElementList in a GridCell has specified height that is smaller
 // than the height of the GridCell, it'll be center aligned vertically.
-// Next available ID: 6
+// Next available ID: 7
 message GridCell {
 
   // The cell content.
   oneof cell_content {
     // Allow a binding of an ElementList.
-    ElementListBindingRef element_list_binding = 1;
+    ElementListBindingRef element_list_binding = 1 [deprecated = true];
 
     // Allow binding of an ElementList coming from a template.
     // In case the referenced template has several bindings, a GridCell instance
@@ -399,10 +442,14 @@ message GridCell {
     //
     // IMPORTANT: This feature is currently not supported in some of the
     //   platforms. Please try to avoid non-slice templates, if possible.
-    TemplateBindingRef template_binding = 2;
+    TemplateBindingRef template_binding = 2 [deprecated = true];
 
     // Define the cell content as a list of UI elements.
-    ElementList element_list = 3;
+    ElementList element_list = 3 [deprecated = true];
+
+    // The cell content.
+    // TODO: remove the oneof and just keep this.
+    Element content = 6;
   }
 
   // The width of this cell, either fixed width or relative width.

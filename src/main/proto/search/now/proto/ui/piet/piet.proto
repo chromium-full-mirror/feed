@@ -113,7 +113,20 @@ message Frame {
   // Slices that make up this Frame. A slice is a horizontal UI element. Frames
   // are made up of one or more slices which flow vertically downward within the
   // Frame.
-  repeated Slice slices = 6;
+  repeated Slice slices = 6 [deprecated = true];
+
+  // Elements that make up this Frame.
+  //
+  // There are a few differences in the use of Element here vs. elsewhere:
+  //  - These Elements are arranged in a vertical list layout.
+  //  - Elements typically expand to fill their parent container, but in the
+  //    case of Frame-level elements, each Element is the size of its content.
+  //  - Bindings are not supported in these Elements, since there is no
+  //    BindingContext available at the Frame level.
+  //  - These Elements support sharding: each of these Elements can be recycled
+  //    as it leaves the screen, to reduce memory usage when scrolling a very
+  //    long Frame.
+  repeated Element elements = 9;
 
   // Actions associated with the full Frame.
   optional Actions actions = 7;
@@ -173,7 +186,10 @@ message Template {
   optional StyleIdsStack child_default_style_ids = 4;
 
   // Content defined by this Template.
-  optional ElementList element_list = 5;
+  optional ElementList element_list = 5 [deprecated = true];
+
+  // Content defined by this Template.
+  optional Element element = 6;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
