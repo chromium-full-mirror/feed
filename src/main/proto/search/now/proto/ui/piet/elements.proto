@@ -98,10 +98,6 @@ message TemplateInvocation {
 // These define actual horizontal visible UI elements.
 message Element {
 
-  // Every Element can be assigned an ID which can be used to retrieve a
-  // reference to it at runtime.
-  optional string element_id = 1;
-
   // The specific content represented by this Element.
   oneof elements {
     // A custom view that Piet knows nothing about. Servers can use this message
@@ -117,25 +113,25 @@ message Element {
     // only top-level Piet Frame protos can be embedded this way. (In other
     // words, do not try to embed Piet Elements directly inside a
     // CustomElement).
-    CustomElement custom_element = 2;
+    CustomElement custom_element = 1;
 
     // A simple text line
-    TextElement text_element = 3;
+    TextElement text_element = 2;
 
     // An image container
-    ImageElement image_element = 4;
+    ImageElement image_element = 3;
 
     // Add a spacer line which can be defined as a divider.
-    SpacerElement spacer_element = 5;
+    SpacerElement spacer_element = 4;
 
     // A GridRow contains a set of Cells.
-    GridRow grid_row = 6;
+    GridRow grid_row = 5;
 
     // A list of Elements.
-    ElementList element_list = 7;
+    ElementList element_list = 6;
 
     // Allow a binding of a ElementList.
-    ElementListBindingRef element_list_binding = 8;
+    ElementListBindingRef element_list_binding = 7;
 
     // Allow binding of a template instance. If the referenced template has
     // several binding contexts, an Element instance will be created for each
@@ -167,42 +163,42 @@ message Element {
     //  +----------------------------+
     //
     // This feature may not be supported on all platforms; see [INTERNAL LINK].
-    TemplateBindingRef template_binding = 9;
+    TemplateBindingRef template_binding = 8;
   }
 
   // The value of the VED token to be used by this Element.
   oneof ved_value {
     // A base64 encoded serialized ClickTrackingCGI proto that identifies the
     // logged Visual Element corresponding to this piet Element.
-    string ved = 101;
+    string ved = 9;
 
     // A VedBindingRef to the VED that this Element will be bound to.
     // This is only meant to be used for Elements defined by a Template.
-    VedBindingRef ved_binding = 102;
+    VedBindingRef ved_binding = 10;
   }
 
   // Every UI element can have accessibility-related fields.
-  optional Accessibility accessibility = 103;
+  optional Accessibility accessibility = 11;
 
   // Horizontal gravity of elements in this slice.
-  optional GravityHorizontal gravity_horizontal = 104;
+  optional GravityHorizontal gravity_horizontal = 12;
 
   // A set of ElementLists to be overlaid on top of this Element.
   // This field is repeated to allow overlaying multiple sets of Elements with
   // different gravity settings. The position of the ElementList inside the
   // repeated field determines the order in which views will be laid out. Later
   // ElementLists will appear above the earlier ones.
-  repeated ElementList overlay_elements = 105;
+  repeated ElementList overlay_elements = 13;
 
   // Defines Actions that may be associated with the content of the Element.
   // The server is responsible for ensuring that the size of this content is
   // large enough to present a clear click target for the user.
   oneof actions_data {
     // Inlined actions.
-    Actions actions = 106;
+    Actions actions = 14;
 
     // Actions coming from a template.
-    ActionsBindingRef actions_binding = 107;
+    ActionsBindingRef actions_binding = 15;
   }
 
   // Defines the overflow behavior for elements that are wider than this
@@ -219,7 +215,7 @@ message Element {
   // IMPORTANT: This might not be supported in all implementations of Piet, due
   //   to implementation/product decisions (for example, horizontal scrolling in
   //   a swipable card might be disabled).
-  optional OverflowBehavior horizontal_overflow = 108
+  optional OverflowBehavior horizontal_overflow = 16
       [default = OVERFLOW_HIDDEN];
 }
 
@@ -316,11 +312,6 @@ message TextElement {
     // should override the style references in this TextElement.
     ChunkedText chunked_text = 5;
   }
-
-  // If this text is a label for another element, that field’s `element_id`
-  // should be set as the `label_for` property for this TextElement. This is
-  // necessary for accessibility providers.
-  optional string label_for = 6;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
