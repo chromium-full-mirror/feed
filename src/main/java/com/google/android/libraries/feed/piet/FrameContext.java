@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
@@ -66,6 +67,7 @@ class FrameContext {
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
   private final HostBindingProvider hostBindingProvider;
+  private final ActionHandler actionHandler;
   private final Map<String, Template> frameTemplates = new HashMap<>();
 
   // This is the Frame which contains all the slices being processed.
@@ -93,7 +95,8 @@ class FrameContext {
       DebugLogger debugLogger,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider) {
+      HostBindingProvider hostBindingProvider,
+      ActionHandler actionHandler) {
     this(
         frame,
         stylesheet,
@@ -106,7 +109,8 @@ class FrameContext {
         debugLogger,
         assetProvider,
         customElementProvider,
-        hostBindingProvider);
+        hostBindingProvider,
+        actionHandler);
   }
 
   FrameContext(
@@ -121,7 +125,8 @@ class FrameContext {
       DebugLogger debugLogger,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider) {
+      HostBindingProvider hostBindingProvider,
+      ActionHandler actionHandler) {
     currentFrame = frame;
     this.stylesheet = stylesheet;
     this.bindingValues = bindingValues == null ? new HashMap<>() : bindingValues;
@@ -134,6 +139,7 @@ class FrameContext {
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
     this.hostBindingProvider = hostBindingProvider;
+    this.actionHandler = actionHandler;
 
     if (frame.getTemplatesCount() > 0) {
       for (Template template : frame.getTemplatesList()) {
@@ -154,7 +160,8 @@ class FrameContext {
       DebugLogger debugLogger,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider) {
+      HostBindingProvider hostBindingProvider,
+      ActionHandler actionHandler) {
     PietStylesHelper pietStylesHelper = new PietStylesHelper(pietSharedStates);
     Map<String, Style> stylesheetMap = null;
     if (frame.hasStylesheetId()) {
@@ -190,7 +197,8 @@ class FrameContext {
             debugLogger,
             assetProvider,
             customElementProvider,
-            hostBindingProvider);
+            hostBindingProvider,
+            actionHandler);
     frameContext.computeErrors(frameStyle);
 
     return frameContext;
@@ -214,6 +222,10 @@ class FrameContext {
 
   public Frame getFrame() {
     return currentFrame;
+  }
+
+  public ActionHandler getActionHandler() {
+    return actionHandler;
   }
 
   /*@Nullable*/
@@ -274,7 +286,8 @@ class FrameContext {
         debugLogger,
         assetProvider,
         customElementProvider,
-        hostBindingProvider);
+        hostBindingProvider,
+        actionHandler);
   }
 
   /**
@@ -295,7 +308,8 @@ class FrameContext {
         debugLogger,
         assetProvider,
         customElementProvider,
-        hostBindingProvider);
+        hostBindingProvider,
+        actionHandler);
   }
 
   /** Return the current {@link StyleProvider}. */

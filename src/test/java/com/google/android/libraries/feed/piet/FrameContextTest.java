@@ -27,6 +27,7 @@ import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
@@ -102,6 +103,7 @@ public class FrameContextTest {
   @Mock private AssetProvider assetProvider;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private StyleProvider styleProvider;
+  @Mock private ActionHandler actionHandler;
 
   private final Map<String, Style> defaultStylesheet = new HashMap<>();
   private final DebugLogger debugLogger = new DebugLogger();
@@ -141,12 +143,14 @@ public class FrameContextTest {
             debugLogger,
             assetProvider,
             customElementProvider,
-            hostBindingProvider);
+            hostBindingProvider,
+            actionHandler);
 
     assertThat(frameContext.getAssetProvider()).isEqualTo(assetProvider);
     assertThat(frameContext.getCustomElementProvider()).isEqualTo(customElementProvider);
     assertThat(frameContext.getFrame()).isEqualTo(DEFAULT_FRAME);
     assertThat(frameContext.getCurrentStyle()).isEqualTo(styleProvider);
+    assertThat(frameContext.getActionHandler()).isEqualTo(actionHandler);
 
     assertThat(frameContext.getTemplate(DEFAULT_TEMPLATE_ID)).isEqualTo(DEFAULT_TEMPLATE);
 
@@ -1071,7 +1075,8 @@ public class FrameContextTest {
         debugLogger,
         assetProvider,
         customElementProvider,
-        hostBindingProvider);
+        hostBindingProvider,
+        actionHandler);
   }
 
   private FrameContext makeFrameContextWithBinding(BindingValue bindingValue) {
@@ -1089,7 +1094,8 @@ public class FrameContextTest {
         debugLogger,
         assetProvider,
         customElementProvider,
-        hostBindingProvider);
+        hostBindingProvider,
+        actionHandler);
   }
 
   private FrameContext makeFrameContextWithEmptyBinding() {
@@ -1107,7 +1113,8 @@ public class FrameContextTest {
         debugLogger,
         assetProvider,
         customElementProvider,
-        hostBindingProvider);
+        hostBindingProvider,
+        actionHandler);
   }
 
   private FrameContext makeFrameContextFromFrame(Frame frame) {
@@ -1119,7 +1126,8 @@ public class FrameContextTest {
         debugLogger,
         assetProvider,
         customElementProvider,
-        hostBindingProvider);
+        hostBindingProvider,
+        actionHandler);
   }
 
   private void setUpPietSharedStates() {

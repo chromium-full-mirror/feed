@@ -95,7 +95,7 @@ public class ImageElementAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
     heightPx = (int) ViewUtils.dpToPx(HEIGHT_DP, context);
     widthPx = (int) ViewUtils.dpToPx(WIDTH_DP, context);
-    AdapterParameters parameters = new AdapterParameters(context, null, null, null, adapterFactory);
+    AdapterParameters parameters = new AdapterParameters(context, null, null, adapterFactory);
 
     when(frameContext.bindNewStyle(any())).thenReturn(frameContextWithStyle);
     when(frameContext.getAssetProvider()).thenReturn(assetProvider);

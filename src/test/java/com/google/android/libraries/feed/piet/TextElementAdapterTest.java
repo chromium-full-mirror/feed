@@ -65,8 +65,7 @@ public class TextElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    adapterParameters =
-        new AdapterParameters(null, null, null, new ParameterizedTextEvaluator(), null);
+    adapterParameters = new AdapterParameters(null, null, new ParameterizedTextEvaluator(), null);
     when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
 

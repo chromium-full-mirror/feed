@@ -76,6 +76,7 @@ public class FrameAdapterTest {
   @Mock private ElementListAdapter elementListAdapter;
   @Mock private TemplateInvocationAdapter templateAdapter;
   @Mock private CustomElementProvider customElementProvider;
+  @Mock private ActionHandler actionHandler;
 
   @Captor private ArgumentCaptor<LayoutParams> layoutParamsCaptor;
 
@@ -93,7 +94,6 @@ public class FrameAdapterTest {
         new AdapterParameters(
             null,
             Suppliers.of(new FrameLayout(context)),
-            null,
             new ParameterizedTextEvaluator(),
             adapterFactory);
     when(elementListAdapter.getView()).thenReturn(new LinearLayout(context));
@@ -120,6 +120,7 @@ public class FrameAdapterTest {
         new FrameAdapter(
             context,
             adapterParameters,
+            actionHandler,
             debugBehavior,
             assetProvider,
             customElementProvider,
@@ -164,8 +165,7 @@ public class FrameAdapterTest {
             .addElements(Element.newBuilder().setGridRow(GridRow.getDefaultInstance()))
             .build();
     AdapterParameters adapterParameters =
-        new AdapterParameters(
-            context, Suppliers.of(new LinearLayout(context)), mock(ActionHandler.class));
+        new AdapterParameters(context, Suppliers.of(new LinearLayout(context)));
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
             .addTemplates(
@@ -181,12 +181,14 @@ public class FrameAdapterTest {
             new DebugLogger(),
             assetProvider,
             customElementProvider,
-            new HostBindingProvider());
+            new HostBindingProvider(),
+            mock(ActionHandler.class));
 
     frameAdapter =
         new FrameAdapter(
             context,
             adapterParameters,
+            mock(ActionHandler.class),
             debugBehavior,
             assetProvider,
             customElementProvider,

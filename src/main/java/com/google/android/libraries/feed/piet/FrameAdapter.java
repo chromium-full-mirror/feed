@@ -28,6 +28,7 @@ import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
@@ -54,6 +55,7 @@ public class FrameAdapter {
 
   private final Context context;
   private final AdapterParameters parameters;
+  private final ActionHandler actionHandler;
   private final DebugBehavior debugBehavior;
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
@@ -63,12 +65,14 @@ public class FrameAdapter {
   public FrameAdapter(
       Context context,
       AdapterParameters parameters,
+      ActionHandler actionHandler,
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider,
       HostBindingProvider hostBindingProvider) {
     this.context = context;
     this.parameters = parameters;
+    this.actionHandler = actionHandler;
     this.debugBehavior = debugBehavior;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
@@ -173,7 +177,8 @@ public class FrameAdapter {
         new DebugLogger(),
         assetProvider,
         customElementProvider,
-        hostBindingProvider);
+        hostBindingProvider,
+        actionHandler);
   }
 
   @VisibleForTesting

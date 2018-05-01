@@ -102,7 +102,7 @@ public class ElementListAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null), actionHandler);
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null));
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance()))
@@ -118,6 +118,9 @@ public class ElementListAdapterTest {
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(childStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(frameContext.getActionHandler()).thenReturn(actionHandler);
+    when(childFrameContext.getActionHandler()).thenReturn(actionHandler);
+    when(listFrameContext.getActionHandler()).thenReturn(actionHandler);
   }
 
   @Test

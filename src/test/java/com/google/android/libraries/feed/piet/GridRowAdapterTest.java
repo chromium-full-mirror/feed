@@ -90,7 +90,7 @@ public class GridRowAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null), actionHandler);
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null));
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
@@ -98,6 +98,7 @@ public class GridRowAdapterTest {
     when(frameContext.makeStyleFor(GRID_STYLES)).thenReturn(styleProvider);
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
+    when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
   }
 

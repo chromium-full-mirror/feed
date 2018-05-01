@@ -150,8 +150,9 @@ public class TemplateInvocationAdapterTest {
             new DebugLogger(),
             assetProvider,
             customElementProvider,
-            new HostBindingProvider());
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null), actionHandler);
+            new HostBindingProvider(),
+            actionHandler);
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null));
 
     adapter = new TemplateInvocationAdapter(context, adapterParameters);
   }
@@ -218,7 +219,8 @@ public class TemplateInvocationAdapterTest {
             new DebugLogger(),
             assetProvider,
             customElementProvider,
-            new HostBindingProvider());
+            new HostBindingProvider(),
+            actionHandler);
 
     adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
     assertThat(adapter.getKey()).isSameAs(originalKey);
@@ -332,7 +334,8 @@ public class TemplateInvocationAdapterTest {
             new DebugLogger(),
             assetProvider,
             customElementProvider,
-            new HostBindingProvider());
+            new HostBindingProvider(),
+            actionHandler);
 
     adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, frameContext);
 

@@ -100,11 +100,14 @@ class ElementListAdapter
     switch (getModel().getActionsDataCase()) {
       case ACTIONS:
         ViewUtils.setOnClickActions(
-            getModel().getActions(), getView(), getParameters().actionHandler, frameContext);
+            getModel().getActions(), getView(), frameContext.getActionHandler(), frameContext);
         break;
       case ACTIONS_BINDING:
         ViewUtils.setOnClickActions(
-            getModel().getActionsBinding(), getView(), getParameters().actionHandler, frameContext);
+            getModel().getActionsBinding(),
+            getView(),
+            frameContext.getActionHandler(),
+            frameContext);
         break;
       default:
         super.bindActions(frameContext);

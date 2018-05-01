@@ -74,10 +74,11 @@ public class ElementAdapterTest {
   public void setUp() {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    parameters = new AdapterParameters(context, Suppliers.of((ViewGroup) null), actionHandler);
+    parameters = new AdapterParameters(context, Suppliers.of((ViewGroup) null));
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
+    when(frameContext.getActionHandler()).thenReturn(actionHandler);
     view = new RelativeLayout(context);
     adapter = new TestElementAdapter(context, parameters, view);
   }
@@ -225,7 +226,6 @@ public class ElementAdapterTest {
         new AdapterParameters(
             context,
             Suppliers.of((ViewGroup) null),
-            actionHandler,
             new ParameterizedTextEvaluator(),
             mockFactory);
     adapter = new TestElementAdapter(context, parameters, view);

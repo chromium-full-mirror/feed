@@ -84,7 +84,6 @@ public class PietManagerTest {
     returnParams = pietManager.getAdapterParameters(mockContext1, viewGroupProducer1);
     assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer1);
     assertThat(returnParams.context).isEqualTo(mockContext1);
-    assertThat(returnParams.actionHandler).isEqualTo(actionHandler);
 
     // Get params for the same context again (use cached value)
     returnParams = pietManager.getAdapterParameters(mockContext1, Suppliers.of(null));
@@ -102,7 +101,7 @@ public class PietManagerTest {
 
     ElementAdapterFactory mockFactory = mock(ElementAdapterFactory.class);
     pietManager.adapterParameters =
-        new AdapterParameters(context, cardViewSupplier, null, null, mockFactory);
+        new AdapterParameters(context, cardViewSupplier, null, mockFactory);
     pietManager.purgeRecyclerPools();
     verify(mockFactory).purgeRecyclerPools();
   }

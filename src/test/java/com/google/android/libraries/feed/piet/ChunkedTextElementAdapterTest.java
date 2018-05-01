@@ -143,8 +143,7 @@ public class ChunkedTextElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    adapterParameters =
-        new AdapterParameters(null, null, mockActionHandler, mockTextEvaluator, null);
+    adapterParameters = new AdapterParameters(null, null, mockTextEvaluator, null);
 
     drawable = new ColorDrawable(Color.GREEN);
     shadowDrawable = Shadows.shadowOf(drawable);
@@ -164,6 +163,7 @@ public class ChunkedTextElementAdapterTest {
         .thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
     when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
+    when(frameContext.getActionHandler()).thenReturn(mockActionHandler);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
 
     adapter = new ChunkedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);

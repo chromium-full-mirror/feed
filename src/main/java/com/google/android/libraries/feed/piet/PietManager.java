@@ -66,6 +66,7 @@ public class PietManager {
     return new FrameAdapter(
         context,
         parameters,
+        actionHandler,
         debugBehavior,
         assetProvider,
         customElementProvider,
@@ -80,7 +81,7 @@ public class PietManager {
   AdapterParameters getAdapterParameters(
       Context context, Supplier</*@Nullable*/ ViewGroup> cardViewProducer) {
     if (adapterParameters == null || adapterParameters.context != context) {
-      adapterParameters = new AdapterParameters(context, cardViewProducer, actionHandler);
+      adapterParameters = new AdapterParameters(context, cardViewProducer);
     }
     return adapterParameters;
   }

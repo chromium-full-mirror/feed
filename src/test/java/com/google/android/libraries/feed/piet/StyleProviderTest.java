@@ -25,6 +25,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
@@ -48,6 +49,7 @@ public class StyleProviderTest {
 
   @Mock private AssetProvider mockAssetProvider;
   @Mock private CustomElementProvider mockCustomElementProvider;
+  @Mock private ActionHandler mockActionHandler;
 
   private FrameContext frameContext;
 
@@ -66,7 +68,8 @@ public class StyleProviderTest {
             new DebugLogger(),
             mockAssetProvider,
             mockCustomElementProvider,
-            new HostBindingProvider());
+            new HostBindingProvider(),
+            mockActionHandler);
   }
 
   @Test

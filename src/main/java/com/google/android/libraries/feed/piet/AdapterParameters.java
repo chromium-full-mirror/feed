@@ -18,7 +18,6 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.common.functional.Supplier;
-import com.google.android.libraries.feed.piet.host.ActionHandler;
 
 /**
  * A state shared by instances of Cards and Slices. The state is accessed directly from the instance
@@ -29,7 +28,6 @@ import com.google.android.libraries.feed.piet.host.ActionHandler;
 class AdapterParameters {
   final ParameterizedTextEvaluator templatedStringEvaluator;
   final Supplier</*@Nullable*/ ViewGroup> parentViewSupplier;
-  final ActionHandler actionHandler;
 
   final Context context;
 
@@ -38,13 +36,9 @@ class AdapterParameters {
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
   @SuppressWarnings("initialization")
-  public AdapterParameters(
-      Context context,
-      Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
-      ActionHandler actionHandler) {
+  public AdapterParameters(Context context, Supplier</*@Nullable*/ ViewGroup> parentViewSupplier) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
-    this.actionHandler = actionHandler;
 
     templatedStringEvaluator = new ParameterizedTextEvaluator();
     elementAdapterFactory = new ElementAdapterFactory(context, this);
@@ -55,12 +49,10 @@ class AdapterParameters {
   AdapterParameters(
       Context context,
       Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
-      ActionHandler actionHandler,
       ParameterizedTextEvaluator templatedStringEvaluator,
       ElementAdapterFactory elementAdapterFactory) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
-    this.actionHandler = actionHandler;
 
     this.templatedStringEvaluator = templatedStringEvaluator;
     this.elementAdapterFactory = elementAdapterFactory;

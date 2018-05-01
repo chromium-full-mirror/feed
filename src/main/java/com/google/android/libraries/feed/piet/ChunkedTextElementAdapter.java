@@ -165,7 +165,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     if (actions.hasOnClickAction()) {
       spannable.setSpan(
           new ActionsClickableSpan(
-              actions.getOnClickAction(), getParameters().actionHandler, frameContext.getFrame()),
+              actions.getOnClickAction(), frameContext.getActionHandler(), frameContext.getFrame()),
           chunkStart,
           chunkEnd,
           Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
