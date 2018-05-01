@@ -115,6 +115,8 @@ public class StreamDriver {
               });
           break;
         case Type.UNBOUND:
+          Logger.e(TAG, "Found unbound child %s, ignoring it", child.getContentId());
+          break;
         default:
           Logger.wtf(TAG, "Received illegal child: %s from cursor.", child.getType());
           break;
