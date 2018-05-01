@@ -157,6 +157,10 @@ public class HeadSessionImpl implements Session, Dumpable {
     return Collections.unmodifiableCollection(contentInSession);
   }
 
+  public boolean isHeadEmpty() {
+    return contentInSession.isEmpty();
+  }
+
   // This is called only in tests to acess the content in the session.
   public Set<String> getContentInSessionForTest() {
     return new HashSet<>(contentInSession);

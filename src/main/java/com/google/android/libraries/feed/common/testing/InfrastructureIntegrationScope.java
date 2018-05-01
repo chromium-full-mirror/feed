@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
@@ -43,6 +44,25 @@ import java.util.concurrent.ExecutorService;
  * Feed objects from ProtocolAdapter through the SessionManager.
  */
 public class InfrastructureIntegrationScope {
+  /** Scope which disables making requests when $HEAD is empty. */
+  private static final SchedulerApi DISABLED_EMPTY_HEAD_REQUEST =
+      new SchedulerApi() {
+
+        @Override
+        public boolean shouldRequestDataWhenNoDataPresent() {
+          return false;
+        }
+
+        @Override
+        public void onReceiveNewContent() {
+          // Do nothing
+        }
+
+        @Override
+        public void onRequestError(int networkResponseCode) {
+          // Do nothing
+        }
+      };
 
   private final FeedSessionManager feedSessionManager;
   private final FeedProtocolAdapter feedProtocolAdapter;
@@ -78,6 +98,7 @@ public class InfrastructureIntegrationScope {
             threadUtils,
             feedProtocolAdapter,
             fakeRequestManager,
+            DISABLED_EMPTY_HEAD_REQUEST,
             configuration,
             clock);
     modelProviderFactory =

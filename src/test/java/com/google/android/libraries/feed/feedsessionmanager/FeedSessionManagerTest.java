@@ -51,6 +51,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
@@ -93,6 +94,7 @@ public class FeedSessionManagerTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
+  @Mock private SchedulerApi schedulerApi;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelMutation modelMutation;
   @Mock private Store store;
@@ -164,6 +166,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             protocolAdapter,
             requestManager,
+            schedulerApi,
             configuration,
             clock);
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
@@ -281,6 +284,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             protocolAdapter,
             requestManager,
+            schedulerApi,
             configuration,
             clock);
 
@@ -319,6 +323,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             protocolAdapter,
             requestManager,
+            schedulerApi,
             configuration,
             clock);
     when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
@@ -342,6 +347,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             protocolAdapter,
             requestManager,
+            schedulerApi,
             configuration,
             clock);
     StreamSessions sessions = sessionManager.getPersistedSessions();
@@ -365,6 +371,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             protocolAdapter,
             requestManager,
+            schedulerApi,
             configuration,
             clock);
     Session s2 = mock(Session.class);
@@ -402,6 +409,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             protocolAdapter,
             requestManager,
+            schedulerApi,
             configuration,
             clock);
     sessionManager.initializePersistedSessions();
@@ -422,6 +430,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             protocolAdapter,
             requestManager,
+            schedulerApi,
             configuration,
             clock);
     StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
@@ -461,6 +470,7 @@ public class FeedSessionManagerTest {
             threadUtils,
             protocolAdapter,
             requestManager,
+            schedulerApi,
             configuration,
             clock);
     assertThat(sessionManager.getInvalidateHeadStateForTest()).isFalse();
@@ -533,6 +543,7 @@ public class FeedSessionManagerTest {
         threadUtils,
         protocolAdapter,
         requestManager,
+        schedulerApi,
         configuration,
         clock);
   }

@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -93,6 +94,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final TimingUtils timingUtils;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
+  private final SchedulerApi schedulerApi;
   private final Clock clock;
   private final long lifetimeMs;
 
@@ -104,13 +106,20 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private int handleTokenCount = 0;
   private int expiredSessionsCleared = 0;
 
-  // When we invalidate head, we will delay creation of any new sessions until head is populated.
-  // In order to do that, the getNewSession() method will queue the task to create and populate
-  // the new session on the delayedRunnables List.  Once we process the first mutation on head
-  // we will run these tasks.
+  // When we invalidate head, delay new session population until head is populated.
   @GuardedBy("lock")
   private boolean invalidatedHead;
 
+  // TriggerRefresh will refill head, delay new session population until head is populated.
+  @GuardedBy("lock")
+  private boolean fillingEmptyHead;
+
+  // Until we have initialized head, delay new session population until head is populated.
+  @GuardedBy("lock")
+  private boolean initialized = false;
+
+  // This is a queue of Tasks which are currently being delayed.  Mostly this queue contains session
+  // population tasks, but other tasks such as cleanup may be delayed and added to this queue.
   @GuardedBy("lock")
   private final List<Runnable> delayedRunnables = new ArrayList<>();
 
@@ -121,6 +130,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       ThreadUtils threadUtils,
       ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
+      SchedulerApi schedulerApi,
       Configuration configuration,
       Clock clock) {
     this.executor = executor;
@@ -129,6 +139,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.threadUtils = threadUtils;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
+    this.schedulerApi = schedulerApi;
     this.clock = clock;
 
     lifetimeMs =
@@ -158,6 +169,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       }
     } else {
       // TODO: handle errors
+      Logger.e(TAG, "SharedStates failed to load, no shared states are loaded.");
     }
 
     // create the head session from the data in the Store
@@ -168,12 +180,35 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     head.updateAccessTime(clock.currentTimeMillis());
     Result<List<StreamStructure>> streamStructuresResult =
         store.getStreamStructures(head.getStreamSession());
-    if (streamStructuresResult.isSuccessful()) {
-      head.initializeSession(streamStructuresResult.getValue());
-      initializePersistedSessions();
+    List<StreamStructure> results;
+    if (!streamStructuresResult.isSuccessful()) {
+      Logger.i(TAG, "Unable to retrieve HEAD from Store.");
+      // TODO: handle errors - We need to put things into a in-memory mode.
+      results = new ArrayList<>();
     } else {
-      // TODO: handle errors
+      results = streamStructuresResult.getValue();
     }
+    head.initializeSession(results);
+
+    // if head is empty and the scheduler allows us, trigger refresh, otherwise live with empty head
+    synchronized (lock) {
+      fillingEmptyHead = head.isHeadEmpty() && schedulerApi.shouldRequestDataWhenNoDataPresent();
+      // Head is now initialized, unless we are filling and empty head.
+      initialized = true;
+      if (fillingEmptyHead) {
+        Logger.i(TAG, "EmptyHead Triggered Refresh");
+        executor.execute(
+            () ->
+                requestManager.triggerRefresh(
+                    RequestReason.MANUAL_REFRESH,
+                    new CommitterTask(MutationContext.EMPTY_CONTEXT)));
+      }
+      if (!fillingEmptyHead && !invalidatedHead && delayedRunnables.size() > 0) {
+        // We may have delayed session population while initializing head.
+        runDelayedTasks();
+      }
+    }
+    initializePersistedSessions();
     timeTracker.stop("task", "Initialization");
   }
 
@@ -203,7 +238,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         sessions.put(session.getStreamToken(), unboundSession);
 
         // Task which populates the newly created unbound session.
-        executor.execute(
+        Runnable createUnboundSession =
             () -> {
               Logger.i(TAG, "Task: createUnboundSession");
               ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -213,27 +248,22 @@ public class FeedSessionManager implements SessionManager, Dumpable {
                 unboundSession.populateModelProvider(session, streamStructuresResult.getValue());
               } else {
                 // TODO: handle errors
+                Logger.e(TAG, "Failed to read unbound session state, ignored");
               }
               timeTracker.stop("task", "createUnboundSession");
               unboundSessionCount++;
-            });
+            };
+        runDelayableTask(createUnboundSession, false);
       }
     }
 
     if (cleanupSessions) {
       // Queue up a task to clear the session journals.
-      executor.execute(this::cleanupSessionJournals);
+      runDelayableTask(this::cleanupSessionJournals, false);
     }
     Set<String> reservedContentIds = new HashSet<>();
     reservedContentIds.add(STREAM_SESSION_CONTENT_ID);
-    Runnable gcRunnable = store.triggerContentGc(reservedContentIds, accessibleContentSupplier);
-    synchronized (lock) {
-      if (invalidatedHead) {
-        delayedRunnables.add(gcRunnable);
-      } else {
-        executor.execute(gcRunnable);
-      }
-    }
+    runDelayableTask(store.triggerContentGc(reservedContentIds, accessibleContentSupplier), false);
   }
 
   private Supplier<Set<String>> accessibleContentSupplier =
@@ -268,7 +298,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         }
       }
     } else {
-      // TODO: handle errors
+      // TODO: This is ignorable, but should we have a way to mark the storage layer
+      // to delete all Journal files?
+      Logger.e(TAG, "Error reading all sessions, Unable to cleanup session journals");
     }
     timeTracker.stop(
         "task",
@@ -316,37 +348,36 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
           Result<StreamSession> streamSessionResult = store.createNewSession();
-          if (streamSessionResult.isSuccessful()) {
-            StreamSession streamSession = streamSessionResult.getValue();
-            StreamSession recordedSession =
-                streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
-
-            Result<List<StreamStructure>> streamStructuresResult =
-                store.getStreamStructures(streamSession);
-            if (streamStructuresResult.isSuccessful()) {
-              session.populateModelProvider(recordedSession, streamStructuresResult.getValue());
-              synchronized (lock) {
-                sessions.put(session.getStreamSession().getStreamToken(), session);
-              }
-              updateStoredSessions();
-            } else {
-              // TODO: handle errors
-            }
-          } else {
-            // TODO: handle errors
+          if (!streamSessionResult.isSuccessful()) {
+            // TODO: We should invalidate the session with an error
+            Logger.e(TAG, "Unable to create a new session");
+            timeTracker.stop("task", "Create/Populate New Session", "Failure", "createNewSession");
+            return;
           }
-          timeTracker.stop("task", "Create/Populate New Session");
+          StreamSession streamSession = streamSessionResult.getValue();
+          StreamSession recordedSession =
+              streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
+
+          Result<List<StreamStructure>> streamStructuresResult =
+              store.getStreamStructures(streamSession);
+          if (!streamStructuresResult.isSuccessful()) {
+            // TODO: We should invalidate the session with an error
+            Logger.e(TAG, "Unable to create a new session");
+            timeTracker.stop(
+                "task", "Create/Populate New Session", "Failure", "getStreamStructures");
+            return;
+          }
+
+          session.populateModelProvider(recordedSession, streamStructuresResult.getValue());
+          synchronized (lock) {
+            sessions.put(session.getStreamSession().getStreamToken(), session);
+          }
+          updateStoredSessions();
           newSessionCount++;
+          timeTracker.stop("task", "Create/Populate New Session");
         };
-    synchronized (lock) {
-      if (invalidatedHead) {
-        // don't create and populate the session until $HEAD has been updated, push to front of
-        // the queue
-        delayedRunnables.add(0, populateSession);
-      } else {
-        executor.execute(populateSession);
-      }
-    }
+
+    runDelayableTask(populateSession, true);
   }
 
   @VisibleForTesting
@@ -584,6 +615,48 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     return (sessionToken == null || sessionToken.equals(streamSession.getStreamToken()));
   }
 
+  private boolean delayingTasks() {
+    synchronized (lock) {
+      return invalidatedHead || fillingEmptyHead || !initialized;
+    }
+  }
+
+  /**
+   * Delay a runnable, high priority runnables will be pushed to the top of the list of delayed
+   * runnables.
+   */
+  private void runDelayableTask(Runnable runnable, boolean highPriority) {
+    synchronized (lock) {
+      if (!delayingTasks()) {
+        executor.execute(runnable);
+        return;
+      }
+      if (highPriority) {
+        delayedRunnables.add(0, runnable);
+      } else {
+        delayedRunnables.add(runnable);
+      }
+    }
+  }
+
+  private void runDelayedTasks() {
+    List<Runnable> runnables = null;
+    synchronized (lock) {
+      if (delayedRunnables.size() > 0) {
+        runnables = new ArrayList<>(delayedRunnables);
+      }
+      invalidatedHead = false;
+      fillingEmptyHead = false;
+      delayedRunnables.clear();
+    }
+    if (runnables != null) {
+      Logger.i(TAG, "Processing runnables created since invalidate %s", runnables.size());
+      for (Runnable runnable : runnables) {
+        executor.execute(runnable);
+      }
+    }
+  }
+
   /**
    * This class will process a List of {@link StreamDataOperation}. The {@link MutationContext} is
    * stored here and contains the context which made the request resulting in the List of data
@@ -623,10 +696,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       }
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
       commitContent();
+      // TODO: If we are currently delaying creation and we didn't clear head, then this
+      // is an update.  Should we delay commitSessionUpdates until head is population?
       commitSessionUpdates();
       commitCount++;
       synchronized (lock) {
         contentCache.finishMutation();
+      }
+      if (clearedHead) {
+        runDelayedTasks();
       }
       timeTracker.stop("task", "Mutate FeedSessionManager", "mutations", streamStructures.size());
     }
@@ -724,17 +802,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         }
         Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
         session.updateSession(streamStructures, mutationSourceToken);
-      }
-      synchronized (lock) {
-        if (invalidatedHead) {
-          Logger.i(
-              TAG, "Processing runnables created since invalidate %s", delayedRunnables.size());
-          invalidatedHead = false;
-          for (Runnable runnable : delayedRunnables) {
-            executor.execute(runnable);
-          }
-          delayedRunnables.clear();
-        }
       }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
     }
