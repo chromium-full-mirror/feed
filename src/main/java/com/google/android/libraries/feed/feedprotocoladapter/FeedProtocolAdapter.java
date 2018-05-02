@@ -66,12 +66,38 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   @Override
   public Result<List<StreamDataOperation>> createModel(Response response) {
-    ElapsedTimeTracker totalTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<StreamDataOperation> streamDataOperations = new ArrayList<>();
     responseHandlingCount++;
 
-    List<DataOperation> dataOperations =
-        response.getExtension(FeedResponse.feedResponse).getDataOperationList();
+    Result<List<StreamDataOperation>> result =
+        createOperations(response.getExtension(FeedResponse.feedResponse).getDataOperationList());
+    if (!result.isSuccessful()) {
+      return Result.failure();
+    }
+    List<StreamDataOperation> streamDataOperations = result.getValue();
+
+    // if there is a continuation token it should be the last thing added to the root.
+    ByteString newContinuationToken =
+        response.getExtension(FeedResponse.feedResponse).getNextPageToken();
+    if (newContinuationToken != null && !newContinuationToken.isEmpty()) {
+      String contentId =
+          createContentId(
+              ContentId.newBuilder()
+                  .setContentDomain("token")
+                  .setId(nextTokenId++)
+                  .setTable("feature")
+                  .build());
+      StreamToken streamToken =
+          Validators.checkNotNull(createStreamToken(contentId, newContinuationToken));
+      streamDataOperations.add(
+          createTokenDataOperation(contentId, streamToken.getParentId(), streamToken).build());
+    }
+    return Result.success(streamDataOperations);
+  }
+
+  @Override
+  public Result<List<StreamDataOperation>> createOperations(List<DataOperation> dataOperations) {
+    ElapsedTimeTracker totalTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
+    List<StreamDataOperation> streamDataOperations = new ArrayList<>();
     for (DataOperation operation : dataOperations) {
       // The operations defined in stream_data.proto and data_operation.proto have the same
       // integer value
@@ -150,23 +176,6 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
                     operation.getMetadata().getSemanticProperties().getSemanticPropertiesData())
                 .build());
       }
-    }
-
-    // if there is a continuation token it should be the last thing added to the root.
-    ByteString newContinuationToken =
-        response.getExtension(FeedResponse.feedResponse).getNextPageToken();
-    if (newContinuationToken != null && !newContinuationToken.isEmpty()) {
-      String contentId =
-          createContentId(
-              ContentId.newBuilder()
-                  .setContentDomain("token")
-                  .setId(nextTokenId++)
-                  .setTable("feature")
-                  .build());
-      StreamToken streamToken =
-          Validators.checkNotNull(createStreamToken(contentId, newContinuationToken));
-      streamDataOperations.add(
-          createTokenDataOperation(contentId, streamToken.getParentId(), streamToken).build());
     }
     totalTimeTracker.stop("", "convertWireProtocol", "mutations", dataOperations.size());
     return Result.success(streamDataOperations);

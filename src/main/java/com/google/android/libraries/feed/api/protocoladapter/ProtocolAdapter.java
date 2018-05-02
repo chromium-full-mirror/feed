@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.api.protocoladapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.List;
 
@@ -27,6 +28,12 @@ public interface ProtocolAdapter {
    * turned into a List of {@link StreamDataOperation} which are sent to the SessionManager.
    */
   Result<List<StreamDataOperation>> createModel(Response response);
+
+  /**
+   * Create {@link StreamDataOperation}s from the internal protocol for the wire protocol
+   * DataOperations.
+   */
+  Result<List<StreamDataOperation>> createOperations(List<DataOperation> dataOperations);
 
   /** Convert a wire protocol ContentId into the {@code String} version. */
   String getStreamContentId(ContentId contentId);
