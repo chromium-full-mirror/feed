@@ -18,12 +18,15 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
@@ -31,13 +34,14 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
+import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -51,8 +55,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadow.api.Shadow;
 
 /** Tests of the {@link ElementAdapter}. */
 @RunWith(RobolectricTestRunner.class)
@@ -73,13 +79,13 @@ public class ElementAdapterTest {
   @Before
   public void setUp() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = RuntimeEnvironment.application;
     parameters = new AdapterParameters(context, Suppliers.of((ViewGroup) null));
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
-    view = new RelativeLayout(context);
+    view = new View(context);
     adapter = new TestElementAdapter(context, parameters, view);
   }
 
@@ -276,40 +282,40 @@ public class ElementAdapterTest {
 
   @Test
   public void testBindModel_setsActions() {
-    Element elementWithActions =
-        Element.newBuilder()
-            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
-            .build();
+    Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
+    Element elementWithActions = Element.newBuilder().setActions(actions).build();
 
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
+    assertThat(adapter.actions).isSameAs(actions);
   }
 
   @Test
   public void testBindModel_setsActionsWithBinding() {
+    Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
     ActionsBindingRef actionsBinding =
         ActionsBindingRef.newBuilder().setBindingId("ACTION!").build();
     Element elementWithActions = Element.newBuilder().setActionsBinding(actionsBinding).build();
-    when(frameContext.getActionsFromBinding(actionsBinding))
-        .thenReturn(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build());
+    when(frameContext.getActionsFromBinding(actionsBinding)).thenReturn(actions);
 
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
+    assertThat(adapter.actions).isSameAs(actions);
   }
 
   @Test
   public void testBindModel_unsetsActions() {
-    Element elementWithActions =
-        Element.newBuilder()
-            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
-            .build();
+    Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
+    Element elementWithActions = Element.newBuilder().setActions(actions).build();
     Element elementWithoutActions = Element.getDefaultInstance();
 
     adapter.bindModel(elementWithActions, elementWithActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isTrue();
+    assertThat(adapter.actions).isSameAs(actions);
 
     adapter.bindModel(elementWithoutActions, elementWithoutActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isFalse();
+    assertThat(adapter.actions).isSameAs(Actions.getDefaultInstance());
   }
 
   @Test
@@ -446,6 +452,144 @@ public class ElementAdapterTest {
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
     adapter.setVisibility(Visibility.VISIBILITY_UNSPECIFIED);
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Config(shadows = {ExtendedShadowView.class})
+  @Test
+  public void testGetOnFullViewActions() {
+    Frame frame = Frame.newBuilder().setTag("FRAME").build();
+    when(frameContext.getFrame()).thenReturn(frame);
+    View viewport = new View(context);
+
+    // No actions defined
+    adapter.createAdapter(Element.getDefaultInstance(), frameContext);
+    adapter.bindModel(Element.getDefaultInstance(), frameContext);
+    adapter.triggerViewActions(viewport);
+    verifyZeroInteractions(actionHandler);
+    adapter.releaseAdapter();
+
+    // Actions defined, but not fullview actions
+    Element elementWithNoViewActions =
+        Element.newBuilder()
+            .setActions(Actions.newBuilder().setOnClickAction(Action.newBuilder().build()))
+            .build();
+    adapter.createAdapter(elementWithNoViewActions, frameContext);
+    adapter.bindModel(elementWithNoViewActions, frameContext);
+    adapter.triggerViewActions(viewport);
+    verifyZeroInteractions(actionHandler);
+    adapter.unbindModel();
+    adapter.releaseAdapter();
+
+    // Actions defined, but not fully visible
+    ExtendedShadowView viewShadow = Shadow.extract(adapter.getView());
+    viewShadow.setAttachedToWindow(false);
+    Actions fullViewActions =
+        Actions.newBuilder()
+            .addOnViewActions(VisibilityAction.newBuilder().setAction(Action.newBuilder().build()))
+            .build();
+    Element elementWithActions = Element.newBuilder().setActions(fullViewActions).build();
+    adapter.createAdapter(elementWithActions, frameContext);
+    adapter.bindModel(elementWithActions, frameContext);
+    adapter.triggerViewActions(viewport);
+    verifyZeroInteractions(actionHandler);
+    adapter.unbindModel();
+    adapter.releaseAdapter();
+
+    // Actions defined, and fully visible
+    ExtendedShadowView viewportShadow = Shadow.extract(viewport);
+    viewportShadow.setLocationInWindow(0, 0);
+    viewportShadow.setHeight(100);
+    viewportShadow.setWidth(100);
+    viewShadow.setLocationInWindow(10, 10);
+    viewShadow.setHeight(50);
+    viewShadow.setWidth(50);
+    viewShadow.setAttachedToWindow(true);
+
+    adapter.createAdapter(elementWithActions, frameContext);
+    adapter.bindModel(elementWithActions, frameContext);
+    adapter.triggerViewActions(viewport);
+    verify(actionHandler)
+        .handleAction(
+            same(fullViewActions.getOnViewActions(0).getAction()), eq(frame), eq(view), eq(null));
+  }
+
+  @Config(shadows = {ExtendedShadowView.class})
+  @Test
+  public void testGetOnPartialViewActions() {
+    Frame frame = Frame.newBuilder().setTag("FRAME").build();
+    when(frameContext.getFrame()).thenReturn(frame);
+    View viewport = new View(context);
+
+    // No actions defined
+    adapter.createAdapter(Element.getDefaultInstance(), frameContext);
+    adapter.bindModel(Element.getDefaultInstance(), frameContext);
+    adapter.triggerViewActions(viewport);
+    verifyZeroInteractions(actionHandler);
+    adapter.releaseAdapter();
+
+    // Actions defined, but not partial view actions
+    Element elementWithNoViewActions =
+        Element.newBuilder()
+            .setActions(Actions.newBuilder().setOnClickAction(Action.newBuilder().build()))
+            .build();
+    adapter.createAdapter(elementWithNoViewActions, frameContext);
+    adapter.bindModel(elementWithNoViewActions, frameContext);
+    adapter.triggerViewActions(viewport);
+    verifyZeroInteractions(actionHandler);
+    adapter.unbindModel();
+    adapter.releaseAdapter();
+
+    // Actions defined, but not attached to window
+    ExtendedShadowView viewShadow = Shadow.extract(adapter.getView());
+    viewShadow.setAttachedToWindow(false);
+    Actions partialViewActions =
+        Actions.newBuilder()
+            .addOnViewActions(
+                VisibilityAction.newBuilder()
+                    .setAction(Action.newBuilder().build())
+                    .setProportionVisible(0.01f))
+            .build();
+    Element elementWithActions = Element.newBuilder().setActions(partialViewActions).build();
+    adapter.createAdapter(elementWithActions, frameContext);
+    adapter.bindModel(elementWithActions, frameContext);
+    adapter.triggerViewActions(viewport);
+    verifyZeroInteractions(actionHandler);
+    adapter.unbindModel();
+    adapter.releaseAdapter();
+
+    // Actions defined, and partially visible
+    ExtendedShadowView viewportShadow = Shadow.extract(viewport);
+    viewportShadow.setLocationInWindow(0, 0);
+    viewportShadow.setHeight(100);
+    viewportShadow.setWidth(100);
+    viewShadow.setLocationInWindow(10, 10);
+    viewShadow.setHeight(200);
+    viewShadow.setWidth(200);
+    viewShadow.setAttachedToWindow(true);
+
+    adapter.createAdapter(elementWithActions, frameContext);
+    adapter.bindModel(elementWithActions, frameContext);
+    adapter.triggerViewActions(viewport);
+    verify(actionHandler)
+        .handleAction(
+            same(partialViewActions.getOnViewActions(0).getAction()),
+            eq(frame),
+            eq(view),
+            eq(null));
+
+    // Actions defined, and fully visible
+    viewShadow.setHeight(50);
+    viewShadow.setWidth(50);
+
+    adapter.createAdapter(elementWithActions, frameContext);
+    adapter.bindModel(elementWithActions, frameContext);
+    adapter.triggerViewActions(viewport);
+    verify(actionHandler, times(2))
+        .handleAction(
+            same(partialViewActions.getOnViewActions(0).getAction()),
+            eq(frame),
+            eq(view),
+            eq(null));
   }
 
   // Dummy implementation

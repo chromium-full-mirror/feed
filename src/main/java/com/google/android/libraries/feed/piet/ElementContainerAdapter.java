@@ -99,4 +99,12 @@ abstract class ElementContainerAdapter<
   void addChildAdapter(ChildAdapterT adapter) {
     childAdapters.add(adapter);
   }
+
+  @Override
+  public void triggerViewActions(View viewport) {
+    super.triggerViewActions(viewport);
+    for (ElementAdapter<?, ?> childAdapter : childAdapters) {
+      childAdapter.triggerViewActions(viewport);
+    }
+  }
 }

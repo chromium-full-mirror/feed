@@ -24,6 +24,8 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.search.now.ui.piet.ActionsProto.Actions;
+import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
@@ -31,7 +33,9 @@ import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * ElementAdapter provides a base class for the various adapters created by UiElement, and provides
@@ -61,6 +65,10 @@ abstract class ElementAdapter<V extends View, M> {
 
   /*@Nullable*/ private FrameLayout overlayView = null;
   @VisibleForTesting final List<ElementListAdapter> overlays = new ArrayList<>();
+
+  Actions actions = Actions.getDefaultInstance();
+  /** Set of actions that are currently active / triggered so they only get called once. */
+  private final Set<VisibilityAction> activeVisibilityActions = new HashSet<>();
 
   /**
    * Desired width of this element. {@link #DIMENSION_NOT_SET} indicates no explicit width; let the
@@ -240,19 +248,27 @@ abstract class ElementAdapter<V extends View, M> {
     // Set up actions
     switch (baseElement.getActionsDataCase()) {
       case ACTIONS:
+        actions = baseElement.getActions();
         ViewUtils.setOnClickActions(
-            baseElement.getActions(), getView(), frameContext.getActionHandler(), frameContext);
+            actions, getView(), frameContext.getActionHandler(), frameContext);
         break;
       case ACTIONS_BINDING:
+        actions = frameContext.getActionsFromBinding(baseElement.getActionsBinding());
         ViewUtils.setOnClickActions(
-            baseElement.getActionsBinding(),
-            getView(),
-            frameContext.getActionHandler(),
-            frameContext);
+            actions, getView(), frameContext.getActionHandler(), frameContext);
         break;
       default:
+        actions = Actions.getDefaultInstance();
         ViewUtils.clearOnClickActions(getView());
     }
+    setHideActionsActive();
+  }
+
+  /** Intended to be called in onCreate when view is offscreen; sets hide actions to active. */
+  void setHideActionsActive() {
+    activeVisibilityActions.clear();
+    // Set all "hide" actions as active, since the view is currently off screen.
+    activeVisibilityActions.addAll(actions.getOnHideActionsList());
   }
 
   private void initializeOverflow(Element baseElement) {
@@ -435,5 +451,15 @@ abstract class ElementAdapter<V extends View, M> {
       default:
         throw new IllegalArgumentException(String.format("Unhandled visibility: %s", visibility));
     }
+  }
+
+  void triggerViewActions(View viewport) {
+    ViewUtils.maybeTriggerViewActions(
+        getView(),
+        viewport,
+        actions,
+        frameContext.getActionHandler(),
+        frameContext.getFrame(),
+        activeVisibilityActions);
   }
 }

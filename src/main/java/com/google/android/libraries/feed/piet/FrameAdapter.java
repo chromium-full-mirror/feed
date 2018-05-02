@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.Slice;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -60,7 +61,9 @@ public class FrameAdapter {
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
   private final HostBindingProvider hostBindingProvider;
+  private final Set<VisibilityAction> activeActions = new HashSet<>();
   /*@Nullable*/ private LinearLayout view = null;
+  /*@Nullable*/ private Frame frame = null;
 
   public FrameAdapter(
       Context context,
@@ -91,8 +94,11 @@ public class FrameAdapter {
       /*@Nullable*/ ShardingControl shardingControl,
       List<PietSharedState> pietSharedStates) {
     long startTime = System.nanoTime();
+    this.frame = frame;
     FrameContext frameContext = createFrameContext(frame, pietSharedStates);
     initialBind(parameters.parentViewSupplier.get());
+    activeActions.clear();
+    activeActions.addAll(frame.getActions().getOnHideActionsList());
     LinearLayout frameView = checkNotNull(view);
 
     try {
@@ -147,6 +153,7 @@ public class FrameAdapter {
     }
     childAdapters.clear();
     view.removeAllViews();
+    frame = null;
   }
 
   private void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
@@ -179,6 +186,19 @@ public class FrameAdapter {
         customElementProvider,
         hostBindingProvider,
         actionHandler);
+  }
+
+  public void triggerViewActions(View viewport) {
+    Frame localFrame = frame;
+    if (localFrame == null || view == null) {
+      return;
+    }
+    ViewUtils.maybeTriggerViewActions(
+        view, viewport, localFrame.getActions(), actionHandler, localFrame, activeActions);
+
+    for (ElementAdapter<?, ?> adapter : childAdapters) {
+      adapter.triggerViewActions(viewport);
+    }
   }
 
   @VisibleForTesting

@@ -99,19 +99,17 @@ class ElementListAdapter
   void bindActions(FrameContext frameContext) {
     switch (getModel().getActionsDataCase()) {
       case ACTIONS:
-        ViewUtils.setOnClickActions(
-            getModel().getActions(), getView(), frameContext.getActionHandler(), frameContext);
+        actions = getModel().getActions();
         break;
       case ACTIONS_BINDING:
-        ViewUtils.setOnClickActions(
-            getModel().getActionsBinding(),
-            getView(),
-            frameContext.getActionHandler(),
-            frameContext);
+        actions = frameContext.getActionsFromBinding(getModel().getActionsBinding());
         break;
       default:
         super.bindActions(frameContext);
+        return;
     }
+    ViewUtils.setOnClickActions(actions, getView(), frameContext.getActionHandler(), frameContext);
+    setHideActionsActive();
   }
 
   @Override
