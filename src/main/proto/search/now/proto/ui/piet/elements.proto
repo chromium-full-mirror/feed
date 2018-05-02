@@ -229,6 +229,13 @@ message Element {
   // ElementLists will appear above the earlier ones.
   repeated ElementList overlay_elements = 13 [deprecated = true];
 
+  // A list of Elements to be overlaid on top of this Element.
+  // This field is repeated to allow overlaying multiple sets of Elements with
+  // different gravity settings. The index of the Element inside the repeated
+  // field determines the order in which views will be laid out. Later Elements
+  // will appear above the earlier ones.
+  repeated Element overlay_element = 20;
+
   // Defines Actions that may be associated with the content of the Element.
   // The server is responsible for ensuring that the size of this content is
   // large enough to present a clear click target for the user.
