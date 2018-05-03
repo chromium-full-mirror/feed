@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -61,6 +62,7 @@ public class FeedRequestManager implements RequestManager {
   private final ExecutorService executor;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
+  private final MainThreadRunner mainThreadRunner;
 
   public FeedRequestManager(
       Configuration configuration,
@@ -70,7 +72,8 @@ public class FeedRequestManager implements RequestManager {
       SchedulerApi scheduler,
       ExecutorService executor,
       TimingUtils timingUtils,
-      ThreadUtils threadUtils) {
+      ThreadUtils threadUtils,
+      MainThreadRunner mainThreadRunner) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -79,6 +82,7 @@ public class FeedRequestManager implements RequestManager {
     this.executor = executor;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    this.mainThreadRunner = mainThreadRunner;
   }
 
   @Override
@@ -119,25 +123,29 @@ public class FeedRequestManager implements RequestManager {
     uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
 
     HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), HttpMethod.GET);
-    networkClient.send(
-        httpRequest,
-        input -> {
-          if (input.getResponseCode() != 200) {
-            String errorBody = null;
-            try {
-              errorBody = new String(input.getResponseBody(), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-              Logger.e(TAG, "Error handling http error logging", e);
-            }
-            Logger.e(TAG, "errorCode: %d", input.getResponseCode());
-            Logger.e(TAG, "errorResponse: %s", errorBody);
-            scheduler.onRequestError(input.getResponseCode());
-            return;
-          } else {
-            scheduler.onReceiveNewContent();
-          }
+    mainThreadRunner.execute(
+        TAG,
+        () -> {
+          networkClient.send(
+              httpRequest,
+              input -> {
+                if (input.getResponseCode() != 200) {
+                  String errorBody = null;
+                  try {
+                    errorBody = new String(input.getResponseBody(), "UTF-8");
+                  } catch (UnsupportedEncodingException e) {
+                    Logger.e(TAG, "Error handling http error logging", e);
+                  }
+                  Logger.e(TAG, "errorCode: %d", input.getResponseCode());
+                  Logger.e(TAG, "errorResponse: %s", errorBody);
+                  scheduler.onRequestError(input.getResponseCode());
+                  return;
+                } else {
+                  scheduler.onReceiveNewContent();
+                }
 
-          handleResponseBytes(input.getResponseBody(), consumer);
+                handleResponseBytes(input.getResponseBody(), consumer);
+              });
         });
   }
 

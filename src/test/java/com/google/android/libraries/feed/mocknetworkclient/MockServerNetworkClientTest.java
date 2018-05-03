@@ -24,6 +24,7 @@ import android.net.Uri;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -76,6 +77,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
           });
   private final Configuration configuration = new Configuration.Builder().build();
   private final TimingUtils timingUtils = new TimingUtils();
+  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
   @Before
   public void setUp() throws Exception {
@@ -153,7 +155,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             scheduler,
             MoreExecutors.newDirectExecutorService(),
             timingUtils,
-            threadUtils);
+            threadUtils,
+            mainThreadRunner);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -191,7 +194,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             scheduler,
             MoreExecutors.newDirectExecutorService(),
             timingUtils,
-            threadUtils);
+            threadUtils,
+            mainThreadRunner);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 

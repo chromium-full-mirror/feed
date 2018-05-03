@@ -209,7 +209,8 @@ public class FeedProcessScope implements Dumpable {
                 schedulerApi,
                 singleThreadExecutor,
                 timingUtils,
-                threadUtils);
+                threadUtils,
+                mainThreadRunner);
       }
       if (sessionManager == null) {
         sessionManager =
