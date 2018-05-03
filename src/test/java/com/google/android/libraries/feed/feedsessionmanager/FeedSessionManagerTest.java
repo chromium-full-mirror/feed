@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
-import static com.google.android.libraries.feed.api.sessionmanager.SessionManager.GLOBAL_SHARED_STATE;
 import static com.google.android.libraries.feed.api.store.Store.HEAD;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
@@ -86,6 +85,12 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedSessionManagerTest {
 
   private static final MutationContext EMPTY_MUTATION = new MutationContext.Builder().build();
+  private static final ContentId SHARED_STATE_ID =
+      ContentId.newBuilder()
+          .setContentDomain("piet-shared-state")
+          .setId(1)
+          .setTable("piet-shared-state")
+          .build();
 
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
@@ -248,8 +253,8 @@ public class FeedSessionManagerTest {
     String sharedStateId = idGenerators.createSharedStateContentId(0);
 
     populateSession(sessionManager, 3, 1, true, sharedStateId);
-    when(protocolAdapter.getStreamContentId(GLOBAL_SHARED_STATE)).thenReturn(sharedStateId);
-    assertThat(sessionManager.getSharedState(GLOBAL_SHARED_STATE)).isNotNull();
+    when(protocolAdapter.getStreamContentId(SHARED_STATE_ID)).thenReturn(sharedStateId);
+    assertThat(sessionManager.getSharedState(SHARED_STATE_ID)).isNotNull();
 
     // test the null condition
     ContentId undefinedSharedStateId =

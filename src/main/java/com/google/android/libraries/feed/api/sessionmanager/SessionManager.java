@@ -30,16 +30,6 @@ import java.util.List;
 /** The SessionManager is responsible for creating and updating sessions within Jardin. */
 public interface SessionManager {
 
-  /** The {@link ContentId} of the global Piet Shared State. */
-  // TODO: This is here until we support multiple Shared States and having them
-  // available through the ContentId.
-  ContentId GLOBAL_SHARED_STATE =
-      ContentId.newBuilder()
-          .setContentDomain("piet-shared-state")
-          .setId(1)
-          .setTable("piet-shared-state")
-          .build();
-
   /**
    * This is called by the UI to get a new session. The life of the session is controlled by the
    * Session manager. The SessionManager maintains HEAD$ which represents the most current state of

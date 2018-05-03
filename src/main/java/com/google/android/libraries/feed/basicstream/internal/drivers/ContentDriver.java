@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
-import static com.google.android.libraries.feed.api.sessionmanager.SessionManager.GLOBAL_SHARED_STATE;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
@@ -26,6 +26,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,10 +34,17 @@ import java.util.List;
 public class ContentDriver implements FeatureDriver {
 
   private static final String TAG = "ContentDriver";
+  // TODO: Remove once GWS changes adding ContentIds has propagated
+  @VisibleForTesting
+  static final ContentId GLOBAL_SHARED_STATE =
+      ContentId.newBuilder()
+          .setContentDomain("piet-shared-state")
+          .setId(1)
+          .setTable("piet-shared-state")
+          .build();
 
   private final ModelFeature contentFeatureModel;
   private final ModelProvider modelProvider;
-
   /*@Nullable*/ private ContentModel contentModel;
 
   ContentDriver(ModelFeature contentFeatureModel, ModelProvider modelProvider) {
@@ -58,21 +66,40 @@ public class ContentDriver implements FeatureDriver {
           content.hasExtension(PietContent.pietContentExtension),
           "Expected Piet content for feature");
       List<PietSharedState> pietSharedStates = new ArrayList<>();
-      StreamSharedState sharedState = modelProvider.getSharedState(GLOBAL_SHARED_STATE);
-      if (sharedState != null) {
-        pietSharedStates.add(sharedState.getPietSharedStateItem().getPietSharedState());
-      } else {
-        Logger.e(
-            TAG,
-            "Shared state was null. Stylesheets and templates on PietSharedState "
-                + "will not be loaded.");
-        return null;
+
+      PietContent pietContent = content.getExtension(PietContent.pietContentExtension);
+      if (pietContent.getPietSharedStatesList().isEmpty()) {
+        PietSharedState pietSharedState = extractPietSharedState(GLOBAL_SHARED_STATE);
+        if (pietSharedState == null) {
+          return null;
+        }
+        pietSharedStates.add(pietSharedState);
       }
-      contentModel =
-          new PietContentModel(
-              pietSharedStates, content.getExtension(PietContent.pietContentExtension));
+
+      for (ContentId contentId : pietContent.getPietSharedStatesList()) {
+        PietSharedState pietSharedState = extractPietSharedState(contentId);
+        if (pietSharedState == null) {
+          return null;
+        }
+
+        pietSharedStates.add(pietSharedState);
+      }
+      contentModel = new PietContentModel(pietSharedStates, pietContent);
     }
 
     return contentModel;
+  }
+
+  /*@Nullable*/
+  private PietSharedState extractPietSharedState(ContentId pietSharedStateId) {
+    StreamSharedState sharedState = modelProvider.getSharedState(pietSharedStateId);
+    if (sharedState != null) {
+      return sharedState.getPietSharedStateItem().getPietSharedState();
+    }
+    Logger.e(
+        TAG,
+        "Shared state was null. Stylesheets and templates on PietSharedState "
+            + "will not be loaded.");
+    return null;
   }
 }

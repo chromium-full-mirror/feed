@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.basicstream;
 
-import static com.google.android.libraries.feed.api.sessionmanager.SessionManager.GLOBAL_SHARED_STATE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -71,8 +70,9 @@ public class BasicStreamTest {
   private static final int END_PADDING = 2;
   private static final int TOP_PADDING = 3;
   private static final int BOTTOM_PADDING = 4;
+  private static final ContentId PIET_SHARED_STATE_ID = ContentId.newBuilder().setId(123L).build();
   private static final PietContent PIET_CONTENT =
-      PietContent.newBuilder().addPietSharedStates(ContentId.newBuilder().setId(123L)).build();
+      PietContent.newBuilder().addPietSharedStates(PIET_SHARED_STATE_ID).build();
   private static final StreamFeature STREAM_FEATURE_WITH_PIET_CONTENT =
       StreamFeature.newBuilder()
           .setContent(
@@ -110,7 +110,6 @@ public class BasicStreamTest {
     when(streamConfiguration.getPaddingTop()).thenReturn(TOP_PADDING);
     when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
     when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
-    when(initialModelProvider.getSharedState(GLOBAL_SHARED_STATE)).thenReturn(STREAM_SHARED_STATE);
     basicStream =
         new BasicStream(
             Robolectric.setupActivity(Activity.class),
@@ -134,6 +133,7 @@ public class BasicStreamTest {
   public void testOnSessionStart() {
     ModelFeature rootFeature = mock(ModelFeature.class);
     when(initialModelProvider.getRootFeature()).thenReturn(rootFeature);
+    when(initialModelProvider.getSharedState(PIET_SHARED_STATE_ID)).thenReturn(STREAM_SHARED_STATE);
 
     // Represents final payload which includes Piet content.
     ModelFeature pietModelFeature = mock(ModelFeature.class);

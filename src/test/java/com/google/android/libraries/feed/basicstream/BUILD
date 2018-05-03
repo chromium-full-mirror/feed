@@ -13,7 +13,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/protocoladapter",
-        "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",

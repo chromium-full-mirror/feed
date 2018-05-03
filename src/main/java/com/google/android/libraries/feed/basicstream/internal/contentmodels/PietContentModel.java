@@ -58,4 +58,9 @@ public class PietContentModel implements ContentModel {
   public PietContent getPietContent() {
     return pietContent;
   }
+
+  @VisibleForTesting
+  public List<PietSharedState> getPietSharedStates() {
+    return pietSharedStates;
+  }
 }
