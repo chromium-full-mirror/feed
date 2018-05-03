@@ -34,9 +34,4 @@ message FeedResponse {
   // DataOperations are applied on the client in order in which they are
   // received.
   repeated DataOperation data_operation = 1;
-
-  // Indicates the last position of content. For responses where continuation
-  // requests are expect from the client, such as infinite feed.
-  // Deprecated: Use Token to represent the next page token
-  optional bytes next_page_token = 2 [deprecated = true];
 }
