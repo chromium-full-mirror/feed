@@ -36,9 +36,12 @@ import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Stream;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
+import com.google.search.now.wire.feed.FeatureProto.Feature;
+import com.google.search.now.wire.feed.FeatureProto.Feature.RenderableUnit;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import com.google.search.now.wire.feed.ResponseProto.Response;
+import com.google.search.now.wire.feed.TokenProto.Token;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +51,6 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   private static final String TAG = "FeedProtocolAdapter";
 
   private final TimingUtils timingUtils;
-  private int nextTokenId = 1;
 
   // Operation counts for #dump(Dumpable)
   private int responseHandlingCount = 0;
@@ -74,23 +76,6 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       return Result.failure();
     }
     List<StreamDataOperation> streamDataOperations = result.getValue();
-
-    // if there is a continuation token it should be the last thing added to the root.
-    ByteString newContinuationToken =
-        response.getExtension(FeedResponse.feedResponse).getNextPageToken();
-    if (newContinuationToken != null && !newContinuationToken.isEmpty()) {
-      String contentId =
-          createContentId(
-              ContentId.newBuilder()
-                  .setContentDomain("token")
-                  .setId(nextTokenId++)
-                  .setTable("feature")
-                  .build());
-      StreamToken streamToken =
-          Validators.checkNotNull(createStreamToken(contentId, newContinuationToken));
-      streamDataOperations.add(
-          createTokenDataOperation(contentId, streamToken.getParentId(), streamToken).build());
-    }
     return Result.success(streamDataOperations);
   }
 
@@ -129,32 +114,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       }
 
       if (operation.hasFeature()) {
-        StreamFeature.Builder streamFeature = StreamFeature.newBuilder();
-        streamFeature.setContentId(contentId);
-        String parentId = null;
-        if (operation.getFeature().hasParentId()) {
-          parentId = createContentId(operation.getFeature().getParentId());
-          streamFeature.setParentId(parentId);
-        }
-        switch (operation.getFeature().getRenderableUnit()) {
-          case STREAM:
-            streamFeature.setStream(operation.getFeature().getExtension(Stream.streamExtension));
-            break;
-          case CARD:
-            streamFeature.setCard(operation.getFeature().getExtension(Card.cardExtension));
-            break;
-          case CONTENT:
-            streamFeature.setContent(operation.getFeature().getExtension(Content.contentExtension));
-            break;
-          case CLUSTER:
-            streamFeature.setCluster(operation.getFeature().getExtension(Cluster.clusterExtension));
-            break;
-          default:
-            throw new RuntimeException("Unknown feature payload");
-        }
-        streamDataOperations.add(
-            createFeatureDataOperation(streamOperation, contentId, parentId, streamFeature.build())
-                .build());
+        handleFeatureOperation(operation, contentId, streamDataOperations);
       } else if (operation.hasPietSharedState()) {
         PietSharedStateItem item =
             PietSharedStateItem.newBuilder()
@@ -181,21 +141,67 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     return Result.success(streamDataOperations);
   }
 
+  private void handleFeatureOperation(
+      DataOperation operation, String contentId, List<StreamDataOperation> streamDataOperations) {
+    Operation streamOperation = Operation.forNumber(operation.getOperation().getNumber());
+    StreamFeature.Builder streamFeature = StreamFeature.newBuilder();
+    streamFeature.setContentId(contentId);
+    String parentId = null;
+    if (operation.getFeature().hasParentId()) {
+      parentId = createContentId(operation.getFeature().getParentId());
+      streamFeature.setParentId(parentId);
+    }
+    if (operation.getFeature().getRenderableUnit() == RenderableUnit.TOKEN) {
+      Feature feature = operation.getFeature();
+      if (feature.hasExtension(Token.tokenExtension)) {
+        // Create a StreamToken operation
+        Token token = feature.getExtension(Token.tokenExtension);
+        StreamToken streamToken =
+            Validators.checkNotNull(
+                createStreamToken(contentId, parentId, token.getNextPageToken()));
+        streamDataOperations.add(
+            createTokenDataOperation(contentId, streamToken.getParentId(), streamToken).build());
+      } else {
+        Logger.e(TAG, "Extension not found for TOKEN");
+      }
+    } else {
+      // Create a StreamFeature operation
+      switch (operation.getFeature().getRenderableUnit()) {
+        case STREAM:
+          streamFeature.setStream(operation.getFeature().getExtension(Stream.streamExtension));
+          break;
+        case CARD:
+          streamFeature.setCard(operation.getFeature().getExtension(Card.cardExtension));
+          break;
+        case CONTENT:
+          streamFeature.setContent(operation.getFeature().getExtension(Content.contentExtension));
+          break;
+        case CLUSTER:
+          streamFeature.setCluster(operation.getFeature().getExtension(Cluster.clusterExtension));
+          break;
+        case TOKEN:
+          // handled above...
+        default:
+          // TODO: This should be handled and we should return a result.
+          Logger.e(TAG, "Unknown Feature payload %s", operation.getFeature().getRenderableUnit());
+          throw new RuntimeException("Unknown feature payload");
+      }
+      streamDataOperations.add(
+          createFeatureDataOperation(streamOperation, contentId, parentId, streamFeature.build())
+              .build());
+    }
+  }
+
   /*@Nullable*/
-  private StreamToken createStreamToken(String tokenId, ByteString continuationToken) {
+  private StreamToken createStreamToken(
+      String tokenId, /*@Nullable*/ String parentId, ByteString continuationToken) {
     if (continuationToken.isEmpty()) {
       return null;
     }
     StreamToken.Builder tokenBuilder = StreamToken.newBuilder();
-    // TODO: This needs to be the real root id.  How do we get the root id?
-    String rootContentId =
-        createContentId(
-            ContentId.newBuilder()
-                .setContentDomain("stream_root")
-                .setId(0)
-                .setTable("feature")
-                .build());
-    tokenBuilder.setParentId(rootContentId);
+    if (parentId != null) {
+      tokenBuilder.setParentId(parentId);
+    }
     tokenBuilder.setContentId(tokenId);
     tokenBuilder.setNextPageToken(continuationToken);
     return tokenBuilder.build();

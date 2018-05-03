@@ -82,9 +82,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final Map<String, Session> sessions = new HashMap<>();
 
   @GuardedBy("lock")
-  private final Map<String, StreamDataOperation> tokenMap = new HashMap<>();
-
-  @GuardedBy("lock")
   private final ContentCache contentCache;
 
   private final SessionFactory sessionFactory;
@@ -546,7 +543,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       dumper.forKey("handleTokenCount").value(handleTokenCount).compactPrevious();
       dumper.forKey("sharedStateCount").value(sharedStateCache.size());
       dumper.forKey("sessionCount").value(sessions.size()).compactPrevious();
-      dumper.forKey("tokenCount").value(tokenMap.size()).compactPrevious();
       dumper.dump(contentCache);
       for (Session session : sessions.values()) {
         if (session instanceof Dumpable) {
@@ -744,12 +740,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             // don't add StreamSharedState to the metadata list stored for sessions
             streamStructures.add(dataOperation.getStreamStructure());
             contentMutation.add(contentId, payload);
-            if (payload.hasStreamToken()) {
-              // Track the tokens so we can create the remove operations in a future response
-              synchronized (lock) {
-                tokenMap.put(payload.getStreamToken().getContentId(), dataOperation);
-              }
-            }
           } else {
             Logger.e(TAG, "Unsupported UPDATE_OR_APPEND payload");
           }
@@ -821,20 +811,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     /*@Nullable*/
     private StreamStructure addTokenRemoveOperation(StreamToken token) {
-      // We need to add a mutation to remove the stream token from the structure.
-      String tokenId = token.getContentId();
-      synchronized (lock) {
-        StreamDataOperation dataOperation = tokenMap.get(tokenId);
-        if (dataOperation != null) {
-          tokenMap.remove(tokenId);
-          StreamStructure.Builder structureBuilder = dataOperation.getStreamStructure().toBuilder();
-          structureBuilder.setOperation(Operation.REMOVE);
-          return structureBuilder.build();
-        } else {
-          Logger.e(TAG, "Unable to find StreamDataOperation for Token %s", tokenId);
-          return null;
-        }
-      }
+      return StreamStructure.newBuilder()
+          .setContentId(token.getContentId())
+          .setParentContentId(token.getParentId())
+          .setOperation(Operation.REMOVE)
+          .build();
     }
   }
 

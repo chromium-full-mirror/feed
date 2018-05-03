@@ -19,6 +19,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -58,6 +59,13 @@ public class ModelChildBinder {
     sessionManager.getStreamFeatures(
         contentIds,
         payloads -> {
+          if (contentIds.size() > payloads.size()) {
+            Logger.e(
+                TAG,
+                "Didn't find all of the unbound content, found %s, expected %s",
+                payloads.size(),
+                contentIds.size());
+          }
           for (PayloadWithId childPayload : payloads) {
             String key = childPayload.contentId;
             UpdatableModelChild child = bindingChildren.get(key);

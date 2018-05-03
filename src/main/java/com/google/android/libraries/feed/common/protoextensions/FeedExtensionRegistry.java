@@ -25,6 +25,7 @@ import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
+import com.google.search.now.wire.feed.TokenProto;
 
 /**
  * Creates and initializes the proto extension registry, adding feed-internal extensions as well as
@@ -48,6 +49,7 @@ public class FeedExtensionRegistry {
     extensionRegistry.add(PietContent.pietContentExtension);
     extensionRegistry.add(PietFeedActionPayload.pietFeedActionPayloadExtension);
     extensionRegistry.add(StreamStructureProto.Stream.streamExtension);
+    extensionRegistry.add(TokenProto.Token.tokenExtension);
 
     // Call the host and add all the extensions it uses.
     for (GeneratedExtension<?, ?> extension : extensionProvider.getProtoExtensions()) {

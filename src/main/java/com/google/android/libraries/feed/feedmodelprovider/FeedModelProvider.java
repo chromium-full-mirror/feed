@@ -404,7 +404,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
               childrenToBind,
               (bindingCount) -> {
                 if (bindingCount != childrenToBind.size()) {
-                  Logger.w(TAG, "Not all children added were bound");
+                  Logger.e(TAG, "Not all children added were bound");
                 }
                 mutationHandler.postMutation();
               });
@@ -540,9 +540,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       // For FEATURE children, add the remove to the mutation handler to create the
       // StreamFeatureChange.  We skip this for TOKENS.
       String childKey = removeChild.getContentId();
-      UpdatableModelChild targetChild =
-          Validators.checkNotNull(
-              contents.get(childKey), "Child not found in the ModelProvider contents");
+      UpdatableModelChild targetChild = contents.get(childKey);
+      if (targetChild == null) {
+        Logger.e(TAG, "Child %s not found in the ModelProvider contents", childKey);
+        return;
+      }
       if (targetChild.getType() == Type.FEATURE) {
         Logger.i(TAG, "Removing a child");
         mutationHandler.removeChild(parentKey, targetChild);

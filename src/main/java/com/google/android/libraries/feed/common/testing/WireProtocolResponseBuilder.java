@@ -25,6 +25,7 @@ import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
 import com.google.search.now.wire.feed.PayloadMetadataProto.PayloadMetadata;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
+import com.google.search.now.wire.feed.TokenProto.Token;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +41,8 @@ public class WireProtocolResponseBuilder {
           .setTable("feature")
           .build();
   private static final int CONTENT_ID_CARD_INCREMENT = 100;
+  private static final ContentId TOKEN_CONTENT_ID =
+      ContentId.newBuilder().setContentDomain("token").setId(0).setTable("token").build();
 
   public static ContentId createFeatureContentId(int id) {
     return ContentId.newBuilder().setContentDomain("feature").setId(id).setTable("feature").build();
@@ -48,6 +51,7 @@ public class WireProtocolResponseBuilder {
   private final WireProtocolInfo wireProtocolInfo = new WireProtocolInfo();
   private final FeedResponse.Builder feedResponseBuilder = FeedResponse.newBuilder();
 
+  private int tokenId = 0;
   /*@Nullable*/ private ByteString token = null;
 
   /** Add a CLEAR_ALL data operation to the response */
@@ -58,8 +62,9 @@ public class WireProtocolResponseBuilder {
     return this;
   }
 
-  public WireProtocolResponseBuilder addStreamToken(ByteString token) {
+  public WireProtocolResponseBuilder addStreamToken(int tokenId, ByteString token) {
     this.token = token;
+    this.tokenId = tokenId;
     wireProtocolInfo.hasToken = true;
     return this;
   }
@@ -176,11 +181,28 @@ public class WireProtocolResponseBuilder {
 
   public Response build() {
     if (token != null) {
-      feedResponseBuilder.setNextPageToken(token);
+      addToken(tokenId, token);
     }
     return Response.newBuilder()
         .setExtension(FeedResponse.feedResponse, feedResponseBuilder.build())
         .build();
+  }
+
+  private void addToken(int tokenId, ByteString token) {
+    PayloadMetadata payloadMetadata =
+        PayloadMetadata.newBuilder()
+            .setContentId(createNewContentId(TOKEN_CONTENT_ID, tokenId))
+            .build();
+    Feature.Builder featureBuilder =
+        Feature.newBuilder().setRenderableUnit(RenderableUnit.TOKEN).setParentId(ROOT_CONTENT_ID);
+    Token wireToken = Token.newBuilder().setNextPageToken(token).build();
+    featureBuilder.setExtension(Token.tokenExtension, wireToken);
+    feedResponseBuilder.addDataOperation(
+        DataOperation.newBuilder()
+            .setOperation(Operation.UPDATE_OR_APPEND)
+            .setFeature(featureBuilder.build())
+            .setMetadata(payloadMetadata)
+            .build());
   }
 
   public WireProtocolInfo getWireProtocolInfo() {

@@ -153,7 +153,7 @@ public class FeedProtocolAdapterTest {
   public void testContinuationToken_nextPageToken() {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     ByteString tokenForMutation = ByteString.copyFrom("token", Charset.defaultCharset());
-    Response response = responseBuilder.addStreamToken(tokenForMutation).build();
+    Response response = responseBuilder.addStreamToken(1, tokenForMutation).build();
 
     Result<List<StreamDataOperation>> results = protocolAdapter.createModel(response);
     assertThat(results.isSuccessful()).isTrue();

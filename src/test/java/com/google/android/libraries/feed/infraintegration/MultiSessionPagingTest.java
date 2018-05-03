@@ -186,7 +186,7 @@ public class MultiSessionPagingTest {
     for (ContentId contentId : cards) {
       responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
     }
-    responseBuilder.addStreamToken(token);
+    responseBuilder.addStreamToken(1, token);
     return responseBuilder;
   }
 
