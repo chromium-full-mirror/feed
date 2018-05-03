@@ -104,7 +104,6 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public Result<List<PayloadWithId>> getPayloads(List<String> contentIds) {
     threadUtils.checkNotMainThread();
-
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<PayloadWithId> payloads = new ArrayList<>(contentIds.size());
     try {
@@ -140,6 +139,7 @@ public class FeedStore implements Store, Dumpable {
 
   @Override
   public Result<List<StreamSharedState>> getSharedStates() {
+    threadUtils.checkNotMainThread();
     SimpleSettableFuture<Result<List<byte[]>>> sharedStatesFuture = new SimpleSettableFuture<>();
     mainThreadRunner.execute(
         TAG,
@@ -179,7 +179,6 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public Result<List<StreamStructure>> getStreamStructures(StreamSession session) {
     threadUtils.checkNotMainThread();
-
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamStructure> streamStructures;
     try {
@@ -365,7 +364,6 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public void removeSession(StreamSession session) {
     threadUtils.checkNotMainThread();
-
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     if (session.getStreamToken().equals(HEAD.getStreamToken())) {
       // TODO: What type of exception should this throw?
@@ -390,7 +388,6 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public void clearHead() {
     threadUtils.checkNotMainThread();
-
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
     // While journal storage is async, we want FeedStore calls to be synchronous (for now)
@@ -415,23 +412,25 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public ContentMutation editContent() {
     threadUtils.checkNotMainThread();
-
     return new FeedContentMutation(this::commitContentMutation);
   }
 
   @Override
   public SessionMutation editSession(StreamSession streamSession) {
+    threadUtils.checkNotMainThread();
     return new FeedSessionMutation(
         feedSessionMutation -> commitSessionMutation(streamSession, feedSessionMutation));
   }
 
   @Override
   public SemanticPropertiesMutation editSemanticProperties() {
+    threadUtils.checkNotMainThread();
     return new FeedSemanticPropertiesMutation(this::commitSemanticPropertiesMutation);
   }
 
   @Override
   public ActionMutation editActions() {
+    threadUtils.checkNotMainThread();
     return new FeedActionMutation(this::commitActionMutation);
   }
 
