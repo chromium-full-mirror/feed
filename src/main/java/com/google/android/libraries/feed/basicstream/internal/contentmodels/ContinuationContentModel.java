@@ -18,24 +18,24 @@ import static com.google.android.libraries.feed.basicstream.internal.viewholders
 
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 
 /** {@link ContentModel} to render a more button in a {@link RecyclerView}. */
 public class ContinuationContentModel implements ContentModel {
 
-  private final TokenHandler tokenHandler;
+  private final ModelProvider modelProvider;
   private final ModelToken token;
 
-  public ContinuationContentModel(TokenHandler tokenHandler, ModelToken token) {
-    this.tokenHandler = tokenHandler;
+  public ContinuationContentModel(ModelProvider tokenHandler, ModelToken token) {
+    this.modelProvider = tokenHandler;
     this.token = token;
   }
 
   @Override
   public void bind(ViewHolder viewHolder) {
-    ((ContinuationViewHolder) viewHolder).bind(click -> tokenHandler.requestTokenHandling(token));
+    ((ContinuationViewHolder) viewHolder).bind(click -> modelProvider.handleToken(token));
   }
 
   @Override

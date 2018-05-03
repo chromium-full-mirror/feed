@@ -14,8 +14,6 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
-import static com.google.android.libraries.feed.common.Validators.checkState;
-
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -25,7 +23,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
 import com.google.android.libraries.feed.common.logging.Logger;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,18 +32,15 @@ public class StreamDriver {
 
   private static final String TAG = "StreamDriver";
   private final ThreadUtils threadUtils;
-  private final TokenHandler tokenHandler;
   private final ModelProvider modelProvider;
-  /*@Nullable*/ private final ModelFeature streamFeature;
 
   /*@Nullable*/ private List<FeatureDriver> featureDrivers;
 
-  public StreamDriver(
-      ModelProvider modelProvider, ThreadUtils threadUtils, TokenHandler tokenHandler) {
-    this.modelProvider = modelProvider;
-    this.streamFeature = modelProvider.getRootFeature();
+  /*@Nullable*/ private StreamContentListener contentListener;
+
+  public StreamDriver(ModelProvider modelProvider, ThreadUtils threadUtils) {
     this.threadUtils = threadUtils;
-    this.tokenHandler = tokenHandler;
+    this.modelProvider = modelProvider;
   }
 
   /**
@@ -55,24 +49,24 @@ public class StreamDriver {
    */
   public List<ContentModel> getContentModels() {
     if (featureDrivers == null) {
-      featureDrivers = createChildren(streamFeature, tokenHandler);
+      featureDrivers = createChildren(modelProvider.getRootFeature(), modelProvider);
     }
 
     return buildContentModels(featureDrivers);
   }
 
   private List<FeatureDriver> createChildren(
-      /*@Nullable*/ ModelFeature streamFeature, TokenHandler tokenHandler) {
-    checkState(featureDrivers == null);
-
+      /*@Nullable*/ ModelFeature streamFeature, ModelProvider modelProvider) {
     if (streamFeature == null) {
       Logger.i(TAG, "Root feature is null so returning empty content models.");
       return new ArrayList<>();
     }
-    return createChildren(streamFeature.getCursor(), tokenHandler);
+
+    return createChildren(streamFeature.getCursor(), modelProvider);
   }
 
-  private List<FeatureDriver> createChildren(ModelCursor streamCursor, TokenHandler tokenHandler) {
+  private List<FeatureDriver> createChildren(
+      ModelCursor streamCursor, ModelProvider modelProvider) {
     List<FeatureDriver> children = new ArrayList<>();
     ModelChild child;
     while ((child = streamCursor.getNextItem()) != null) {
@@ -87,7 +81,7 @@ public class StreamDriver {
         case Type.TOKEN:
           ModelToken modelToken = child.getModelToken();
           ContinuationDriver continuationDriver =
-              createContinuationDriver(tokenHandler, modelToken);
+              createContinuationDriver(modelProvider, modelToken);
           children.add(continuationDriver);
 
           // TODO: Place the observing of the token in the ContinuationDriver.
@@ -108,10 +102,18 @@ public class StreamDriver {
                 }
                 featureDrivers.remove(continuationIndex);
 
-                featureDrivers.addAll(
-                    continuationIndex, createChildren(tokenCompleted.getCursor(), tokenHandler));
+                if (contentListener != null) {
+                  contentListener.notifyContentRemoved(continuationIndex);
+                }
+                List<FeatureDriver> tokenFeatureDrivers =
+                    createChildren(tokenCompleted.getCursor(), modelProvider);
 
-                tokenHandler.tokenConsumed();
+                featureDrivers.addAll(continuationIndex, tokenFeatureDrivers);
+
+                if (contentListener != null) {
+                  contentListener.notifyContentsAdded(
+                      continuationIndex, buildContentModels(tokenFeatureDrivers));
+                }
               });
           break;
         case Type.UNBOUND:
@@ -161,7 +163,21 @@ public class StreamDriver {
   }
 
   @VisibleForTesting
-  ContinuationDriver createContinuationDriver(TokenHandler tokenHandler, ModelToken modelToken) {
-    return new ContinuationDriver(tokenHandler, modelToken);
+  ContinuationDriver createContinuationDriver(ModelProvider modelProvider, ModelToken modelToken) {
+    return new ContinuationDriver(modelProvider, modelToken);
+  }
+
+  public void setStreamContentListener(/*@Nullable*/ StreamContentListener contentListener) {
+    this.contentListener = contentListener;
+  }
+
+  /** Allows listening for changes in the contents held by a {@link StreamDriver} */
+  public interface StreamContentListener {
+
+    /** Called when the given content has been added at the given index of stream content. */
+    void notifyContentsAdded(int index, List<ContentModel> newContents);
+
+    /** Called when the content at the given index of stream content has been removed. */
+    void notifyContentRemoved(int index);
   }
 }

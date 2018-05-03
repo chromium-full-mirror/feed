@@ -14,34 +14,34 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
-import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
 
 /** {@link FeatureDriver} for the more button. */
 public class ContinuationDriver implements FeatureDriver {
 
   private final ModelToken modelToken;
-  private final TokenHandler tokenHandlerArgument;
+  private final ModelProvider modelProvider;
   /*@Nullable*/ private ContinuationContentModel continuationContentModel;
 
-  ContinuationDriver(TokenHandler tokenHandler, ModelToken modelToken) {
-    this.tokenHandlerArgument = tokenHandler;
+  ContinuationDriver(ModelProvider modelProvider, ModelToken modelToken) {
+    this.modelProvider = modelProvider;
     this.modelToken = modelToken;
   }
 
   @Override
   public ContentModel getContentModel() {
     if (continuationContentModel == null) {
-      continuationContentModel = createContinuationContentModel(tokenHandlerArgument, modelToken);
+      continuationContentModel = createContinuationContentModel(modelProvider, modelToken);
     }
 
     return continuationContentModel;
   }
 
   ContinuationContentModel createContinuationContentModel(
-      TokenHandler tokenHandler, ModelToken modelToken) {
+      ModelProvider tokenHandler, ModelToken modelToken) {
     return new ContinuationContentModel(tokenHandler, modelToken);
   }
 }

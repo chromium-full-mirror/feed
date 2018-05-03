@@ -17,10 +17,10 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
-import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +34,7 @@ public class ContinuationDriverTest {
       new ContinuationContentModel(null, null);
 
   @Mock private ModelToken modelToken;
-  @Mock private TokenHandler tokenHandler;
+  @Mock private ModelProvider modelProvider;
 
   private ContinuationDriverForTest continuationDriver;
 
@@ -43,7 +43,7 @@ public class ContinuationDriverTest {
     initMocks(this);
 
     continuationDriver =
-        new ContinuationDriverForTest(tokenHandler, modelToken, CONTINUATION_CONTENT_MODEL);
+        new ContinuationDriverForTest(modelProvider, modelToken, CONTINUATION_CONTENT_MODEL);
   }
 
   @Test
@@ -52,7 +52,7 @@ public class ContinuationDriverTest {
 
     assertThat(continuationContentModel).isEqualTo(CONTINUATION_CONTENT_MODEL);
     assertThat(continuationDriver.modelTokenArgument).isEqualTo(modelToken);
-    assertThat(continuationDriver.tokenHandlerArgument).isEqualTo(tokenHandler);
+    assertThat(continuationDriver.modelProviderArgument).isEqualTo(modelProvider);
   }
 
   @Test
@@ -65,21 +65,21 @@ public class ContinuationDriverTest {
   private class ContinuationDriverForTest extends ContinuationDriver {
 
     private ContinuationContentModel continuationContentModel;
-    private TokenHandler tokenHandlerArgument;
+    private ModelProvider modelProviderArgument;
     private ModelToken modelTokenArgument;
 
     ContinuationDriverForTest(
-        TokenHandler tokenHandler,
+        ModelProvider modelProvider,
         ModelToken modelToken,
         ContinuationContentModel continuationContentModel) {
-      super(tokenHandler, modelToken);
+      super(modelProvider, modelToken);
       this.continuationContentModel = continuationContentModel;
     }
 
     @Override
     ContinuationContentModel createContinuationContentModel(
-        TokenHandler tokenHandler, ModelToken modelToken) {
-      this.tokenHandlerArgument = tokenHandler;
+        ModelProvider tokenHandler, ModelToken modelToken) {
+      this.modelProviderArgument = tokenHandler;
       this.modelTokenArgument = modelToken;
       return continuationContentModel;
     }

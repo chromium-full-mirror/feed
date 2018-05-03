@@ -22,7 +22,6 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/contentmodels",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/piet",
-        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/util",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
         "//src/main/java/com/google/android/libraries/feed/common/time",

@@ -29,8 +29,9 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
+import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
+import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
@@ -58,6 +59,7 @@ public class StreamDriverTest {
   @Mock private ContinuationDriver continuationDriver;
   @Mock private ClusterDriver clusterDriver;
   @Mock private CardDriver cardDriver;
+  @Mock private StreamContentListener contentListener;
 
   @Captor private ArgumentCaptor<TokenCompletedObserver> tokenCompletedObserverCaptor;
 
@@ -65,21 +67,15 @@ public class StreamDriverTest {
   public void setup() {
     initMocks(this);
     ThreadUtils threadUtils = new ThreadUtils();
-    TokenHandler tokenHandler =
-        new TokenHandler() {
-          @Override
-          public void tokenConsumed() {}
-
-          @Override
-          public void requestTokenHandling(ModelToken token) {}
-        };
 
     when(continuationDriver.getContentModel()).thenReturn(continuationContentModel);
     when(clusterDriver.getContentModel()).thenReturn(clusterContentModel);
     when(cardDriver.getContentModel()).thenReturn(cardContentModel);
     when(modelProvider.getRootFeature()).thenReturn(streamFeature);
 
-    streamDriver = new StreamDriverForTest(modelProvider, threadUtils, tokenHandler);
+    streamDriver = new StreamDriverForTest(modelProvider, threadUtils);
+
+    streamDriver.setStreamContentListener(contentListener);
   }
 
   @Test
@@ -95,52 +91,52 @@ public class StreamDriverTest {
   @Test
   public void testContinuationToken_tokenHandling() {
     FakeModelCursor cursorWithToken = new FakeCursorBuilder().addToken().build();
-    when(streamFeature.getCursor()).thenReturn(cursorWithToken);
+    FakeModelCursor tokenPayloadCursor = new FakeCursorBuilder().addCluster().build();
 
-    // Causes StreamDriver to build a list of children based on the children from the cursor.
-    streamDriver.getContentModels();
+    List<ContentModel> finalContentModels =
+        new TokenHandlingTestBuilder()
+            .setInitialCursor(cursorWithToken)
+            .setTokenIndex(0)
+            .setTokenPayloadCursor(tokenPayloadCursor)
+            .run();
 
-    ModelToken token = cursorWithToken.getChildAt(0).getModelToken();
-
-    verify(token).registerObserver(tokenCompletedObserverCaptor.capture());
-
-    // Indicates the token has been successfully handled by the ModelProvider, leading to adding
-    // children from the token's cursor.
-    tokenCompletedObserverCaptor
-        .getValue()
-        .onChange(new TokenCompleted(new FakeCursorBuilder().addCluster().build()));
-
-    List<ContentModel> contentModels = streamDriver.getContentModels();
-    assertThat(contentModels).hasSize(1);
-    assertThat(contentModels.get(0)).isEqualTo(clusterContentModel);
+    assertThat(finalContentModels).hasSize(1);
+    assertThat(finalContentModels.get(0)).isEqualTo(clusterContentModel);
 
     // If the above two assertions pass, this is also guaranteed to pass. This is just to explicitly
     // check that the continuationContentModel has been removed.
-    assertThat(contentModels).doesNotContain(continuationContentModel);
+    assertThat(finalContentModels).doesNotContain(continuationContentModel);
+  }
+
+  @Test
+  public void testContinuationToken_tokenHandling_notifiesObservers() {
+    FakeModelCursor cursorWithToken = new FakeCursorBuilder().addToken().build();
+    FakeModelCursor tokenPayloadCursor = new FakeCursorBuilder().addCluster().build();
+
+    new TokenHandlingTestBuilder()
+        .setInitialCursor(cursorWithToken)
+        .setTokenIndex(0)
+        .setTokenPayloadCursor(tokenPayloadCursor)
+        .run();
+
+    verify(contentListener).notifyContentRemoved(0);
+    verify(contentListener).notifyContentsAdded(0, Lists.newArrayList(clusterContentModel));
   }
 
   @Test
   public void testContinuationToken_tokenChildrenAddedAtTokenPosition() {
     FakeModelCursor streamCursor = new FakeCursorBuilder().addCluster().addToken().build();
-    when(streamFeature.getCursor()).thenReturn(streamCursor);
+    FakeModelCursor tokenPayloadCursor = new FakeCursorBuilder().addCluster().addToken().build();
 
-    List<ContentModel> contentModels = streamDriver.getContentModels();
-    assertThat(contentModels).hasSize(2);
-    assertThat(contentModels).containsExactly(clusterContentModel, continuationContentModel);
+    List<ContentModel> finalContentModels =
+        new TokenHandlingTestBuilder()
+            .setInitialCursor(streamCursor)
+            .setTokenIndex(1)
+            .setTokenPayloadCursor(tokenPayloadCursor)
+            .run();
 
-    ModelToken token = streamCursor.getChildAt(1).getModelToken();
-
-    verify(token).registerObserver(tokenCompletedObserverCaptor.capture());
-
-    // Indicates the token has been successfully handled by the ModelProvider, leading to adding
-    // children from the token's cursor.
-    tokenCompletedObserverCaptor
-        .getValue()
-        .onChange(new TokenCompleted(new FakeCursorBuilder().addCluster().addToken().build()));
-
-    contentModels = streamDriver.getContentModels();
-    assertThat(contentModels).hasSize(3);
-    assertThat(contentModels)
+    assertThat(finalContentModels).hasSize(3);
+    assertThat(finalContentModels)
         .containsExactly(clusterContentModel, clusterContentModel, continuationContentModel);
   }
 
@@ -148,28 +144,18 @@ public class StreamDriverTest {
   public void testContinuationToken_tokenChildrenAddedAtTokenPosition_tokenNotAtEnd() {
     FakeModelCursor streamCursor =
         new FakeCursorBuilder().addCluster().addToken().addCluster().build();
-    when(streamFeature.getCursor()).thenReturn(streamCursor);
+    FakeModelCursor tokenPayloadCursor =
+        new FakeCursorBuilder().addCluster().addCard().addCluster().build();
 
-    List<ContentModel> contentModels = streamDriver.getContentModels();
-    assertThat(contentModels).hasSize(3);
-    assertThat(contentModels)
-        .containsExactly(clusterContentModel, continuationContentModel, clusterContentModel);
+    List<ContentModel> finalContentModels =
+        new TokenHandlingTestBuilder()
+            .setInitialCursor(streamCursor)
+            .setTokenIndex(1)
+            .setTokenPayloadCursor(tokenPayloadCursor)
+            .run();
 
-    ModelToken token = streamCursor.getChildAt(1).getModelToken();
-
-    verify(token).registerObserver(tokenCompletedObserverCaptor.capture());
-
-    // Indicates the token has been successfully handled by the ModelProvider, leading to adding
-    // children from the token's cursor.
-    tokenCompletedObserverCaptor
-        .getValue()
-        .onChange(
-            new TokenCompleted(
-                new FakeCursorBuilder().addCluster().addCard().addCluster().build()));
-
-    contentModels = streamDriver.getContentModels();
-    assertThat(contentModels).hasSize(5);
-    assertThat(contentModels)
+    assertThat(finalContentModels).hasSize(5);
+    assertThat(finalContentModels)
         .containsExactly(
             clusterContentModel,
             clusterContentModel,
@@ -180,13 +166,13 @@ public class StreamDriverTest {
 
   private class StreamDriverForTest extends StreamDriver {
 
-    StreamDriverForTest(
-        ModelProvider modelProvider, ThreadUtils threadUtils, TokenHandler tokenHandler) {
-      super(modelProvider, threadUtils, tokenHandler);
+    StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils) {
+      super(modelProvider, threadUtils);
     }
 
     @Override
-    ContinuationDriver createContinuationDriver(TokenHandler tokenHandler, ModelToken modelToken) {
+    ContinuationDriver createContinuationDriver(
+        ModelProvider modelProvider, ModelToken modelToken) {
       return continuationDriver;
     }
 
@@ -246,6 +232,45 @@ public class StreamDriverTest {
 
     public FakeModelCursor build() {
       return new FakeModelCursor(cursorChildren);
+    }
+  }
+
+  private class TokenHandlingTestBuilder {
+
+    private FakeModelCursor initialCursor;
+    private FakeModelCursor payloadCursor;
+    private int tokenIndex;
+
+    public TokenHandlingTestBuilder setInitialCursor(FakeModelCursor initialCursor) {
+      this.initialCursor = initialCursor;
+      return this;
+    }
+
+    public TokenHandlingTestBuilder setTokenPayloadCursor(FakeModelCursor initialCursor) {
+      this.payloadCursor = initialCursor;
+      return this;
+    }
+
+    public TokenHandlingTestBuilder setTokenIndex(int tokenIndex) {
+      this.tokenIndex = tokenIndex;
+      return this;
+    }
+
+    public List<ContentModel> run() {
+      when(streamFeature.getCursor()).thenReturn(initialCursor);
+
+      // Causes StreamDriver to build a list of children based on the children from the cursor.
+      streamDriver.getContentModels();
+
+      ModelToken token = initialCursor.getChildAt(tokenIndex).getModelToken();
+
+      verify(token).registerObserver(tokenCompletedObserverCaptor.capture());
+
+      // Indicates the token has been successfully handled by the ModelProvider, leading to adding
+      // children from the token's cursor.
+      tokenCompletedObserverCaptor.getValue().onChange(new TokenCompleted(payloadCursor));
+
+      return streamDriver.getContentModels();
     }
   }
 }

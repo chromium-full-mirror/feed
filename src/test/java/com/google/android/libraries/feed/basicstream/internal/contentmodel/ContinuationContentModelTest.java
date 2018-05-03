@@ -18,9 +18,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.view.View.OnClickListener;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
-import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,14 +35,14 @@ public class ContinuationContentModelTest {
 
   @Mock private ModelToken token;
   @Mock private ContinuationViewHolder viewHolder;
-  @Mock private TokenHandler fakeTokenHandler;
+  @Mock private ModelProvider modelProvider;
 
   private ContinuationContentModel continuationContentModel;
 
   @Before
   public void setUp() {
     initMocks(this);
-    continuationContentModel = new ContinuationContentModel(fakeTokenHandler, token);
+    continuationContentModel = new ContinuationContentModel(modelProvider, token);
   }
 
   @Test
@@ -56,7 +56,7 @@ public class ContinuationContentModelTest {
 
     clickListenerCaptor.getValue().onClick(null);
 
-    verify(fakeTokenHandler).requestTokenHandling(token);
+    verify(modelProvider).handleToken(token);
   }
 
   @Test

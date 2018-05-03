@@ -29,19 +29,15 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
-import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietHostBindingProvider;
-import com.google.android.libraries.feed.basicstream.internal.util.TokenHandler;
-import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -73,8 +69,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private StreamConfiguration streamConfiguration;
   private StreamRecyclerViewAdapter adapter;
   private StreamDriver streamDriver;
-
-  /*@Nullable*/ private StreamTokenHandler streamTokenHandler;
 
   public BasicStream(
       Context context,
@@ -214,19 +208,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   private void updateAdapter(ModelProvider modelProvider) {
-    if (streamTokenHandler != null) {
-      // Prevents a previous StreamDriver from successfully interacting with the TokenHandler
-      streamTokenHandler.disable();
-      streamTokenHandler = null;
-    }
+    streamDriver = new StreamDriver(modelProvider, threadUtils);
 
-    streamTokenHandler = new StreamTokenHandler();
-    streamDriver = new StreamDriver(modelProvider, threadUtils, streamTokenHandler);
-
-    List<ContentModel> contentModels = streamDriver.getContentModels();
-
-    Logger.i(TAG, "updateAdapter - New Features: %s", contentModels.size());
-    adapter.setContentModels(contentModels);
+    adapter.setDriver(streamDriver);
   }
 
   @Override
@@ -245,32 +229,5 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @Override
   public void onRootSet() {
     // TODO: Handle onRootSet
-  }
-
-  private class StreamTokenHandler implements TokenHandler {
-
-    private boolean enabled;
-
-    StreamTokenHandler() {
-      enabled = true;
-    }
-
-    @Override
-    public void tokenConsumed() {
-      if (enabled) {
-        adapter.setContentModels(streamDriver.getContentModels());
-      }
-    }
-
-    @Override
-    public void requestTokenHandling(ModelToken token) {
-      if (enabled) {
-        modelProvider.handleToken(token);
-      }
-    }
-
-    public void disable() {
-      enabled = true;
-    }
   }
 }

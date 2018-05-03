@@ -26,6 +26,8 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
+import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
+import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -36,15 +38,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** A RecyclerView adapter which can show a list of views with Piet Stream features. */
-public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
+public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
+    implements StreamContentListener {
   private static final String TAG = "StreamRecyclerViewAdapt";
 
   private final Context context;
   private final CardConfiguration cardConfiguration;
   private final PietManager pietManager;
-  // TODO: convert to ModelChild so the adapter can properly add a spinner
   private final List<ContentModel> contentModels;
   private final List<View> headers;
+  /*@Nullable*/ private StreamDriver streamDriver;
 
   // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
   @SuppressWarnings("initialization")
@@ -157,18 +160,36 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
     notifyDataSetChanged();
   }
 
-  public void setContentModels(List<ContentModel> newContentModels) {
-    contentModels.clear();
-    addContentModels(newContentModels);
-  }
+  public void setDriver(StreamDriver newStreamDriver) {
+    if (streamDriver != null) {
+      streamDriver.setStreamContentListener(null);
+    }
 
-  public void addContentModels(List<ContentModel> newContentModels) {
-    contentModels.addAll(newContentModels);
+    contentModels.clear();
+
+    newStreamDriver.setStreamContentListener(this);
+    contentModels.addAll(newStreamDriver.getContentModels());
+
+    streamDriver = newStreamDriver;
     notifyDataSetChanged();
   }
 
-  static class HeaderViewHolder extends ViewHolder {
+  @Override
+  public void notifyContentsAdded(int index, List<ContentModel> newContents) {
+    contentModels.addAll(index, newContents);
 
+    int insertionIndex = headers.size() + index;
+    notifyItemRangeInserted(insertionIndex, newContents.size());
+  }
+
+  @Override
+  public void notifyContentRemoved(int index) {
+    int removalIndex = headers.size() + index;
+    contentModels.remove(index);
+    notifyItemRemoved(removalIndex);
+  }
+
+  static class HeaderViewHolder extends ViewHolder {
     private final FrameLayout frameLayout;
 
     public HeaderViewHolder(FrameLayout itemView) {
@@ -176,5 +197,4 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> 
       this.frameLayout = itemView;
     }
   }
-
 }
