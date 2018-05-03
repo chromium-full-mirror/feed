@@ -35,7 +35,6 @@ option cc_enable_arenas = true;
 // Style to be used on Elements that define only the style_id. This is filled
 // with the content of the style whose key is given on the element.
 message InlineStyle {
-
   optional Style style = 1;
 
   // Indicates if the current style has block attributes (for example, border,
@@ -76,7 +75,6 @@ message InlineStyle {
 
 // Information for easier embeding of styles from StylesIdsStack.
 message StyleIdsStackHelper {
-
   // Whether The element that holds this StyleIdsStack should be rendered, but
   // not visible (opacity == 0).
   optional bool is_invisible = 1;
@@ -92,7 +90,6 @@ message StyleIdsStackHelper {
 // Information for easier creation of CSS styles from the definitions in the
 // Style message.
 message CssStyleHelper {
-
   // String represention of the foreground color (e.g. for text or any other
   // foreground element). color in CSS format.
   // For example: 'rgba(255,100,50,1.0)', 'red', '#CCDDEE'
@@ -130,7 +127,6 @@ message CssStyleHelper {
 // Information for easier creation of CSS styles from the definitions in the
 // Border message.
 message CssBorderHelper {
-
   // String represention of border, in CSS format.
   // For example: '1px solid black', '1px', '1px dotted #CCDDEE'
   optional string css_border = 1;
@@ -143,7 +139,6 @@ message CssBorderHelper {
 // Information for easier creation of CSS styles from the definitions in the
 // Border message.
 message CssRoundedCornersHelper {
-
   // String representation of the rounded corners, in CSS format. This is the
   // string that is given to the "border-radius" CSS attribute.
   // For example: "5px", '5px 20px', '10px 20px 30px'.

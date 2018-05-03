@@ -25,7 +25,6 @@ option cc_enable_arenas = true;
 
 // Represents a Fill to be used for a Piet element.
 message Fill {
-
   // A fill can be either a solid color or a gradient.
   oneof fill_type {
     // A solid color fill. Colors are ARGB.
@@ -38,7 +37,6 @@ message Fill {
 
 // A linear gradient interpolates the given color stops linearly.
 message LinearGradient {
-
   // Multiple stops for this gradient. A valid gradient must have at least
   // two stops, one at position 0 and another at position 100.
   repeated ColorStop stops = 1;
@@ -59,7 +57,6 @@ message LinearGradient {
 // endpoints. More complex gradients can be achieved by inserting more color
 // stops into the list.
 message ColorStop {
-
   // ARGB color of the color stop.
   optional fixed32 color = 1;
 

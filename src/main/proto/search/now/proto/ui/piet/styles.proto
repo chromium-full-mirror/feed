@@ -46,7 +46,6 @@ option cc_enable_arenas = true;
 // After the style_ids are merged, in case a bound_style is given, its values
 // override the ones produced by the merge.
 message StyleIdsStack {
-
   // Style IDs that are proto-merged in order from first to last.
   repeated string style_ids = 1;
 
@@ -60,7 +59,6 @@ message StyleIdsStack {
 
 // A collection of attributes describing an element’s visual properties.
 message Style {
-
   // Every style must have a name that is unique within the StyleSheet. But
   // don’t go overboard in naming these with namespaced constructs because
   // longer strings lead to more bytes on the wire.
@@ -144,7 +142,6 @@ message Style {
 // PLEASE NOTE: Field names inside this message should bear the exact same names
 //     as their counterparts in the Style message.
 message BoundStyle {
-
   // See comments for Style.color.
   optional fixed32 color = 1;
 
@@ -156,7 +153,6 @@ message BoundStyle {
 // consistency, feature authors are highly encouraged to use Fonts as part of a
 // Style, instead of applying font definitions to individual elements.
 message Font {
-
   // The size of the text in scaled pixels (sp). For devices with a scaling
   // factor of 1.0, this size is equivalent to display pixels.
   // Certain OS-level accessibility features allow users to increase/decrease
@@ -178,7 +174,6 @@ message Font {
   // normal or italic. Not all weights may be supported by every typeface or
   // every platform; see [INTERNAL LINK]
   enum FontWeight {
-
     // Unspecified font weight.
     FONT_WEIGHT_UNSPECIFIED = 0;
 
@@ -225,7 +220,6 @@ message Font {
 
 // Definition of a Border.
 message Border {
-
   // The color of the border.
   optional fixed32 color = 1;
 
@@ -238,7 +232,6 @@ message Border {
 
 // A set of four Borders for all four edges of a view.
 message Borders {
-
   // Top border.
   optional Border top = 1;
 
@@ -255,7 +248,6 @@ message Borders {
 // A set of four values for widths of the edges of a view, used for
 // paddings/margins.
 message EdgeWidths {
-
   // Top boundary.
   optional uint32 top = 1;
 

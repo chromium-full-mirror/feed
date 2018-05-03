@@ -39,7 +39,6 @@ option cc_enable_arenas = true;
 // ERR_MISSING_BINDING_VALUE is raised.
 
 message CustomBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 
@@ -48,7 +47,6 @@ message CustomBindingRef {
 }
 
 message ParameterizedTextBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 
@@ -57,7 +55,6 @@ message ParameterizedTextBindingRef {
 }
 
 message ChunkedTextBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 
@@ -77,13 +74,11 @@ message ImageBindingRef {
 // GridCellWidthBindings are always optional. If not provided, the default is
 // [width.weight = 1].
 message GridCellWidthBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 }
 
 message ElementListBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 
@@ -93,13 +88,11 @@ message ElementListBindingRef {
 
 // VED binding references are always optional.
 message VedBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 }
 
 message TemplateBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 
@@ -109,14 +102,12 @@ message TemplateBindingRef {
 
 // Actions binding references are always optional.
 message ActionsBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 }
 
 // Style binding references are always optional.
 message StyleBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 }

@@ -79,7 +79,6 @@ option cc_enable_arenas = true;
 // within a Frame. Each frame defines the contents displayed to the user as a
 // single view, which may contain a complex set of child views.
 message Frame {
-
   // A string tag for the frame, currently used for debugging purposes. Need not
   // be unique.
   optional string tag = 1;
@@ -145,7 +144,6 @@ message Frame {
 // Style, it is looked up in the Stylesheet within scope. If the style cannot be
 // found, ERR_MISSING_STYLES is raised.
 message Stylesheet {
-
   // A string uniquely identifying this Stylesheet within the PietSharedState in
   // which it is used. If two Stylesheets with the same stylesheet_id are found
   // in a PietSharedState, ERR_DUPLICATE_STYLESHEET is raised. This
@@ -162,7 +160,6 @@ message Stylesheet {
 // elements using bound data. For example, table rows with different values, or
 // GridCells with different data values.
 message Template {
-
   // A unique identifier for this template. If two Templates with the same
   // template_id are found in a PietSharedState, ERR_DUPLICATE_TEMPLATE is
   // raised.
@@ -198,7 +195,6 @@ message Template {
 // State shared among multiple Frame instances. This is a top-level object,
 // defined outside individual Frame instances.
 message PietSharedState {
-
   // Stylesheet definitions that can be reused across Frames.
   // Stylesheet.stylesheet_id must be unique within the List, otherwise
   // ERR_DUPLICATE_STYLESHEET is raised.

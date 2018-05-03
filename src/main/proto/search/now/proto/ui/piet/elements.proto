@@ -31,7 +31,6 @@ option cc_enable_arenas = true;
 
 // A slice is an abstract representation of a horizontal Element.
 message Slice {
-
   // The content within this Slice.
   oneof slice_instance {
     // The slice is an ElementList.
@@ -44,8 +43,7 @@ message Slice {
 
 // A list of Elements defining UI elements.
 message ElementList {
-
-  // The ui elements in the list
+  // The UI elements in the list.
   repeated Element elements = 1;
 
   // Vertical gravity of the elements in the list. All the elements in the list
@@ -81,7 +79,6 @@ message ElementList {
 // will create one or more slices. Invocation from a GridCell will create one or
 // more GridCells.
 message TemplateInvocation {
-
   // The Template to be used.
   optional string template_id = 1;
 
@@ -102,7 +99,6 @@ message TemplateInvocation {
 // the container, and the container height is not specified explicitly. In that
 // case, the Element and the container both get the height of the content.
 message Element {
-
   // The specific content represented by this Element.
   oneof elements {
     // A custom view that Piet knows nothing about. Servers can use this message
@@ -271,7 +267,6 @@ message Element {
 
 // Defines the behavior for elements that don't fit in the view
 enum OverflowBehavior {
-
   // Unspecified value, will default to OVERFLOW_HIDDEN.
   OVERFLOW_UNSPECIFIED = 0;
 
@@ -284,7 +279,6 @@ enum OverflowBehavior {
 
 // Specifies gravity on the horizontal axis.
 enum GravityHorizontal {
-
   GRAVITY_HORIZONTAL_UNSPECIFIED = 0;
 
   // Align with the start side (left in LTR layouts)
@@ -299,7 +293,6 @@ enum GravityHorizontal {
 
 // Specifies gravity on the vertical axis.
 enum GravityVertical {
-
   GRAVITY_VERTICAL_UNSPECIFIED = 0;
 
   // Align with the top side
@@ -319,7 +312,6 @@ enum GravityVertical {
 // hierarchy at the proper position. If no renderer for this CustomElement can
 // be found at runtime, ERR_CUSTOM_ELEMENT_RENDERER_MISSING is raised.
 message CustomElement {
-
   // Styles applied to this CustomElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 1;
@@ -339,7 +331,6 @@ message CustomElement {
 
 // A simple text line (Android TextView, iOS UILabel, or HTML <div>).
 message TextElement {
-
   // Styles applied to this TextElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 1;
@@ -369,7 +360,6 @@ message TextElement {
 
 // An Image which is displayed as a horizontal slice within a parent container.
 message ImageElement {
-
   // Styles applied to this ImageElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 1;
@@ -392,7 +382,6 @@ message ImageElement {
 // within a card. Styles can be set on a spacer, e.g. background_color, but
 // no bindings are supported since it is always empty.
 message SpacerElement {
-
   // Styles applied to this SpacerElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 1;
@@ -406,7 +395,6 @@ message SpacerElement {
 
 // A GridRow is a grid structure forming a horizontal slice.
 message GridRow {
-
   // Styles applied to this GridRow.
   optional StyleIdsStack style_references = 1;
 
@@ -422,7 +410,6 @@ message GridRow {
 // than the height of the GridCell, it'll be center aligned vertically.
 // Next available ID: 7
 message GridCell {
-
   // The cell content.
   oneof cell_content {
     // Allow a binding of an ElementList.
@@ -474,7 +461,6 @@ message GridCell {
 
 // A grid cell width can be expressed in either DP or as a weight.
 message GridCellWidth {
-
   // The width specification.
   oneof width_spec {
     // The width of the cell expressed as DP.
@@ -490,7 +476,6 @@ message GridCellWidth {
 // `binding_id` are found within the same binding context,
 // ERR_DUPLICATE_BINDING_VALUE is raised.
 message BindingContext {
-
   // The set of all bindings for a Template.
   repeated BindingValue binding_values = 1;
 }
@@ -498,7 +483,6 @@ message BindingContext {
 // A BindingValue is a name/value pair which provides a value to be substituted
 // wherever the specified `binding_id` is defined in the Template.
 message BindingValue {
-
   // The name of the binding within the Template where this BindingValue should
   // be substituted. Must be unique within a binding context.
   optional string binding_id = 1;
@@ -542,7 +526,6 @@ message BindingValue {
 
   // Controls the visibility of the UI element corresponding to this binding.
   enum Visibility {
-
     VISIBILITY_UNSPECIFIED = 0;
 
     // By default, every element is visible. If set to VISIBLE, at least one of
@@ -589,7 +572,6 @@ message BindingValue {
 // Data to be displayed in a CustomElement. Clients using Piet should add
 // extensions to this proto to pass their custom data to CustomElements.
 message CustomElementData {
-
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 }
@@ -599,7 +581,6 @@ message CustomElementData {
 // binding reference.  Client using Piet should add extensions to this proto to
 // pass their host specific data needed to fulfill the binding reference.
 message HostBindingData {
-
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 }

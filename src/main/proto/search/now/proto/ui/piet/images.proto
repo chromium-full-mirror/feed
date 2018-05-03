@@ -27,7 +27,6 @@ option cc_enable_arenas = true;
 // Specific features like tinting might only be applicable to specific types
 // of Images, e.g. icons only.
 message Image {
-
   // Image sources are `repeated` so that a feature author can specify multiple
   // image sources in the order that they should be attempted to be fetched.
   // Clients can go through the list until they find one they wish to fetch,
@@ -41,7 +40,6 @@ message Image {
 
   // The type of scaling to apply.
   enum ScaleType {
-
     // When scale type is unspecified, we err on the side of preserving all
     // areas of the image, so this is equivalent to CENTER_INSIDE.
     SCALE_TYPE_UNSPECIFIED = 0;
@@ -83,7 +81,6 @@ message Image {
 // This enables clients to choose which image to fetch based on the expected
 // width and height, without actually having to fetch it first.
 message ImageSource {
-
   // URLs can be "https://" or "asset://".
   // HTTPS URLs can be fetched by a regular network communication library.
   // Asset URLs can be fetched by implementation-specific asset helpers.

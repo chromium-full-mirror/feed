@@ -26,7 +26,6 @@ option cc_enable_arenas = true;
 
 // Defines accessibility related attributes for Piet elements.
 message Accessibility {
-
   // A string that may be spoken by the system. (TalkBack on Android, VoiceOver
   // on iOS, browser on Web)
   optional ParameterizedText description = 1;
@@ -38,7 +37,6 @@ message Accessibility {
 
 // Semantic roles played by a UI element related to accessibility.
 enum AccessibilityRole {
-
   // No special role. The default value, maps to 0.
   ACCESSIBILITY_ROLE_UNSPECIFIED = 0;
 

@@ -31,7 +31,6 @@ option cc_enable_arenas = true;
 // full Card message.
 // TODO: Is this still relevant?
 message ShardingControl {
-
   // The first slice to render, if this is undefined we will render the
   // full card.
   optional int32 start_slice = 1;

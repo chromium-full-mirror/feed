@@ -32,7 +32,6 @@ option cc_enable_arenas = true;
 // appropriate. Clients will build a string at runtime by combining the
 // parameterized string with the values of the evaluated parameters.
 message ParameterizedText {
-
   // A string that may (but need not always) include placeholders for
   // parameters.
   //
@@ -64,7 +63,6 @@ message ParameterizedText {
   // particular, if the value can be determined on the server, it should be
   // inlined in the string on the server.
   message Parameter {
-
     // The parameter type.
     oneof parameter_types {
       // An absolute timestamp in seconds since the Unix epoch.
@@ -93,7 +91,6 @@ message ParameterizedText {
 // worst case real-world distance expressed in this format is ~1-4 meters at the
 // equator.
 message Location {
-
   // Latitude for this location.
   optional double latitude = 1;
 
@@ -111,7 +108,6 @@ message Location {
 // [[chunk a] [image] [chunk]]
 // [[b]]
 message ChunkedText {
-
   // The set of chunks that compose this chunked text.
   repeated Chunk chunks = 1;
 }
@@ -119,7 +115,6 @@ message ChunkedText {
 // A single region of content within a ChunkedText. A chunk can either be
 // composed of an image or a styled text chunk.
 message Chunk {
-
   // The content of the Chunk.
   oneof content {
     // A styled piece of text content.
@@ -145,7 +140,6 @@ message Chunk {
 
 // A single region of image content that has a particular style applied to it.
 message StyledImageChunk {
-
   // Styles applied to this chunk.
   optional StyleIdsStack style_references = 1;
 
@@ -164,7 +158,6 @@ message StyledImageChunk {
 
 // A single region of text content that has styles applied to it.
 message StyledTextChunk {
-
   // Styles applied to this chunk.
   optional StyleIdsStack style_references = 1;
 

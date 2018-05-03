@@ -28,7 +28,6 @@ option cc_enable_arenas = true;
 // support a subset of the methodologies, and will ignore the ones it does not
 // support. See [INTERNAL LINK]
 message Shadow {
-
   // BoxShadow definition. Supported by the web client.
   optional BoxShadow box_shadow = 1;
 }
@@ -36,7 +35,6 @@ message Shadow {
 // Defines a box shadow, as described in the CSS spec:
 // https://developer.mozilla.org/en-US/do[INTERNAL LINK]/CSS/box-shadow.
 message BoxShadow {
-
   // Defines the horizontal offset of the shadow.
   //  * A positive value puts the shadow on the right side of the box (does not
   //    flip in RTL presentation).

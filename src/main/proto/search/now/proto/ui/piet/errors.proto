@@ -85,7 +85,6 @@ extend google.protobuf.EnumValueOptions {
 //   E.g. AGSA Stable, AGSA Alpha, AGSA Beta, Chrome Stable, Chrome Beta, Chrome
 //   Dev, Chrome Canary.
 enum ErrorLevel {
-
   // UNKNOWN is used when it is not possible to detect a particular kind of
   // error, but is needed as a proto option. E.g. detecting a poor frame rate is
   // not possible server-side, so `server_error = UNKNOWN` is appropriate for
@@ -116,7 +115,6 @@ enum ErrorLevel {
 }
 
 enum ErrorCode {
-
   // Not to be used for real errors; this only exists because proto enums must
   // have a default value.
   ERR_UNSPECIFIED = 0 [

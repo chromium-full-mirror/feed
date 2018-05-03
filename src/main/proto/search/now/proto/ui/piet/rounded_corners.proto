@@ -31,7 +31,6 @@ option cc_enable_arenas = true;
 // Check [INTERNAL LINK] for any client-specific limitations that apply to the
 // current version of the implementation.
 message RoundedCorners {
-
   // Represents the set of values for a bitmask to specify which corners should
   // be rounded. Values start at top-left and continue clock-wise.
   enum Corners {

@@ -27,7 +27,6 @@ option cc_enable_arenas = true;
 // Actions consistent among multiple UI elements, they’re all defined in a
 // dedicated message.
 message Actions {
-
   // Action to be executed when the user taps (clicks) on a UI element.
   optional Action on_click_action = 1;
 
@@ -71,7 +70,6 @@ message Actions {
 // a suggestion chip. All Actions should be defined as extensions, don’t define
 // fields in this proto directly.
 message Action {
-
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 }
@@ -79,7 +77,6 @@ message Action {
 // Actions that trigger based on the proportion of the parent Element that is
 // visible.
 message VisibilityAction {
-
   // Proportion of the view that should be visible for this action to trigger
   // [0.0 to 1.0]
   // Defaults to 1.0 to make this an "on full view" action.
