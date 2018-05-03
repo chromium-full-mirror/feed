@@ -14,14 +14,11 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-import com.google.android.libraries.feed.common.functional.Consumer;
 
 /**
  * This represents a Cursor through the children of a {@link ModelFeature}. A Cursor will provide
  * forward only access to the children of the container. When a cursor is created by calling {@link
- * ModelFeature#getCursor()}, it is positioned at the first child. Access to the next child is done
- * through the {@link Consumer} interface. The interface provides a method which will process the
- * next child.
+ * ModelFeature#getCursor()}, it is positioned at the first child.
  */
 public interface ModelCursor {
   /** Returns the next {@link ModelChild} in the cursor or {@code null} if at end. */
