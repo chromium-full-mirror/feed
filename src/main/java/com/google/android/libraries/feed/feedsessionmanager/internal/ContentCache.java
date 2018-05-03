@@ -73,7 +73,8 @@ public class ContentCache implements Dumpable {
     if (value != null) {
       hitCount++;
     } else {
-      Logger.w(TAG, "Mutation Cache didn't contain item %s", key);
+      // This is expected on startup.
+      Logger.d(TAG, "Mutation Cache didn't contain item %s", key);
     }
     return value;
   }
