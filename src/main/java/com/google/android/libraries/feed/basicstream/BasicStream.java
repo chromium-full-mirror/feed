@@ -185,10 +185,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public boolean isChildAtPositionVisible(int position) {
-    return checkNotNull(recyclerView.getLayoutManager())
-            .findViewByPosition(position)
-            .getVisibility()
-        == View.VISIBLE;
+    View childView = checkNotNull(recyclerView.getLayoutManager()).findViewByPosition(position);
+    return childView != null && childView.getVisibility() == View.VISIBLE;
   }
 
   @Override
