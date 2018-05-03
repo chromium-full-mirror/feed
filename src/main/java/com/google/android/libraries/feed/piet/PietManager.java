@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 /** Manages a top-level session of Piet. */
 public class PietManager {
 
-  private final ActionHandler actionHandler;
   private final AssetProvider assetProvider;
   private final DebugBehavior debugBehavior;
   private final CustomElementProvider customElementProvider;
@@ -37,9 +36,7 @@ public class PietManager {
   public PietManager(
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
-      ActionHandler actionHandler,
       CustomElementProvider customElementProvider) {
-    this.actionHandler = actionHandler;
     this.debugBehavior = debugBehavior;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
@@ -49,10 +46,8 @@ public class PietManager {
   public PietManager(
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
-      ActionHandler actionHandler,
       CustomElementProvider customElementProvider,
       HostBindingProvider hostBindingProvider) {
-    this.actionHandler = actionHandler;
     this.debugBehavior = debugBehavior;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
@@ -60,7 +55,9 @@ public class PietManager {
   }
 
   public FrameAdapter createPietFrameAdapter(
-      Supplier</*@Nullable*/ ViewGroup> cardViewProducer, Context context) {
+      Supplier</*@Nullable*/ ViewGroup> cardViewProducer,
+      ActionHandler actionHandler,
+      Context context) {
     AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
 
     return new FrameAdapter(

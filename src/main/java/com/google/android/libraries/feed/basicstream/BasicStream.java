@@ -33,7 +33,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
-import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
@@ -63,6 +62,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final ThreadUtils threadUtils;
   private final PietManager pietManager;
   private final ModelProviderFactory modelProviderFactory;
+  private final ActionParser actionParser;
+  private final ActionApi actionApi;
+  private final ActionManager actionManager;
 
   private ModelProvider modelProvider;
   private Context context;
@@ -92,12 +94,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
         new PietManager(
             debugBehavior,
             new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
-            (action, frame, view, veLoggingToken) ->
-                actionParser.parseAction(
-                    action,
-                    new StreamActionApiImpl(context, actionApi, actionParser, actionManager),
-                    view,
-                    veLoggingToken),
             new PietCustomElementProvider(context, customElementProvider),
             new PietHostBindingProvider(hostBindingProvider));
     recyclerView = new RecyclerView(context);
@@ -106,12 +102,17 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.headers = headers;
     this.modelProviderFactory = modelProviderFactory;
     this.streamConfiguration = streamConfiguration;
+    this.actionParser = actionParser;
+    this.actionApi = actionApi;
+    this.actionManager = actionManager;
   }
 
   @Override
   public void onCreate(/*@Nullable*/ Bundle savedInstanceState) {
     // TODO: Implement save/restore.
-    adapter = new StreamRecyclerViewAdapter(context, cardConfiguration, pietManager);
+    adapter =
+        new StreamRecyclerViewAdapter(
+            context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
     adapter.setHeaders(headers);
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);

@@ -15,18 +15,27 @@
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
+import com.google.android.libraries.feed.piet.PietManager;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import java.util.ArrayList;
@@ -47,7 +56,11 @@ public class PietViewHolderTest {
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private FrameAdapter frameAdapter;
+  @Mock private ActionParser actionParser;
+  @Mock private PietManager pietManager;
+  @Mock private StreamActionApiImpl streamActionApi;
 
+  private Context context;
   private PietViewHolder pietViewHolder;
   private FrameLayout frameLayout;
   private final List<PietSharedState> pietSharedStates = new ArrayList<>();
@@ -55,14 +68,22 @@ public class PietViewHolderTest {
   @Before
   public void setUp() {
     initMocks(this);
-    frameLayout = new FrameLayout(Robolectric.setupActivity(Activity.class));
+    context = Robolectric.setupActivity(Activity.class);
+    frameLayout = new FrameLayout(context);
+    when(pietManager.createPietFrameAdapter(
+            any(Supplier.class), any(ActionHandler.class), eq(context)))
+        .thenReturn(frameAdapter);
+    when(frameAdapter.getFrameContainer()).thenReturn(new LinearLayout(context));
+
+    pietViewHolder =
+        new PietViewHolder(
+            cardConfiguration, frameLayout, pietManager, context, streamActionApi, actionParser);
   }
 
   @Test
   public void testBind_clearsPadding() {
     frameLayout.setPadding(1, 2, 3, 4);
 
-    pietViewHolder = new PietViewHolder(cardConfiguration, frameLayout, frameAdapter);
     pietViewHolder.bind(Frame.getDefaultInstance(), pietSharedStates);
 
     assertThat(frameLayout.getPaddingLeft()).isEqualTo(0);
@@ -76,7 +97,6 @@ public class PietViewHolderTest {
     ColorDrawable redBackground = new ColorDrawable(Color.RED);
     when(cardConfiguration.getCardBackground()).thenReturn(redBackground);
 
-    pietViewHolder = new PietViewHolder(cardConfiguration, frameLayout, frameAdapter);
     pietViewHolder.bind(Frame.getDefaultInstance(), pietSharedStates);
 
     assertThat(frameLayout.getBackground()).isEqualTo(redBackground);
@@ -86,7 +106,6 @@ public class PietViewHolderTest {
   public void testBind_setsTheming() {
     when(cardConfiguration.getCardBottomPadding()).thenReturn((float) CARD_BOTTOM_PADDING);
 
-    pietViewHolder = new PietViewHolder(cardConfiguration, frameLayout, frameAdapter);
     pietViewHolder.bind(Frame.getDefaultInstance(), pietSharedStates);
 
     assertThat(((MarginLayoutParams) pietViewHolder.itemView.getLayoutParams()).bottomMargin)
@@ -95,7 +114,6 @@ public class PietViewHolderTest {
 
   @Test
   public void testBind_bindsModel() {
-    pietViewHolder = new PietViewHolder(cardConfiguration, frameLayout, frameAdapter);
     pietViewHolder.bind(Frame.getDefaultInstance(), pietSharedStates);
 
     verify(frameAdapter)
@@ -104,11 +122,11 @@ public class PietViewHolderTest {
 
   @Test
   public void testBind_onlyBindsOnce() {
-    pietViewHolder = new PietViewHolder(cardConfiguration, frameLayout, frameAdapter);
     pietViewHolder.bind(Frame.getDefaultInstance(), pietSharedStates);
 
     verify(frameAdapter)
         .bindModel(Frame.getDefaultInstance(), /* shardingControl= */ null, pietSharedStates);
+    verify(frameAdapter).getFrameContainer();
 
     pietViewHolder.bind(Frame.getDefaultInstance(), pietSharedStates);
 
@@ -117,7 +135,6 @@ public class PietViewHolderTest {
 
   @Test
   public void testUnbind() {
-    pietViewHolder = new PietViewHolder(cardConfiguration, frameLayout, frameAdapter);
     pietViewHolder.bind(Frame.getDefaultInstance(), pietSharedStates);
 
     pietViewHolder.unbind();

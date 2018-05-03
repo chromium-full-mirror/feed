@@ -64,13 +64,13 @@ public class PietManagerTest {
         new PietManager(
             DebugBehavior.VERBOSE,
             assetProvider,
-            actionHandler,
             customElementProvider);
   }
 
   @Test
   public void testCreatePietFrameAdapter() {
-    FrameAdapter frameAdapter = pietManager.createPietFrameAdapter(cardViewSupplier, context);
+    FrameAdapter frameAdapter =
+        pietManager.createPietFrameAdapter(cardViewSupplier, actionHandler, context);
     assertThat(frameAdapter.getParameters().parentViewSupplier).isEqualTo(cardViewSupplier);
   }
 

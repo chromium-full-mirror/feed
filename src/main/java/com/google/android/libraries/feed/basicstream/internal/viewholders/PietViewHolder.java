@@ -14,11 +14,15 @@
 
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
+import com.google.android.libraries.feed.piet.PietManager;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
@@ -35,11 +39,22 @@ public class PietViewHolder extends ViewHolder {
   private boolean bound;
 
   public PietViewHolder(
-      CardConfiguration cardConfiguration, FrameLayout cardView, FrameAdapter frameAdapter) {
+      CardConfiguration cardConfiguration,
+      FrameLayout cardView,
+      PietManager pietManager,
+      Context context,
+      StreamActionApi streamActionApi,
+      ActionParser actionParser) {
     super(cardView);
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;
-    this.frameAdapter = frameAdapter;
+    this.frameAdapter =
+        pietManager.createPietFrameAdapter(
+            () -> cardView,
+            (action, frame, view, veLoggingToken) ->
+                actionParser.parseAction(action, streamActionApi, view, veLoggingToken),
+            context);
+    cardView.addView(frameAdapter.getFrameContainer());
   }
 
   public void bind(Frame frame, List<PietSharedState> pietSharedStates) {

@@ -25,14 +25,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
-import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +47,9 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
   private final Context context;
   private final CardConfiguration cardConfiguration;
   private final PietManager pietManager;
+  private final ActionParser actionParser;
+  private final ActionApi actionApi;
+  private final ActionManager actionManager;
   private final List<ContentModel> contentModels;
   private final List<View> headers;
   /*@Nullable*/ private StreamDriver streamDriver;
@@ -52,10 +57,18 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
   // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
   @SuppressWarnings("initialization")
   public StreamRecyclerViewAdapter(
-      Context context, CardConfiguration cardConfiguration, PietManager pietManager) {
+      Context context,
+      CardConfiguration cardConfiguration,
+      PietManager pietManager,
+      ActionParser actionParser,
+      ActionApi actionApi,
+      ActionManager actionManager) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
+    this.actionParser = actionParser;
+    this.actionApi = actionApi;
+    this.actionManager = actionManager;
     headers = new ArrayList<>();
     contentModels = new ArrayList<>();
     setHasStableIds(true);
@@ -76,9 +89,10 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
     }
 
     FrameLayout cardView = new FrameLayout(context);
-    FrameAdapter frameAdapter = pietManager.createPietFrameAdapter(() -> cardView, context);
-    cardView.addView(frameAdapter.getFrameContainer());
-    return new PietViewHolder(cardConfiguration, cardView, frameAdapter);
+    StreamActionApiImpl streamActionApi =
+        new StreamActionApiImpl(context, actionApi, actionParser, actionManager);
+    return new PietViewHolder(
+        cardConfiguration, cardView, pietManager, context, streamActionApi, actionParser);
   }
 
   @Override

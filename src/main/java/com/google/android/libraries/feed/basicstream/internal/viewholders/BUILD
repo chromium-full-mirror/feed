@@ -8,6 +8,8 @@ android_library(
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/actionparser",
+        "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/proto/search/now/proto/ui/piet:piet_java_proto_lite",

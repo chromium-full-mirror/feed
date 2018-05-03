@@ -29,15 +29,19 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
+import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +69,9 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private ContentModel initialContentModel;
   @Mock private ContentModel contentModel1;
   @Mock private ContentModel contentModel2;
+  @Mock private ActionParser actionParser;
+  @Mock private ActionApi actionApi;
+  @Mock private ActionManager actionManager;
 
   private Context context;
   private List<View> headers;
@@ -81,7 +88,8 @@ public class StreamRecyclerViewAdapterTest {
 
     when(cardConfiguration.getCardBottomPadding()).thenReturn((float) CARD_BOTTOM_PADDING);
 
-    when(pietManager.createPietFrameAdapter(any(Supplier.class), eq(context)))
+    when(pietManager.createPietFrameAdapter(
+            any(Supplier.class), any(ActionHandler.class), eq(context)))
         .thenReturn(frameAdapter);
     when(frameAdapter.getFrameContainer()).thenReturn(frameContainer);
 
@@ -93,7 +101,8 @@ public class StreamRecyclerViewAdapterTest {
       headers.add(new View(context));
     }
     streamRecyclerViewAdapter =
-        new StreamRecyclerViewAdapter(context, cardConfiguration, pietManager);
+        new StreamRecyclerViewAdapter(
+            context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
     streamRecyclerViewAdapter.setHeaders(headers);
 
     when(driver.getContentModels()).thenReturn(Lists.newArrayList(initialContentModel));
