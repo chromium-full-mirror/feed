@@ -37,8 +37,6 @@ message FeedResponse {
 
   // Indicates the last position of content. For responses where continuation
   // requests are expect from the client, such as infinite feed.
-  // TODO: We probably need a message for these that includes the
-  // contentId of the thing which is being paged.  At the moment, this only
-  // supports paging on the top-level stream.
-  optional bytes next_page_token = 2;
+  // Deprecated: Use Token to represent the next page token
+  optional bytes next_page_token = 2 [deprecated = true];
 }

@@ -38,6 +38,7 @@ message Feature {
     CARD = 2;
     CONTENT = 3;
     CLUSTER = 4;
+    TOKEN = 5;
   }
   optional RenderableUnit renderable_unit = 2;
 
