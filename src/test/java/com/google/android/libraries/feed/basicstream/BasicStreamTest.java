@@ -25,12 +25,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.os.Build.VERSION_CODES;
 import android.view.View;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
 import com.google.android.libraries.feed.common.testing.FakeClock;
@@ -91,6 +93,8 @@ public class BasicStreamTest {
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private ModelProvider initialModelProvider;
   @Mock private ModelProvider modelProvider;
+  @Mock private ActionManager actionManager;
+  @Mock private ProtocolAdapter protocolAdapter;
 
   private final List<View> headers = new ArrayList<>();
   private final ThreadUtils threadUtils = new ThreadUtils();
@@ -121,7 +125,8 @@ public class BasicStreamTest {
             headers,
             new FakeClock(),
             modelProviderFactory,
-            new HostBindingProvider());
+            new HostBindingProvider(),
+            actionManager);
     basicStream.onCreate(null);
   }
 

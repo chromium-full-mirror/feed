@@ -25,7 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.Menu;
 import android.view.View;
-import android.widget.PopupMenu;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
@@ -46,7 +46,6 @@ import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
-import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowPopupMenu;
 
 /** Tests for {@link StreamActionApiImpl}. */
@@ -105,7 +104,7 @@ public class StreamActionApiImplTest {
 
   @Mock private ActionApi actionApi;
   @Mock private ActionParser actionParser;
-
+  @Mock private ActionManager actionManager;
   private StreamActionApiImpl streamActionApi;
   private View view;
 
@@ -115,7 +114,7 @@ public class StreamActionApiImplTest {
 
     Context context = Robolectric.setupActivity(Activity.class);
     view = new View(context);
-    streamActionApi = new StreamActionApiImpl(context, actionApi, actionParser);
+    streamActionApi = new StreamActionApiImpl(context, actionApi, actionParser, actionManager);
   }
 
   @Test

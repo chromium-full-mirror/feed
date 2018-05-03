@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -65,7 +66,8 @@ public class FeedStreamScope {
         Clock clock,
         DebugBehavior debugBehavior,
         StreamConfiguration streamConfiguration,
-        CardConfiguration cardConfiguration) {
+        CardConfiguration cardConfiguration,
+        ActionManager actionManager) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
@@ -79,6 +81,7 @@ public class FeedStreamScope {
       this.cardConfiguration = cardConfiguration;
       this.clock = clock;
       this.debugBehavior = debugBehavior;
+      this.actionManager = actionManager;
     }
 
     public Builder setActionParser(ActionParser actionParser) {
@@ -130,7 +133,8 @@ public class FeedStreamScope {
                 /* headers = */ new ArrayList<>(0),
                 clock,
                 Validators.checkNotNull(modelProviderFactory),
-                hostBindingProvider);
+                hostBindingProvider,
+                actionManager);
       }
       return new FeedStreamScope(
           actionApi,
@@ -154,6 +158,7 @@ public class FeedStreamScope {
     private final TimingUtils timingUtils;
     private final MainThreadRunner mainThreadRunner;
     private final Clock clock;
+    private final ActionManager actionManager;
     private CardConfiguration cardConfiguration;
     private StreamConfiguration streamConfiguration;
     private final DebugBehavior debugBehavior;

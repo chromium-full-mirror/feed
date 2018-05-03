@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
@@ -87,6 +88,7 @@ public class FeedProcessScopeTest {
     assertThat(processScope.getRequestManager()).isNotNull();
     assertThat(processScope.getSessionManager()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
+    assertThat(processScope.getActionManager()).isNotNull();
   }
 
   @Test
@@ -111,5 +113,6 @@ public class FeedProcessScopeTest {
     assertThat(processScope.getRequestManager()).isEqualTo(requestManager);
     assertThat(processScope.getSessionManager()).isEqualTo(sessionManager);
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
+    assertThat(processScope.getActionManager()).isNotNull();
   }
 }

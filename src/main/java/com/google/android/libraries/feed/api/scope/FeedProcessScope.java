@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -29,6 +30,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.feedactionmanager.FeedActionManagerImpl;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
@@ -78,7 +80,8 @@ public class FeedProcessScope implements Dumpable {
         clock,
         debugBehavior,
         streamConfiguration,
-        cardConfiguration);
+        cardConfiguration,
+        actionManager);
   }
 
   @Override
@@ -223,6 +226,7 @@ public class FeedProcessScope implements Dumpable {
       }
 
       AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener();
+      ActionManager actionManager = new FeedActionManagerImpl(sessionManager, store);
 
       return new FeedProcessScope(
           imageLoaderApi,
@@ -237,7 +241,8 @@ public class FeedProcessScope implements Dumpable {
           mainThreadRunner,
           appLifecycleListener,
           clock,
-          debugBehavior);
+          debugBehavior,
+          actionManager);
     }
 
     // Required fields.
@@ -275,7 +280,8 @@ public class FeedProcessScope implements Dumpable {
       MainThreadRunner mainThreadRunner,
       AppLifecycleListener appLifecycleListener,
       Clock clock,
-      DebugBehavior debugBehavior) {
+      DebugBehavior debugBehavior,
+      ActionManager actionManager) {
     this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
     this.networkClient = networkClient;
@@ -289,6 +295,7 @@ public class FeedProcessScope implements Dumpable {
     this.appLifecycleListener = appLifecycleListener;
     this.clock = clock;
     this.debugBehavior = debugBehavior;
+    this.actionManager = actionManager;
   }
 
   private final ImageLoaderApi imageLoaderApi;
@@ -304,6 +311,7 @@ public class FeedProcessScope implements Dumpable {
   private final AppLifecycleListener appLifecycleListener;
   private final Clock clock;
   private final DebugBehavior debugBehavior;
+  private final ActionManager actionManager;
 
   public Clock getClock() {
     return clock;
@@ -331,5 +339,9 @@ public class FeedProcessScope implements Dumpable {
 
   public AppLifecycleListener getAppLifecycleListener() {
     return appLifecycleListener;
+  }
+
+  public ActionManager getActionManager() {
+    return actionManager;
   }
 }

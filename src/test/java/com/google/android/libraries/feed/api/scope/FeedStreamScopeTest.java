@@ -19,6 +19,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -63,6 +64,7 @@ public class FeedStreamScopeTest {
   @Mock private CardConfiguration cardConfiguration;
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private CustomElementProvider customElementProvider;
+  @Mock private ActionManager actionManager;
 
   private Context context;
   private MainThreadRunner mainThreadRunner;
@@ -96,7 +98,8 @@ public class FeedStreamScopeTest {
                 clock,
                 DebugBehavior.VERBOSE,
                 streamConfiguration,
-                cardConfiguration)
+                cardConfiguration,
+                actionManager)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -118,7 +121,8 @@ public class FeedStreamScopeTest {
                 clock,
                 DebugBehavior.VERBOSE,
                 streamConfiguration,
-                cardConfiguration)
+                cardConfiguration,
+                actionManager)
             .setActionParser(actionParser)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)

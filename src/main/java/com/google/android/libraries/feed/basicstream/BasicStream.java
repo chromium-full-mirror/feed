@@ -24,6 +24,7 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -83,7 +84,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       List<View> headers,
       Clock clock,
       ModelProviderFactory modelProviderFactory,
-      /*@Nullable*/ HostBindingProvider hostBindingProvider) {
+      /*@Nullable*/ HostBindingProvider hostBindingProvider,
+      ActionManager actionManager) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
     this.pietManager =
@@ -93,7 +95,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
             (action, frame, view, veLoggingToken) ->
                 actionParser.parseAction(
                     action,
-                    new StreamActionApiImpl(context, actionApi, actionParser),
+                    new StreamActionApiImpl(context, actionApi, actionParser, actionManager),
                     view,
                     veLoggingToken),
             new PietCustomElementProvider(context, customElementProvider),

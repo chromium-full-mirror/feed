@@ -18,8 +18,8 @@ import android.content.Context;
 import android.view.Menu;
 import android.view.View;
 import android.widget.PopupMenu;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
@@ -35,11 +35,17 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final Context context;
   private final ActionApi actionApi;
   private final ActionParser actionParser;
+  private final ActionManager actionManager;
 
-  public StreamActionApiImpl(Context context, ActionApi actionApi, ActionParser actionParser) {
+  public StreamActionApiImpl(
+      Context context,
+      ActionApi actionApi,
+      ActionParser actionParser,
+      ActionManager actionManager) {
     this.context = context;
     this.actionApi = actionApi;
     this.actionParser = actionParser;
+    this.actionManager = actionManager;
   }
 
   @Override
@@ -80,8 +86,8 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void dismiss(ContentId contentId) {
-    // TODO: Inform SessionManager/ActionManager about dismiss.
-    Logger.i(TAG, "Dismiss performed.");
+    // TODO: Pass dismiss params through
+    // TODO: Call actionManager#dismiss
   }
 
   @Override
