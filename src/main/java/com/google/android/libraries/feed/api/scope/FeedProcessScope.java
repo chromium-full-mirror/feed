@@ -195,8 +195,7 @@ public class FeedProcessScope implements Dumpable {
               journalStorage,
               threadUtils,
               mainThreadRunner,
-              clock,
-              singleThreadExecutor);
+              clock);
       if (protocolAdapter == null) {
         protocolAdapter = new FeedProtocolAdapter(timingUtils);
       }
@@ -228,7 +227,8 @@ public class FeedProcessScope implements Dumpable {
       }
 
       AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener();
-      ActionManager actionManager = new FeedActionManagerImpl(sessionManager, store, threadUtils);
+      ActionManager actionManager =
+          new FeedActionManagerImpl(sessionManager, store, threadUtils, singleThreadExecutor);
 
       return new FeedProcessScope(
           imageLoaderApi,

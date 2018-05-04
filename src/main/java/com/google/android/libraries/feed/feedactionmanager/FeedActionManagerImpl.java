@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /** Default implementation of {@link ActionManager} */
 public class FeedActionManagerImpl implements ActionManager {
@@ -32,12 +33,17 @@ public class FeedActionManagerImpl implements ActionManager {
   private final SessionManager sessionManager;
   private final Store store;
   private final ThreadUtils threadUtils;
+  private final ExecutorService executor;
 
   public FeedActionManagerImpl(
-      SessionManager sessionManager, Store store, ThreadUtils threadUtils) {
+      SessionManager sessionManager,
+      Store store,
+      ThreadUtils threadUtils,
+      ExecutorService executor) {
     this.sessionManager = sessionManager;
     this.store = store;
     this.threadUtils = threadUtils;
+    this.executor = executor;
   }
 
   @Override
@@ -60,10 +66,13 @@ public class FeedActionManagerImpl implements ActionManager {
         .accept(Result.success(streamDataOperations));
 
     // Store the dismiss actions
-    ActionMutation actionMutation = store.editActions();
-    for (String contentId : contentIds) {
-      actionMutation.add(ActionType.DISMISS, contentId);
-    }
-    actionMutation.commit();
+    executor.execute(
+        () -> {
+          ActionMutation actionMutation = store.editActions();
+          for (String contentId : contentIds) {
+            actionMutation.add(ActionType.DISMISS, contentId);
+          }
+          actionMutation.commit();
+        });
   }
 }

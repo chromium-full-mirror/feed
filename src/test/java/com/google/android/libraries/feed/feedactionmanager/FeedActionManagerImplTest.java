@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -65,7 +66,9 @@ public class FeedActionManagerImplTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    actionManager = new FeedActionManagerImpl(sessionManager, store, threadUtils);
+    actionManager =
+        new FeedActionManagerImpl(
+            sessionManager, store, threadUtils, MoreExecutors.newDirectExecutorService());
   }
 
   @Test

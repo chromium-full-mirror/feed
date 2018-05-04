@@ -542,8 +542,7 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(),
             threadUtils,
             mainThreadRunner,
-            clock,
-            executor);
+            clock);
     return new FeedSessionManager(
         executor,
         store,
