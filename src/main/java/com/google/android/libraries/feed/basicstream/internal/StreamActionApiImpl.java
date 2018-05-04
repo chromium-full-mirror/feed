@@ -22,10 +22,11 @@ import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
-import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /** Action handler for Stream. */
@@ -85,9 +86,10 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   @Override
-  public void dismiss(ContentId contentId) {
-    // TODO: Pass dismiss params through
-    // TODO: Call actionManager#dismiss
+  public void dismiss(String contentId, List<StreamDataOperation> dataOperations) {
+    // TODO: Send sessionToken to actionManager
+    actionManager.dismiss(
+        Collections.singletonList(contentId), dataOperations, /* sessionToken= */ null);
   }
 
   @Override

@@ -116,7 +116,7 @@ public class FeedStreamScope {
                 sessionManager, threadUtils, timingUtils, mainThreadRunner);
       }
       if (actionParser == null) {
-        actionParser = new FeedActionParser();
+        actionParser = new FeedActionParser(protocolAdapter);
       }
       if (stream == null) {
         stream =

@@ -15,7 +15,9 @@
 package com.google.android.libraries.feed.feedactionparser;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -25,8 +27,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.common.collect.Lists;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
+import com.google.search.now.ui.action.FeedActionProto.DismissData;
 import com.google.search.now.ui.action.FeedActionProto.DownloadData;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
@@ -36,6 +44,9 @@ import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +57,7 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link FeedActionParser}. */
 @RunWith(RobolectricTestRunner.class)
 public class FeedActionParserTest {
-  public static final String URL = "www.google.com";
+  private static final String URL = "www.google.com";
 
   private static final FeedActionPayload OPEN_URL_FEED_ACTION =
       FeedActionPayload.newBuilder()
@@ -111,6 +122,7 @@ public class FeedActionParserTest {
                           .setDownloadData(DownloadData.newBuilder().setUrl(URL)))
                   .build())
           .build();
+
   private static final FeedActionPayload DOWNLOAD_URL_FEED_ACTION_NO_URL =
       FeedActionPayload.newBuilder()
           .setExtension(
@@ -148,13 +160,50 @@ public class FeedActionParserTest {
                   .build())
           .build();
 
-  @Mock private StreamActionApi streamActionApi;
+  private static final ContentId DISMISS_CONTENT_ID = ContentId.newBuilder().setId(123).build();
 
-  private final FeedActionParser feedActionParser = new FeedActionParser();
+  private static final String DISMISS_CONTENT_ID_STRING = "dismissContentId";
+
+  private static final FeedActionPayload DISMISS_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.DISMISS)
+                          .setDismissData(
+                              DismissData.newBuilder()
+                                  .addDataOperations(DataOperation.getDefaultInstance())
+                                  .setContentId(DISMISS_CONTENT_ID)))
+                  .build())
+          .build();
+
+  private static final FeedActionPayload DISMISS_FEED_ACTION_NO_CONTENT_ID =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.DISMISS)
+                          .setDismissData(
+                              DismissData.newBuilder()
+                                  .addDataOperations(DataOperation.getDefaultInstance())))
+                  .build())
+          .build();
+
+  @Mock private StreamActionApi streamActionApi;
+  @Mock private ProtocolAdapter protocolAdapter;
+
+  private FeedActionParser feedActionParser;
 
   @Before
   public void setup() {
     initMocks(this);
+    when(protocolAdapter.getStreamContentId(DISMISS_CONTENT_ID))
+        .thenReturn(DISMISS_CONTENT_ID_STRING);
+    feedActionParser = new FeedActionParser(protocolAdapter);
   }
 
   @Test
@@ -271,5 +320,60 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
     verify(streamActionApi, times(0)).downloadUrl(anyString());
+  }
+
+  @Test
+  public void testDismiss_noApiSupport() {
+    when(streamActionApi.canDismiss()).thenReturn(false);
+    feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
+    verify(streamActionApi, never()).dismiss(anyString(), any(List.class));
+  }
+
+  @Test
+  public void testDismiss_noContentId() {
+    when(streamActionApi.canDismiss()).thenReturn(true);
+    feedActionParser.parseFeedActionPayload(
+        DISMISS_FEED_ACTION_NO_CONTENT_ID, streamActionApi, /* view= */ null);
+    verify(streamActionApi, never()).dismiss(anyString(), any(List.class));
+  }
+
+  @Test
+  public void testDismiss_unsuccessfulCreateOperations() {
+    when(streamActionApi.canDismiss()).thenReturn(true);
+
+    when(protocolAdapter.createOperations(
+            DISMISS_FEED_ACTION
+                .getExtension(FeedAction.feedActionExtension)
+                .getMetadata()
+                .getDismissData()
+                .getDataOperationsList()))
+        .thenReturn(Result.failure());
+
+    feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
+
+    verify(streamActionApi, never()).dismiss(anyString(), any(List.class));
+  }
+
+  @Test
+  public void testDismiss() {
+    List<StreamDataOperation> streamDataOperations =
+        Lists.newArrayList(
+            StreamDataOperation.newBuilder()
+                .setStreamStructure(StreamStructure.newBuilder().setContentId("dataOpContentId"))
+                .build());
+
+    when(streamActionApi.canDismiss()).thenReturn(true);
+
+    when(protocolAdapter.createOperations(
+            DISMISS_FEED_ACTION
+                .getExtension(FeedAction.feedActionExtension)
+                .getMetadata()
+                .getDismissData()
+                .getDataOperationsList()))
+        .thenReturn(Result.success(streamDataOperations));
+
+    feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
+
+    verify(streamActionApi).dismiss(DISMISS_CONTENT_ID_STRING, streamDataOperations);
   }
 }

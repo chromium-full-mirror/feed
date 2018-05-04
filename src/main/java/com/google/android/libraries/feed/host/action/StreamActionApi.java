@@ -15,8 +15,9 @@
 package com.google.android.libraries.feed.host.action;
 
 import android.view.View;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
-import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import java.util.List;
 
 /**
  * Allows the {@link com.google.android.libraries.feed.api.actionparser.ActionParser} to communicate
@@ -34,5 +35,5 @@ public interface StreamActionApi extends ActionApi {
   boolean canDismiss();
 
   /** Dismisses card. */
-  void dismiss(ContentId contentId);
+  void dismiss(String contentId, List<StreamDataOperation> dataOperations);
 }

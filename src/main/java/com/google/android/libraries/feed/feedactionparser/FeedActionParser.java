@@ -21,15 +21,19 @@ import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata
 
 import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPaylaodRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import java.util.List;
 
 /**
  * Action parser which is able to parse Feed actions and notify clients about which action needs to
@@ -40,8 +44,10 @@ public class FeedActionParser implements ActionParser {
   private static final String TAG = "FeedActionParser";
 
   private final PietFeedActionPaylaodRetriever pietFeedActionPaylaodRetriever;
+  private final ProtocolAdapter protocolAdapter;
 
-  public FeedActionParser() {
+  public FeedActionParser(ProtocolAdapter protocolAdapter) {
+    this.protocolAdapter = protocolAdapter;
     this.pietFeedActionPaylaodRetriever = new PietFeedActionPaylaodRetriever();
   }
 
@@ -93,7 +99,18 @@ public class FeedActionParser implements ActionParser {
           break;
         }
 
-        streamActionApi.dismiss(feedActionMetadata.getDismissData().getContentId());
+        Result<List<StreamDataOperation>> streamDataOperationsResult =
+            protocolAdapter.createOperations(
+                feedActionMetadata.getDismissData().getDataOperationsList());
+
+        if (!streamDataOperationsResult.isSuccessful()) {
+          Logger.e(TAG, "Cannot dismiss: conversion to StreamDataOperation failed.");
+          break;
+        }
+
+        streamActionApi.dismiss(
+            protocolAdapter.getStreamContentId(feedActionMetadata.getDismissData().getContentId()),
+            streamDataOperationsResult.getValue());
         break;
       case DOWNLOAD:
         if (!streamActionApi.canDownloadUrl()) {
