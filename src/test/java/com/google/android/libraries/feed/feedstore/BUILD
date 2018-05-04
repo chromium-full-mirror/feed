@@ -24,6 +24,7 @@ android_local_test(
         "//src/main/proto/search/now/proto/wire/feed:feed_java_proto_lite",
         "@bazel_android//:robolectric",
         "@com_google_code_findbugs_jsr305//jar",
+        "@com_google_guava_guava//jar",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
     ],

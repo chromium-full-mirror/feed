@@ -15,8 +15,7 @@
 package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.store.ActionMutation;
-import com.google.android.libraries.feed.common.functional.Committer;
-import com.google.android.libraries.feed.host.storage.CommitResult;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,10 +25,10 @@ import java.util.Map;
 public class FeedActionMutation implements ActionMutation {
 
   private final Map<Integer, List<String>> actions = new HashMap<>();
-  private final Committer<CommitResult, Map<Integer, List<String>>> committer;
+  private final Consumer<Map<Integer, List<String>>> consumer;
 
-  public FeedActionMutation(Committer<CommitResult, Map<Integer, List<String>>> committer) {
-    this.committer = committer;
+  public FeedActionMutation(Consumer<Map<Integer, List<String>>> consumer) {
+    this.consumer = consumer;
   }
 
   @Override
@@ -44,7 +43,7 @@ public class FeedActionMutation implements ActionMutation {
   }
 
   @Override
-  public CommitResult commit() {
-    return committer.commit(actions);
+  public void commit() {
+    consumer.accept(actions);
   }
 }

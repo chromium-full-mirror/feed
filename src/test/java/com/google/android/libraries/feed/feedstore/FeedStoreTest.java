@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
@@ -122,7 +123,8 @@ public class FeedStoreTest {
             journalStorage,
             threadUtils,
             mainThreadRunner,
-            clock);
+            clock,
+            MoreExecutors.newDirectExecutorService());
   }
 
   @Test

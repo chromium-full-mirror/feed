@@ -87,7 +87,8 @@ public class InfrastructureIntegrationScope {
             journalStorage,
             threadUtils,
             mainThreadRunner,
-            clock);
+            clock,
+            executorService);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter);
     feedSessionManager =

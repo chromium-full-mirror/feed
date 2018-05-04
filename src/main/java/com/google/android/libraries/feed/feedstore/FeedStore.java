@@ -58,6 +58,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -83,6 +84,7 @@ public class FeedStore implements Store, Dumpable {
   private final ThreadUtils threadUtils;
   private final MainThreadRunner mainThreadRunner;
   private final Clock clock;
+  private final ExecutorService executor;
 
   public FeedStore(
       TimingUtils timingUtils,
@@ -91,7 +93,8 @@ public class FeedStore implements Store, Dumpable {
       JournalStorage journalStorage,
       ThreadUtils threadUtils,
       MainThreadRunner mainThreadRunner,
-      Clock clock) {
+      Clock clock,
+      ExecutorService executor) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
     this.contentStorage = contentStorage;
@@ -99,6 +102,7 @@ public class FeedStore implements Store, Dumpable {
     this.threadUtils = threadUtils;
     this.mainThreadRunner = mainThreadRunner;
     this.clock = clock;
+    this.executor = executor;
   }
 
   @Override
@@ -431,7 +435,7 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public ActionMutation editActions() {
     threadUtils.checkNotMainThread();
-    return new FeedActionMutation(this::commitActionMutation);
+    return new FeedActionMutation(this::commitActionMutationAsync);
   }
 
   @Override
@@ -539,47 +543,45 @@ public class FeedStore implements Store, Dumpable {
     return commitResult;
   }
 
-  private CommitResult commitActionMutation(Map<Integer, List<String>> actions) {
-    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+  private void commitActionMutationAsync(Map<Integer, List<String>> actions) {
+    executor.execute(
+        () -> {
+          ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    CommitResult commitResult = CommitResult.SUCCESS;
-    for (Map.Entry<Integer, List<String>> entry : actions.entrySet()) {
-      Integer actionType = entry.getKey();
-      String journalName;
-      if (ActionType.DISMISS == entry.getKey()) {
-        journalName = DISMISS_ACTION_JOURNAL;
-      } else {
-        Logger.e(TAG, "Unknown journal name for action type %s", actionType);
-        continue;
-      }
-      JournalMutation.Builder builder = new JournalMutation.Builder(journalName);
-      for (String contentId : entry.getValue()) {
-        StreamAction action =
-            StreamAction.newBuilder()
-                .setAction(actionType)
-                .setFeatureContentId(contentId)
-                .setTimestampSeconds(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()))
-                .build();
-        builder.append(action.toByteArray());
-      }
-      SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
-      mainThreadRunner.execute(
-          TAG, () -> journalStorage.commit(builder.build(), commitResultFuture::put));
-      try {
-        commitResult = commitResultFuture.get();
-        if (commitResult == CommitResult.FAILURE) {
-          Logger.e(TAG, "Error committing action for type %s", actionType);
-          break;
-        }
-      } catch (InterruptedException | ExecutionException e) {
-        Logger.e(TAG, e, "Error committing action");
-        tracker.stop("commitActionMutation failed");
-        return CommitResult.FAILURE;
-      }
-    }
+          for (Map.Entry<Integer, List<String>> entry : actions.entrySet()) {
+            Integer actionType = entry.getKey();
+            String journalName;
+            if (ActionType.DISMISS == entry.getKey()) {
+              journalName = DISMISS_ACTION_JOURNAL;
+            } else {
+              Logger.e(TAG, "Unknown journal name for action type %s", actionType);
+              continue;
+            }
+            JournalMutation.Builder builder = new JournalMutation.Builder(journalName);
+            for (String contentId : entry.getValue()) {
+              StreamAction action =
+                  StreamAction.newBuilder()
+                      .setAction(actionType)
+                      .setFeatureContentId(contentId)
+                      .setTimestampSeconds(
+                          TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()))
+                      .build();
+              builder.append(action.toByteArray());
+            }
+            mainThreadRunner.execute(
+                TAG,
+                () ->
+                    journalStorage.commit(
+                        builder.build(),
+                        result -> {
+                          if (result == CommitResult.FAILURE) {
+                            Logger.e(TAG, "Error committing action for type %s", actionType);
+                          }
+                        }));
+          }
 
-    tracker.stop("task", "commitActionMutation", "actions", actions.size());
-    return commitResult;
+          tracker.stop("task", "commitActionMutationAsync", "actions", actions.size());
+        });
   }
 
   @Override

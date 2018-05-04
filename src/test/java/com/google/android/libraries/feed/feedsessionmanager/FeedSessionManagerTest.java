@@ -54,6 +54,7 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
@@ -532,6 +533,7 @@ public class FeedSessionManagerTest {
   }
 
   private FeedSessionManager getInitializedSessionManager() {
+    ListeningExecutorService executor = MoreExecutors.newDirectExecutorService();
     FeedStore store =
         new FeedStore(
             timingUtils,
@@ -540,9 +542,10 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(),
             threadUtils,
             mainThreadRunner,
-            clock);
+            clock,
+            executor);
     return new FeedSessionManager(
-        MoreExecutors.newDirectExecutorService(),
+        executor,
         store,
         timingUtils,
         threadUtils,

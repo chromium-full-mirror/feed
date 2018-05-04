@@ -23,13 +23,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -51,6 +51,7 @@ public class FeedActionManagerImplTest {
   public static final String SESSION_TOKEN = "session";
   @Mock private SessionManager sessionManager;
   @Mock private Store store;
+  @Mock private ThreadUtils threadUtils;
 
   @Mock private ActionMutation actionMutation;
   @Mock private Consumer<Result<List<StreamDataOperation>>> streamDataOperationsConsumer;
@@ -64,7 +65,7 @@ public class FeedActionManagerImplTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    actionManager = new FeedActionManagerImpl(sessionManager, store);
+    actionManager = new FeedActionManagerImpl(sessionManager, store, threadUtils);
   }
 
   @Test
@@ -134,7 +135,6 @@ public class FeedActionManagerImplTest {
     when(sessionManager.getUpdateConsumer(any(MutationContext.class)))
         .thenReturn(streamDataOperationsConsumer);
     when(actionMutation.add(anyInt(), anyString())).thenReturn(actionMutation);
-    when(actionMutation.commit()).thenReturn(CommitResult.SUCCESS);
     when(store.editActions()).thenReturn(actionMutation);
   }
 }

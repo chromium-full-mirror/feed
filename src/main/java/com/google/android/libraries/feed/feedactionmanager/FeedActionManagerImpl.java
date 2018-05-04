@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedactionmanager;
 
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
@@ -30,10 +31,13 @@ public class FeedActionManagerImpl implements ActionManager {
 
   private final SessionManager sessionManager;
   private final Store store;
+  private final ThreadUtils threadUtils;
 
-  public FeedActionManagerImpl(SessionManager sessionManager, Store store) {
+  public FeedActionManagerImpl(
+      SessionManager sessionManager, Store store, ThreadUtils threadUtils) {
     this.sessionManager = sessionManager;
     this.store = store;
+    this.threadUtils = threadUtils;
   }
 
   @Override
@@ -41,12 +45,7 @@ public class FeedActionManagerImpl implements ActionManager {
       List<String> contentIds,
       List<StreamDataOperation> streamDataOperations,
       /*@Nullable*/ String sessionToken) {
-    // Store the dismiss actions
-    ActionMutation actionMutation = store.editActions();
-    for (String contentId : contentIds) {
-      actionMutation.add(ActionType.DISMISS, contentId);
-    }
-    actionMutation.commit();
+    threadUtils.checkMainThread();
 
     // Update sessions
     StreamSession.Builder streamSessionBuilder = StreamSession.newBuilder();
@@ -59,5 +58,12 @@ public class FeedActionManagerImpl implements ActionManager {
                 .setRequestingSession(streamSessionBuilder.build())
                 .build())
         .accept(Result.success(streamDataOperations));
+
+    // Store the dismiss actions
+    ActionMutation actionMutation = store.editActions();
+    for (String contentId : contentIds) {
+      actionMutation.add(ActionType.DISMISS, contentId);
+    }
+    actionMutation.commit();
   }
 }
