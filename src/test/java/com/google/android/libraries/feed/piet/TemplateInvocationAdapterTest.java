@@ -23,6 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
@@ -423,6 +424,38 @@ public class TemplateInvocationAdapterTest {
     assertThat(((TextView) elementListView.getChildAt(0)).getText().toString())
         .isEqualTo(TEXT_CONTENTS);
     assertThat(adapter.childAdapters).containsExactly(listAdapter);
+  }
+
+  @Test
+  public void testOverlaysAreRecreatedOnReBind() {
+    Element overlayElement =
+        Element.newBuilder()
+            .setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION)
+            .addOverlayElements(
+                ElementList.newBuilder()
+                    .addElements(
+                        Element.newBuilder()
+                            .setTextElement(
+                                TextElement.newBuilder()
+                                    .setParameterizedText(
+                                        ParameterizedText.newBuilder().setText(TEXT_CONTENTS)))))
+            .build();
+
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, overlayElement, frameContext);
+    adapter.bindModel(DEFAULT_TEMPLATE_INVOCATION, overlayElement, frameContext);
+    assertThat(adapter.overlays).hasSize(1);
+    assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
+    assertThat(((FrameLayout) adapter.getView()).getChildCount()).isEqualTo(2);
+
+    adapter.releaseAdapter();
+    assertThat(adapter.overlays).isEmpty();
+    assertThat(adapter.getView()).isSameAs(adapter.getBaseView());
+
+    adapter.createAdapter(DEFAULT_TEMPLATE_INVOCATION, overlayElement, frameContext);
+    adapter.bindModel(DEFAULT_TEMPLATE_INVOCATION, overlayElement, frameContext);
+    assertThat(adapter.overlays).hasSize(1);
+    assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
+    assertThat(((FrameLayout) adapter.getView()).getChildCount()).isEqualTo(2);
   }
 
   @Test

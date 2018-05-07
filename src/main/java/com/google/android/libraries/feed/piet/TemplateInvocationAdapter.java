@@ -128,7 +128,7 @@ class TemplateInvocationAdapter
   }
 
   @Override
-  public void releaseAdapter() {
+  public void onReleaseAdapter() {
     // Because we recycle templates as a unit, we don't actually want to do anything here - we want
     // to keep the existing layout and styles so we can quickly re-bind content to the template.
   }
