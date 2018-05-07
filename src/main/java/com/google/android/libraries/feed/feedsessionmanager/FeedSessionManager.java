@@ -40,6 +40,8 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSession
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
+import com.google.android.libraries.feed.feedsessionmanager.internal.TaskQueue;
+import com.google.android.libraries.feed.feedsessionmanager.internal.TaskQueue.TaskType;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
@@ -85,13 +87,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final ContentCache contentCache;
 
   private final SessionFactory sessionFactory;
-  private final ExecutorService executor;
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
   private final SchedulerApi schedulerApi;
+  private final TaskQueue taskQueue;
   private final Clock clock;
   private final long lifetimeMs;
 
@@ -103,23 +105,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private int handleTokenCount = 0;
   private int expiredSessionsCleared = 0;
 
-  // When we invalidate head, delay new session population until head is populated.
-  @GuardedBy("lock")
-  private boolean invalidatedHead;
-
-  // TriggerRefresh will refill head, delay new session population until head is populated.
-  @GuardedBy("lock")
-  private boolean fillingEmptyHead;
-
-  // Until we have initialized head, delay new session population until head is populated.
-  @GuardedBy("lock")
-  private boolean initialized = false;
-
-  // This is a queue of Tasks which are currently being delayed.  Mostly this queue contains session
-  // population tasks, but other tasks such as cleanup may be delayed and added to this queue.
-  @GuardedBy("lock")
-  private final List<Runnable> delayedRunnables = new ArrayList<>();
-
   public FeedSessionManager(
       ExecutorService executor,
       Store store,
@@ -130,7 +115,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       SchedulerApi schedulerApi,
       Configuration configuration,
       Clock clock) {
-    this.executor = executor;
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
@@ -138,6 +122,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.requestManager = requestManager;
     this.schedulerApi = schedulerApi;
     this.clock = clock;
+    this.taskQueue = new TaskQueue(executor, timingUtils);
 
     lifetimeMs =
         configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
@@ -147,7 +132,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     // Suppress /*@UnderInitialization*/ warning
     @SuppressWarnings("nullness")
     Runnable initializationTask = this::initializationTask;
-    executor.execute(initializationTask);
+    taskQueue.executeInitialization(initializationTask);
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the
@@ -193,20 +178,17 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     // if head is empty and the scheduler allows us, trigger refresh, otherwise live with empty head
     synchronized (lock) {
-      fillingEmptyHead = head.isHeadEmpty() && schedulerApi.shouldRequestDataWhenNoDataPresent();
+      boolean fillingEmptyHead =
+          head.isHeadEmpty() && schedulerApi.shouldRequestDataWhenNoDataPresent();
       // Head is now initialized, unless we are filling and empty head.
-      initialized = true;
       if (fillingEmptyHead) {
-        Logger.i(TAG, "EmptyHead Triggered Refresh");
-        executor.execute(
+        taskQueue.execute(
+            "refreshEmptyHead",
+            TaskType.HEAD_RESET,
             () ->
                 requestManager.triggerRefresh(
                     RequestReason.MANUAL_REFRESH,
-                    new CommitterTask(MutationContext.EMPTY_CONTEXT)));
-      }
-      if (!fillingEmptyHead && !invalidatedHead && delayedRunnables.size() > 0) {
-        // We may have delayed session population while initializing head.
-        runDelayedTasks();
+                    new CommitterTask("refreshEmptyHead", MutationContext.EMPTY_CONTEXT)));
       }
     }
     initializePersistedSessions();
@@ -254,17 +236,21 @@ public class FeedSessionManager implements SessionManager, Dumpable {
               timeTracker.stop("task", "createUnboundSession");
               unboundSessionCount++;
             };
-        runDelayableTask(createUnboundSession, false);
+        taskQueue.execute("createUnboundSession", TaskType.USER_FACING, createUnboundSession);
       }
     }
 
     if (cleanupSessions) {
       // Queue up a task to clear the session journals.
-      runDelayableTask(this::cleanupSessionJournals, false);
+      taskQueue.execute(
+          "cleanupSessionJournals", TaskType.BACKGROUND, this::cleanupSessionJournals);
     }
     Set<String> reservedContentIds = new HashSet<>();
     reservedContentIds.add(STREAM_SESSION_CONTENT_ID);
-    runDelayableTask(store.triggerContentGc(reservedContentIds, accessibleContentSupplier), false);
+    taskQueue.execute(
+        "contentGc",
+        TaskType.BACKGROUND,
+        store.triggerContentGc(reservedContentIds, accessibleContentSupplier));
   }
 
   private Supplier<Set<String>> accessibleContentSupplier =
@@ -378,7 +364,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           timeTracker.stop("task", "Create/Populate New Session");
         };
 
-    runDelayableTask(populateSession, true);
+    taskQueue.execute("populateNewSession", TaskType.USER_FACING, populateSession);
   }
 
   @VisibleForTesting
@@ -420,11 +406,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     // Task which populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
-    executor.execute(
+    taskQueue.execute(
+        "createExistingSession",
+        TaskType.USER_FACING,
         () -> {
-          Logger.i(TAG, "Task: CreateExistingSession");
-          ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-
           Result<List<StreamStructure>> streamStructuresResult =
               store.getStreamStructures(streamSession);
           if (streamStructuresResult.isSuccessful()) {
@@ -435,7 +420,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           } else {
             // TODO: handle errors
           }
-          timeTracker.stop("task", "CreateExistingSession");
           existingSessionCount++;
         });
     return true;
@@ -443,10 +427,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   @Override
   public void invalidateHead() {
-    synchronized (lock) {
-      invalidatedHead = true;
-    }
-    executor.execute(() -> resetHead(null));
+    taskQueue.execute("invalidateHead", TaskType.HEAD_INVALIDATE, () -> resetHead(null));
   }
 
   @Override
@@ -463,6 +444,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     requestManager.loadMore(
         streamToken,
         new CommitterTask(
+            "handleToken",
             new MutationContext.Builder()
                 .setContinuationToken(streamToken)
                 .setRequestingSession(streamSession)
@@ -477,7 +459,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       Logger.w(TAG, "Found a null streamSession in triggerRefresh");
     }
     requestManager.triggerRefresh(
-        RequestReason.MANUAL_REFRESH, new CommitterTask(MutationContext.EMPTY_CONTEXT));
+        RequestReason.MANUAL_REFRESH,
+        new CommitterTask("triggerRefresh", MutationContext.EMPTY_CONTEXT));
   }
 
   @Override
@@ -532,7 +515,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @Override
   public Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(
       MutationContext mutationContext) {
-    return new CommitterTask(mutationContext);
+    return new CommitterTask("updateConsumer", mutationContext);
   }
 
   @Override
@@ -615,48 +598,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     return (sessionToken == null || sessionToken.equals(streamSession.getStreamToken()));
   }
 
-  private boolean delayingTasks() {
-    synchronized (lock) {
-      return invalidatedHead || fillingEmptyHead || !initialized;
-    }
-  }
-
-  /**
-   * Delay a runnable, high priority runnables will be pushed to the top of the list of delayed
-   * runnables.
-   */
-  private void runDelayableTask(Runnable runnable, boolean highPriority) {
-    synchronized (lock) {
-      if (!delayingTasks()) {
-        executor.execute(runnable);
-        return;
-      }
-      if (highPriority) {
-        delayedRunnables.add(0, runnable);
-      } else {
-        delayedRunnables.add(runnable);
-      }
-    }
-  }
-
-  private void runDelayedTasks() {
-    List<Runnable> runnables = null;
-    synchronized (lock) {
-      if (delayedRunnables.size() > 0) {
-        runnables = new ArrayList<>(delayedRunnables);
-      }
-      invalidatedHead = false;
-      fillingEmptyHead = false;
-      delayedRunnables.clear();
-    }
-    if (runnables != null) {
-      Logger.i(TAG, "Processing runnables created since invalidate %s", runnables.size());
-      for (Runnable runnable : runnables) {
-        executor.execute(runnable);
-      }
-    }
-  }
-
   /**
    * This class will process a List of {@link StreamDataOperation}. The {@link MutationContext} is
    * stored here and contains the context which made the request resulting in the List of data
@@ -665,11 +606,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private class CommitterTask implements Consumer<Result<List<StreamDataOperation>>> {
     private final List<StreamStructure> streamStructures = new ArrayList<>();
     private final MutationContext mutationContext;
+    private final String task;
 
     private boolean clearedHead = false;
     private List<StreamDataOperation> dataOperations;
 
-    CommitterTask(MutationContext mutationContext) {
+    CommitterTask(String task, MutationContext mutationContext) {
+      this.task = task;
       this.mutationContext = mutationContext;
     }
 
@@ -686,11 +629,20 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         return;
       }
       dataOperations = updateResults.getValue();
-      executor.execute(this::commitTask);
+      for (StreamDataOperation operation : dataOperations) {
+        if (operation.getStreamStructure().getOperation() == Operation.CLEAR_ALL) {
+          clearedHead = true;
+          break;
+        }
+      }
+      Logger.i("TaskQueue", "clearing head %s", clearedHead);
+      taskQueue.execute(
+          "sessionManagerMutation:" + task,
+          clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING,
+          this::commitTask);
     }
 
     private void commitTask() {
-      Logger.i(TAG, "Task: Mutate FeedSessionManager");
       synchronized (lock) {
         contentCache.startMutation();
       }
@@ -703,10 +655,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       synchronized (lock) {
         contentCache.finishMutation();
       }
-      if (clearedHead) {
-        runDelayedTasks();
-      }
-      timeTracker.stop("task", "Mutate FeedSessionManager", "mutations", streamStructures.size());
+      timeTracker.stop(
+          "task", "sessionMutation.commitTask:" + task, "mutations", streamStructures.size());
     }
 
     private void commitContent() {
@@ -764,10 +714,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         Logger.e(
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
-      executor.execute(contentMutation::commit);
+      taskQueue.execute("contentMutation", TaskType.BACKGROUND, contentMutation::commit);
       // TODO: currently there is a small window in which an action could occur and the
       // request be sent to the server before this is written, fix
-      executor.execute(semanticPropertiesMutation::commit);
+      taskQueue.execute(
+          "semanticPropertiesMutation", TaskType.BACKGROUND, semanticPropertiesMutation::commit);
       timeTracker.stop("", "contentUpdate", "items", dataOperations.size());
     }
 
@@ -834,18 +785,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   Map<String, Session> getSessionsMapForTest() {
     synchronized (lock) {
       return new HashMap<>(sessions);
-    }
-  }
-
-  boolean getInvalidateHeadStateForTest() {
-    synchronized (lock) {
-      return invalidatedHead;
-    }
-  }
-
-  List<Runnable> getDelayedRunnables() {
-    synchronized (lock) {
-      return new ArrayList<>(delayedRunnables);
     }
   }
 
