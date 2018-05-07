@@ -123,7 +123,7 @@ public class StreamPagingTest {
     modelProvider.handleToken(modelToken);
     ArgumentCaptor<TokenCompleted> completedArgumentCaptor =
         ArgumentCaptor.forClass(TokenCompleted.class);
-    verify(tokenCompletedObserver).onChange(completedArgumentCaptor.capture());
+    verify(tokenCompletedObserver).onTokenCompleted(completedArgumentCaptor.capture());
     ModelCursor pageCursor = completedArgumentCaptor.getValue().getCursor();
     assertThat(pageCursor).isNotNull();
 

@@ -18,5 +18,5 @@ package com.google.android.libraries.feed.api.modelprovider;
  * Observes for when the Token fetch completes, producing a new cursor.
  */
 public interface TokenCompletedObserver {
-  void onChange(TokenCompleted tokenCompleted);
+  void onTokenCompleted(TokenCompleted tokenCompleted);
 }

@@ -647,7 +647,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           TAG + " - onTokenChange",
           () -> {
             for (TokenCompletedObserver observer : observers) {
-              observer.onChange(tokenCompleted);
+              observer.onTokenCompleted(tokenCompleted);
             }
           });
     }

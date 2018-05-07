@@ -268,7 +268,7 @@ public class StreamDriverTest {
 
       // Indicates the token has been successfully handled by the ModelProvider, leading to adding
       // children from the token's cursor.
-      tokenCompletedObserverCaptor.getValue().onChange(new TokenCompleted(payloadCursor));
+      tokenCompletedObserverCaptor.getValue().onTokenCompleted(new TokenCompleted(payloadCursor));
 
       return streamDriver.getContentModels();
     }

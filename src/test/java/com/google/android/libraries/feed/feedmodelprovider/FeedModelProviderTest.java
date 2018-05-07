@@ -412,7 +412,7 @@ public class FeedModelProviderTest {
     TokenCompletedObserver tokenCompletedObserver =
         new TokenCompletedObserver() {
           @Override
-          public void onChange(TokenCompleted change) {
+          public void onTokenCompleted(TokenCompleted change) {
             assertThat(change).isNotNull();
           }
         };
