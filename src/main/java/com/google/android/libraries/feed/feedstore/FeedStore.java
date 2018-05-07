@@ -140,6 +140,7 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public Result<List<StreamSharedState>> getSharedStates() {
     threadUtils.checkNotMainThread();
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     SimpleSettableFuture<Result<List<byte[]>>> sharedStatesFuture = new SimpleSettableFuture<>();
     mainThreadRunner.execute(
         TAG,
@@ -158,20 +159,24 @@ public class FeedStore implements Store, Dumpable {
       Result<List<byte[]>> bytesResult = sharedStatesFuture.get();
       if (!bytesResult.isSuccessful()) {
         Logger.e(TAG, "Error fetching shared states");
+        tracker.stop("getSharedStates", "failed");
         return Result.failure();
       }
       List<byte[]> result = bytesResult.getValue();
       List<StreamSharedState> sharedStates = new ArrayList<>(result.size());
       for (byte[] byteArray : result) {
         try {
-        sharedStates.add(StreamSharedState.parseFrom(byteArray));
+          sharedStates.add(StreamSharedState.parseFrom(byteArray));
         } catch (InvalidProtocolBufferException e) {
+          tracker.stop("getSharedStates", "failed");
           Logger.e(TAG, e, "Error parsing protocol buffer from bytes %s", byteArray);
         }
       }
+      tracker.stop("", "getSharedStates", "items", sharedStates.size());
       return Result.success(sharedStates);
     } catch (InterruptedException | ExecutionException e) {
       Logger.e(TAG, e, "Error occurred getting shared states");
+      tracker.stop("getSharedStates", "failed");
       return Result.failure();
     }
   }
@@ -514,14 +519,14 @@ public class FeedStore implements Store, Dumpable {
     for (PayloadWithId mutation : mutations) {
       String payloadId = mutation.contentId;
       StreamPayload payload = mutation.payload;
-        if (mutation.payload.hasStreamSharedState()) {
-          StreamSharedState streamSharedState = mutation.payload.getStreamSharedState();
-              contentMutationBuilder.upsert(
-                  SHARED_STATE_PREFIX + streamSharedState.getContentId(),
-                  streamSharedState.toByteArray());
-        } else {
-          contentMutationBuilder.upsert(payloadId, payload.toByteArray());
-        }
+      if (mutation.payload.hasStreamSharedState()) {
+        StreamSharedState streamSharedState = mutation.payload.getStreamSharedState();
+        contentMutationBuilder.upsert(
+            SHARED_STATE_PREFIX + streamSharedState.getContentId(),
+            streamSharedState.toByteArray());
+      } else {
+        contentMutationBuilder.upsert(payloadId, payload.toByteArray());
+      }
     }
 
     // Block waiting for the response from storage, to make this method synchronous.
@@ -593,4 +598,3 @@ public class FeedStore implements Store, Dumpable {
     }
   }
 }
-
