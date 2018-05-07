@@ -157,6 +157,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     timingUtils.pinThread(Thread.currentThread(), "SessionManager");
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     // Initialize the Shared States cached here.
+    ElapsedTimeTracker sharedStateTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
     Result<List<StreamSharedState>> sharedStatesResult = store.getSharedStates();
     if (sharedStatesResult.isSuccessful()) {
       synchronized (lock) {
@@ -168,8 +169,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       // TODO: handle errors
       Logger.e(TAG, "SharedStates failed to load, no shared states are loaded.");
     }
+    sharedStateTimeTracker.stop("", "sharedStateTimeTracker");
 
     // create the head session from the data in the Store
+    ElapsedTimeTracker headTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
     HeadSessionImpl head = sessionFactory.getHeadSession();
     synchronized (lock) {
       sessions.put(head.getStreamSession().getStreamToken(), head);
@@ -186,6 +189,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       results = streamStructuresResult.getValue();
     }
     head.initializeSession(results);
+    headTimeTracker.stop("", "createHead");
 
     // if head is empty and the scheduler allows us, trigger refresh, otherwise live with empty head
     synchronized (lock) {
