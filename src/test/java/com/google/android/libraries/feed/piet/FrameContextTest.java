@@ -139,6 +139,7 @@ public class FrameContextTest {
             SAMPLE_STYLE,
             styleProvider,
             pietSharedStates,
+            new PietStylesHelper(pietSharedStates),
             DebugBehavior.VERBOSE,
             debugLogger,
             assetProvider,
@@ -156,6 +157,23 @@ public class FrameContextTest {
 
     // when(stylesHelper.getTemplate(template2BindingId)).thenReturn(template2);
     assertThat(frameContext.getTemplate(template2BindingId)).isEqualTo(template2);
+  }
+
+  @Test
+  public void testThrowsWithNoBindingContext() {
+    frameContext = makeFrameContextWithNoBindings();
+
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                frameContext.getActionsFromBinding(ActionsBindingRef.getDefaultInstance());
+              }
+            })
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("no BindingValues defined");
   }
 
   @Test
@@ -1071,6 +1089,7 @@ public class FrameContextTest {
         BASE_STYLE,
         styleProvider,
         pietSharedStates,
+        new PietStylesHelper(pietSharedStates),
         DebugBehavior.VERBOSE,
         debugLogger,
         assetProvider,

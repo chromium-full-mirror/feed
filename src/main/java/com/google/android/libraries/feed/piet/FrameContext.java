@@ -91,6 +91,7 @@ class FrameContext {
       Style baseStyle,
       StyleProvider styleProvider,
       List<PietSharedState> pietSharedStates,
+      PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       AssetProvider assetProvider,
@@ -100,11 +101,11 @@ class FrameContext {
     this(
         frame,
         stylesheet,
-        /* bindingValues */ null,
+        new ThrowingEmptyMap(),
         baseStyle,
         styleProvider,
         pietSharedStates,
-        new PietStylesHelper(pietSharedStates),
+        pietStylesHelper,
         debugBehavior,
         debugLogger,
         assetProvider,
@@ -116,7 +117,7 @@ class FrameContext {
   FrameContext(
       Frame frame,
       Map<String, Style> stylesheet,
-      /*@Nullable*/ Map<String, BindingValue> bindingValues,
+      Map<String, BindingValue> bindingValues,
       Style baseStyle,
       StyleProvider styleProvider,
       List<PietSharedState> pietSharedStates,
@@ -129,7 +130,7 @@ class FrameContext {
       ActionHandler actionHandler) {
     currentFrame = frame;
     this.stylesheet = stylesheet;
-    this.bindingValues = bindingValues == null ? new HashMap<>() : bindingValues;
+    this.bindingValues = bindingValues;
     this.baseStyle = baseStyle;
     currentStyleProvider = styleProvider;
     this.stylesHelper = pietStylesHelper;
@@ -188,7 +189,6 @@ class FrameContext {
         new FrameContext(
             frame,
             stylesheetMap,
-            null,
             baseStyle,
             styleProvider,
             pietSharedStates,
@@ -560,5 +560,14 @@ class FrameContext {
       bindingValueMap.put(bindingValue.getBindingId(), bindingValue);
     }
     return bindingValueMap;
+  }
+
+  /** Map that throws whenever you try to look anything up in it. */
+  private static class ThrowingEmptyMap extends HashMap<String, BindingValue> {
+    @Override
+    public BindingValue get(/*@Nullable*/ Object key) {
+      throw new IllegalArgumentException(
+          "Looking up bindings not supported in this context; no BindingValues defined.");
+    }
   }
 }
