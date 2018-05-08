@@ -14,8 +14,11 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
+import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
@@ -25,22 +28,28 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.common.logging.Logger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Generates a list of {@link ContentModel} instances for an entire stream. */
-public class StreamDriver {
+public class StreamDriver implements FeatureChangeObserver {
 
   private static final String TAG = "StreamDriver";
   private final ThreadUtils threadUtils;
   private final ModelProvider modelProvider;
+  private final Map<ModelChild, FeatureDriver> modelChildFeatureDriverMap;
+  private final List<FeatureDriver> featureDrivers;
 
-  /*@Nullable*/ private List<FeatureDriver> featureDrivers;
+  private boolean rootFeatureConsumed;
 
   /*@Nullable*/ private StreamContentListener contentListener;
 
   public StreamDriver(ModelProvider modelProvider, ThreadUtils threadUtils) {
     this.threadUtils = threadUtils;
     this.modelProvider = modelProvider;
+    this.modelChildFeatureDriverMap = new HashMap<>();
+    this.featureDrivers = new ArrayList<>();
   }
 
   /**
@@ -48,83 +57,77 @@ public class StreamDriver {
    * {@link ModelFeature}.
    */
   public List<ContentModel> getContentModels() {
-    if (featureDrivers == null) {
-      featureDrivers = createChildren(modelProvider.getRootFeature(), modelProvider);
+    if (!rootFeatureConsumed) {
+      ModelFeature rootFeature = modelProvider.getRootFeature();
+      if (rootFeature != null) {
+        createAndInsertChildren(rootFeature, modelProvider);
+        rootFeature.registerObserver(this);
+        rootFeatureConsumed = true;
+      }
     }
 
     return buildContentModels(featureDrivers);
   }
 
-  private List<FeatureDriver> createChildren(
-      /*@Nullable*/ ModelFeature streamFeature, ModelProvider modelProvider) {
-    if (streamFeature == null) {
-      Logger.i(TAG, "Root feature is null so returning empty content models.");
-      return new ArrayList<>();
-    }
-
-    return createChildren(streamFeature.getCursor(), modelProvider);
+  private List<FeatureDriver> createAndInsertChildren(
+      ModelFeature streamFeature, ModelProvider modelProvider) {
+    return createAndInsertChildren(streamFeature.getCursor(), modelProvider);
   }
 
-  private List<FeatureDriver> createChildren(
+  private List<FeatureDriver> createAndInsertChildren(
       ModelCursor streamCursor, ModelProvider modelProvider) {
-    List<FeatureDriver> children = new ArrayList<>();
+    return createAndInsertChildrenAtIndex(streamCursor, modelProvider, 0);
+  }
+
+  private List<FeatureDriver> createAndInsertChildrenAtIndex(
+      ModelCursor streamCursor, ModelProvider modelProvider, int insertionIndex) {
+    List<FeatureDriver> newChildren = new ArrayList<>();
     ModelChild child;
     while ((child = streamCursor.getNextItem()) != null) {
-      Logger.i(TAG, "Advancing Cursor");
-      switch (child.getType()) {
-        case Type.FEATURE:
-          FeatureDriver featureDriver = createFeatureChild(child.getModelFeature());
-          if (featureDriver != null) {
-            children.add(featureDriver);
-          }
-          break;
-        case Type.TOKEN:
-          ModelToken modelToken = child.getModelToken();
-          ContinuationDriver continuationDriver =
-              createContinuationDriver(modelProvider, modelToken);
-          children.add(continuationDriver);
-
-          // TODO: Place the observing of the token in the ContinuationDriver.
-          modelToken.registerObserver(
-              tokenCompleted -> {
-                if (featureDrivers == null) {
-                  Logger.e(TAG, "featureDrivers null while handling a token");
-                  return;
-                }
-                List<FeatureDriver> featureDrivers = this.featureDrivers;
-
-                threadUtils.checkMainThread();
-
-                int continuationIndex = featureDrivers.indexOf(continuationDriver);
-                if (continuationIndex == -1) {
-                  Logger.wtf(TAG, "continuationDriver not in list when attempting to remove");
-                  return;
-                }
-                featureDrivers.remove(continuationIndex);
-
-                if (contentListener != null) {
-                  contentListener.notifyContentRemoved(continuationIndex);
-                }
-                List<FeatureDriver> tokenFeatureDrivers =
-                    createChildren(tokenCompleted.getCursor(), modelProvider);
-
-                featureDrivers.addAll(continuationIndex, tokenFeatureDrivers);
-
-                if (contentListener != null) {
-                  contentListener.notifyContentsAdded(
-                      continuationIndex, buildContentModels(tokenFeatureDrivers));
-                }
-              });
-          break;
-        case Type.UNBOUND:
-          Logger.e(TAG, "Found unbound child %s, ignoring it", child.getContentId());
-          break;
-        default:
-          Logger.wtf(TAG, "Received illegal child: %s from cursor.", child.getType());
-          break;
+      FeatureDriver featureDriverChild = createChild(child, modelProvider);
+      if (featureDriverChild != null) {
+        newChildren.add(featureDriverChild);
+        featureDrivers.add(insertionIndex++, featureDriverChild);
+        modelChildFeatureDriverMap.put(child, featureDriverChild);
       }
     }
-    return children;
+    return newChildren;
+  }
+
+  /*@Nullable*/
+  private FeatureDriver createChild(ModelChild child, ModelProvider modelProvider) {
+    switch (child.getType()) {
+      case Type.FEATURE:
+        return createFeatureChild(child.getModelFeature());
+      case Type.TOKEN:
+        ModelToken modelToken = child.getModelToken();
+        ContinuationDriver continuationDriver = createContinuationDriver(modelProvider, modelToken);
+
+        // TODO: Place the observing of the token in the ContinuationDriver.
+        modelToken.registerObserver(
+            tokenCompleted -> {
+              threadUtils.checkMainThread();
+
+              int continuationIndex = removeDriver(child);
+
+              List<FeatureDriver> newChildren =
+                  createAndInsertChildrenAtIndex(
+                      tokenCompleted.getCursor(), modelProvider, continuationIndex);
+
+              if (contentListener != null) {
+                contentListener.notifyContentsAdded(
+                    continuationIndex, buildContentModels(newChildren));
+              }
+            });
+
+        return continuationDriver;
+      case Type.UNBOUND:
+        Logger.e(TAG, "Found unbound child %s, ignoring it", child.getContentId());
+        return null;
+      default:
+        Logger.wtf(TAG, "Received illegal child: %s from cursor.", child.getType());
+        return null;
+    }
   }
 
   private /*@Nullable*/ FeatureDriver createFeatureChild(ModelFeature modelFeature) {
@@ -150,6 +153,52 @@ public class StreamDriver {
       }
     }
     return contentModels;
+  }
+
+  @Override
+  public void onChange(FeatureChange change) {
+    Logger.v(TAG, "Received change.");
+
+    List<ModelChild> removedChildren = change.getChildChanges().getRemovedChildren();
+
+    for (ModelChild removedChild : removedChildren) {
+      if (!(removedChild.getType() == Type.FEATURE || removedChild.getType() == Type.TOKEN)) {
+        Logger.e(
+            TAG, "Attempting to remove non-removable child of type: %s", removedChild.getType());
+        continue;
+      }
+
+      removeDriver(removedChild);
+    }
+  }
+
+  /**
+   * Removes the {@link FeatureDriver} represented by the {@link ModelChild} from all collections
+   * containing it and updates any listening instances of {@link StreamContentListener} of the
+   * removal.
+   *
+   * <p>Returns the index at which the {@link FeatureDriver} was removed, or -1 if it was not found.
+   */
+  private int removeDriver(ModelChild modelChild) {
+    FeatureDriver featureDriver = modelChildFeatureDriverMap.get(modelChild);
+    if (featureDriver == null) {
+      Logger.w(TAG, "Attempting to remove feature from ModelChild not in map.");
+      return -1;
+    }
+
+    for (int i = 0; i < featureDrivers.size(); i++) {
+      if (featureDrivers.get(i) == featureDriver) {
+        featureDrivers.remove(i);
+        modelChildFeatureDriverMap.remove(modelChild);
+        if (contentListener != null) {
+          contentListener.notifyContentRemoved(i);
+        }
+        return i;
+      }
+    }
+
+    Logger.wtf(TAG, "Attempting to remove feature contained on map but not on list of children.");
+    return -1;
   }
 
   @VisibleForTesting

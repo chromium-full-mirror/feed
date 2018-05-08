@@ -16,10 +16,12 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -28,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
+import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
@@ -49,7 +52,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class StreamDriverTest {
 
-  private StreamDriver streamDriver;
+  private StreamDriverForTest streamDriver;
 
   @Mock private ModelFeature streamFeature;
   @Mock private ContentModel continuationContentModel;
@@ -148,10 +151,78 @@ public class StreamDriverTest {
             clusterContentModel);
   }
 
+  @Test
+  public void testOnChange_remove() {
+    FakeFeatureDriver[] featureDrivers = createFakeFeatureDrivers(4);
+    streamDriver.setFeatureDrivers(featureDrivers);
+
+    FakeModelCursor fakeModelCursor =
+        new FakeCursorBuilder().addCard().addCard().addCard().addCard().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    List<ContentModel> contentModels = streamDriver.getContentModels();
+
+    assertThat(contentModels).containsExactlyElementsIn(getContentModels(featureDrivers));
+
+    streamDriver.onChange(
+        new ChildRemoveBuilder()
+            .addChildForRemoval(fakeModelCursor.getChildAt(1))
+            .addChildForRemoval(fakeModelCursor.getChildAt(2))
+            .build());
+
+    assertThat(streamDriver.getContentModels())
+        .containsExactly(featureDrivers[0].getContentModel(), featureDrivers[3].getContentModel());
+  }
+
+  @Test
+  public void testOnChange_remove_notifiesListener() {
+    FakeFeatureDriver[] featureDrivers = createFakeFeatureDrivers(2);
+    streamDriver.setFeatureDrivers(featureDrivers);
+
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().addCard().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    // Causes StreamDriver to build a list of children based on the children from the cursor.
+    streamDriver.getContentModels();
+
+    streamDriver.onChange(
+        new ChildRemoveBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+
+    verify(contentListener).notifyContentRemoved(0);
+    verifyNoMoreInteractions(contentListener);
+  }
+
+  private FakeFeatureDriver[] createFakeFeatureDrivers(int size) {
+    FakeFeatureDriver[] featureDrivers = new FakeFeatureDriver[size];
+    for (int i = 0; i < size; i++) {
+      featureDrivers[i] = new FakeFeatureDriver.Builder().build();
+    }
+    return featureDrivers;
+  }
+
+  private ContentModel[] getContentModels(FeatureDriver[] featureDrivers) {
+    ContentModel[] contentModels = new ContentModel[featureDrivers.length];
+    for (int i = 0; i < contentModels.length; i++) {
+      contentModels[i] = featureDrivers[i].getContentModel();
+    }
+    return contentModels;
+  }
+
   private class StreamDriverForTest extends StreamDriver {
+
+    /*@Nullable*/ private FeatureDriver[] featureDriversToReturn;
+    List<ModelFeature> modelFeatureArgs;
+    int featureDriverIndexToReturn = 0;
 
     StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils) {
       super(modelProvider, threadUtils);
+      modelFeatureArgs = new ArrayList<>();
+    }
+
+    void setFeatureDrivers(FeatureDriver... featureDrivers) {
+      this.featureDriversToReturn = featureDrivers;
     }
 
     @Override
@@ -161,16 +232,27 @@ public class StreamDriverTest {
     }
 
     @Override
-    ClusterDriver createClusterDriver(ModelFeature modelFeature) {
+    FeatureDriver createClusterDriver(ModelFeature modelFeature) {
+      modelFeatureArgs.add(modelFeature);
+      if (featureDriversToReturn != null) {
+        return featureDriversToReturn[featureDriverIndexToReturn++];
+      }
+
       return clusterDriver;
     }
 
     @Override
-    CardDriver createCardDriver(ModelFeature modelFeature) {
+    FeatureDriver createCardDriver(ModelFeature modelFeature) {
+      modelFeatureArgs.add(modelFeature);
+      if (featureDriversToReturn != null) {
+        return featureDriversToReturn[featureDriverIndexToReturn++];
+      }
+
       return cardDriver;
     }
   }
 
+  /** Sets up a {@link FakeModelCursor}. */
   private static class FakeCursorBuilder {
 
     List<ModelChild> cursorChildren = new ArrayList<>();
@@ -221,6 +303,10 @@ public class StreamDriverTest {
     }
   }
 
+  /**
+   * Sets up the interactions between the {@link StreamDriver} and {@link ModelProvider} to handle a
+   * cursor that has one {@link ModelToken}. Then simulates the clicking of the {@link ModelToken}.
+   */
   private class TokenHandlingTestBuilder {
 
     private FakeModelCursor initialCursor;
@@ -259,6 +345,54 @@ public class StreamDriverTest {
       }
 
       return streamDriver.getContentModels();
+    }
+  }
+
+  /**
+   * Builds a {@link FeatureChange} representing the removal of given {@link FakeFeatureDriver}
+   * instances.
+   */
+  private static class ChildRemoveBuilder {
+
+    private List<ModelChild> removedChildren = new ArrayList<>();
+
+    ChildRemoveBuilder addChildForRemoval(ModelChild modelChild) {
+      removedChildren.add(modelChild);
+      return this;
+    }
+
+    FeatureChange build() {
+      return new FeatureChange() {
+        @Override
+        public String getContentId() {
+          return null;
+        }
+
+        @Override
+        public boolean isFeatureChanged() {
+          return false;
+        }
+
+        @Override
+        public ModelFeature getModelFeature() {
+          return null;
+        }
+
+        @Override
+        public ChildChanges getChildChanges() {
+          return new ChildChanges() {
+            @Override
+            public List<ModelChild> getAppendedChildren() {
+              return null;
+            }
+
+            @Override
+            public List<ModelChild> getRemovedChildren() {
+              return removedChildren;
+            }
+          };
+        }
+      };
     }
   }
 }
