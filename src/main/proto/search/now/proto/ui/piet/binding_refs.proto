@@ -46,6 +46,14 @@ message CustomBindingRef {
   optional bool is_optional = 2;
 }
 
+message ModuleBindingRef {
+  // The unique ID for this binding. See comments at the top of the file.
+  optional string binding_id = 1;
+
+  // Indicates whether this binding reference is optional.
+  optional bool is_optional = 2;
+}
+
 message ParameterizedTextBindingRef {
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;

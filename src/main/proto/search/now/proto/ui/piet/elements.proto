@@ -116,6 +116,16 @@ message Element {
     // CustomElement).
     CustomElement custom_element = 1;
 
+    // A view that is implemented by a secondary (non-Core) Piet Module. Not all
+    // Piet Elements are useful to all clients/servers, so only the basic ones
+    // are included in Piet Core. Common shareable elements can be implemented
+    // in secondary Piet Modules, which are optional modules that can be
+    // included in or excluded from Piet-based apps on an as-needed basis.
+    // ModuleElements work similar to CustomElements, with the only difference
+    // being that CustomElements are rendered by non-Piet code, while
+    // ModuleElements are rendered by secondary Piet Modules.
+    ModuleElement module_element = 21;
+
     // A simple text line
     TextElement text_element = 2;
 
@@ -323,6 +333,28 @@ message CustomElement {
 
     // The data to be displayed.
     CustomElementData custom_element_data = 3;
+  }
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+
+// A view that is implemented by a secondary (non-Core) Piet Module. Not all
+// Piet Elements are useful to all clients/servers, so only the basic ones are
+// included in Piet Core. Common shareable elements can be implemented in
+// secondary Piet Modules, which are optional modules that can be included in or
+// excluded from Piet-based apps on an as-needed basis.
+// ModuleElements work similar to CustomElements, with the only difference being
+// that CustomElements are rendered by non-Piet code, while ModuleElements are
+// rendered by secondary Piet Modules.
+message ModuleElement {
+  // Content for this ModuleElement.
+  oneof content {
+    // The binding to the BindingValue for a ModuleElement.
+    ModuleBindingRef module_binding = 2;
+
+    // The data to be displayed.
+    ModuleElementData module_element_data = 3;
   }
 
   // Please use CL numbers you own for extension numbers.
@@ -572,6 +604,13 @@ message BindingValue {
 // Data to be displayed in a CustomElement. Clients using Piet should add
 // extensions to this proto to pass their custom data to CustomElements.
 message CustomElementData {
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+
+// Data to be displayed in a ModuleElement. Piet Modules should add extensions
+// to this proto to pass their custom data to ModuleElements.
+message ModuleElementData {
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 }
