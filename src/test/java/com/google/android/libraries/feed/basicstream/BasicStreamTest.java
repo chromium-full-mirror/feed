@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -35,6 +36,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
 import com.google.android.libraries.feed.common.testing.FakeClock;
+import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
@@ -110,22 +112,7 @@ public class BasicStreamTest {
     when(streamConfiguration.getPaddingTop()).thenReturn(TOP_PADDING);
     when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
     when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
-    basicStream =
-        new BasicStream(
-            Robolectric.setupActivity(Activity.class),
-            streamConfiguration,
-            cardConfiguration,
-            imageLoaderApi,
-            actionParser,
-            actionApi,
-            customElementProvider,
-            DebugBehavior.VERBOSE,
-            threadUtils,
-            headers,
-            new FakeClock(),
-            modelProviderFactory,
-            new HostBindingProvider(),
-            actionManager);
+    basicStream = createBasicStream();
     basicStream.onCreate(null);
   }
 
@@ -179,6 +166,33 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testLifecycle_onCreateCalledOnlyOnce() {
+    // onCreate is called once in setup
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                basicStream.onCreate(null);
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class);
+  }
+
+  @Test
+  public void testLifecycle_getViewBeforeOnCreateCrashes() {
+    // create BasicStream that has not had onCreate() called.
+    basicStream = createBasicStream();
+    assertThatRunnable(
+            new ThrowingRunnable() {
+              @Override
+              public void run() throws Throwable {
+                basicStream.getView();
+              }
+            })
+        .throwsAnExceptionOfType(IllegalStateException.class);
+  }
+
+  @Test
   @Config(sdk = VERSION_CODES.JELLY_BEAN)
   public void testPadding_jellyBean() {
     // Padding is setup in constructor.
@@ -200,5 +214,23 @@ public class BasicStreamTest {
     assertThat(view.getPaddingEnd()).isEqualTo(END_PADDING);
     assertThat(view.getPaddingTop()).isEqualTo(TOP_PADDING);
     assertThat(view.getPaddingBottom()).isEqualTo(BOTTOM_PADDING);
+  }
+
+  private BasicStream createBasicStream() {
+    return new BasicStream(
+        Robolectric.setupActivity(Activity.class),
+        streamConfiguration,
+        cardConfiguration,
+        imageLoaderApi,
+        actionParser,
+        actionApi,
+        customElementProvider,
+        DebugBehavior.VERBOSE,
+        threadUtils,
+        headers,
+        new FakeClock(),
+        modelProviderFactory,
+        new HostBindingProvider(),
+        actionManager);
   }
 }

@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.os.Build.VERSION;
@@ -57,7 +58,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   private static final String TAG = "BasicStream";
 
-  private final RecyclerView recyclerView;
   private final CardConfiguration cardConfiguration;
   private final ThreadUtils threadUtils;
   private final PietManager pietManager;
@@ -66,6 +66,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final ActionApi actionApi;
   private final ActionManager actionManager;
 
+  private RecyclerView recyclerView;
   private ModelProvider modelProvider;
   private Context context;
   private List<View> headers;
@@ -96,8 +97,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
             new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
             new PietCustomElementProvider(context, customElementProvider),
             new PietHostBindingProvider(hostBindingProvider));
-    recyclerView = new RecyclerView(context);
-    recyclerView.setLayoutManager(new LinearLayoutManager(context));
     this.context = context;
     this.headers = headers;
     this.modelProviderFactory = modelProviderFactory;
@@ -109,11 +108,16 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public void onCreate(/*@Nullable*/ Bundle savedInstanceState) {
+    checkState(recyclerView == null, "Can't call onCreate() multiple times.");
     // TODO: Implement save/restore.
     adapter =
         new StreamRecyclerViewAdapter(
             context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
     adapter.setHeaders(headers);
+
+    recyclerView = new RecyclerView(context);
+    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);
     if (VERSION.SDK_INT > VERSION_CODES.JELLY_BEAN) {
@@ -156,6 +160,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public View getView() {
+    checkState(recyclerView != null, "Must call onCreate() before getView()");
     return recyclerView;
   }
 
