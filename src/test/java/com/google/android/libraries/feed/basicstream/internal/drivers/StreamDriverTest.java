@@ -15,14 +15,12 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
@@ -30,18 +28,20 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
+import com.google.android.libraries.feed.testing.modelprovider.FakeModelToken;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
@@ -61,8 +61,6 @@ public class StreamDriverTest {
   @Mock private CardDriver cardDriver;
   @Mock private StreamContentListener contentListener;
 
-  @Captor private ArgumentCaptor<TokenCompletedObserver> tokenCompletedObserverCaptor;
-
   @Before
   public void setup() {
     initMocks(this);
@@ -80,8 +78,7 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_createsContinuationContentModel() {
-    FakeModelCursor cursor = new FakeCursorBuilder().addToken().build();
-    when(streamFeature.getCursor()).thenReturn(cursor);
+    when(streamFeature.getCursor()).thenReturn(new FakeCursorBuilder().addToken().build());
 
     List<ContentModel> contentModels = streamDriver.getContentModels();
     assertThat(contentModels).hasSize(1);
@@ -90,14 +87,11 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_tokenHandling() {
-    FakeModelCursor cursorWithToken = new FakeCursorBuilder().addToken().build();
-    FakeModelCursor tokenPayloadCursor = new FakeCursorBuilder().addCluster().build();
-
     List<ContentModel> finalContentModels =
         new TokenHandlingTestBuilder()
-            .setInitialCursor(cursorWithToken)
+            .setInitialCursor(new FakeCursorBuilder().addToken().build())
+            .setTokenPayloadCursor(new FakeCursorBuilder().addCluster().build())
             .setTokenIndex(0)
-            .setTokenPayloadCursor(tokenPayloadCursor)
             .run();
 
     assertThat(finalContentModels).hasSize(1);
@@ -110,13 +104,10 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_tokenHandling_notifiesObservers() {
-    FakeModelCursor cursorWithToken = new FakeCursorBuilder().addToken().build();
-    FakeModelCursor tokenPayloadCursor = new FakeCursorBuilder().addCluster().build();
-
     new TokenHandlingTestBuilder()
-        .setInitialCursor(cursorWithToken)
+        .setInitialCursor(new FakeCursorBuilder().addToken().build())
+        .setTokenPayloadCursor(new FakeCursorBuilder().addCluster().build())
         .setTokenIndex(0)
-        .setTokenPayloadCursor(tokenPayloadCursor)
         .run();
 
     verify(contentListener).notifyContentRemoved(0);
@@ -125,14 +116,11 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_tokenChildrenAddedAtTokenPosition() {
-    FakeModelCursor streamCursor = new FakeCursorBuilder().addCluster().addToken().build();
-    FakeModelCursor tokenPayloadCursor = new FakeCursorBuilder().addCluster().addToken().build();
-
     List<ContentModel> finalContentModels =
         new TokenHandlingTestBuilder()
-            .setInitialCursor(streamCursor)
+            .setInitialCursor(new FakeCursorBuilder().addCluster().addToken().build())
+            .setTokenPayloadCursor(new FakeCursorBuilder().addCluster().addToken().build())
             .setTokenIndex(1)
-            .setTokenPayloadCursor(tokenPayloadCursor)
             .run();
 
     assertThat(finalContentModels).hasSize(3);
@@ -142,16 +130,12 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_tokenChildrenAddedAtTokenPosition_tokenNotAtEnd() {
-    FakeModelCursor streamCursor =
-        new FakeCursorBuilder().addCluster().addToken().addCluster().build();
-    FakeModelCursor tokenPayloadCursor =
-        new FakeCursorBuilder().addCluster().addCard().addCluster().build();
-
     List<ContentModel> finalContentModels =
         new TokenHandlingTestBuilder()
-            .setInitialCursor(streamCursor)
+            .setInitialCursor(new FakeCursorBuilder().addCluster().addToken().addCluster().build())
             .setTokenIndex(1)
-            .setTokenPayloadCursor(tokenPayloadCursor)
+            .setTokenPayloadCursor(
+                new FakeCursorBuilder().addCluster().addCard().addCluster().build())
             .run();
 
     assertThat(finalContentModels).hasSize(5);
@@ -192,13 +176,14 @@ public class StreamDriverTest {
     List<ModelChild> cursorChildren = new ArrayList<>();
 
     FakeCursorBuilder addCard() {
-      ModelFeature cardFeature = mock(ModelFeature.class);
-      when(cardFeature.getStreamFeature())
-          .thenReturn(StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build());
-
-      ModelChild cardChild = mock(ModelChild.class);
-      when(cardChild.getType()).thenReturn(Type.FEATURE);
-      when(cardChild.getModelFeature()).thenReturn(cardFeature);
+      ModelChild cardChild =
+          new FakeModelChild.Builder()
+              .setModelFeature(
+                  new FakeModelFeature.Builder()
+                      .setStreamFeature(
+                          StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
+                      .build())
+              .build();
 
       cursorChildren.add(cardChild);
 
@@ -206,13 +191,16 @@ public class StreamDriverTest {
     }
 
     FakeCursorBuilder addCluster() {
-      ModelFeature clusterFeature = mock(ModelFeature.class);
-      when(clusterFeature.getStreamFeature())
-          .thenReturn(StreamFeature.newBuilder().setCluster(Cluster.getDefaultInstance()).build());
-
-      ModelChild clusterChild = mock(ModelChild.class);
-      when(clusterChild.getType()).thenReturn(Type.FEATURE);
-      when(clusterChild.getModelFeature()).thenReturn(clusterFeature);
+      ModelChild clusterChild =
+          new FakeModelChild.Builder()
+              .setModelFeature(
+                  new FakeModelFeature.Builder()
+                      .setStreamFeature(
+                          StreamFeature.newBuilder()
+                              .setCluster(Cluster.getDefaultInstance())
+                              .build())
+                      .build())
+              .build();
 
       cursorChildren.add(clusterChild);
 
@@ -220,10 +208,8 @@ public class StreamDriverTest {
     }
 
     FakeCursorBuilder addToken() {
-      ModelChild tokenChild = mock(ModelChild.class);
-      ModelToken modelToken = mock(ModelToken.class);
-      when(tokenChild.getType()).thenReturn(Type.TOKEN);
-      when(tokenChild.getModelToken()).thenReturn(modelToken);
+      ModelChild tokenChild =
+          new FakeModelChild.Builder().setModelToken(new FakeModelToken.Builder().build()).build();
 
       cursorChildren.add(tokenChild);
 
@@ -241,34 +227,36 @@ public class StreamDriverTest {
     private FakeModelCursor payloadCursor;
     private int tokenIndex;
 
-    public TokenHandlingTestBuilder setInitialCursor(FakeModelCursor initialCursor) {
+    TokenHandlingTestBuilder setInitialCursor(FakeModelCursor initialCursor) {
       this.initialCursor = initialCursor;
       return this;
     }
 
-    public TokenHandlingTestBuilder setTokenPayloadCursor(FakeModelCursor initialCursor) {
+    TokenHandlingTestBuilder setTokenPayloadCursor(FakeModelCursor initialCursor) {
       this.payloadCursor = initialCursor;
       return this;
     }
 
-    public TokenHandlingTestBuilder setTokenIndex(int tokenIndex) {
+    TokenHandlingTestBuilder setTokenIndex(int tokenIndex) {
       this.tokenIndex = tokenIndex;
       return this;
     }
 
-    public List<ContentModel> run() {
+    List<ContentModel> run() {
       when(streamFeature.getCursor()).thenReturn(initialCursor);
 
       // Causes StreamDriver to build a list of children based on the children from the cursor.
       streamDriver.getContentModels();
 
-      ModelToken token = initialCursor.getChildAt(tokenIndex).getModelToken();
+      FakeModelToken token = (FakeModelToken) initialCursor.getChildAt(tokenIndex).getModelToken();
 
-      verify(token).registerObserver(tokenCompletedObserverCaptor.capture());
+      HashSet<TokenCompletedObserver> tokenCompletedObservers = token.getObservers();
 
-      // Indicates the token has been successfully handled by the ModelProvider, leading to adding
-      // children from the token's cursor.
-      tokenCompletedObserverCaptor.getValue().onTokenCompleted(new TokenCompleted(payloadCursor));
+      assertThat(tokenCompletedObservers).hasSize(1);
+
+      for (TokenCompletedObserver tokenCompletedObserver : tokenCompletedObservers) {
+        tokenCompletedObserver.onTokenCompleted(new TokenCompleted(payloadCursor));
+      }
 
       return streamDriver.getContentModels();
     }

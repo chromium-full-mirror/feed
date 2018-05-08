@@ -14,6 +14,9 @@
 
 package com.google.android.libraries.feed.testing.modelprovider;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+import static com.google.android.libraries.feed.common.Validators.checkState;
+
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
@@ -21,20 +24,19 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 /** Fake for {@link com.google.android.libraries.feed.api.modelprovider.ModelChild}. */
 public class FakeModelChild implements ModelChild {
 
-  private final @Type int type;
   private final String contentId;
-  private final ModelFeature modelFeature;
-  private final ModelToken modelToken;
 
+  private final /*@Nullable*/ ModelFeature modelFeature;
+  private final /*@Nullable*/ ModelToken modelToken;
   private final /*@Nullable*/ String parentId;
 
   private FakeModelChild(
-      @Type int type,
       String contentId,
-      ModelFeature modelFeature,
-      ModelToken modelToken,
+      /*@Nullable*/ ModelFeature modelFeature,
+      /*@Nullable*/ ModelToken modelToken,
       /*@Nullable*/ String parentId) {
-    this.type = type;
+    // A ModelChild can't represent both a ModelFeature and a ModelToken.
+    checkState(modelFeature == null || modelToken == null);
     this.contentId = contentId;
     this.modelFeature = modelFeature;
     this.modelToken = modelToken;
@@ -43,7 +45,15 @@ public class FakeModelChild implements ModelChild {
 
   @Override
   public @Type int getType() {
-    return type;
+    if (modelFeature != null) {
+      return Type.FEATURE;
+    }
+
+    if (modelToken != null) {
+      return Type.TOKEN;
+    }
+
+    return Type.UNBOUND;
   }
 
   @Override
@@ -63,25 +73,25 @@ public class FakeModelChild implements ModelChild {
 
   @Override
   public ModelFeature getModelFeature() {
-    return modelFeature;
+    checkState(modelFeature != null, "Must call setModelFeature on builder to have a ModelFeature");
+
+    // checkNotNull for nullness checker, if modelFeature is null, the checkState above will fail.
+    return checkNotNull(modelFeature);
   }
 
   @Override
   public ModelToken getModelToken() {
-    return modelToken;
+    checkState(modelToken != null, "Must call setModelToken on builder to have a ModelToken");
+
+    // checkNotNull for nullness checker, if modelToken is null, the checkState above will fail.
+    return checkNotNull(modelToken);
   }
 
   public static class Builder {
-    private @Type int type = Type.UNBOUND;
     private String contentId = "";
-    private ModelFeature modelFeature = new FakeModelFeature.Builder().build();
-    private ModelToken modelToken = new FakeModelToken.Builder().build();
+    private /*@Nullable*/ ModelFeature modelFeature;
+    private /*@Nullable*/ ModelToken modelToken;
     private /*@Nullable*/ String parentId;
-
-    public Builder setType(@Type int type) {
-      this.type = type;
-      return this;
-    }
 
     public Builder setContentId(String contentId) {
       this.contentId = contentId;
@@ -94,17 +104,19 @@ public class FakeModelChild implements ModelChild {
     }
 
     public Builder setModelFeature(ModelFeature modelFeature) {
+      checkState(modelToken == null);
       this.modelFeature = modelFeature;
       return this;
     }
 
     public Builder setModelToken(ModelToken modelToken) {
+      checkState(modelFeature == null);
       this.modelToken = modelToken;
       return this;
     }
 
     public FakeModelChild build() {
-      return new FakeModelChild(type, contentId, modelFeature, modelToken, parentId);
+      return new FakeModelChild(contentId, modelFeature, modelToken, parentId);
     }
   }
 }
