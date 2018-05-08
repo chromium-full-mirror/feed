@@ -58,6 +58,7 @@ public class SessionImplTest {
 
   private FakeSessionMutation fakeSessionMutation;
   private FakeModelMutation fakeModelMutator;
+  private TaskQueue taskQueue;
   private final TimingUtils timingUtils = new TimingUtils();
 
   @Before
@@ -237,8 +238,13 @@ public class SessionImplTest {
   }
 
   private SessionImpl getSessionImpl() {
-    SessionImpl session =
-        new SessionImpl(store, MoreExecutors.newDirectExecutorService(), timingUtils, threadUtils);
+    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), timingUtils);
+    taskQueue.executeInitialization(
+        new Runnable() {
+          @Override
+          public void run() {}
+        });
+    SessionImpl session = new SessionImpl(store, taskQueue, timingUtils, threadUtils);
     session.bindModelProvider(modelProvider);
     return session;
   }

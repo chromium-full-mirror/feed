@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.feedsessionmanager.internal.TaskQueue.TaskType;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -36,14 +37,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 /** Implementation of a {@link Session}. */
 public class SessionImpl implements InitializableSession, Dumpable {
   private static final String TAG = "SessionImpl";
 
   private final Store store;
-  private final ExecutorService sessionManagerExecutor;
+  private final TaskQueue taskQueue;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
 
@@ -56,13 +56,9 @@ public class SessionImpl implements InitializableSession, Dumpable {
   // operation counts for the dumper
   private int updateCount = 0;
 
-  SessionImpl(
-      Store store,
-      ExecutorService sessionManagerExecutor,
-      TimingUtils timingUtils,
-      ThreadUtils threadUtils) {
+  SessionImpl(Store store, TaskQueue taskQueue, TimingUtils timingUtils, ThreadUtils threadUtils) {
     this.store = store;
-    this.sessionManagerExecutor = sessionManagerExecutor;
+    this.taskQueue = taskQueue;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
   }
@@ -182,8 +178,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
     }
 
     // Commit the Model Provider mutation after the store is updated.
-    sessionManagerExecutor.execute(sessionMutation::commit);
-    // TODO: When we only support optimistic writes remove the if statement
+    taskQueue.execute("SessionImpl.sessionMutation", TaskType.USER_FACING, sessionMutation::commit);
     if (modelMutation != null) {
       modelMutation.commit();
     }

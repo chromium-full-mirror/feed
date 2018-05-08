@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.IntDef;
 import android.util.Pair;
+import com.google.android.libraries.feed.common.logging.Dumpable;
+import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
@@ -46,7 +48,7 @@ import javax.annotation.concurrent.GuardedBy;
  * USER_FACING tasks followed by the BACKGROUND tasks. Once all of these tasks have run, we will run
  * tasks immediately until we either have a task which is of type HEAD_INVALIDATE or HEAD_RESET.
  */
-public class TaskQueue {
+public class TaskQueue implements Dumpable {
   private static final String TAG = "TaskQueue";
 
   /** TaskType identifies the type of task being run and implicitly the priority of the task */
@@ -85,6 +87,15 @@ public class TaskQueue {
   private final ExecutorService executor;
   private final TimingUtils timingUtils;
 
+  // counters used for dump
+  private int taskCount = 0;
+  private int delayedTaskCount = 0;
+  private int backgroundTaskCount = 0;
+  private int maxBackgroundTasks = 0;
+  private int userFacingTaskCount = 0;
+  private int maxUserFacingTasks = 0;
+  private int immediateTasks = 0;
+
   public TaskQueue(ExecutorService executor, TimingUtils timingUtils) {
     this.executor = executor;
     this.timingUtils = timingUtils;
@@ -92,7 +103,14 @@ public class TaskQueue {
 
   /** Execute a Task on the Executor. */
   public void execute(String task, @TaskType int taskType, Runnable runnable) {
+    taskCount++;
+    if (taskType == TaskType.USER_FACING) {
+      userFacingTaskCount++;
+    } else if (taskType == TaskType.BACKGROUND) {
+      backgroundTaskCount++;
+    }
     if (!isDelayed()) {
+      immediateTasks++;
       executor.execute(() -> executeImmediate(task, runnable));
       return;
     }
@@ -119,24 +137,41 @@ public class TaskQueue {
         });
   }
 
+  @Override
+  public void dump(Dumper dumper) {
+    dumper.title(TAG);
+    dumper.forKey("tasks").value(taskCount);
+    dumper.forKey("backgroundTasks").value(backgroundTaskCount).compactPrevious();
+    dumper.forKey("userFacingTasks").value(userFacingTaskCount).compactPrevious();
+    dumper.forKey("delayedTasks").value(delayedTaskCount);
+    dumper.forKey("immediateTasks").value(immediateTasks).compactPrevious();
+    dumper.forKey("maxUserFacingDelay").value(maxUserFacingTasks).compactPrevious();
+    dumper.forKey("maxBackgroundDelay").value(maxBackgroundTasks).compactPrevious();
+  }
+
   private void scheduleTask(String task, @TaskType int taskType, Runnable runnable) {
     if (taskType == TaskType.HEAD_INVALIDATE) {
       synchronized (lock) {
         waitForHeadReset = true;
       }
+      immediateTasks++;
       executor.execute(() -> executeHeadInvalidate(task, runnable));
       return;
     }
     if (taskType == TaskType.HEAD_RESET) {
+      immediateTasks++;
       executor.execute(() -> executeHeadReset(task, runnable));
       return;
     }
     Logger.i(TAG, "Delayed task %s", task);
+    delayedTaskCount++;
     synchronized (lock) {
       if (taskType == TaskType.USER_FACING) {
         userTasks.add(Pair.create(task, runnable));
+        maxUserFacingTasks = Math.max(maxUserFacingTasks, userTasks.size());
       } else if (taskType == TaskType.BACKGROUND) {
         backgroundTasks.add(Pair.create(task, runnable));
+        maxBackgroundTasks = Math.max(maxBackgroundTasks, backgroundTasks.size());
       }
     }
   }

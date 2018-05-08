@@ -126,7 +126,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     lifetimeMs =
         configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
-    sessionFactory = new SessionFactory(store, executor, timingUtils, threadUtils);
+    sessionFactory = new SessionFactory(store, taskQueue, timingUtils, threadUtils);
     contentCache = new ContentCache();
 
     // Suppress /*@UnderInitialization*/ warning
@@ -531,6 +531,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       dumper.forKey("sharedStateCount").value(sharedStateCache.size());
       dumper.forKey("sessionCount").value(sessions.size()).compactPrevious();
       dumper.dump(contentCache);
+      dumper.dump(taskQueue);
       for (Session session : sessions.values()) {
         if (session instanceof Dumpable) {
           dumper.dump((Dumpable) session);
@@ -635,7 +636,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           break;
         }
       }
-      Logger.i("TaskQueue", "clearing head %s", clearedHead);
+      Logger.i("TaskQueue", "CommitterTask is clearing head %s", clearedHead);
       taskQueue.execute(
           "sessionManagerMutation:" + task,
           clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING,
@@ -667,7 +668,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       for (StreamDataOperation dataOperation : dataOperations) {
         Operation operation = dataOperation.getStreamStructure().getOperation();
         if (operation == Operation.CLEAR_ALL) {
-          clearedHead = true;
           streamStructures.add(dataOperation.getStreamStructure());
           resetHead((mutationContext != null) ? mutationContext.getRequestingSession() : null);
           continue;
