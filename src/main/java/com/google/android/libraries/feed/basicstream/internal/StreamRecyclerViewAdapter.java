@@ -20,7 +20,6 @@ import static com.google.android.libraries.feed.basicstream.internal.viewholders
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -31,6 +30,8 @@ import com.google.android.libraries.feed.basicstream.internal.contentmodels.Cont
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -40,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** A RecyclerView adapter which can show a list of views with Piet Stream features. */
-public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
+public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHolder>
     implements StreamContentListener {
   private static final String TAG = "StreamRecyclerViewAdapt";
 
@@ -75,7 +76,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
   }
 
   @Override
-  public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+  public FeedViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     if (viewType == TYPE_HEADER) {
       FrameLayout frameLayout = new FrameLayout(parent.getContext());
       frameLayout.setLayoutParams(
@@ -96,8 +97,9 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
   }
 
   @Override
-  public void onBindViewHolder(ViewHolder viewHolder, int i) {
+  public void onBindViewHolder(FeedViewHolder viewHolder, int i) {
     if (isHeader(i)) {
+      // TODO: Create ContentModels for headers.
       injectHeader((HeaderViewHolder) viewHolder, i);
       return;
     }
@@ -109,26 +111,13 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
   private void injectHeader(HeaderViewHolder headerViewHolder, int position) {
     View header = headers.get(position);
     if (header.getParent() == null) {
-      headerViewHolder.frameLayout.addView(header);
+      headerViewHolder.bind(header);
     }
   }
 
   @Override
-  public void onViewRecycled(ViewHolder viewHolder) {
-    // TODO: Make custom ViewHolder descendent that has an unbind() to avoid code
-    // duplication.
-    // TODO: Create ViewHolders and ContentModels for headers.
-    if (viewHolder instanceof HeaderViewHolder) {
-      Logger.d(TAG, "onViewRecycled - HeaderViewHolder");
-      ((HeaderViewHolder) viewHolder).frameLayout.removeAllViews();
-
-    } else if (viewHolder instanceof ContinuationViewHolder) {
-      Logger.d(TAG, "onViewRecycled - ContinuationViewHolder");
-      ((ContinuationViewHolder) viewHolder).unbind();
-    } else {
-      Logger.d(TAG, "onViewRecycled - PietViewHolder");
-      ((PietViewHolder) viewHolder).unbind();
-    }
+  public void onViewRecycled(FeedViewHolder viewHolder) {
+    viewHolder.unbind();
   }
 
   @Override
@@ -138,7 +127,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
 
   @Override
   public int getItemViewType(int position) {
-    // TODO: Create ViewHolders and ContentModels for headers.
+    // TODO: Create ContentModels for headers.
     if (isHeader(position)) {
       return TYPE_HEADER;
     }
@@ -203,12 +192,4 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder>
     notifyItemRemoved(removalIndex);
   }
 
-  static class HeaderViewHolder extends ViewHolder {
-    private final FrameLayout frameLayout;
-
-    public HeaderViewHolder(FrameLayout itemView) {
-      super(itemView);
-      this.frameLayout = itemView;
-    }
-  }
 }

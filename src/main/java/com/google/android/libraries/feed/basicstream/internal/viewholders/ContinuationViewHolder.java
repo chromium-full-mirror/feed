@@ -21,7 +21,7 @@ import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 
 /** {@link ViewHolder} for the more button. */
-public class ContinuationViewHolder extends ViewHolder {
+public class ContinuationViewHolder extends FeedViewHolder {
 
   private final FrameLayout frameLayout;
 
@@ -35,6 +35,7 @@ public class ContinuationViewHolder extends ViewHolder {
     frameLayout.setOnClickListener(onClickListener);
   }
 
+  @Override
   public void unbind() {
     // Clear OnClickListener to null to allow for GC.
     frameLayout.setOnClickListener(null);

@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * {@link ViewHolder} for {@link com.google.search.now.ui.stream.StreamStructureProto.PietContent}.
  */
-public class PietViewHolder extends ViewHolder {
+public class PietViewHolder extends FeedViewHolder {
 
   private final CardConfiguration cardConfiguration;
   private final FrameLayout cardView;
@@ -76,6 +76,7 @@ public class PietViewHolder extends ViewHolder {
     bound = true;
   }
 
+  @Override
   public void unbind() {
     if (!bound) {
       return;

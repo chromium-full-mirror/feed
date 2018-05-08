@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -65,7 +66,6 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private PietManager pietManager;
   @Mock private FrameAdapter frameAdapter;
   @Mock private StreamDriver driver;
-  @Mock private ContinuationViewHolder continuationViewHolder;
   @Mock private ContentModel initialContentModel;
   @Mock private ContentModel contentModel1;
   @Mock private ContentModel contentModel2;
@@ -134,7 +134,7 @@ public class StreamRecyclerViewAdapterTest {
   @Test
   public void testBindPiet() {
     FrameLayout parent = new FrameLayout(context);
-    ViewHolder viewHolder =
+    FeedViewHolder viewHolder =
         streamRecyclerViewAdapter.onCreateViewHolder(parent, ViewHolderType.TYPE_CARD);
 
     FrameLayout cardView = getCardView(viewHolder);
