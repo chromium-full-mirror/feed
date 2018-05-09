@@ -30,13 +30,17 @@ public class Configuration {
     ConfigKey.SESSION_LIFETIME_MS,
     ConfigKey.MOCK_SERVER_DELAY_MS,
     ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE,
+    ConfigKey.NON_CACHED_PAGE_SIZE,
+    ConfigKey.NON_CACHED_MIN_PAGE_SIZE,
   })
   public @interface ConfigKey {
     String FEED_SERVER_HOST = "feed_server_host";
     String FEED_SERVER_PATH_AND_PARAMS = "feed_server_path_and_params";
     String SESSION_LIFETIME_MS = "session_lifetime_ms";
     String MOCK_SERVER_DELAY_MS = "mock_server_delay_ms";
-    String INITIAL_NON_CACHED_PAGE_SIZE = "initial_non_chached_apge_size";
+    String INITIAL_NON_CACHED_PAGE_SIZE = "initial_non_cached_page_size";
+    String NON_CACHED_PAGE_SIZE = "non_cached_page_size";
+    String NON_CACHED_MIN_PAGE_SIZE = "non_cached_min_page_size";
   }
 
   private final HashMap<String, Object> values;
