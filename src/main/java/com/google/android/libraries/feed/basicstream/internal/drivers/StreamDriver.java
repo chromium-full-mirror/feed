@@ -103,7 +103,6 @@ public class StreamDriver implements FeatureChangeObserver {
         ModelToken modelToken = child.getModelToken();
         ContinuationDriver continuationDriver = createContinuationDriver(modelProvider, modelToken);
 
-        // TODO: Place the observing of the token in the ContinuationDriver.
         modelToken.registerObserver(
             tokenCompleted -> {
               threadUtils.checkMainThread();
