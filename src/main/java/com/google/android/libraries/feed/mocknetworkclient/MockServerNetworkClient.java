@@ -14,10 +14,14 @@
 
 package com.google.android.libraries.feed.mocknetworkclient;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -40,14 +44,15 @@ public class MockServerNetworkClient implements NetworkClient {
   private final Response initialResponse;
   private final List<ConditionalResponse> conditionalResponses;
   private final ExtensionRegistryLite extensionRegistry;
+  private final long responseDelay;
 
-  @SuppressWarnings("nullness")
-  public MockServerNetworkClient(MockServer mockServer) {
-    this.initialResponse = mockServer.getInitialResponse();
+  public MockServerNetworkClient(MockServer mockServer, Configuration config) {
+    initialResponse = mockServer.getInitialResponse();
     conditionalResponses = mockServer.getConditionalResponsesList();
 
     extensionRegistry = ExtensionRegistryLite.newInstance();
     extensionRegistry.add(FeedRequest.feedRequest);
+    responseDelay = config.getValueOrDefault(ConfigKey.MOCK_SERVER_DELAY_MS, 0L);
   }
 
   @Override
@@ -65,17 +70,27 @@ public class MockServerNetworkClient implements NetworkClient {
             continue;
           }
           if (requestToken.equals(response.getContinuationToken())) {
-            responseConsumer.accept(createHttpResponse(response.getResponse()));
+            delayedAccept(createHttpResponse(response.getResponse()), responseConsumer);
             return;
           }
         }
       }
-      responseConsumer.accept(createHttpResponse(initialResponse));
+      delayedAccept(createHttpResponse(initialResponse), responseConsumer);
     } catch (IOException e) {
       // TODO : handle errors here
       Logger.e(TAG, e.getMessage());
-      responseConsumer.accept(new HttpResponse(400));
+      delayedAccept(new HttpResponse(400), responseConsumer);
     }
+  }
+
+  private void delayedAccept(HttpResponse httpResponse, Consumer<HttpResponse> responseConsumer) {
+    if (responseDelay <= 0) {
+      responseConsumer.accept(httpResponse);
+      return;
+    }
+
+    new Handler(Looper.getMainLooper())
+        .postDelayed(() -> responseConsumer.accept(httpResponse), responseDelay);
   }
 
   private Request getRequest(HttpRequest httpRequest) throws IOException {

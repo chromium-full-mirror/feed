@@ -84,7 +84,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     initMocks(this);
 
     MockServer mockServer = MockServer.getDefaultInstance();
-    networkClient = new MockServerNetworkClient(mockServer);
+    networkClient = new MockServerNetworkClient(mockServer, new Configuration.Builder().build());
   }
 
   @Test
@@ -93,7 +93,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     Response initialResponse =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
     mockServerBuilder.setInitialResponse(initialResponse);
-    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServerBuilder.build());
+    MockServerNetworkClient networkClient =
+        new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
     Consumer<HttpResponse> responseConsumer =
         new Consumer<HttpResponse>() {
           @Override
@@ -117,7 +118,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     Response initialResponse =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
     mockServerBuilder.setInitialResponse(initialResponse);
-    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServerBuilder.build());
+    MockServerNetworkClient networkClient =
+        new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
     Consumer<HttpResponse> responseConsumer =
         new Consumer<HttpResponse>() {
           @Override
@@ -145,7 +147,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     ConditionalResponse.Builder conditionalResponseBuilder = ConditionalResponse.newBuilder();
     conditionalResponseBuilder.setContinuationToken(token).setResponse(response);
     mockServerBuilder.addConditionalResponses(conditionalResponseBuilder.build());
-    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServerBuilder.build());
+    MockServerNetworkClient networkClient =
+        new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
             configuration,
@@ -184,7 +187,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     ConditionalResponse.Builder conditionalResponseBuilder = ConditionalResponse.newBuilder();
     conditionalResponseBuilder.setResponse(response);
     mockServerBuilder.addConditionalResponses(conditionalResponseBuilder.build());
-    MockServerNetworkClient networkClient = new MockServerNetworkClient(mockServerBuilder.build());
+    MockServerNetworkClient networkClient =
+        new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
             configuration,

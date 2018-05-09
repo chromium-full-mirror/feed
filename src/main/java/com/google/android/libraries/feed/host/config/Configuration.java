@@ -28,11 +28,13 @@ public class Configuration {
     ConfigKey.FEED_SERVER_HOST,
     ConfigKey.FEED_SERVER_PATH_AND_PARAMS,
     ConfigKey.SESSION_LIFETIME_MS,
+    ConfigKey.MOCK_SERVER_DELAY_MS,
   })
   public @interface ConfigKey {
     String FEED_SERVER_HOST = "feed_server_host";
     String FEED_SERVER_PATH_AND_PARAMS = "feed_server_path_and_params";
     String SESSION_LIFETIME_MS = "session_lifetime_ms";
+    String MOCK_SERVER_DELAY_MS = "mock_server_delay_ms";
   }
 
   private final HashMap<String, Object> values;
