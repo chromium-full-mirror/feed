@@ -35,6 +35,7 @@ import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Stream;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId.Builder;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import com.google.search.now.wire.feed.FeatureProto.Feature;
 import com.google.search.now.wire.feed.FeatureProto.Feature.RenderableUnit;
@@ -49,6 +50,7 @@ import java.util.List;
 public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   private static final String TAG = "FeedProtocolAdapter";
+  public static final String CONTENT_ID_DELIMITER = "::";
 
   private final TimingUtils timingUtils;
 
@@ -64,6 +66,33 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   public String getStreamContentId(ContentId contentId) {
     convertContentIdCount++;
     return createContentId(contentId);
+  }
+
+  @Override
+  public Result<ContentId> getWireContentId(String contentId) {
+    String[] splitContentId = contentId.split(CONTENT_ID_DELIMITER, -1);
+    // Can't create if all 3 parts aren't present (at the very least empty)
+    if (splitContentId.length != 3) {
+      Logger.e(TAG, "Error parsing string content ID - splitting did not result in 3 parts");
+      return Result.failure();
+    }
+    String table = splitContentId[0];
+    String contentDomain = splitContentId[1];
+    long id;
+    try {
+      id = Long.parseLong(splitContentId[2]);
+    } catch (NumberFormatException e) {
+      Logger.e(TAG, e, "Error converting content ID to wire format");
+      return Result.failure();
+    }
+    Builder builder = ContentId.newBuilder().setId(id);
+    if (!table.isEmpty()) {
+      builder.setTable(table);
+    }
+    if (!contentDomain.isEmpty()) {
+      builder.setContentDomain(contentDomain);
+    }
+    return Result.success(builder.build());
   }
 
   @Override
@@ -256,7 +285,11 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   private String createContentId(ContentId contentId) {
     // Using String concat for performance reasons.  This is called a lot for large feed responses.
-    return contentId.getTable() + "::" + contentId.getContentDomain() + "::" + contentId.getId();
+    return contentId.getTable()
+        + CONTENT_ID_DELIMITER
+        + contentId.getContentDomain()
+        + CONTENT_ID_DELIMITER
+        + contentId.getId();
   }
 
   @Override

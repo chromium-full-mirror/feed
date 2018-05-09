@@ -35,6 +35,16 @@ public interface ProtocolAdapter {
    */
   Result<List<StreamDataOperation>> createOperations(List<DataOperation> dataOperations);
 
-  /** Convert a wire protocol ContentId into the {@code String} version. */
+  /**
+   * Convert a wire protocol ContentId into the {@code String} version. Inverse of {@link
+   * #getWireContentId(String)}
+   */
   String getStreamContentId(ContentId contentId);
+
+  /**
+   * Convert a string ContentId into the wire protocol version. Inverse of {@link
+   * #getStreamContentId(ContentId)}. Note that due to default proto values, if no ID was set in
+   * {@link #getStreamContentId(ContentId)}, this method will set the ID to 0.
+   */
+  Result<ContentId> getWireContentId(String contentId);
 }

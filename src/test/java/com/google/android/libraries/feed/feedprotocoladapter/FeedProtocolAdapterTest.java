@@ -56,6 +56,49 @@ public class FeedProtocolAdapterTest {
   }
 
   @Test
+  public void testConvertContentId_malformed_notThreeParts() {
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
+    String streamContentId = "test" + FeedProtocolAdapter.CONTENT_ID_DELIMITER + "break";
+    Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(streamContentId);
+    assertThat(contentIdResult.isSuccessful()).isFalse();
+  }
+
+  @Test
+  public void testConvertContentId_malformed_nonNumericId() {
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
+    String streamContentId =
+        "test"
+            + FeedProtocolAdapter.CONTENT_ID_DELIMITER
+            + "break"
+            + FeedProtocolAdapter.CONTENT_ID_DELIMITER
+            + "test";
+    Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(streamContentId);
+    assertThat(contentIdResult.isSuccessful()).isFalse();
+  }
+
+  @Test
+  public void testConvertContentId_roundTrip() {
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
+    ContentId contentId = WireProtocolResponseBuilder.createFeatureContentId(13);
+    String streamContentId = protocolAdapter.getStreamContentId(contentId);
+    Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(streamContentId);
+    assertThat(contentIdResult.isSuccessful()).isTrue();
+    assertThat(contentIdResult.getValue()).isNotNull();
+    assertThat(contentIdResult.getValue()).isEqualTo(contentId);
+  }
+
+  @Test
+  public void testConvertContentId_roundTrip_partialContentId() {
+    FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
+    ContentId contentId = ContentId.newBuilder().setId(13).build();
+    String streamContentId = protocolAdapter.getStreamContentId(contentId);
+    Result<ContentId> contentIdResult = protocolAdapter.getWireContentId(streamContentId);
+    assertThat(contentIdResult.isSuccessful()).isTrue();
+    assertThat(contentIdResult.getValue()).isNotNull();
+    assertThat(contentIdResult.getValue()).isEqualTo(contentId);
+  }
+
+  @Test
   public void testSimpleResponse_clear() {
     FeedProtocolAdapter protocolAdapter = new FeedProtocolAdapter(timingUtils);
     Response response = responseBuilder.addClearOperation().build();
