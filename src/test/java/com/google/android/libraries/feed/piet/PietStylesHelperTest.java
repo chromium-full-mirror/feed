@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -262,19 +261,16 @@ public class PietStylesHelperTest {
 
     // Binding styles fails when frameContext is null.
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                PietStylesHelper.mergeStyleIdsStack(
-                    Style.getDefaultInstance(),
-                    StyleIdsStack.newBuilder()
-                        .addStyleIds(styleId1)
-                        .addStyleIds(styleId2)
-                        .setStyleBinding(styleBindingRef)
-                        .build(),
-                    stylesheetMap,
-                    null);
-              }
+            () -> {
+              PietStylesHelper.mergeStyleIdsStack(
+                  Style.getDefaultInstance(),
+                  StyleIdsStack.newBuilder()
+                      .addStyleIds(styleId1)
+                      .addStyleIds(styleId2)
+                      .setStyleBinding(styleBindingRef)
+                      .build(),
+                  stylesheetMap,
+                  null);
             })
         .throwsAnExceptionOfType(NullPointerException.class)
         .that()
