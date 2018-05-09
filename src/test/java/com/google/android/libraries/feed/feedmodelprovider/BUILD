@@ -1,3 +1,5 @@
+load("//tools/build_defs/android:rules.bzl", "android_local_test")
+
 licenses(["notice"])  # Apache 2
 
 android_local_test(
