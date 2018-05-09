@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
-import static com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver.GLOBAL_SHARED_STATE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -128,40 +127,6 @@ public class ContentDriverTest {
         .isEqualTo(PIET_SHARED_STATES);
     verify(modelProvider).getSharedState(CONTENT_ID_1);
     verify(modelProvider).getSharedState(CONTENT_ID_2);
-  }
-
-  @Test
-  public void testGetContentModel_noContentIds() {
-    PietContent pietContent =
-        PietContent.newBuilder().setFrame(Frame.newBuilder().setStylesheetId("id")).build();
-    StreamFeature streamFeature =
-        StreamFeature.newBuilder()
-            .setContent(
-                Content.newBuilder()
-                    .setType(Type.PIET)
-                    .setExtension(PietContent.pietContentExtension, pietContent))
-            .build();
-    PietSharedState pietSharedState =
-        PietSharedState.newBuilder().addTemplates(Template.newBuilder().setTemplateId("3")).build();
-    StreamSharedState streamSharedState =
-        StreamSharedState.newBuilder()
-            .setPietSharedStateItem(
-                PietSharedStateItem.newBuilder()
-                    .setContentId(GLOBAL_SHARED_STATE)
-                    .setPietSharedState(pietSharedState))
-            .build();
-
-    when(modelFeature.getStreamFeature()).thenReturn(streamFeature);
-    when(modelProvider.getSharedState(GLOBAL_SHARED_STATE)).thenReturn(streamSharedState);
-
-    ContentModel contentModel = contentDriver.getContentModel();
-
-    assertThat(contentModel).isInstanceOf(PietContentModel.class);
-
-    assertThat(((PietContentModel) contentModel).getPietContent()).isEqualTo(pietContent);
-    assertThat(((PietContentModel) contentModel).getPietSharedStates())
-        .isEqualTo(ImmutableList.of(pietSharedState));
-    verify(modelProvider).getSharedState(GLOBAL_SHARED_STATE);
   }
 
   @Test

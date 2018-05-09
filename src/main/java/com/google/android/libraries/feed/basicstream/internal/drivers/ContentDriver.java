@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
-import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
@@ -34,14 +33,6 @@ import java.util.List;
 public class ContentDriver implements FeatureDriver {
 
   private static final String TAG = "ContentDriver";
-  // TODO: Remove once GWS changes adding ContentIds has propagated
-  @VisibleForTesting
-  static final ContentId GLOBAL_SHARED_STATE =
-      ContentId.newBuilder()
-          .setContentDomain("piet-shared-state")
-          .setId(1)
-          .setTable("piet-shared-state")
-          .build();
 
   private final ModelFeature contentFeatureModel;
   private final ModelProvider modelProvider;
@@ -68,14 +59,6 @@ public class ContentDriver implements FeatureDriver {
       List<PietSharedState> pietSharedStates = new ArrayList<>();
 
       PietContent pietContent = content.getExtension(PietContent.pietContentExtension);
-      if (pietContent.getPietSharedStatesList().isEmpty()) {
-        PietSharedState pietSharedState = extractPietSharedState(GLOBAL_SHARED_STATE);
-        if (pietSharedState == null) {
-          return null;
-        }
-        pietSharedStates.add(pietSharedState);
-      }
-
       for (ContentId contentId : pietContent.getPietSharedStatesList()) {
         PietSharedState pietSharedState = extractPietSharedState(contentId);
         if (pietSharedState == null) {
