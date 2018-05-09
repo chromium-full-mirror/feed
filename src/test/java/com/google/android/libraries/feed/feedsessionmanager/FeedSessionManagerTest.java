@@ -194,7 +194,8 @@ public class FeedSessionManagerTest {
     populateSession(sessionManager, featureCnt, 1, true, null);
 
     ModelProviderFactory modelProviderFactory =
-        new FeedModelProviderFactory(sessionManager, threadUtils, timingUtils, mainThreadRunner);
+        new FeedModelProviderFactory(
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
     ModelProvider modelProvider = modelProviderFactory.createNew();
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getRootFeature()).isNotNull();

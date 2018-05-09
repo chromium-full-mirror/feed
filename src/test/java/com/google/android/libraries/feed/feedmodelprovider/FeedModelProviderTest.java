@@ -45,6 +45,8 @@ import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.Tok
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.TokenTracking;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelChild;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -77,6 +79,7 @@ public class FeedModelProviderTest {
 
   @Mock private SessionManager sessionManager;
   @Mock private ThreadUtils threadUtils;
+  @Mock private Configuration config;
 
   private ModelChild continuationToken = null;
   private TimingUtils timingUtils = new TimingUtils();
@@ -87,6 +90,7 @@ public class FeedModelProviderTest {
   public void setUp() {
     initMocks(this);
     childBindings.clear();
+    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
     doAnswer(
             new Answer<Void>() {
               @Override
@@ -437,7 +441,8 @@ public class FeedModelProviderTest {
   }
 
   private FeedModelProvider createFeedModelProvider() {
-    return new FeedModelProvider(sessionManager, threadUtils, timingUtils, new MainThreadRunner());
+    return new FeedModelProvider(
+        sessionManager, threadUtils, timingUtils, new MainThreadRunner(), config);
   }
 
   private StreamFeature createFeature(int i, String parentContentId) {

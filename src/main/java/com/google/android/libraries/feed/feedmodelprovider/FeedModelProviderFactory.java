@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.host.config.Configuration;
 
 /**
  * Factory for creating instances of {@link ModelProviderFactory} using the {@link
@@ -30,23 +31,26 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final MainThreadRunner mainThreadRunner;
+  private final Configuration config;
 
   public FeedModelProviderFactory(
       SessionManager sessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
-      MainThreadRunner mainThreadRunner) {
+      MainThreadRunner mainThreadRunner,
+      Configuration config) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.mainThreadRunner = mainThreadRunner;
+    this.config = config;
   }
 
   @Override
   /*@Nullable*/
   public ModelProvider create(String sessionToken) {
     FeedModelProvider modelProvider =
-        new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner);
+        new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
     boolean success = sessionManager.getExistingSession(sessionToken, modelProvider);
     return (success) ? modelProvider : null;
   }
@@ -54,7 +58,7 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   @Override
   public ModelProvider createNew() {
     FeedModelProvider modelProvider =
-        new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner);
+        new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
     sessionManager.getNewSession(modelProvider);
     return modelProvider;
   }

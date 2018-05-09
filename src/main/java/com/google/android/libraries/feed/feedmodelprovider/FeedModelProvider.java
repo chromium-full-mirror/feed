@@ -46,6 +46,8 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutatio
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelChild;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelFeature;
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -109,6 +111,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final MainThreadRunner mainThreadRunner;
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
+  private final int nonCachePageSize;
 
   /*@Nullable*/ @VisibleForTesting StreamSession streamSession;
 
@@ -116,11 +119,13 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       SessionManager sessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
-      MainThreadRunner mainThreadRunner) {
+      MainThreadRunner mainThreadRunner,
+      Configuration config) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.mainThreadRunner = mainThreadRunner;
+    this.nonCachePageSize = config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0);
 
     CursorProvider cursorProvider =
         parentId -> {

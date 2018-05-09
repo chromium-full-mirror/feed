@@ -66,7 +66,8 @@ public class FeedProcessScope implements Dumpable {
       Context context,
       ActionApi actionApi,
       StreamConfiguration streamConfiguration,
-      CardConfiguration cardConfiguration) {
+      CardConfiguration cardConfiguration,
+      Configuration config) {
     return new FeedStreamScope.Builder(
         context,
         actionApi,
@@ -81,7 +82,8 @@ public class FeedProcessScope implements Dumpable {
         debugBehavior,
         streamConfiguration,
         cardConfiguration,
-        actionManager);
+        actionManager,
+        config);
   }
 
   @Override

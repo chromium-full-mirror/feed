@@ -15,12 +15,15 @@
 package com.google.android.libraries.feed.feedmodelprovider;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,16 +38,19 @@ public class FeedModelProviderFactoryTest {
   @Mock private TimingUtils timingUtils;
   @Mock private MainThreadRunner mainThreadRunner;
   @Mock private SessionManager sessionManager;
+  @Mock private Configuration config;
 
   @Before
   public void setUp() {
     initMocks(this);
+    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
   }
 
   @Test
   public void testModelProviderFactory() {
     FeedModelProviderFactory factory =
-        new FeedModelProviderFactory(sessionManager, threadUtils, timingUtils, mainThreadRunner);
+        new FeedModelProviderFactory(
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
     assertThat(factory.createNew()).isNotNull();
   }
 }

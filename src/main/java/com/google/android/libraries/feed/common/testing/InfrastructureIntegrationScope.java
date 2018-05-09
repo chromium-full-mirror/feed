@@ -103,7 +103,7 @@ public class InfrastructureIntegrationScope {
             clock);
     modelProviderFactory =
         new FeedModelProviderFactory(
-            feedSessionManager, threadUtils, timingUtils, mainThreadRunner);
+            feedSessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
   }
 
   public ProtocolAdapter getProtocolAdapter() {

@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedactionparser.FeedActionParser;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
@@ -67,7 +68,8 @@ public class FeedStreamScope {
         DebugBehavior debugBehavior,
         StreamConfiguration streamConfiguration,
         CardConfiguration cardConfiguration,
-        ActionManager actionManager) {
+        ActionManager actionManager,
+        Configuration config) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
@@ -82,6 +84,7 @@ public class FeedStreamScope {
       this.clock = clock;
       this.debugBehavior = debugBehavior;
       this.actionManager = actionManager;
+      this.config = config;
     }
 
     public Builder setActionParser(ActionParser actionParser) {
@@ -113,7 +116,7 @@ public class FeedStreamScope {
       if (modelProviderFactory == null) {
         modelProviderFactory =
             new FeedModelProviderFactory(
-                sessionManager, threadUtils, timingUtils, mainThreadRunner);
+                sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
       }
       if (actionParser == null) {
         actionParser = new FeedActionParser(protocolAdapter);
@@ -162,6 +165,7 @@ public class FeedStreamScope {
     private CardConfiguration cardConfiguration;
     private StreamConfiguration streamConfiguration;
     private final DebugBehavior debugBehavior;
+    private final Configuration config;
 
     // Optional internal components to override the default implementations.
     /*@MonotonicNonNull*/ private ActionParser actionParser;

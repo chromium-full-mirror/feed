@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
@@ -65,6 +66,7 @@ public class FeedStreamScopeTest {
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private ActionManager actionManager;
+  @Mock private Configuration config;
 
   private Context context;
   private MainThreadRunner mainThreadRunner;
@@ -99,7 +101,8 @@ public class FeedStreamScopeTest {
                 DebugBehavior.VERBOSE,
                 streamConfiguration,
                 cardConfiguration,
-                actionManager)
+                actionManager,
+                config)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -122,7 +125,8 @@ public class FeedStreamScopeTest {
                 DebugBehavior.VERBOSE,
                 streamConfiguration,
                 cardConfiguration,
-                actionManager)
+                actionManager,
+                config)
             .setActionParser(actionParser)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)
