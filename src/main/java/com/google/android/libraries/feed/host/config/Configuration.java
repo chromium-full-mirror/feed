@@ -32,6 +32,7 @@ public class Configuration {
     ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE,
     ConfigKey.NON_CACHED_PAGE_SIZE,
     ConfigKey.NON_CACHED_MIN_PAGE_SIZE,
+    ConfigKey.DEFAULT_ACTION_TTL_SECONDS,
   })
   public @interface ConfigKey {
     String FEED_SERVER_HOST = "feed_server_host";
@@ -41,6 +42,7 @@ public class Configuration {
     String INITIAL_NON_CACHED_PAGE_SIZE = "initial_non_cached_page_size";
     String NON_CACHED_PAGE_SIZE = "non_cached_page_size";
     String NON_CACHED_MIN_PAGE_SIZE = "non_cached_min_page_size";
+    String DEFAULT_ACTION_TTL_SECONDS = "default_action_ttl_seconds";
   }
 
   private final HashMap<String, Object> values;
