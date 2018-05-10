@@ -88,6 +88,8 @@ public class PersistentJournalStorage implements JournalStorage {
   }
 
   private List<byte[]> getJournalContents(File journal) throws IOException {
+    threadUtils.checkNotMainThread();
+
     List<byte[]> journalContents = new ArrayList<>();
     if (journal.exists()) {
       try (BufferedReader reader = new BufferedReader(new FileReader(journal))) {
@@ -144,6 +146,8 @@ public class PersistentJournalStorage implements JournalStorage {
   }
 
   private boolean delete(File journal) {
+    threadUtils.checkNotMainThread();
+
     if (!journal.exists()) {
       // If the file doesn't exist, let's call it deleted.
       return true;
@@ -156,6 +160,8 @@ public class PersistentJournalStorage implements JournalStorage {
   }
 
   private boolean copy(Copy operation, File journal) {
+    threadUtils.checkNotMainThread();
+
     try {
       String sanitizedDestJournalName = sanitize(operation.getToJournalName());
       if (!sanitizedDestJournalName.isEmpty()) {
@@ -175,6 +181,8 @@ public class PersistentJournalStorage implements JournalStorage {
   }
 
   private boolean append(Append operation, File journal) {
+    threadUtils.checkNotMainThread();
+
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(journal, /* append= */ true))) {
       writer.write(new String(operation.getValue(), CHARSET));
       writer.newLine();
@@ -226,6 +234,8 @@ public class PersistentJournalStorage implements JournalStorage {
   }
 
   private void initializeJournalDir() {
+    threadUtils.checkNotMainThread();
+
     if (journalDir == null) {
       journalDir = context.getDir(JOURNAL_DIR, Context.MODE_PRIVATE);
     }

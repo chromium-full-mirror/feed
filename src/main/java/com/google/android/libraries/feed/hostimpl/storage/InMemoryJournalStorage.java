@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.host.storage.JournalOperation.Ty
 import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.COPY;
 import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.DELETE;
 
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -44,13 +45,17 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
   private int appendCount = 0;
   private int copyCount = 0;
   private int deleteCount = 0;
+  private final ThreadUtils threadUtils;
 
-  public InMemoryJournalStorage() {
+  public InMemoryJournalStorage(ThreadUtils threadUtils) {
+    this.threadUtils = threadUtils;
     journals = new HashMap<>();
   }
 
   @Override
   public void read(String journalName, Consumer<Result<List<byte[]>>> consumer) {
+    threadUtils.checkMainThread();
+
     readCount++;
     List<byte[]> journal = journals.get(journalName);
     if (journal == null) {
@@ -61,6 +66,8 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
 
   @Override
   public void commit(JournalMutation mutation, Consumer<CommitResult> consumer) {
+    threadUtils.checkMainThread();
+
     String journalName = mutation.getJournalName();
 
     for (JournalOperation operation : mutation.getOperations()) {
@@ -90,11 +97,13 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
 
   @Override
   public void exists(String journalName, Consumer<Result<Boolean>> consumer) {
+    threadUtils.checkMainThread();
     consumer.accept(Result.success(journals.containsKey(journalName)));
   }
 
   @Override
   public void getAllJournals(Consumer<Result<List<String>>> consumer) {
+    threadUtils.checkMainThread();
     consumer.accept(Result.success(new ArrayList<>(journals.keySet())));
   }
 

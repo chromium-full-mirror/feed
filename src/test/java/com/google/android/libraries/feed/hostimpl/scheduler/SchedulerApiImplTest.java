@@ -14,16 +14,24 @@
 
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.testing.conformance.scheduler.SchedulerConformanceTest;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link SchedulerApiImpl}. */
 @RunWith(RobolectricTestRunner.class)
 public class SchedulerApiImplTest extends SchedulerConformanceTest {
+
+  @Mock private ThreadUtils threadUtils;
+
   @Before
   public void setup() {
-    scheduler = new SchedulerApiImpl();
+    initMocks(this);
+    scheduler = new SchedulerApiImpl(threadUtils);
   }
 }

@@ -182,7 +182,7 @@ public class FeedProcessScope implements Dumpable {
         contentStorage = new InMemoryContentStorage();
       }
       if (journalStorage == null) {
-        journalStorage = new InMemoryJournalStorage();
+        journalStorage = new InMemoryJournalStorage(threadUtils);
       }
       if (clock == null) {
         clock = new SystemClockImpl();

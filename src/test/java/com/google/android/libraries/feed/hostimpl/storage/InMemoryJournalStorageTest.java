@@ -14,17 +14,24 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageConformanceTest;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link InMemoryJournalStorage}. */
 @RunWith(RobolectricTestRunner.class)
 public class InMemoryJournalStorageTest extends JournalStorageConformanceTest {
 
+  @Mock private ThreadUtils threadUtils;
+
   @Before
   public void setUp() {
-    journalStorage = new InMemoryJournalStorage();
+    initMocks(this);
+    journalStorage = new InMemoryJournalStorage(threadUtils);
   }
 }

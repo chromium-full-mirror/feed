@@ -107,12 +107,13 @@ public class FeedStoreTest {
             }
           });
   private final ContentStorage contentStorage = new InMemoryContentStorage();
-  private final JournalStorage journalStorage = new InMemoryJournalStorage();
+  private JournalStorage journalStorage;
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+    journalStorage = new InMemoryJournalStorage(threadUtils);
     // TODO: update the test to work with the old and new feed stores.
     store =
         new FeedStore(

@@ -542,7 +542,7 @@ public class FeedSessionManagerTest {
             timingUtils,
             extensionRegistry,
             new InMemoryContentStorage(),
-            new InMemoryJournalStorage(),
+            new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
             clock);

@@ -138,10 +138,14 @@ public class FeedRequestManager implements RequestManager {
                   }
                   Logger.e(TAG, "errorCode: %d", input.getResponseCode());
                   Logger.e(TAG, "errorResponse: %s", errorBody);
-                  scheduler.onRequestError(input.getResponseCode());
+                  mainThreadRunner.execute(
+                      TAG,
+                      () -> {
+                        scheduler.onRequestError(input.getResponseCode());
+                      });
                   return;
                 } else {
-                  scheduler.onReceiveNewContent();
+                  mainThreadRunner.execute(TAG, scheduler::onReceiveNewContent);
                 }
 
                 handleResponseBytes(input.getResponseBody(), consumer);

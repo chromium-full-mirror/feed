@@ -76,7 +76,7 @@ public class InfrastructureIntegrationScope {
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorage contentStorage = new InMemoryContentStorage();
-    JournalStorage journalStorage = new InMemoryJournalStorage();
+    JournalStorage journalStorage = new InMemoryJournalStorage(threadUtils);
     Configuration configuration = new Configuration.Builder().build();
     Clock clock = new SystemClockImpl();
     store =

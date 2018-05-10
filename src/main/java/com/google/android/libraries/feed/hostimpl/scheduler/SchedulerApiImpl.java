@@ -14,23 +14,34 @@
 
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 
 /** Concrete impl of {@link SchedulerApi} */
 public class SchedulerApiImpl implements SchedulerApi {
 
+  private final ThreadUtils threadUtils;
+
+  public SchedulerApiImpl(ThreadUtils threadUtils) {
+    this.threadUtils = threadUtils;
+  }
+
   @Override
   public boolean shouldRequestDataWhenNoDataPresent() {
+    threadUtils.checkMainThread();
+
     return true;
   }
 
   @Override
   public void onReceiveNewContent() {
+    threadUtils.checkMainThread();
     // Do nothing
   }
 
   @Override
   public void onRequestError(int networkResponseCode) {
+    threadUtils.checkMainThread();
     // Do nothing
   }
 }
