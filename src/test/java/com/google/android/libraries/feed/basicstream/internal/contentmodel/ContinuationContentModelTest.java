@@ -18,14 +18,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.view.View.OnClickListener;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
@@ -33,30 +30,23 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ContinuationContentModelTest {
 
-  @Mock private ModelToken token;
   @Mock private ContinuationViewHolder viewHolder;
-  @Mock private ModelProvider modelProvider;
+  @Mock private OnClickListener clickListener;
 
   private ContinuationContentModel continuationContentModel;
 
   @Before
   public void setUp() {
     initMocks(this);
-    continuationContentModel = new ContinuationContentModel(modelProvider, token);
+    continuationContentModel = new ContinuationContentModel(clickListener);
   }
 
   @Test
   public void testBind() {
-    ArgumentCaptor<OnClickListener> clickListenerCaptor =
-        ArgumentCaptor.forClass(OnClickListener.class);
 
     continuationContentModel.bind(viewHolder);
 
-    verify(viewHolder).bind(clickListenerCaptor.capture());
-
-    clickListenerCaptor.getValue().onClick(null);
-
-    verify(modelProvider).handleToken(token);
+    verify(viewHolder).bind(clickListener);
   }
 
   @Test

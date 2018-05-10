@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -31,7 +32,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ContinuationDriverTest {
   private static final ContinuationContentModel CONTINUATION_CONTENT_MODEL =
-      new ContinuationContentModel(null, null);
+      new ContinuationContentModel(null);
 
   @Mock private ModelToken modelToken;
   @Mock private ModelProvider modelProvider;
@@ -51,8 +52,6 @@ public class ContinuationDriverTest {
     ContentModel continuationContentModel = continuationDriver.getContentModel();
 
     assertThat(continuationContentModel).isEqualTo(CONTINUATION_CONTENT_MODEL);
-    assertThat(continuationDriver.modelTokenArgument).isEqualTo(modelToken);
-    assertThat(continuationDriver.modelProviderArgument).isEqualTo(modelProvider);
   }
 
   @Test
@@ -62,11 +61,15 @@ public class ContinuationDriverTest {
     assertThat(continuationDriver.getContentModel()).isSameAs(continuationContentModel);
   }
 
+  @Test
+  public void testOnClick() {
+    continuationDriver.onClick(/* v= */ null);
+    verify(modelProvider).handleToken(modelToken);
+  }
+
   private class ContinuationDriverForTest extends ContinuationDriver {
 
     private ContinuationContentModel continuationContentModel;
-    private ModelProvider modelProviderArgument;
-    private ModelToken modelTokenArgument;
 
     ContinuationDriverForTest(
         ModelProvider modelProvider,
@@ -77,10 +80,7 @@ public class ContinuationDriverTest {
     }
 
     @Override
-    ContinuationContentModel createContinuationContentModel(
-        ModelProvider tokenHandler, ModelToken modelToken) {
-      this.modelProviderArgument = tokenHandler;
-      this.modelTokenArgument = modelToken;
+    ContinuationContentModel createContinuationContentModel() {
       return continuationContentModel;
     }
   }

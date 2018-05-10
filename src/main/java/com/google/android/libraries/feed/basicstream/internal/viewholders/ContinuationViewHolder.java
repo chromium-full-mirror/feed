@@ -14,33 +14,39 @@
 
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+
 import android.content.Context;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 
 /** {@link ViewHolder} for the more button. */
 public class ContinuationViewHolder extends FeedViewHolder {
 
-  private final FrameLayout frameLayout;
+  private final View actionButton;
+  private final View spinner;
 
   public ContinuationViewHolder(Context context, FrameLayout frameLayout) {
     super(frameLayout);
-    this.frameLayout = frameLayout;
     LayoutInflater.from(context).inflate(R.layout.more_button, frameLayout);
+    actionButton = checkNotNull(frameLayout.findViewById(R.id.action_button));
+    // TODO: Allow for switching between spinner and actionButton.
+    spinner = checkNotNull(frameLayout.findViewById(R.id.loading_spinner));
   }
 
   public void bind(OnClickListener onClickListener) {
-    frameLayout.setOnClickListener(onClickListener);
+    actionButton.setOnClickListener(onClickListener);
   }
 
   @Override
   public void unbind() {
     // Clear OnClickListener to null to allow for GC.
-    frameLayout.setOnClickListener(null);
+    actionButton.setOnClickListener(null);
 
     // Set clickable to false as setting OnClickListener to null sets clickable to true.
-    frameLayout.setClickable(false);
+    actionButton.setClickable(false);
   }
 }

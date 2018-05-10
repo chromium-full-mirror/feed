@@ -14,13 +14,15 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+import android.view.View;
+import android.view.View.OnClickListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
 
 /** {@link FeatureDriver} for the more button. */
-public class ContinuationDriver implements FeatureDriver {
+public class ContinuationDriver implements FeatureDriver, OnClickListener {
 
   private final ModelToken modelToken;
   private final ModelProvider modelProvider;
@@ -34,14 +36,18 @@ public class ContinuationDriver implements FeatureDriver {
   @Override
   public ContentModel getContentModel() {
     if (continuationContentModel == null) {
-      continuationContentModel = createContinuationContentModel(modelProvider, modelToken);
+      continuationContentModel = createContinuationContentModel();
     }
 
     return continuationContentModel;
   }
 
-  ContinuationContentModel createContinuationContentModel(
-      ModelProvider tokenHandler, ModelToken modelToken) {
-    return new ContinuationContentModel(tokenHandler, modelToken);
+  @Override
+  public void onClick(View v) {
+    modelProvider.handleToken(modelToken);
+  }
+
+  ContinuationContentModel createContinuationContentModel() {
+    return new ContinuationContentModel(this);
   }
 }

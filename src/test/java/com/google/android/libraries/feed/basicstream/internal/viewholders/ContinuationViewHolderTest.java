@@ -53,17 +53,18 @@ public class ContinuationViewHolderTest {
   @Test
   public void testBind() {
     continuationViewHolder.bind(mockListener);
-    View view = frameLayout.findViewById(R.id.more_button);
+    View view = frameLayout.findViewById(R.id.action_button);
     assertThat(view).isNotNull();
-    assertThat(frameLayout.isClickable()).isTrue();
-    frameLayout.performClick();
-    verify(mockListener).onClick(frameLayout);
+    assertThat(view.isClickable()).isTrue();
+    view.performClick();
+    verify(mockListener).onClick(view);
   }
 
   @Test
   public void testUnbind() {
     continuationViewHolder.bind(mockListener);
     continuationViewHolder.unbind();
-    assertThat(frameLayout.isClickable()).isFalse();
+    View view = frameLayout.findViewById(R.id.action_button);
+    assertThat(view.isClickable()).isFalse();
   }
 }
