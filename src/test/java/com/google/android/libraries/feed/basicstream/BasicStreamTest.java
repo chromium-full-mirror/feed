@@ -23,7 +23,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Build.VERSION_CODES;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
@@ -37,14 +39,17 @@ import com.google.android.libraries.feed.basicstream.internal.contentmodels.Cont
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
+import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
+import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -63,9 +68,11 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadow.api.Shadow;
 
 /** Tests for {@link BasicStream}. */
 @RunWith(RobolectricTestRunner.class)
+@Config(shadows = {ShadowRecycledViewPool.class})
 public class BasicStreamTest {
 
   private static final int START_PADDING = 1;
@@ -97,6 +104,7 @@ public class BasicStreamTest {
   @Mock private ModelProvider modelProvider;
   @Mock private ActionManager actionManager;
   @Mock private ProtocolAdapter protocolAdapter;
+  @Mock private PietManager pietManager;
 
   private final List<View> headers = new ArrayList<>();
   private final ThreadUtils threadUtils = new ThreadUtils();
@@ -216,6 +224,28 @@ public class BasicStreamTest {
     assertThat(view.getPaddingBottom()).isEqualTo(BOTTOM_PADDING);
   }
 
+  @Test
+  public void testTrim() {
+    ShadowRecycledViewPool viewPool = Shadow.extract(getStreamRecyclerView().getRecycledViewPool());
+
+    // RecyclerView ends up clearing the pool initially when the adapter is set on the RecyclerView.
+    // Verify that has happened before anything else
+    assertThat(viewPool.getClearCallCount()).isEqualTo(1);
+
+    basicStream.trim();
+
+    verify(pietManager).purgeRecyclerPools();
+
+    // We expect the clear() call to be 2 as RecyclerView ends up clearing the pool initially when
+    // the adapter is set on the RecyclerView.  So one call for that and one call for trim() call
+    // on stream.
+    assertThat(viewPool.getClearCallCount()).isEqualTo(2);
+  }
+
+  private RecyclerView getStreamRecyclerView() {
+    return (RecyclerView) basicStream.getView();
+  }
+
   private BasicStream createBasicStream() {
     return new BasicStream(
         Robolectric.setupActivity(Activity.class),
@@ -231,6 +261,18 @@ public class BasicStreamTest {
         new FakeClock(),
         modelProviderFactory,
         new HostBindingProvider(),
-        actionManager);
+        actionManager) {
+      @Override
+      PietManager createPietManager(
+          Context context,
+          CardConfiguration cardConfiguration,
+          ImageLoaderApi imageLoaderApi,
+          /*@Nullable*/ CustomElementProvider customElementProvider,
+          DebugBehavior debugBehavior,
+          Clock clock,
+          /*@Nullable*/ HostBindingProvider hostBindingProvider) {
+        return pietManager;
+      }
+    };
   }
 }

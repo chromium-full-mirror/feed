@@ -13,5 +13,8 @@ android_library(
     name = "shadows",
     testonly = True,
     srcs = glob(["*.java"]),
-    deps = ["@bazel_android//:robolectric"],
+    deps = [
+        "@androidsdk//com.android.support:recyclerview-v7-25.3.1",
+        "@bazel_android//:robolectric",
+    ],
 )

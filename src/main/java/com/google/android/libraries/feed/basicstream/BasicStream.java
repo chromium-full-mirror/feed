@@ -92,11 +92,14 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
     this.pietManager =
-        new PietManager(
+        createPietManager(
+            context,
+            cardConfiguration,
+            imageLoaderApi,
+            customElementProvider,
             debugBehavior,
-            new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
-            new PietCustomElementProvider(context, customElementProvider),
-            new PietHostBindingProvider(hostBindingProvider));
+            clock,
+            hostBindingProvider);
     this.context = context;
     this.headers = headers;
     this.modelProviderFactory = modelProviderFactory;
@@ -104,6 +107,23 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.actionParser = actionParser;
     this.actionApi = actionApi;
     this.actionManager = actionManager;
+  }
+
+  @VisibleForTesting
+  PietManager createPietManager(
+      /*@UnderInitialization*/ BasicStream this,
+      Context context,
+      CardConfiguration cardConfiguration,
+      ImageLoaderApi imageLoaderApi,
+      /*@Nullable*/ CustomElementProvider customElementProvider,
+      DebugBehavior debugBehavior,
+      Clock clock,
+      /*@Nullable*/ HostBindingProvider hostBindingProvider) {
+    return new PietManager(
+        debugBehavior,
+        new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
+        new PietCustomElementProvider(context, customElementProvider),
+        new PietHostBindingProvider(hostBindingProvider));
   }
 
   @Override
@@ -178,7 +198,10 @@ public class BasicStream implements Stream, ModelProviderObserver {
   public void setStreamContentVisibility(boolean visible) {}
 
   @Override
-  public void trim() {}
+  public void trim() {
+    pietManager.purgeRecyclerPools();
+    recyclerView.getRecycledViewPool().clear();
+  }
 
   @Override
   public void smoothScrollBy(int dx, int dy) {}
