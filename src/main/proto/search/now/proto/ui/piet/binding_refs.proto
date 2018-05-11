@@ -86,7 +86,18 @@ message GridCellWidthBindingRef {
   optional string binding_id = 1;
 }
 
+// DEPRECATED: Use ElementBindingRef instead
 message ElementListBindingRef {
+  option deprecated = true;
+
+  // The unique ID for this binding. See comments at the top of the file.
+  optional string binding_id = 1;
+
+  // Indicates whether this binding reference is optional.
+  optional bool is_optional = 2;
+}
+
+message ElementBindingRef {
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 

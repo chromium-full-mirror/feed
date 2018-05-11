@@ -125,7 +125,18 @@ message Frame {
   //  - These Elements support sharding: each of these Elements can be recycled
   //    as it leaves the screen, to reduce memory usage when scrolling a very
   //    long Frame.
-  repeated Element elements = 9;
+  repeated Element elements = 9 [deprecated = true];
+
+  // Content that makes up this Frame.
+  //
+  // There are a few differences in the use of Content here vs. elsewhere:
+  //  - These Contents are arranged in a vertical list layout.
+  //  - Bindings are not supported in these Contents, since there is no
+  //    BindingContext available at the Frame level.
+  //  - These Contents support sharding: each of these Contents can be recycled
+  //    as it leaves the screen, to reduce memory usage when scrolling a very
+  //    long Frame.
+  repeated Content contents = 10;
 
   // Actions associated with the full Frame.
   optional Actions actions = 7;
