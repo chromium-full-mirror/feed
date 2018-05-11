@@ -137,7 +137,8 @@ public class FeedStreamScope {
                 clock,
                 Validators.checkNotNull(modelProviderFactory),
                 hostBindingProvider,
-                actionManager);
+                actionManager,
+                config);
       }
       return new FeedStreamScope(
           actionApi,

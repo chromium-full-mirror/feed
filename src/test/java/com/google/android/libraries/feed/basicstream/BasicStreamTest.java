@@ -34,13 +34,12 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
 import com.google.android.libraries.feed.common.testing.FakeClock;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -103,11 +102,10 @@ public class BasicStreamTest {
   @Mock private ModelProvider initialModelProvider;
   @Mock private ModelProvider modelProvider;
   @Mock private ActionManager actionManager;
-  @Mock private ProtocolAdapter protocolAdapter;
   @Mock private PietManager pietManager;
-
   private final List<View> headers = new ArrayList<>();
   private final ThreadUtils threadUtils = new ThreadUtils();
+  private Configuration configuration = new Configuration.Builder().build();
 
   private BasicStream basicStream;
 
@@ -176,13 +174,7 @@ public class BasicStreamTest {
   @Test
   public void testLifecycle_onCreateCalledOnlyOnce() {
     // onCreate is called once in setup
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                basicStream.onCreate(null);
-              }
-            })
+    assertThatRunnable(() -> basicStream.onCreate(null))
         .throwsAnExceptionOfType(IllegalStateException.class);
   }
 
@@ -190,13 +182,7 @@ public class BasicStreamTest {
   public void testLifecycle_getViewBeforeOnCreateCrashes() {
     // create BasicStream that has not had onCreate() called.
     basicStream = createBasicStream();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                basicStream.getView();
-              }
-            })
+    assertThatRunnable(() -> basicStream.getView())
         .throwsAnExceptionOfType(IllegalStateException.class);
   }
 
@@ -261,7 +247,8 @@ public class BasicStreamTest {
         new FakeClock(),
         modelProviderFactory,
         new HostBindingProvider(),
-        actionManager) {
+        actionManager,
+        configuration) {
       @Override
       PietManager createPietManager(
           Context context,

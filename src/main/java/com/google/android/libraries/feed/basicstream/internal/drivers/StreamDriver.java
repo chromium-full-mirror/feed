@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.host.config.Configuration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,16 +41,19 @@ public class StreamDriver implements FeatureChangeObserver {
   private final ModelProvider modelProvider;
   private final Map<ModelChild, FeatureDriver> modelChildFeatureDriverMap;
   private final List<FeatureDriver> featureDrivers;
+  private final Configuration configuration;
 
   private boolean rootFeatureConsumed;
 
   /*@Nullable*/ private StreamContentListener contentListener;
 
-  public StreamDriver(ModelProvider modelProvider, ThreadUtils threadUtils) {
+  public StreamDriver(
+      ModelProvider modelProvider, ThreadUtils threadUtils, Configuration configuration) {
     this.threadUtils = threadUtils;
     this.modelProvider = modelProvider;
     this.modelChildFeatureDriverMap = new HashMap<>();
     this.featureDrivers = new ArrayList<>();
+    this.configuration = configuration;
   }
 
   /**
@@ -101,7 +105,8 @@ public class StreamDriver implements FeatureChangeObserver {
         return createFeatureChild(child.getModelFeature());
       case Type.TOKEN:
         ModelToken modelToken = child.getModelToken();
-        ContinuationDriver continuationDriver = createContinuationDriver(modelProvider, modelToken);
+        ContinuationDriver continuationDriver =
+            createContinuationDriver(modelProvider, modelToken, configuration);
 
         modelToken.registerObserver(
             tokenCompleted -> {
@@ -211,8 +216,9 @@ public class StreamDriver implements FeatureChangeObserver {
   }
 
   @VisibleForTesting
-  ContinuationDriver createContinuationDriver(ModelProvider modelProvider, ModelToken modelToken) {
-    return new ContinuationDriver(modelProvider, modelToken);
+  ContinuationDriver createContinuationDriver(
+      ModelProvider modelProvider, ModelToken modelToken, Configuration configuration) {
+    return new ContinuationDriver(modelProvider, modelToken, configuration);
   }
 
   public void setStreamContentListener(/*@Nullable*/ StreamContentListener contentListener) {

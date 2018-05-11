@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserve
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
@@ -59,6 +60,7 @@ public class StreamDriverTest {
   @Mock private ModelProvider modelProvider;
   @Mock private ContinuationDriver continuationDriver;
   @Mock private StreamContentListener contentListener;
+  private Configuration configuration = new Configuration.Builder().build();
 
   @Before
   public void setup() {
@@ -222,13 +224,13 @@ public class StreamDriverTest {
     private List<FeatureDriver> childrenCreated;
 
     StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils) {
-      super(modelProvider, threadUtils);
+      super(modelProvider, threadUtils, configuration);
       childrenCreated = new ArrayList<>();
     }
 
     @Override
     ContinuationDriver createContinuationDriver(
-        ModelProvider modelProvider, ModelToken modelToken) {
+        ModelProvider modelProvider, ModelToken modelToken, Configuration configuration) {
       childrenCreated.add(continuationDriver);
       return continuationDriver;
     }

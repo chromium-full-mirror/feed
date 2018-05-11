@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.basicstream.internal.piet.PietCustomEle
 import com.google.android.libraries.feed.basicstream.internal.piet.PietHostBindingProvider;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -65,6 +66,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final ActionParser actionParser;
   private final ActionApi actionApi;
   private final ActionManager actionManager;
+  private final Configuration configuration;
 
   private RecyclerView recyclerView;
   private ModelProvider modelProvider;
@@ -88,7 +90,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       Clock clock,
       ModelProviderFactory modelProviderFactory,
       /*@Nullable*/ HostBindingProvider hostBindingProvider,
-      ActionManager actionManager) {
+      ActionManager actionManager,
+      Configuration configuration) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
     this.pietManager =
@@ -107,6 +110,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.actionParser = actionParser;
     this.actionApi = actionApi;
     this.actionManager = actionManager;
+    this.configuration = configuration;
   }
 
   @VisibleForTesting
@@ -237,7 +241,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   private void updateAdapter(ModelProvider modelProvider) {
-    streamDriver = new StreamDriver(modelProvider, threadUtils);
+    streamDriver = new StreamDriver(modelProvider, threadUtils, configuration);
 
     adapter.setDriver(streamDriver);
   }

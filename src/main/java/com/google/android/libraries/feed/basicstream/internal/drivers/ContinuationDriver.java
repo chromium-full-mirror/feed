@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
+import com.google.android.libraries.feed.host.config.Configuration;
 
 /** {@link FeatureDriver} for the more button. */
 public class ContinuationDriver implements FeatureDriver, OnClickListener {
@@ -28,7 +29,8 @@ public class ContinuationDriver implements FeatureDriver, OnClickListener {
   private final ModelProvider modelProvider;
   /*@Nullable*/ private ContinuationContentModel continuationContentModel;
 
-  ContinuationDriver(ModelProvider modelProvider, ModelToken modelToken) {
+  ContinuationDriver(
+      ModelProvider modelProvider, ModelToken modelToken, Configuration configuration) {
     this.modelProvider = modelProvider;
     this.modelToken = modelToken;
   }

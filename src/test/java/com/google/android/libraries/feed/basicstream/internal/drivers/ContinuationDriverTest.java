@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
+import com.google.android.libraries.feed.host.config.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,13 +39,15 @@ public class ContinuationDriverTest {
   @Mock private ModelProvider modelProvider;
 
   private ContinuationDriverForTest continuationDriver;
+  private Configuration configuration = new Configuration.Builder().build();
 
   @Before
   public void setup() {
     initMocks(this);
 
     continuationDriver =
-        new ContinuationDriverForTest(modelProvider, modelToken, CONTINUATION_CONTENT_MODEL);
+        new ContinuationDriverForTest(
+            modelProvider, modelToken, CONTINUATION_CONTENT_MODEL, configuration);
   }
 
   @Test
@@ -74,8 +77,9 @@ public class ContinuationDriverTest {
     ContinuationDriverForTest(
         ModelProvider modelProvider,
         ModelToken modelToken,
-        ContinuationContentModel continuationContentModel) {
-      super(modelProvider, modelToken);
+        ContinuationContentModel continuationContentModel,
+        Configuration configuration) {
+      super(modelProvider, modelToken, configuration);
       this.continuationContentModel = continuationContentModel;
     }
 
