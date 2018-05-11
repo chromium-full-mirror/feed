@@ -56,12 +56,8 @@ public class StreamDriverTest {
 
   @Mock private ModelFeature streamFeature;
   @Mock private ContentModel continuationContentModel;
-  @Mock private ContentModel clusterContentModel;
-  @Mock private ContentModel cardContentModel;
   @Mock private ModelProvider modelProvider;
   @Mock private ContinuationDriver continuationDriver;
-  @Mock private ClusterDriver clusterDriver;
-  @Mock private CardDriver cardDriver;
   @Mock private StreamContentListener contentListener;
 
   @Before
@@ -70,13 +66,26 @@ public class StreamDriverTest {
     ThreadUtils threadUtils = new ThreadUtils();
 
     when(continuationDriver.getContentModel()).thenReturn(continuationContentModel);
-    when(clusterDriver.getContentModel()).thenReturn(clusterContentModel);
-    when(cardDriver.getContentModel()).thenReturn(cardContentModel);
     when(modelProvider.getRootFeature()).thenReturn(streamFeature);
 
     streamDriver = new StreamDriverForTest(modelProvider, threadUtils);
 
     streamDriver.setStreamContentListener(contentListener);
+  }
+
+  @Test
+  public void testBuildChildren() {
+    when(streamFeature.getCursor())
+        .thenReturn(new FakeCursorBuilder().addCard().addCluster().addToken().build());
+
+    // Causes StreamDriver to build a list of children based on the children from the cursor.
+    List<ContentModel> contentModels = streamDriver.getContentModels();
+
+    assertThat(contentModels).hasSize(3);
+
+    assertThat(contentModels.get(0)).isEqualTo(getContentModelFromCard(0));
+    assertThat(contentModels.get(1)).isEqualTo(getContentModelFromCluster(1));
+    assertThat(contentModels.get(2)).isEqualTo(continuationContentModel);
   }
 
   @Test
@@ -98,10 +107,10 @@ public class StreamDriverTest {
             .run();
 
     assertThat(finalContentModels).hasSize(1);
-    assertThat(finalContentModels.get(0)).isEqualTo(clusterContentModel);
+    assertThat(finalContentModels.get(0)).isEqualTo(getContentModelFromCluster(1));
 
     // If the above two assertions pass, this is also guaranteed to pass. This is just to explicitly
-    // check that the continuationContentModel has been removed.
+    // check that the ContentModel for the continuationToken has been removed.
     assertThat(finalContentModels).doesNotContain(continuationContentModel);
   }
 
@@ -114,7 +123,8 @@ public class StreamDriverTest {
         .run();
 
     verify(contentListener).notifyContentRemoved(0);
-    verify(contentListener).notifyContentsAdded(0, Lists.newArrayList(clusterContentModel));
+    verify(contentListener)
+        .notifyContentsAdded(0, Lists.newArrayList(getContentModelFromCluster(1)));
   }
 
   @Test
@@ -128,7 +138,8 @@ public class StreamDriverTest {
 
     assertThat(finalContentModels).hasSize(3);
     assertThat(finalContentModels)
-        .containsExactly(clusterContentModel, clusterContentModel, continuationContentModel);
+        .containsExactly(
+            getContentModelFromCluster(0), getContentModelFromCluster(2), continuationContentModel);
   }
 
   @Test
@@ -144,26 +155,24 @@ public class StreamDriverTest {
     assertThat(finalContentModels).hasSize(5);
     assertThat(finalContentModels)
         .containsExactly(
-            clusterContentModel,
-            clusterContentModel,
-            cardContentModel,
-            clusterContentModel,
-            clusterContentModel);
+            getContentModelFromCluster(0),
+            getContentModelFromCluster(2),
+            getContentModelFromCluster(3),
+            getContentModelFromCard(4),
+            getContentModelFromCluster(5));
   }
 
   @Test
   public void testOnChange_remove() {
-    FakeFeatureDriver[] featureDrivers = createFakeFeatureDrivers(4);
-    streamDriver.setFeatureDrivers(featureDrivers);
 
     FakeModelCursor fakeModelCursor =
         new FakeCursorBuilder().addCard().addCard().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
-    List<ContentModel> contentModels = streamDriver.getContentModels();
+    List<ContentModel> initialContentModels = streamDriver.getContentModels();
 
-    assertThat(contentModels).containsExactlyElementsIn(getContentModels(featureDrivers));
+    assertThat(initialContentModels).hasSize(4);
 
     streamDriver.onChange(
         new ChildRemoveBuilder()
@@ -172,14 +181,11 @@ public class StreamDriverTest {
             .build());
 
     assertThat(streamDriver.getContentModels())
-        .containsExactly(featureDrivers[0].getContentModel(), featureDrivers[3].getContentModel());
+        .containsExactly(initialContentModels.get(0), initialContentModels.get(3));
   }
 
   @Test
   public void testOnChange_remove_notifiesListener() {
-    FakeFeatureDriver[] featureDrivers = createFakeFeatureDrivers(2);
-    streamDriver.setFeatureDrivers(featureDrivers);
-
     FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
@@ -194,61 +200,53 @@ public class StreamDriverTest {
     verifyNoMoreInteractions(contentListener);
   }
 
-  private FakeFeatureDriver[] createFakeFeatureDrivers(int size) {
-    FakeFeatureDriver[] featureDrivers = new FakeFeatureDriver[size];
-    for (int i = 0; i < size; i++) {
-      featureDrivers[i] = new FakeFeatureDriver.Builder().build();
-    }
-    return featureDrivers;
+  // TODO: Instead of just checking that the ModelFeature is of the correct type, check
+  // that it is the one created by the FakeCursorBuilder.
+  private ContentModel getContentModelFromCard(int i) {
+    FakeFeatureDriver featureDriver = (FakeFeatureDriver) streamDriver.childrenCreated.get(i);
+    assertThat(featureDriver.getModelFeature().getStreamFeature().hasCard()).isTrue();
+    return streamDriver.childrenCreated.get(i).getContentModel();
   }
 
-  private ContentModel[] getContentModels(FeatureDriver[] featureDrivers) {
-    ContentModel[] contentModels = new ContentModel[featureDrivers.length];
-    for (int i = 0; i < contentModels.length; i++) {
-      contentModels[i] = featureDrivers[i].getContentModel();
-    }
-    return contentModels;
+  // TODO: Instead of just checking that the ModelFeature is of the correct type, check
+  // that it is the one created by the FakeCursorBuilder.
+  private ContentModel getContentModelFromCluster(int i) {
+    FakeFeatureDriver featureDriver = (FakeFeatureDriver) streamDriver.childrenCreated.get(i);
+    assertThat(featureDriver.getModelFeature().getStreamFeature().hasCluster()).isTrue();
+    return streamDriver.childrenCreated.get(i).getContentModel();
   }
 
   private class StreamDriverForTest extends StreamDriver {
-
-    /*@Nullable*/ private FeatureDriver[] featureDriversToReturn;
-    List<ModelFeature> modelFeatureArgs;
-    int featureDriverIndexToReturn = 0;
+    // TODO: create a fake for ContinuationDriver so that this can be
+    // List<FakeFeatureDriver>
+    private List<FeatureDriver> childrenCreated;
 
     StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils) {
       super(modelProvider, threadUtils);
-      modelFeatureArgs = new ArrayList<>();
-    }
-
-    void setFeatureDrivers(FeatureDriver... featureDrivers) {
-      this.featureDriversToReturn = featureDrivers;
+      childrenCreated = new ArrayList<>();
     }
 
     @Override
     ContinuationDriver createContinuationDriver(
         ModelProvider modelProvider, ModelToken modelToken) {
+      childrenCreated.add(continuationDriver);
       return continuationDriver;
     }
 
     @Override
     FeatureDriver createClusterDriver(ModelFeature modelFeature) {
-      modelFeatureArgs.add(modelFeature);
-      if (featureDriversToReturn != null) {
-        return featureDriversToReturn[featureDriverIndexToReturn++];
-      }
-
-      return clusterDriver;
+      FeatureDriver featureDriver =
+          new FakeFeatureDriver.Builder().setModelFeature(modelFeature).build();
+      childrenCreated.add(featureDriver);
+      return featureDriver;
     }
 
     @Override
     FeatureDriver createCardDriver(ModelFeature modelFeature) {
-      modelFeatureArgs.add(modelFeature);
-      if (featureDriversToReturn != null) {
-        return featureDriversToReturn[featureDriverIndexToReturn++];
-      }
-
-      return cardDriver;
+      FeatureDriver featureDriver =
+          new FakeFeatureDriver.Builder().setModelFeature(modelFeature).build();
+      childrenCreated.add(featureDriver);
+      return featureDriver;
     }
   }
 
