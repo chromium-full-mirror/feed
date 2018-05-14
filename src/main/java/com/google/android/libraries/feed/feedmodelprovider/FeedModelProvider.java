@@ -288,6 +288,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       dumper.forKey("contentCount").value(contents.size()).compactPrevious();
       dumper.forKey("containers").value(containers.size()).compactPrevious();
       dumper.forKey("tokens").value(tokens.size()).compactPrevious();
+      dumper.forKey("syntheticTokens").value(syntheticTokens.size()).compactPrevious();
       dumper.forKey("observers").value(mObservers.size()).compactPrevious();
       dumper.forKey("commitCount").value(commitCount);
       dumper.forKey("commitTokenCount").value(commitTokenCount).compactPrevious();
