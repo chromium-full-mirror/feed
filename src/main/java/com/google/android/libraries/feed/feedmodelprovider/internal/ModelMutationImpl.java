@@ -34,6 +34,7 @@ public class ModelMutationImpl implements ModelMutation {
     public final List<StreamStructure> updateChanges = new ArrayList<>();
     public StreamToken mutationSourceToken;
     public StreamSession streamSession;
+    public boolean cachedBindings;
   }
 
   private final Committer<Void, Change> committer;
@@ -70,6 +71,12 @@ public class ModelMutationImpl implements ModelMutation {
   @Override
   public ModelMutation setStreamSession(StreamSession streamSession) {
     change.streamSession = streamSession;
+    return this;
+  }
+
+  @Override
+  public ModelMutation hasCachedBindings(boolean cachedBindings) {
+    change.cachedBindings = cachedBindings;
     return this;
   }
 

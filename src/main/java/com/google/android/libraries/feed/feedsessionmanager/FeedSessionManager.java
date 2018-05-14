@@ -228,7 +228,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
               Result<List<StreamStructure>> streamStructuresResult =
                   store.getStreamStructures(session);
               if (streamStructuresResult.isSuccessful()) {
-                unboundSession.populateModelProvider(session, streamStructuresResult.getValue());
+                unboundSession.populateModelProvider(
+                    session, streamStructuresResult.getValue(), false);
               } else {
                 // TODO: handle errors
                 Logger.e(TAG, "Failed to read unbound session state, ignored");
@@ -355,7 +356,12 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             return;
           }
 
-          session.populateModelProvider(recordedSession, streamStructuresResult.getValue());
+          boolean cachedBindings;
+          synchronized (lock) {
+            cachedBindings = contentCache.size() > 0;
+          }
+          session.populateModelProvider(
+              recordedSession, streamStructuresResult.getValue(), cachedBindings);
           synchronized (lock) {
             sessions.put(session.getStreamSession().getStreamToken(), session);
           }
@@ -413,7 +419,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           Result<List<StreamStructure>> streamStructuresResult =
               store.getStreamStructures(streamSession);
           if (streamStructuresResult.isSuccessful()) {
-            session.populateModelProvider(streamSession, streamStructuresResult.getValue());
+            session.populateModelProvider(streamSession, streamStructuresResult.getValue(), false);
             synchronized (lock) {
               sessions.put(session.getStreamSession().getStreamToken(), session);
             }
@@ -516,6 +522,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   public Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(
       MutationContext mutationContext) {
     return new CommitterTask("updateConsumer", mutationContext);
+  }
+
+  @Override
+  public void runTask(String task, Runnable runnable) {
+    taskQueue.execute(task, TaskType.USER_FACING, runnable);
   }
 
   @Override

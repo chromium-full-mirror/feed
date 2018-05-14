@@ -38,6 +38,9 @@ public interface ModelMutation {
   /** Set the StreamSession of the session backing this ModelProvider. */
   ModelMutation setStreamSession(StreamSession streamSession);
 
+  /** Indicates that the SessionManager has cached the payload bindings. */
+  ModelMutation hasCachedBindings(boolean cachedBindings);
+
   /** Commits the pending changes to the store. */
   void commit();
 }

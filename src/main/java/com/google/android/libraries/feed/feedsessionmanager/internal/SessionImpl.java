@@ -80,12 +80,16 @@ public class SessionImpl implements InitializableSession, Dumpable {
   }
 
   @Override
-  public void populateModelProvider(StreamSession streamSession, List<StreamStructure> head) {
+  public void populateModelProvider(
+      StreamSession streamSession, List<StreamStructure> head, boolean cachedBindings) {
     this.streamSession = streamSession;
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
     ModelMutation modelMutation = (modelProvider != null) ? modelProvider.edit() : null;
+    if (modelMutation != null) {
+      modelMutation.hasCachedBindings(cachedBindings);
+    }
 
     // Walk through head and add all the DataOperations to the session.
     for (StreamStructure streamStructure : head) {
@@ -139,6 +143,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
     ModelMutation modelMutation = (modelProvider != null) ? modelProvider.edit() : null;
     if (modelMutation != null && mutationSourceToken != null) {
       modelMutation.setMutationSourceToken(mutationSourceToken);
+      modelMutation.hasCachedBindings(true);
     }
 
     int updateCnt = 0;

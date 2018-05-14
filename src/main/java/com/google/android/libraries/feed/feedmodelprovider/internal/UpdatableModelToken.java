@@ -24,9 +24,15 @@ import java.util.List;
 /** Implementation of the {@link ModelToken}. */
 public class UpdatableModelToken extends Observable<TokenCompletedObserver> implements ModelToken {
   private final StreamToken token;
+  private final boolean isSynthetic;
 
-  UpdatableModelToken(StreamToken token) {
+  public UpdatableModelToken(StreamToken token, boolean isSynthetic) {
     this.token = token;
+    this.isSynthetic = isSynthetic;
+  }
+
+  public boolean isSynthetic() {
+    return isSynthetic;
   }
 
   @Override

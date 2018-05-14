@@ -48,6 +48,7 @@ public class ModelChildBinder {
   }
 
   public void bindChildren(List<UpdatableModelChild> childrenToBind, Consumer<Integer> consumer) {
+    Logger.i("FeedModelProvider", "bindChildren");
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     Map<String, UpdatableModelChild> bindingChildren = new HashMap<>();
     List<String> contentIds = new ArrayList<>();
@@ -77,7 +78,7 @@ public class ModelChildBinder {
                       new UpdatableModelFeature(payload.getStreamFeature(), cursorProvider));
                 }
                 if (payload.hasStreamToken()) {
-                  child.bindToken(new UpdatableModelToken(payload.getStreamToken()));
+                  child.bindToken(new UpdatableModelToken(payload.getStreamToken(), false));
                   continue;
                 }
                 child.updateFeature(childPayload.payload);

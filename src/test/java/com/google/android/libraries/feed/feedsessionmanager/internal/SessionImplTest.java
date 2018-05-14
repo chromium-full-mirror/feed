@@ -81,7 +81,7 @@ public class SessionImplTest {
 
     // 3 features
     assertThat(streamStructures).hasSize(featureCnt);
-    session.populateModelProvider(TEST_SESSION, streamStructures);
+    session.populateModelProvider(TEST_SESSION, streamStructures, false);
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
     assertThat(fakeModelMutator.commitCalled).isTrue();
     assertThat(session.contentInSession).hasSize(featureCnt);
@@ -104,7 +104,7 @@ public class SessionImplTest {
   @Test
   public void testUpdateSession_features() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -122,7 +122,7 @@ public class SessionImplTest {
   @Test
   public void testUpdateFromToken() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -139,7 +139,7 @@ public class SessionImplTest {
   @Test
   public void testUpdateFromToken_notInSession() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -156,7 +156,7 @@ public class SessionImplTest {
   @Test
   public void testStorageFailure() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -171,7 +171,7 @@ public class SessionImplTest {
   @Test
   public void testRemove() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>());
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false);
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     int featureCnt = 2;
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -224,6 +224,11 @@ public class SessionImplTest {
 
     @Override
     public ModelMutation setStreamSession(StreamSession streamSession) {
+      return this;
+    }
+
+    @Override
+    public ModelMutation hasCachedBindings(boolean cachedBindings) {
       return this;
     }
 

@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Committer;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -65,6 +66,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import javax.annotation.concurrent.GuardedBy;
 
 /** An implementation of {@link ModelProvider}. This will represent the Stream tree in memory. */
@@ -74,6 +76,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private static final String TAG = "FeedModelProvider";
   private static final List<UpdatableModelChild> EMPTY_LIST =
       Collections.unmodifiableList(new ArrayList<>());
+  private static final String SYNTHETIC_TOKEN_PREFIX = "_token:";
 
   private final Object lock = new Object();
 
@@ -91,6 +94,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @GuardedBy("lock")
   private final Map<ByteString, TokenTracking> tokens = new HashMap<>();
+
+  @GuardedBy("lock")
+  private final Map<String, SyntheticTokenTracker> syntheticTokens = new HashMap<>();
 
   @GuardedBy("lock")
   private final List<WeakReference<ModelCursorImpl>> cursors = new ArrayList<>();
@@ -111,7 +117,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final MainThreadRunner mainThreadRunner;
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
+
+  private final int nonCacheInitialPageSize;
   private final int nonCachePageSize;
+  private final int nonCacheMinPageSize;
 
   /*@Nullable*/ @VisibleForTesting StreamSession streamSession;
 
@@ -125,7 +134,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.mainThreadRunner = mainThreadRunner;
-    this.nonCachePageSize = config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0);
+    this.nonCacheInitialPageSize =
+        config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0);
+    this.nonCachePageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0);
+    this.nonCacheMinPageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0);
 
     CursorProvider cursorProvider =
         parentId -> {
@@ -178,6 +190,24 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   public void handleToken(ModelToken modelToken) {
+    if (modelToken instanceof UpdatableModelToken) {
+      UpdatableModelToken token = (UpdatableModelToken) modelToken;
+      if (token.isSynthetic()) {
+        SyntheticTokenTracker tokenTracker;
+        synchronized (lock) {
+          tokenTracker = syntheticTokens.get(token.getStreamToken().getContentId());
+        }
+        if (tokenTracker == null) {
+          Logger.e(TAG, "Unable to find the SyntheticTokenTracker");
+          return;
+        }
+        // The nullness checker fails to understand tokenTracker can't be null in the Lambda usage
+        SyntheticTokenTracker tt = Validators.checkNotNull(tokenTracker);
+        sessionManager.runTask(
+            "FeedModelProvider.handleSyntheticToken", () -> tt.handleSyntheticToken(token));
+        return;
+      }
+    }
     StreamSession streamSession = Validators.checkNotNull(this.streamSession);
     sessionManager.handleToken(streamSession, modelToken.getStreamToken());
   }
@@ -359,9 +389,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       new Committer<Void, Change>() {
         @Override
         public Void commit(Change change) {
-          Logger.i(TAG, "committing ModelProvider mutation");
           threadUtils.checkNotMainThread();
-
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
           commitCount++;
 
@@ -371,7 +399,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
           // Separate the Appends from the Removes.  All appends and updates are considered
           // unbound (childrenToBind) and will need to be sent to the ModelChildBinder.
-          // TODO: When we support synthetic tokens, we won't binding all children.
           List<UpdatableModelChild> appendedChildren = new ArrayList<>();
           List<StreamStructure> removedChildren = new ArrayList<>();
           List<UpdatableModelChild> childrenToBind = new ArrayList<>();
@@ -404,37 +431,15 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
               getMutationHandler(change.updateChanges, change.mutationSourceToken);
           processMutation(mutationHandler, appendedChildren, removedChildren);
 
-          // Bind the unbound children
-          modelChildBinder.bindChildren(
-              childrenToBind,
-              (bindingCount) -> {
-                if (bindingCount != childrenToBind.size()) {
-                  Logger.e(TAG, "Not all children added were bound");
-                }
-                mutationHandler.postMutation();
-              });
-          synchronized (lock) {
-            // Track any tokens we added to the tree
-            for (UpdatableModelChild child : childrenToBind) {
-              if (child.getType() == Type.TOKEN) {
-                String parent = child.getParentId();
-                if (parent == null) {
-                  Logger.w(
-                      TAG,
-                      "Found a token for a child %s without a parent, ignoring",
-                      child.getContentId());
-                  continue;
-                }
-                ArrayList<UpdatableModelChild> childrenList = getChildList(parent);
-                TokenTracking tokenTracking =
-                    new TokenTracking(child.getUpdatableModelToken(), parent, childrenList);
-                tokens.put(
-                    child.getModelToken().getStreamToken().getNextPageToken(), tokenTracking);
-              }
-            }
+          if (shouldInsertSyntheticToken(change)) {
+            SyntheticTokenTracker tokenTracker =
+                new SyntheticTokenTracker(
+                    Validators.checkNotNull(root), 0, nonCacheInitialPageSize);
+            childrenToBind = tokenTracker.insertToken();
           }
 
-          timeTracker.stop("", "ModelProvider Commit");
+          bindChildrenAndTokens(childrenToBind, (bindingCount) -> mutationHandler.postMutation());
+          timeTracker.stop("", "modelProviderCommit");
           Logger.i(
               TAG,
               "ModelProvider Mutation committed - appendedChildren %s, updateChildren %s, "
@@ -474,9 +479,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             List<StreamStructure> removedChildren) {
 
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-
           synchronized (lock) {
-
             // Processing before the structural mutation
             mutationHandler.preMutation();
 
@@ -531,6 +534,185 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
               removedChildren.size());
         }
       };
+
+  private void bindChildrenAndTokens(
+      List<UpdatableModelChild> childrenToBind, Consumer<Integer> consumer) {
+    // Bind the unbound children
+    modelChildBinder.bindChildren(childrenToBind, consumer);
+
+    synchronized (lock) {
+      // Track any tokens we added to the tree
+      for (UpdatableModelChild child : childrenToBind) {
+        if (child.getType() == Type.TOKEN) {
+          String parent = child.getParentId();
+          if (parent == null) {
+            Logger.w(
+                TAG,
+                "Found a token for a child %s without a parent, ignoring",
+                child.getContentId());
+            continue;
+          }
+          ArrayList<UpdatableModelChild> childrenList = getChildList(parent);
+          TokenTracking tokenTracking =
+              new TokenTracking(child.getUpdatableModelToken(), parent, childrenList);
+          tokens.put(child.getModelToken().getStreamToken().getNextPageToken(), tokenTracking);
+        }
+      }
+    }
+  }
+
+  private boolean shouldInsertSyntheticToken(Change change) {
+    synchronized (lock) {
+      return (root != null && !change.cachedBindings && nonCacheInitialPageSize > 0);
+    }
+  }
+
+  /** Class which handles Synthetic tokens within the root children list. */
+  public class SyntheticTokenTracker {
+    private final List<UpdatableModelChild> childrenToBind = new ArrayList<>();
+    private final UpdatableModelChild pagingChild;
+    private final int startingPosition;
+    private final int endPosition;
+    private final boolean insertToken;
+
+    private UpdatableModelChild tokenChild;
+
+    SyntheticTokenTracker(UpdatableModelChild pagingChild, int startingPosition, int pageSize) {
+      this.pagingChild = pagingChild;
+
+      List<UpdatableModelChild> children = containers.get(pagingChild.getContentId());
+      if (children == null) {
+        Logger.e(TAG, "Paging child doesn't not have children");
+        this.startingPosition = 0;
+        this.endPosition = 0;
+        this.insertToken = false;
+        return;
+      }
+      int start = startingPosition;
+      int end = startingPosition + pageSize;
+      if (children.size() <= start) {
+        Logger.e(
+            TAG,
+            "SyntheticTokenTrack to start track beyond child count, start %s, child length %s",
+            startingPosition,
+            children.size());
+        // Bind everything
+        start = 0;
+        end = children.size();
+      } else if (start + pageSize > children.size()
+          || start + pageSize + nonCacheMinPageSize > children.size()) {
+        end = children.size();
+      }
+      this.startingPosition = start;
+      this.endPosition = end;
+      this.insertToken = end < children.size();
+    }
+
+    /** Returns the UpdatableModelChild which represents the synthetic token added to the model. */
+    UpdatableModelChild getTokenChild() {
+      return tokenChild;
+    }
+
+    /** Insert a synthetic token into the tree. */
+    List<UpdatableModelChild> insertToken() {
+      ElapsedTimeTracker tt = timingUtils.getElapsedTimeTracker(TAG);
+      traverse(pagingChild, startingPosition, endPosition);
+      if (insertToken) {
+        synchronized (lock) {
+          ArrayList<UpdatableModelChild> rootChildren = containers.get(pagingChild.getContentId());
+          if (rootChildren != null) {
+            tokenChild = getSyntheticToken();
+            rootChildren.add(endPosition, tokenChild);
+            syntheticTokens.put(tokenChild.getContentId(), this);
+            Logger.i(
+                TAG,
+                "Inserting a Synthetic Token %s at %s",
+                tokenChild.getContentId(),
+                endPosition);
+          } else {
+            Logger.e(TAG, "Unable to find paging node's children");
+          }
+        }
+      }
+      tt.stop("", "syntheticTokens");
+      return childrenToBind;
+    }
+
+    /** Handle the synthetic token */
+    void handleSyntheticToken(UpdatableModelToken token) {
+      synchronized (lock) {
+        StreamToken streamToken = token.getStreamToken();
+        SyntheticTokenTracker tracker = syntheticTokens.get(streamToken.getContentId());
+        if (tracker == null) {
+          Logger.e(TAG, "SyntheticTokenTracker was not found");
+          return;
+        }
+
+        UpdatableModelChild tokenChild = tracker.getTokenChild();
+        Logger.i(TAG, "Found Token %s", tokenChild != null);
+        if (tokenChild != null && root != null) {
+          List<UpdatableModelChild> rootChildren = containers.get(root.getContentId());
+          if (rootChildren != null) {
+            int pos = rootChildren.indexOf(tokenChild);
+            if (pos > 0) {
+              rootChildren.remove(pos);
+              SyntheticTokenTracker tokenTracker =
+                  new SyntheticTokenTracker(Validators.checkNotNull(root), pos, nonCachePageSize);
+              List<UpdatableModelChild> childrenToBind = tokenTracker.insertToken();
+              List<UpdatableModelChild> cursorSublist =
+                  rootChildren.subList(pos, rootChildren.size());
+
+              // Bind the unbound children
+              bindChildrenAndTokens(
+                  childrenToBind,
+                  (bindingCount) -> {
+                    ModelCursorImpl cursor =
+                        new ModelCursorImpl(streamToken.getParentId(), cursorSublist, threadUtils);
+
+                    TokenCompleted tokenCompleted = new TokenCompleted(cursor);
+                    List<TokenCompletedObserver> observers = token.getObserversToNotify();
+                    mainThreadRunner.execute(
+                        TAG + " - onTokenChange",
+                        () -> {
+                          for (TokenCompletedObserver observer : observers) {
+                            observer.onTokenCompleted(tokenCompleted);
+                          }
+                        });
+                  });
+            }
+          }
+        }
+      }
+    }
+
+    private void traverse(UpdatableModelChild node, int start, int end) {
+      synchronized (lock) {
+        if (node.getType() == Type.UNBOUND) {
+          childrenToBind.add(node);
+        }
+        String nodeId = node.getContentId();
+        List<UpdatableModelChild> children = containers.get(nodeId);
+        if (children != null && !children.isEmpty()) {
+          int maxChildren = Math.min(end, children.size());
+          for (int i = start; i < maxChildren; i++) {
+            UpdatableModelChild child = children.get(i);
+            traverse(child, 0, Integer.MAX_VALUE);
+          }
+        }
+      }
+    }
+
+    private UpdatableModelChild getSyntheticToken() {
+      synchronized (lock) {
+        UpdatableModelChild r = Validators.checkNotNull(root);
+        String contentId = SYNTHETIC_TOKEN_PREFIX + UUID.randomUUID();
+        StreamToken streamToken = StreamToken.newBuilder().setContentId(contentId).build();
+        UpdatableModelChild modelChild = new UpdatableModelChild(contentId, r.getContentId());
+        modelChild.bindToken(new UpdatableModelToken(streamToken, true));
+        return modelChild;
+      }
+    }
+  }
 
   private void handleRemoveOperation(MutationHandler mutationHandler, StreamStructure removeChild) {
     // remove everything from the remove list first

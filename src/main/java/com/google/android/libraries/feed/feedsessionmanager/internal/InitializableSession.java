@@ -31,5 +31,6 @@ public interface InitializableSession extends Session {
   void setStreamSession(StreamSession streamSession);
 
   /** Called to initialize the session from $HEAD */
-  void populateModelProvider(StreamSession streamSession, List<StreamStructure> session);
+  void populateModelProvider(
+      StreamSession streamSession, List<StreamStructure> session, boolean cachedBindings);
 }

@@ -39,14 +39,14 @@ public class ModelTokenImplTest {
   @Test
   public void testFeature() {
     StreamToken token = StreamToken.newBuilder().build();
-    UpdatableModelToken modelToken = new UpdatableModelToken(token);
+    UpdatableModelToken modelToken = new UpdatableModelToken(token, false);
     assertThat(modelToken.getStreamToken()).isEqualTo(token);
   }
 
   @Test
   public void testChangeObserverList() {
     StreamToken token = StreamToken.newBuilder().build();
-    UpdatableModelToken modelToken = new UpdatableModelToken(token);
+    UpdatableModelToken modelToken = new UpdatableModelToken(token, false);
     modelToken.registerObserver(changeObserver);
     List<TokenCompletedObserver> observers = modelToken.getObserversToNotify();
     assertThat(observers.size()).isEqualTo(1);

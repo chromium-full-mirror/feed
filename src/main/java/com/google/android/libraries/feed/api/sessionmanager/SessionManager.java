@@ -81,4 +81,11 @@ public interface SessionManager {
    * the context which is initiating the update operation.
    */
   Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(MutationContext mutationContext);
+
+  /**
+   * This will run a Task on the SessionManager's Executor.
+   *
+   * <p>TODO: Remove this when TaskQueue is moved outside of FeedModelProvider
+   */
+  void runTask(String task, Runnable runnable);
 }

@@ -43,7 +43,7 @@ public class UpdatableModelChild implements ModelChild {
     type = Type.FEATURE;
   }
 
-  void bindToken(UpdatableModelToken modelToken) {
+  public void bindToken(UpdatableModelToken modelToken) {
     validateType(Type.UNBOUND);
     this.modelToken = modelToken;
     type = Type.TOKEN;

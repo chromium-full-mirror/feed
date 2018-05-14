@@ -19,7 +19,9 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange.ChildChanges;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
@@ -138,6 +140,17 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
       // If we just hit the last element in the iterator, free all the resources for this cursor.
       if (!iterator.hasNext()) {
         release();
+      }
+      // If we have a synthetic token, this is the end of the cursor.
+      if (nextChild.getType() == Type.TOKEN) {
+        ModelToken token = nextChild.getModelToken();
+        if (token instanceof UpdatableModelToken) {
+          UpdatableModelToken updatableModelToken = (UpdatableModelToken) token;
+          if (updatableModelToken.isSynthetic()) {
+            Logger.i(TAG, "Releasing token due to synthetic");
+            release();
+          }
+        }
       }
     }
     return nextChild;
