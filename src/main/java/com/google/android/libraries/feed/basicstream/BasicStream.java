@@ -135,7 +135,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     checkState(recyclerView == null, "Can't call onCreate() multiple times.");
     // TODO: Implement save/restore.
     adapter =
-        new StreamRecyclerViewAdapter(
+        createRecyclerViewAdapter(
             context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
     adapter.setHeaders(headers);
 
@@ -241,7 +241,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   private void updateAdapter(ModelProvider modelProvider) {
-    streamDriver = new StreamDriver(modelProvider, threadUtils, configuration);
+    streamDriver = createStreamDriver(modelProvider, threadUtils, configuration);
 
     adapter.setDriver(streamDriver);
   }
@@ -262,5 +262,23 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @Override
   public void onRootSet() {
     // TODO: Handle onRootSet
+  }
+
+  @VisibleForTesting
+  StreamDriver createStreamDriver(
+      ModelProvider modelProvider, ThreadUtils threadUtils, Configuration configuration) {
+    return new StreamDriver(modelProvider, threadUtils, configuration);
+  }
+
+  @VisibleForTesting
+  StreamRecyclerViewAdapter createRecyclerViewAdapter(
+      Context context,
+      CardConfiguration cardConfiguration,
+      PietManager pietManager,
+      ActionParser actionParser,
+      ActionApi actionApi,
+      ActionManager actionManager) {
+    return new StreamRecyclerViewAdapter(
+        context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
   }
 }

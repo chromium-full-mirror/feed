@@ -30,12 +30,10 @@ import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.modelprovider.ModelChild;
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
+import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
+import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -47,17 +45,7 @@ import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
-import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
-import com.google.common.collect.Lists;
-import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
-import com.google.search.now.ui.stream.StreamStructureProto.Card;
-import com.google.search.now.ui.stream.StreamStructureProto.Content;
-import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
-import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
-import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -78,35 +66,16 @@ public class BasicStreamTest {
   private static final int END_PADDING = 2;
   private static final int TOP_PADDING = 3;
   private static final int BOTTOM_PADDING = 4;
-  private static final ContentId PIET_SHARED_STATE_ID = ContentId.newBuilder().setId(123L).build();
-  private static final PietContent PIET_CONTENT =
-      PietContent.newBuilder().addPietSharedStates(PIET_SHARED_STATE_ID).build();
-  private static final StreamFeature STREAM_FEATURE_WITH_PIET_CONTENT =
-      StreamFeature.newBuilder()
-          .setContent(
-              Content.newBuilder()
-                  .setType(Type.PIET)
-                  .setExtension(PietContent.pietContentExtension, PIET_CONTENT))
-          .build();
-  private static final StreamSharedState STREAM_SHARED_STATE =
-      StreamSharedState.newBuilder()
-          .setPietSharedStateItem(PietSharedStateItem.getDefaultInstance())
-          .build();
+
   @Mock private StreamConfiguration streamConfiguration;
-  @Mock private CardConfiguration cardConfiguration;
-  @Mock private ImageLoaderApi imageLoaderApi;
-  @Mock private ActionParser actionParser;
-  @Mock private ActionApi actionApi;
-  @Mock private CustomElementProvider customElementProvider;
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private ModelProvider initialModelProvider;
   @Mock private ModelProvider modelProvider;
-  @Mock private ActionManager actionManager;
   @Mock private PietManager pietManager;
-  private final List<View> headers = new ArrayList<>();
-  private final ThreadUtils threadUtils = new ThreadUtils();
-  private Configuration configuration = new Configuration.Builder().build();
+  @Mock private StreamDriver streamDriver;
+  @Mock private StreamRecyclerViewAdapter adapter;
 
+  private Configuration configuration = new Configuration.Builder().build();
   private BasicStream basicStream;
 
   @Before
@@ -117,6 +86,7 @@ public class BasicStreamTest {
     when(streamConfiguration.getPaddingEnd()).thenReturn(END_PADDING);
     when(streamConfiguration.getPaddingTop()).thenReturn(TOP_PADDING);
     when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
+    
     when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
     basicStream = createBasicStream();
     basicStream.onCreate(null);
@@ -124,42 +94,9 @@ public class BasicStreamTest {
 
   @Test
   public void testOnSessionStart() {
-    ModelFeature rootFeature = mock(ModelFeature.class);
-    when(initialModelProvider.getRootFeature()).thenReturn(rootFeature);
-    when(initialModelProvider.getSharedState(PIET_SHARED_STATE_ID)).thenReturn(STREAM_SHARED_STATE);
-
-    // Represents final payload which includes Piet content.
-    ModelFeature pietModelFeature = mock(ModelFeature.class);
-    when(pietModelFeature.getStreamFeature()).thenReturn(STREAM_FEATURE_WITH_PIET_CONTENT);
-
-    // ModelChild containing Piet content.
-    ModelChild pietModelChild = mock(ModelChild.class);
-    when(pietModelChild.getModelFeature()).thenReturn(pietModelFeature);
-
-    // Cursor to transverse the content of a card, which is Piet content.
-    FakeModelCursor cardCursor = new FakeModelCursor(Lists.newArrayList(pietModelChild));
-
-    // A ModelFeature with a Card payload.
-    ModelFeature cardModelFeature = mock(ModelFeature.class);
-    when(cardModelFeature.getCursor()).thenReturn(cardCursor);
-    when(cardModelFeature.getStreamFeature())
-        .thenReturn(StreamFeature.newBuilder().setCard(Card.newBuilder()).build());
-
-    // The root child, which contains one card.
-    ModelChild rootChild = mock(ModelChild.class);
-    when(rootChild.getModelFeature()).thenReturn(cardModelFeature);
-    when(rootChild.getType()).thenReturn(ModelChild.Type.FEATURE);
-
-    // The cursor for the root feature
-    FakeModelCursor rootCursor = new FakeModelCursor(Lists.newArrayList(rootChild));
-    when(rootFeature.getCursor()).thenReturn(rootCursor);
     basicStream.onSessionStart();
 
-    List<ContentModel> contentModels = basicStream.getAdapter().getContentModels();
-
-    assertThat(contentModels).hasSize(1);
-    assertThat(contentModels.get(0)).isInstanceOf(PietContentModel.class);
-    assertThat(((PietContentModel) contentModels.get(0)).getPietContent()).isEqualTo(PIET_CONTENT);
+    verify(adapter).setDriver(streamDriver);
   }
 
   @Test
@@ -233,33 +170,87 @@ public class BasicStreamTest {
   }
 
   private BasicStream createBasicStream() {
-    return new BasicStream(
+    return new BasicStreamForTest(
         Robolectric.setupActivity(Activity.class),
         streamConfiguration,
-        cardConfiguration,
-        imageLoaderApi,
-        actionParser,
-        actionApi,
-        customElementProvider,
+        mock(CardConfiguration.class),
+        mock(ImageLoaderApi.class),
+        mock(ActionParser.class),
+        mock(ActionApi.class),
+        mock(CustomElementProvider.class),
         DebugBehavior.VERBOSE,
-        threadUtils,
-        headers,
+        new ThreadUtils(),
+        /* headers= */ new ArrayList<>(),
         new FakeClock(),
         modelProviderFactory,
         new HostBindingProvider(),
-        actionManager,
-        configuration) {
-      @Override
-      PietManager createPietManager(
-          Context context,
-          CardConfiguration cardConfiguration,
-          ImageLoaderApi imageLoaderApi,
-          /*@Nullable*/ CustomElementProvider customElementProvider,
-          DebugBehavior debugBehavior,
-          Clock clock,
-          /*@Nullable*/ HostBindingProvider hostBindingProvider) {
-        return pietManager;
-      }
-    };
+        mock(ActionManager.class),
+        configuration);
+  }
+
+  private class BasicStreamForTest extends BasicStream {
+
+    public BasicStreamForTest(
+        Context context,
+        StreamConfiguration streamConfiguration,
+        CardConfiguration cardConfiguration,
+        ImageLoaderApi imageLoaderApi,
+        ActionParser actionParser,
+        ActionApi actionApi,
+        /*@Nullable*/ CustomElementProvider customElementProvider,
+        DebugBehavior debugBehavior,
+        ThreadUtils threadUtils,
+        List<View> headers,
+        Clock clock,
+        ModelProviderFactory modelProviderFactory,
+        /*@Nullable*/ HostBindingProvider hostBindingProvider,
+        ActionManager actionManager,
+        Configuration configuration) {
+      super(
+          context,
+          streamConfiguration,
+          cardConfiguration,
+          imageLoaderApi,
+          actionParser,
+          actionApi,
+          customElementProvider,
+          debugBehavior,
+          threadUtils,
+          headers,
+          clock,
+          modelProviderFactory,
+          hostBindingProvider,
+          actionManager,
+          configuration);
+    }
+
+    @Override
+    PietManager createPietManager(
+        Context context,
+        CardConfiguration cardConfiguration,
+        ImageLoaderApi imageLoaderApi,
+        /*@Nullable*/ CustomElementProvider customElementProvider,
+        DebugBehavior debugBehavior,
+        Clock clock,
+        /*@Nullable*/ HostBindingProvider hostBindingProvider) {
+      return pietManager;
+    }
+
+    @Override
+    StreamDriver createStreamDriver(
+        ModelProvider modelProvider, ThreadUtils threadUtils, Configuration configuration) {
+      return streamDriver;
+    }
+
+    @Override
+    StreamRecyclerViewAdapter createRecyclerViewAdapter(
+        Context context,
+        CardConfiguration cardConfiguration,
+        PietManager pietManager,
+        ActionParser actionParser,
+        ActionApi actionApi,
+        ActionManager actionManager) {
+      return adapter;
+    }
   }
 }
