@@ -53,7 +53,8 @@ message Card {
     optional Card card_extension = 185431438;
   }
 
-  // Empty for now as we don't support any custom information.
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
 }
 
 // Feature which is able to show actual content in a stream. This could be

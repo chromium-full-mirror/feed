@@ -20,3 +20,22 @@ java_lite_proto_library(
     name = "stream_java_proto_lite",
     deps = [":stream_proto"],
 )
+
+proto_library(
+    name = "stream_swipe_extension",
+    srcs = ["stream_swipe_extension.proto"],
+    deps = [
+        ":stream_proto",
+        "//src/main/proto/search/now/proto/ui/action:feed_action_proto",
+    ],
+)
+
+java_proto_library(
+    name = "stream_swipe_extension_java_proto",
+    deps = [":stream_swipe_extension"],
+)
+
+java_lite_proto_library(
+    name = "stream_swipe_extension_java_proto_lite",
+    deps = [":stream_swipe_extension"],
+)
