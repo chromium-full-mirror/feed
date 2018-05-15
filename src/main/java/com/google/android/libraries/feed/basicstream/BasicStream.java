@@ -36,9 +36,6 @@ import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
-import com.google.android.libraries.feed.basicstream.internal.piet.PietAssetProvider;
-import com.google.android.libraries.feed.basicstream.internal.piet.PietCustomElementProvider;
-import com.google.android.libraries.feed.basicstream.internal.piet.PietHostBindingProvider;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -49,6 +46,9 @@ import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
+import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
+import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvider;
 import java.util.List;
 
 /**

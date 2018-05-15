@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal.piet;
+package com.google.android.libraries.feed.sharedstream.piet;
 
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
