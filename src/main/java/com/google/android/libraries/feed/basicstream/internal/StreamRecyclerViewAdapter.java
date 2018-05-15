@@ -80,7 +80,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (viewType == TYPE_HEADER) {
       FrameLayout frameLayout = new FrameLayout(parent.getContext());
       frameLayout.setLayoutParams(
-          new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+          new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
       return new HeaderViewHolder(frameLayout);
     } else if (viewType == TYPE_CONTINUATION) {
       FrameLayout frameLayout = new FrameLayout(parent.getContext());
