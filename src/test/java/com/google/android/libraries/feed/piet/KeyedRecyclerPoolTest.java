@@ -21,7 +21,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,13 +91,7 @@ public class KeyedRecyclerPoolTest {
   @Test
   public void testPutNullKeyFails() {
     KeyedRecyclerPool<TestElementAdapter> pool = new KeyedRecyclerPool<>(MAX_KEYS, CAPACITY);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                pool.put(null, adapter);
-              }
-            })
+    assertThatRunnable(() -> pool.put(null, adapter))
         .throwsAnExceptionOfType(NullPointerException.class)
         .that()
         .hasMessageThat()

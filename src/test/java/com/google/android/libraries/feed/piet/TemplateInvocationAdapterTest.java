@@ -27,7 +27,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.TemplateInvocationAdapter.TemplateKey;
@@ -125,7 +124,6 @@ public class TemplateInvocationAdapterTest {
           .addBindingContexts(DEFAULT_BINDING)
           .build();
 
-  @Mock private PietStylesHelper stylesHelper;
   @Mock private AssetProvider assetProvider;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private ActionHandler actionHandler;
@@ -166,13 +164,7 @@ public class TemplateInvocationAdapterTest {
             .addBindingContexts(DEFAULT_BINDING)
             .build();
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.createAdapter(templateInvocation, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.createAdapter(templateInvocation, frameContext))
         .throwsAnExceptionOfType(NullPointerException.class)
         .that()
         .hasMessageThat()
@@ -189,13 +181,7 @@ public class TemplateInvocationAdapterTest {
             .addBindingContexts(DEFAULT_BINDING)
             .build();
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.createAdapter(templateInvocation2, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.createAdapter(templateInvocation2, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -249,13 +235,7 @@ public class TemplateInvocationAdapterTest {
             .addBindingContexts(DEFAULT_BINDING)
             .build();
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(templateInvocation2, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(templateInvocation2, frameContext))
         .throwsAnExceptionOfType(NullPointerException.class)
         .that()
         .hasMessageThat()
@@ -272,13 +252,7 @@ public class TemplateInvocationAdapterTest {
             .addBindingContexts(DEFAULT_BINDING)
             .build();
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(templateInvocation2, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(templateInvocation2, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -554,14 +528,10 @@ public class TemplateInvocationAdapterTest {
         .isEqualTo(new TemplateKey(DEFAULT_TEMPLATE, pietSharedStates));
 
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
+            () ->
                 keySupplier.getKey(
                     frameContext,
-                    TemplateInvocation.newBuilder().setTemplateId("NOT_A_REAL_TEMPLATE").build());
-              }
-            })
+                    TemplateInvocation.newBuilder().setTemplateId("NOT_A_REAL_TEMPLATE").build()))
         .throwsAnExceptionOfType(NullPointerException.class)
         .that()
         .hasMessageThat()
@@ -572,13 +542,7 @@ public class TemplateInvocationAdapterTest {
   public void testGetModelFromElement() {
     Element elementWithModel =
         Element.newBuilder().setTemplateBinding(TemplateBindingRef.getDefaultInstance()).build();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(elementWithModel);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(elementWithModel))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -586,26 +550,14 @@ public class TemplateInvocationAdapterTest {
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(elementWithWrongModel);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Templates must be re-bound");
 
     Element emptyElement = Element.getDefaultInstance();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(emptyElement);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
