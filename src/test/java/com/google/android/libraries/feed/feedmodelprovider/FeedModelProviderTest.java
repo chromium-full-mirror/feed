@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.feedmodelprovider;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -34,7 +36,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -64,10 +65,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FeedModelProvider}. */
@@ -90,27 +88,21 @@ public class FeedModelProviderTest {
   public void setUp() {
     initMocks(this);
     childBindings.clear();
-    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(0);
     doAnswer(
-            new Answer<Void>() {
-              @Override
-              public Void answer(InvocationOnMock invocation) throws Throwable {
-                @SuppressWarnings("unchecked")
-                Consumer<List<PayloadWithId>> consumer =
-                    (Consumer<List<PayloadWithId>>) invocation.getArguments()[1];
-                consumer.accept(childBindings);
-                return null;
-              }
+            invocation -> {
+              @SuppressWarnings("unchecked")
+              Consumer<List<PayloadWithId>> consumer =
+                  (Consumer<List<PayloadWithId>>) invocation.getArguments()[1];
+              consumer.accept(childBindings);
+              return null;
             })
         .when(sessionManager)
-        .getStreamFeatures(Matchers.any(), Matchers.any());
+        .getStreamFeatures(any(), any());
   }
 
   @Test
   public void testMinimalModelProvider() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INITIALIZING);
 
     // Add a root to the model provider
@@ -135,7 +127,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testEmptyStream() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
 
     ModelMutation mutator = modelProvider.edit();
     mutator.commit();
@@ -145,7 +137,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testCursor() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelMutation mutator = getRootedModelMutator(modelProvider);
     int featureCnt = 2;
     for (int i = 0; i < featureCnt; i++) {
@@ -169,7 +161,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testRemove() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelMutation mutator = getRootedModelMutator(modelProvider);
     int featureCnt = 2;
     for (int i = 0; i < featureCnt; i++) {
@@ -192,7 +184,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testMultiLevelCursors() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelMutation mutator = getRootedModelMutator(modelProvider);
 
     int featureCnt = 3;
@@ -233,7 +225,7 @@ public class FeedModelProviderTest {
     StreamSharedState streamSharedState = StreamSharedState.getDefaultInstance();
     when(sessionManager.getSharedState(contentId)).thenReturn(streamSharedState);
 
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     assertThat(modelProvider.getSharedState(contentId)).isEqualTo(streamSharedState);
   }
 
@@ -254,7 +246,7 @@ public class FeedModelProviderTest {
     ModelToken modelToken = mock(ModelToken.class);
     when(modelToken.getStreamToken()).thenReturn(streamToken);
 
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     StreamSession mockSession = StreamSession.getDefaultInstance();
     modelProvider.streamSession = mockSession;
     modelProvider.handleToken(modelToken);
@@ -263,7 +255,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testForceRefresh() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     modelProvider.triggerRefresh();
     verify(sessionManager).triggerRefresh(null);
   }
@@ -271,7 +263,7 @@ public class FeedModelProviderTest {
   @Test
   public void testInvalidate() {
     // Create a valid model
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelMutation mutator = modelProvider.edit();
     StreamFeature rootStreamFeature = getRootFeature();
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
@@ -289,7 +281,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testObserverLifecycle() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelProviderObserver observer1 = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer1);
     verify(observer1, never()).onSessionStart();
@@ -316,7 +308,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testObserverLifecycle_resetRoot() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
     verify(observer, never()).onSessionStart();
@@ -338,7 +330,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testObserverList() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
 
@@ -349,7 +341,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testInitializationModelMutationHandler() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INITIALIZING);
@@ -362,7 +354,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testTokens() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
 
     int featureCnt = 3;
     StreamToken streamToken = initializeStreamWithToken(modelProvider, featureCnt);
@@ -386,7 +378,7 @@ public class FeedModelProviderTest {
 
   @Test
   public void testTokenMutation() {
-    FeedModelProvider modelProvider = createFeedModelProvider();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
 
     int featureCnt = 3;
     StreamToken streamToken = initializeStreamWithToken(modelProvider, featureCnt);
@@ -415,15 +407,83 @@ public class FeedModelProviderTest {
     tokens = modelProvider.getTokensForTest();
     assertThat(tokens).hasSize(0);
 
-    TokenCompletedObserver tokenCompletedObserver =
-        new TokenCompletedObserver() {
-          @Override
-          public void onTokenCompleted(TokenCompleted change) {
-            assertThat(change).isNotNull();
-          }
-        };
+    TokenCompletedObserver tokenCompletedObserver = change -> assertThat(change).isNotNull();
     continuationToken.getModelToken().registerObserver(tokenCompletedObserver);
     tokenMutation.postMutation();
+  }
+
+  @Test
+  public void testSyntheticToken() {
+    int initialPageSize = 4;
+    int pageSize = 4;
+    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0))
+        .thenReturn(initialPageSize);
+    when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(pageSize);
+    when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(2);
+
+    doAnswer(
+            invocation -> {
+              Object[] args = invocation.getArguments();
+              ((Runnable) args[1]).run();
+              return null;
+            })
+        .when(sessionManager)
+        .runTask(anyString(), any());
+
+    FeedModelProvider modelProvider = createFeedModelProvider();
+
+    ModelMutation mutator = getRootedModelMutator(modelProvider);
+    int featureCnt = 11;
+    for (int i = 0; i < featureCnt; i++) {
+      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
+    }
+    mutator.commit();
+
+    ModelFeature rootFeature = modelProvider.getRootFeature();
+    assertThat(rootFeature).isNotNull();
+    ModelCursor modelCursor = rootFeature.getCursor();
+    assertThat(modelCursor).isNotNull();
+
+    ModelChild lastChild = assertCursorSize(modelCursor, initialPageSize + 1);
+    assertThat(lastChild.getType()).isEqualTo(Type.TOKEN);
+    assertThat(modelProvider.getSyntheticTokensForTest().size()).isEqualTo(1);
+
+    // The token should be handled in the FeedModelProvider
+    modelProvider.handleToken(lastChild.getModelToken());
+    modelCursor = rootFeature.getCursor();
+    assertThat(modelCursor).isNotNull();
+
+    lastChild = assertCursorSize(modelCursor, initialPageSize + pageSize + 1);
+    assertThat(lastChild.getType()).isEqualTo(Type.TOKEN);
+    assertThat(modelProvider.getSyntheticTokensForTest().size()).isEqualTo(1);
+
+    // last page
+    modelProvider.handleToken(lastChild.getModelToken());
+    modelCursor = rootFeature.getCursor();
+    assertThat(modelCursor).isNotNull();
+
+    lastChild = assertCursorSize(modelCursor, featureCnt);
+    assertThat(lastChild.getType()).isEqualTo(Type.FEATURE);
+    assertThat(modelProvider.getSyntheticTokensForTest().size()).isEqualTo(0);
+  }
+
+  private ModelChild assertCursorSize(ModelCursor cursor, int size) {
+    int cnt = 0;
+    ModelChild lastChild = null;
+    ModelChild child;
+    while ((child = cursor.getNextItem()) != null) {
+      cnt++;
+      lastChild = child;
+    }
+    assertThat(cnt).isEqualTo(size);
+    assertThat(lastChild).isNotNull();
+    return lastChild;
+  }
+
+  private void initDefaultConfig() {
+    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
+    when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
+    when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(0);
   }
 
   private StreamToken initializeStreamWithToken(FeedModelProvider modelProvider, int featureCnt) {
@@ -440,6 +500,11 @@ public class FeedModelProviderTest {
     mutator.commit();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     return streamToken;
+  }
+
+  private FeedModelProvider createFeedModelProviderWithConfig() {
+    initDefaultConfig();
+    return createFeedModelProvider();
   }
 
   private FeedModelProvider createFeedModelProvider() {

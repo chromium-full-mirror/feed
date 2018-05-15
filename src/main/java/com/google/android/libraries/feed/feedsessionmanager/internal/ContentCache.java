@@ -40,7 +40,6 @@ public class ContentCache implements Dumpable {
   private int mutationsCount = 0;
 
   public ContentCache() {
-    // TODO: Do we want to also support a LRU cache in addition to the mutation?
     mutationCache = new HashMap<>();
   }
 

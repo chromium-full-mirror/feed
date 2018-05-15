@@ -569,7 +569,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   /** Class which handles Synthetic tokens within the root children list. */
-  public class SyntheticTokenTracker {
+  @VisibleForTesting
+  class SyntheticTokenTracker {
     private final List<UpdatableModelChild> childrenToBind = new ArrayList<>();
     private final UpdatableModelChild pagingChild;
     private final int startingPosition;
@@ -643,7 +644,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     void handleSyntheticToken(UpdatableModelToken token) {
       synchronized (lock) {
         StreamToken streamToken = token.getStreamToken();
-        SyntheticTokenTracker tracker = syntheticTokens.get(streamToken.getContentId());
+        SyntheticTokenTracker tracker = syntheticTokens.remove(streamToken.getContentId());
         if (tracker == null) {
           Logger.e(TAG, "SyntheticTokenTracker was not found");
           return;
@@ -1005,6 +1006,13 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   Map<ByteString, TokenTracking> getTokensForTest() {
     synchronized (lock) {
       return new HashMap<>(tokens);
+    }
+  }
+
+  // test only method for verifying the synthetic tokens
+  Map<String, SyntheticTokenTracker> getSyntheticTokensForTest() {
+    synchronized (lock) {
+      return new HashMap<>(syntheticTokens);
     }
   }
 }
