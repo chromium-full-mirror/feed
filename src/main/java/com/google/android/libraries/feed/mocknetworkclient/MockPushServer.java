@@ -78,7 +78,7 @@ public class MockPushServer {
     private final Handler handler;
 
     private MockServerLooper() {
-      Logger.i(TAG, "createing MockServerLooperImpl");
+      Logger.i(TAG, "creating MockServerLooperImpl");
       updateThread = new HandlerThread("UpdateThread");
       updateThread.start();
       handler = new Handler(updateThread.getLooper());

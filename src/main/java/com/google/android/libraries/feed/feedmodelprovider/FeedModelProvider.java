@@ -254,7 +254,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   public void invalidate() {
-    Logger.i(TAG, "Invalidating the current ModelProvider");
+    Logger.i(TAG, "Invalidating the current ModelProvider: session %s", getSessionToken());
     synchronized (lock) {
       currentState = State.INVALIDATED;
       for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
