@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.view.View;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,13 +58,7 @@ public class SingleKeyRecyclerPoolTest {
 
   @Test
   public void testGetWithDifferentKeyFails() {
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                pool.get(INVALID_KEY);
-              }
-            })
+    assertThatRunnable(() -> pool.get(INVALID_KEY))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -74,13 +67,7 @@ public class SingleKeyRecyclerPoolTest {
 
   @Test
   public void testPutWithDifferentKeyFails() {
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                pool.put(INVALID_KEY, adapter);
-              }
-            })
+    assertThatRunnable(() -> pool.put(INVALID_KEY, adapter))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -89,13 +76,7 @@ public class SingleKeyRecyclerPoolTest {
 
   @Test
   public void testGetWithNullKeyFails() {
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                pool.get(null);
-              }
-            })
+    assertThatRunnable(() -> pool.get(null))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -104,13 +85,7 @@ public class SingleKeyRecyclerPoolTest {
 
   @Test
   public void testPutWithNullKeyFails() {
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                pool.put(null, adapter);
-              }
-            })
+    assertThatRunnable(() -> pool.put(null, adapter))
         .throwsAnExceptionOfType(NullPointerException.class)
         .that()
         .hasMessageThat()
@@ -120,13 +95,7 @@ public class SingleKeyRecyclerPoolTest {
   @Test
   public void testPutSameElementTwiceFails() {
     pool.put(DEFAULT_KEY, adapter);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                pool.put(DEFAULT_KEY, adapter);
-              }
-            })
+    assertThatRunnable(() -> pool.put(DEFAULT_KEY, adapter))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()

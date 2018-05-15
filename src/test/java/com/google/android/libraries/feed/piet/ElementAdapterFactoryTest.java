@@ -23,7 +23,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
@@ -189,13 +188,7 @@ public class ElementAdapterFactoryTest {
     TextElement model = TextElement.getDefaultInstance();
     Element element = Element.newBuilder().setTextElement(model).build();
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapterFactory.createAdapterForElement(element, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapterFactory.createAdapterForElement(element, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -280,12 +273,8 @@ public class ElementAdapterFactoryTest {
   @Test
   public void testCreateAdapterForElement_unsupported() {
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapterFactory.createAdapterForElement(Element.getDefaultInstance(), frameContext);
-              }
-            })
+            () ->
+                adapterFactory.createAdapterForElement(Element.getDefaultInstance(), frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()

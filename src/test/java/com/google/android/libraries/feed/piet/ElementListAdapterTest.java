@@ -34,7 +34,6 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.Space;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.ElementListAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -390,13 +389,7 @@ public class ElementListAdapterTest {
             .addElements(DEFAULT_ELEMENT)
             .build();
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(listWithTwoElements, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(listWithTwoElements, frameContext))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -466,13 +459,7 @@ public class ElementListAdapterTest {
         .thenReturn(
             BindingValue.newBuilder().setBindingId(LIST_BINDING_REF.getBindingId()).build());
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(LIST_WITH_BOUND_LIST, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(LIST_WITH_BOUND_LIST, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -659,13 +646,7 @@ public class ElementListAdapterTest {
         Element.newBuilder()
             .setElementListBinding(ElementListBindingRef.newBuilder().setBindingId("binding"))
             .build();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(elementWithListBinding);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(elementWithListBinding))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -673,26 +654,14 @@ public class ElementListAdapterTest {
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(elementWithWrongModel);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing ElementList");
 
     Element emptyElement = Element.getDefaultInstance();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(emptyElement);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()

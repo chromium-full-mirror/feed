@@ -24,7 +24,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -155,7 +154,6 @@ public class FrameContextTest {
 
     assertThat(frameContext.getTemplate(DEFAULT_TEMPLATE_ID)).isEqualTo(DEFAULT_TEMPLATE);
 
-    // when(stylesHelper.getTemplate(template2BindingId)).thenReturn(template2);
     assertThat(frameContext.getTemplate(template2BindingId)).isEqualTo(template2);
   }
 
@@ -164,12 +162,7 @@ public class FrameContextTest {
     frameContext = makeFrameContextWithNoBindings();
 
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                frameContext.getActionsFromBinding(ActionsBindingRef.getDefaultInstance());
-              }
-            })
+            () -> frameContext.getActionsFromBinding(ActionsBindingRef.getDefaultInstance()))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -304,15 +297,11 @@ public class FrameContextTest {
 
     // Can't look up binding
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
+            () ->
                 frameContext.getParameterizedTextBindingValue(
                     ParameterizedTextBindingRef.newBuilder()
                         .setBindingId(INVALID_BINDING_ID)
-                        .build());
-              }
-            })
+                        .build()))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -320,12 +309,8 @@ public class FrameContextTest {
 
     // Binding has no content
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                makeFrameContextWithEmptyBinding().getParameterizedTextBindingValue(textBindingRef);
-              }
-            })
+            () ->
+                makeFrameContextWithEmptyBinding().getParameterizedTextBindingValue(textBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -334,13 +319,7 @@ public class FrameContextTest {
     // Binding has no content but is GONE
     textBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
     frameContext = makeFrameContextWithBinding(textBindingValue);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                frameContext.getParameterizedTextBindingValue(textBindingRef);
-              }
-            })
+    assertThatRunnable(() -> frameContext.getParameterizedTextBindingValue(textBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -401,13 +380,9 @@ public class FrameContextTest {
 
     // Can't look up binding
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
+            () ->
                 frameContext.getImageBindingValue(
-                    ImageBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build());
-              }
-            })
+                    ImageBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -415,12 +390,7 @@ public class FrameContextTest {
 
     // Binding has no content
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                makeFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRef);
-              }
-            })
+            () -> makeFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -429,13 +399,7 @@ public class FrameContextTest {
     // Binding has no content but is GONE
     imageBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
     frameContext = makeFrameContextWithBinding(imageBindingValue);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                frameContext.getImageBindingValue(imageBindingRef);
-              }
-            })
+    assertThatRunnable(() -> frameContext.getImageBindingValue(imageBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -484,13 +448,9 @@ public class FrameContextTest {
 
     // Can't look up binding
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
+            () ->
                 frameContext.getElementListBindingValue(
-                    ElementListBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build());
-              }
-            })
+                    ElementListBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -498,12 +458,7 @@ public class FrameContextTest {
 
     // Binding has no content
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                makeFrameContextWithEmptyBinding().getElementListBindingValue(listBindingRef);
-              }
-            })
+            () -> makeFrameContextWithEmptyBinding().getElementListBindingValue(listBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -512,13 +467,7 @@ public class FrameContextTest {
     // Binding has no content but is GONE
     listBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
     frameContext = makeFrameContextWithBinding(listBindingValue);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                frameContext.getElementListBindingValue(listBindingRef);
-              }
-            })
+    assertThatRunnable(() -> frameContext.getElementListBindingValue(listBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -717,13 +666,9 @@ public class FrameContextTest {
 
     // Can't look up binding
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
+            () ->
                 frameContext.getCustomElementBindingValue(
-                    CustomBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build());
-              }
-            })
+                    CustomBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -731,12 +676,7 @@ public class FrameContextTest {
 
     // Binding has no content
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                makeFrameContextWithEmptyBinding().getCustomElementBindingValue(customBindingRef);
-              }
-            })
+            () -> makeFrameContextWithEmptyBinding().getCustomElementBindingValue(customBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -745,13 +685,7 @@ public class FrameContextTest {
     // Binding has no content but is GONE
     customElementBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
     frameContext = makeFrameContextWithBinding(customElementBindingValue);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                frameContext.getCustomElementBindingValue(customBindingRef);
-              }
-            })
+    assertThatRunnable(() -> frameContext.getCustomElementBindingValue(customBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -815,13 +749,9 @@ public class FrameContextTest {
 
     // Can't look up binding
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
+            () ->
                 frameContext.getChunkedTextBindingValue(
-                    ChunkedTextBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build());
-              }
-            })
+                    ChunkedTextBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -829,12 +759,7 @@ public class FrameContextTest {
 
     // Binding has no content
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                makeFrameContextWithEmptyBinding().getChunkedTextBindingValue(textBindingRef);
-              }
-            })
+            () -> makeFrameContextWithEmptyBinding().getChunkedTextBindingValue(textBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -843,13 +768,7 @@ public class FrameContextTest {
     // Binding has no content but is GONE
     textBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
     frameContext = makeFrameContextWithBinding(textBindingValue);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                frameContext.getChunkedTextBindingValue(textBindingRef);
-              }
-            })
+    assertThatRunnable(() -> frameContext.getChunkedTextBindingValue(textBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()

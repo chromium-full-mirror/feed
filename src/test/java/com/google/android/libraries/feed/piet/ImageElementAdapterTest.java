@@ -34,7 +34,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
@@ -193,13 +192,7 @@ public class ImageElementAdapterTest {
 
     adapter.createAdapter(model, frameContext);
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(model, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(model, frameContext))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -286,13 +279,7 @@ public class ImageElementAdapterTest {
                 .clearImage()
                 .build());
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(imageBindingElement, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(imageBindingElement, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -380,13 +367,7 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(DEFAULT_MODEL, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(DEFAULT_MODEL, frameContext))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -522,26 +503,14 @@ public class ImageElementAdapterTest {
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(elementWithWrongModel);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing ImageElement");
 
     Element emptyElement = Element.getDefaultInstance();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(emptyElement);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()

@@ -31,7 +31,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.Space;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -153,13 +152,7 @@ public class GridRowAdapterTest {
   public void testOnCreateAdapter_missingContentIsException() {
     GridRow gridRow = GridRow.newBuilder().addCells(GridCell.getDefaultInstance()).build();
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.createAdapter(gridRow, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.createAdapter(gridRow, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -383,13 +376,7 @@ public class GridRowAdapterTest {
     when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
         .thenReturn(BindingValue.newBuilder().setBindingId(LIST_BINDING_ID).build());
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -456,13 +443,7 @@ public class GridRowAdapterTest {
 
     adapter.createAdapter(gridRowWithTwoElements, frameContext);
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(gridRowWithOneElement, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(gridRowWithOneElement, frameContext))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -584,26 +565,14 @@ public class GridRowAdapterTest {
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(elementWithWrongModel);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing GridRow");
 
     Element emptyElement = Element.getDefaultInstance();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(emptyElement);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()

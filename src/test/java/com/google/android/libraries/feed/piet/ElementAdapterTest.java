@@ -34,7 +34,6 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -333,12 +332,8 @@ public class ElementAdapterTest {
         Element.newBuilder().addOverlayElements(overlayModel).build();
 
     assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(elementWithFewerOverlays, elementWithFewerOverlays, frameContext);
-              }
-            })
+            () ->
+                adapter.bindModel(elementWithFewerOverlays, elementWithFewerOverlays, frameContext))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
