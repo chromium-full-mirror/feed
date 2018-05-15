@@ -25,7 +25,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.CustomElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
@@ -212,13 +211,7 @@ public class CustomElementAdapterTest {
     CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
     adapter.createAdapter(model, frameContext);
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(model, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(model, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -276,26 +269,14 @@ public class CustomElementAdapterTest {
 
     Element elementWithWrongModel =
         Element.newBuilder().setTextElement(TextElement.getDefaultInstance()).build();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(elementWithWrongModel);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing CustomElement");
 
     Element emptyElement = Element.getDefaultInstance();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(emptyElement);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()

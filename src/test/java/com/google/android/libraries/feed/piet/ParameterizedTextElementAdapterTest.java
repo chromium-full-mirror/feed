@@ -28,7 +28,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
@@ -95,13 +94,7 @@ public class ParameterizedTextElementAdapterTest {
     adapter.createAdapter(getBaseTextElement(), frameContext);
     TextElement textElement = TextElement.getDefaultInstance();
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(textElement, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(textElement, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -148,13 +141,7 @@ public class ParameterizedTextElementAdapterTest {
     TextElement textElement = getBindingTextElement(null);
     adapter.createAdapter(textElement, frameContext);
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(textElement, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(textElement, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()

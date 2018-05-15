@@ -32,7 +32,6 @@ import android.text.TextUtils.TruncateAt;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -196,26 +195,14 @@ public class TextElementAdapterTest {
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(elementWithWrongModel);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing TextElement");
 
     Element emptyElement = Element.getDefaultInstance();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.getModelFromElement(emptyElement);
-              }
-            })
+    assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()

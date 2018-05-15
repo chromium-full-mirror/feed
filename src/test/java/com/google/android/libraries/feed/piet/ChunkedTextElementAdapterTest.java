@@ -39,7 +39,6 @@ import android.text.style.StyleSpan;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ActionsClickableSpan;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ImageSpanDrawableCallback;
@@ -209,13 +208,7 @@ public class ChunkedTextElementAdapterTest {
 
     adapter.createAdapter(elementWithWrongContent, frameContext);
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(elementWithWrongContent, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(elementWithWrongContent, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -226,13 +219,7 @@ public class ChunkedTextElementAdapterTest {
   public void testBind_missingContent_fails() {
     TextElement emptyElement = TextElement.getDefaultInstance();
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(emptyElement, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(emptyElement, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -275,13 +262,7 @@ public class ChunkedTextElementAdapterTest {
 
     adapter.createAdapter(elementWithEmptyChunk, frameContext);
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.bindModel(elementWithEmptyChunk, frameContext);
-              }
-            })
+    assertThatRunnable(() -> adapter.bindModel(elementWithEmptyChunk, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -375,13 +356,7 @@ public class ChunkedTextElementAdapterTest {
                 .setVisibility(Visibility.INVISIBLE)
                 .build());
 
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                adapter.setTextOnView(frameContext, chunkedTextBindingElement);
-              }
-            })
+    assertThatRunnable(() -> adapter.setTextOnView(frameContext, chunkedTextBindingElement))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
