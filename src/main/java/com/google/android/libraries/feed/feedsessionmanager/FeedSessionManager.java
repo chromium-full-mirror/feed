@@ -425,6 +425,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             }
           } else {
             // TODO: handle errors
+            Logger.e(TAG, "unable to get stream structure for existing session");
           }
           existingSessionCount++;
         });
@@ -492,6 +493,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         results.addAll(contentResult.getValue());
       } else {
         // TODO: handle errors
+        Logger.e(TAG, "Unable to get the payloads in getStreamFeatures");
       }
     }
     Logger.i(
