@@ -33,12 +33,12 @@ public class ContinuationViewHolder extends FeedViewHolder {
     super(frameLayout);
     LayoutInflater.from(context).inflate(R.layout.more_button, frameLayout);
     actionButton = checkNotNull(frameLayout.findViewById(R.id.action_button));
-    // TODO: Allow for switching between spinner and actionButton.
     spinner = checkNotNull(frameLayout.findViewById(R.id.loading_spinner));
   }
 
-  public void bind(OnClickListener onClickListener) {
+  public void bind(OnClickListener onClickListener, boolean showSpinner) {
     actionButton.setOnClickListener(onClickListener);
+    setButtonSpinnerVisibility(showSpinner);
   }
 
   @Override
@@ -48,5 +48,14 @@ public class ContinuationViewHolder extends FeedViewHolder {
 
     // Set clickable to false as setting OnClickListener to null sets clickable to true.
     actionButton.setClickable(false);
+  }
+
+  public void setShowSpinner(boolean showSpinner) {
+    setButtonSpinnerVisibility(/* showSpinner= */ showSpinner);
+  }
+
+  private void setButtonSpinnerVisibility(boolean showSpinner) {
+    actionButton.setVisibility(showSpinner ? View.GONE : View.VISIBLE);
+    spinner.setVisibility(showSpinner ? View.VISIBLE : View.GONE);
   }
 }

@@ -25,19 +25,34 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.Contin
 public class ContinuationContentModel implements ContentModel {
 
   private final OnClickListener onClickListener;
+  private boolean paginateImmediately;
+  private boolean spinnerShowing;
+  /*@Nullable*/ private ContinuationViewHolder viewHolder;
 
-  public ContinuationContentModel(OnClickListener onClickListener) {
+  public ContinuationContentModel(OnClickListener onClickListener, boolean paginateImmediately) {
     this.onClickListener = onClickListener;
+    this.paginateImmediately = paginateImmediately;
+
+    // Spinner should be showing immediately if paginateImmediately is true.
+    this.spinnerShowing = paginateImmediately;
   }
 
   @Override
   public void bind(ViewHolder viewHolder) {
-    ((ContinuationViewHolder) viewHolder).bind(onClickListener);
+    this.viewHolder = (ContinuationViewHolder) viewHolder;
+
+    if (paginateImmediately) {
+      onClickListener.onClick(viewHolder.itemView);
+      paginateImmediately = false;
+    }
+
+    ((ContinuationViewHolder) viewHolder).bind(onClickListener, spinnerShowing);
   }
 
   @Override
   public void unbind(ViewHolder viewHolder) {
     ((ContinuationViewHolder) viewHolder).unbind();
+    this.viewHolder = null;
   }
 
   @Override
@@ -48,5 +63,17 @@ public class ContinuationContentModel implements ContentModel {
   @Override
   public int getItemViewType() {
     return TYPE_CONTINUATION;
+  }
+
+  public void setShowSpinner(boolean showSpinner) {
+    spinnerShowing = showSpinner;
+
+    // If paginateImmediately was initialized to true, but before binding showSpinner is set to
+    // false, pagination should not start on bind.
+    paginateImmediately &= showSpinner;
+
+    if (viewHolder != null) {
+      viewHolder.setShowSpinner(showSpinner);
+    }
   }
 }

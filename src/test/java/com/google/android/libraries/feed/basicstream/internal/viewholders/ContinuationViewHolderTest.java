@@ -51,18 +51,40 @@ public class ContinuationViewHolderTest {
   }
 
   @Test
-  public void testBind() {
-    continuationViewHolder.bind(mockListener);
-    View view = frameLayout.findViewById(R.id.action_button);
-    assertThat(view).isNotNull();
-    assertThat(view.isClickable()).isTrue();
-    view.performClick();
-    verify(mockListener).onClick(view);
+  public void testClick() {
+    continuationViewHolder.bind(mockListener, /* showSpinner= */ false);
+
+    View buttonView = frameLayout.findViewById(R.id.action_button);
+    buttonView.performClick();
+
+    verify(mockListener).onClick(buttonView);
+  }
+
+  @Test
+  public void testBind_spinnerOff() {
+    continuationViewHolder.bind(mockListener, /* showSpinner= */ false);
+    View buttonView = frameLayout.findViewById(R.id.action_button);
+    View spinnerView = frameLayout.findViewById(R.id.loading_spinner);
+
+    assertThat(buttonView.isClickable()).isTrue();
+    assertThat(buttonView.getVisibility()).isEqualTo(View.VISIBLE);
+
+    assertThat(spinnerView.getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
+  public void testBind_spinnerOn() {
+    continuationViewHolder.bind(mockListener, /* showSpinner= */ true);
+    View buttonView = frameLayout.findViewById(R.id.action_button);
+    View spinnerView = frameLayout.findViewById(R.id.loading_spinner);
+
+    assertThat(buttonView.getVisibility()).isEqualTo(View.GONE);
+    assertThat(spinnerView.getVisibility()).isEqualTo(View.VISIBLE);
   }
 
   @Test
   public void testUnbind() {
-    continuationViewHolder.bind(mockListener);
+    continuationViewHolder.bind(mockListener, /* showSpinner= */ false);
     continuationViewHolder.unbind();
     View view = frameLayout.findViewById(R.id.action_button);
     assertThat(view.isClickable()).isFalse();

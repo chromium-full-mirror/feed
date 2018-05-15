@@ -20,25 +20,31 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 
 /** {@link FeatureDriver} for the more button. */
 public class ContinuationDriver implements FeatureDriver, OnClickListener {
 
+  private static final String TAG = "ContinuationDriver";
   private final ModelToken modelToken;
   private final ModelProvider modelProvider;
+  private final boolean paginateImmediately;
   /*@Nullable*/ private ContinuationContentModel continuationContentModel;
 
   ContinuationDriver(
       ModelProvider modelProvider, ModelToken modelToken, Configuration configuration) {
     this.modelProvider = modelProvider;
     this.modelToken = modelToken;
+    this.paginateImmediately =
+        configuration.getValueOrDefault(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false);
   }
 
   @Override
   public ContentModel getContentModel() {
     if (continuationContentModel == null) {
-      continuationContentModel = createContinuationContentModel();
+      continuationContentModel = createContinuationContentModel(this, paginateImmediately);
     }
 
     return continuationContentModel;
@@ -46,10 +52,18 @@ public class ContinuationDriver implements FeatureDriver, OnClickListener {
 
   @Override
   public void onClick(View v) {
+    if (continuationContentModel == null) {
+      Logger.wtf(TAG, "Calling onClick with no ContentModel");
+      return;
+    }
+
+    continuationContentModel.setShowSpinner(true);
     modelProvider.handleToken(modelToken);
   }
 
-  ContinuationContentModel createContinuationContentModel() {
-    return new ContinuationContentModel(this);
+  ContinuationContentModel createContinuationContentModel(
+      OnClickListener onClickListener, boolean paginateImmediately) {
+    return new ContinuationContentModel(
+        onClickListener, /* paginateImmediately= */ paginateImmediately);
   }
 }

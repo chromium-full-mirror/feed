@@ -18,11 +18,13 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.view.View.OnClickListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,11 +34,10 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link ContinuationDriver}.j */
 @RunWith(RobolectricTestRunner.class)
 public class ContinuationDriverTest {
-  private static final ContinuationContentModel CONTINUATION_CONTENT_MODEL =
-      new ContinuationContentModel(null);
 
   @Mock private ModelToken modelToken;
   @Mock private ModelProvider modelProvider;
+  @Mock private ContinuationContentModel continuationContentModel;
 
   private ContinuationDriverForTest continuationDriver;
   private Configuration configuration = new Configuration.Builder().build();
@@ -47,14 +48,37 @@ public class ContinuationDriverTest {
 
     continuationDriver =
         new ContinuationDriverForTest(
-            modelProvider, modelToken, CONTINUATION_CONTENT_MODEL, configuration);
+            modelProvider, modelToken, continuationContentModel, configuration);
   }
 
   @Test
-  public void testGetContentModel() {
+  public void testGetContentModel_immediatePaginationOn() {
+    continuationDriver =
+        new ContinuationDriverForTest(
+            modelProvider,
+            modelToken,
+            continuationContentModel,
+            new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build());
+
     ContentModel continuationContentModel = continuationDriver.getContentModel();
 
-    assertThat(continuationContentModel).isEqualTo(CONTINUATION_CONTENT_MODEL);
+    assertThat(continuationContentModel).isEqualTo(this.continuationContentModel);
+    assertThat(continuationDriver.paginationImmediatelyArgument).isTrue();
+  }
+
+  @Test
+  public void testGetContentModel_immediatePaginationOff() {
+    continuationDriver =
+        new ContinuationDriverForTest(
+            modelProvider,
+            modelToken,
+            continuationContentModel,
+            new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false).build());
+
+    ContentModel continuationContentModel = continuationDriver.getContentModel();
+
+    assertThat(continuationContentModel).isEqualTo(this.continuationContentModel);
+    assertThat(continuationDriver.paginationImmediatelyArgument).isFalse();
   }
 
   @Test
@@ -66,13 +90,17 @@ public class ContinuationDriverTest {
 
   @Test
   public void testOnClick() {
+    continuationDriver.getContentModel();
     continuationDriver.onClick(/* v= */ null);
+
+    verify(continuationContentModel).setShowSpinner(true);
     verify(modelProvider).handleToken(modelToken);
   }
 
   private class ContinuationDriverForTest extends ContinuationDriver {
 
     private ContinuationContentModel continuationContentModel;
+    private boolean paginationImmediatelyArgument;
 
     ContinuationDriverForTest(
         ModelProvider modelProvider,
@@ -84,7 +112,9 @@ public class ContinuationDriverTest {
     }
 
     @Override
-    ContinuationContentModel createContinuationContentModel() {
+    ContinuationContentModel createContinuationContentModel(
+        OnClickListener onClickListener, boolean paginateImmediately) {
+      this.paginationImmediatelyArgument = paginateImmediately;
       return continuationContentModel;
     }
   }
