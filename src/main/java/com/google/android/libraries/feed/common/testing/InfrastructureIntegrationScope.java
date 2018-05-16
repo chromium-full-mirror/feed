@@ -70,14 +70,14 @@ public class InfrastructureIntegrationScope {
   private final FakeRequestManager fakeRequestManager;
   private final FeedStore store;
 
-  InfrastructureIntegrationScope(ThreadUtils threadUtils, ExecutorService executorService) {
+  InfrastructureIntegrationScope(
+      ThreadUtils threadUtils, ExecutorService executorService, Configuration configuration) {
     TimingUtils timingUtils = new TimingUtils();
     MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorage contentStorage = new InMemoryContentStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage(threadUtils);
-    Configuration configuration = new Configuration.Builder().build();
     Clock clock = new SystemClockImpl();
     store =
         new FeedStore(
@@ -138,13 +138,20 @@ public class InfrastructureIntegrationScope {
     private final ThreadUtils mockThreadUtils;
     private final ExecutorService executorService;
 
+    private Configuration configuration = new Configuration.Builder().build();
+
     public Builder(ThreadUtils mockThreadUtils, ExecutorService executorService) {
       this.mockThreadUtils = mockThreadUtils;
       this.executorService = executorService;
     }
 
+    public Builder setConfiguration(Configuration configuration) {
+      this.configuration = configuration;
+      return this;
+    }
+
     public InfrastructureIntegrationScope build() {
-      return new InfrastructureIntegrationScope(mockThreadUtils, executorService);
+      return new InfrastructureIntegrationScope(mockThreadUtils, executorService, configuration);
     }
   }
 }

@@ -98,6 +98,7 @@ public class ContentUpdateTest {
     List<FeatureChangeObserver> contentObservers = new ArrayList<>();
     for (ContentId contentId : cards) {
       ModelChild child = cursor.getNextItem();
+      assertThat(child).isNotNull();
       modelValidator.assertStreamContentId(
           child.getContentId(), protocolAdapter.getStreamContentId(contentId));
       modelValidator.assertCardStructure(child);
@@ -112,6 +113,7 @@ public class ContentUpdateTest {
       contentObservers.add(contentObserver);
       ModelCursor cardCursor = feature.getCursor();
       ModelChild cardCursorNextItem = cardCursor.getNextItem();
+      assertThat(cardCursorNextItem).isNotNull();
       cardCursorNextItem.getModelFeature().registerObserver(contentObserver);
     }
     assertThat(cursor.isAtEnd()).isTrue();

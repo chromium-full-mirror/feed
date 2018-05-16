@@ -136,6 +136,7 @@ public class SimpleStreamTest {
     ModelCursor cursor = root.getCursor();
     for (ContentId contentId : cards) {
       ModelChild child = cursor.getNextItem();
+      assertThat(child).isNotNull();
       modelValidator.assertStreamContentId(
           child.getContentId(), protocolAdapter.getStreamContentId(contentId));
       modelValidator.assertCardStructure(child);

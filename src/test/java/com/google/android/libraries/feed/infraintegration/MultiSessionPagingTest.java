@@ -35,7 +35,6 @@ import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuil
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
-import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.nio.charset.Charset;
@@ -102,9 +101,7 @@ public class MultiSessionPagingTest {
         };
     PagingState s1State = new PagingState(s1Cards, s1PageCards, 1, contentIdGenerators);
     ByteString token1 = ByteString.copyFrom("s1-page", Charset.defaultCharset());
-    StreamToken streamToken1 = getStreamToken(token1, 1);
     WireProtocolResponseBuilder s1InitialResponse = getInitialResponse(s1Cards, token1);
-    WireProtocolResponseBuilder s1PageResponse = getPageResponse(s1PageCards);
 
     // Create session 2 content
     ContentId[] s2Cards =
@@ -118,10 +115,6 @@ public class MultiSessionPagingTest {
           WireProtocolResponseBuilder.createFeatureContentId(104)
         };
     PagingState s2State = new PagingState(s2Cards, s2PageCards, 2, contentIdGenerators);
-    ByteString token2 = ByteString.copyFrom("s2-page", Charset.defaultCharset());
-    StreamToken streamToken2 = getStreamToken(token2, 2);
-    WireProtocolResponseBuilder s2InitialResponse = getInitialResponse(s2Cards, token2);
-    WireProtocolResponseBuilder s2PageResponse = getPageResponse(s2PageCards);
 
     // Create an initial S1 $HEAD session
     requestManager.queueResponse(s1State.initialResponse);
@@ -188,24 +181,5 @@ public class MultiSessionPagingTest {
     }
     responseBuilder.addStreamToken(1, token);
     return responseBuilder;
-  }
-
-  private WireProtocolResponseBuilder getPageResponse(ContentId[] cards) {
-    WireProtocolResponseBuilder pageResponseBuilder = new WireProtocolResponseBuilder();
-    for (ContentId contentId : cards) {
-      pageResponseBuilder.addCard(contentId, ROOT_CONTENT_ID);
-    }
-    return pageResponseBuilder;
-  }
-
-  private StreamToken getStreamToken(ByteString token, long id) {
-    ContentId tokenId =
-        ContentId.newBuilder().setContentDomain("token").setId(id).setTable("feature").build();
-
-    StreamToken.Builder tokenBuilder = StreamToken.newBuilder();
-    tokenBuilder.setParentId(contentIdGenerators.createContentId(ROOT_CONTENT_ID));
-    tokenBuilder.setContentId(contentIdGenerators.createContentId(tokenId));
-    tokenBuilder.setNextPageToken(token);
-    return tokenBuilder.build();
   }
 }
