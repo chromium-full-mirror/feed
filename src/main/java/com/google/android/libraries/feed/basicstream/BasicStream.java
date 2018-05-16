@@ -216,6 +216,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   @Override
+  @SuppressWarnings("dereference.of.nullable")
   public boolean isChildAtPositionVisible(int position) {
     View childView = checkNotNull(recyclerView.getLayoutManager()).findViewByPosition(position);
     return childView != null && childView.getVisibility() == View.VISIBLE;
