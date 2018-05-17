@@ -24,10 +24,12 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -38,6 +40,7 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import java.util.ArrayList;
@@ -62,7 +65,7 @@ public class ElementAdapterFactoryTest {
   @Mock private SpacerElementAdapter spacerElementAdapter;
   @Mock private GridRowAdapter gridRowAdapter;
   @Mock private ElementListAdapter elementListAdapter;
-  @Mock private TemplateInvocationAdapter templateAdapter;
+  @Mock private TemplateInstanceAdapter templateAdapter;
 
   @Mock private AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory;
 
@@ -80,7 +83,7 @@ public class ElementAdapterFactoryTest {
 
   @Mock private AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
 
-  @Mock private AdapterFactory<TemplateInvocationAdapter, TemplateInvocation> templateFactory;
+  @Mock private AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel> templateFactory;
 
   private final List<AdapterFactory<?, ?>> adapterFactories = new ArrayList<>();
 
@@ -114,9 +117,9 @@ public class ElementAdapterFactoryTest {
         .thenReturn(elementListAdapter);
     when(elementListFactory.get(any(ElementList.class), eq(frameContext)))
         .thenReturn(elementListAdapter);
-    when(templateFactory.get(any(TemplateInvocation.class), eq(frameContext)))
+    when(templateFactory.get(any(TemplateAdapterModel.class), eq(frameContext)))
         .thenReturn(templateAdapter);
-    when(templateFactory.get(any(TemplateInvocation.class), eq(frameContext)))
+    when(templateFactory.get(any(TemplateAdapterModel.class), eq(frameContext)))
         .thenReturn(templateAdapter);
     adapterFactories.add(customElementFactory);
     adapterFactories.add(chunkedTextElementFactory);
@@ -252,13 +255,20 @@ public class ElementAdapterFactoryTest {
     TemplateBindingRef bindingRef =
         TemplateBindingRef.newBuilder().setBindingId("TEMPLATE").build();
     Element element = Element.newBuilder().setTemplateBinding(bindingRef).build();
+    String templateId = "potato";
     TemplateInvocation templateInvocation =
-        TemplateInvocation.newBuilder().setTemplateId("potato").build();
+        TemplateInvocation.newBuilder()
+            .setTemplateId(templateId)
+            .addBindingContexts(BindingContext.getDefaultInstance())
+            .build();
     when(frameContext.getTemplateInvocationFromBinding(bindingRef)).thenReturn(templateInvocation);
+    Template template = Template.newBuilder().setTemplateId("spud").build();
+    when(frameContext.getTemplate(templateId)).thenReturn(template);
 
     ElementAdapter<?, ?> adapter = adapterFactory.createAdapterForElement(element, frameContext);
 
-    verify(templateFactory).get(templateInvocation, frameContext);
+    verify(templateFactory)
+        .get(new TemplateAdapterModel(template, BindingContext.getDefaultInstance()), frameContext);
     assertThat(adapter).isSameAs(templateAdapter);
 
     when(frameContext.getTemplateInvocationFromBinding(bindingRef)).thenReturn(null);
@@ -267,7 +277,11 @@ public class ElementAdapterFactoryTest {
 
     ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
     verify(frameContext).reportError(eq(MessageType.ERROR), captor.capture());
-    verify(templateFactory).get(TemplateInvocation.getDefaultInstance(), frameContext);
+    verify(templateFactory)
+        .get(
+            new TemplateAdapterModel(
+                Template.getDefaultInstance(), BindingContext.getDefaultInstance()),
+            frameContext);
   }
 
   @Test
@@ -347,10 +361,18 @@ public class ElementAdapterFactoryTest {
 
   @Test
   public void testCreateTemplateAdapter() {
-    TemplateInvocation template = TemplateInvocation.getDefaultInstance();
-    TemplateInvocationAdapter adapter =
-        adapterFactory.createTemplateAdapter(template, frameContext);
-    verify(templateFactory).get(template, frameContext);
+    String templateId = "papa";
+    TemplateInvocation templateInvocation =
+        TemplateInvocation.newBuilder()
+            .setTemplateId(templateId)
+            .addBindingContexts(BindingContext.getDefaultInstance())
+            .build();
+    Template template = Template.newBuilder().setTemplateId(templateId).build();
+    when(frameContext.getTemplate(templateId)).thenReturn(template);
+    TemplateInstanceAdapter adapter =
+        adapterFactory.createTemplateAdapter(templateInvocation, frameContext);
+    verify(templateFactory)
+        .get(new TemplateAdapterModel(template, BindingContext.getDefaultInstance()), frameContext);
     assertThat(adapter).isSameAs(templateAdapter);
   }
 

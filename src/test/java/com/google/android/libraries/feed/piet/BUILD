@@ -344,10 +344,10 @@ android_local_test(
 )
 
 android_local_test(
-    name = "TemplateInvocationAdapterTest",
+    name = "TemplateInstanceAdapterTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["TemplateInvocationAdapterTest.java"],
+    srcs = ["TemplateInstanceAdapterTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

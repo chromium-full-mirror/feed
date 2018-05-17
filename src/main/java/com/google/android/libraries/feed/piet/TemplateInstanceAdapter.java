@@ -19,47 +19,40 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
+import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
-import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
-import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
 import java.util.List;
 
-/** A {@link ElementContainerAdapter} which manages {@code TemplateInvocation} slices. */
-class TemplateInvocationAdapter
-    extends ElementContainerAdapter<LinearLayout, ElementListAdapter, TemplateInvocation> {
+/** A {@link ElementContainerAdapter} which manages a single instance of a template. */
+class TemplateInstanceAdapter
+    extends ElementContainerAdapter<LinearLayout, ElementListAdapter, TemplateAdapterModel> {
 
-  private static final String TAG = "TemplateInvocationAdapter";
+  private static final String TAG = "TemplateInstanceAdapter";
 
   /*@Nullable*/ private Template template = null;
   /*@Nullable*/ private List<PietSharedState> pietSharedStates = null;
 
-  TemplateInvocationAdapter(Context context, AdapterParameters parameters) {
+  TemplateInstanceAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, createView(context));
   }
 
   @Override
-  TemplateInvocation getModelFromElement(Element baseElement) {
+  TemplateAdapterModel getModelFromElement(Element baseElement) {
     throw new IllegalArgumentException(
         "Templates must be re-bound; cannot be extracted from an Element.");
   }
 
   @Override
   public void onCreateAdapter(
-      TemplateInvocation model, Element baseElement, FrameContext frameContext) {
-    Template modelTemplate =
-        checkNotNull(
-            frameContext.getTemplate(model.getTemplateId()),
-            "Template was not found: %s",
-            model.getTemplateId());
+      TemplateAdapterModel model, Element baseElement, FrameContext frameContext) {
+    Template modelTemplate = model.getTemplate();
 
     // Adapter has already been created.
     if (template != null) {
@@ -76,55 +69,28 @@ class TemplateInvocationAdapter
     pietSharedStates = frameContext.getPietSharedStates();
     setKey(createKey());
 
-    // TODO: Need to support Sharding.
-    if (model.getBindingContextsCount() > 0 && modelTemplate.hasElementList()) {
-      ViewGroup viewGroup = checkNotNull(getBaseView());
-      ElementListAdapter listAdapter = null;
-      for (BindingContext bindingContext : model.getBindingContextsList()) {
-        // Create an ElementListAdapter for each of the bindingContexts - this adapter holds a list
-        // of lists
-        FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
-        listAdapter = getAdapterForChildList(modelTemplate.getElementList(), localFrameContext);
-        setLayoutParamsOnChild(listAdapter);
-        View listView = listAdapter.getView();
-        if (listView != null) {
-          viewGroup.addView(listView);
-        }
-      }
-    }
+    BindingContext bindingContext = model.getBindingContext();
+    FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
+    ElementListAdapter listAdapter =
+        getAdapterForChildList(modelTemplate.getElementList(), localFrameContext);
+    setLayoutParamsOnChild(listAdapter);
+    getBaseView().addView(listAdapter.getView());
   }
 
   @Override
-  void onBindModel(TemplateInvocation model, Element baseElement, FrameContext frameContext) {
-    onBindModel(model, frameContext, null);
-  }
-
-  void onBindModel(
-      TemplateInvocation model,
-      FrameContext frameContext,
-      /*@Nullable*/ ShardingControl shardingControl) {
-    Template modelTemplate =
-        checkNotNull(
-            frameContext.getTemplate(model.getTemplateId()),
-            "Template was not found: %s",
-            model.getTemplateId());
+  void onBindModel(TemplateAdapterModel model, Element baseElement, FrameContext frameContext) {
+    Template modelTemplate = model.getTemplate();
     if (!templateEquals(modelTemplate, template)) {
       throw new IllegalArgumentException("Model template does not match adapter template");
     }
 
-    // TODO: Need to support Sharding.
-    if (model.getBindingContextsCount() > 0 && modelTemplate.hasElementList()) {
-      checkState(
-          model.getBindingContextsCount() == childAdapters.size(),
-          "Number of binding contexts mismatch: got %s bcs, had %s adapters",
-          model.getBindingContextsCount(),
-          childAdapters.size());
-      for (int i = 0; i < model.getBindingContextsCount(); i++) {
-        BindingContext bindingContext = model.getBindingContexts(i);
-        FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
-        childAdapters.get(i).bindModel(modelTemplate.getElementList(), localFrameContext);
-      }
-    }
+    BindingContext bindingContext = model.getBindingContext();
+    FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
+    checkState(
+        childAdapters.size() == 1,
+        "Wrong number of child adapters; wanted 1, got %s",
+        childAdapters.size());
+    childAdapters.get(0).bindModel(modelTemplate.getElementList(), localFrameContext);
   }
 
   @Override
@@ -182,25 +148,20 @@ class TemplateInvocationAdapter
   }
 
   static class TemplateKeySupplier
-      implements AdapterKeySupplier<TemplateInvocationAdapter, TemplateInvocation> {
+      implements AdapterKeySupplier<TemplateInstanceAdapter, TemplateAdapterModel> {
     @Override
     public String getAdapterTag() {
       return TAG;
     }
 
     @Override
-    public TemplateInvocationAdapter getAdapter(Context context, AdapterParameters parameters) {
-      return new TemplateInvocationAdapter(context, parameters);
+    public TemplateInstanceAdapter getAdapter(Context context, AdapterParameters parameters) {
+      return new TemplateInstanceAdapter(context, parameters);
     }
 
     @Override
-    public RecyclerKey getKey(FrameContext frameContext, TemplateInvocation model) {
-      Template template =
-          checkNotNull(
-              frameContext.getTemplate(model.getTemplateId()),
-              "Template was not found: ",
-              model.getTemplateId());
-      return new TemplateKey(template, frameContext.getPietSharedStates());
+    public RecyclerKey getKey(FrameContext frameContext, TemplateAdapterModel model) {
+      return new TemplateKey(model.getTemplate(), frameContext.getPietSharedStates());
     }
   }
 
@@ -229,14 +190,11 @@ class TemplateInvocationAdapter
 
       if (!templateEquals(template, that.template)) {
         return false;
-      }
-      if (that.pietSharedStates == null || this.pietSharedStates == null) {
+      } else if (that.pietSharedStates == null || this.pietSharedStates == null) {
         return this.pietSharedStates == that.pietSharedStates;
       } else {
-        if (this.pietSharedStates.size() != that.pietSharedStates.size()) {
-          return false;
-        }
-        return this.pietSharedStates.hashCode() == that.pietSharedStates.hashCode();
+        return this.pietSharedStates.size() == that.pietSharedStates.size()
+            && this.pietSharedStates.hashCode() == that.pietSharedStates.hashCode();
       }
     }
 
@@ -244,6 +202,58 @@ class TemplateInvocationAdapter
     public int hashCode() {
       int result = template.hashCode();
       result = 31 * result + (pietSharedStates != null ? pietSharedStates.hashCode() : 0);
+      return result;
+    }
+  }
+
+  static class TemplateAdapterModel {
+    private final Template template;
+    private final BindingContext bindingContext;
+
+    TemplateAdapterModel(Template template, BindingContext bindingContext) {
+      this.template = template;
+      this.bindingContext = bindingContext;
+    }
+
+    TemplateAdapterModel(
+        String templateId, FrameContext frameContext, BindingContext bindingContext) {
+      this.template =
+          checkNotNull(
+              frameContext.getTemplate(templateId), "Template was not found: %s", templateId);
+      this.bindingContext = bindingContext;
+    }
+
+    public Template getTemplate() {
+      return template;
+    }
+
+    BindingContext getBindingContext() {
+      return bindingContext;
+    }
+
+    @SuppressWarnings("ReferenceEquality")
+    @Override
+    public boolean equals(/*@Nullable*/ Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      TemplateAdapterModel that = (TemplateAdapterModel) o;
+
+      return templateEquals(template, that.template)
+          && (bindingContext == that.bindingContext
+              || (bindingContext.getBindingValuesCount()
+                      == that.bindingContext.getBindingValuesCount()
+                  && bindingContext.hashCode() == that.bindingContext.hashCode()));
+    }
+
+    @Override
+    public int hashCode() {
+      int result = template.hashCode();
+      result = 31 * result + bindingContext.hashCode();
       return result;
     }
   }

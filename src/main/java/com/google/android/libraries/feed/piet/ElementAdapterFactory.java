@@ -18,6 +18,8 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
+import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -27,6 +29,7 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.PietProto.Template;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +44,7 @@ class ElementAdapterFactory {
   private final AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory;
   private final AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
   private final AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
-  private final AdapterFactory<TemplateInvocationAdapter, TemplateInvocation>
+  private final AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel>
       templateInvocationFactory;
   private final List<AdapterFactory<?, ?>> factories;
 
@@ -56,7 +59,7 @@ class ElementAdapterFactory {
         new AdapterFactory<>(context, parameters, new GridRowAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new ElementListAdapter.KeySupplier()),
         new AdapterFactory<>(
-            context, parameters, new TemplateInvocationAdapter.TemplateKeySupplier()));
+            context, parameters, new TemplateInstanceAdapter.TemplateKeySupplier()));
   }
 
   /** Testing-only constructor for mocking the factories. */
@@ -69,7 +72,7 @@ class ElementAdapterFactory {
       AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory,
       AdapterFactory<GridRowAdapter, GridRow> gridRowFactory,
       AdapterFactory<ElementListAdapter, ElementList> elementListFactory,
-      AdapterFactory<TemplateInvocationAdapter, TemplateInvocation> templateInvocationFactory) {
+      AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel> templateInvocationFactory) {
     this.customElementFactory = customElementFactory;
     this.chunkedTextElementFactory = chunkedTextElementFactory;
     this.parameterizedTextElementFactory = parameterizedTextElementFactory;
@@ -126,13 +129,15 @@ class ElementAdapterFactory {
         TemplateInvocation templateInvocation =
             frameContext.getTemplateInvocationFromBinding(element.getTemplateBinding());
         if (templateInvocation != null) {
-          return templateInvocationFactory.get(templateInvocation, frameContext);
+          return createTemplateAdapter(templateInvocation, frameContext);
         } else {
           frameContext.reportError(
               MessageType.ERROR,
               String.format("Could not get template for %s", element.getTemplateBinding()));
           return templateInvocationFactory.get(
-              TemplateInvocation.getDefaultInstance(), frameContext);
+              new TemplateAdapterModel(
+                  Template.getDefaultInstance(), BindingContext.getDefaultInstance()),
+              frameContext);
         }
       case ELEMENTS_NOT_SET:
       default:
@@ -150,9 +155,14 @@ class ElementAdapterFactory {
     return parameterizedTextElementFactory.get(textLine, frameContext);
   }
 
-  TemplateInvocationAdapter createTemplateAdapter(
+  TemplateInstanceAdapter createTemplateAdapter(
       TemplateInvocation templateInvocation, FrameContext frameContext) {
-    return templateInvocationFactory.get(templateInvocation, frameContext);
+    TemplateAdapterModel model =
+        new TemplateAdapterModel(
+            templateInvocation.getTemplateId(),
+            frameContext,
+            templateInvocation.getBindingContexts(0));
+    return templateInvocationFactory.get(model, frameContext);
   }
 
   void releaseAdapter(ElementAdapter<? extends View, ?> adapter) {
@@ -170,8 +180,8 @@ class ElementAdapterFactory {
       gridRowFactory.release((GridRowAdapter) adapter);
     } else if (adapter instanceof ElementListAdapter) {
       elementListFactory.release((ElementListAdapter) adapter);
-    } else if (adapter instanceof TemplateInvocationAdapter) {
-      templateInvocationFactory.release((TemplateInvocationAdapter) adapter);
+    } else if (adapter instanceof TemplateInstanceAdapter) {
+      templateInvocationFactory.release((TemplateInstanceAdapter) adapter);
     }
   }
 

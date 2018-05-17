@@ -28,15 +28,19 @@ import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
+import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Slice;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -105,13 +109,12 @@ public class FrameAdapter {
       for (Slice slice : frame.getSlicesList()) {
         // For Slice we will create the lower level slice instead to remove the extra
         // level.
-        ElementAdapter<?, ?> adapter = getBoundAdapterForSlice(slice, frameContext);
-        if (adapter == null) {
-          continue;
+        List<ElementAdapter<?, ?>> adapters = getBoundAdaptersForSlice(slice, frameContext);
+        for (ElementAdapter<?, ?> adapter : adapters) {
+          childAdapters.add(adapter);
+          setLayoutParamsOnChild(adapter);
+          frameView.addView(adapter.getView());
         }
-        childAdapters.add(adapter);
-        setLayoutParamsOnChild(adapter);
-        frameView.addView(adapter.getView());
       }
 
       StyleProvider style = frameContext.getCurrentStyle();
@@ -202,8 +205,7 @@ public class FrameAdapter {
   }
 
   @VisibleForTesting
-  /*@Nullable*/
-  ElementAdapter<?, ?> getBoundAdapterForSlice(Slice slice, FrameContext frameContext) {
+  List<ElementAdapter<?, ?>> getBoundAdaptersForSlice(Slice slice, FrameContext frameContext) {
     switch (slice.getSliceInstanceCase()) {
       case INLINE_SLICE:
         ElementListAdapter inlineSliceAdapter =
@@ -211,17 +213,24 @@ public class FrameAdapter {
                 slice.getInlineSlice(), frameContext);
         inlineSliceAdapter.createAdapter(slice.getInlineSlice(), frameContext);
         inlineSliceAdapter.bindModel(slice.getInlineSlice(), frameContext);
-        return inlineSliceAdapter;
+        return Collections.singletonList(inlineSliceAdapter);
       case TEMPLATE_SLICE:
-        TemplateInvocationAdapter templateAdapter =
-            parameters.elementAdapterFactory.createTemplateAdapter(
-                slice.getTemplateSlice(), frameContext);
-        templateAdapter.createAdapter(slice.getTemplateSlice(), frameContext);
-        templateAdapter.bindModel(slice.getTemplateSlice(), frameContext);
-        return templateAdapter;
+        List<ElementAdapter<?, ?>> returnList = new ArrayList<>();
+        for (BindingContext bindingContext : slice.getTemplateSlice().getBindingContextsList()) {
+          TemplateAdapterModel model =
+              new TemplateAdapterModel(
+                  slice.getTemplateSlice().getTemplateId(), frameContext, bindingContext);
+          TemplateInstanceAdapter templateAdapter =
+              parameters.elementAdapterFactory.createTemplateAdapter(
+                  slice.getTemplateSlice(), frameContext);
+          templateAdapter.createAdapter(model, frameContext);
+          templateAdapter.bindModel(model, frameContext);
+          returnList.add(templateAdapter);
+        }
+        return returnList;
       default:
         Logger.wtf(TAG, "Unsupported Slice type");
-        return null;
+        return Collections.emptyList();
     }
   }
 
