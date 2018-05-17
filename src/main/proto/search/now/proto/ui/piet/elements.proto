@@ -55,7 +55,7 @@ message Content {
     // May have a performance penalty on some platforms.
     ElementBindingRef bound_element = 2;
 
-    // A template instance.
+    // An instance of a Template, represented by a TemplateInvocation.
     //
     // If the referenced template has several binding contexts, an Element
     // instance will be created for each one.
@@ -114,7 +114,7 @@ message Content {
     //
     // IMPORTANT:
     // This feature may not be supported on all platforms; see [INTERNAL LINK].
-    TemplateInvocation template = 3;
+    TemplateInvocation template_invocation = 3;
 
     // See comment on template field; this looks up the template based on the
     // ID in the bindings.
