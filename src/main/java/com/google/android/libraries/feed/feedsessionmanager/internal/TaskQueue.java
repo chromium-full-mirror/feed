@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.IntDef;
 import android.util.Pair;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -24,6 +26,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTrac
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -86,6 +89,7 @@ public class TaskQueue implements Dumpable {
 
   private final ExecutorService executor;
   private final TimingUtils timingUtils;
+  private final Handler mainThreadHandler;
 
   // counters used for dump
   private int taskCount = 0;
@@ -99,10 +103,20 @@ public class TaskQueue implements Dumpable {
   public TaskQueue(ExecutorService executor, TimingUtils timingUtils) {
     this.executor = executor;
     this.timingUtils = timingUtils;
+    mainThreadHandler = new Handler(Looper.getMainLooper());
   }
 
   /** Execute a Task on the Executor. */
   public void execute(String task, @TaskType int taskType, Runnable runnable) {
+    execute(task, taskType, runnable, null, 0);
+  }
+
+  public void execute(
+      String task,
+      @TaskType int taskType,
+      Runnable runnable,
+      /*@Nullable*/ Runnable timeOut,
+      long timeoutMillis) {
     taskCount++;
     if (taskType == TaskType.USER_FACING) {
       userFacingTaskCount++;
@@ -111,10 +125,47 @@ public class TaskQueue implements Dumpable {
     }
     if (!isDelayed()) {
       immediateTasks++;
-      executor.execute(() -> executeImmediate(task, runnable));
+      if (taskType == TaskType.HEAD_RESET || taskType == TaskType.HEAD_INVALIDATE) {
+        if (taskType == TaskType.HEAD_RESET) {
+          executeHeadReset(task, runnable);
+        } else {
+          executeHeadInvalidate(task, runnable);
+        }
+      } else {
+        executor.execute(() -> executeImmediate(task, runnable));
+      }
       return;
     }
-    scheduleTask(task, taskType, runnable);
+    if (timeOut != null) {
+      TaskWithTimeout taskWithTimeout = new TaskWithTimeout(runnable, timeOut);
+      mainThreadHandler.postDelayed(taskWithTimeout::timeoutCallback, timeoutMillis);
+      scheduleTask(task, taskType, taskWithTimeout::taskCallback);
+    } else {
+      scheduleTask(task, taskType, runnable);
+    }
+  }
+
+  class TaskWithTimeout {
+    private final Runnable taskRunnable;
+    private final Runnable timeOutRunnable;
+    private final AtomicBoolean started = new AtomicBoolean(false);
+
+    TaskWithTimeout(Runnable taskRunnable, Runnable timeOutRunnable) {
+      this.taskRunnable = taskRunnable;
+      this.timeOutRunnable = timeOutRunnable;
+    }
+
+    void taskCallback() {
+      started.set(true);
+      taskRunnable.run();
+    }
+
+    void timeoutCallback() {
+      if (started.get()) {
+        return;
+      }
+      executor.execute(timeOutRunnable);
+    }
   }
 
   /**
