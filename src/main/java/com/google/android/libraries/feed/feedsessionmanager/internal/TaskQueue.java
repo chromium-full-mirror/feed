@@ -127,9 +127,9 @@ public class TaskQueue implements Dumpable {
       immediateTasks++;
       if (taskType == TaskType.HEAD_RESET || taskType == TaskType.HEAD_INVALIDATE) {
         if (taskType == TaskType.HEAD_RESET) {
-          executeHeadReset(task, runnable);
+          executor.execute(() -> executeHeadReset(task, runnable));
         } else {
-          executeHeadInvalidate(task, runnable);
+          executor.execute(() -> executeHeadInvalidate(task, runnable));
         }
       } else {
         executor.execute(() -> executeImmediate(task, runnable));
