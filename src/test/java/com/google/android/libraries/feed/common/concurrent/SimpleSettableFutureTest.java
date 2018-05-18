@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.common.concurrent;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -35,13 +34,7 @@ public class SimpleSettableFutureTest {
     SimpleSettableFuture<Boolean> future = new SimpleSettableFuture<>();
     boolean cancelled = future.cancel(false);
     assertThat(cancelled).isTrue();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get();
-              }
-            })
+    assertThatRunnable(future::get)
         .throwsAnExceptionOfType(ExecutionException.class)
         .causedByAnExceptionOfType(CancellationException.class);
     assertThat(future.isCancelled()).isTrue();
@@ -54,13 +47,7 @@ public class SimpleSettableFutureTest {
     boolean cancelled = future.cancel(false);
     cancelled = future.cancel(false);
     assertThat(cancelled).isTrue();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get();
-              }
-            })
+    assertThatRunnable(future::get)
         .throwsAnExceptionOfType(ExecutionException.class)
         .causedByAnExceptionOfType(CancellationException.class);
     assertThat(future.isCancelled()).isTrue();
@@ -109,13 +96,7 @@ public class SimpleSettableFutureTest {
     SimpleSettableFuture<Boolean> future = new SimpleSettableFuture<>();
     boolean cancelled = future.cancel(false);
     future.put(Boolean.TRUE);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get();
-              }
-            })
+    assertThatRunnable(future::get)
         .throwsAnExceptionOfType(ExecutionException.class)
         .causedByAnExceptionOfType(CancellationException.class);
     assertThat(future.isCancelled()).isTrue();
@@ -126,13 +107,7 @@ public class SimpleSettableFutureTest {
   public void testPutException() throws Exception {
     SimpleSettableFuture<Boolean> future = new SimpleSettableFuture<>();
     future.putException(new RuntimeException());
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get();
-              }
-            })
+    assertThatRunnable(future::get)
         .throwsAnExceptionOfType(ExecutionException.class)
         .causedByAnExceptionOfType(RuntimeException.class);
   }
@@ -142,13 +117,7 @@ public class SimpleSettableFutureTest {
     SimpleSettableFuture<Boolean> future = new SimpleSettableFuture<>();
     future.putException(new RuntimeException());
     future.putException(new IllegalAccessException());
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get();
-              }
-            })
+    assertThatRunnable(future::get)
         .throwsAnExceptionOfType(ExecutionException.class)
         .causedByAnExceptionOfType(RuntimeException.class);
   }
@@ -158,13 +127,7 @@ public class SimpleSettableFutureTest {
     SimpleSettableFuture<Boolean> future = new SimpleSettableFuture<>();
     future.putException(new RuntimeException());
     future.put(Boolean.TRUE);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get();
-              }
-            })
+    assertThatRunnable(future::get)
         .throwsAnExceptionOfType(ExecutionException.class)
         .causedByAnExceptionOfType(RuntimeException.class);
   }
@@ -174,13 +137,7 @@ public class SimpleSettableFutureTest {
     SimpleSettableFuture<Boolean> future = new SimpleSettableFuture<>();
     boolean cancelled = future.cancel(false);
     future.putException(new RuntimeException());
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get();
-              }
-            })
+    assertThatRunnable(future::get)
         .throwsAnExceptionOfType(ExecutionException.class)
         .causedByAnExceptionOfType(CancellationException.class);
     assertThat(future.isCancelled()).isTrue();
@@ -190,13 +147,7 @@ public class SimpleSettableFutureTest {
   @Test
   public void testGetTimeout() throws Exception {
     SimpleSettableFuture<Boolean> future = new SimpleSettableFuture<>();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get(1, TimeUnit.MILLISECONDS);
-              }
-            })
+    assertThatRunnable(() -> future.get(1, TimeUnit.MILLISECONDS))
         .throwsAnExceptionOfType(TimeoutException.class);
   }
 
@@ -213,13 +164,7 @@ public class SimpleSettableFutureTest {
   public void testGetTimeout_cancelled() throws Exception {
     SimpleSettableFuture<Boolean> future = new SimpleSettableFuture<>();
     future.cancel(false);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get(1, TimeUnit.MILLISECONDS);
-              }
-            })
+    assertThatRunnable(() -> future.get(1, TimeUnit.MILLISECONDS))
         .throwsAnExceptionOfType(ExecutionException.class)
         .causedByAnExceptionOfType(CancellationException.class);
   }
@@ -228,13 +173,7 @@ public class SimpleSettableFutureTest {
   public void testGetTimeout_putException() throws Exception {
     SimpleSettableFuture<Boolean> future = new SimpleSettableFuture<>();
     future.putException(new RuntimeException());
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                future.get(1, TimeUnit.MILLISECONDS);
-              }
-            })
+    assertThatRunnable(() -> future.get(1, TimeUnit.MILLISECONDS))
         .throwsAnExceptionOfType(ExecutionException.class)
         .causedByAnExceptionOfType(RuntimeException.class);
   }

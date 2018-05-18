@@ -11,7 +11,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "@bazel_android//:robolectric",
-        "@com_google_code_findbugs_jsr305//jar",
         "@com_google_truth_truth//jar",
     ],
 )
@@ -27,7 +26,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "@bazel_android//:robolectric",
-        "@com_google_code_findbugs_jsr305//jar",
         "@com_google_truth_truth//jar",
     ],
 )

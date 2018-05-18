@@ -34,15 +34,12 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
-import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.testing.conformance.network.NetworkClientConformanceTest;
 import com.google.common.truth.extensions.proto.LiteProtoTruth;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
-import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.ResponseProto.Response.ResponseVersion;
@@ -51,7 +48,6 @@ import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,14 +66,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   @Mock private ActionReader actionReader;
   @Captor private ArgumentCaptor<Response> responseCaptor;
 
-  private final FeedExtensionRegistry extensionRegistry =
-      new FeedExtensionRegistry(
-          new ProtoExtensionProvider() {
-            @Override
-            public List<GeneratedExtension<?, ?>> getProtoExtensions() {
-              return new ArrayList<>();
-            }
-          });
+  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final Configuration configuration = new Configuration.Builder().build();
   private final TimingUtils timingUtils = new TimingUtils();
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
@@ -102,17 +91,14 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
     Consumer<HttpResponse> responseConsumer =
-        new Consumer<HttpResponse>() {
-          @Override
-          public void accept(HttpResponse input) {
-            try {
-              CodedInputStream inputStream = CodedInputStream.newInstance(input.getResponseBody());
-              int length = inputStream.readRawVarint32();
-              assertThat(inputStream.readRawBytes(length)).isEqualTo(initialResponse.toByteArray());
-              assertThat(input.getResponseCode()).isEqualTo(200);
-            } catch (IOException e) {
-              throw new RuntimeException(e);
-            }
+        input -> {
+          try {
+            CodedInputStream inputStream = CodedInputStream.newInstance(input.getResponseBody());
+            int length = inputStream.readRawVarint32();
+            assertThat(inputStream.readRawBytes(length)).isEqualTo(initialResponse.toByteArray());
+            assertThat(input.getResponseCode()).isEqualTo(200);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
           }
         };
     networkClient.send(new HttpRequest(Uri.EMPTY, HttpMethod.POST), responseConsumer);
@@ -127,17 +113,14 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
     Consumer<HttpResponse> responseConsumer =
-        new Consumer<HttpResponse>() {
-          @Override
-          public void accept(HttpResponse input) {
-            try {
-              CodedInputStream inputStream = CodedInputStream.newInstance(input.getResponseBody());
-              int length = inputStream.readRawVarint32();
-              assertThat(inputStream.readRawBytes(length)).isEqualTo(initialResponse.toByteArray());
-              assertThat(input.getResponseCode()).isEqualTo(200);
-            } catch (IOException e) {
-              throw new RuntimeException(e);
-            }
+        input -> {
+          try {
+            CodedInputStream inputStream = CodedInputStream.newInstance(input.getResponseBody());
+            int length = inputStream.readRawVarint32();
+            assertThat(inputStream.readRawBytes(length)).isEqualTo(initialResponse.toByteArray());
+            assertThat(input.getResponseCode()).isEqualTo(200);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
           }
         };
     networkClient.send(new HttpRequest(Uri.EMPTY, HttpMethod.POST), responseConsumer);
@@ -172,13 +155,9 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
     feedRequestManager.loadMore(
         streamToken,
-        new Consumer<Result<List<StreamDataOperation>>>() {
-
-          @Override
-          public void accept(Result<List<StreamDataOperation>> result) {
-            assertThat(result.isSuccessful()).isTrue();
-            assertThat(result.getValue()).hasSize(0);
-          }
+        result -> {
+          assertThat(result.isSuccessful()).isTrue();
+          assertThat(result.getValue()).hasSize(0);
         });
 
     verify(protocolAdapter).createModel(responseCaptor.capture());
@@ -215,13 +194,9 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     StreamToken streamToken = StreamToken.newBuilder().setNextPageToken(token).build();
     feedRequestManager.loadMore(
         streamToken,
-        new Consumer<Result<List<StreamDataOperation>>>() {
-
-          @Override
-          public void accept(Result<List<StreamDataOperation>> result) {
-            assertThat(result.isSuccessful()).isTrue();
-            assertThat(result.getValue()).hasSize(0);
-          }
+        result -> {
+          assertThat(result.isSuccessful()).isTrue();
+          assertThat(result.getValue()).hasSize(0);
         });
 
     verify(protocolAdapter).createModel(responseCaptor.capture());

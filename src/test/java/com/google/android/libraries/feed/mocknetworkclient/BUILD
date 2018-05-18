@@ -19,7 +19,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/feedrequestmanager",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/network",
-        "//src/main/java/com/google/android/libraries/feed/host/proto",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/mocknetworkclient",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/network",

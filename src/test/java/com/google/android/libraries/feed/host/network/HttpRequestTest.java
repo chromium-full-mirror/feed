@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 
 import android.net.Uri;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.host.network.HttpHeader.HttpHeaderName;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import java.util.Collections;
@@ -95,21 +94,9 @@ public class HttpRequestTest {
     HttpRequest httpRequest = new HttpRequest(uri, httpMethod, headers, bytes);
 
     List<HttpHeader> requestHeaders = httpRequest.getHeaders();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                requestHeaders.add(new HttpHeader("test", "testValue"));
-              }
-            })
+    assertThatRunnable(() -> requestHeaders.add(new HttpHeader("test", "testValue")))
         .throwsAnExceptionOfType(UnsupportedOperationException.class);
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                requestHeaders.remove(header);
-              }
-            })
+    assertThatRunnable(() -> requestHeaders.remove(header))
         .throwsAnExceptionOfType(UnsupportedOperationException.class);
   }
 }

@@ -67,11 +67,8 @@ public class PietAssetProviderTest {
     }
 
     Consumer<Drawable> consumer =
-        new Consumer<Drawable>() {
-          @Override
-          public void accept(Drawable value) {
-            // Do nothing.
-          }
+        value -> {
+          // Do nothing.
         };
 
     pietAssetProvider.getImage(imageBuilder.build(), consumer);

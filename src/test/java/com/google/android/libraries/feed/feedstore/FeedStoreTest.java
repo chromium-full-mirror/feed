@@ -30,17 +30,14 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -98,14 +95,7 @@ public class FeedStoreTest {
           .build();
 
   private final TimingUtils timingUtils = new TimingUtils();
-  private final FeedExtensionRegistry extensionRegistry =
-      new FeedExtensionRegistry(
-          new ProtoExtensionProvider() {
-            @Override
-            public List<GeneratedExtension<?, ?>> getProtoExtensions() {
-              return new ArrayList<>();
-            }
-          });
+  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorage contentStorage = new InMemoryContentStorage();
   private JournalStorage journalStorage;
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
@@ -291,12 +281,7 @@ public class FeedStoreTest {
   @Test
   public void deleteHead_notAllowed() throws Exception {
     RunnableSubject.assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                store.removeSession(StreamSession.newBuilder().setStreamToken("$HEAD").build());
-              }
-            })
+            () -> store.removeSession(StreamSession.newBuilder().setStreamToken("$HEAD").build()))
         .throwsAnExceptionOfType(IllegalStateException.class);
   }
 

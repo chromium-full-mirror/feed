@@ -62,8 +62,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -109,11 +107,8 @@ public class FrameAdapterTest {
     when(frameContext.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.reportError(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
-            new Answer<Object>() {
-              @Override
-              public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                throw new RuntimeException((String) invocationOnMock.getArguments()[1]);
-              }
+            invocationOnMock -> {
+              throw new RuntimeException((String) invocationOnMock.getArguments()[1]);
             });
     when(frameContext.getDebugLogger()).thenReturn(debugLogger);
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.VERBOSE);

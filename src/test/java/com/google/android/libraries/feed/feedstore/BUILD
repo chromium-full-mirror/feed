@@ -17,7 +17,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/feedstore",
-        "//src/main/java/com/google/android/libraries/feed/host/proto",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",

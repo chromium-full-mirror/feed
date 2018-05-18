@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.common;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -28,26 +27,14 @@ public class ValidatorsTest {
 
   @Test
   public void testCheckNotNull_null() {
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                Validators.checkNotNull(null);
-              }
-            })
+    assertThatRunnable(() -> Validators.checkNotNull(null))
         .throwsAnExceptionOfType(NullPointerException.class);
   }
 
   @Test
   public void testCheckNotNull_debugString() {
     String debugString = "Debug-String";
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                Validators.checkNotNull(null, debugString);
-              }
-            })
+    assertThatRunnable(() -> Validators.checkNotNull(null, debugString))
         .throwsAnExceptionOfType(NullPointerException.class)
         .that()
         .hasMessageThat()
@@ -74,25 +61,13 @@ public class ValidatorsTest {
 
   @Test
   public void testCheckState_falseWithMessage() {
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                Validators.checkState(false, "format-string");
-              }
-            })
+    assertThatRunnable(() -> Validators.checkState(false, "format-string"))
         .throwsAnExceptionOfType(IllegalStateException.class);
   }
 
   @Test
   public void testCheckState_false() {
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                Validators.checkState(false);
-              }
-            })
+    assertThatRunnable(() -> Validators.checkState(false))
         .throwsAnExceptionOfType(IllegalStateException.class);
   }
 }

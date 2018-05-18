@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.common;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -39,27 +38,13 @@ public class ResultTest {
   public void success_nullValue() throws Exception {
     Result<String> result = Result.success(null);
     assertThat(result.isSuccessful()).isTrue();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                result.getValue();
-              }
-            })
-        .throwsAnExceptionOfType(NullPointerException.class);
+    assertThatRunnable(result::getValue).throwsAnExceptionOfType(NullPointerException.class);
   }
 
   @Test
   public void error() throws Exception {
     Result<String> result = Result.failure();
     assertThat(result.isSuccessful()).isFalse();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                result.getValue();
-              }
-            })
-        .throwsAnExceptionOfType(IllegalStateException.class);
+    assertThatRunnable(result::getValue).throwsAnExceptionOfType(IllegalStateException.class);
   }
 }

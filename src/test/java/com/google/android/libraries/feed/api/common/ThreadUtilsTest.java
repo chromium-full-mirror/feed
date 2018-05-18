@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.api.common;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -45,13 +44,7 @@ public class ThreadUtilsTest {
   @Test()
   public void testCheckNotMainThread() {
     final ThreadUtils threadUtils = new ThreadUtils();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                threadUtils.checkNotMainThread();
-              }
-            })
+    assertThatRunnable(threadUtils::checkNotMainThread)
         .throwsAnExceptionOfType(IllegalStateException.class);
   }
 }

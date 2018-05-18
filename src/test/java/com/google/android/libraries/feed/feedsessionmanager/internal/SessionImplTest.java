@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.testing.RunnableSubject.ThrowingRunnable;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -91,13 +90,7 @@ public class SessionImplTest {
   @Test
   public void testUpdateSession_notFullyInitialized() {
     SessionImpl session = getSessionImpl();
-    assertThatRunnable(
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                session.updateSession(new ArrayList<>(), null);
-              }
-            })
+    assertThatRunnable(() -> session.updateSession(new ArrayList<>(), null))
         .throwsAnExceptionOfType(NullPointerException.class);
   }
 
@@ -244,11 +237,7 @@ public class SessionImplTest {
 
   private SessionImpl getSessionImpl() {
     taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), timingUtils);
-    taskQueue.executeInitialization(
-        new Runnable() {
-          @Override
-          public void run() {}
-        });
+    taskQueue.executeInitialization(() -> {});
     SessionImpl session = new SessionImpl(store, taskQueue, timingUtils, threadUtils);
     session.bindModelProvider(modelProvider);
     return session;

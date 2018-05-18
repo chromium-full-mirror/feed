@@ -29,11 +29,8 @@ import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,13 +52,7 @@ public class FeedProcessScopeTest {
   @Mock private SessionManager sessionManager;
   @Mock private ThreadUtils threadUtils;
 
-  private final ProtoExtensionProvider protoExtensionProvider =
-      new ProtoExtensionProvider() {
-        @Override
-        public List<GeneratedExtension<?, ?>> getProtoExtensions() {
-          return new ArrayList<>();
-        }
-      };
+  private final ProtoExtensionProvider protoExtensionProvider = ArrayList::new;
   private final Configuration configuration = new Configuration.Builder().build();
 
   @Before

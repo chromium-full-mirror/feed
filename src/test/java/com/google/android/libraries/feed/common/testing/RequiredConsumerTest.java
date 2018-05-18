@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.common.testing;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.android.libraries.feed.common.functional.Consumer;
 import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,12 +32,9 @@ public class RequiredConsumerTest {
 
     RequiredConsumer<Boolean> consumer =
         new RequiredConsumer<>(
-            new Consumer<Boolean>() {
-              @Override
-              public void accept(Boolean input) {
-                assertThat(input).isEqualTo(callValue);
-                latch.countDown();
-              }
+            input -> {
+              assertThat(input).isEqualTo(callValue);
+              latch.countDown();
             });
 
     consumer.accept(callValue);

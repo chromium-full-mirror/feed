@@ -39,76 +39,53 @@ public abstract class JournalStorageConformanceTest {
   private static final byte[] DATA_1 = "data 1".getBytes(Charset.forName("UTF-8"));
 
   private final Consumer<Result<List<String>>> isJournal1 =
-      new Consumer<Result<List<String>>>() {
-        @Override
-        public void accept(Result<List<String>> result) {
-          assertThat(result.isSuccessful()).isTrue();
-          List<String> input = result.getValue();
-          assertThat(input).hasSize(1);
-          assertThat(input).contains(JOURNAL_NAME);
-        }
+      result -> {
+        assertThat(result.isSuccessful()).isTrue();
+        List<String> input = result.getValue();
+        assertThat(input).hasSize(1);
+        assertThat(input).contains(JOURNAL_NAME);
       };
   private final Consumer<Result<List<String>>> isJournal1AndJournal2 =
-      new Consumer<Result<List<String>>>() {
-        @Override
-        public void accept(Result<List<String>> result) {
-          assertThat(result.isSuccessful()).isTrue();
-          List<String> input = result.getValue();
-          assertThat(input).hasSize(2);
-          assertThat(input).contains(JOURNAL_NAME);
-          assertThat(input).contains(JOURNAL_COPY_NAME);
-        }
+      result -> {
+        assertThat(result.isSuccessful()).isTrue();
+        List<String> input = result.getValue();
+        assertThat(input).hasSize(2);
+        assertThat(input).contains(JOURNAL_NAME);
+        assertThat(input).contains(JOURNAL_COPY_NAME);
       };
 
   private final Consumer<Result<List<byte[]>>> isData0AndData1 =
-      new Consumer<Result<List<byte[]>>>() {
-        @Override
-        public void accept(Result<List<byte[]>> result) {
-          assertThat(result.isSuccessful()).isTrue();
-          List<byte[]> input = result.getValue();
-          // We should get back one byte array, containing the bytes of DATA_0 and DATA_1.
-          assertThat(input).isNotNull();
-          assertThat(input).hasSize(2);
-          assertThat(Arrays.equals(input.get(0), DATA_0)).isTrue();
-          assertThat(Arrays.equals(input.get(1), DATA_1)).isTrue();
-        }
+      result -> {
+        assertThat(result.isSuccessful()).isTrue();
+        List<byte[]> input = result.getValue();
+        // We should get back one byte array, containing the bytes of DATA_0 and DATA_1.
+        assertThat(input).isNotNull();
+        assertThat(input).hasSize(2);
+        assertThat(Arrays.equals(input.get(0), DATA_0)).isTrue();
+        assertThat(Arrays.equals(input.get(1), DATA_1)).isTrue();
       };
   private final Consumer<Result<List<byte[]>>> isEmptyList =
-      new Consumer<Result<List<byte[]>>>() {
-        @Override
-        public void accept(Result<List<byte[]>> result) {
-          assertThat(result.isSuccessful()).isTrue();
-          List<byte[]> input = result.getValue();
+      result -> {
+        assertThat(result.isSuccessful()).isTrue();
+        List<byte[]> input = result.getValue();
 
-          // The result should be an empty List.
-          assertThat(input).isNotNull();
-          assertThat(input).isEmpty();
-        }
+        // The result should be an empty List.
+        assertThat(input).isNotNull();
+        assertThat(input).isEmpty();
       };
   private final Consumer<CommitResult> isSuccess =
-      new Consumer<CommitResult>() {
-        @Override
-        public void accept(CommitResult input) {
-          assertThat(input).isEqualTo(CommitResult.SUCCESS);
-        }
-      };
+      input -> assertThat(input).isEqualTo(CommitResult.SUCCESS);
   private final Consumer<Result<Boolean>> isFalse =
-      new Consumer<Result<Boolean>>() {
-        @Override
-        public void accept(Result<Boolean> result) {
-          assertThat(result.isSuccessful()).isTrue();
-          Boolean input = result.getValue();
-          assertThat(input).isFalse();
-        }
+      result -> {
+        assertThat(result.isSuccessful()).isTrue();
+        Boolean input = result.getValue();
+        assertThat(input).isFalse();
       };
   private final Consumer<Result<Boolean>> isTrue =
-      new Consumer<Result<Boolean>>() {
-        @Override
-        public void accept(Result<Boolean> result) {
-          assertThat(result.isSuccessful()).isTrue();
-          Boolean input = result.getValue();
-          assertThat(input).isTrue();
-        }
+      result -> {
+        assertThat(result.isSuccessful()).isTrue();
+        Boolean input = result.getValue();
+        assertThat(input).isTrue();
       };
 
   protected JournalStorage journalStorage;
