@@ -32,7 +32,9 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
+import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -74,6 +76,7 @@ public class BasicStreamTest {
   @Mock private PietManager pietManager;
   @Mock private StreamDriver streamDriver;
   @Mock private StreamRecyclerViewAdapter adapter;
+  @Mock private StreamScrollMonitor streamScrollMonitor;
 
   private Configuration configuration = new Configuration.Builder().build();
   private BasicStream basicStream;
@@ -165,6 +168,20 @@ public class BasicStreamTest {
     assertThat(viewPool.getClearCallCount()).isEqualTo(2);
   }
 
+  @Test
+  public void testAddScrollListener() {
+    ScrollListener scrollListener = mock(ScrollListener.class);
+    basicStream.addScrollListener(scrollListener);
+    verify(streamScrollMonitor).addScrollListener(scrollListener);
+  }
+
+  @Test
+  public void testRemoveScrollListener() {
+    ScrollListener scrollListener = mock(ScrollListener.class);
+    basicStream.removeScrollListener(scrollListener);
+    verify(streamScrollMonitor).removeScrollListener(scrollListener);
+  }
+
   private RecyclerView getStreamRecyclerView() {
     return (RecyclerView) basicStream.getView();
   }
@@ -251,6 +268,11 @@ public class BasicStreamTest {
         ActionApi actionApi,
         ActionManager actionManager) {
       return adapter;
+    }
+
+    @Override
+    StreamScrollMonitor createStreamScrollMonitor(RecyclerView recyclerView) {
+      return streamScrollMonitor;
     }
   }
 }

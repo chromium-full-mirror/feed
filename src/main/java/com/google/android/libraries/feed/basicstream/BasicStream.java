@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
+import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -75,6 +76,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private StreamConfiguration streamConfiguration;
   private StreamRecyclerViewAdapter adapter;
   private StreamDriver streamDriver;
+  private StreamScrollMonitor streamScrollMonitor;
 
   public BasicStream(
       Context context,
@@ -157,6 +159,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
           streamConfiguration.getPaddingEnd(),
           streamConfiguration.getPaddingBottom());
     }
+
+    streamScrollMonitor = createStreamScrollMonitor(recyclerView);
+
     modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(this);
   }
@@ -223,10 +228,14 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   @Override
-  public void addScrollListener(ScrollListener listener) {}
+  public void addScrollListener(ScrollListener listener) {
+    streamScrollMonitor.addScrollListener(listener);
+  }
 
   @Override
-  public void removeScrollListener(ScrollListener listener) {}
+  public void removeScrollListener(ScrollListener listener) {
+    streamScrollMonitor.removeScrollListener(listener);
+  }
 
   @Override
   public void addOnContentChangedListener(ContentChangedListener listener) {}
@@ -281,5 +290,10 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ActionManager actionManager) {
     return new StreamRecyclerViewAdapter(
         context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
+  }
+
+  @VisibleForTesting
+  StreamScrollMonitor createStreamScrollMonitor(RecyclerView recyclerView) {
+    return new StreamScrollMonitor(recyclerView);
   }
 }
