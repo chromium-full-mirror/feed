@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -31,6 +32,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedactionmanager.FeedActionManagerImpl;
+import com.google.android.libraries.feed.feedactionreader.FeedActionReader;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
@@ -201,6 +203,8 @@ public class FeedProcessScope implements Dumpable {
       if (protocolAdapter == null) {
         protocolAdapter = new FeedProtocolAdapter(timingUtils);
       }
+      ActionReader actionReader =
+          new FeedActionReader(store, clock, protocolAdapter, configuration);
       if (requestManager == null) {
         requestManager =
             new FeedRequestManager(
@@ -212,7 +216,8 @@ public class FeedProcessScope implements Dumpable {
                 singleThreadExecutor,
                 timingUtils,
                 threadUtils,
-                mainThreadRunner);
+                mainThreadRunner,
+                actionReader);
       }
       if (sessionManager == null) {
         sessionManager =

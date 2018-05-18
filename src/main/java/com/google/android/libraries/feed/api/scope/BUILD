@@ -24,6 +24,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/feedactionmanager",
         "//src/main/java/com/google/android/libraries/feed/feedactionparser",
+        "//src/main/java/com/google/android/libraries/feed/feedactionreader",
         "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
         "//src/main/java/com/google/android/libraries/feed/feedmodelprovider",
         "//src/main/java/com/google/android/libraries/feed/feedprotocoladapter",

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.net.Uri;
+import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
@@ -49,6 +50,7 @@ import com.google.search.now.wire.feed.mockserver.MockServerProto.ConditionalRes
 import com.google.search.now.wire.feed.mockserver.MockServerProto.MockServer;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,6 +67,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SchedulerApi scheduler;
   @Mock private ThreadUtils threadUtils;
+  @Mock private ActionReader actionReader;
   @Captor private ArgumentCaptor<Response> responseCaptor;
 
   private final FeedExtensionRegistry extensionRegistry =
@@ -85,6 +88,9 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
     MockServer mockServer = MockServer.getDefaultInstance();
     networkClient = new MockServerNetworkClient(mockServer, new Configuration.Builder().build());
+
+    when(actionReader.getDismissActionsWithSemanticProperties())
+        .thenReturn(Result.success(Collections.emptyList()));
   }
 
   @Test
@@ -159,7 +165,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             MoreExecutors.newDirectExecutorService(),
             timingUtils,
             threadUtils,
-            mainThreadRunner);
+            mainThreadRunner,
+            actionReader);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -199,7 +206,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             MoreExecutors.newDirectExecutorService(),
             timingUtils,
             threadUtils,
-            mainThreadRunner);
+            mainThreadRunner,
+            actionReader);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 

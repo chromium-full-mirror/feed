@@ -16,9 +16,12 @@ package com.google.android.libraries.feed.feedrequestmanager;
 
 import android.net.Uri;
 import android.util.Base64;
+import com.google.android.libraries.feed.api.actionmanager.ActionReader;
+import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -36,15 +39,25 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.wire.feed.ActionTypeProto;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
+import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
+import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryDataItem;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
+import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest.Builder;
 import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
 import com.google.search.now.wire.feed.ResponseProto.Response;
+import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 /** Default implementation of RequestManager. */
@@ -63,6 +76,7 @@ public class FeedRequestManager implements RequestManager {
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
   private final MainThreadRunner mainThreadRunner;
+  private final ActionReader actionReader;
 
   public FeedRequestManager(
       Configuration configuration,
@@ -73,7 +87,8 @@ public class FeedRequestManager implements RequestManager {
       ExecutorService executor,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      MainThreadRunner mainThreadRunner) {
+      MainThreadRunner mainThreadRunner,
+      ActionReader actionReader) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -83,6 +98,7 @@ public class FeedRequestManager implements RequestManager {
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.mainThreadRunner = mainThreadRunner;
+    this.actionReader = actionReader;
   }
 
   @Override
@@ -113,6 +129,14 @@ public class FeedRequestManager implements RequestManager {
 
   private void executeRequest(
       RequestBuilder requestBuilder, Consumer<Result<List<StreamDataOperation>>> consumer) {
+    Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
+        actionReader.getDismissActionsWithSemanticProperties();
+    if (dismissActionsResult.isSuccessful()) {
+      requestBuilder.setActions(dismissActionsResult.getValue());
+    } else {
+      Logger.e(TAG, "Error fetching dismiss actions");
+    }
+
     String host = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_HOST, "");
     String path = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_PATH_AND_PARAMS, "");
     Uri.Builder uriBuilder = Uri.parse(host + path).buildUpon();
@@ -196,6 +220,7 @@ public class FeedRequestManager implements RequestManager {
   private static class RequestBuilder {
 
     private ByteString token;
+    private List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties;
 
     /**
      * Sets the token used to tell the server which page of results we want in the response.
@@ -207,6 +232,12 @@ public class FeedRequestManager implements RequestManager {
       return this;
     }
 
+    RequestBuilder setActions(
+        List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties) {
+      this.dismissActionsWithSemanticProperties = dismissActionsWithSemanticProperties;
+      return this;
+    }
+
     public Request build() {
       Request.Builder requestBuilder =
           Request.newBuilder().setRequestVersion(RequestVersion.FEED_QUERY);
@@ -215,10 +246,69 @@ public class FeedRequestManager implements RequestManager {
       if (token != null) {
         feedQuery.setPageToken(token);
       }
-      requestBuilder.setExtension(
-          FeedRequest.feedRequest, FeedRequest.newBuilder().setFeedQuery(feedQuery).build());
+      Builder feedRequestBuilder = FeedRequest.newBuilder().setFeedQuery(feedQuery);
+      if (dismissActionsWithSemanticProperties != null
+          && !dismissActionsWithSemanticProperties.isEmpty()) {
+        feedRequestBuilder.addFeedActionQueryData(buildFeedActionQueryData());
+      }
+      requestBuilder.setExtension(FeedRequest.feedRequest, feedRequestBuilder.build());
 
       return requestBuilder.build();
+    }
+
+    private FeedActionQueryData buildFeedActionQueryData() {
+      Map<Long, Integer> ids = new LinkedHashMap<>(dismissActionsWithSemanticProperties.size());
+      Map<String, Integer> tables =
+          new LinkedHashMap<>(dismissActionsWithSemanticProperties.size());
+      Map<String, Integer> contentDomains =
+          new LinkedHashMap<>(dismissActionsWithSemanticProperties.size());
+      Map<SemanticProperties, Integer> semanticProperties =
+          new LinkedHashMap<>(dismissActionsWithSemanticProperties.size());
+      ArrayList<FeedActionQueryDataItem> actionDataItems =
+          new ArrayList<>(dismissActionsWithSemanticProperties.size());
+
+      for (DismissActionWithSemanticProperties action : dismissActionsWithSemanticProperties) {
+        ContentId contentId = action.getContentId();
+        byte /*@Nullable*/ [] semanticPropertiesBytes = action.getSemanticProperties();
+
+        FeedActionQueryDataItem.Builder actionDataItemBuilder =
+            FeedActionQueryDataItem.newBuilder();
+
+        actionDataItemBuilder.setIdIndex(getIndexForItem(ids, contentId.getId()));
+        actionDataItemBuilder.setTableIndex(getIndexForItem(tables, contentId.getTable()));
+        actionDataItemBuilder.setContentDomainIndex(
+            getIndexForItem(contentDomains, contentId.getContentDomain()));
+        if (semanticPropertiesBytes != null) {
+          actionDataItemBuilder.setSemanticPropertiesIndex(
+              getIndexForItem(
+                  semanticProperties,
+                  SemanticProperties.newBuilder()
+                      .setSemanticPropertiesData(ByteString.copyFrom(semanticPropertiesBytes))
+                      .build()));
+        }
+
+        actionDataItems.add(actionDataItemBuilder.build());
+      }
+      return FeedActionQueryData.newBuilder()
+          .setAction(
+              Action.newBuilder()
+                  .setActionType(ActionTypeProto.ActionType.forNumber(ActionType.DISMISS)))
+          .addAllUniqueId(ids.keySet())
+          .addAllUniqueTable(tables.keySet())
+          .addAllUniqueContentDomain(contentDomains.keySet())
+          .addAllUniqueSemanticProperties(semanticProperties.keySet())
+          .addAllFeedActionQueryDataItem(actionDataItems)
+          .build();
+    }
+
+    private <T> int getIndexForItem(Map<T, Integer> objectMap, T object) {
+      if (!objectMap.containsKey(object)) {
+        int newIndex = objectMap.size();
+        objectMap.put(object, newIndex);
+        return newIndex;
+      } else {
+        return objectMap.get(object);
+      }
     }
   }
 }
