@@ -214,6 +214,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   public void triggerRefresh() {
+    threadUtils.checkMainThread();
     sessionManager.triggerRefresh(streamSession);
   }
 

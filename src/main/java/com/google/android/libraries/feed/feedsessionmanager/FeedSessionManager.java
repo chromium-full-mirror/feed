@@ -460,14 +460,36 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   @Override
   public void triggerRefresh(/*@Nullable*/ StreamSession streamSession) {
+    threadUtils.checkMainThread();
     if (streamSession == null) {
-      // TODO: see [INTERNAL LINK]  We create a new session and then call triggerRefresh on
-      // it before we have even populated the session in Audrey2.
+      // see [INTERNAL LINK]  We create a new session and then call triggerRefresh on it before we have
+      // even populated the session in Audrey2.
       Logger.w(TAG, "Found a null streamSession in triggerRefresh");
     }
-    requestManager.triggerRefresh(
-        RequestReason.MANUAL_REFRESH,
-        new CommitterTask("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+    taskQueue.execute(
+        "triggerRefresh/Request/InvalidateSession",
+        TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
+        () -> {
+          requestManager.triggerRefresh(
+              RequestReason.MANUAL_REFRESH,
+              new CommitterTask("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+          if (streamSession != null) {
+            String streamToken = streamSession.getStreamToken();
+            synchronized (lock) {
+              Session session = sessions.get(streamToken);
+              if (session != null) {
+                ModelProvider modelProvider = session.getModelProvider();
+                if (modelProvider != null) {
+                  modelProvider.invalidate();
+                } else {
+                  Logger.w(TAG, "Session didn't have a ModelProvider %s", streamToken);
+                }
+              } else {
+                Logger.w(TAG, "TriggerRefresh didn't find session %s", streamToken);
+              }
+            }
+          }
+        });
   }
 
   @Override
@@ -691,7 +713,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           }
           StreamPayload payload = dataOperation.getStreamPayload();
           String contentId = dataOperation.getStreamStructure().getContentId();
-          // TODO: Should we move this outside of the loop?
           synchronized (lock) {
             contentCache.put(contentId, payload);
           }
