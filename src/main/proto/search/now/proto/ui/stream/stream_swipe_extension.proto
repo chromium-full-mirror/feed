@@ -14,7 +14,7 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/proto/ui/action/feed_action.proto";
+import "src/main/proto/search/now/proto/ui/action/feed_action_payload.proto";
 import "src/main/proto/search/now/proto/ui/stream/stream_structure.proto";
 
 package search.now.ui.stream;
@@ -32,5 +32,5 @@ message SwipeActionExtension {
     optional SwipeActionExtension swipe_action_extension = 196559392;
   }
 
-  optional search.now.ui.action.FeedAction swipe_action = 1;
+  optional search.now.ui.action.FeedActionPayload swipe_action = 1;
 }
