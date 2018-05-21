@@ -27,10 +27,11 @@ public class SchedulerApiImpl implements SchedulerApi {
   }
 
   @Override
-  public boolean shouldRequestDataWhenNoDataPresent() {
-    // TODO: Add this back once we fix the SchedulerApi to deal with sessions
+  @RequestBehavior
+  public int shouldSessionRequestData(SessionManagerState sessionManagerState) {
+    // TODO: Add this back when we move the SchedulerApi use into the session creation
     // threadUtils.checkMainThread();
-    return true;
+    return RequestBehavior.REQUEST_WITH_WAIT;
   }
 
   @Override

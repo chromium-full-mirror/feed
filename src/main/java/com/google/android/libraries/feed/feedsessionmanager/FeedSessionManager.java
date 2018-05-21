@@ -45,6 +45,8 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.TaskQueue.T
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -178,8 +180,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     // if head is empty and the scheduler allows us, trigger refresh, otherwise live with empty head
     synchronized (lock) {
+      // TODO: This code needs to be moved to the session creation.
       boolean fillingEmptyHead =
-          head.isHeadEmpty() && schedulerApi.shouldRequestDataWhenNoDataPresent();
+          head.isHeadEmpty()
+              && schedulerApi.shouldSessionRequestData(new SessionManagerState(false, 0, false))
+                  == RequestBehavior.REQUEST_WITH_WAIT;
       // Head is now initialized, unless we are filling and empty head.
       if (fillingEmptyHead) {
         taskQueue.execute(

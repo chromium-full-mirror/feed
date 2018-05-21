@@ -49,8 +49,9 @@ public class InfrastructureIntegrationScope {
       new SchedulerApi() {
 
         @Override
-        public boolean shouldRequestDataWhenNoDataPresent() {
-          return false;
+        @RequestBehavior
+        public int shouldSessionRequestData(SessionManagerState sessionManagerState) {
+          return RequestBehavior.NO_REQUEST_WITH_CONTENT;
         }
 
         @Override

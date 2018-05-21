@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.testing.conformance.scheduler;
 
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import org.junit.Test;
 
 public abstract class SchedulerConformanceTest {
@@ -25,9 +26,9 @@ public abstract class SchedulerConformanceTest {
   protected SchedulerApi scheduler;
 
   @Test
-  public void shouldRequestDataWhenNoDataPresent() {
+  public void shouldSessionRequestData() {
     // Should not throw error
-    scheduler.shouldRequestDataWhenNoDataPresent();
+    scheduler.shouldSessionRequestData(new SessionManagerState(false, 0, false));
   }
 
   @Test

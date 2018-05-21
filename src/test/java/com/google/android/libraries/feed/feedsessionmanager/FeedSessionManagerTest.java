@@ -49,15 +49,15 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSession
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -110,14 +110,7 @@ public class FeedSessionManagerTest {
 
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
   private final TimingUtils timingUtils = new TimingUtils();
-  private final FeedExtensionRegistry extensionRegistry =
-      new FeedExtensionRegistry(
-          new ProtoExtensionProvider() {
-            @Override
-            public List<GeneratedExtension<?, ?>> getProtoExtensions() {
-              return new ArrayList<>();
-            }
-          });
+  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final Configuration configuration = new Configuration.Builder().build();
 
   @Before
@@ -126,17 +119,14 @@ public class FeedSessionManagerTest {
     mainThreadRunner = new MainThreadRunner();
     when(store.getHeadSession()).thenReturn(HEAD);
     when(modelProvider.edit()).thenReturn(modelMutation);
-    when(store.triggerContentGc(anyObject(), anyObject()))
-        .thenReturn(
-            new Runnable() {
-              @Override
-              public void run() {}
-            });
+    when(store.triggerContentGc(anyObject(), anyObject())).thenReturn(() -> {});
     when(store.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
     when(store.getStreamStructures(any(StreamSession.class)))
         .thenReturn(Result.success(new ArrayList<>()));
     when(store.getPayloads(any(List.class))).thenReturn(Result.success(new ArrayList<>()));
     when(store.getAllSessions()).thenReturn(Result.success(new ArrayList<>()));
+    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+        .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
   }
 
   @Test
