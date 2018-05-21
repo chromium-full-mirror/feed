@@ -365,6 +365,9 @@ message Element {
   // Styles to apply to this Element. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 17;
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
 }
 
 // Defines the behavior for elements that don't fit in the view

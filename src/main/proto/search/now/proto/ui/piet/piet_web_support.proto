@@ -59,8 +59,8 @@ message InlineStyle {
   extend GridRow {
     optional InlineStyle inline_grid_row_style = 167505035;
   }
-  extend ElementList {
-    optional InlineStyle inline_element_list_style = 167487206;
+  extend Element {
+    optional InlineStyle inline_element_style = 194909264;
   }
   extend StyledImageChunk {
     optional InlineStyle inline_styled_image_chunk_style = 179383826;
@@ -152,4 +152,9 @@ message CssRoundedCornersHelper {
 // The ImageSource to show in Web.
 extend Image {
   optional ImageSource selected_image_source = 180140320;
+}
+
+// Information on Element regarding its visibility.
+extend Element {
+  optional bool omit_element = 193827472;
 }
