@@ -38,7 +38,7 @@ public class FeedSchedulerApiImpl implements SchedulerApi {
   }
 
   @Override
-  public void onReceiveNewContent() {
+  public void onReceiveNewContent(long contentCreationDateTimeMs) {
     threadUtils.checkMainThread();
     // Do nothing
   }

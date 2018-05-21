@@ -34,7 +34,7 @@ public abstract class SchedulerConformanceTest {
   @Test
   public void onReceiveNewContent() {
     // Should not throw error
-    scheduler.onReceiveNewContent();
+    scheduler.onReceiveNewContent(System.currentTimeMillis());
   }
 
   @Test

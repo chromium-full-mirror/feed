@@ -583,8 +583,6 @@ public class FeedRequestManagerTest {
 
     verify(protocolAdapter).createModel(responseCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
-
-    verify(scheduler).onReceiveNewContent();
   }
 
   @Test

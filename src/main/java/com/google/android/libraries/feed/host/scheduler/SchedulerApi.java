@@ -84,7 +84,7 @@ public interface SchedulerApi {
   int shouldSessionRequestData(SessionManagerState sessionManagerState);
 
   /** Notify scheduler that new content has been received. */
-  void onReceiveNewContent();
+  void onReceiveNewContent(long contentCreationDateTimeMs);
 
   /** Notify scheduler that an error occurred handling a request. */
   void onRequestError(int networkResponseCode);

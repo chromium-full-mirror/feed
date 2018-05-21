@@ -149,32 +149,26 @@ public class FeedRequestManager implements RequestManager {
     HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), HttpMethod.GET);
     mainThreadRunner.execute(
         TAG,
-        () -> {
-          networkClient.send(
-              httpRequest,
-              input -> {
-                if (input.getResponseCode() != 200) {
-                  String errorBody = null;
-                  try {
-                    errorBody = new String(input.getResponseBody(), "UTF-8");
-                  } catch (UnsupportedEncodingException e) {
-                    Logger.e(TAG, "Error handling http error logging", e);
+        () ->
+            networkClient.send(
+                httpRequest,
+                input -> {
+                  if (input.getResponseCode() != 200) {
+                    String errorBody = null;
+                    try {
+                      errorBody = new String(input.getResponseBody(), "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                      Logger.e(TAG, "Error handling http error logging", e);
+                    }
+                    Logger.e(TAG, "errorCode: %d", input.getResponseCode());
+                    Logger.e(TAG, "errorResponse: %s", errorBody);
+                    mainThreadRunner.execute(
+                        TAG, () -> scheduler.onRequestError(input.getResponseCode()));
+                    return;
                   }
-                  Logger.e(TAG, "errorCode: %d", input.getResponseCode());
-                  Logger.e(TAG, "errorResponse: %s", errorBody);
-                  mainThreadRunner.execute(
-                      TAG,
-                      () -> {
-                        scheduler.onRequestError(input.getResponseCode());
-                      });
-                  return;
-                } else {
-                  mainThreadRunner.execute(TAG, scheduler::onReceiveNewContent);
-                }
 
-                handleResponseBytes(input.getResponseBody(), consumer);
-              });
-        });
+                  handleResponseBytes(input.getResponseBody(), consumer);
+                }));
   }
 
   private void handleResponseBytes(

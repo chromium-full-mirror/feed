@@ -55,7 +55,7 @@ public class InfrastructureIntegrationScope {
         }
 
         @Override
-        public void onReceiveNewContent() {
+        public void onReceiveNewContent(long contentCreationDateTimeMs) {
           // Do nothing
         }
 
