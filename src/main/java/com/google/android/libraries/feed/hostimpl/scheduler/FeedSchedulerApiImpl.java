@@ -17,12 +17,15 @@ package com.google.android.libraries.feed.hostimpl.scheduler;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 
-/** Concrete impl of {@link SchedulerApi} */
-public class SchedulerApiImpl implements SchedulerApi {
+/**
+ * Concrete impl of {@link SchedulerApi}. This implementation determines when a request should be
+ * made based upon how old the content currently is.
+ */
+public class FeedSchedulerApiImpl implements SchedulerApi {
 
   private final ThreadUtils threadUtils;
 
-  public SchedulerApiImpl(ThreadUtils threadUtils) {
+  public FeedSchedulerApiImpl(ThreadUtils threadUtils) {
     this.threadUtils = threadUtils;
   }
 

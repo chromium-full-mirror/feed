@@ -23,15 +23,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link SchedulerApiImpl}. */
+/** Tests for {@link FeedSchedulerApiImpl}. */
 @RunWith(RobolectricTestRunner.class)
-public class SchedulerApiImplTest extends SchedulerConformanceTest {
+public class FeedSchedulerApiImplTest extends SchedulerConformanceTest {
 
   @Mock private ThreadUtils threadUtils;
 
   @Before
   public void setup() {
     initMocks(this);
-    scheduler = new SchedulerApiImpl(threadUtils);
+    scheduler = new FeedSchedulerApiImpl(threadUtils);
   }
 }

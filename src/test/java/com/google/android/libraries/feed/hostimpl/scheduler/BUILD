@@ -1,10 +1,10 @@
 licenses(["notice"])  # Apache 2
 
 android_local_test(
-    name = "SchedulerApiImplTest",
+    name = "FeedSchedulerApiImplTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["SchedulerApiImplTest.java"],
+    srcs = ["FeedSchedulerApiImplTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
