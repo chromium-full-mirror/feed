@@ -28,8 +28,8 @@ public class SchedulerApiImpl implements SchedulerApi {
 
   @Override
   public boolean shouldRequestDataWhenNoDataPresent() {
-    threadUtils.checkMainThread();
-
+    // TODO: Add this back once we fix the SchedulerApi to deal with sessions
+    // threadUtils.checkMainThread();
     return true;
   }
 
