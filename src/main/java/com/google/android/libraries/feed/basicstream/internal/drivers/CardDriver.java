@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 
 /** {@link FeatureDriver} for cards. */
 public class CardDriver implements FeatureDriver {
@@ -38,13 +37,13 @@ public class CardDriver implements FeatureDriver {
 
   @Override
   /*@Nullable*/
-  public ContentModel getContentModel() {
+  public LeafFeatureDriver getLeafFeatureDriver() {
     if (contentDriver == null) {
       contentDriver = createContentChild(cardModel);
     }
 
     if (contentDriver != null) {
-      return contentDriver.getContentModel();
+      return contentDriver.getLeafFeatureDriver();
     }
 
     return null;

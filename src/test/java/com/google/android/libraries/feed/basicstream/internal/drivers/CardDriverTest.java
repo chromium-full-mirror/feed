@@ -24,7 +24,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -45,7 +44,7 @@ public class CardDriverTest {
   @Mock private ContentDriver contentDriverChild;
   @Mock private ModelFeature cardModelFeature;
   @Mock private ModelProvider modelProvider;
-  @Mock private ContentModel contentModel;
+  @Mock private LeafFeatureDriver leafFeatureDriver;
 
   private CardDriver cardDriver;
 
@@ -67,23 +66,23 @@ public class CardDriverTest {
     // A ModelFeature representing a card.
     when(cardModelFeature.getCursor()).thenReturn(cardCursor);
 
-    when(contentDriverChild.getContentModel()).thenReturn(contentModel);
+    when(contentDriverChild.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
     cardDriver = new CardDriverForTest(cardModelFeature, modelProvider, contentDriverChild);
   }
 
   @Test
   public void testGetContentModel() {
-    assertThat((cardDriver.getContentModel())).isEqualTo(contentModel);
+    assertThat((cardDriver.getLeafFeatureDriver())).isEqualTo(leafFeatureDriver);
   }
 
   @Test
   public void testGetContentModel_reusesPreviousContentModel() {
-    cardDriver.getContentModel();
+    cardDriver.getLeafFeatureDriver();
 
     verify(cardModelFeature).getCursor();
 
-    cardDriver.getContentModel();
+    cardDriver.getLeafFeatureDriver();
 
     verifyNoMoreInteractions(cardModelFeature);
   }

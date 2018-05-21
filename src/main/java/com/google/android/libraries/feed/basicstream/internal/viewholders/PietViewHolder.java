@@ -19,6 +19,7 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
@@ -33,6 +34,7 @@ import java.util.List;
  */
 public class PietViewHolder extends FeedViewHolder {
 
+  private static final String TAG = "PietViewHolder";
   private final CardConfiguration cardConfiguration;
   private final FrameLayout cardView;
   private final FrameAdapter frameAdapter;
@@ -57,8 +59,17 @@ public class PietViewHolder extends FeedViewHolder {
     cardView.addView(frameAdapter.getFrameContainer());
   }
 
-  public void bind(Frame frame, List<PietSharedState> pietSharedStates) {
+  public void bind(/*@Nullable*/ Frame frame, /*@Nullable*/ List<PietSharedState> pietSharedStates) {
     if (bound) {
+      return;
+    }
+
+    if (frame == null || pietSharedStates == null) {
+      Logger.w(
+          TAG,
+          "Binding with null value. Frame is null: %s, PietSharedStates is null: %s",
+          frame == null,
+          pietSharedStates == null);
       return;
     }
 

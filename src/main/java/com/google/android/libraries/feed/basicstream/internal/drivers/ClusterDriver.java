@@ -20,7 +20,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.common.logging.Logger;
 
 /** {@link FeatureDriver} for Clusters. */
@@ -38,13 +37,13 @@ public class ClusterDriver implements FeatureDriver {
 
   @Override
   /*@Nullable*/
-  public ContentModel getContentModel() {
+  public LeafFeatureDriver getLeafFeatureDriver() {
     if (cardDriver == null) {
       cardDriver = createCardChild(clusterModel);
     }
 
     if (cardDriver != null) {
-      return cardDriver.getContentModel();
+      return cardDriver.getLeafFeatureDriver();
     }
 
     return null;

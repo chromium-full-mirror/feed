@@ -15,25 +15,25 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers.testing;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.testing.FakeContentModel;
 import com.google.android.libraries.feed.basicstream.internal.drivers.FeatureDriver;
+import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
 
 /** Fake for {@link FeatureDriver}. */
 public class FakeFeatureDriver implements FeatureDriver {
-  /*@Nullable*/ private final ContentModel contentModel;
+  /*@Nullable*/ private final LeafFeatureDriver leafFeatureDriver;
   private final ModelFeature modelFeature;
 
-  private FakeFeatureDriver(/*@Nullable*/ ContentModel contentModel, ModelFeature modelFeature) {
-    this.contentModel = contentModel;
+  private FakeFeatureDriver(
+      /*@Nullable*/ LeafFeatureDriver leafFeatureDriver, ModelFeature modelFeature) {
+    this.leafFeatureDriver = leafFeatureDriver;
     this.modelFeature = modelFeature;
   }
 
   @Override
   /*@Nullable*/
-  public ContentModel getContentModel() {
-    return contentModel;
+  public LeafFeatureDriver getLeafFeatureDriver() {
+    return leafFeatureDriver;
   }
 
   public ModelFeature getModelFeature() {
@@ -41,11 +41,13 @@ public class FakeFeatureDriver implements FeatureDriver {
   }
 
   public static class Builder {
-    /*@Nullable*/ private ContentModel contentModel = new FakeContentModel.Builder().build();
+    /*@Nullable*/
+    private LeafFeatureDriver leafFeatureDriver = new FakeLeafFeatureDriver.Builder().build();
+
     private ModelFeature modelFeature = new FakeModelFeature.Builder().build();
 
-    public Builder setContentModel(/*@Nullable*/ ContentModel contentModel) {
-      this.contentModel = contentModel;
+    public Builder setLeafFeatureDriver(/*@Nullable*/ LeafFeatureDriver contentModel) {
+      this.leafFeatureDriver = contentModel;
       return this;
     }
 
@@ -55,7 +57,7 @@ public class FakeFeatureDriver implements FeatureDriver {
     }
 
     public FakeFeatureDriver build() {
-      return new FakeFeatureDriver(contentModel, modelFeature);
+      return new FakeFeatureDriver(leafFeatureDriver, modelFeature);
     }
   }
 }

@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
 import java.util.ArrayList;
@@ -33,7 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Generates a list of {@link ContentModel} instances for an entire stream. */
+/** Generates a list of {@link LeafFeatureDriver} instances for an entire stream. */
 public class StreamDriver implements FeatureChangeObserver {
 
   private static final String TAG = "StreamDriver";
@@ -57,10 +56,10 @@ public class StreamDriver implements FeatureChangeObserver {
   }
 
   /**
-   * Returns a the list of {@link ContentModel} instances for the children generated from the given
-   * {@link ModelFeature}.
+   * Returns a the list of {@link LeafFeatureDriver} instances for the children generated from the
+   * given {@link ModelFeature}.
    */
-  public List<ContentModel> getContentModels() {
+  public List<LeafFeatureDriver> getLeafFeatureDrivers() {
     if (!rootFeatureConsumed) {
       ModelFeature rootFeature = modelProvider.getRootFeature();
       if (rootFeature != null) {
@@ -70,7 +69,7 @@ public class StreamDriver implements FeatureChangeObserver {
       }
     }
 
-    return buildContentModels(featureDrivers);
+    return buildLeafFeatureDrivers(featureDrivers);
   }
 
   private List<FeatureDriver> createAndInsertChildren(
@@ -120,7 +119,7 @@ public class StreamDriver implements FeatureChangeObserver {
 
               if (contentListener != null) {
                 contentListener.notifyContentsAdded(
-                    continuationIndex, buildContentModels(newChildren));
+                    continuationIndex, buildLeafFeatureDrivers(newChildren));
               }
             });
 
@@ -148,15 +147,15 @@ public class StreamDriver implements FeatureChangeObserver {
     return null;
   }
 
-  private List<ContentModel> buildContentModels(List<FeatureDriver> featureDrivers) {
-    List<ContentModel> contentModels = new ArrayList<>();
+  private List<LeafFeatureDriver> buildLeafFeatureDrivers(List<FeatureDriver> featureDrivers) {
+    List<LeafFeatureDriver> leafFeatureDrivers = new ArrayList<>();
     for (FeatureDriver featureDriver : featureDrivers) {
-      ContentModel childContentModel = featureDriver.getContentModel();
+      LeafFeatureDriver childContentModel = featureDriver.getLeafFeatureDriver();
       if (childContentModel != null) {
-        contentModels.add(childContentModel);
+        leafFeatureDrivers.add(childContentModel);
       }
     }
-    return contentModels;
+    return leafFeatureDrivers;
   }
 
   @Override
@@ -229,7 +228,7 @@ public class StreamDriver implements FeatureChangeObserver {
   public interface StreamContentListener {
 
     /** Called when the given content has been added at the given index of stream content. */
-    void notifyContentsAdded(int index, List<ContentModel> newContents);
+    void notifyContentsAdded(int index, List<LeafFeatureDriver> newFeatureDrivers);
 
     /** Called when the content at the given index of stream content has been removed. */
     void notifyContentRemoved(int index);

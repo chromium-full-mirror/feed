@@ -16,65 +16,77 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
+import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto;
+import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.List;
 
 /** {@link FeatureDriver} for content. */
-public class ContentDriver implements FeatureDriver {
+public class ContentDriver extends LeafFeatureDriver {
 
   private static final String TAG = "ContentDriver";
 
-  private final ModelFeature contentFeatureModel;
-  private final ModelProvider modelProvider;
-  /*@Nullable*/ private ContentModel contentModel;
+  private final List<PietSharedState> pietSharedStates;
+  private final Frame frame;
+
+  /*@Nullable*/ private PietViewHolder viewHolder;
 
   ContentDriver(ModelFeature contentFeatureModel, ModelProvider modelProvider) {
-    this.contentFeatureModel = contentFeatureModel;
-    this.modelProvider = modelProvider;
+    PietContent pietContent = getPietContent(contentFeatureModel.getStreamFeature().getContent());
+    frame = pietContent.getFrame();
+    pietSharedStates = getPietSharedStates(pietContent, modelProvider);
   }
 
   @Override
-  /*@Nullable*/
-  public ContentModel getContentModel() {
-    // TODO: Add observer for changes in content.
-    if (contentModel == null) {
-      StreamStructureProto.Content content = contentFeatureModel.getStreamFeature().getContent();
-      checkState(
-          content.getType() == StreamStructureProto.Content.Type.PIET,
-          "Expected Piet type for feature");
+  public LeafFeatureDriver getLeafFeatureDriver() {
+    return this;
+  }
 
-      checkState(
-          content.hasExtension(PietContent.pietContentExtension),
-          "Expected Piet content for feature");
-      List<PietSharedState> pietSharedStates = new ArrayList<>();
+  private PietContent getPietContent(/*@UnderInitialization*/ ContentDriver this, Content content) {
+    checkState(
+        content.getType() == StreamStructureProto.Content.Type.PIET,
+        "Expected Piet type for feature");
 
-      PietContent pietContent = content.getExtension(PietContent.pietContentExtension);
-      for (ContentId contentId : pietContent.getPietSharedStatesList()) {
-        PietSharedState pietSharedState = extractPietSharedState(contentId);
-        if (pietSharedState == null) {
-          return null;
-        }
+    checkState(
+        content.hasExtension(PietContent.pietContentExtension),
+        "Expected Piet content for feature");
 
-        pietSharedStates.add(pietSharedState);
+    return content.getExtension(PietContent.pietContentExtension);
+  }
+
+  private List<PietSharedState> getPietSharedStates(
+      /*@UnderInitialization*/ ContentDriver this,
+      PietContent pietContent,
+      ModelProvider modelProvider) {
+    List<PietSharedState> sharedStates = new ArrayList<>();
+    for (ContentId contentId : pietContent.getPietSharedStatesList()) {
+      PietSharedState pietSharedState = extractPietSharedState(contentId, modelProvider);
+      if (pietSharedState == null) {
+        return new ArrayList<>();
       }
-      contentModel = new PietContentModel(pietSharedStates, pietContent);
-    }
 
-    return contentModel;
+      sharedStates.add(pietSharedState);
+    }
+    return sharedStates;
   }
 
   /*@Nullable*/
-  private PietSharedState extractPietSharedState(ContentId pietSharedStateId) {
+  private PietSharedState extractPietSharedState(
+      /*@UnderInitialization*/ ContentDriver this,
+      ContentId pietSharedStateId,
+      ModelProvider modelProvider) {
     StreamSharedState sharedState = modelProvider.getSharedState(pietSharedStateId);
     if (sharedState != null) {
       return sharedState.getPietSharedStateItem().getPietSharedState();
@@ -84,5 +96,41 @@ public class ContentDriver implements FeatureDriver {
         "Shared state was null. Stylesheets and templates on PietSharedState "
             + "will not be loaded.");
     return null;
+  }
+
+  @Override
+  public void bind(FeedViewHolder viewHolder) {
+    if (!(viewHolder instanceof PietViewHolder)) {
+      throw new AssertionError();
+    }
+
+    this.viewHolder = (PietViewHolder) viewHolder;
+
+    ((PietViewHolder) viewHolder).bind(frame, pietSharedStates);
+  }
+
+  @Override
+  public void unbind() {
+    if (viewHolder == null) {
+      return;
+    }
+
+    viewHolder.unbind();
+    viewHolder = null;
+  }
+
+  @Override
+  public int getItemViewType() {
+    return ViewHolderType.TYPE_CARD;
+  }
+
+  @Override
+  public long itemId() {
+    return hashCode();
+  }
+
+  @VisibleForTesting
+  boolean isBound() {
+    return viewHolder != null;
   }
 }

@@ -22,8 +22,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.PietContentModel;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -35,6 +34,7 @@ import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -96,6 +96,7 @@ public class ContentDriverTest {
 
   @Mock private ModelFeature modelFeature;
   @Mock private ModelProvider modelProvider;
+  @Mock private PietViewHolder pietViewHolder;
 
   private ContentDriver contentDriver;
 
@@ -105,50 +106,39 @@ public class ContentDriverTest {
     when(modelFeature.getStreamFeature()).thenReturn(STREAM_FEATURE);
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(STREAM_SHARED_STATE_1);
     when(modelProvider.getSharedState(CONTENT_ID_2)).thenReturn(STREAM_SHARED_STATE_2);
+  }
+
+  @Test
+  public void testGetLeafFeatureDriver() {
     contentDriver = new ContentDriver(modelFeature, modelProvider);
+
+    contentDriver.bind(pietViewHolder);
+
+    verify(pietViewHolder).bind(PIET_CONTENT.getFrame(), PIET_SHARED_STATES);
   }
 
   @Test
-  public void testGetContentModel_pietContentSetCorrectly() {
-    ContentModel contentModel = contentDriver.getContentModel();
-
-    assertThat(contentModel).isInstanceOf(PietContentModel.class);
-
-    assertThat(((PietContentModel) contentModel).getPietContent()).isEqualTo(PIET_CONTENT);
-  }
-
-  @Test
-  public void testGetContentModel_sharedStatesSetCorrectly() {
-    ContentModel contentModel = contentDriver.getContentModel();
-
-    assertThat(contentModel).isInstanceOf(PietContentModel.class);
-
-    assertThat(((PietContentModel) contentModel).getPietSharedStates())
-        .isEqualTo(PIET_SHARED_STATES);
-    verify(modelProvider).getSharedState(CONTENT_ID_1);
-    verify(modelProvider).getSharedState(CONTENT_ID_2);
-  }
-
-  @Test
-  public void testGetContentModel_sharedStateItemIsNull() {
+  public void testGetLeafFeatureDriver_nullSharedStates() {
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(null);
-    ContentModel contentModel = contentDriver.getContentModel();
 
-    assertThat(contentModel).isNull();
+    contentDriver = new ContentDriver(modelFeature, modelProvider);
+
+    contentDriver.bind(pietViewHolder);
+
+    verify(pietViewHolder).bind(PIET_CONTENT.getFrame(), /* pietSharedStates= */ new ArrayList<>());
     verify(modelProvider).getSharedState(CONTENT_ID_1);
     verifyNoMoreInteractions(modelProvider);
   }
 
   @Test
-  public void testGetContentModel_reusesPreviousContentModel() {
-    ContentModel contentModel1 = contentDriver.getContentModel();
+  public void testUnbind() {
+    contentDriver = new ContentDriver(modelFeature, modelProvider);
 
-    verify(modelFeature).getStreamFeature();
+    contentDriver.bind(pietViewHolder);
 
-    ContentModel contentModel2 = contentDriver.getContentModel();
+    contentDriver.unbind();
 
-    verifyNoMoreInteractions(modelFeature);
-
-    assertThat(contentModel1).isSameAs(contentModel2);
+    verify(pietViewHolder).unbind();
+    assertThat(contentDriver.isBound()).isFalse();
   }
 }

@@ -31,7 +31,7 @@ import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
+import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
@@ -57,24 +57,22 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class StreamRecyclerViewAdapterTest {
 
-  private static final int CARD_BOTTOM_PADDING = 42;
   private static final int HEADER_COUNT = 2;
-  private static final int CONTENT_MODEL_1_ID = 123;
-  private static final int CONTENT_MODEL_2_ID = 321;
+  private static final long FEATURE_DRIVER_1_ID = 123;
+  private static final long FEATURE_DRIVER_2_ID = 321;
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private PietManager pietManager;
   @Mock private FrameAdapter frameAdapter;
   @Mock private StreamDriver driver;
-  @Mock private ContentModel initialContentModel;
-  @Mock private ContentModel contentModel1;
-  @Mock private ContentModel contentModel2;
+  @Mock private LeafFeatureDriver initialFeatureDriver;
+  @Mock private LeafFeatureDriver featureDriver1;
+  @Mock private LeafFeatureDriver featureDriver2;
   @Mock private ActionParser actionParser;
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
 
   private Context context;
-  private List<View> headers;
   private LinearLayout frameContainer;
   private StreamRecyclerViewAdapter streamRecyclerViewAdapter;
 
@@ -86,17 +84,15 @@ public class StreamRecyclerViewAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
     frameContainer = new LinearLayout(context);
 
-    when(cardConfiguration.getCardBottomPadding()).thenReturn((float) CARD_BOTTOM_PADDING);
-
     when(pietManager.createPietFrameAdapter(
             any(Supplier.class), any(ActionHandler.class), eq(context)))
         .thenReturn(frameAdapter);
     when(frameAdapter.getFrameContainer()).thenReturn(frameContainer);
 
-    when(contentModel1.itemId()).thenReturn(CONTENT_MODEL_1_ID);
-    when(contentModel2.itemId()).thenReturn(CONTENT_MODEL_2_ID);
+    when(featureDriver1.itemId()).thenReturn(FEATURE_DRIVER_1_ID);
+    when(featureDriver2.itemId()).thenReturn(FEATURE_DRIVER_2_ID);
 
-    headers = new ArrayList<>();
+    List<View> headers = new ArrayList<>();
     for (int i = 0; i < HEADER_COUNT; ++i) {
       headers.add(new View(context));
     }
@@ -105,7 +101,7 @@ public class StreamRecyclerViewAdapterTest {
             context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
     streamRecyclerViewAdapter.setHeaders(headers);
 
-    when(driver.getContentModels()).thenReturn(Lists.newArrayList(initialContentModel));
+    when(driver.getLeafFeatureDrivers()).thenReturn(Lists.newArrayList(initialFeatureDriver));
     streamRecyclerViewAdapter.setDriver(driver);
   }
 
@@ -132,75 +128,73 @@ public class StreamRecyclerViewAdapterTest {
   }
 
   @Test
-  public void testBindPiet() {
+  public void testOnBindViewHolder() {
     FrameLayout parent = new FrameLayout(context);
     FeedViewHolder viewHolder =
         streamRecyclerViewAdapter.onCreateViewHolder(parent, ViewHolderType.TYPE_CARD);
 
-    FrameLayout cardView = getCardView(viewHolder);
-    cardView.setPadding(1, 2, 3, 4);
-
     streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getPietBindingIndex(0));
 
-    verify(initialContentModel).bind(viewHolder);
+    verify(initialFeatureDriver).bind(viewHolder);
   }
 
   @Test
-  public void testUnBindPiet() {
+  public void testOnViewRecycled() {
     PietViewHolder viewHolder = mock(PietViewHolder.class);
 
     streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getPietBindingIndex(0));
 
     // Make sure the content model is bound
-    verify(initialContentModel).bind(viewHolder);
+    verify(initialFeatureDriver).bind(viewHolder);
 
     streamRecyclerViewAdapter.onViewRecycled(viewHolder);
 
-    verify(viewHolder).unbind();
+    verify(initialFeatureDriver).unbind();
   }
 
   @Test
   public void testSetDriver_initialContentModels() {
     // streamRecyclerViewAdapter.setDriver(driver) is called in setup()
-    assertThat(streamRecyclerViewAdapter.getContentModels()).containsExactly(initialContentModel);
+    assertThat(streamRecyclerViewAdapter.getLeafFeatureDrivers())
+        .containsExactly(initialFeatureDriver);
   }
 
   @Test
   public void testSetDriver_newDriver() {
     StreamDriver newDriver = mock(StreamDriver.class);
-    List<ContentModel> newContentModels = Lists.newArrayList(contentModel1, contentModel2);
+    List<LeafFeatureDriver> newFeatureDrivers = Lists.newArrayList(featureDriver1, featureDriver2);
 
-    when(newDriver.getContentModels()).thenReturn(newContentModels);
+    when(newDriver.getLeafFeatureDrivers()).thenReturn(newFeatureDrivers);
 
     streamRecyclerViewAdapter.setDriver(newDriver);
 
     verify(driver).setStreamContentListener(null);
     assertThat(streamRecyclerViewAdapter.getItemId(getPietBindingIndex(0)))
-        .isEqualTo(CONTENT_MODEL_1_ID);
+        .isEqualTo(FEATURE_DRIVER_1_ID);
     assertThat(streamRecyclerViewAdapter.getItemId(getPietBindingIndex(1)))
-        .isEqualTo(CONTENT_MODEL_2_ID);
+        .isEqualTo(FEATURE_DRIVER_2_ID);
   }
 
   @Test
   public void testNotifyContentsAdded_endOfList() {
     streamRecyclerViewAdapter.notifyContentsAdded(
-        1, Lists.newArrayList(contentModel1, contentModel2));
-    assertThat(streamRecyclerViewAdapter.getContentModels())
-        .containsAllOf(initialContentModel, contentModel1, contentModel2);
+        1, Lists.newArrayList(featureDriver1, featureDriver2));
+    assertThat(streamRecyclerViewAdapter.getLeafFeatureDrivers())
+        .containsAllOf(initialFeatureDriver, featureDriver1, featureDriver2);
   }
 
   @Test
   public void testNotifyContentsAdded_startOfList() {
     streamRecyclerViewAdapter.notifyContentsAdded(
-        0, Lists.newArrayList(contentModel1, contentModel2));
-    assertThat(streamRecyclerViewAdapter.getContentModels())
-        .containsAllOf(contentModel1, contentModel2, initialContentModel);
+        0, Lists.newArrayList(featureDriver1, featureDriver2));
+    assertThat(streamRecyclerViewAdapter.getLeafFeatureDrivers())
+        .containsAllOf(featureDriver1, featureDriver2, initialFeatureDriver);
   }
 
   @Test
   public void testNotifyContentsRemoved() {
     streamRecyclerViewAdapter.notifyContentRemoved(0);
-    assertThat(streamRecyclerViewAdapter.getContentModels()).isEmpty();
+    assertThat(streamRecyclerViewAdapter.getLeafFeatureDrivers()).isEmpty();
   }
 
   private FrameLayout getCardView(ViewHolder viewHolder) {

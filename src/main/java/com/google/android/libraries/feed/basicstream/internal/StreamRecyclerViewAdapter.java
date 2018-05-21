@@ -26,18 +26,20 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
+import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /** A RecyclerView adapter which can show a list of views with Piet Stream features. */
@@ -51,8 +53,9 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final ActionParser actionParser;
   private final ActionApi actionApi;
   private final ActionManager actionManager;
-  private final List<ContentModel> contentModels;
+  private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<View> headers;
+  private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
   /*@Nullable*/ private StreamDriver streamDriver;
 
   // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
@@ -71,8 +74,9 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     headers = new ArrayList<>();
-    contentModels = new ArrayList<>();
+    leafFeatureDrivers = new ArrayList<>();
     setHasStableIds(true);
+    boundViewHolderToLeafFeatureDriverMap = new HashMap<>();
   }
 
   @Override
@@ -104,8 +108,10 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       return;
     }
     Logger.d(TAG, "onBindViewHolder %s", i);
-    ContentModel contentModel = contentModels.get(positionToStreamIndex(i));
-    contentModel.bind(viewHolder);
+    LeafFeatureDriver leafFeatureDriver = leafFeatureDrivers.get(positionToStreamIndex(i));
+
+    leafFeatureDriver.bind(viewHolder);
+    boundViewHolderToLeafFeatureDriverMap.put(viewHolder, leafFeatureDriver);
   }
 
   private void injectHeader(HeaderViewHolder headerViewHolder, int position) {
@@ -117,22 +123,35 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
   @Override
   public void onViewRecycled(FeedViewHolder viewHolder) {
-    viewHolder.unbind();
+    if (viewHolder instanceof HeaderViewHolder) {
+      viewHolder.unbind();
+      return;
+    }
+
+    LeafFeatureDriver leafFeatureDriver = boundViewHolderToLeafFeatureDriverMap.get(viewHolder);
+
+    if (leafFeatureDriver == null) {
+      Logger.wtf(TAG, "Could not find driver for unbinding");
+      return;
+    }
+
+    leafFeatureDriver.unbind();
+    boundViewHolderToLeafFeatureDriverMap.remove(viewHolder);
   }
 
   @Override
   public int getItemCount() {
-    return contentModels.size() + headers.size();
+    return leafFeatureDrivers.size() + headers.size();
   }
 
   @Override
+  @ViewHolderType
   public int getItemViewType(int position) {
-    // TODO: Create ContentModels for headers.
     if (isHeader(position)) {
       return TYPE_HEADER;
     }
 
-    return contentModels.get(positionToStreamIndex(position)).getItemViewType();
+    return leafFeatureDrivers.get(positionToStreamIndex(position)).getItemViewType();
   }
 
   @Override
@@ -141,12 +160,12 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       return headers.get(position).hashCode();
     }
 
-    return contentModels.get(positionToStreamIndex(position)).itemId();
+    return leafFeatureDrivers.get(positionToStreamIndex(position)).itemId();
   }
 
   @VisibleForTesting
-  public List<ContentModel> getContentModels() {
-    return contentModels;
+  public List<LeafFeatureDriver> getLeafFeatureDrivers() {
+    return leafFeatureDrivers;
   }
 
   private boolean isHeader(int position) {
@@ -168,27 +187,27 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       streamDriver.setStreamContentListener(null);
     }
 
-    contentModels.clear();
+    leafFeatureDrivers.clear();
 
     newStreamDriver.setStreamContentListener(this);
-    contentModels.addAll(newStreamDriver.getContentModels());
+    leafFeatureDrivers.addAll(newStreamDriver.getLeafFeatureDrivers());
 
     streamDriver = newStreamDriver;
     notifyDataSetChanged();
   }
 
   @Override
-  public void notifyContentsAdded(int index, List<ContentModel> newContents) {
-    contentModels.addAll(index, newContents);
+  public void notifyContentsAdded(int index, List<LeafFeatureDriver> newFeatureDrivers) {
+    leafFeatureDrivers.addAll(index, newFeatureDrivers);
 
     int insertionIndex = headers.size() + index;
-    notifyItemRangeInserted(insertionIndex, newContents.size());
+    notifyItemRangeInserted(insertionIndex, newFeatureDrivers.size());
   }
 
   @Override
   public void notifyContentRemoved(int index) {
     int removalIndex = headers.size() + index;
-    contentModels.remove(index);
+    leafFeatureDrivers.remove(index);
     notifyItemRemoved(removalIndex);
   }
 

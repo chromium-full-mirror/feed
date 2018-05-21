@@ -15,14 +15,14 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import android.view.View.OnClickListener;
+import android.view.View;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContinuationContentModel;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import org.junit.Before;
@@ -37,85 +37,72 @@ public class ContinuationDriverTest {
 
   @Mock private ModelToken modelToken;
   @Mock private ModelProvider modelProvider;
-  @Mock private ContinuationContentModel continuationContentModel;
+  @Mock private ContinuationViewHolder continuationViewHolder;
 
-  private ContinuationDriverForTest continuationDriver;
+  private ContinuationDriver continuationDriver;
   private Configuration configuration = new Configuration.Builder().build();
 
   @Before
   public void setup() {
     initMocks(this);
 
-    continuationDriver =
-        new ContinuationDriverForTest(
-            modelProvider, modelToken, continuationContentModel, configuration);
+    continuationDriver = new ContinuationDriver(modelProvider, modelToken, configuration);
   }
 
   @Test
-  public void testGetContentModel_immediatePaginationOn() {
+  public void testBind_immediatePaginationOn() {
     continuationDriver =
-        new ContinuationDriverForTest(
+        new ContinuationDriver(
             modelProvider,
             modelToken,
-            continuationContentModel,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build());
 
-    ContentModel continuationContentModel = continuationDriver.getContentModel();
-
-    assertThat(continuationContentModel).isEqualTo(this.continuationContentModel);
-    assertThat(continuationDriver.paginationImmediatelyArgument).isTrue();
+    continuationDriver.bind(continuationViewHolder);
+    verify(continuationViewHolder).bind(continuationDriver, /* showSpinner= */ true);
   }
 
   @Test
-  public void testGetContentModel_immediatePaginationOff() {
+  public void testBind_immediatePaginationOff() {
     continuationDriver =
-        new ContinuationDriverForTest(
+        new ContinuationDriver(
             modelProvider,
             modelToken,
-            continuationContentModel,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false).build());
 
-    ContentModel continuationContentModel = continuationDriver.getContentModel();
-
-    assertThat(continuationContentModel).isEqualTo(this.continuationContentModel);
-    assertThat(continuationDriver.paginationImmediatelyArgument).isFalse();
+    continuationDriver.bind(continuationViewHolder);
+    verify(continuationViewHolder).bind(continuationDriver, /* showSpinner= */ false);
   }
 
   @Test
-  public void testGetContentModel_reusesPreviousContentModel() {
-    ContentModel continuationContentModel = continuationDriver.getContentModel();
+  public void testShowsSpinnerAfterClick() {
+    continuationDriver.bind(continuationViewHolder);
 
-    assertThat(continuationDriver.getContentModel()).isSameAs(continuationContentModel);
+    continuationDriver.onClick(any(View.class));
+
+    continuationDriver.unbind();
+
+    continuationDriver.bind(continuationViewHolder);
+
+    verify(continuationViewHolder).bind(continuationDriver, /* showSpinner= */ true);
   }
 
   @Test
   public void testOnClick() {
-    continuationDriver.getContentModel();
+    continuationDriver.bind(continuationViewHolder);
     continuationDriver.onClick(/* v= */ null);
 
-    verify(continuationContentModel).setShowSpinner(true);
+    verify(continuationViewHolder).setShowSpinner(true);
     verify(modelProvider).handleToken(modelToken);
   }
 
-  private class ContinuationDriverForTest extends ContinuationDriver {
+  @Test
+  public void testUnbind() {
+    continuationDriver.bind(continuationViewHolder);
+    assertThat(continuationDriver.isBound()).isTrue();
+    continuationDriver.unbind();
 
-    private ContinuationContentModel continuationContentModel;
-    private boolean paginationImmediatelyArgument;
-
-    ContinuationDriverForTest(
-        ModelProvider modelProvider,
-        ModelToken modelToken,
-        ContinuationContentModel continuationContentModel,
-        Configuration configuration) {
-      super(modelProvider, modelToken, configuration);
-      this.continuationContentModel = continuationContentModel;
-    }
-
-    @Override
-    ContinuationContentModel createContinuationContentModel(
-        OnClickListener onClickListener, boolean paginateImmediately) {
-      this.paginationImmediatelyArgument = paginateImmediately;
-      return continuationContentModel;
-    }
+    verify(continuationViewHolder).unbind();
+    assertThat(continuationDriver.isBound()).isFalse();
   }
+
 }

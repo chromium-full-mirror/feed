@@ -15,14 +15,13 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 
 /**
- * A FeatureDriver is an object which can generate a {@link ContentModel} from a {@link
+ * A FeatureDriver is an object which can generate a {@link LeafFeatureDriver} from a {@link
  * ModelFeature}.
  */
 public interface FeatureDriver {
 
   /*@Nullable*/
-  ContentModel getContentModel();
+  LeafFeatureDriver getLeafFeatureDriver();
 }

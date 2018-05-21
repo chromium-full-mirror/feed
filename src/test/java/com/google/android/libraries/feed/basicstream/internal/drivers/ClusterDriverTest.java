@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.basicstream.internal.contentmodels.ContentModel;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -43,7 +42,7 @@ public class ClusterDriverTest {
   private static final StreamFeature CARD_STREAM_FEATURE =
       StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build();
 
-  @Mock private ContentModel contentModel;
+  @Mock private LeafFeatureDriver leafFeatureDriver;
   @Mock private ModelFeature clusterModelFeature;
   @Mock private ModelProvider modelProvider;
 
@@ -68,23 +67,23 @@ public class ClusterDriverTest {
 
     // CardDriver created by ClusterDriverForTest
     CardDriver cardDriver = mock(CardDriver.class);
-    when(cardDriver.getContentModel()).thenReturn(contentModel);
+    when(cardDriver.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
     clusterDriver = new ClusterDriverForTest(clusterModelFeature, modelProvider, cardDriver);
   }
 
   @Test
   public void testGetContentModel() {
-    assertThat(clusterDriver.getContentModel()).isEqualTo(contentModel);
+    assertThat(clusterDriver.getLeafFeatureDriver()).isEqualTo(leafFeatureDriver);
   }
 
   @Test
   public void testGetContentModel_reusesPreviousContentModel() {
-    clusterDriver.getContentModel();
+    clusterDriver.getLeafFeatureDriver();
 
     verify(clusterModelFeature).getCursor();
 
-    clusterDriver.getContentModel();
+    clusterDriver.getLeafFeatureDriver();
 
     verifyNoMoreInteractions(clusterModelFeature);
   }
