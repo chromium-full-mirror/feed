@@ -28,10 +28,15 @@ public abstract class NetworkClientConformanceTest {
 
   protected NetworkClient networkClient;
 
+  /** Defines a valid URI for the provided method. */
+  protected Uri getValidUri(@HttpMethod String httpMethod) {
+    return new Uri.Builder().path("http://www.google.com/").build();
+  }
+
   @Test
   public void send_get() {
-    HttpRequest request =
-        new HttpRequest(new Uri.Builder().path("http://www.google.com/").build(), HttpMethod.GET);
+    @HttpMethod String method = HttpMethod.GET;
+    HttpRequest request = new HttpRequest(getValidUri(method), method);
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {
@@ -45,11 +50,8 @@ public abstract class NetworkClientConformanceTest {
 
   @Test
   public void send_post() {
-    HttpRequest request =
-        new HttpRequest(
-            new Uri.Builder().path("http://www.google.com/").build(),
-            HttpMethod.POST,
-            "helloWorld".getBytes());
+    @HttpMethod String method = HttpMethod.POST;
+    HttpRequest request = new HttpRequest(getValidUri(method), method, "helloWorld".getBytes());
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {
@@ -63,11 +65,8 @@ public abstract class NetworkClientConformanceTest {
 
   @Test
   public void send_put() {
-    HttpRequest request =
-        new HttpRequest(
-            new Uri.Builder().path("http://www.google.com/").build(),
-            HttpMethod.PUT,
-            "helloWorld".getBytes());
+    @HttpMethod String method = HttpMethod.PUT;
+    HttpRequest request = new HttpRequest(getValidUri(method), method, "helloWorld".getBytes());
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {
@@ -81,9 +80,8 @@ public abstract class NetworkClientConformanceTest {
 
   @Test
   public void send_delete() {
-    HttpRequest request =
-        new HttpRequest(
-            new Uri.Builder().path("http://www.google.com/").build(), HttpMethod.DELETE);
+    @HttpMethod String method = HttpMethod.DELETE;
+    HttpRequest request = new HttpRequest(getValidUri(method), method);
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {

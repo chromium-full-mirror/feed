@@ -71,6 +71,12 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   private final TimingUtils timingUtils = new TimingUtils();
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
+  @Override
+  protected Uri getValidUri(@HttpMethod String method) {
+    // The URI does not matter - mockNetworkClient will default to an empty response
+    return new Uri.Builder().path("foo").appendPath(method).build();
+  }
+
   @Before
   public void setUp() throws Exception {
     initMocks(this);
