@@ -20,6 +20,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -43,11 +44,11 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
-import com.google.search.now.ui.piet.ElementsProto.Slice;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -68,13 +69,21 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link FrameAdapter}. */
 @RunWith(RobolectricTestRunner.class)
 public class FrameAdapterTest {
+  private static final Content DEFAULT_CONTENT =
+      Content.newBuilder()
+          .setElement(
+              Element.newBuilder()
+                  .setElementList(
+                      ElementList.newBuilder().addElements(Element.getDefaultInstance())))
+          .build();
+
   @Mock private AssetProvider assetProvider;
   @Mock private ElementAdapterFactory adapterFactory;
   @Mock private FrameContext frameContext;
   @Mock private DebugBehavior debugBehavior;
   @Mock private DebugLogger debugLogger;
   @Mock private StyleProvider styleProvider;
-  @Mock private ElementListAdapter elementListAdapter;
+  @Mock private ElementAdapter<? extends View, ?> elementAdapter;
   @Mock private TemplateInstanceAdapter templateAdapter;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private ActionHandler actionHandler;
@@ -97,10 +106,11 @@ public class FrameAdapterTest {
             Suppliers.of(new FrameLayout(context)),
             new ParameterizedTextEvaluator(),
             adapterFactory);
-    when(elementListAdapter.getView()).thenReturn(new LinearLayout(context));
+    when(elementAdapter.getView()).thenReturn(new LinearLayout(context));
     when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
-    when(adapterFactory.createElementListAdapter(any(ElementList.class), eq(frameContext)))
-        .thenReturn(elementListAdapter);
+    doReturn(elementAdapter)
+        .when(adapterFactory)
+        .createAdapterForElement(any(Element.class), eq(frameContext));
     when(adapterFactory.createTemplateAdapter(any(TemplateInvocation.class), eq(frameContext)))
         .thenReturn(templateAdapter);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
@@ -141,42 +151,42 @@ public class FrameAdapterTest {
   }
 
   @Test
-  public void testGetBoundAdapterForSlice() {
-    Slice slice = getBaseSlice();
+  public void testGetBoundAdaptersForContent() {
+    Content content = DEFAULT_CONTENT;
 
     String templateId = "loaf";
     when(frameContext.getTemplate(templateId)).thenReturn(Template.getDefaultInstance());
     List<ElementAdapter<?, ?>> viewAdapters =
-        frameAdapter.getBoundAdaptersForSlice(slice, frameContext);
-    assertThat(viewAdapters).containsExactly(elementListAdapter);
+        frameAdapter.getBoundAdaptersForContent(content, frameContext);
+    assertThat(viewAdapters).containsExactly(elementAdapter);
 
-    slice =
-        Slice.newBuilder()
-            .setTemplateSlice(TemplateInvocation.newBuilder().setTemplateId(templateId))
+    content =
+        Content.newBuilder()
+            .setTemplateInvocation(TemplateInvocation.newBuilder().setTemplateId(templateId))
             .build();
-    viewAdapters = frameAdapter.getBoundAdaptersForSlice(slice, frameContext);
+    viewAdapters = frameAdapter.getBoundAdaptersForContent(content, frameContext);
     assertThat(viewAdapters).isEmpty();
 
-    slice =
-        Slice.newBuilder()
-            .setTemplateSlice(
+    content =
+        Content.newBuilder()
+            .setTemplateInvocation(
                 TemplateInvocation.newBuilder()
                     .setTemplateId(templateId)
                     .addBindingContexts(BindingContext.getDefaultInstance()))
             .build();
-    viewAdapters = frameAdapter.getBoundAdaptersForSlice(slice, frameContext);
+    viewAdapters = frameAdapter.getBoundAdaptersForContent(content, frameContext);
     assertThat(viewAdapters).containsExactly(templateAdapter);
 
-    slice =
-        Slice.newBuilder()
-            .setTemplateSlice(
+    content =
+        Content.newBuilder()
+            .setTemplateInvocation(
                 TemplateInvocation.newBuilder()
                     .setTemplateId(templateId)
                     .addBindingContexts(BindingContext.getDefaultInstance())
                     .addBindingContexts(BindingContext.getDefaultInstance())
                     .addBindingContexts(BindingContext.getDefaultInstance()))
             .build();
-    viewAdapters = frameAdapter.getBoundAdaptersForSlice(slice, frameContext);
+    viewAdapters = frameAdapter.getBoundAdaptersForContent(content, frameContext);
     assertThat(viewAdapters).containsExactly(templateAdapter, templateAdapter, templateAdapter);
 
     verify(frameContext, never()).reportError(anyInt(), anyString());
@@ -221,82 +231,83 @@ public class FrameAdapterTest {
             customElementProvider,
             new HostBindingProvider());
 
-    Slice slice = Slice.newBuilder().setInlineSlice(defaultList).build();
+    Content content =
+        Content.newBuilder().setElement(Element.newBuilder().setElementList(defaultList)).build();
 
     List<ElementAdapter<?, ?>> viewAdapters =
-        frameAdapter.getBoundAdaptersForSlice(slice, frameContext);
+        frameAdapter.getBoundAdaptersForContent(content, frameContext);
     assertThat(viewAdapters).hasSize(1);
     ElementAdapter<?, ?> viewAdapter = viewAdapters.get(0);
-    assertThat(viewAdapter.getModel()).isEqualTo(slice.getInlineSlice());
-    frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null, pietSharedStates);
+    assertThat(viewAdapter.getModel()).isEqualTo(content.getElement().getElementList());
+    frameAdapter.bindModel(Frame.newBuilder().addContents(content).build(), null, pietSharedStates);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
     frameAdapter.unbindModel();
 
-    slice =
-        Slice.newBuilder()
-            .setTemplateSlice(
+    content =
+        Content.newBuilder()
+            .setTemplateInvocation(
                 TemplateInvocation.newBuilder()
                     .setTemplateId(templateId)
                     .addBindingContexts(BindingContext.getDefaultInstance()))
             .build();
-    viewAdapters = frameAdapter.getBoundAdaptersForSlice(slice, frameContext);
+    viewAdapters = frameAdapter.getBoundAdaptersForContent(content, frameContext);
     assertThat(viewAdapters).hasSize(1);
     viewAdapter = viewAdapters.get(0);
     assertThat(viewAdapter.getModel())
         .isEqualTo(
             new TemplateAdapterModel(
                 pietSharedState.getTemplates(0), BindingContext.getDefaultInstance()));
-    frameAdapter.bindModel(Frame.newBuilder().addSlices(slice).build(), null, pietSharedStates);
+    frameAdapter.bindModel(Frame.newBuilder().addContents(content).build(), null, pietSharedStates);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
     frameAdapter.unbindModel();
   }
 
   @Test
   public void testBindModel_defaultDimensions() {
-    Slice slice = getBaseSlice();
-    Frame frame = Frame.newBuilder().addSlices(slice).build();
-    when(elementListAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
-    when(elementListAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+    Content content = DEFAULT_CONTENT;
+    Frame frame = Frame.newBuilder().addContents(content).build();
+    when(elementAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+    when(elementAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
 
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
 
-    verify(elementListAdapter).setLayoutParams(layoutParamsCaptor.capture());
+    verify(elementAdapter).setLayoutParams(layoutParamsCaptor.capture());
     assertThat(layoutParamsCaptor.getValue().width).isEqualTo(LayoutParams.MATCH_PARENT);
     assertThat(layoutParamsCaptor.getValue().height).isEqualTo(LayoutParams.WRAP_CONTENT);
   }
 
   @Test
   public void testBindModel_explicitDimensions() {
-    Slice slice = getBaseSlice();
-    Frame frame = Frame.newBuilder().addSlices(slice).build();
+    Content content = DEFAULT_CONTENT;
+    Frame frame = Frame.newBuilder().addContents(content).build();
     int width = 123;
     int height = 456;
-    when(elementListAdapter.getComputedWidthPx()).thenReturn(width);
-    when(elementListAdapter.getComputedHeightPx()).thenReturn(height);
+    when(elementAdapter.getComputedWidthPx()).thenReturn(width);
+    when(elementAdapter.getComputedHeightPx()).thenReturn(height);
 
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
 
-    verify(elementListAdapter).setLayoutParams(layoutParamsCaptor.capture());
+    verify(elementAdapter).setLayoutParams(layoutParamsCaptor.capture());
     assertThat(layoutParamsCaptor.getValue().width).isEqualTo(width);
     assertThat(layoutParamsCaptor.getValue().height).isEqualTo(height);
   }
 
   @Test
   public void testBackgroundColor() {
-    Slice slice = getBaseSlice();
-    Frame frame = Frame.newBuilder().addSlices(slice).build();
+    Content content = DEFAULT_CONTENT;
+    Frame frame = Frame.newBuilder().addContents(content).build();
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     verify(frameContext).createBackground(styleProvider, context);
   }
 
   @Test
   public void testUnsetBackgroundIfNotDefined() {
-    Slice slice = getBaseSlice();
-    Frame frame = Frame.newBuilder().addSlices(slice).build();
+    Content content = DEFAULT_CONTENT;
+    Frame frame = Frame.newBuilder().addContents(content).build();
 
     // Set background
     when(frameContext.createBackground(styleProvider, context))
@@ -313,8 +324,8 @@ public class FrameAdapterTest {
 
   @Test
   public void testUnsetBackgroundIfCreateBackgroundFails() {
-    Slice slice = getBaseSlice();
-    Frame frame = Frame.newBuilder().addSlices(slice).build();
+    Content content = DEFAULT_CONTENT;
+    Frame frame = Frame.newBuilder().addContents(content).build();
 
     // Set background
     when(frameContext.createBackground(styleProvider, context))
@@ -331,16 +342,19 @@ public class FrameAdapterTest {
 
   @Test
   public void testRecycling_inlineSlice() {
-    ElementList inlineSlice =
-        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+    Element element =
+        Element.newBuilder()
+            .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
+            .setElementList(ElementList.getDefaultInstance())
+            .build();
     Frame inlineSliceFrame =
-        Frame.newBuilder().addSlices(Slice.newBuilder().setInlineSlice(inlineSlice)).build();
+        Frame.newBuilder().addContents(Content.newBuilder().setElement(element)).build();
     frameAdapter.bindModel(inlineSliceFrame, (ShardingControl) null, pietSharedStates);
-    verify(adapterFactory).createElementListAdapter(inlineSlice, frameContext);
-    verify(elementListAdapter).bindModel(inlineSlice, frameContext);
+    verify(adapterFactory).createAdapterForElement(element, frameContext);
+    verify(elementAdapter).bindModel(element, frameContext);
 
     frameAdapter.unbindModel();
-    verify(adapterFactory).releaseAdapter(elementListAdapter);
+    verify(adapterFactory).releaseAdapter(elementAdapter);
   }
 
   @Test
@@ -358,7 +372,9 @@ public class FrameAdapterTest {
             .addBindingContexts(bindingContext)
             .build();
     Frame templateSliceFrame =
-        Frame.newBuilder().addSlices(Slice.newBuilder().setTemplateSlice(templateSlice)).build();
+        Frame.newBuilder()
+            .addContents(Content.newBuilder().setTemplateInvocation(templateSlice))
+            .build();
     frameAdapter.bindModel(templateSliceFrame, (ShardingControl) null, pietSharedStates);
     verify(adapterFactory).createTemplateAdapter(templateSlice, frameContext);
     verify(templateAdapter)
@@ -375,8 +391,8 @@ public class FrameAdapterTest {
     when(debugLogger.getReportView(MessageType.WARNING, context)).thenReturn(warningView);
     when(debugLogger.getReportView(MessageType.ERROR, context)).thenReturn(errorView);
 
-    Slice slice = getBaseSlice();
-    Frame frame = Frame.newBuilder().addSlices(slice).build();
+    Content content = DEFAULT_CONTENT;
+    Frame frame = Frame.newBuilder().addContents(content).build();
 
     // Errors silenced by debug behavior
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.SILENT);
@@ -404,11 +420,5 @@ public class FrameAdapterTest {
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
-  }
-
-  private static Slice getBaseSlice() {
-    return Slice.newBuilder()
-        .setInlineSlice(ElementList.newBuilder().addElements(Element.getDefaultInstance()))
-        .build();
   }
 }
