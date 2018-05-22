@@ -14,9 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
-import static com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor.convertRecyclerViewScrollStateToListenerState;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -25,6 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState;
 import org.junit.Before;
@@ -40,6 +39,7 @@ public class StreamScrollMonitorTest {
 
   @Mock private ScrollListener scrollListener1;
   @Mock private ScrollListener scrollListener2;
+  @Mock private ContentChangedListener contentChangedListener;
 
   private StreamScrollMonitor streamScrollMonitor;
   private RecyclerView recyclerView;
@@ -51,7 +51,7 @@ public class StreamScrollMonitorTest {
     Context context = Robolectric.setupActivity(Activity.class);
     recyclerView = new RecyclerView(context);
 
-    streamScrollMonitor = new StreamScrollMonitor(recyclerView);
+    streamScrollMonitor = new StreamScrollMonitor(recyclerView, contentChangedListener);
     streamScrollMonitor.addScrollListener(scrollListener1);
   }
 
@@ -75,6 +75,13 @@ public class StreamScrollMonitorTest {
     streamScrollMonitor.onScrollStateChanged(recyclerView, RecyclerView.SCROLL_STATE_IDLE);
 
     verify(scrollListener1).onScrollStateChanged(ScrollState.IDLE);
+  }
+
+  @Test
+  public void testOnScrollStateChanged_notifiesObserverOnIdle() {
+    streamScrollMonitor.onScrollStateChanged(recyclerView, RecyclerView.SCROLL_STATE_IDLE);
+
+    verify(contentChangedListener).onContentChanged();
   }
 
   @Test

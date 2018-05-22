@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.basicstream.internal;
 
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -28,11 +29,15 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
   private static final String TAG = "StreamScrollMonitor";
 
   private final Set<ScrollListener> scrollListeners;
+  private final ContentChangedListener contentChangedListener;
 
   // Nullness checker doesn't like adding listeners in constructor.  This is OK as RecyclerView will
   // not call listener when it is added.
   @SuppressWarnings("initialization")
-  public StreamScrollMonitor(RecyclerView recyclerView) {
+  public StreamScrollMonitor(
+      RecyclerView recyclerView, ContentChangedListener childChangeListener) {
+    this.contentChangedListener = childChangeListener;
+
     scrollListeners = new HashSet<>();
 
     recyclerView.addOnScrollListener(this);
@@ -48,6 +53,10 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
 
   @Override
   public void onScrollStateChanged(RecyclerView recyclerView, int state) {
+    if (state == RecyclerView.SCROLL_STATE_IDLE) {
+      contentChangedListener.onContentChanged();
+    }
+
     int scrollState = convertRecyclerViewScrollStateToListenerState(state);
     for (ScrollListener scrollListener : scrollListeners) {
       scrollListener.onScrollStateChanged(scrollState);

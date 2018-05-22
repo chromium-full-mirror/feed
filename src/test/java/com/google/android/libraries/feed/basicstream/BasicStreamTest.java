@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.api.stream.Stream.POSITION_NOT_K
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
@@ -241,6 +243,28 @@ public class BasicStreamTest {
     assertThat(basicStream.getChildTopAt(0)).isEqualTo(view.getTop());
   }
 
+  @Test
+  public void testOnContentChanged() {
+    ContentChangedListener contentChangedListener = mock(ContentChangedListener.class);
+    basicStream.addOnContentChangedListener(contentChangedListener);
+
+    basicStream.onContentChanged();
+
+    verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testOnContentChanged_noNotificationsAfterRemoval() {
+    ContentChangedListener contentChangedListener = mock(ContentChangedListener.class);
+
+    basicStream.addOnContentChangedListener(contentChangedListener);
+    basicStream.removeOnContentChangedListener(contentChangedListener);
+
+    basicStream.onContentChanged();
+
+    verify(contentChangedListener, never()).onContentChanged();
+  }
+
   private RecyclerView getStreamRecyclerView() {
     return (RecyclerView) basicStream.getView();
   }
@@ -330,7 +354,8 @@ public class BasicStreamTest {
     }
 
     @Override
-    StreamScrollMonitor createStreamScrollMonitor(RecyclerView recyclerView) {
+    StreamScrollMonitor createStreamScrollMonitor(
+        RecyclerView recyclerView, ContentChangedListener contentChangedListener) {
       return streamScrollMonitor;
     }
 

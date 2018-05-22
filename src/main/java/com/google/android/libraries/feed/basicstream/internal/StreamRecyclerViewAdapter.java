@@ -26,6 +26,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
@@ -56,6 +57,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<View> headers;
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
+  private final ContentChangedListener contentChangedListener;
   /*@Nullable*/ private StreamDriver streamDriver;
 
   // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
@@ -66,13 +68,15 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       PietManager pietManager,
       ActionParser actionParser,
       ActionApi actionApi,
-      ActionManager actionManager) {
+      ActionManager actionManager,
+      ContentChangedListener contentChangedListener) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
     this.actionParser = actionParser;
     this.actionApi = actionApi;
     this.actionManager = actionManager;
+    this.contentChangedListener = contentChangedListener;
     headers = new ArrayList<>();
     leafFeatureDrivers = new ArrayList<>();
     setHasStableIds(true);
@@ -103,7 +107,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   @Override
   public void onBindViewHolder(FeedViewHolder viewHolder, int i) {
     if (isHeader(i)) {
-      // TODO: Create ContentModels for headers.
       injectHeader((HeaderViewHolder) viewHolder, i);
       return;
     }
@@ -179,6 +182,11 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   public void setHeaders(List<View> newHeaders) {
     headers.clear();
     headers.addAll(newHeaders);
+
+    // TODO: This would notify the listener even if the headers are offscreen. Fix if
+    // this becomes an issue.
+    contentChangedListener.onContentChanged();
+
     notifyDataSetChanged();
   }
 
@@ -198,16 +206,31 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
   @Override
   public void notifyContentsAdded(int index, List<LeafFeatureDriver> newFeatureDrivers) {
+    if (newFeatureDrivers.size() == 0) {
+      return;
+    }
+
     leafFeatureDrivers.addAll(index, newFeatureDrivers);
 
     int insertionIndex = headers.size() + index;
+
+    // TODO: This would notify the listener even if the content being added is
+    // offscreen. Fix if this becomes an issue.
+    contentChangedListener.onContentChanged();
+
     notifyItemRangeInserted(insertionIndex, newFeatureDrivers.size());
   }
 
   @Override
   public void notifyContentRemoved(int index) {
     int removalIndex = headers.size() + index;
+    
     leafFeatureDrivers.remove(index);
+
+    // TODO: This would notify the listener even if the content being removed is
+    // offscreen. Fix if this becomes an issue.
+    contentChangedListener.onContentChanged();
+
     notifyItemRemoved(removalIndex);
   }
 

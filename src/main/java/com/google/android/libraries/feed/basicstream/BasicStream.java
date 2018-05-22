@@ -49,13 +49,14 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvider;
+import java.util.HashSet;
 import java.util.List;
 
 /**
  * A basic implementation of a Feed {@link Stream} that is just able to render a vertical stream of
  * cards.
  */
-public class BasicStream implements Stream, ModelProviderObserver {
+public class BasicStream implements Stream, ModelProviderObserver, ContentChangedListener {
 
   private static final String TAG = "BasicStream";
 
@@ -67,6 +68,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final ActionApi actionApi;
   private final ActionManager actionManager;
   private final Configuration configuration;
+  private final HashSet<ContentChangedListener> contentChangedListeners;
 
   private RecyclerView recyclerView;
   private ModelProvider modelProvider;
@@ -112,6 +114,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.configuration = configuration;
+    this.contentChangedListeners = new HashSet<>();
   }
 
   @VisibleForTesting
@@ -159,7 +162,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
           streamConfiguration.getPaddingBottom());
     }
 
-    streamScrollMonitor = createStreamScrollMonitor(recyclerView);
+    streamScrollMonitor =
+        createStreamScrollMonitor(recyclerView, /* contentChangedListener= */ this);
 
     modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(this);
@@ -267,10 +271,14 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   @Override
-  public void addOnContentChangedListener(ContentChangedListener listener) {}
+  public void addOnContentChangedListener(ContentChangedListener listener) {
+    contentChangedListeners.add(listener);
+  }
 
   @Override
-  public void removeOnContentChangedListener(ContentChangedListener listener) {}
+  public void removeOnContentChangedListener(ContentChangedListener listener) {
+    contentChangedListeners.remove(listener);
+  }
 
   @Override
   public void triggerRefresh() {
@@ -318,12 +326,26 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ActionApi actionApi,
       ActionManager actionManager) {
     return new StreamRecyclerViewAdapter(
-        context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
+        context,
+        cardConfiguration,
+        pietManager,
+        actionParser,
+        actionApi,
+        actionManager,
+        /* contentChangedListener= */ this);
   }
 
   @VisibleForTesting
-  StreamScrollMonitor createStreamScrollMonitor(RecyclerView recyclerView) {
-    return new StreamScrollMonitor(recyclerView);
+  StreamScrollMonitor createStreamScrollMonitor(
+      RecyclerView recyclerView, ContentChangedListener contentChangedListener) {
+    return new StreamScrollMonitor(recyclerView, contentChangedListener);
+  }
+
+  @Override
+  public void onContentChanged() {
+    for (ContentChangedListener changedListener : contentChangedListeners) {
+      changedListener.onContentChanged();
+    }
   }
 
   @VisibleForTesting

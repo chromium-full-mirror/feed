@@ -18,7 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -31,6 +33,7 @@ import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
@@ -71,10 +74,11 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private ActionParser actionParser;
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
-
+  @Mock private ContentChangedListener contentChangedListener;
   private Context context;
   private LinearLayout frameContainer;
   private StreamRecyclerViewAdapter streamRecyclerViewAdapter;
+  private ArrayList headers;
 
   @SuppressWarnings("unchecked") // Needed for templated captures.
   @Before
@@ -92,13 +96,19 @@ public class StreamRecyclerViewAdapterTest {
     when(featureDriver1.itemId()).thenReturn(FEATURE_DRIVER_1_ID);
     when(featureDriver2.itemId()).thenReturn(FEATURE_DRIVER_2_ID);
 
-    List<View> headers = new ArrayList<>();
+    headers = new ArrayList<>();
     for (int i = 0; i < HEADER_COUNT; ++i) {
       headers.add(new View(context));
     }
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
-            context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
+            context,
+            cardConfiguration,
+            pietManager,
+            actionParser,
+            actionApi,
+            actionManager,
+            contentChangedListener);
     streamRecyclerViewAdapter.setHeaders(headers);
 
     when(driver.getLeafFeatureDrivers()).thenReturn(Lists.newArrayList(initialFeatureDriver));
@@ -133,7 +143,7 @@ public class StreamRecyclerViewAdapterTest {
     FeedViewHolder viewHolder =
         streamRecyclerViewAdapter.onCreateViewHolder(parent, ViewHolderType.TYPE_CARD);
 
-    streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getPietBindingIndex(0));
+    streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getContentBindingIndex(0));
 
     verify(initialFeatureDriver).bind(viewHolder);
   }
@@ -142,7 +152,7 @@ public class StreamRecyclerViewAdapterTest {
   public void testOnViewRecycled() {
     PietViewHolder viewHolder = mock(PietViewHolder.class);
 
-    streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getPietBindingIndex(0));
+    streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getContentBindingIndex(0));
 
     // Make sure the content model is bound
     verify(initialFeatureDriver).bind(viewHolder);
@@ -169,9 +179,9 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.setDriver(newDriver);
 
     verify(driver).setStreamContentListener(null);
-    assertThat(streamRecyclerViewAdapter.getItemId(getPietBindingIndex(0)))
+    assertThat(streamRecyclerViewAdapter.getItemId(getContentBindingIndex(0)))
         .isEqualTo(FEATURE_DRIVER_1_ID);
-    assertThat(streamRecyclerViewAdapter.getItemId(getPietBindingIndex(1)))
+    assertThat(streamRecyclerViewAdapter.getItemId(getContentBindingIndex(1)))
         .isEqualTo(FEATURE_DRIVER_2_ID);
   }
 
@@ -193,15 +203,50 @@ public class StreamRecyclerViewAdapterTest {
 
   @Test
   public void testNotifyContentsRemoved() {
+    // Listener triggered in setup.
+    reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentRemoved(0);
     assertThat(streamRecyclerViewAdapter.getLeafFeatureDrivers()).isEmpty();
+  }
+
+  @Test
+  public void testNotifyContentsAdded_notifiesListener() {
+    // Listener triggered in setup.
+    reset(contentChangedListener);
+    streamRecyclerViewAdapter.notifyContentsAdded(
+        0, Lists.newArrayList(featureDriver1, featureDriver2));
+    verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testNotifyContentsRemoved_notifiesListener() {
+    // Listener triggered in setup.
+    reset(contentChangedListener);
+    streamRecyclerViewAdapter.notifyContentRemoved(0);
+    verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testSetHeaders_notifiesListener() {
+    // Listener triggered in setup.
+    reset(contentChangedListener);
+    streamRecyclerViewAdapter.setHeaders(headers);
+    verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testNotifyContentsAdded_noOpWithZeroLength() {
+    // Listener triggered in setup.
+    reset(contentChangedListener);
+    streamRecyclerViewAdapter.notifyContentsAdded(0, new ArrayList<>());
+    verifyNoMoreInteractions(contentChangedListener);
   }
 
   private FrameLayout getCardView(ViewHolder viewHolder) {
     return (FrameLayout) viewHolder.itemView;
   }
 
-  private int getPietBindingIndex(int index) {
+  private int getContentBindingIndex(int index) {
     return HEADER_COUNT + index;
   }
 }
