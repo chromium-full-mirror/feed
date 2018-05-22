@@ -160,6 +160,7 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
+            mainThreadRunner,
             protocolAdapter,
             requestManager,
             schedulerApi,
@@ -279,6 +280,7 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
+            mainThreadRunner,
             protocolAdapter,
             requestManager,
             schedulerApi,
@@ -318,6 +320,7 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
+            mainThreadRunner,
             protocolAdapter,
             requestManager,
             schedulerApi,
@@ -342,6 +345,7 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
+            mainThreadRunner,
             protocolAdapter,
             requestManager,
             schedulerApi,
@@ -366,6 +370,7 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
+            mainThreadRunner,
             protocolAdapter,
             requestManager,
             schedulerApi,
@@ -404,14 +409,18 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
+            mainThreadRunner,
             protocolAdapter,
             requestManager,
             schedulerApi,
             configuration,
             clock);
-    sessionManager.initializePersistedSessions();
     Map<String, Session> sessionMap = sessionManager.getSessionsMapForTest();
     // Sessions will include $HEAD
+    HeadSessionImpl head = (HeadSessionImpl) sessionMap.get(HEAD.getStreamToken());
+    assertThat(head).isNotNull();
+    sessionManager.initializePersistedSessions();
+    sessionMap = sessionManager.getSessionsMapForTest();
     assertThat(sessionMap).hasSize(2);
     assertThat(sessionMap.get(session2.getStreamToken()).getStreamSession()).isEqualTo(session2);
     assertThat(sessionMap.get(HEAD.getStreamToken())).isNotNull();
@@ -425,6 +434,7 @@ public class FeedSessionManagerTest {
             store,
             timingUtils,
             threadUtils,
+            mainThreadRunner,
             protocolAdapter,
             requestManager,
             schedulerApi,
@@ -541,6 +551,7 @@ public class FeedSessionManagerTest {
         store,
         timingUtils,
         threadUtils,
+        mainThreadRunner,
         protocolAdapter,
         requestManager,
         schedulerApi,

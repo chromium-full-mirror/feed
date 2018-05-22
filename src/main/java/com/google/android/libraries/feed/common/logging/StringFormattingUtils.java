@@ -34,4 +34,9 @@ public class StringFormattingUtils {
     }
     return logDateFormat.format(date);
   }
+
+  /** Formats a long as a Date */
+  public static String formatLogDate(long timeMs) {
+    return formatLogDate(new Date(timeMs));
+  }
 }

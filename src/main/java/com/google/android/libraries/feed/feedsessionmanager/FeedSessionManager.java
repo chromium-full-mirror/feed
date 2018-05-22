@@ -27,11 +27,13 @@ import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
@@ -45,8 +47,6 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.TaskQueue.T
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
-import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -88,10 +88,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @GuardedBy("lock")
   private final ContentCache contentCache;
 
+  private HeadSessionImpl head;
+
   private final SessionFactory sessionFactory;
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
+  private final MainThreadRunner mainThreadRunner;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
   private final SchedulerApi schedulerApi;
@@ -112,6 +115,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
+      MainThreadRunner mainThreadRunner,
       ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
       SchedulerApi schedulerApi,
@@ -120,6 +124,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    this.mainThreadRunner = mainThreadRunner;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
     this.schedulerApi = schedulerApi;
@@ -160,11 +165,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     // create the head session from the data in the Store
     ElapsedTimeTracker headTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    HeadSessionImpl head = sessionFactory.getHeadSession();
+    head = sessionFactory.getHeadSession();
     synchronized (lock) {
       sessions.put(head.getStreamSession().getStreamToken(), head);
     }
-    head.updateAccessTime(clock.currentTimeMillis());
     Result<List<StreamStructure>> streamStructuresResult =
         store.getStreamStructures(head.getStreamSession());
     List<StreamStructure> results;
@@ -177,25 +181,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     }
     head.initializeSession(results);
     headTimeTracker.stop("", "createHead");
-
-    // if head is empty and the scheduler allows us, trigger refresh, otherwise live with empty head
-    synchronized (lock) {
-      // TODO: This code needs to be moved to the session creation.
-      boolean fillingEmptyHead =
-          head.isHeadEmpty()
-              && schedulerApi.shouldSessionRequestData(new SessionManagerState(false, 0, false))
-                  == RequestBehavior.REQUEST_WITH_WAIT;
-      // Head is now initialized, unless we are filling and empty head.
-      if (fillingEmptyHead) {
-        taskQueue.execute(
-            "refreshEmptyHead",
-            TaskType.HEAD_RESET,
-            () ->
-                requestManager.triggerRefresh(
-                    RequestReason.MANUAL_REFRESH,
-                    new CommitterTask("refreshEmptyHead", MutationContext.EMPTY_CONTEXT)));
-      }
-    }
     initializePersistedSessions();
     timeTracker.stop("task", "Initialization");
   }
@@ -211,8 +196,21 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     List<StreamSession> sessionList = persistedSessions.getStreamSessionsList();
     for (StreamSession session : sessionList) {
       if (!isSessionAlive(session)) {
-        Logger.i(TAG, "Found expired session %s", session.getStreamToken());
+        Logger.i(
+            TAG,
+            "Found expired session %s, created %s",
+            session.getStreamToken(),
+            StringFormattingUtils.formatLogDate(session.getLastAccessed()));
         cleanupSessions = true;
+        continue;
+      }
+      if (session.getStreamToken().equals(head.getStreamSession().getStreamToken())) {
+        // update the information stored for the $HEAD record we created previously
+        Logger.i(
+            TAG,
+            "Updating $HEAD state, creation %s",
+            StringFormattingUtils.formatLogDate(session.getLastAccessed()));
+        head.updateAccessTime(session.getLastAccessed());
         continue;
       }
       synchronized (lock) {
@@ -372,6 +370,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           }
           updateStoredSessions();
           newSessionCount++;
+          Logger.i(
+              TAG,
+              "Populate new session: %s, creation time %s",
+              session.getStreamSession().getStreamToken(),
+              StringFormattingUtils.formatLogDate(session.getStreamSession().getLastAccessed()));
           timeTracker.stop("task", "Create/Populate New Session");
         };
 
@@ -779,13 +782,24 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         updates = new ArrayList<>(sessions.values());
       }
       for (Session session : updates) {
-        // TODO: Add something to the interface to avoid the instanceof?
-        if (clearedHead && !(session instanceof HeadSessionImpl)) {
-          // if we cleared the head, all existing session will not be updated by this mutation
-          continue;
+        if (clearedHead) {
+          if (session == head) {
+            session.updateSession(streamStructures, mutationSourceToken);
+            long updateTime = clock.currentTimeMillis();
+            head.updateAccessTime(updateTime);
+            mainThreadRunner.execute(TAG, () -> schedulerApi.onReceiveNewContent(updateTime));
+            Logger.i(
+                TAG,
+                "Cleared Head, new creation time %s",
+                StringFormattingUtils.formatLogDate(updateTime));
+          } else {
+            // TODO: We need to ask the session if it supports clear
+            Logger.i(TAG, "Session %s not cleared", session.getStreamSession().getStreamToken());
+          }
+        } else {
+          Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
+          session.updateSession(streamStructures, mutationSourceToken);
         }
-        Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
-        session.updateSession(streamStructures, mutationSourceToken);
       }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
     }

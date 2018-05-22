@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 
 /**
@@ -22,8 +24,10 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
  * made based upon how old the content currently is.
  */
 public class FeedSchedulerApiImpl implements SchedulerApi {
-
+  private static final String TAG = "FeedSchedulerApiImpl";
   private final ThreadUtils threadUtils;
+
+  private long contentCreationMs;
 
   public FeedSchedulerApiImpl(ThreadUtils threadUtils) {
     this.threadUtils = threadUtils;
@@ -32,15 +36,28 @@ public class FeedSchedulerApiImpl implements SchedulerApi {
   @Override
   @RequestBehavior
   public int shouldSessionRequestData(SessionManagerState sessionManagerState) {
-    // TODO: Add this back when we move the SchedulerApi use into the session creation
-    // threadUtils.checkMainThread();
+    threadUtils.checkMainThread();
+    Logger.i(
+        TAG,
+        "shouldSessionRequestData, content %s, contentCreationMs %s, request %s",
+        sessionManagerState.hasContent,
+        sessionManagerState.contentCreationDateTimeMs,
+        sessionManagerState.hasOutstandingRequest);
+    if (contentCreationMs == 0) {
+      return RequestBehavior.REQUEST_WITH_WAIT;
+      // No Content
+    }
     return RequestBehavior.REQUEST_WITH_WAIT;
   }
 
   @Override
   public void onReceiveNewContent(long contentCreationDateTimeMs) {
     threadUtils.checkMainThread();
-    // Do nothing
+    Logger.i(
+        TAG,
+        "onReceiveNewContent %s",
+        StringFormattingUtils.formatLogDate(contentCreationDateTimeMs));
+    contentCreationMs = contentCreationDateTimeMs;
   }
 
   @Override

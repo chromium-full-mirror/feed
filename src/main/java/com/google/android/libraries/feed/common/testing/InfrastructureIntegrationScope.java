@@ -97,6 +97,7 @@ public class InfrastructureIntegrationScope {
             store,
             timingUtils,
             threadUtils,
+            mainThreadRunner,
             feedProtocolAdapter,
             fakeRequestManager,
             DISABLED_EMPTY_HEAD_REQUEST,
