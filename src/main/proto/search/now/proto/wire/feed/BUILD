@@ -7,7 +7,7 @@ exports_files(["LICENSE"])
 proto_library(
     name = "feed_proto",
     srcs = glob(["*.proto"]),
-    deps = ["//src/main/proto/search/now/proto/ui/piet:piet_proto"],
+    deps = ["//src/main/proto/search/now/ui/piet:piet_proto"],
 )
 
 java_proto_library(

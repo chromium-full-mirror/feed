@@ -14,10 +14,10 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/proto/ui/piet/binding_refs.proto";
-import "src/main/proto/search/now/proto/ui/piet/gradients.proto";
-import "src/main/proto/search/now/proto/ui/piet/rounded_corners.proto";
-import "src/main/proto/search/now/proto/ui/piet/shadows.proto";
+import "src/main/proto/search/now/ui/piet/binding_refs.proto";
+import "src/main/proto/search/now/ui/piet/gradients.proto";
+import "src/main/proto/search/now/ui/piet/rounded_corners.proto";
+import "src/main/proto/search/now/ui/piet/shadows.proto";
 
 package search.now.ui.piet;
 

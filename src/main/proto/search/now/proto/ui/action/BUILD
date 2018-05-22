@@ -9,7 +9,7 @@ proto_library(
     srcs = ["piet_extensions.proto"],
     deps = [
         ":feed_action_payload_proto",
-        "//src/main/proto/search/now/proto/ui/piet:piet_proto",
+        "//src/main/proto/search/now/ui/piet:piet_proto",
     ],
 )
 

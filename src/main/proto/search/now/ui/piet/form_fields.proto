@@ -14,7 +14,7 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/proto/ui/piet/elements.proto";
+import "src/main/proto/search/now/ui/piet/elements.proto";
 
 package search.now.ui.piet;
 
