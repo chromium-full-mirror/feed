@@ -25,7 +25,6 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/testing/shadows",
-        "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "@androidsdk//com.android.support:recyclerview-v7-25.3.1",
         "@bazel_android//:robolectric",
         "@com_google_code_findbugs_jsr305//jar",

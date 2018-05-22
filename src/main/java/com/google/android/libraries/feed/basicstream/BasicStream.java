@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.basicstream;
 
-import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
@@ -142,7 +141,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     adapter.setHeaders(headers);
 
     recyclerView = new RecyclerView(context);
-    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+    recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
 
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);
@@ -213,18 +212,48 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   @Override
-  public void smoothScrollBy(int dx, int dy) {}
-
-  @Override
-  public int getChildTopAt(int position) {
-    return POSITION_NOT_KNOWN;
+  public void smoothScrollBy(int dx, int dy) {
+    recyclerView.smoothScrollBy(dx, dy);
   }
 
   @Override
-  @SuppressWarnings("dereference.of.nullable")
+  public int getChildTopAt(int position) {
+    if (!isChildAtPositionVisible(position)) {
+      return POSITION_NOT_KNOWN;
+    }
+
+    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+    if (layoutManager == null) {
+      return POSITION_NOT_KNOWN;
+    }
+
+    View view = layoutManager.findViewByPosition(position);
+    if (view == null) {
+      return POSITION_NOT_KNOWN;
+    }
+
+    return view.getTop();
+  }
+
+  @Override
   public boolean isChildAtPositionVisible(int position) {
-    View childView = checkNotNull(recyclerView.getLayoutManager()).findViewByPosition(position);
-    return childView != null && childView.getVisibility() == View.VISIBLE;
+    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+    if (layoutManager == null) {
+      return false;
+    }
+
+    int firstItemPosition = layoutManager.findFirstVisibleItemPosition();
+    int lastItemPosition = layoutManager.findLastVisibleItemPosition();
+    if (firstItemPosition == RecyclerView.NO_POSITION
+        || lastItemPosition == RecyclerView.NO_POSITION) {
+      return false;
+    }
+
+    if (position < firstItemPosition || position > lastItemPosition) {
+      return false;
+    }
+
+    return true;
   }
 
   @Override
@@ -295,5 +324,10 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @VisibleForTesting
   StreamScrollMonitor createStreamScrollMonitor(RecyclerView recyclerView) {
     return new StreamScrollMonitor(recyclerView);
+  }
+
+  @VisibleForTesting
+  LinearLayoutManager createRecyclerViewLayoutManager(Context context) {
+    return new LinearLayoutManager(context);
   }
 }

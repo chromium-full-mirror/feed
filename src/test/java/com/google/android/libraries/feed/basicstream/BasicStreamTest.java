@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream;
 
+import static com.google.android.libraries.feed.api.stream.Stream.POSITION_NOT_KNOWN;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -25,8 +26,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Build.VERSION_CODES;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -79,6 +82,8 @@ public class BasicStreamTest {
   @Mock private StreamScrollMonitor streamScrollMonitor;
 
   private Configuration configuration = new Configuration.Builder().build();
+  private LinearLayoutManagerWithFakePositioning layoutManager;
+  private Context context;
   private BasicStream basicStream;
 
   @Before
@@ -91,6 +96,10 @@ public class BasicStreamTest {
     when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
     
     when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
+
+    context = Robolectric.setupActivity(Activity.class);
+    layoutManager = new LinearLayoutManagerWithFakePositioning(context);
+
     basicStream = createBasicStream();
     basicStream.onCreate(null);
   }
@@ -182,13 +191,63 @@ public class BasicStreamTest {
     verify(streamScrollMonitor).removeScrollListener(scrollListener);
   }
 
+  @Test
+  public void testIsChildAtPositionVisible() {
+    layoutManager.firstVisiblePosition = 0;
+    layoutManager.lastVisiblePosition = 1;
+    assertThat(basicStream.isChildAtPositionVisible(-2)).isFalse();
+    assertThat(basicStream.isChildAtPositionVisible(-1)).isFalse();
+    assertThat(basicStream.isChildAtPositionVisible(0)).isTrue();
+    assertThat(basicStream.isChildAtPositionVisible(1)).isTrue();
+    assertThat(basicStream.isChildAtPositionVisible(2)).isFalse();
+  }
+
+  @Test
+  public void testIsChildAtPositionVisible_nothingVisible() {
+    assertThat(basicStream.isChildAtPositionVisible(0)).isFalse();
+  }
+
+  @Test
+  public void testIsChildAtPositionVisible_validTop() {
+    layoutManager.firstVisiblePosition = 0;
+    assertThat(basicStream.isChildAtPositionVisible(0)).isFalse();
+  }
+
+  @Test
+  public void testIsChildAtPositionVisible_validBottom() {
+    layoutManager.lastVisiblePosition = 1;
+    assertThat(basicStream.isChildAtPositionVisible(0)).isFalse();
+  }
+
+  @Test
+  public void testGetChildTopAt_noVisibleChild() {
+    assertThat(basicStream.getChildTopAt(0)).isEqualTo(POSITION_NOT_KNOWN);
+  }
+
+  @Test
+  public void testGetChildTopAt_noChild() {
+    layoutManager.firstVisiblePosition = 0;
+    layoutManager.lastVisiblePosition = 1;
+    assertThat(basicStream.getChildTopAt(0)).isEqualTo(POSITION_NOT_KNOWN);
+  }
+
+  @Test
+  public void testGetChildTopAt() {
+    layoutManager.firstVisiblePosition = 0;
+    layoutManager.lastVisiblePosition = 1;
+    View view = new FrameLayout(context);
+    layoutManager.addChildToPosition(0, view);
+
+    assertThat(basicStream.getChildTopAt(0)).isEqualTo(view.getTop());
+  }
+
   private RecyclerView getStreamRecyclerView() {
     return (RecyclerView) basicStream.getView();
   }
 
   private BasicStream createBasicStream() {
     return new BasicStreamForTest(
-        Robolectric.setupActivity(Activity.class),
+        context,
         streamConfiguration,
         mock(CardConfiguration.class),
         mock(ImageLoaderApi.class),
@@ -273,6 +332,45 @@ public class BasicStreamTest {
     @Override
     StreamScrollMonitor createStreamScrollMonitor(RecyclerView recyclerView) {
       return streamScrollMonitor;
+    }
+
+    @Override
+    LinearLayoutManager createRecyclerViewLayoutManager(Context context) {
+      return layoutManager;
+    }
+  }
+
+  private class LinearLayoutManagerWithFakePositioning extends LinearLayoutManager {
+
+    private final List<View> childMap;
+    private int firstVisiblePosition = RecyclerView.NO_POSITION;
+    private int lastVisiblePosition = RecyclerView.NO_POSITION;
+
+    public LinearLayoutManagerWithFakePositioning(Context context) {
+      super(context);
+      childMap = new ArrayList<>();
+    }
+
+    @Override
+    public int findFirstVisibleItemPosition() {
+      return firstVisiblePosition;
+    }
+
+    @Override
+    public int findLastVisibleItemPosition() {
+      return lastVisiblePosition;
+    }
+
+    @Override
+    public View findViewByPosition(int i) {
+      if (i < 0 || i >= childMap.size()) {
+        return null;
+      }
+      return childMap.get(i);
+    }
+
+    private void addChildToPosition(int position, View child) {
+      childMap.add(position, child);
     }
   }
 }
