@@ -20,16 +20,16 @@ import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 
 /**
- * Concrete impl of {@link SchedulerApi}. This implementation determines when a request should be
- * made based upon how old the content currently is.
+ * Concrete impl of {@link SchedulerApi}. The implementation will timeout session creation when a
+ * request is running too long and will show existing content.
  */
-public class FeedSchedulerApiImpl implements SchedulerApi {
+public class TimeoutScheduler implements SchedulerApi {
   private static final String TAG = "FeedSchedulerApiImpl";
   private final ThreadUtils threadUtils;
 
   private long contentCreationMs;
 
-  public FeedSchedulerApiImpl(ThreadUtils threadUtils) {
+  public TimeoutScheduler(ThreadUtils threadUtils) {
     this.threadUtils = threadUtils;
   }
 
