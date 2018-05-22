@@ -33,14 +33,17 @@ import com.google.android.libraries.feed.host.storage.JournalStorage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -165,7 +168,7 @@ public class PersistentJournalStorage implements JournalStorage {
     try {
       String sanitizedDestJournalName = sanitize(operation.getToJournalName());
       if (!sanitizedDestJournalName.isEmpty()) {
-        Files.copy(journal.toPath(), new File(journalDir, sanitizedDestJournalName).toPath());
+        copyFile(journal, sanitizedDestJournalName);
         return true;
       }
       // TODO: error handling
@@ -178,6 +181,28 @@ public class PersistentJournalStorage implements JournalStorage {
           operation.getToJournalName());
     }
     return false;
+  }
+
+  private void copyFile(File journal, String destinationFileName) throws IOException {
+    InputStream inputStream = null;
+    OutputStream outputStream = null;
+    try {
+      File destination = new File(journalDir, destinationFileName);
+      inputStream = new FileInputStream(journal);
+      outputStream = new FileOutputStream(destination);
+      byte[] bytes = new byte[512];
+      int length;
+      while ((length = inputStream.read(bytes)) > 0) {
+        outputStream.write(bytes, 0, length);
+      }
+    } finally {
+      if (inputStream != null) {
+        inputStream.close();
+      }
+      if (outputStream != null) {
+        outputStream.close();
+      }
+    }
   }
 
   private boolean append(Append operation, File journal) {
