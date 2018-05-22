@@ -204,7 +204,7 @@ public class FeedProcessScope implements Dumpable {
         protocolAdapter = new FeedProtocolAdapter(timingUtils);
       }
       ActionReader actionReader =
-          new FeedActionReader(store, clock, protocolAdapter, configuration);
+          new FeedActionReader(store, clock, protocolAdapter, singleThreadExecutor, configuration);
       if (requestManager == null) {
         requestManager =
             new FeedRequestManager(

@@ -42,7 +42,6 @@ public class ActionGc {
       JournalStorage journalStorage,
       MainThreadRunner mainThreadRunner,
       TimingUtils timingUtils,
-      // TODO: refactor to just use constant
       String journalName) {
 
     this.actions = actions;

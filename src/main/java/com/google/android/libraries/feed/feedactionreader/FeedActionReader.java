@@ -28,6 +28,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /** Feed implementation of {@link ActionReader} */
@@ -37,16 +38,25 @@ public class FeedActionReader implements ActionReader {
   private final Store store;
   private final Clock clock;
   private final ProtocolAdapter protocolAdapter;
+  private final ExecutorService executor;
   private final long dismissActionTTLSeconds;
+  private final double minValidActionRatio;
 
   public FeedActionReader(
-      Store store, Clock clock, ProtocolAdapter protocolAdapter, Configuration configuration) {
+      Store store,
+      Clock clock,
+      ProtocolAdapter protocolAdapter,
+      ExecutorService executor,
+      Configuration configuration) {
     this.store = store;
     this.clock = clock;
     this.protocolAdapter = protocolAdapter;
+    this.executor = executor;
     this.dismissActionTTLSeconds =
         configuration.getValueOrDefault(
             ConfigKey.DEFAULT_ACTION_TTL_SECONDS, TimeUnit.DAYS.toSeconds(3));
+    minValidActionRatio =
+        configuration.getValueOrDefault(ConfigKey.MINIMUM_VALID_ACTION_RATIO, 0.3);
   }
 
   @Override
@@ -65,6 +75,11 @@ public class FeedActionReader implements ActionReader {
       if (dismissAction.getTimestampSeconds() > minValidTime) {
         contentIds.add(dismissAction.getFeatureContentId());
       }
+    }
+
+    // Clean up if necessary
+    if ((double) contentIds.size() / dismissActions.size() < minValidActionRatio) {
+      executor.execute(store.triggerActionGc(dismissActions, contentIds));
     }
 
     Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =

@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.feedstore.internal.ActionGc;
 import com.google.android.libraries.feed.feedstore.internal.FeedActionMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSemanticPropertiesMutation;
@@ -444,6 +445,18 @@ public class FeedStore implements Store, Dumpable {
       Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
     return new ContentGc(
             accessibleContent, reservedContentIds, contentStorage, mainThreadRunner, timingUtils)
+        ::gc;
+  }
+
+  @Override
+  public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
+    return new ActionGc(
+            actions,
+            validContentIds,
+            journalStorage,
+            mainThreadRunner,
+            timingUtils,
+            DISMISS_ACTION_JOURNAL)
         ::gc;
   }
 

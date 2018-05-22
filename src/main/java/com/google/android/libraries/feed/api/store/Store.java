@@ -104,4 +104,10 @@ public interface Store {
    */
   Runnable triggerContentGc(
       Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent);
+
+  /**
+   * Returns a runnable that will garbage collect actions. All valid actions will be copied over to
+   * a new copy of the journal.
+   */
+  Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds);
 }
