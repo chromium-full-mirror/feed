@@ -250,11 +250,11 @@ public class TaskQueue implements Dumpable {
     Logger.i(TAG, "executeHeadReset %s", task);
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     runnable.run();
+    timeTracker.stop("task", task, "", "executeHeadReset");
     synchronized (lock) {
       waitForHeadReset = false;
       executeNextTask();
     }
-    timeTracker.stop("task", task, "", "executeHeadReset");
   }
 
   private void executeHeadInvalidate(String task, Runnable runnable) {

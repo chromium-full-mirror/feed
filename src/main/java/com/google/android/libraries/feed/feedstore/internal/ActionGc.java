@@ -76,15 +76,17 @@ public class ActionGc {
     mainThreadRunner.execute(
         TAG,
         () -> {
+          ElapsedTimeTracker mutationTracker = timingUtils.getElapsedTimeTracker(TAG);
           journalStorage.commit(
               mutationBuilder.build(),
               result -> {
                 if (result == CommitResult.SUCCESS) {
-                  tracker.stop("gc", actions.size() - validActions.size());
+                  mutationTracker.stop("gcMutation", actions.size() - validActions.size());
                 } else {
-                  tracker.stop("gc failed");
+                  mutationTracker.stop("gcMutation failed");
                 }
               });
         });
+    tracker.stop("gc failed");
   }
 }

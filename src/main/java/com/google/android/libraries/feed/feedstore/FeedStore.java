@@ -322,6 +322,7 @@ public class FeedStore implements Store, Dumpable {
           Logger.e(TAG, e, "Error parsing StreamAction for bytes: %s", bytes);
         }
       }
+      tracker.stop("getAllDismissActions");
       return Result.success(actions);
     }
   }
