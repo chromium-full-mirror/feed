@@ -7,6 +7,6 @@ android_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
-        "//src/main/proto/search/now/proto/ui/action:feed_action_java_proto_lite",
+        "//src/main/proto/search/now/ui/action:feed_action_java_proto_lite",
     ],
 )

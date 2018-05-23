@@ -26,7 +26,7 @@ proto_library(
     srcs = ["stream_swipe_extension.proto"],
     deps = [
         ":stream_proto",
-        "//src/main/proto/search/now/proto/ui/action:feed_action_payload_proto",
+        "//src/main/proto/search/now/ui/action:feed_action_payload_proto",
     ],
 )
 

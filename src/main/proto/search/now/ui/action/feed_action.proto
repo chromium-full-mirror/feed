@@ -17,7 +17,7 @@ syntax = "proto2";
 package search.now.ui.action;
 
 option optimize_for=LITE_RUNTIME;
-import "src/main/proto/search/now/proto/ui/action/feed_action_payload.proto";
+import "src/main/proto/search/now/ui/action/feed_action_payload.proto";
 import "src/main/proto/search/now/proto/wire/feed/content_id.proto";
 import "src/main/proto/search/now/proto/wire/feed/data_operation.proto";
 option java_package = "com.google.search.now.ui.action";
