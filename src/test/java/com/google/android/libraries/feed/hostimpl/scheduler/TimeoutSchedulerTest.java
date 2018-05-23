@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.hostimpl.scheduler;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.testing.conformance.scheduler.SchedulerConformanceTest;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -24,14 +25,16 @@ import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link TimeoutScheduler}. */
+// TODO: Add real tests
 @RunWith(RobolectricTestRunner.class)
 public class TimeoutSchedulerTest extends SchedulerConformanceTest {
 
   @Mock private ThreadUtils threadUtils;
+  @Mock private Clock clock;
 
   @Before
   public void setup() {
     initMocks(this);
-    scheduler = new TimeoutScheduler(threadUtils);
+    scheduler = new TimeoutScheduler(threadUtils, clock);
   }
 }

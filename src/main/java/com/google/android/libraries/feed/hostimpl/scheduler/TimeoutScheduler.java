@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.hostimpl.scheduler;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 
 /**
@@ -26,11 +27,13 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 public class TimeoutScheduler implements SchedulerApi {
   private static final String TAG = "FeedSchedulerApiImpl";
   private final ThreadUtils threadUtils;
+  private final Clock clock;
 
   private long contentCreationMs;
 
-  public TimeoutScheduler(ThreadUtils threadUtils) {
+  public TimeoutScheduler(ThreadUtils threadUtils, Clock clock) {
     this.threadUtils = threadUtils;
+    this.clock = clock;
   }
 
   @Override

@@ -168,7 +168,7 @@ public class FeedProcessScope implements Dumpable {
       return this;
     }
 
-    Builder setClock(Clock clock) {
+    public Builder setClock(Clock clock) {
       this.clock = clock;
       return this;
     }
