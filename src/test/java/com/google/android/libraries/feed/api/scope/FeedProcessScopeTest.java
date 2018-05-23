@@ -67,7 +67,6 @@ public class FeedProcessScopeTest {
         new Builder(
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
-                imageLoaderApi,
                 loggingApi,
                 networkClient,
                 schedulerApi,
@@ -89,7 +88,6 @@ public class FeedProcessScopeTest {
         new FeedProcessScope.Builder(
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
-                imageLoaderApi,
                 loggingApi,
                 networkClient,
                 schedulerApi,

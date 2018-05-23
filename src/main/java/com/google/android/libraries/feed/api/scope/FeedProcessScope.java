@@ -66,6 +66,7 @@ public class FeedProcessScope implements Dumpable {
 
   public FeedStreamScope.Builder createFeedStreamScopeBuilder(
       Context context,
+      ImageLoaderApi imageLoaderApi,
       ActionApi actionApi,
       StreamConfiguration streamConfiguration,
       CardConfiguration cardConfiguration,
@@ -118,14 +119,12 @@ public class FeedProcessScope implements Dumpable {
     public Builder(
         Configuration configuration,
         ExecutorService singleThreadExecutor,
-        ImageLoaderApi imageLoaderApi,
         LoggingApi loggingApi,
         NetworkClient networkClient,
         SchedulerApi schedulerApi,
         DebugBehavior debugBehavior) {
       this.configuration = configuration;
       this.singleThreadExecutor = singleThreadExecutor;
-      this.imageLoaderApi = imageLoaderApi;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
       this.schedulerApi = schedulerApi;
@@ -239,7 +238,6 @@ public class FeedProcessScope implements Dumpable {
           new FeedActionManagerImpl(sessionManager, store, threadUtils, singleThreadExecutor);
 
       return new FeedProcessScope(
-          imageLoaderApi,
           loggingApi,
           networkClient,
           Validators.checkNotNull(protocolAdapter),
@@ -258,7 +256,6 @@ public class FeedProcessScope implements Dumpable {
     // Required fields.
     private final Configuration configuration;
     private final ExecutorService singleThreadExecutor;
-    private final ImageLoaderApi imageLoaderApi;
     private final LoggingApi loggingApi;
     private final NetworkClient networkClient;
     private final SchedulerApi schedulerApi;
@@ -278,7 +275,6 @@ public class FeedProcessScope implements Dumpable {
   }
 
   private FeedProcessScope(
-      ImageLoaderApi imageLoaderApi,
       LoggingApi loggingApi,
       NetworkClient networkClient,
       FeedProtocolAdapter protocolAdapter,
@@ -292,7 +288,6 @@ public class FeedProcessScope implements Dumpable {
       Clock clock,
       DebugBehavior debugBehavior,
       ActionManager actionManager) {
-    this.imageLoaderApi = imageLoaderApi;
     this.loggingApi = loggingApi;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -308,7 +303,6 @@ public class FeedProcessScope implements Dumpable {
     this.actionManager = actionManager;
   }
 
-  private final ImageLoaderApi imageLoaderApi;
   private final LoggingApi loggingApi;
   private final NetworkClient networkClient;
   private final ProtocolAdapter protocolAdapter;
