@@ -35,6 +35,7 @@ import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
@@ -45,6 +46,7 @@ import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
+import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
@@ -509,6 +511,82 @@ public class FrameContextTest {
 
     // Succeed in looking up binding
     assertThat(frameContext.getElementListBindingValue(listBindingRef)).isEqualTo(listBindingValue);
+  }
+
+  @Test
+  public void testGetElement() {
+    Element element =
+        Element.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+    BindingValue elementBindingValue = defaultBinding().setElement(element).build();
+    ElementBindingRef elementBindingRef =
+        ElementBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(elementBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getElementBindingValue(elementBindingRef))
+        .isEqualTo(elementBindingValue);
+
+    // Can't look up binding
+    assertThatRunnable(
+            () ->
+                frameContext.getElementBindingValue(
+                    ElementBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Element binding not found");
+
+    // Binding has no content
+    assertThatRunnable(
+            () -> makeFrameContextWithEmptyBinding().getElementBindingValue(elementBindingRef))
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Element binding not found");
+
+    // Binding has no content but is GONE
+    elementBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
+    frameContext = makeFrameContextWithBinding(elementBindingValue);
+    assertThatRunnable(() -> frameContext.getElementBindingValue(elementBindingRef))
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Element binding not found");
+
+    // Binding is missine but is optional
+    ElementBindingRef elementBindingRefInvalidOptional =
+        ElementBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).setIsOptional(true).build();
+    assertThat(
+            makeFrameContextWithEmptyBinding()
+                .getElementBindingValue(elementBindingRefInvalidOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+
+    // Binding has no content but is optional
+    ElementBindingRef elementBindingRefOptional =
+        ElementBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
+    assertThat(makeFrameContextWithEmptyBinding().getElementBindingValue(elementBindingRefOptional))
+        .isEqualTo(BindingValue.getDefaultInstance());
+  }
+
+  @Test
+  public void testGetElement_hostBinding() {
+    Element element =
+        Element.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+    BindingValue elementBindingValue = defaultBinding().setElement(element).build();
+    BindingValue hostListBindingValue =
+        defaultBinding()
+            .setHostBindingData(HostBindingData.newBuilder())
+            .setElement(element)
+            .build();
+    ElementBindingRef elementBindingRef =
+        ElementBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(hostListBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getElementBindingValue(elementBindingRef))
+        .isEqualTo(elementBindingValue);
   }
 
   @Test

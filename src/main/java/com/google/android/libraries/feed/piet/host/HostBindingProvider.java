@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.piet.host;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
@@ -99,6 +100,14 @@ public class HostBindingProvider {
    * specified a BindingValue which includes {@link HostBindingData} set.
    */
   public BindingValue getElementListBindingForValue(BindingValue bindingValue) {
+    return clearHostBindingData(bindingValue);
+  }
+
+  /**
+   * Called by Piet during the binding process for a {@link ElementBindingRef} if the server has
+   * specified a BindingValue which includes {@link HostBindingData} set.
+   */
+  public BindingValue getElementBindingForValue(BindingValue bindingValue) {
     return clearHostBindingData(bindingValue);
   }
 
