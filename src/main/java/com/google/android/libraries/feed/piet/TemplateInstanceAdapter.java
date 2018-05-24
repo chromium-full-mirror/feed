@@ -31,8 +31,7 @@ import com.google.search.now.ui.piet.PietProto.Template;
 import java.util.List;
 
 /** A {@link ElementContainerAdapter} which manages a single instance of a template. */
-class TemplateInstanceAdapter
-    extends ElementContainerAdapter<LinearLayout, ElementListAdapter, TemplateAdapterModel> {
+class TemplateInstanceAdapter extends ElementContainerAdapter<LinearLayout, TemplateAdapterModel> {
 
   private static final String TAG = "TemplateInstanceAdapter";
 
@@ -90,7 +89,8 @@ class TemplateInstanceAdapter
         childAdapters.size() == 1,
         "Wrong number of child adapters; wanted 1, got %s",
         childAdapters.size());
-    childAdapters.get(0).bindModel(modelTemplate.getElementList(), localFrameContext);
+    ((ElementListAdapter) childAdapters.get(0))
+        .bindModel(modelTemplate.getElementList(), localFrameContext);
   }
 
   @Override

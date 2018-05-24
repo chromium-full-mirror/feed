@@ -31,11 +31,9 @@ import java.util.List;
  * GridRow. Ensures that lifecycle methods are called on child adapters when the parent class binds,
  * unbinds, or releases.
  */
-abstract class ElementContainerAdapter<
-        V extends ViewGroup, ChildAdapterT extends ElementAdapter<? extends View, ?>, M>
-    extends ElementAdapter<V, M> {
+abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAdapter<V, M> {
 
-  @VisibleForTesting final List<ChildAdapterT> childAdapters;
+  @VisibleForTesting final List<ElementAdapter<? extends View, ?>> childAdapters;
 
   ElementContainerAdapter(Context context, AdapterParameters parameters, V view, RecyclerKey key) {
     super(context, parameters, view, key);
@@ -96,7 +94,7 @@ abstract class ElementContainerAdapter<
     adapter.bindModel(list, baseElement, frameContext);
   }
 
-  void addChildAdapter(ChildAdapterT adapter) {
+  void addChildAdapter(ElementAdapter<? extends View, ?> adapter) {
     childAdapters.add(adapter);
   }
 

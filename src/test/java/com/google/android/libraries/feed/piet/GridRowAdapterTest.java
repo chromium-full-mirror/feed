@@ -252,7 +252,7 @@ public class GridRowAdapterTest {
 
     adapter.createAdapter(gridRowTop, frameContext);
 
-    ElementListAdapter cellAdapter = adapter.childAdapters.get(0);
+    ElementListAdapter cellAdapter = (ElementListAdapter) adapter.childAdapters.get(0);
     LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
     assertThat(params.gravity).isEqualTo(Gravity.TOP);
     assertThat(cellAdapter.getBaseView().getChildCount()).isEqualTo(2);
@@ -275,7 +275,7 @@ public class GridRowAdapterTest {
 
     adapter.createAdapter(gridRowCenter, frameContext);
 
-    ElementListAdapter cellAdapter = adapter.childAdapters.get(0);
+    ElementListAdapter cellAdapter = (ElementListAdapter) adapter.childAdapters.get(0);
     LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
     assertThat(params.gravity).isEqualTo(Gravity.CENTER_VERTICAL);
     assertThat(cellAdapter.getBaseView().getChildCount()).isEqualTo(3);
@@ -299,7 +299,7 @@ public class GridRowAdapterTest {
 
     adapter.createAdapter(gridRowBottom, frameContext);
 
-    ElementListAdapter cellAdapter = adapter.childAdapters.get(0);
+    ElementListAdapter cellAdapter = (ElementListAdapter) adapter.childAdapters.get(0);
     LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
     assertThat(params.gravity).isEqualTo(Gravity.BOTTOM);
     assertThat(cellAdapter.getBaseView().getChildCount()).isEqualTo(2);
@@ -511,9 +511,11 @@ public class GridRowAdapterTest {
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
     assertThat(adapter.childAdapters).hasSize(2);
     // The inline adapter still has its child view
-    assertThat(adapter.childAdapters.get(0).getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(((ElementListAdapter) adapter.childAdapters.get(0)).getBaseView().getChildCount())
+        .isEqualTo(1);
     // The bound adapter has been released.
-    assertThat(adapter.childAdapters.get(1).getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(((ElementListAdapter) adapter.childAdapters.get(1)).getBaseView().getChildCount())
+        .isEqualTo(0);
   }
 
   @Test

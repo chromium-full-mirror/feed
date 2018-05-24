@@ -306,7 +306,7 @@ public class TemplateInstanceAdapterTest {
     LinearLayout elementListView = (LinearLayout) templateView.getChildAt(0);
     assertThat(((TextView) elementListView.getChildAt(0)).getText().toString())
         .isEqualTo(TEXT_CONTENTS);
-    ElementListAdapter listAdapter = adapter.childAdapters.get(0);
+    ElementListAdapter listAdapter = (ElementListAdapter) adapter.childAdapters.get(0);
 
     adapter.releaseAdapter();
 

@@ -31,7 +31,7 @@ import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** An {@link ElementContainerAdapter} which manages {@code GridRow} slices. */
-class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAdapter, GridRow> {
+class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
 
   private static final String TAG = "GridRowAdapter";
 
@@ -82,7 +82,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, ElementListAd
     // the list are the same, since we are re-binding the same template.
     for (int i = 0; i < gridRow.getCellsCount(); i++) {
       GridCell cell = gridRow.getCells(i);
-      ElementListAdapter targetAdapter = childAdapters.get(i);
+      ElementListAdapter targetAdapter = (ElementListAdapter) childAdapters.get(i);
       switch (cell.getCellContentCase()) {
         case ELEMENT_LIST:
           targetAdapter.bindModel(cell.getElementList(), frameContext);
