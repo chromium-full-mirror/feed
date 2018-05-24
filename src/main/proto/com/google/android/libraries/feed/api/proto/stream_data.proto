@@ -16,7 +16,6 @@ syntax = "proto2";
 
 import "src/main/proto/search/now/proto/ui/stream/stream_structure.proto";
 import "src/main/proto/search/now/proto/wire/feed/piet_shared_state_item.proto";
-import "src/main/proto/search/now/proto/wire/feed/content_id.proto";
 
 package search.now.feed.client;
 
