@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedactionparser;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_INCOGNITO;
+import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_NEW_TAB;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_NEW_WINDOW;
 
 import android.view.View;
@@ -72,6 +73,7 @@ public class FeedActionParser implements ActionParser {
       case OPEN_URL:
       case OPEN_URL_NEW_WINDOW:
       case OPEN_URL_INCOGNITO:
+      case OPEN_URL_NEW_TAB:
         handleOpenUrl(
             feedActionMetadata.getType(), feedActionMetadata.getOpenUrlData(), streamActionApi);
         break;
@@ -135,7 +137,8 @@ public class FeedActionParser implements ActionParser {
     checkState(
         urlType.equals(OPEN_URL)
             || urlType.equals(OPEN_URL_NEW_WINDOW)
-            || urlType.equals(OPEN_URL_INCOGNITO),
+            || urlType.equals(OPEN_URL_INCOGNITO)
+            || urlType.equals(OPEN_URL_NEW_TAB),
         "Attempting to handle URL that is not a URL type: %s",
         urlType);
     if (!canPerformAction(urlType, streamActionApi)) {
@@ -159,6 +162,9 @@ public class FeedActionParser implements ActionParser {
       case OPEN_URL_INCOGNITO:
         streamActionApi.openUrlInIncognitoMode(url);
         break;
+      case OPEN_URL_NEW_TAB:
+        streamActionApi.openUrlInNewTab(url);
+        break;
       default:
         throw new AssertionError("Unhandled URL type: " + urlType);
     }
@@ -180,6 +186,8 @@ public class FeedActionParser implements ActionParser {
         return streamActionApi.canOpenUrlInNewWindow();
       case OPEN_URL_INCOGNITO:
         return streamActionApi.canOpenUrlInIncognitoMode();
+      case OPEN_URL_NEW_TAB:
+        return streamActionApi.canOpenUrlInNewTab();
       case OPEN_CONTEXT_MENU:
         return streamActionApi.canOpenContextMenu();
       case DISMISS:

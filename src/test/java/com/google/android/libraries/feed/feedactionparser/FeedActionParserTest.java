@@ -111,6 +111,18 @@ public class FeedActionParserTest {
                   .build())
           .build();
 
+  private static final FeedActionPayload OPEN_URL_NEW_TAB_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_URL_NEW_TAB)
+                          .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
+                  .build())
+          .build();
+
   private static final FeedActionPayload DOWNLOAD_URL_FEED_ACTION =
       FeedActionPayload.newBuilder()
           .setExtension(
@@ -157,6 +169,15 @@ public class FeedActionParserTest {
               PietFeedActionPayload.pietFeedActionPayloadExtension,
               PietFeedActionPayload.newBuilder()
                   .setFeedActionPayload(OPEN_URL_NEW_WINDOW_FEED_ACTION)
+                  .build())
+          .build();
+
+  private static final Action OPEN_NEW_TAB_ACTION =
+      Action.newBuilder()
+          .setExtension(
+              PietFeedActionPayload.pietFeedActionPayloadExtension,
+              PietFeedActionPayload.newBuilder()
+                  .setFeedActionPayload(OPEN_URL_NEW_TAB_FEED_ACTION)
                   .build())
           .build();
 
@@ -231,6 +252,15 @@ public class FeedActionParserTest {
         OPEN_INCOGNITO_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
 
     verify(streamActionApi).openUrlInIncognitoMode(URL);
+  }
+
+  @Test
+  public void testParseAction_newTab() {
+    when(streamActionApi.canOpenUrlInNewTab()).thenReturn(true);
+    feedActionParser.parseAction(
+        OPEN_NEW_TAB_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
+
+    verify(streamActionApi).openUrlInNewTab(URL);
   }
 
   @Test
