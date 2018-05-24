@@ -14,6 +14,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet",
+        "//src/main/proto/search/now/ui/action:feed_action_payload_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
         "@androidsdk//com.android.support:recyclerview-v7-25.3.1",
         "@androidsdk//com.android.support:support-annotations-25.3.1",

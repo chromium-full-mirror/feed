@@ -23,6 +23,7 @@ import com.google.search.now.ui.stream.StreamStructureProto;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
+import com.google.search.now.ui.stream.StreamSwipeExtensionProto.SwipeActionExtension;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
 import com.google.search.now.wire.feed.TokenProto;
@@ -49,6 +50,7 @@ public class FeedExtensionRegistry {
     extensionRegistry.add(PietContent.pietContentExtension);
     extensionRegistry.add(PietFeedActionPayload.pietFeedActionPayloadExtension);
     extensionRegistry.add(StreamStructureProto.Stream.streamExtension);
+    extensionRegistry.add(SwipeActionExtension.swipeActionExtension);
     extensionRegistry.add(TokenProto.Token.tokenExtension);
 
     // Call the host and add all the extensions it uses.

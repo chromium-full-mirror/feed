@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
@@ -33,6 +34,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
+import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCallbacks;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
@@ -145,6 +147,8 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
 
     recyclerView = new RecyclerView(context);
     recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
+
+    new ItemTouchHelper(new StreamItemTouchCallbacks()).attachToRecyclerView(recyclerView);
 
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);

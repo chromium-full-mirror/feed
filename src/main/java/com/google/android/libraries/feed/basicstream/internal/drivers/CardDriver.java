@@ -21,6 +21,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
+import com.google.search.now.ui.stream.StreamSwipeExtensionProto.SwipeActionExtension;
 
 /** {@link FeatureDriver} for cards. */
 public class CardDriver implements FeatureDriver {
@@ -30,7 +32,7 @@ public class CardDriver implements FeatureDriver {
   private final ModelProvider modelProvider;
   /*@Nullable*/ private ContentDriver contentDriver;
 
-  public CardDriver(ModelFeature cardModel, ModelProvider modelProvider) {
+  CardDriver(ModelFeature cardModel, ModelProvider modelProvider) {
     this.cardModel = cardModel;
     this.modelProvider = modelProvider;
   }
@@ -57,14 +59,20 @@ public class CardDriver implements FeatureDriver {
     if ((child = cursor.getNextItem()) != null) {
       ModelFeature contentModel = child.getModelFeature();
       checkState(contentModel.getStreamFeature().hasContent(), "Expected content for feature");
-      return createContentDriver(contentModel);
+      return createContentDriver(
+          contentModel,
+          cardModel
+              .getStreamFeature()
+              .getCard()
+              .getExtension(SwipeActionExtension.swipeActionExtension)
+              .getSwipeAction());
     }
 
     return null;
   }
 
   @VisibleForTesting
-  ContentDriver createContentDriver(ModelFeature contentModel) {
-    return new ContentDriver(contentModel, modelProvider);
+  ContentDriver createContentDriver(ModelFeature contentModel, FeedActionPayload swipeAction) {
+    return new ContentDriver(contentModel, modelProvider, swipeAction);
   }
 }

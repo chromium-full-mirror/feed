@@ -22,7 +22,7 @@ package search.now.ui.stream;
 option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.ui.stream";
-option java_outer_classname = "StreamExtensionsProto";
+option java_outer_classname = "StreamSwipeExtensionProto";
 option cc_enable_arenas = true;
 
 // Extension for cards that are swipeable. Allows action to be set for execution

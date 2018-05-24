@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
+import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
@@ -38,7 +39,11 @@ public class PietViewHolder extends FeedViewHolder {
   private final CardConfiguration cardConfiguration;
   private final FrameLayout cardView;
   private final FrameAdapter frameAdapter;
+  private final ActionParser actionParser;
+  private final StreamActionApi streamActionApi;
   private boolean bound;
+
+  /*@Nullable*/ private FeedActionPayload swipeAction;
 
   public PietViewHolder(
       CardConfiguration cardConfiguration,
@@ -50,6 +55,8 @@ public class PietViewHolder extends FeedViewHolder {
     super(cardView);
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;
+    this.actionParser = actionParser;
+    this.streamActionApi = streamActionApi;
     this.frameAdapter =
         pietManager.createPietFrameAdapter(
             () -> cardView,
@@ -59,19 +66,13 @@ public class PietViewHolder extends FeedViewHolder {
     cardView.addView(frameAdapter.getFrameContainer());
   }
 
-  public void bind(/*@Nullable*/ Frame frame, /*@Nullable*/ List<PietSharedState> pietSharedStates) {
+  public void bind(
+      Frame frame, List<PietSharedState> pietSharedStates, FeedActionPayload swipeAction) {
     if (bound) {
       return;
     }
 
-    if (frame == null || pietSharedStates == null) {
-      Logger.w(
-          TAG,
-          "Binding with null value. Frame is null: %s, PietSharedStates is null: %s",
-          frame == null,
-          pietSharedStates == null);
-      return;
-    }
+    this.swipeAction = swipeAction;
 
     // Need to reset padding here.  Setting a background can affect padding so if we switch from
     // a background which has padding to one that does not, then the padding needs to be removed.
@@ -92,7 +93,21 @@ public class PietViewHolder extends FeedViewHolder {
     if (!bound) {
       return;
     }
+
+    swipeAction = null;
     frameAdapter.unbindModel();
     bound = false;
+  }
+
+  public boolean canSwipe() {
+    return swipeAction != null && !swipeAction.equals(FeedActionPayload.getDefaultInstance());
+  }
+
+  public void swipeToDismissPerformed() {
+    if (swipeAction == null) {
+      Logger.wtf(TAG, "Swipe performed on unbound ViewHolder.");
+      return;
+    }
+    actionParser.parseFeedActionPayload(swipeAction, streamActionApi, itemView);
   }
 }

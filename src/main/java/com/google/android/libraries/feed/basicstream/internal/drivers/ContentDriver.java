@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.PietVi
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
+import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto;
@@ -40,13 +41,18 @@ public class ContentDriver extends LeafFeatureDriver {
 
   private final List<PietSharedState> pietSharedStates;
   private final Frame frame;
+  private final FeedActionPayload swipeAction;
 
   /*@Nullable*/ private PietViewHolder viewHolder;
 
-  ContentDriver(ModelFeature contentFeatureModel, ModelProvider modelProvider) {
+  ContentDriver(
+      ModelFeature contentFeatureModel,
+      ModelProvider modelProvider,
+      FeedActionPayload swipeAction) {
     PietContent pietContent = getPietContent(contentFeatureModel.getStreamFeature().getContent());
     frame = pietContent.getFrame();
     pietSharedStates = getPietSharedStates(pietContent, modelProvider);
+    this.swipeAction = swipeAction;
   }
 
   @Override
@@ -106,7 +112,7 @@ public class ContentDriver extends LeafFeatureDriver {
 
     this.viewHolder = (PietViewHolder) viewHolder;
 
-    ((PietViewHolder) viewHolder).bind(frame, pietSharedStates);
+    ((PietViewHolder) viewHolder).bind(frame, pietSharedStates, swipeAction);
   }
 
   @Override

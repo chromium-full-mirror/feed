@@ -26,6 +26,8 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.PietVi
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
+import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
+import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
@@ -109,30 +111,51 @@ public class ContentDriverTest {
   }
 
   @Test
-  public void testGetLeafFeatureDriver() {
-    contentDriver = new ContentDriver(modelFeature, modelProvider);
+  public void testBind() {
+    contentDriver =
+        new ContentDriver(modelFeature, modelProvider, FeedActionPayload.getDefaultInstance());
 
     contentDriver.bind(pietViewHolder);
 
-    verify(pietViewHolder).bind(PIET_CONTENT.getFrame(), PIET_SHARED_STATES);
+    verify(pietViewHolder)
+        .bind(PIET_CONTENT.getFrame(), PIET_SHARED_STATES, FeedActionPayload.getDefaultInstance());
   }
 
   @Test
-  public void testGetLeafFeatureDriver_nullSharedStates() {
+  public void testBind_nullSharedStates() {
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(null);
 
-    contentDriver = new ContentDriver(modelFeature, modelProvider);
+    contentDriver =
+        new ContentDriver(modelFeature, modelProvider, FeedActionPayload.getDefaultInstance());
 
     contentDriver.bind(pietViewHolder);
 
-    verify(pietViewHolder).bind(PIET_CONTENT.getFrame(), /* pietSharedStates= */ new ArrayList<>());
+    verify(pietViewHolder)
+        .bind(
+            PIET_CONTENT.getFrame(),
+            /* pietSharedStates= */ new ArrayList<>(),
+            FeedActionPayload.getDefaultInstance());
     verify(modelProvider).getSharedState(CONTENT_ID_1);
     verifyNoMoreInteractions(modelProvider);
   }
 
   @Test
+  public void testBind_swipeableWithNonDefaultFeedActionPayload() {
+    FeedActionPayload payload =
+        FeedActionPayload.newBuilder()
+            .setExtension(FeedAction.feedActionExtension, FeedAction.getDefaultInstance())
+            .build();
+    contentDriver = new ContentDriver(modelFeature, modelProvider, payload);
+
+    contentDriver.bind(pietViewHolder);
+
+    verify(pietViewHolder).bind(PIET_CONTENT.getFrame(), PIET_SHARED_STATES, payload);
+  }
+
+  @Test
   public void testUnbind() {
-    contentDriver = new ContentDriver(modelFeature, modelProvider);
+    contentDriver =
+        new ContentDriver(modelFeature, modelProvider, FeedActionPayload.getDefaultInstance());
 
     contentDriver.bind(pietViewHolder);
 
