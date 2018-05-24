@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
+import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
@@ -184,6 +185,65 @@ public class StreamDriverTest {
 
     assertThat(streamDriver.getLeafFeatureDrivers())
         .containsExactly(leafFeatureDrivers.get(0), leafFeatureDrivers.get(3));
+  }
+
+  @Test
+  public void testOnChange_addsNoContentCard_whenFeatureDriversEmpty() {
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+
+    assertThat(leafFeatureDrivers).hasSize(1);
+
+    streamDriver.onChange(
+        new ChildRemoveBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+
+    assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
+    assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
+  }
+
+  @Test
+  public void testOnChange_addsNoContentCard_withJustContinuationDriver() {
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().addToken().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+
+    assertThat(leafFeatureDrivers).hasSize(2);
+
+    streamDriver.onChange(
+        new ChildRemoveBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+
+    assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
+    assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
+  }
+
+  @Test
+  public void testContinuationToken_removesNoContentCard() {
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().addToken().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.onChange(
+        new ChildRemoveBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+
+    assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
+    assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
+
+    new TokenHandlingTestBuilder()
+        .setInitialCursor(fakeModelCursor)
+        .setTokenPayloadCursor(new FakeCursorBuilder().addCard().build())
+        .setTokenIndex(1)
+        .run();
+
+    assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
+    assertThat(streamDriver.getLeafFeatureDrivers().get(0))
+        .isInstanceOf(FakeLeafFeatureDriver.class);
   }
 
   @Test

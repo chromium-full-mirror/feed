@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.basicstream.internal;
 
 import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_CONTINUATION;
 import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_HEADER;
+import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_NO_CONTENT;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -33,6 +34,7 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.NoContentViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -95,6 +97,11 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       frameLayout.setLayoutParams(
           new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
       return new ContinuationViewHolder(parent.getContext(), frameLayout);
+    } else if (viewType == TYPE_NO_CONTENT) {
+      FrameLayout frameLayout = new FrameLayout(parent.getContext());
+      frameLayout.setLayoutParams(
+          new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+      return new NoContentViewHolder(cardConfiguration, parent.getContext(), frameLayout);
     }
 
     FrameLayout cardView = new FrameLayout(context);

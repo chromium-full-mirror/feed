@@ -16,4 +16,6 @@
 -->
 <resources>
   <string name="more_button_label">More</string>
+  <string name="no_content_line_1">That\'s all for now</string>
+  <string name="no_content_line_2">Your suggested articles appear here</string>
 </resources>

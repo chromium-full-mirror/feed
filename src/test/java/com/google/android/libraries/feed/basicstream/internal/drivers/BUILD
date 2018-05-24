@@ -86,6 +86,22 @@ android_local_test(
 )
 
 android_local_test(
+    name = "NoContentDriverTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["NoContentDriverTest.java"],
+    manifest = "AndroidManifest.xml",
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
+        "@bazel_android//:robolectric",
+        "@com_google_truth_truth//jar",
+        "@org_mockito_mockito_all//jar",
+    ],
+)
+
+android_local_test(
     name = "StreamDriverTest",
     size = "small",
     timeout = "moderate",
@@ -97,6 +113,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers/testing:fake_feature_driver",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers/testing:fake_leaf_feature_driver",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/testing/modelprovider:fake_model_child",
         "//src/main/java/com/google/android/libraries/feed/testing/modelprovider:fake_model_cursor",

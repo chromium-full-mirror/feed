@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,6 +122,12 @@ public class StreamDriver implements FeatureChangeObserver {
                 contentListener.notifyContentsAdded(
                     continuationIndex, buildLeafFeatureDrivers(newChildren));
               }
+              if (shouldRemoveNoContentCard()) {
+                featureDrivers.remove(0);
+                if (contentListener != null) {
+                  contentListener.notifyContentRemoved(0);
+                }
+              }
             });
 
         return continuationDriver;
@@ -173,6 +180,33 @@ public class StreamDriver implements FeatureChangeObserver {
 
       removeDriver(removedChild);
     }
+
+    addNoContentCardIfNecessary();
+  }
+
+  private void addNoContentCardIfNecessary() {
+    if (featureDrivers.isEmpty()
+        || (featureDrivers.size() == 1 && isLastDriverContinuationDriver())) {
+      NoContentDriver noContentDriver = createNoContentDriver();
+      featureDrivers.add(0, noContentDriver);
+      if (contentListener != null) {
+        contentListener.notifyContentsAdded(0, Collections.singletonList(noContentDriver));
+      }
+    }
+  }
+
+  private boolean shouldRemoveNoContentCard() {
+    if (featureDrivers.isEmpty() || !(featureDrivers.get(0) instanceof NoContentDriver)) {
+      return false;
+    }
+
+    return featureDrivers.size() > 2
+        || (featureDrivers.size() == 2 && !isLastDriverContinuationDriver());
+  }
+
+  private boolean isLastDriverContinuationDriver() {
+    return !featureDrivers.isEmpty()
+        && featureDrivers.get(featureDrivers.size() - 1) instanceof ContinuationDriver;
   }
 
   /**
@@ -218,6 +252,11 @@ public class StreamDriver implements FeatureChangeObserver {
   ContinuationDriver createContinuationDriver(
       ModelProvider modelProvider, ModelToken modelToken, Configuration configuration) {
     return new ContinuationDriver(modelProvider, modelToken, configuration);
+  }
+
+  @VisibleForTesting
+  NoContentDriver createNoContentDriver() {
+    return new NoContentDriver();
   }
 
   public void setStreamContentListener(/*@Nullable*/ StreamContentListener contentListener) {
