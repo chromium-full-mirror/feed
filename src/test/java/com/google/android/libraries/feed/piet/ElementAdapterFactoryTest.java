@@ -18,6 +18,8 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -252,8 +254,8 @@ public class ElementAdapterFactoryTest {
 
   @Test
   public void testCreateAdapterForElement_templateBinding() {
-    TemplateBindingRef bindingRef =
-        TemplateBindingRef.newBuilder().setBindingId("TEMPLATE").build();
+    String bindingId = "TEMPLATE";
+    TemplateBindingRef bindingRef = TemplateBindingRef.newBuilder().setBindingId(bindingId).build();
     Element element = Element.newBuilder().setTemplateBinding(bindingRef).build();
     String templateId = "potato";
     TemplateInvocation templateInvocation =
@@ -261,7 +263,13 @@ public class ElementAdapterFactoryTest {
             .setTemplateId(templateId)
             .addBindingContexts(BindingContext.getDefaultInstance())
             .build();
-    when(frameContext.getTemplateInvocationFromBinding(bindingRef)).thenReturn(templateInvocation);
+    BindingValue templateBindingValue =
+        BindingValue.newBuilder()
+            .setBindingId(bindingId)
+            .setTemplateInvocation(templateInvocation)
+            .build();
+    when(frameContext.getTemplateInvocationBindingValue(bindingRef))
+        .thenReturn(templateBindingValue);
     Template template = Template.newBuilder().setTemplateId("spud").build();
     when(frameContext.getTemplate(templateId)).thenReturn(template);
 
@@ -270,18 +278,31 @@ public class ElementAdapterFactoryTest {
     verify(templateFactory)
         .get(new TemplateAdapterModel(template, BindingContext.getDefaultInstance()), frameContext);
     assertThat(adapter).isSameAs(templateAdapter);
+    verify(frameContext, never()).reportError(eq(MessageType.ERROR), any());
 
-    when(frameContext.getTemplateInvocationFromBinding(bindingRef)).thenReturn(null);
-
-    adapterFactory.createAdapterForElement(element, frameContext);
-
-    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-    verify(frameContext).reportError(eq(MessageType.ERROR), captor.capture());
+    TemplateBindingRef optionalBinding = bindingRef.toBuilder().setIsOptional(true).build();
+    when(frameContext.getTemplateInvocationBindingValue(optionalBinding))
+        .thenReturn(BindingValue.getDefaultInstance());
+    adapterFactory.createAdapterForElement(
+        Element.newBuilder().setTemplateBinding(optionalBinding).build(), frameContext);
+    verify(frameContext, never()).reportError(eq(MessageType.ERROR), any());
     verify(templateFactory)
         .get(
             new TemplateAdapterModel(
                 Template.getDefaultInstance(), BindingContext.getDefaultInstance()),
             frameContext);
+
+    when(frameContext.getTemplateInvocationBindingValue(bindingRef))
+        .thenReturn(BindingValue.getDefaultInstance());
+    adapterFactory.createAdapterForElement(element, frameContext);
+    verify(templateFactory, times(2))
+        .get(
+            new TemplateAdapterModel(
+                Template.getDefaultInstance(), BindingContext.getDefaultInstance()),
+            frameContext);
+    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+    verify(frameContext).reportError(eq(MessageType.ERROR), captor.capture());
+    assertThat(captor.getValue()).contains("Template binding TEMPLATE missing content");
   }
 
   @Test

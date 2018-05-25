@@ -115,10 +115,12 @@ public class PietStylesHelperTest {
             .build();
     sharedStates.add(sharedState1);
     sharedStates.add(sharedState2);
-    helper = new PietStylesHelper(sharedStates);
 
-    Map<String, Style> resultMap = helper.getStylesheet(STYLESHEET_ID_1);
-    assertThat(resultMap).containsExactly(STYLE_ID_2, STYLE_2);
+    assertThatRunnable(() -> new PietStylesHelper(sharedStates))
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Stylesheet key 'ss1' already defined");
   }
 
   @Test
@@ -136,6 +138,21 @@ public class PietStylesHelperTest {
 
     assertThat(PietStylesHelper.createMapFromStylesheet(myStyles.build()))
         .containsExactly("60s", sixties, "80s", eighties);
+  }
+
+  @Test
+  public void testCreateMapFromStylesheet_throwsWhenDuplicateStyleId() {
+    Stylesheet.Builder myStyles = Stylesheet.newBuilder();
+    Style sixties = Style.newBuilder().setStyleId("60s").build();
+    myStyles.addStyles(sixties);
+    Style sixtiesAgain = Style.newBuilder().setStyleId("60s").build();
+    myStyles.addStyles(sixtiesAgain);
+
+    assertThatRunnable(() -> PietStylesHelper.createMapFromStylesheet(myStyles.build()))
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Style key '60s' already defined");
   }
 
   @Test

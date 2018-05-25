@@ -164,10 +164,10 @@ public class TemplateInstanceAdapterTest {
   public void testOnCreateAdapter_templateNotFound() {
     assertThatRunnable(
             () -> new TemplateAdapterModel("NOT_A_REAL_ID", frameContext, DEFAULT_BINDING))
-        .throwsAnExceptionOfType(NullPointerException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
-        .contains("Template was not found: NOT_A_REAL_ID");
+        .contains("Template 'NOT_A_REAL_ID' not found");
   }
 
   @Test

@@ -45,7 +45,7 @@ class ElementAdapterFactory {
   private final AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
   private final AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
   private final AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel>
-      templateInvocationFactory;
+      templateInstanceFactory;
   private final List<AdapterFactory<?, ?>> factories;
 
   ElementAdapterFactory(Context context, AdapterParameters parameters) {
@@ -72,7 +72,7 @@ class ElementAdapterFactory {
       AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory,
       AdapterFactory<GridRowAdapter, GridRow> gridRowFactory,
       AdapterFactory<ElementListAdapter, ElementList> elementListFactory,
-      AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel> templateInvocationFactory) {
+      AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel> templateInstanceFactory) {
     this.customElementFactory = customElementFactory;
     this.chunkedTextElementFactory = chunkedTextElementFactory;
     this.parameterizedTextElementFactory = parameterizedTextElementFactory;
@@ -80,7 +80,7 @@ class ElementAdapterFactory {
     this.spacerElementFactory = spacerElementFactory;
     this.gridRowFactory = gridRowFactory;
     this.elementListFactory = elementListFactory;
-    this.templateInvocationFactory = templateInvocationFactory;
+    this.templateInstanceFactory = templateInstanceFactory;
     factories =
         Collections.unmodifiableList(
             Arrays.asList(
@@ -91,7 +91,7 @@ class ElementAdapterFactory {
                 spacerElementFactory,
                 gridRowFactory,
                 elementListFactory,
-                templateInvocationFactory));
+                templateInstanceFactory));
   }
 
   ElementAdapter<? extends View, ?> createAdapterForElement(
@@ -126,15 +126,19 @@ class ElementAdapterFactory {
         // TODO: support the various bits of metadata in BindingValue
         return elementListFactory.get(elementListBindingValue.getElementList(), frameContext);
       case TEMPLATE_BINDING:
-        TemplateInvocation templateInvocation =
-            frameContext.getTemplateInvocationFromBinding(element.getTemplateBinding());
-        if (templateInvocation != null) {
-          return createTemplateAdapter(templateInvocation, frameContext);
+        BindingValue templateBindingValue =
+            frameContext.getTemplateInvocationBindingValue(element.getTemplateBinding());
+        if (templateBindingValue.hasTemplateInvocation()) {
+          return createTemplateAdapter(templateBindingValue.getTemplateInvocation(), frameContext);
         } else {
-          frameContext.reportError(
-              MessageType.ERROR,
-              String.format("Could not get template for %s", element.getTemplateBinding()));
-          return templateInvocationFactory.get(
+          if (!element.getTemplateBinding().getIsOptional()) {
+            frameContext.reportError(
+                MessageType.ERROR,
+                String.format(
+                    "Template binding %s missing content",
+                    element.getTemplateBinding().getBindingId()));
+          }
+          return templateInstanceFactory.get(
               new TemplateAdapterModel(
                   Template.getDefaultInstance(), BindingContext.getDefaultInstance()),
               frameContext);
@@ -162,7 +166,7 @@ class ElementAdapterFactory {
             templateInvocation.getTemplateId(),
             frameContext,
             templateInvocation.getBindingContexts(0));
-    return templateInvocationFactory.get(model, frameContext);
+    return templateInstanceFactory.get(model, frameContext);
   }
 
   void releaseAdapter(ElementAdapter<? extends View, ?> adapter) {
@@ -181,7 +185,7 @@ class ElementAdapterFactory {
     } else if (adapter instanceof ElementListAdapter) {
       elementListFactory.release((ElementListAdapter) adapter);
     } else if (adapter instanceof TemplateInstanceAdapter) {
-      templateInvocationFactory.release((TemplateInstanceAdapter) adapter);
+      templateInstanceFactory.release((TemplateInstanceAdapter) adapter);
     }
   }
 

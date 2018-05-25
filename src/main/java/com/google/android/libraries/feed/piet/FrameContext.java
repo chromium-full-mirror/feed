@@ -41,7 +41,6 @@ import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
-import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
@@ -69,7 +68,7 @@ class FrameContext {
   private final CustomElementProvider customElementProvider;
   private final HostBindingProvider hostBindingProvider;
   private final ActionHandler actionHandler;
-  private final Map<String, Template> frameTemplates = new HashMap<>();
+  private final Map<String, Template> templates;
 
   // This is the Frame which contains all the slices being processed.
   private final Frame currentFrame;
@@ -86,6 +85,7 @@ class FrameContext {
   // The base / default style; inherited from the template or frame.
   private final Style baseStyle;
 
+  /** Initialize a FrameContext for the first time from a top-level Frame. */
   FrameContext(
       Frame frame,
       Map<String, Style> stylesheet,
@@ -112,9 +112,18 @@ class FrameContext {
         assetProvider,
         customElementProvider,
         hostBindingProvider,
-        actionHandler);
+        actionHandler,
+        new NoKeyOverwriteHashMap<>("Template"));
+
+    stylesHelper.addSharedStateTemplatesToFrame(templates);
+    if (frame.getTemplatesCount() > 0) {
+      for (Template template : frame.getTemplatesList()) {
+        templates.put(template.getTemplateId(), template);
+      }
+    }
   }
 
+  /** Set up a new FrameContext; typically called to copy an existing FrameContext. */
   FrameContext(
       Frame frame,
       Map<String, Style> stylesheet,
@@ -128,7 +137,8 @@ class FrameContext {
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider,
       HostBindingProvider hostBindingProvider,
-      ActionHandler actionHandler) {
+      ActionHandler actionHandler,
+      Map<String, Template> templates) {
     currentFrame = frame;
     this.stylesheet = stylesheet;
     this.bindingValues = bindingValues;
@@ -142,12 +152,7 @@ class FrameContext {
     this.customElementProvider = customElementProvider;
     this.hostBindingProvider = hostBindingProvider;
     this.actionHandler = actionHandler;
-
-    if (frame.getTemplatesCount() > 0) {
-      for (Template template : frame.getTemplatesList()) {
-        frameTemplates.put(template.getTemplateId(), template);
-      }
-    }
+    this.templates = templates;
   }
 
   /**
@@ -165,31 +170,31 @@ class FrameContext {
       HostBindingProvider hostBindingProvider,
       ActionHandler actionHandler) {
     PietStylesHelper pietStylesHelper = new PietStylesHelper(pietSharedStates);
-    Map<String, Style> stylesheetMap = null;
+    NoKeyOverwriteHashMap<String, Style> styleMap = null;
     if (frame.hasStylesheetId()) {
-      stylesheetMap = pietStylesHelper.getStylesheet(frame.getStylesheetId());
+      styleMap = pietStylesHelper.getStylesheet(frame.getStylesheetId());
     } else if (frame.hasStylesheet()) {
-      stylesheetMap = PietStylesHelper.createMapFromStylesheet(frame.getStylesheet());
+      styleMap = PietStylesHelper.createMapFromStylesheet(frame.getStylesheet());
     }
 
     Style frameStyle = null;
     if (frame.hasStyleReferences()) {
-      if (stylesheetMap != null) {
+      if (styleMap != null) {
         frameStyle =
             PietStylesHelper.mergeStyleIdsStack(
-                DEFAULT_STYLE, frame.getStyleReferences(), stylesheetMap, null);
+                DEFAULT_STYLE, frame.getStyleReferences(), styleMap, null);
       }
     }
 
     StyleProvider styleProvider =
         (frameStyle != null) ? new StyleProvider(frameStyle) : StyleProvider.DEFAULT_STYLE_PROVIDER;
-    if (stylesheetMap == null) {
-      stylesheetMap = new HashMap<>();
+    if (styleMap == null) {
+      styleMap = new NoKeyOverwriteHashMap<>("Style");
     }
     FrameContext frameContext =
         new FrameContext(
             frame,
-            stylesheetMap,
+            styleMap,
             baseStyle,
             styleProvider,
             pietSharedStates,
@@ -229,10 +234,13 @@ class FrameContext {
     return actionHandler;
   }
 
-  /*@Nullable*/
   public Template getTemplate(String templateId) {
-    Template template = frameTemplates.get(templateId);
-    return (template != null) ? template : stylesHelper.getTemplate(templateId);
+    Template template = templates.get(templateId);
+    if (template == null) {
+      throw new IllegalArgumentException(
+          reportError(MessageType.ERROR, String.format("Template '%s' not found", templateId)));
+    }
+    return template;
   }
 
   public List<PietSharedState> getPietSharedStates() {
@@ -288,7 +296,8 @@ class FrameContext {
         assetProvider,
         customElementProvider,
         hostBindingProvider,
-        actionHandler);
+        actionHandler,
+        templates);
   }
 
   /**
@@ -310,7 +319,8 @@ class FrameContext {
         assetProvider,
         customElementProvider,
         hostBindingProvider,
-        actionHandler);
+        actionHandler,
+        templates);
   }
 
   /** Return the current {@link StyleProvider}. */
@@ -392,21 +402,25 @@ class FrameContext {
   }
 
   /**
-   * Return a {@link TemplateInvocation} for the binding if there is one defined; otherwise returns
-   * {@code null}.
+   * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
+   * does not point to a template resource.
    */
-  /*@Nullable*/
-  TemplateInvocation getTemplateInvocationFromBinding(TemplateBindingRef binding) {
-    BindingValue bindingValue = bindingValues.get(binding.getBindingId());
-    if (bindingValue != null && bindingValue.hasHostBindingData()) {
+  BindingValue getTemplateInvocationBindingValue(TemplateBindingRef binding) {
+    BindingValue bindingValue = getBindingValue(binding.getBindingId());
+    if (bindingValue.hasHostBindingData()) {
       bindingValue = hostBindingProvider.getTemplateBindingForValue(bindingValue);
     }
-    if (bindingValue != null && bindingValue.hasVisibility()) {
+    if (bindingValue.hasVisibility()) {
       Logger.e(TAG, "Visibility not supported for templates; got %s", bindingValue.getVisibility());
     }
-    return bindingValue == null || !bindingValue.hasTemplateInvocation()
-        ? null
-        : bindingValue.getTemplateInvocation();
+    if (!bindingValue.hasTemplateInvocation() && !binding.getIsOptional()) {
+      throw new IllegalStateException(
+          reportError(
+              MessageType.ERROR,
+              String.format("Template binding not found for %s", binding.getBindingId())));
+    } else {
+      return bindingValue;
+    }
   }
 
   /**
@@ -572,7 +586,7 @@ class FrameContext {
   }
 
   private Map<String, BindingValue> createBindingValueMap(BindingContext bindingContext) {
-    Map<String, BindingValue> bindingValueMap = new HashMap<>();
+    Map<String, BindingValue> bindingValueMap = new NoKeyOverwriteHashMap<>("BindingValue");
     if (bindingContext.getBindingValuesCount() == 0) {
       return bindingValueMap;
     }

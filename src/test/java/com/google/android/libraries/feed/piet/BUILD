@@ -202,6 +202,18 @@ android_local_test(
     ],
 )
 
+java_test(
+    name = "NoKeyOverwriteHashMapTest",
+    size = "small",
+    srcs = ["NoKeyOverwriteHashMapTest.java"],
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/piet",
+        "@junit_junit//jar",
+    ],
+)
+
 android_local_test(
     name = "ParameterizedTextElementAdapterFactoryTest",
     size = "small",

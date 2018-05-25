@@ -100,6 +100,11 @@ public class FrameContextTest {
       StyleIdsStack.newBuilder().addStyleIds(SAMPLE_STYLE_ID).build();
   private static final String BINDING_ID = "BINDING_ID";
   private static final String INVALID_BINDING_ID = "NOT_A_REAL_BINDING_ID";
+  private static final Map<String, Template> DEFAULT_TEMPLATES = new HashMap<>();
+
+  static {
+    DEFAULT_TEMPLATES.put(DEFAULT_TEMPLATE_ID, DEFAULT_TEMPLATE);
+  }
 
   @Mock private AssetProvider assetProvider;
   @Mock private CustomElementProvider customElementProvider;
@@ -125,6 +130,45 @@ public class FrameContextTest {
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);
     pietSharedStates = new ArrayList<>();
     pietStylesHelper = new PietStylesHelper(pietSharedStates);
+  }
+
+  @Test
+  public void testSharedStateTemplatesAddedToFrame() {
+    String sharedStateTemplateId = "SHARED_STATE_TEMPLATE_ID";
+    Template sharedStateTemplate =
+        Template.newBuilder().setTemplateId(sharedStateTemplateId).build();
+    pietSharedStates.add(PietSharedState.newBuilder().addTemplates(sharedStateTemplate).build());
+    frameContext = defaultFrameContext();
+
+    assertThat(frameContext.getTemplate(sharedStateTemplateId)).isSameAs(sharedStateTemplate);
+    assertThat(frameContext.getTemplate(DEFAULT_TEMPLATE_ID)).isSameAs(DEFAULT_TEMPLATE);
+  }
+
+  @Test
+  public void testThrowsIfSharedStateTemplatesConflictWithFrameTemplates() {
+    Template sharedStateTemplate = Template.newBuilder().setTemplateId(DEFAULT_TEMPLATE_ID).build();
+    pietSharedStates.add(PietSharedState.newBuilder().addTemplates(sharedStateTemplate).build());
+    assertThatRunnable(this::defaultFrameContext)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Template key 'TEMPLATE_ID' already defined");
+  }
+
+  @Test
+  public void testThrowsIfDuplicateBindingValueId() {
+    frameContext = defaultFrameContext();
+    BindingContext bindingContextWithDuplicateIds =
+        BindingContext.newBuilder()
+            .addBindingValues(BindingValue.newBuilder().setBindingId(BINDING_ID))
+            .addBindingValues(BindingValue.newBuilder().setBindingId(BINDING_ID))
+            .build();
+    assertThatRunnable(
+            () -> frameContext.bindTemplate(DEFAULT_TEMPLATE, bindingContextWithDuplicateIds))
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .that()
+        .hasMessageThat()
+        .contains("BindingValue key 'BINDING_ID' already defined");
   }
 
   @Test
@@ -697,23 +741,38 @@ public class FrameContextTest {
   public void testGetTemplateInvocationFromBinding() {
     TemplateInvocation templateInvocation =
         TemplateInvocation.newBuilder().setTemplateId("carboncopy").build();
-    frameContext =
-        makeFrameContextWithBinding(
-            defaultBinding().setTemplateInvocation(templateInvocation).build());
+    BindingValue templateBindingValue =
+        defaultBinding().setTemplateInvocation(templateInvocation).build();
+    frameContext = makeFrameContextWithBinding(templateBindingValue);
     assertThat(
-            frameContext.getTemplateInvocationFromBinding(
+            frameContext.getTemplateInvocationBindingValue(
                 TemplateBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isEqualTo(templateInvocation);
+        .isEqualTo(templateBindingValue);
     assertThat(
-            frameContext.getTemplateInvocationFromBinding(
-                TemplateBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .isNull();
+            frameContext.getTemplateInvocationBindingValue(
+                TemplateBindingRef.newBuilder()
+                    .setIsOptional(true)
+                    .setBindingId(INVALID_BINDING_ID)
+                    .build()))
+        .isEqualTo(BindingValue.getDefaultInstance());
+    assertThatRunnable(
+            () ->
+                frameContext.getTemplateInvocationBindingValue(
+                    TemplateBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Template binding not found for NOT_A_REAL_BINDING_ID");
 
     frameContext = makeFrameContextWithEmptyBinding();
-    assertThat(
-            frameContext.getTemplateInvocationFromBinding(
-                TemplateBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .isNull();
+    assertThatRunnable(
+            () ->
+                frameContext.getTemplateInvocationBindingValue(
+                    TemplateBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Template binding not found for BINDING_ID");
   }
 
   @Test
@@ -1111,7 +1170,8 @@ public class FrameContextTest {
         assetProvider,
         customElementProvider,
         hostBindingProvider,
-        actionHandler);
+        actionHandler,
+        DEFAULT_TEMPLATES);
   }
 
   private FrameContext makeFrameContextWithEmptyBinding() {
@@ -1130,7 +1190,8 @@ public class FrameContextTest {
         assetProvider,
         customElementProvider,
         hostBindingProvider,
-        actionHandler);
+        actionHandler,
+        DEFAULT_TEMPLATES);
   }
 
   private FrameContext makeFrameContextFromFrame(Frame frame) {

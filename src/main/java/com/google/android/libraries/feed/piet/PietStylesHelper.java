@@ -24,7 +24,6 @@ import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,9 +31,10 @@ import java.util.Map;
 public class PietStylesHelper {
   private static final String TAG = "PietStylesHelper";
 
-  private final Map<String, Map<String, Style>> stylesheetScopes = new HashMap<>();
-  private final Map<String, Stylesheet> stylesheets = new HashMap<>();
-  private final Map<String, Template> templates = new HashMap<>();
+  private final Map<String, NoKeyOverwriteHashMap<String, Style>> stylesheetScopes =
+      new NoKeyOverwriteHashMap<>("Style");
+  private final Map<String, Stylesheet> stylesheets = new NoKeyOverwriteHashMap<>("Stylesheet");
+  private final Map<String, Template> templates = new NoKeyOverwriteHashMap<>("Template");
 
   PietStylesHelper(List<PietSharedState> pietSharedStates) {
     setupStylesheetsAndTemplates(pietSharedStates);
@@ -61,32 +61,36 @@ public class PietStylesHelper {
   }
 
   /** Returns a Map of style_id to Style. This represents the Stylesheet. */
-  Map<String, Style> getStylesheet(String stylesheetId) {
+  NoKeyOverwriteHashMap<String, Style> getStylesheet(String stylesheetId) {
     if (stylesheetScopes.containsKey(stylesheetId)) {
       return stylesheetScopes.get(stylesheetId);
     }
     Stylesheet stylesheet = stylesheets.get(stylesheetId);
     if (stylesheet != null) {
-      Map<String, Style> stylesheetMap = createMapFromStylesheet(stylesheet);
-      stylesheetScopes.put(stylesheet.getStylesheetId(), stylesheetMap);
-      return stylesheetMap;
+      NoKeyOverwriteHashMap<String, Style> styleMap = createMapFromStylesheet(stylesheet);
+      stylesheetScopes.put(stylesheet.getStylesheetId(), styleMap);
+      return styleMap;
     }
     Logger.w(TAG, "Stylesheet [%s] was not found in the Stylesheet", stylesheetId);
     return createMapFromStylesheet(Stylesheet.getDefaultInstance());
   }
 
-  static Map<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
-    Map<String, Style> stylesheetMap = new HashMap<>();
+  static NoKeyOverwriteHashMap<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
+    NoKeyOverwriteHashMap<String, Style> styleMap = new NoKeyOverwriteHashMap<>("Style");
     for (Style style : stylesheet.getStylesList()) {
-      stylesheetMap.put(style.getStyleId(), style);
+      styleMap.put(style.getStyleId(), style);
     }
-    return stylesheetMap;
+    return styleMap;
   }
 
   /** Returns a {@link Template} for the template */
   /*@Nullable*/
   public Template getTemplate(String templateId) {
     return templates.get(templateId);
+  }
+
+  void addSharedStateTemplatesToFrame(Map<String, Template> frameTemplates) {
+    frameTemplates.putAll(templates);
   }
 
   /**
