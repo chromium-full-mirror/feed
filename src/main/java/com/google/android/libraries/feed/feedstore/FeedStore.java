@@ -606,9 +606,13 @@ public class FeedStore implements Store, Dumpable {
     dumper.title(TAG);
     if (contentStorage instanceof Dumpable) {
       dumper.dump((Dumpable) contentStorage);
+    } else {
+      dumper.forKey("contentStorage").value("not dumpable");
     }
     if (journalStorage instanceof Dumpable) {
       dumper.dump((Dumpable) journalStorage);
+    } else {
+      dumper.forKey("journalStorage").value("not dumpable");
     }
   }
 }
