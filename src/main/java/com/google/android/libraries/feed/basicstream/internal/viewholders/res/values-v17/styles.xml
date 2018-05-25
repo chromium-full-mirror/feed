@@ -52,5 +52,4 @@
     <item name="android:textColor">@color/google_blue_500</item>
     <item name="android:textSize">@dimen/text_size_medium</item>
   </style>
-
 </resources>

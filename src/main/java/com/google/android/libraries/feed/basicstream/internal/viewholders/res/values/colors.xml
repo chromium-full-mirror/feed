@@ -17,6 +17,7 @@
 <resources>
   <color name="black_alpha_54">#8A000000</color>
   <color name="black_alpha_87">#DE000000</color>
-  <color name="google_blue_500">#4285F4</color>
   <color name="button_compat_color">#FFFFFF</color>
+  <color name="google_blue_500">#4285F4</color>
+  <color name="snippets_text_color">#646464</color>
 </resources>

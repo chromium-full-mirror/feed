@@ -53,4 +53,9 @@
     <item name="android:textSize">@dimen/text_size_medium</item>
   </style>
 
+  <!-- Black Title Text Styles -->
+  <style name="BlackTitle1">
+    <item name="android:textColor">@color/black_alpha_87</item>
+    <item name="android:textSize">@dimen/text_size_large</item>
+  </style>
 </resources>
