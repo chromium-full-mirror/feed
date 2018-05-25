@@ -62,8 +62,9 @@ import java.util.concurrent.ExecutorService;
 
 /** Default implementation of RequestManager. */
 public class FeedRequestManager implements RequestManager {
+  private static final String TAG = "FeedRequestManager";
+
   public static final String MOTHERSHIP_PARAM_PAYLOAD = "reqpld";
-  private static final String TAG = "JardinRM";
   private static final String MOTHERSHIP_PARAM_FORMAT = "fmt";
   private static final String MOTHERSHIP_VALUE_BINARY = "bin";
 
@@ -119,6 +120,7 @@ public class FeedRequestManager implements RequestManager {
   @Override
   public void triggerRefresh(
       RequestReason reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
+    Logger.i(TAG, "trigger refresh %s", reason);
     RequestBuilder request = newDefaultRequest();
     executeRequest(request, consumer);
   }
@@ -149,26 +151,28 @@ public class FeedRequestManager implements RequestManager {
     HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), HttpMethod.GET);
     mainThreadRunner.execute(
         TAG,
-        () ->
-            networkClient.send(
-                httpRequest,
-                input -> {
-                  if (input.getResponseCode() != 200) {
-                    String errorBody = null;
-                    try {
-                      errorBody = new String(input.getResponseBody(), "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                      Logger.e(TAG, "Error handling http error logging", e);
-                    }
-                    Logger.e(TAG, "errorCode: %d", input.getResponseCode());
-                    Logger.e(TAG, "errorResponse: %s", errorBody);
-                    mainThreadRunner.execute(
-                        TAG, () -> scheduler.onRequestError(input.getResponseCode()));
-                    return;
+        () -> {
+          Logger.i(TAG, "Making Request: %s", httpRequest.getUri());
+          networkClient.send(
+              httpRequest,
+              input -> {
+                if (input.getResponseCode() != 200) {
+                  String errorBody = null;
+                  try {
+                    errorBody = new String(input.getResponseBody(), "UTF-8");
+                  } catch (UnsupportedEncodingException e) {
+                    Logger.e(TAG, "Error handling http error logging", e);
                   }
+                  Logger.e(TAG, "errorCode: %d", input.getResponseCode());
+                  Logger.e(TAG, "errorResponse: %s", errorBody);
+                  mainThreadRunner.execute(
+                      TAG, () -> scheduler.onRequestError(input.getResponseCode()));
+                  return;
+                }
 
-                  handleResponseBytes(input.getResponseBody(), consumer);
-                }));
+                handleResponseBytes(input.getResponseBody(), consumer);
+              });
+        });
   }
 
   private void handleResponseBytes(
