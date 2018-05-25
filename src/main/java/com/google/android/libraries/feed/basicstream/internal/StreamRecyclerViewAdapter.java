@@ -60,6 +60,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final List<View> headers;
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
   private final ContentChangedListener contentChangedListener;
+
+  private boolean streamContentVisible;
   /*@Nullable*/ private StreamDriver streamDriver;
 
   // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
@@ -83,6 +85,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     leafFeatureDrivers = new ArrayList<>();
     setHasStableIds(true);
     boundViewHolderToLeafFeatureDriverMap = new HashMap<>();
+    streamContentVisible = true;
   }
 
   @Override
@@ -151,7 +154,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
   @Override
   public int getItemCount() {
-    return leafFeatureDrivers.size() + headers.size();
+    int driverSize = streamContentVisible ? leafFeatureDrivers.size() : 0;
+    return driverSize + headers.size();
   }
 
   @Override
@@ -197,6 +201,25 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     notifyDataSetChanged();
   }
 
+  public void setStreamContentVisible(boolean streamContentVisible) {
+    if (this.streamContentVisible == streamContentVisible) {
+      return;
+    }
+    this.streamContentVisible = streamContentVisible;
+
+    if (leafFeatureDrivers.isEmpty()) {
+      // Nothing to alter in RecyclerView if there is no leaf content.
+      return;
+    }
+
+    contentChangedListener.onContentChanged();
+    if (streamContentVisible) {
+      notifyItemRangeInserted(headers.size(), leafFeatureDrivers.size());
+    } else {
+      notifyItemRangeRemoved(headers.size(), leafFeatureDrivers.size());
+    }
+  }
+
   public void setDriver(StreamDriver newStreamDriver) {
     if (streamDriver != null) {
       streamDriver.setStreamContentListener(null);
@@ -208,7 +231,9 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     leafFeatureDrivers.addAll(newStreamDriver.getLeafFeatureDrivers());
 
     streamDriver = newStreamDriver;
-    notifyDataSetChanged();
+    if (streamContentVisible) {
+      notifyDataSetChanged();
+    }
   }
 
   @Override
@@ -221,11 +246,13 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
     int insertionIndex = headers.size() + index;
 
-    // TODO: This would notify the listener even if the content being added is
-    // offscreen. Fix if this becomes an issue.
-    contentChangedListener.onContentChanged();
+    if (streamContentVisible) {
+      // TODO: This would notify the listener even if the content being added is
+      // offscreen. Fix if this becomes an issue.
+      contentChangedListener.onContentChanged();
 
-    notifyItemRangeInserted(insertionIndex, newFeatureDrivers.size());
+      notifyItemRangeInserted(insertionIndex, newFeatureDrivers.size());
+    }
   }
 
   @Override
@@ -234,11 +261,13 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     
     leafFeatureDrivers.remove(index);
 
-    // TODO: This would notify the listener even if the content being removed is
-    // offscreen. Fix if this becomes an issue.
-    contentChangedListener.onContentChanged();
+    if (streamContentVisible) {
+      // TODO: This would notify the listener even if the content being removed is
+      // offscreen. Fix if this becomes an issue.
+      contentChangedListener.onContentChanged();
 
-    notifyItemRemoved(removalIndex);
+      notifyItemRemoved(removalIndex);
+    }
   }
 
 }

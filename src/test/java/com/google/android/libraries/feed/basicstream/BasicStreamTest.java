@@ -19,6 +19,7 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -269,6 +270,16 @@ public class BasicStreamTest {
     basicStream.onContentChanged();
 
     verify(contentChangedListener, never()).onContentChanged();
+  }
+
+  @Test
+  public void testStreamContentVisible() {
+    basicStream.setStreamContentVisibility(false);
+    verify(adapter).setStreamContentVisible(false);
+
+    reset(adapter);
+    basicStream.setStreamContentVisibility(true);
+    verify(adapter).setStreamContentVisible(true);
   }
 
   private RecyclerView getStreamRecyclerView() {

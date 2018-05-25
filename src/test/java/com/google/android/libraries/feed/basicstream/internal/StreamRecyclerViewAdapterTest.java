@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -26,6 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -80,6 +82,7 @@ public class StreamRecyclerViewAdapterTest {
   private LinearLayout frameContainer;
   private StreamRecyclerViewAdapter streamRecyclerViewAdapter;
   private ArrayList headers;
+  private StreamAdapterObserver streamAdapterObserver;
 
   @SuppressWarnings("unchecked") // Needed for templated captures.
   @Before
@@ -114,6 +117,9 @@ public class StreamRecyclerViewAdapterTest {
 
     when(driver.getLeafFeatureDrivers()).thenReturn(Lists.newArrayList(initialFeatureDriver));
     streamRecyclerViewAdapter.setDriver(driver);
+
+    streamAdapterObserver = new StreamAdapterObserver();
+    streamRecyclerViewAdapter.registerAdapterDataObserver(streamAdapterObserver);
   }
 
   @Test
@@ -228,7 +234,23 @@ public class StreamRecyclerViewAdapterTest {
     reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentsAdded(
         0, Lists.newArrayList(featureDriver1, featureDriver2));
+    assertThat(streamAdapterObserver.insertedStart).isEqualTo(headers.size());
+    assertThat(streamAdapterObserver.insertedCount).isEqualTo(2);
     verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testNotifyContentsAdded_streamVisibleFalse() {
+    streamRecyclerViewAdapter.setStreamContentVisible(false);
+    streamAdapterObserver.reset();
+
+    // Listener triggered in setup.
+    reset(contentChangedListener);
+    streamRecyclerViewAdapter.notifyContentsAdded(
+        0, Lists.newArrayList(featureDriver1, featureDriver2));
+    assertThat(streamAdapterObserver.insertedStart).isEqualTo(0);
+    assertThat(streamAdapterObserver.insertedCount).isEqualTo(0);
+    verify(contentChangedListener, never()).onContentChanged();
   }
 
   @Test
@@ -236,7 +258,22 @@ public class StreamRecyclerViewAdapterTest {
     // Listener triggered in setup.
     reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentRemoved(0);
+    assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
+    assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
     verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testNotifyContentsRemoved_streamVisibleFalse() {
+    streamRecyclerViewAdapter.setStreamContentVisible(false);
+    streamAdapterObserver.reset();
+
+    // Listener triggered in setup.
+    reset(contentChangedListener);
+    streamRecyclerViewAdapter.notifyContentRemoved(0);
+    assertThat(streamAdapterObserver.removedStart).isEqualTo(0);
+    assertThat(streamAdapterObserver.removedCount).isEqualTo(0);
+    verify(contentChangedListener, never()).onContentChanged();
   }
 
   @Test
@@ -255,11 +292,107 @@ public class StreamRecyclerViewAdapterTest {
     verifyNoMoreInteractions(contentChangedListener);
   }
 
+  @Test
+  public void testGetItemCount() {
+    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(headers.size() + 1);
+  }
+
+  @Test
+  public void testGetItemCount_streamVisibleFalse() {
+    streamRecyclerViewAdapter.setStreamContentVisible(false);
+    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(headers.size());
+  }
+
+  @Test
+  public void setStreamContentVisible_hidesContent() {
+    reset(contentChangedListener);
+
+    streamRecyclerViewAdapter.setStreamContentVisible(false);
+    assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
+    assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
+    verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void setStreamContentVisible_hidesContent_doubleCall() {
+    reset(contentChangedListener);
+
+    streamRecyclerViewAdapter.setStreamContentVisible(false);
+
+    streamAdapterObserver.reset();
+    streamRecyclerViewAdapter.setStreamContentVisible(false);
+
+    // Nothing additional should get called
+    assertThat(streamAdapterObserver.removedStart).isEqualTo(0);
+    assertThat(streamAdapterObserver.removedCount).isEqualTo(0);
+
+    // Only a single content changed should get called
+    verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void setStreamContentVisible_showsContent() {
+    streamRecyclerViewAdapter.setStreamContentVisible(false);
+    streamAdapterObserver.reset();
+    reset(contentChangedListener);
+
+    streamRecyclerViewAdapter.setStreamContentVisible(true);
+    assertThat(streamAdapterObserver.insertedStart).isEqualTo(headers.size());
+    assertThat(streamAdapterObserver.insertedCount).isEqualTo(1);
+    verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void setStreamContentVisible_showsContent_doubleCall() {
+    streamRecyclerViewAdapter.setStreamContentVisible(false);
+    streamAdapterObserver.reset();
+    reset(contentChangedListener);
+
+    streamRecyclerViewAdapter.setStreamContentVisible(true);
+
+    streamAdapterObserver.reset();
+    streamRecyclerViewAdapter.setStreamContentVisible(true);
+
+    // Nothing additional should get called
+    assertThat(streamAdapterObserver.insertedStart).isEqualTo(0);
+    assertThat(streamAdapterObserver.insertedCount).isEqualTo(0);
+
+    // Only a single content changed should get called
+    verify(contentChangedListener).onContentChanged();
+  }
+
   private FrameLayout getCardView(ViewHolder viewHolder) {
     return (FrameLayout) viewHolder.itemView;
   }
 
   private int getContentBindingIndex(int index) {
     return HEADER_COUNT + index;
+  }
+
+  private class StreamAdapterObserver extends RecyclerView.AdapterDataObserver {
+
+    private int insertedStart;
+    private int insertedCount;
+    private int removedStart;
+    private int removedCount;
+
+    @Override
+    public void onItemRangeInserted(int positionStart, int itemCount) {
+      insertedStart = positionStart;
+      insertedCount = itemCount;
+    }
+
+    @Override
+    public void onItemRangeRemoved(int positionStart, int itemCount) {
+      removedStart = positionStart;
+      removedCount = itemCount;
+    }
+
+    public void reset() {
+      insertedStart = 0;
+      insertedCount = 0;
+      removedStart = 0;
+      removedCount = 0;
+    }
   }
 }

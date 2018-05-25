@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
@@ -216,7 +217,10 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
   }
 
   @Override
-  public void setStreamContentVisibility(boolean visible) {}
+  public void setStreamContentVisibility(boolean visible) {
+    checkNotNull(adapter, "onCreate must be called before setStreamContentVisibility");
+    adapter.setStreamContentVisible(visible);
+  }
 
   @Override
   public void trim() {
