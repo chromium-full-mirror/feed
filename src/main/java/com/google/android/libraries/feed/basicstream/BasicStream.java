@@ -186,7 +186,12 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
   public void onHide() {}
 
   @Override
-  public void onDestroy() {}
+  public void onDestroy() {
+    if (modelProvider != null) {
+      modelProvider.unregisterObserver(this);
+      modelProvider.invalidate();
+    }
+  }
 
   @Override
   public Bundle getSavedInstanceState() {

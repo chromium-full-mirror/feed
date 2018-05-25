@@ -138,6 +138,12 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testLifecycle_onDestroy() {
+    basicStream.onDestroy();
+    verify(initialModelProvider).invalidate();
+  }
+
+  @Test
   @Config(sdk = VERSION_CODES.JELLY_BEAN)
   public void testPadding_jellyBean() {
     // Padding is setup in constructor.
