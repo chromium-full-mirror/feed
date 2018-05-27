@@ -588,15 +588,38 @@ message GridCell {
   extensions 10000 to max;
 }
 
-// A grid cell width can be expressed in either DP or as a weight.
+// The width of a GridCell.
 message GridCellWidth {
   // The width specification.
   oneof width_spec {
     // The width of the cell expressed as DP.
     int32 dp = 1;
 
-    // The width of the cell expressed as a weight.
+    // The width of the content, limited to Content of TextElement or
+    // ImageElement. In case a different content is given to the cell,
+    // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT is raised.
+    ContentWidth content_width = 3;
+
+    // The width of the cell expressed as a weight. This weight is relative to
+    // the remaining width, after DP and Content were allocated.
+    // For more information, see [INTERNAL LINK]/concepts/basics.
     int32 weight = 2;
+  }
+
+  // An enum that indicates the width of the GridCell, in reference to its
+  // content. The option of setting a GridCell width to be its content width
+  // is supported only for GridCells with TextElement or ImageElement as their
+  // content, in those cases, the width of the GridCell will be the width of the
+  // contained element.
+  enum ContentWidth {
+    // Do not use. If used, this will raise
+    // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT at runtime.
+    INVALID_CONTENT_WIDTH = 0;
+
+    // If this is set and the enclosed Element is anything other than a
+    // TextElement or ImageElement,
+    // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT will be raised.
+    CONTENT_WIDTH = 1;
   }
 }
 

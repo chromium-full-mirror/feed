@@ -303,6 +303,15 @@ enum ErrorCode {
     (client_error) = WARNING
   ];
 
+  // If a GridCell with Content width has a content that is not TextElement or
+  // ImageElement, this error will be raised.
+  ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT = 107 [
+    // Server should flag to feature authors when such data is given.
+    (server_error) = ERROR,
+    // Clients cannot render a Frame with this kind of error.
+    (client_error) = ERROR
+  ];
+
   // ---------------------------------------------------------------------------
   // Performance Related.
   // Fields start at ID 201.
