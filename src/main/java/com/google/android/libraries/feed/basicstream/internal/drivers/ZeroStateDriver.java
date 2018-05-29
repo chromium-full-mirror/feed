@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedVi
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
+import java.util.Calendar;
 
 /** {@link FeatureDriver} for the zero state. */
 public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListener {
@@ -43,7 +44,7 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
     checkState(viewHolder instanceof ZeroStateViewHolder);
 
     zeroStateViewHolder = (ZeroStateViewHolder) viewHolder;
-    zeroStateViewHolder.bind(this);
+    zeroStateViewHolder.bind(this, getHourOfDay());
   }
 
   @Override
@@ -74,5 +75,10 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
   @VisibleForTesting
   boolean isBound() {
     return zeroStateViewHolder != null;
+  }
+
+  @VisibleForTesting
+  int getHourOfDay() {
+    return Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
   }
 }

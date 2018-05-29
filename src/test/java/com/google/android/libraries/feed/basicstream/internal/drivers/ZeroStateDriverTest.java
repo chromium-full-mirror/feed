@@ -24,6 +24,7 @@ import android.content.Context;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
+import java.util.Calendar;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +39,7 @@ public class ZeroStateDriverTest {
   @Mock private ModelProvider modelProvider;
   @Mock private ZeroStateViewHolder zeroStateViewHolder;
 
+  private static final int HOUR_OF_DAY = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
   private ZeroStateDriver zeroStateDriver;
   private Context context;
 
@@ -46,7 +48,13 @@ public class ZeroStateDriverTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
-    zeroStateDriver = new ZeroStateDriver(modelProvider);
+    zeroStateDriver =
+        new ZeroStateDriver(modelProvider) {
+          @Override
+          int getHourOfDay() {
+            return HOUR_OF_DAY;
+          }
+        };
   }
 
   @Test
@@ -56,7 +64,7 @@ public class ZeroStateDriverTest {
     zeroStateDriver.bind(zeroStateViewHolder);
 
     assertThat(zeroStateDriver.isBound()).isTrue();
-    verify(zeroStateViewHolder).bind(zeroStateDriver);
+    verify(zeroStateViewHolder).bind(zeroStateDriver, HOUR_OF_DAY);
   }
 
   @Test

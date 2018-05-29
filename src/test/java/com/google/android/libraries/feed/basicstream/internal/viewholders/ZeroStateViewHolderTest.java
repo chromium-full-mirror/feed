@@ -14,6 +14,9 @@
 
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
+import static com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder.AFTERNOON_HOUR_START;
+import static com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder.EVENING_HOUR_START;
+import static com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder.MORNING_HOUR_START;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -23,6 +26,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,14 +38,16 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ZeroStateViewHolderTest {
 
-  private ZeroStateViewHolder zeroStateViewHolder;
-  private FrameLayout frameLayout;
   @Mock private OnClickListener onClickListener;
+
+  private Context context;
+  private FrameLayout frameLayout;
+  private ZeroStateViewHolder zeroStateViewHolder;
 
   @Before
   public void setup() {
     initMocks(this);
-    Context context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.setupActivity(Activity.class);
     frameLayout = new FrameLayout(context);
     zeroStateViewHolder = new ZeroStateViewHolder(context, frameLayout);
   }
@@ -55,7 +61,7 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testBind_setsOnClickListener() {
-    zeroStateViewHolder.bind(onClickListener);
+    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START);
 
     View actionButton = frameLayout.findViewById(R.id.action_button);
     actionButton.performClick();
@@ -64,8 +70,55 @@ public class ZeroStateViewHolderTest {
   }
 
   @Test
+  public void testBind_setsMorningMessage_forMorningStart() {
+    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START);
+
+    TextView bodyText = frameLayout.findViewById(R.id.body_text);
+    assertThat(bodyText.getText())
+        .isEqualTo(context.getResources().getString(R.string.ntp_all_dismissed_body_text_morning));
+  }
+
+  @Test
+  public void testBind_setsMorningMessage_forMorningEnd() {
+    zeroStateViewHolder.bind(onClickListener, AFTERNOON_HOUR_START - 1);
+
+    TextView bodyText = frameLayout.findViewById(R.id.body_text);
+    assertThat(bodyText.getText())
+        .isEqualTo(context.getResources().getString(R.string.ntp_all_dismissed_body_text_morning));
+  }
+
+  @Test
+  public void testBind_setsAfternoonMessage_forAfternoonStart() {
+    zeroStateViewHolder.bind(onClickListener, AFTERNOON_HOUR_START);
+
+    TextView bodyText = frameLayout.findViewById(R.id.body_text);
+    assertThat(bodyText.getText())
+        .isEqualTo(
+            context.getResources().getString(R.string.ntp_all_dismissed_body_text_afternoon));
+  }
+
+  @Test
+  public void testBind_setsAfternoonMessage_forAfternoonEnd() {
+    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START - 1);
+
+    TextView bodyText = frameLayout.findViewById(R.id.body_text);
+    assertThat(bodyText.getText())
+        .isEqualTo(
+            context.getResources().getString(R.string.ntp_all_dismissed_body_text_afternoon));
+  }
+
+  @Test
+  public void testBind_setsEveningMessage_forEveningStart() {
+    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START);
+
+    TextView bodyText = frameLayout.findViewById(R.id.body_text);
+    assertThat(bodyText.getText())
+        .isEqualTo(context.getResources().getString(R.string.ntp_all_dismissed_body_text_evening));
+  }
+
+  @Test
   public void testUnbind() {
-    zeroStateViewHolder.bind(onClickListener);
+    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START);
 
     View actionButton = frameLayout.findViewById(R.id.action_button);
     assertThat(actionButton.hasOnClickListeners()).isTrue();
