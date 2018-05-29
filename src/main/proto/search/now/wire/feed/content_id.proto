@@ -15,7 +15,7 @@
 syntax = "proto2";
 
 
-package search.now.proto.wire.feed;
+package search.now.wire.feed;
 
 option optimize_for=LITE_RUNTIME;
 

@@ -18,8 +18,8 @@ package search.now.ui.action;
 
 option optimize_for=LITE_RUNTIME;
 import "src/main/proto/search/now/ui/action/feed_action_payload.proto";
-import "src/main/proto/search/now/proto/wire/feed/content_id.proto";
-import "src/main/proto/search/now/proto/wire/feed/data_operation.proto";
+import "src/main/proto/search/now/wire/feed/content_id.proto";
+import "src/main/proto/search/now/wire/feed/data_operation.proto";
 option java_package = "com.google.search.now.ui.action";
 option java_outer_classname = "FeedActionProto";
 
@@ -85,8 +85,8 @@ message OpenContextMenuData {
 
 // Data needed by Stream to perform a dismiss.
 message DismissData {
-  optional search.now.proto.wire.feed.ContentId content_id = 1;
-  repeated search.now.proto.wire.feed.DataOperation data_operations = 2;
+  optional search.now.wire.feed.ContentId content_id = 1;
+  repeated search.now.wire.feed.DataOperation data_operations = 2;
 }
 
 // FeedActionMetadata with a label to show in a context menu.

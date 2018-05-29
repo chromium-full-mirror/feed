@@ -14,22 +14,26 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/proto/wire/feed/content_id.proto";
-import "src/main/proto/search/now/ui/piet/piet.proto";
 
-package search.now.proto.wire.feed;
+package search.now.wire.feed;
 
 option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.wire.feed";
-option java_outer_classname = "FeedCardProto";
+option java_outer_classname = "ResponseProto";
 
-// Representation of a card within the feed
-message FeedCard {
+// Top level response message.
+message Response {
 
-  // Unique identifier for the card
-  optional ContentId content_id = 1;
+  // Supported versions of response messages are specified as extensions to
+  // the top-level response message.  An enum is used to denote the expected
+  // extensions for this response.
+  enum ResponseVersion {
+    UNKNOWN_RESPONSE_VERSION = 0;
+    FEED_RESPONSE = 1;
+  }
+  optional ResponseVersion response_version = 1;
 
-  // Piet UI representation
-  optional search.now.ui.piet.Frame piet_frame_ui = 2;
+  // Reserved fields for extensions
+  extensions 1000 to max;
 }

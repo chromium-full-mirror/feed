@@ -6,8 +6,8 @@ proto_library(
     name = "stream_proto",
     srcs = ["stream_structure.proto"],
     deps = [
-        "//src/main/proto/search/now/proto/wire/feed:feed_proto",
         "//src/main/proto/search/now/ui/piet:piet_proto",
+        "//src/main/proto/search/now/wire/feed:feed_proto",
     ],
 )
 

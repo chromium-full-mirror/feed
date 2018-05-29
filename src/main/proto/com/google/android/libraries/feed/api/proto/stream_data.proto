@@ -15,7 +15,7 @@
 syntax = "proto2";
 
 import "src/main/proto/search/now/ui/stream/stream_structure.proto";
-import "src/main/proto/search/now/proto/wire/feed/piet_shared_state_item.proto";
+import "src/main/proto/search/now/wire/feed/piet_shared_state_item.proto";
 
 package search.now.feed.client;
 
@@ -75,7 +75,7 @@ message StreamSharedState {
   optional string content_id = 1;
   oneof share_state {
     // A Piet shared state item.
-    search.now.proto.wire.feed.PietSharedStateItem piet_shared_state_item = 2;
+    search.now.wire.feed.PietSharedStateItem piet_shared_state_item = 2;
   }
 }
 

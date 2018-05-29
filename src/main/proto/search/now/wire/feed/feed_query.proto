@@ -15,16 +15,28 @@
 syntax = "proto2";
 
 
-package search.now.proto.wire.feed;
+package search.now.wire.feed;
 
 option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.wire.feed";
-option java_outer_classname = "ActionTypeProto";
+option java_outer_classname = "FeedQueryProto";
 
-// The specific action that was performed on an feature described by a ContentId
-// and SemanticProperties.
-enum ActionType {
-  UNKNOWN_ACTION_TYPE = 0;
-  DISMISS = 1;
+message FeedQuery {
+
+  enum RequestReason {
+
+    UNKNOWN_REQUEST_REASON = 0;
+    MANUAL_REFRESH = 1;
+    SCHEDULED_REFRESH = 2;
+    APP_OPEN_REFRESH = 3;
+    NEXT_PAGE_SCROLL = 4;
+  }
+
+  // The reason the query is being initiated.
+  optional RequestReason reason = 1;
+
+  // Used to fetch the next page when scrolling copied from
+  // FeedResponse.next_page_token
+  optional bytes page_token = 2;
 }

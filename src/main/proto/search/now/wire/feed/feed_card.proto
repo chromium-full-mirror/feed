@@ -14,22 +14,22 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/proto/wire/feed/feed_card.proto";
+import "src/main/proto/search/now/wire/feed/content_id.proto";
 import "src/main/proto/search/now/ui/piet/piet.proto";
 
-package search.now.proto.wire.feed;
+package search.now.wire.feed;
 
 option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.wire.feed";
-option java_outer_classname = "FeedStreamProto";
+option java_outer_classname = "FeedCardProto";
 
-// Representation of the entire stream of data in the feed
-message FeedStream {
+// Representation of a card within the feed
+message FeedCard {
 
-  // Shared state for all Piet cards
-  optional search.now.ui.piet.PietSharedState piet_shared_state = 1;
+  // Unique identifier for the card
+  optional ContentId content_id = 1;
 
-  // List of cards within the stream
-  repeated FeedCard cards = 2;
+  // Piet UI representation
+  optional search.now.ui.piet.Frame piet_frame_ui = 2;
 }

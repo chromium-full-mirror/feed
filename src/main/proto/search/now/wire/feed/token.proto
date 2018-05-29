@@ -14,25 +14,23 @@
 
 syntax = "proto2";
 
+import "src/main/proto/search/now/wire/feed/feature.proto";
 
-package search.now.proto.wire.feed;
+package search.now.wire.feed;
 
 option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.wire.feed";
-option java_outer_classname = "RequestProto";
+option java_outer_classname = "TokenProto";
 
-// Top level request message.
-message Request {
-  // Supported versions of request messages are specified as extensions to
-  // the top-level request message.  An enum is used to denote the expected
-  // extensions for this request.
-  enum RequestVersion {
-    UNKNOWN_REQUEST_VERSION = 0;
-    FEED_QUERY = 1;
+// A continuation token (paging token).
+message Token {
+  extend search.now.wire.feed.Feature {
+    optional Token token_extension = 194964015;
   }
-  optional RequestVersion request_version = 1;
 
-  // Reserved fields for extensions
-  extensions 1000 to max;
+  // Indicates the last position of the current content for a parent.  A request
+  // can be made using the next_page_token to get additional features which will
+  // be appended to the parent's list of children.
+  optional bytes next_page_token = 2;
 }

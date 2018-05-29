@@ -14,24 +14,22 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/proto/wire/feed/data_operation.proto";
-import "src/main/proto/search/now/proto/wire/feed/response.proto";
-package search.now.proto.wire.feed;
+import "src/main/proto/search/now/wire/feed/content_id.proto";
+import "src/main/proto/search/now/wire/feed/semantic_properties.proto";
+
+package search.now.wire.feed;
 
 option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.wire.feed";
-option java_outer_classname = "FeedResponseProto";
+option java_outer_classname = "PayloadMetadataProto";
 
-// A feed response is  a series of directives to manipulate backend storage,
-// similar to database commands.  Individual data operations contain all the
-// necessary information to manipulate the client state.
-message FeedResponse {
+// Metadata common to all payloads in a DataOperation.
+message PayloadMetadata {
 
-  extend Response {
-    optional FeedResponse feed_response = 1000;
-  }
-  // DataOperations are applied on the client in order in which they are
-  // received.
-  repeated DataOperation data_operation = 1;
+  // The unique identifier of the payload.
+  optional ContentId content_id = 1;
+
+  // Payload semantic properties
+  optional SemanticProperties semantic_properties = 2;
 }

@@ -14,7 +14,7 @@
 
 syntax = "proto2";
 
-import "src/main/proto/search/now/proto/wire/feed/response.proto";
+import "src/main/proto/search/now/wire/feed/response.proto";
 
 package search.now.wire.feed.mockserver;
 
@@ -26,7 +26,7 @@ option java_outer_classname = "MockServerProto";
 message MockServer {
 
   // The initial response
-  optional search.now.proto.wire.feed.Response initial_response = 1;
+  optional search.now.wire.feed.Response initial_response = 1;
 
   // conditional responses represent responses for paged content
   repeated ConditionalResponse conditional_responses = 2;
@@ -38,7 +38,7 @@ message MockServer {
 /** This represents a response providing updates to the stream. */
 message MockUpdate {
   // The response with the push update
-  optional search.now.proto.wire.feed.Response response = 1;
+  optional search.now.wire.feed.Response response = 1;
 
   // The amount of time to wait, in milliseconds, before the push is triggered.
   // This is relative to the time the GCL file is loaded.
@@ -52,5 +52,5 @@ message ConditionalResponse {
   optional bytes continuation_token = 1;
 
   // The response to use
-  optional search.now.proto.wire.feed.Response response = 2;
+  optional search.now.wire.feed.Response response = 2;
 }

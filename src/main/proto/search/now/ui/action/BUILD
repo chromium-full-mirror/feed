@@ -28,7 +28,7 @@ proto_library(
     srcs = ["feed_action.proto"],
     deps = [
         ":feed_action_payload_proto",
-        "//src/main/proto/search/now/proto/wire/feed:feed_proto",
+        "//src/main/proto/search/now/wire/feed:feed_proto",
     ],
 )
 
