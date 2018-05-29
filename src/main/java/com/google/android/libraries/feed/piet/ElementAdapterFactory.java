@@ -138,7 +138,7 @@ class ElementAdapterFactory {
                     "Template binding %s missing content",
                     element.getTemplateBinding().getBindingId()));
           }
-          return templateInstanceFactory.get(
+          return createTemplateAdapter(
               new TemplateAdapterModel(
                   Template.getDefaultInstance(), BindingContext.getDefaultInstance()),
               frameContext);
@@ -157,6 +157,11 @@ class ElementAdapterFactory {
   ParameterizedTextElementAdapter createAdapterForParameterizedText(
       TextElement textLine, FrameContext frameContext) {
     return parameterizedTextElementFactory.get(textLine, frameContext);
+  }
+
+  TemplateInstanceAdapter createTemplateAdapter(
+      TemplateAdapterModel model, FrameContext frameContext) {
+    return templateInstanceFactory.get(model, frameContext);
   }
 
   TemplateInstanceAdapter createTemplateAdapter(
