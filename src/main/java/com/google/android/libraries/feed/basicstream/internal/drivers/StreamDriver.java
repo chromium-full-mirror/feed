@@ -70,10 +70,15 @@ public class StreamDriver implements FeatureChangeObserver {
       }
     }
 
+    if (featureDrivers.isEmpty()) {
+      return Collections.singletonList(createZeroStateDriver());
+    }
+
     return buildLeafFeatureDrivers(featureDrivers);
   }
 
-  private List<FeatureDriver> createAndInsertChildren(
+  @VisibleForTesting
+  List<FeatureDriver> createAndInsertChildren(
       ModelFeature streamFeature, ModelProvider modelProvider) {
     return createAndInsertChildren(streamFeature.getCursor(), modelProvider);
   }
@@ -118,15 +123,10 @@ public class StreamDriver implements FeatureChangeObserver {
                   createAndInsertChildrenAtIndex(
                       tokenCompleted.getCursor(), modelProvider, continuationIndex);
 
-              if (contentListener != null) {
-                contentListener.notifyContentsAdded(
-                    continuationIndex, buildLeafFeatureDrivers(newChildren));
-              }
-              if (shouldRemoveNoContentCard()) {
+              notifyContentsAdded(continuationIndex, buildLeafFeatureDrivers(newChildren));
+              if (shouldRemoveNoContentCardOrZeroState()) {
                 featureDrivers.remove(0);
-                if (contentListener != null) {
-                  contentListener.notifyContentRemoved(0);
-                }
+                notifyContentRemoved(0);
               }
             });
 
@@ -162,6 +162,7 @@ public class StreamDriver implements FeatureChangeObserver {
         leafFeatureDrivers.add(childContentModel);
       }
     }
+
     return leafFeatureDrivers;
   }
 
@@ -181,22 +182,29 @@ public class StreamDriver implements FeatureChangeObserver {
       removeDriver(removedChild);
     }
 
-    addNoContentCardIfNecessary();
+    addNoContentCardOrZeroStateIfNecessary();
   }
 
-  private void addNoContentCardIfNecessary() {
-    if (featureDrivers.isEmpty()
-        || (featureDrivers.size() == 1 && isLastDriverContinuationDriver())) {
-      NoContentDriver noContentDriver = createNoContentDriver();
-      featureDrivers.add(0, noContentDriver);
-      if (contentListener != null) {
-        contentListener.notifyContentsAdded(0, Collections.singletonList(noContentDriver));
-      }
+  private void addNoContentCardOrZeroStateIfNecessary() {
+    LeafFeatureDriver leafFeatureDriver = null;
+    if (featureDrivers.isEmpty()) {
+      leafFeatureDriver = createZeroStateDriver();
+    } else if (featureDrivers.size() == 1 && isLastDriverContinuationDriver()) {
+      leafFeatureDriver = createNoContentDriver();
+    }
+
+    if (leafFeatureDriver != null) {
+      featureDrivers.add(0, leafFeatureDriver);
+      notifyContentsAdded(0, Collections.singletonList(leafFeatureDriver));
     }
   }
 
-  private boolean shouldRemoveNoContentCard() {
-    if (featureDrivers.isEmpty() || !(featureDrivers.get(0) instanceof NoContentDriver)) {
+  private boolean shouldRemoveNoContentCardOrZeroState() {
+    if (featureDrivers.isEmpty()) {
+      return false;
+    }
+    if (!(featureDrivers.get(0) instanceof NoContentDriver)
+        && !(featureDrivers.get(0) instanceof ZeroStateDriver)) {
       return false;
     }
 
@@ -227,15 +235,25 @@ public class StreamDriver implements FeatureChangeObserver {
       if (featureDrivers.get(i) == featureDriver) {
         featureDrivers.remove(i);
         modelChildFeatureDriverMap.remove(modelChild);
-        if (contentListener != null) {
-          contentListener.notifyContentRemoved(i);
-        }
+        notifyContentRemoved(i);
         return i;
       }
     }
 
     Logger.wtf(TAG, "Attempting to remove feature contained on map but not on list of children.");
     return -1;
+  }
+
+  private void notifyContentsAdded(int index, List<LeafFeatureDriver> leafFeatureDrivers) {
+    if (contentListener != null) {
+      contentListener.notifyContentsAdded(index, leafFeatureDrivers);
+    }
+  }
+
+  private void notifyContentRemoved(int index) {
+    if (contentListener != null) {
+      contentListener.notifyContentRemoved(index);
+    }
   }
 
   @VisibleForTesting
@@ -257,6 +275,11 @@ public class StreamDriver implements FeatureChangeObserver {
   @VisibleForTesting
   NoContentDriver createNoContentDriver() {
     return new NoContentDriver();
+  }
+
+  @VisibleForTesting
+  ZeroStateDriver createZeroStateDriver() {
+    return new ZeroStateDriver(modelProvider);
   }
 
   public void setStreamContentListener(/*@Nullable*/ StreamContentListener contentListener) {

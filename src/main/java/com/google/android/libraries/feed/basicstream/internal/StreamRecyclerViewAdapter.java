@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal;
 import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_CONTINUATION;
 import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_HEADER;
 import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_NO_CONTENT;
+import static com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType.TYPE_ZERO_STATE;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -37,6 +38,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.Header
 import com.google.android.libraries.feed.basicstream.internal.viewholders.NoContentViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -90,28 +92,23 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
   @Override
   public FeedViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    FrameLayout frameLayout = new FrameLayout(parent.getContext());
+    frameLayout.setLayoutParams(
+        new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
     if (viewType == TYPE_HEADER) {
-      FrameLayout frameLayout = new FrameLayout(parent.getContext());
-      frameLayout.setLayoutParams(
-          new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
       return new HeaderViewHolder(frameLayout);
     } else if (viewType == TYPE_CONTINUATION) {
-      FrameLayout frameLayout = new FrameLayout(parent.getContext());
-      frameLayout.setLayoutParams(
-          new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
       return new ContinuationViewHolder(parent.getContext(), frameLayout);
     } else if (viewType == TYPE_NO_CONTENT) {
-      FrameLayout frameLayout = new FrameLayout(parent.getContext());
-      frameLayout.setLayoutParams(
-          new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
       return new NoContentViewHolder(cardConfiguration, parent.getContext(), frameLayout);
+    } else if (viewType == TYPE_ZERO_STATE) {
+      return new ZeroStateViewHolder(parent.getContext(), frameLayout);
     }
 
-    FrameLayout cardView = new FrameLayout(context);
     StreamActionApiImpl streamActionApi =
         new StreamActionApiImpl(context, actionApi, actionParser, actionManager);
     return new PietViewHolder(
-        cardConfiguration, cardView, pietManager, context, streamActionApi, actionParser);
+        cardConfiguration, frameLayout, pietManager, context, streamActionApi, actionParser);
   }
 
   @Override

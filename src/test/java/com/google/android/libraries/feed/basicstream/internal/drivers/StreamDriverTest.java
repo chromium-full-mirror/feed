@@ -188,7 +188,7 @@ public class StreamDriverTest {
   }
 
   @Test
-  public void testOnChange_addsNoContentCard_whenFeatureDriversEmpty() {
+  public void testOnChange_addsZeroState_whenFeatureDriversEmpty() {
     FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
@@ -201,7 +201,40 @@ public class StreamDriverTest {
         new ChildRemoveBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
-    assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
+    assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(ZeroStateDriver.class);
+  }
+
+  @Test
+  public void testGetLeafFeatureDrivers_addsZeroState_withNoModelChildren() {
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+
+    assertThat(leafFeatureDrivers).hasSize(1);
+    assertThat(leafFeatureDrivers.get(0)).isInstanceOf(ZeroStateDriver.class);
+  }
+
+  @Test
+  public void testTriggerRefresh_removesZeroState() {
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+
+    assertThat(leafFeatureDrivers).hasSize(1);
+    assertThat(leafFeatureDrivers.get(0)).isInstanceOf(ZeroStateDriver.class);
+
+    FakeModelCursor fakeModelCursorWithCard = new FakeCursorBuilder().addCard().build();
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursorWithCard);
+
+    streamDriver.createAndInsertChildren(streamFeature, modelProvider);
+
+    assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
+    assertThat(streamDriver.getLeafFeatureDrivers().get(0))
+        .isInstanceOf(FakeLeafFeatureDriver.class);
   }
 
   @Test

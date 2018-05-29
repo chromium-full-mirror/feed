@@ -43,6 +43,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedVi
 import com.google.android.libraries.feed.basicstream.internal.viewholders.NoContentViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -152,6 +153,18 @@ public class StreamRecyclerViewAdapterTest {
     FrameLayout viewHolderFrameLayout = getCardView(viewHolder);
 
     assertThat(viewHolder).isInstanceOf(NoContentViewHolder.class);
+    assertThat(viewHolderFrameLayout.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(viewHolderFrameLayout.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
+  }
+
+  @Test
+  public void testCreateViewHolderZeroState() {
+    FrameLayout parent = new FrameLayout(context);
+    ViewHolder viewHolder =
+        streamRecyclerViewAdapter.onCreateViewHolder(parent, ViewHolderType.TYPE_ZERO_STATE);
+    FrameLayout viewHolderFrameLayout = getCardView(viewHolder);
+
+    assertThat(viewHolder).isInstanceOf(ZeroStateViewHolder.class);
     assertThat(viewHolderFrameLayout.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
     assertThat(viewHolderFrameLayout.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
   }
