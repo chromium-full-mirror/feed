@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -27,7 +28,9 @@ import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -47,6 +50,8 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.TaskQueue.T
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -58,12 +63,12 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -129,7 +134,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.requestManager = requestManager;
     this.schedulerApi = schedulerApi;
     this.clock = clock;
-    this.taskQueue = new TaskQueue(executor, timingUtils);
+    this.taskQueue = new TaskQueue(executor);
 
     lifetimeMs =
         configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
@@ -139,7 +144,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     // Suppress /*@UnderInitialization*/ warning
     @SuppressWarnings("nullness")
     Runnable initializationTask = this::initializationTask;
-    taskQueue.executeInitialization(initializationTask);
+    taskQueue.initialize(initializationTask);
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the
@@ -226,7 +231,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         // Task which populates the newly created unbound session.
         Runnable createUnboundSession =
             () -> {
-              Logger.i(TAG, "Task: createUnboundSession");
+              Logger.i(TAG, "Task: createUnboundSession %s", session.getStreamToken());
               ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
               Result<List<StreamStructure>> streamStructuresResult =
                   store.getStreamStructures(session);
@@ -240,7 +245,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
               timeTracker.stop("task", "createUnboundSession");
               unboundSessionCount++;
             };
-        taskQueue.execute("createUnboundSession", TaskType.USER_FACING, createUnboundSession);
+        taskQueue.execute("createUnboundSession", TaskType.BACKGROUND, createUnboundSession);
       }
     }
 
@@ -331,11 +336,56 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     InitializableSession session = sessionFactory.getSession();
     session.bindModelProvider(modelProvider);
 
+    if (head == null) {
+      Logger.i(TAG, "Delaying populateSession until initialization is finished");
+      taskQueue.execute(
+          "postInitialization/populateSession",
+          TaskType.POST_INIT,
+          () -> populateSessionWaitForHead(session));
+    } else {
+      populateSession(session, (result) -> {});
+    }
+  }
+
+  private void populateSessionWaitForHead(InitializableSession session) {
+    Validators.checkNotNull(head);
+    threadUtils.checkNotMainThread();
+
+    // Wait for the main thread call to complete.  This is done to ensure that the
+    // background populateSession task is queued before the task running this finishes.
+    SimpleSettableFuture<Boolean> sharedStatesFuture = new SimpleSettableFuture<>();
+    mainThreadRunner.execute(TAG, () -> populateSession(session, sharedStatesFuture::put));
+    try {
+      sharedStatesFuture.get();
+    } catch (InterruptedException | ExecutionException e) {
+      Logger.e(TAG, e, "poplulateSession main thread portion failed");
+    }
+  }
+
+  // This returns a result through a consumer allowing use to wait on this task.  It must
+  // run on the main thread, but does most of it's work through the populateSession task.
+  private void populateSession(InitializableSession session, Consumer<Boolean> result) {
+    threadUtils.checkMainThread();
+    SessionManagerState sessionManagerState =
+        new SessionManagerState(
+            !head.isHeadEmpty(),
+            head.getStreamSession().getLastAccessed(),
+            taskQueue.isMakingRequest());
+    @RequestBehavior int behavior = schedulerApi.shouldSessionRequestData(sessionManagerState);
+    Logger.i(TAG, "populateSession - request behavior: %s", behavior);
+
+    boolean makeRequest =
+        behavior == RequestBehavior.REQUEST_WITH_TIMEOUT
+            || behavior == RequestBehavior.REQUEST_WITH_WAIT;
+    if (makeRequest && !taskQueue.isMakingRequest()) {
+      Logger.i(TAG, "TriggerRefresh to create a new $HEAD");
+      triggerRefresh(null);
+    }
+
     // Task which creates and populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
     Runnable populateSession =
         () -> {
-          Logger.i(TAG, "Task: Create/Populate New Session");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
           Result<StreamSession> streamSessionResult = store.createNewSession();
@@ -379,6 +429,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         };
 
     taskQueue.execute("populateNewSession", TaskType.USER_FACING, populateSession);
+    result.accept(true);
   }
 
   @VisibleForTesting
@@ -469,11 +520,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @Override
   public void triggerRefresh(/*@Nullable*/ StreamSession streamSession) {
     threadUtils.checkMainThread();
-    if (streamSession == null) {
-      // see [INTERNAL LINK]  We create a new session and then call triggerRefresh on it before we have
-      // even populated the session in Audrey2.
-      Logger.w(TAG, "Found a null streamSession in triggerRefresh");
-    }
     taskQueue.execute(
         "triggerRefresh/Request/InvalidateSession",
         TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
@@ -488,7 +534,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
               if (session != null) {
                 ModelProvider modelProvider = session.getModelProvider();
                 if (modelProvider != null) {
-                  modelProvider.invalidate();
+                  invalidateSession(modelProvider, session);
                 } else {
                   Logger.w(TAG, "Session didn't have a ModelProvider %s", streamToken);
                 }
@@ -594,44 +640,41 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
   private void resetHead(/*@Nullable*/ StreamSession streamSession) {
-    Logger.i(TAG, "Task: resetHead");
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    Collection<Session> currentSessions;
+    List<Session> currentSessions;
     synchronized (lock) {
-      currentSessions = sessions.values();
+      currentSessions = new ArrayList<>(sessions.values());
     }
 
     // If we have old sessions and we received a clear head, let's invalidate the session that
     // initiated the clear.
-    List<String> sessionsRemoved = new ArrayList<>();
     store.clearHead();
     for (Session session : currentSessions) {
       ModelProvider modelProvider = session.getModelProvider();
-      if (modelProvider != null && invalidateSession(streamSession, modelProvider)) {
-        modelProvider.invalidate();
-        store.removeSession(session.getStreamSession());
-        sessionsRemoved.add(session.getStreamSession().getStreamToken());
+      if (modelProvider != null && shouldInvalidateSession(streamSession, modelProvider)) {
+        invalidateSession(modelProvider, session);
       }
-    }
-    synchronized (lock) {
-      sessions.keySet().removeAll(sessionsRemoved);
     }
     timeTracker.stop("task", "resetHead");
   }
 
   /**
-   * This will determine if the ModelProvider (session) should be invalidated. There are three
-   * situations which will cause a session to be invalidated:
+   * This will determine if the ModelProvider (session) should be invalidated.
    *
    * <ol>
+   *   <li>ModelProvider should be READY
    *   <li>Clearing head was initiated externally, not from an existing session
    *   <li>Clearing head was initiated by the ModelProvider
    *   <li>The ModelProvider doesn't yet have a session, so we'll create the session from the new
    *       $HEAD
    * </ol>
    */
-  private boolean invalidateSession(
+  private boolean shouldInvalidateSession(
       /*@Nullable*/ StreamSession streamSession, ModelProvider modelProvider) {
+    // if the model provider isn't READY, don't invalidate the session
+    if (modelProvider.getCurrentState() != State.READY) {
+      return false;
+    }
     // Clear was done outside of any session.
     if (streamSession == null) {
       return true;
@@ -640,6 +683,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     // which initiated the request clearing $HEAD.
     String sessionToken = modelProvider.getSessionToken();
     return (sessionToken == null || sessionToken.equals(streamSession.getStreamToken()));
+  }
+
+  private void invalidateSession(ModelProvider modelProvider, Session session) {
+    Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getStreamToken());
+    modelProvider.invalidate();
+    store.removeSession(session.getStreamSession());
+    synchronized (lock) {
+      sessions.remove(session.getStreamSession().getStreamToken());
+    }
   }
 
   /**
@@ -679,9 +731,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           break;
         }
       }
-      Logger.i("TaskQueue", "CommitterTask is clearing head %s", clearedHead);
       taskQueue.execute(
-          "sessionManagerMutation:" + task,
+          "sessionManagerMutation:" + task + ":clearHead:" + clearedHead,
           clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING,
           this::commitTask);
     }

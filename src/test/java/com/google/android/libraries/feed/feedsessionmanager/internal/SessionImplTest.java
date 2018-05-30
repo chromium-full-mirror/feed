@@ -236,8 +236,8 @@ public class SessionImplTest {
   }
 
   private SessionImpl getSessionImpl() {
-    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), timingUtils);
-    taskQueue.executeInitialization(() -> {});
+    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue.initialize(() -> {});
     SessionImpl session = new SessionImpl(store, taskQueue, timingUtils, threadUtils);
     session.bindModelProvider(modelProvider);
     return session;

@@ -14,27 +14,42 @@
 
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.testing.conformance.scheduler.SchedulerConformanceTest;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link TimeoutScheduler}. */
-// TODO: Add real tests
 @RunWith(RobolectricTestRunner.class)
 public class TimeoutSchedulerTest extends SchedulerConformanceTest {
+  private static final boolean USE_TIMEOUT_SCHEDULER = false;
+  private static final long TIMEOUT_REQUEST_WITH_WAIT_MS = TimeUnit.HOURS.toMillis(8);
+  private static final long TIMEOUT_REQUEST_WITH_TIMEOUT_MS = TimeUnit.HOURS.toMillis(1);
 
   @Mock private ThreadUtils threadUtils;
   @Mock private Clock clock;
+  @Mock private Configuration config;
 
   @Before
   public void setup() {
     initMocks(this);
-    scheduler = new TimeoutScheduler(threadUtils, clock);
+    when(config.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, USE_TIMEOUT_SCHEDULER))
+        .thenReturn(USE_TIMEOUT_SCHEDULER);
+    when(config.getValueOrDefault(
+            ConfigKey.TIMEOUT_REQUEST_WITH_WAIT_MS, TIMEOUT_REQUEST_WITH_WAIT_MS))
+        .thenReturn(TIMEOUT_REQUEST_WITH_WAIT_MS);
+    when(config.getValueOrDefault(
+            ConfigKey.TIMEOUT_REQUEST_WITH_TIMEOUT_MS, TIMEOUT_REQUEST_WITH_TIMEOUT_MS))
+        .thenReturn(TIMEOUT_REQUEST_WITH_TIMEOUT_MS);
+    scheduler = new TimeoutScheduler(threadUtils, clock, config);
   }
 }

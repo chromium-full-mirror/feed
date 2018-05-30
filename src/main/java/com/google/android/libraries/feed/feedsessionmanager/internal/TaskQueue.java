@@ -17,12 +17,10 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.IntDef;
-import android.util.Pair;
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
@@ -32,7 +30,7 @@ import javax.annotation.concurrent.GuardedBy;
 /**
  * This class is responsible for running tasks on the Feed single-threaded Executor. The primary job
  * of this class is to run high priority tasks and to delay certain task until other complete. When
- * we are delaying tasks, they will be added to a set of queues and will run within order within the
+ * we are delaying tasks, they will be added to a set of queues and will run in order within the
  * task priority. There are three priorities of tasks defined:
  *
  * <ol>
@@ -56,115 +54,71 @@ public class TaskQueue implements Dumpable {
 
   /** TaskType identifies the type of task being run and implicitly the priority of the task */
   @IntDef({
-    TaskType.BACKGROUND,
-    TaskType.HEAD_RESET,
+    TaskType.UNKNOWN,
+    TaskType.POST_INIT,
     TaskType.HEAD_INVALIDATE,
-    TaskType.USER_FACING
+    TaskType.HEAD_RESET,
+    TaskType.USER_FACING,
+    TaskType.BACKGROUND,
   })
   public @interface TaskType {
-    // Background tasks run at the lowest priority
-    int BACKGROUND = 0;
-    // Runs immediately, $HEAD is indicates the task will create a new $HEAD instance.
-    // Once finished, start running other tasks until the delayed tasks are all run.
-    int HEAD_RESET = 1;
+    // Unknown task priority, shouldn't be used, this will be treated as a background task
+    int UNKNOWN = 0;
+    // Runs immediately, post initialization task which waited for initialization to be finished
+    int POST_INIT = 1;
     // Runs immediately, $HEAD is invalidated (cleared) and delay tasks until HEAD_RESET
     int HEAD_INVALIDATE = 2;
+    // Runs immediately, indicates the task will create a new $HEAD instance.
+    // Once finished, start running other tasks until the delayed tasks are all run.
+    int HEAD_RESET = 3;
     // User facing task which should run at a higher priority than Background.
-    int USER_FACING = 3;
+    int USER_FACING = 4;
+    // Background tasks run at the lowest priority
+    int BACKGROUND = 5;
   }
 
   private final Object lock = new Object();
 
   @GuardedBy("lock")
-  private final Queue<Pair<String, Runnable>> userTasks = new ArrayDeque<>();
+  private final Queue<TaskWrapper> immediateTasks = new ArrayDeque<>();
 
   @GuardedBy("lock")
-  private final Queue<Pair<String, Runnable>> backgroundTasks = new ArrayDeque<>();
+  private final Queue<TaskWrapper> userTasks = new ArrayDeque<>();
 
   @GuardedBy("lock")
-  private boolean waitForHeadReset = false;
+  private final Queue<TaskWrapper> backgroundTasks = new ArrayDeque<>();
+
+  @GuardedBy("lock")
+  private boolean waitingForHeadReset = false;
 
   @GuardedBy("lock")
   private boolean initialized = false;
 
   private final ExecutorService executor;
-  private final TimingUtils timingUtils;
   private final Handler mainThreadHandler;
 
   // counters used for dump
   private int taskCount = 0;
+  private int immediateTasksCount = 0;
   private int delayedTaskCount = 0;
-  private int backgroundTaskCount = 0;
-  private int maxBackgroundTasks = 0;
+  private int postInitTaskCount = 0;
+  private int headInvalidateTaskCount = 0;
+  private int headResetTaskCount = 0;
   private int userFacingTaskCount = 0;
+  private int backgroundTaskCount = 0;
+  private int maxImmediateTasks = 0;
   private int maxUserFacingTasks = 0;
-  private int immediateTasks = 0;
+  private int maxBackgroundTasks = 0;
 
-  public TaskQueue(ExecutorService executor, TimingUtils timingUtils) {
+  public TaskQueue(ExecutorService executor) {
     this.executor = executor;
-    this.timingUtils = timingUtils;
     mainThreadHandler = new Handler(Looper.getMainLooper());
   }
 
-  /** Execute a Task on the Executor. */
-  public void execute(String task, @TaskType int taskType, Runnable runnable) {
-    execute(task, taskType, runnable, null, 0);
-  }
-
-  public void execute(
-      String task,
-      @TaskType int taskType,
-      Runnable runnable,
-      /*@Nullable*/ Runnable timeOut,
-      long timeoutMillis) {
-    taskCount++;
-    if (taskType == TaskType.USER_FACING) {
-      userFacingTaskCount++;
-    } else if (taskType == TaskType.BACKGROUND) {
-      backgroundTaskCount++;
-    }
-    if (!isDelayed()) {
-      immediateTasks++;
-      if (taskType == TaskType.HEAD_RESET || taskType == TaskType.HEAD_INVALIDATE) {
-        if (taskType == TaskType.HEAD_RESET) {
-          executor.execute(() -> executeHeadReset(task, runnable));
-        } else {
-          executor.execute(() -> executeHeadInvalidate(task, runnable));
-        }
-      } else {
-        executor.execute(() -> executeImmediate(task, runnable));
-      }
-      return;
-    }
-    if (timeOut != null) {
-      TaskWithTimeout taskWithTimeout = new TaskWithTimeout(runnable, timeOut);
-      mainThreadHandler.postDelayed(taskWithTimeout::timeoutCallback, timeoutMillis);
-      scheduleTask(task, taskType, taskWithTimeout::taskCallback);
-    } else {
-      scheduleTask(task, taskType, runnable);
-    }
-  }
-
-  class TaskWithTimeout {
-    private final Runnable taskRunnable;
-    private final Runnable timeOutRunnable;
-    private final AtomicBoolean started = new AtomicBoolean(false);
-
-    TaskWithTimeout(Runnable taskRunnable, Runnable timeOutRunnable) {
-      this.taskRunnable = taskRunnable;
-      this.timeOutRunnable = timeOutRunnable;
-    }
-
-    void taskCallback() {
-      started.set(true);
-      taskRunnable.run();
-    }
-
-    void timeoutCallback() {
-      if (started.get()) {
-        return;
-      }
-      executor.execute(timeOutRunnable);
+  /** Returns {@code true} if we are delaying for a request */
+  public boolean isMakingRequest() {
+    synchronized (lock) {
+      return waitingForHeadReset;
     }
   }
 
@@ -173,118 +127,233 @@ public class TaskQueue implements Dumpable {
    * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}. This needs to be the
    * first task run, all other tasks are delayed until initialization finishes.
    */
-  public void executeInitialization(Runnable runnable) {
-    Logger.i(TAG, "executeInitialization: task initialization");
-    executor.execute(
-        () -> {
-          runnable.run();
-          synchronized (lock) {
-            // We are not initialized
-            initialized = true;
-            if (!waitForHeadReset) {
-              executeNextTask();
-            }
-          }
-        });
+  public void initialize(Runnable runnable) {
+    // TODO: Should this have a TaskType.INIT?
+    TaskWrapper task =
+        new BaseTaskWrapper(
+            "initialize", TaskType.POST_INIT, () -> executeInitialization(runnable));
+    task.runTask();
+  }
+
+  /** Execute a Task on the Executor. */
+  public void execute(String task, @TaskType int taskType, Runnable runnable) {
+    execute(task, taskType, runnable, null, 0);
+  }
+
+  /** Execute a task providing a timeout task */
+  public void execute(
+      String task,
+      @TaskType int taskType,
+      Runnable runnable,
+      /*@Nullable*/ Runnable timeOutRunnable,
+      long timeoutMillis) {
+
+    Logger.i(TAG, " - task[%s - %s]: %s", taskType, isDelayed(), task);
+    countTask(taskType);
+    boolean queueTask = isDelayed();
+    TaskWrapper taskWrapper;
+    Runnable taskRunnable = getRunnable(runnable, taskType);
+    if (timeOutRunnable != null) {
+      taskWrapper =
+          new TimeoutTaskWrapper(task, taskType, taskRunnable, timeOutRunnable)
+              .startTimeout(timeoutMillis);
+    } else {
+      taskWrapper = new BaseTaskWrapper(task, taskType, taskRunnable);
+    }
+    scheduleTask(queueTask, taskWrapper, taskType);
+  }
+
+  private void scheduleTask(boolean queueTask, TaskWrapper taskWrapper, @TaskType int taskType) {
+    if (queueTask) {
+      delayedTaskCount++;
+      queueTask(taskWrapper, taskType);
+    } else {
+      immediateTasksCount++;
+      taskWrapper.runTask();
+    }
+  }
+
+  private Runnable getRunnable(Runnable runnable, @TaskType int taskType) {
+    if (taskType == TaskType.HEAD_RESET) {
+      return () -> executeHeadReset(runnable);
+    }
+    if (taskType == TaskType.HEAD_INVALIDATE) {
+      synchronized (lock) {
+        waitingForHeadReset = true;
+      }
+      return () -> executeHeadInvalidate(runnable);
+    }
+    return () -> executeTask(runnable);
+  }
+
+  private void queueTask(TaskWrapper taskWrapper, @TaskType int taskType) {
+    synchronized (lock) {
+      if (taskType == TaskType.HEAD_INVALIDATE
+          || taskType == TaskType.HEAD_RESET
+          || taskType == TaskType.POST_INIT) {
+        immediateTasks.add(taskWrapper);
+        maxImmediateTasks = Math.max(immediateTasks.size(), maxImmediateTasks);
+        if (taskType == TaskType.HEAD_RESET) {
+          executeNextTask();
+        }
+      } else if (taskType == TaskType.USER_FACING) {
+        userTasks.add(taskWrapper);
+        maxUserFacingTasks = Math.max(userTasks.size(), maxUserFacingTasks);
+      } else {
+        backgroundTasks.add(taskWrapper);
+        maxBackgroundTasks = Math.max(backgroundTasks.size(), maxBackgroundTasks);
+      }
+    }
+  }
+
+  private void countTask(@TaskType int taskType) {
+    taskCount++;
+    if (taskType == TaskType.POST_INIT) {
+      postInitTaskCount++;
+    } else if (taskType == TaskType.HEAD_INVALIDATE) {
+      headInvalidateTaskCount++;
+    } else if (taskType == TaskType.HEAD_RESET) {
+      headResetTaskCount++;
+    } else if (taskType == TaskType.USER_FACING) {
+      userFacingTaskCount++;
+    } else if (taskType == TaskType.BACKGROUND) {
+      backgroundTaskCount++;
+    }
+  }
+
+  /** Indicates that tasks are being delayed until a response is processed */
+  @VisibleForTesting
+  boolean isDelayed() {
+    synchronized (lock) {
+      return !initialized || waitingForHeadReset;
+    }
+  }
+
+  @VisibleForTesting
+  boolean hasBacklog() {
+    synchronized (lock) {
+      return !backgroundTasks.isEmpty() || !userTasks.isEmpty() || !immediateTasks.isEmpty();
+    }
+  }
+
+  private void executeInitialization(Runnable runnable) {
+    runnable.run();
+    synchronized (lock) {
+      initialized = true;
+    }
+    executeNextTask();
+  }
+
+  private void executeHeadReset(Runnable runnable) {
+    runnable.run();
+    synchronized (lock) {
+      waitingForHeadReset = false;
+    }
+    executeNextTask();
+  }
+
+  private void executeHeadInvalidate(Runnable runnable) {
+    runnable.run();
+    synchronized (lock) {
+      waitingForHeadReset = true;
+    }
+    executeNextTask();
+  }
+
+  private void executeTask(Runnable runnable) {
+    runnable.run();
+    executeNextTask();
+  }
+
+  private void executeNextTask() {
+    synchronized (lock) {
+      if (!immediateTasks.isEmpty()) {
+        TaskWrapper task = immediateTasks.remove();
+        task.runTask();
+      } else if (!userTasks.isEmpty() && !isDelayed()) {
+        TaskWrapper task = userTasks.remove();
+        task.runTask();
+      } else if (!backgroundTasks.isEmpty() && !isDelayed()) {
+        TaskWrapper task = backgroundTasks.remove();
+        task.runTask();
+      }
+    }
+  }
+
+  interface TaskWrapper {
+    void runTask();
+  }
+
+  class BaseTaskWrapper implements TaskWrapper {
+    private final String task;
+    private final @TaskType int taskType;
+    private final Runnable taskRunnable;
+
+    BaseTaskWrapper(String task, @TaskType int taskType, Runnable taskRunnable) {
+      this.task = task;
+      this.taskType = taskType;
+      this.taskRunnable = taskRunnable;
+    }
+
+    @Override
+    public void runTask() {
+      Logger.i(TAG, "Execute task [%s - %s]: %s", taskType, isDelayed(), task);
+      executor.execute(taskRunnable);
+    }
+  }
+
+  /** Runs a Task which has a timeout */
+  class TimeoutTaskWrapper implements TaskWrapper {
+    private final String task;
+    private final @TaskType int taskType;
+    private final Runnable taskRunnable;
+    private final Runnable timeOutRunnable;
+    private final AtomicBoolean started = new AtomicBoolean(false);
+
+    TimeoutTaskWrapper(
+        String task, @TaskType int taskType, Runnable taskRunnable, Runnable timeOutRunnable) {
+      this.task = task;
+      this.taskType = taskType;
+      this.taskRunnable = taskRunnable;
+      this.timeOutRunnable = timeOutRunnable;
+    }
+
+    TimeoutTaskWrapper startTimeout(long timeoutMillis) {
+      mainThreadHandler.postDelayed(this::runCallback, timeoutMillis);
+      return this;
+    }
+
+    @Override
+    public void runTask() {
+      Logger.i(TAG, "Execute task [%s]: %s", taskType, task);
+      started.set(true);
+      executor.execute(taskRunnable);
+    }
+
+    void runCallback() {
+      if (started.get()) {
+        return;
+      }
+      Logger.i(TAG, "Execute Timeout [%s]: %s", taskType, task);
+      executor.execute(timeOutRunnable);
+    }
   }
 
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("tasks").value(taskCount);
-    dumper.forKey("backgroundTasks").value(backgroundTaskCount).compactPrevious();
+    dumper.forKey("immediateRun").value(immediateTasksCount).compactPrevious();
+    dumper.forKey("delayedRun").value(delayedTaskCount).compactPrevious();
+
+    dumper.forKey("postInitTasks").value(postInitTaskCount);
+    dumper.forKey("headInvalidateTasks").value(headInvalidateTaskCount).compactPrevious();
+    dumper.forKey("headResetTasks").value(headResetTaskCount).compactPrevious();
     dumper.forKey("userFacingTasks").value(userFacingTaskCount).compactPrevious();
-    dumper.forKey("delayedTasks").value(delayedTaskCount);
-    dumper.forKey("immediateTasks").value(immediateTasks).compactPrevious();
-    dumper.forKey("maxUserFacingDelay").value(maxUserFacingTasks).compactPrevious();
-    dumper.forKey("maxBackgroundDelay").value(maxBackgroundTasks).compactPrevious();
-  }
+    dumper.forKey("backgroundTasks").value(backgroundTaskCount).compactPrevious();
 
-  private void scheduleTask(String task, @TaskType int taskType, Runnable runnable) {
-    if (taskType == TaskType.HEAD_INVALIDATE) {
-      synchronized (lock) {
-        waitForHeadReset = true;
-      }
-      immediateTasks++;
-      executor.execute(() -> executeHeadInvalidate(task, runnable));
-      return;
-    }
-    if (taskType == TaskType.HEAD_RESET) {
-      immediateTasks++;
-      executor.execute(() -> executeHeadReset(task, runnable));
-      return;
-    }
-    Logger.i(TAG, "Delayed task %s", task);
-    delayedTaskCount++;
-    synchronized (lock) {
-      if (taskType == TaskType.USER_FACING) {
-        userTasks.add(Pair.create(task, runnable));
-        maxUserFacingTasks = Math.max(maxUserFacingTasks, userTasks.size());
-      } else if (taskType == TaskType.BACKGROUND) {
-        backgroundTasks.add(Pair.create(task, runnable));
-        maxBackgroundTasks = Math.max(maxBackgroundTasks, backgroundTasks.size());
-      }
-    }
-  }
-
-  private void executeNextTask() {
-    synchronized (lock) {
-      if (!isDelayed()) {
-        // Nothing is delayed, so we are done.
-        return;
-      }
-      // The priority is userTasks before backgroundTasks.
-      if (!userTasks.isEmpty()) {
-        Pair<String, Runnable> task = userTasks.remove();
-        executor.execute(() -> executeTask(task.first, task.second));
-      } else if (!backgroundTasks.isEmpty()) {
-        Pair<String, Runnable> task = backgroundTasks.remove();
-        executor.execute(() -> executeTask(task.first, task.second));
-      } else {
-        Logger.e(TAG, "Delayed without any Tasks found to execute");
-      }
-    }
-  }
-
-  private void executeHeadReset(String task, Runnable runnable) {
-    Logger.i(TAG, "executeHeadReset %s", task);
-    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    runnable.run();
-    timeTracker.stop("task", task, "", "executeHeadReset");
-    synchronized (lock) {
-      waitForHeadReset = false;
-      executeNextTask();
-    }
-  }
-
-  private void executeHeadInvalidate(String task, Runnable runnable) {
-    Logger.i(TAG, "executeHeadInvalidate %s", task);
-    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    runnable.run();
-    synchronized (lock) {
-      waitForHeadReset = true;
-    }
-    timeTracker.stop("task", task, "", "executeHeadInvalidate");
-  }
-
-  private void executeTask(String task, Runnable runnable) {
-    Logger.i(TAG, "executeTask %s", task);
-    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    runnable.run();
-    timeTracker.stop("task", task, "", "executeTask");
-    executeNextTask();
-  }
-
-  private void executeImmediate(String task, Runnable runnable) {
-    Logger.i(TAG, "executeImmediate %s", task);
-    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    runnable.run();
-    timeTracker.stop("task", task, "", "executeImmediate");
-  }
-
-  private boolean isDelayed() {
-    synchronized (lock) {
-      return !initialized || waitForHeadReset || !userTasks.isEmpty() || !backgroundTasks.isEmpty();
-    }
+    dumper.forKey("maxImmediateQueue").value(maxImmediateTasks);
+    dumper.forKey("maxUserFacingQueue").value(maxUserFacingTasks).compactPrevious();
+    dumper.forKey("maxBackgroundQueue").value(maxBackgroundTasks).compactPrevious();
   }
 }

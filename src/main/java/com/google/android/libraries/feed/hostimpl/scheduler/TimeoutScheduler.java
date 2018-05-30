@@ -18,39 +18,80 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Concrete impl of {@link SchedulerApi}. The implementation will timeout session creation when a
  * request is running too long and will show existing content.
  */
 public class TimeoutScheduler implements SchedulerApi {
-  private static final String TAG = "FeedSchedulerApiImpl";
+  private static final String TAG = "TimeoutScheduler";
+
+  // TODO: What should we use for the defaults?
+  private static final long TIMEOUT_REQUEST_WITH_WAIT_MS = TimeUnit.HOURS.toMillis(8);
+  private static final long TIMEOUT_REQUEST_WITH_TIMEOUT_MS = TimeUnit.HOURS.toMillis(1);
+
   private final ThreadUtils threadUtils;
   private final Clock clock;
+  private final boolean useTimeScheduler;
+  private final long requestWithWaitMs;
+  private final long requestWithTimeoutMs;
 
-  private long contentCreationMs;
-
-  public TimeoutScheduler(ThreadUtils threadUtils, Clock clock) {
+  public TimeoutScheduler(ThreadUtils threadUtils, Clock clock, Configuration configuration) {
     this.threadUtils = threadUtils;
     this.clock = clock;
+    useTimeScheduler = configuration.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, false);
+    requestWithWaitMs =
+        configuration.getValueOrDefault(
+            ConfigKey.TIMEOUT_REQUEST_WITH_WAIT_MS, TIMEOUT_REQUEST_WITH_WAIT_MS);
+    requestWithTimeoutMs =
+        configuration.getValueOrDefault(
+            ConfigKey.TIMEOUT_REQUEST_WITH_TIMEOUT_MS, TIMEOUT_REQUEST_WITH_TIMEOUT_MS);
   }
 
   @Override
   @RequestBehavior
   public int shouldSessionRequestData(SessionManagerState sessionManagerState) {
     threadUtils.checkMainThread();
+    if (!useTimeScheduler) {
+      Logger.i(TAG, "shouldSessionRequestData - disabled");
+      return RequestBehavior.NO_REQUEST_WITH_CONTENT;
+    }
     Logger.i(
         TAG,
         "shouldSessionRequestData, content %s, contentCreationMs %s, request %s",
         sessionManagerState.hasContent,
-        sessionManagerState.contentCreationDateTimeMs,
+        StringFormattingUtils.formatLogDate(sessionManagerState.contentCreationDateTimeMs),
         sessionManagerState.hasOutstandingRequest);
-    if (contentCreationMs == 0) {
-      return RequestBehavior.REQUEST_WITH_WAIT;
+
+    if (!sessionManagerState.hasContent) {
       // No Content
+      Logger.i(TAG, "shouldSessionRequestData - No Content found: REQUEST_WITH_WAIT");
+      return RequestBehavior.REQUEST_WITH_WAIT;
     }
-    return RequestBehavior.REQUEST_WITH_WAIT;
+    long deltaTime = clock.currentTimeMillis() - sessionManagerState.contentCreationDateTimeMs;
+    Logger.i(TAG, "Delta: [%s]", deltaTime);
+    if (deltaTime > requestWithWaitMs) {
+      Logger.i(
+          TAG,
+          "shouldSessionRequestData [%s | %s]: REQUEST_WITH_WAIT",
+          deltaTime,
+          requestWithWaitMs);
+      return RequestBehavior.REQUEST_WITH_WAIT;
+    }
+    if (deltaTime > requestWithTimeoutMs) {
+      Logger.i(
+          TAG,
+          "shouldSessionRequestData [%s | %s]: REQUEST_WITH_TIMEOUT",
+          deltaTime,
+          requestWithTimeoutMs);
+      return RequestBehavior.REQUEST_WITH_TIMEOUT;
+    }
+    Logger.i(TAG, "Default: NO_REQUEST_WITH_CONTENT");
+    return RequestBehavior.NO_REQUEST_WITH_CONTENT;
   }
 
   @Override
@@ -60,7 +101,6 @@ public class TimeoutScheduler implements SchedulerApi {
         TAG,
         "onReceiveNewContent %s",
         StringFormattingUtils.formatLogDate(contentCreationDateTimeMs));
-    contentCreationMs = contentCreationDateTimeMs;
   }
 
   @Override
