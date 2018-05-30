@@ -92,4 +92,23 @@ public class ContentMutation {
       return new ContentMutation(simplifier.simplify(operations));
     }
   }
+
+  @Override
+  public boolean equals(/*@Nullable*/ Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ContentMutation that = (ContentMutation) o;
+
+    return operations != null ? operations.equals(that.operations) : that.operations == null;
+  }
+
+  @Override
+  public int hashCode() {
+    return operations != null ? operations.hashCode() : 0;
+  }
 }
