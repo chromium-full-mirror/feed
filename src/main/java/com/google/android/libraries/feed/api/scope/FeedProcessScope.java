@@ -69,8 +69,7 @@ public class FeedProcessScope implements Dumpable {
       ImageLoaderApi imageLoaderApi,
       ActionApi actionApi,
       StreamConfiguration streamConfiguration,
-      CardConfiguration cardConfiguration,
-      Configuration config) {
+      CardConfiguration cardConfiguration) {
     return new FeedStreamScope.Builder(
         context,
         actionApi,
@@ -86,7 +85,7 @@ public class FeedProcessScope implements Dumpable {
         streamConfiguration,
         cardConfiguration,
         actionManager,
-        config);
+        configuration);
   }
 
   @Override
@@ -250,7 +249,8 @@ public class FeedProcessScope implements Dumpable {
           appLifecycleListener,
           clock,
           debugBehavior,
-          actionManager);
+          actionManager,
+          configuration);
     }
 
     // Required fields.
@@ -287,7 +287,8 @@ public class FeedProcessScope implements Dumpable {
       AppLifecycleListener appLifecycleListener,
       Clock clock,
       DebugBehavior debugBehavior,
-      ActionManager actionManager) {
+      ActionManager actionManager,
+      Configuration configuration) {
     this.loggingApi = loggingApi;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -301,6 +302,7 @@ public class FeedProcessScope implements Dumpable {
     this.clock = clock;
     this.debugBehavior = debugBehavior;
     this.actionManager = actionManager;
+    this.configuration = configuration;
   }
 
   private final LoggingApi loggingApi;
@@ -316,6 +318,7 @@ public class FeedProcessScope implements Dumpable {
   private final Clock clock;
   private final DebugBehavior debugBehavior;
   private final ActionManager actionManager;
+  private final Configuration configuration;
 
   public Clock getClock() {
     return clock;
