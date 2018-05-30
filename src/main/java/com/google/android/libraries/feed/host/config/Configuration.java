@@ -34,9 +34,13 @@ public class Configuration {
     ConfigKey.NON_CACHED_MIN_PAGE_SIZE,
     ConfigKey.DEFAULT_ACTION_TTL_SECONDS,
     ConfigKey.TRIGGER_IMMEDIATE_PAGINATION,
+    // Turn on the Timeout Scheduler
     ConfigKey.USE_TIMEOUT_SCHEDULER,
-    ConfigKey.TIMEOUT_REQUEST_WITH_WAIT_MS,
-    ConfigKey.TIMEOUT_REQUEST_WITH_TIMEOUT_MS,
+    // Time in ms where the stories are consider current
+    ConfigKey.TIMEOUT_STORIES_ARE_CURRENT,
+    // Time in ms where the stores are current, but we start a refresh
+    ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH,
+    // TIme in ms for the length of the timeout
     ConfigKey.TIMEOUT_TIMEOUT_MS,
     ConfigKey.MINIMUM_VALID_ACTION_RATIO,
   })
@@ -51,7 +55,8 @@ public class Configuration {
     String DEFAULT_ACTION_TTL_SECONDS = "default_action_ttl_seconds";
     String TRIGGER_IMMEDIATE_PAGINATION = "trigger_immediate_pagination_bool";
     String USE_TIMEOUT_SCHEDULER = "use_timeout_scheduler";
-    String TIMEOUT_REQUEST_WITH_WAIT_MS = "timeout_request_with_wait_ms";
+    String TIMEOUT_STORIES_ARE_CURRENT = "timeout_stories_are_current";
+    String TIMEOUT_STORIES_CURRENT_WITH_REFRESH = "timeout_stories_current_with_refresh";
     String TIMEOUT_REQUEST_WITH_TIMEOUT_MS = "timeout_request_with_timeout_ms";
     String TIMEOUT_TIMEOUT_MS = "timeout_timeout_ms";
     String MINIMUM_VALID_ACTION_RATIO = "minimum_valid_action_ratio";

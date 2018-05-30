@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -21,9 +22,11 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.android.libraries.feed.testing.conformance.scheduler.SchedulerConformanceTest;
-import java.util.concurrent.TimeUnit;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
@@ -32,24 +35,96 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class TimeoutSchedulerTest extends SchedulerConformanceTest {
   private static final boolean USE_TIMEOUT_SCHEDULER = false;
-  private static final long TIMEOUT_REQUEST_WITH_WAIT_MS = TimeUnit.HOURS.toMillis(8);
-  private static final long TIMEOUT_REQUEST_WITH_TIMEOUT_MS = TimeUnit.HOURS.toMillis(1);
+  private static final long TIMEOUT_STORIES_ARE_CURRENT = 2;
+  private static final long TIMEOUT_STORIES_CURRENT_WITH_REFRESH = 4;
 
   @Mock private ThreadUtils threadUtils;
   @Mock private Clock clock;
-  @Mock private Configuration config;
+
+  private Configuration config;
 
   @Before
   public void setup() {
     initMocks(this);
-    when(config.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, USE_TIMEOUT_SCHEDULER))
-        .thenReturn(USE_TIMEOUT_SCHEDULER);
-    when(config.getValueOrDefault(
-            ConfigKey.TIMEOUT_REQUEST_WITH_WAIT_MS, TIMEOUT_REQUEST_WITH_WAIT_MS))
-        .thenReturn(TIMEOUT_REQUEST_WITH_WAIT_MS);
-    when(config.getValueOrDefault(
-            ConfigKey.TIMEOUT_REQUEST_WITH_TIMEOUT_MS, TIMEOUT_REQUEST_WITH_TIMEOUT_MS))
-        .thenReturn(TIMEOUT_REQUEST_WITH_TIMEOUT_MS);
+    config =
+        new Configuration.Builder()
+            .put(ConfigKey.USE_TIMEOUT_SCHEDULER, USE_TIMEOUT_SCHEDULER)
+            .put(ConfigKey.TIMEOUT_STORIES_ARE_CURRENT, TIMEOUT_STORIES_ARE_CURRENT)
+            .put(
+                ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH,
+                TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
+            .build();
     scheduler = new TimeoutScheduler(threadUtils, clock, config);
+  }
+
+  @Test
+  public void testOffDefault() {
+    TimeoutScheduler scheduler = getScheduler(false);
+    SessionManagerState state = new SessionManagerState(true, 1L, false);
+    assertThat(scheduler.shouldSessionRequestData(state))
+        .isEqualTo(RequestBehavior.NO_REQUEST_WITH_CONTENT);
+  }
+
+  @Test
+  public void outstandingRequestHasContent() {
+    TimeoutScheduler scheduler = getScheduler(true);
+    SessionManagerState state = new SessionManagerState(true, 1L, true);
+    assertThat(scheduler.shouldSessionRequestData(state))
+        .isEqualTo(RequestBehavior.NO_REQUEST_WITH_TIMEOUT);
+  }
+
+  @Test
+  public void outstandingRequestNoContent() {
+    TimeoutScheduler scheduler = getScheduler(true);
+    SessionManagerState state = new SessionManagerState(false, 1L, true);
+    assertThat(scheduler.shouldSessionRequestData(state))
+        .isEqualTo(RequestBehavior.NO_REQUEST_WITH_WAIT);
+  }
+
+  @Test
+  public void noContent() {
+    TimeoutScheduler scheduler = getScheduler(true);
+    SessionManagerState state = new SessionManagerState(false, 0L, false);
+    assertThat(scheduler.shouldSessionRequestData(state))
+        .isEqualTo(RequestBehavior.REQUEST_WITH_WAIT);
+  }
+
+  @Test
+  public void currentStories() {
+    when(clock.currentTimeMillis()).thenReturn(2L);
+    TimeoutScheduler scheduler = getScheduler(true);
+    SessionManagerState state = new SessionManagerState(true, 1L, false);
+    assertThat(scheduler.shouldSessionRequestData(state))
+        .isEqualTo(RequestBehavior.NO_REQUEST_WITH_CONTENT);
+  }
+
+  @Test
+  public void currentStoriesWithRefresh() {
+    when(clock.currentTimeMillis()).thenReturn(4L);
+    TimeoutScheduler scheduler = getScheduler(true);
+    SessionManagerState state = new SessionManagerState(true, 1L, false);
+    assertThat(scheduler.shouldSessionRequestData(state))
+        .isEqualTo(RequestBehavior.REQUEST_WITH_CONTENT);
+  }
+
+  @Test
+  public void nonCurrentStories() {
+    when(clock.currentTimeMillis()).thenReturn(5L);
+    TimeoutScheduler scheduler = getScheduler(true);
+    SessionManagerState state = new SessionManagerState(true, 1L, false);
+    assertThat(scheduler.shouldSessionRequestData(state))
+        .isEqualTo(RequestBehavior.REQUEST_WITH_TIMEOUT);
+  }
+
+  private TimeoutScheduler getScheduler(boolean useScheduler) {
+    config =
+        new Configuration.Builder()
+            .put(ConfigKey.USE_TIMEOUT_SCHEDULER, useScheduler)
+            .put(ConfigKey.TIMEOUT_STORIES_ARE_CURRENT, TIMEOUT_STORIES_ARE_CURRENT)
+            .put(
+                ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH,
+                TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
+            .build();
+    return new TimeoutScheduler(threadUtils, clock, config);
   }
 }

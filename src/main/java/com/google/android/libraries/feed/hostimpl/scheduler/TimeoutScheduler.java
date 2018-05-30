@@ -30,26 +30,25 @@ import java.util.concurrent.TimeUnit;
 public class TimeoutScheduler implements SchedulerApi {
   private static final String TAG = "TimeoutScheduler";
 
-  // TODO: What should we use for the defaults?
-  private static final long TIMEOUT_REQUEST_WITH_WAIT_MS = TimeUnit.HOURS.toMillis(8);
-  private static final long TIMEOUT_REQUEST_WITH_TIMEOUT_MS = TimeUnit.HOURS.toMillis(1);
+  private static final long TIMEOUT_STORIES_ARE_CURRENT = TimeUnit.HOURS.toMillis(1);
+  private static final long TIMEOUT_STORIES_CURRENT_WITH_REFRESH = TimeUnit.HOURS.toMillis(12);
 
   private final ThreadUtils threadUtils;
   private final Clock clock;
   private final boolean useTimeScheduler;
-  private final long requestWithWaitMs;
-  private final long requestWithTimeoutMs;
+  private final long storiesAreCurrentMs;
+  private final long currentStoresWithRefreshMs;
 
   public TimeoutScheduler(ThreadUtils threadUtils, Clock clock, Configuration configuration) {
     this.threadUtils = threadUtils;
     this.clock = clock;
     useTimeScheduler = configuration.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, false);
-    requestWithWaitMs =
+    storiesAreCurrentMs =
         configuration.getValueOrDefault(
-            ConfigKey.TIMEOUT_REQUEST_WITH_WAIT_MS, TIMEOUT_REQUEST_WITH_WAIT_MS);
-    requestWithTimeoutMs =
+            ConfigKey.TIMEOUT_STORIES_ARE_CURRENT, TIMEOUT_STORIES_ARE_CURRENT);
+    currentStoresWithRefreshMs =
         configuration.getValueOrDefault(
-            ConfigKey.TIMEOUT_REQUEST_WITH_TIMEOUT_MS, TIMEOUT_REQUEST_WITH_TIMEOUT_MS);
+            ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH, TIMEOUT_STORIES_CURRENT_WITH_REFRESH);
   }
 
   @Override
@@ -57,7 +56,7 @@ public class TimeoutScheduler implements SchedulerApi {
   public int shouldSessionRequestData(SessionManagerState sessionManagerState) {
     threadUtils.checkMainThread();
     if (!useTimeScheduler) {
-      Logger.i(TAG, "shouldSessionRequestData - disabled");
+      Logger.i(TAG, "TimeoutScheduler is Disabled: NO_REQUEST_WITH_CONTENT");
       return RequestBehavior.NO_REQUEST_WITH_CONTENT;
     }
     Logger.i(
@@ -66,32 +65,32 @@ public class TimeoutScheduler implements SchedulerApi {
         sessionManagerState.hasContent,
         StringFormattingUtils.formatLogDate(sessionManagerState.contentCreationDateTimeMs),
         sessionManagerState.hasOutstandingRequest);
-
+    if (sessionManagerState.hasOutstandingRequest) {
+      if (sessionManagerState.hasContent) {
+        Logger.i(TAG, "Outstanding Request: NO_REQUEST_WITH_TIMEOUT");
+        return RequestBehavior.NO_REQUEST_WITH_TIMEOUT;
+      } else {
+        Logger.i(TAG, "Outstanding Request, no content: NO_REQUEST_WITH_WAIT");
+        return RequestBehavior.NO_REQUEST_WITH_WAIT;
+      }
+    }
     if (!sessionManagerState.hasContent) {
-      // No Content
-      Logger.i(TAG, "shouldSessionRequestData - No Content found: REQUEST_WITH_WAIT");
-      return RequestBehavior.REQUEST_WITH_WAIT;
+      Logger.i(TAG, "No Content: REQUEST_WITH_WAIT");
+      return RequestBehavior.REQUEST_WITH_WAIT; // #1
     }
     long deltaTime = clock.currentTimeMillis() - sessionManagerState.contentCreationDateTimeMs;
     Logger.i(TAG, "Delta: [%s]", deltaTime);
-    if (deltaTime > requestWithWaitMs) {
-      Logger.i(
-          TAG,
-          "shouldSessionRequestData [%s | %s]: REQUEST_WITH_WAIT",
-          deltaTime,
-          requestWithWaitMs);
-      return RequestBehavior.REQUEST_WITH_WAIT;
+    if (deltaTime < storiesAreCurrentMs) {
+      Logger.i(TAG, "Stories are current: NO_REQUEST_WITH_CONTENT");
+      return RequestBehavior.NO_REQUEST_WITH_CONTENT; // #2
     }
-    if (deltaTime > requestWithTimeoutMs) {
-      Logger.i(
-          TAG,
-          "shouldSessionRequestData [%s | %s]: REQUEST_WITH_TIMEOUT",
-          deltaTime,
-          requestWithTimeoutMs);
-      return RequestBehavior.REQUEST_WITH_TIMEOUT;
+    if (deltaTime < currentStoresWithRefreshMs) {
+      Logger.i(TAG, "Stories are current, with refresh: REQUEST_WITH_CONTENT");
+      return RequestBehavior.REQUEST_WITH_CONTENT; // #3
     }
-    Logger.i(TAG, "Default: NO_REQUEST_WITH_CONTENT");
-    return RequestBehavior.NO_REQUEST_WITH_CONTENT;
+    // Stories are considered old
+    Logger.i(TAG, "Old Stories found: REQUEST_WITH_TIMEOUT");
+    return RequestBehavior.REQUEST_WITH_TIMEOUT; // #4
   }
 
   @Override

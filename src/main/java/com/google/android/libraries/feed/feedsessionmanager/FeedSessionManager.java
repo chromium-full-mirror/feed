@@ -374,9 +374,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     @RequestBehavior int behavior = schedulerApi.shouldSessionRequestData(sessionManagerState);
     Logger.i(TAG, "populateSession - request behavior: %s", behavior);
 
+    // TODO: Need to support each of these specifically.
     boolean makeRequest =
         behavior == RequestBehavior.REQUEST_WITH_TIMEOUT
-            || behavior == RequestBehavior.REQUEST_WITH_WAIT;
+            || behavior == RequestBehavior.REQUEST_WITH_WAIT
+            || behavior == RequestBehavior.REQUEST_WITH_CONTENT;
     if (makeRequest && !taskQueue.isMakingRequest()) {
       Logger.i(TAG, "TriggerRefresh to create a new $HEAD");
       triggerRefresh(null);
