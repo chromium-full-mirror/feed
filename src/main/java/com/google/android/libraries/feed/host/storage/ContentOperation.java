@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.host.storage;
 
 import android.support.annotation.IntDef;
-import java.util.Arrays;
 
 /** A mutation to the underlying {@link ContentStorage}. */
 public abstract class ContentOperation {
@@ -59,27 +58,6 @@ public abstract class ContentOperation {
     public byte[] getValue() {
       return value;
     }
-
-    @Override
-    public boolean equals(/*@Nullable*/ Object o) {
-      if (!super.equals(o)) {
-        return false;
-      }
-
-      if (o instanceof Upsert) {
-        Upsert upsert = (Upsert) o;
-        return key.equals(upsert.key) && Arrays.equals(value, upsert.value);
-      } else {
-        return false;
-      }
-    }
-
-    @Override
-    public int hashCode() {
-      int result = key.hashCode();
-      result = 31 * result + Arrays.hashCode(value);
-      return result;
-    }
   }
 
   /**
@@ -95,25 +73,6 @@ public abstract class ContentOperation {
 
     public String getKey() {
       return key;
-    }
-
-    @Override
-    public boolean equals(/*@Nullable*/ Object o) {
-      if (!super.equals(o)) {
-        return false;
-      }
-
-      if (o instanceof Delete) {
-        Delete delete = (Delete) o;
-        return key.equals(delete.key);
-      } else {
-        return false;
-      }
-    }
-
-    @Override
-    public int hashCode() {
-      return key.hashCode();
     }
   }
 
@@ -132,43 +91,5 @@ public abstract class ContentOperation {
     public String getPrefix() {
       return prefix;
     }
-
-    @Override
-    public boolean equals(/*@Nullable*/ Object o) {
-      if (!super.equals(o)) {
-        return false;
-      }
-
-      if (o instanceof DeleteByPrefix) {
-        DeleteByPrefix that = (DeleteByPrefix) o;
-        return prefix.equals(that.prefix);
-      } else {
-        return false;
-      }
-    }
-
-    @Override
-    public int hashCode() {
-      return prefix.hashCode();
-    }
-  }
-
-  @Override
-  public boolean equals(/*@Nullable*/ Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    ContentOperation operation = (ContentOperation) o;
-
-    return type == operation.type;
-  }
-
-  @Override
-  public int hashCode() {
-    return type;
   }
 }
