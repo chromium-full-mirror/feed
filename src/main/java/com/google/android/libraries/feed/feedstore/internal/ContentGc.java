@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.feedstore;
+package com.google.android.libraries.feed.feedstore.internal;
 
-import static com.google.android.libraries.feed.feedstore.FeedStore.SEMANTIC_PROPERTIES_PREFIX;
-import static com.google.android.libraries.feed.feedstore.FeedStore.SHARED_STATE_PREFIX;
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
 
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 /** Storage Content Garbage Collector. */
-class ContentGc {
+public class ContentGc {
   private static final String TAG = "ContentGc";
 
   private final Supplier<Set<String>> accessibleContentSupplier;
@@ -43,7 +43,7 @@ class ContentGc {
   private final MainThreadRunner mainThreadRunner;
   private final TimingUtils timingUtils;
 
-  ContentGc(
+  public ContentGc(
       Supplier<Set<String>> accessibleContentSupplier,
       Set<String> reservedContentIds,
       ContentStorage contentStorage,
@@ -56,7 +56,7 @@ class ContentGc {
     this.timingUtils = timingUtils;
   }
 
-  void gc() {
+  public void gc() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Set<String> population = getPopulation();
     // remove the items in the population that are accessible or reserved

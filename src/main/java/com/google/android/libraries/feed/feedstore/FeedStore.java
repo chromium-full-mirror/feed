@@ -14,6 +14,11 @@
 
 package com.google.android.libraries.feed.feedstore;
 
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.DISMISS_ACTION_JOURNAL;
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SESSION_NAME_PREFIX;
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
+
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -35,6 +40,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedstore.internal.ActionGc;
+import com.google.android.libraries.feed.feedstore.internal.ContentGc;
 import com.google.android.libraries.feed.feedstore.internal.FeedActionMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
 import com.google.android.libraries.feed.feedstore.internal.FeedSemanticPropertiesMutation;
@@ -68,14 +74,6 @@ import java.util.concurrent.TimeUnit;
 public class FeedStore implements Store, Dumpable {
 
   private static final String TAG = "FeedStore";
-  private static final String SESSION_NAME_PREFIX = "_session:";
-
-  // These are the prefixes on content ids used to create keys for segments of the content
-  static final String SHARED_STATE_PREFIX = "ss::";
-  static final String SEMANTIC_PROPERTIES_PREFIX = "sp::";
-
-  // Specific Journal names
-  private static final String DISMISS_ACTION_JOURNAL = "action-dismiss";
 
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
