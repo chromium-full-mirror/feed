@@ -15,10 +15,10 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
-import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
@@ -26,17 +26,26 @@ import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAd
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
+import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
+import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
+import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.List;
 
-/** A {@link ElementContainerAdapter} which manages a single instance of a template. */
-class TemplateInstanceAdapter extends ElementContainerAdapter<LinearLayout, TemplateAdapterModel> {
+/**
+ * A wrapper adapter that manages a single instance of a template.
+ *
+ * <p>This adapter doesn't have its own view; it just delegates everything to its child adapter.
+ */
+class TemplateInstanceAdapter extends ElementAdapter<View, TemplateAdapterModel> {
 
   private static final String TAG = "TemplateInstanceAdapter";
 
   /*@Nullable*/ private Template template = null;
   /*@Nullable*/ private List<PietSharedState> pietSharedStates = null;
+
+  /*@Nullable*/ @VisibleForTesting ElementAdapter<? extends View, ?> childAdapter = null;
 
   TemplateInstanceAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, createView(context));
@@ -70,14 +79,21 @@ class TemplateInstanceAdapter extends ElementContainerAdapter<LinearLayout, Temp
 
     BindingContext bindingContext = model.getBindingContext();
     FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
-    ElementListAdapter listAdapter =
-        getAdapterForChildList(modelTemplate.getElementList(), localFrameContext);
-    setLayoutParamsOnChild(listAdapter);
-    getBaseView().addView(listAdapter.getView());
+    if (modelTemplate.hasElement()) {
+      childAdapter =
+          getParameters()
+              .elementAdapterFactory
+              .createAdapterForElement(modelTemplate.getElement(), localFrameContext);
+      childAdapter.createAdapter(modelTemplate.getElement(), localFrameContext);
+    } else {
+      childAdapter = getAdapterForChildList(modelTemplate.getElementList(), localFrameContext);
+    }
+    setLayoutParamsOnChild(childAdapter);
   }
 
   @Override
-  void onBindModel(TemplateAdapterModel model, Element baseElement, FrameContext frameContext) {
+  public void onBindModel(
+      TemplateAdapterModel model, Element baseElement, FrameContext frameContext) {
     Template modelTemplate = model.getTemplate();
     if (!templateEquals(modelTemplate, template)) {
       throw new IllegalArgumentException("Model template does not match adapter template");
@@ -85,12 +101,19 @@ class TemplateInstanceAdapter extends ElementContainerAdapter<LinearLayout, Temp
 
     BindingContext bindingContext = model.getBindingContext();
     FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
-    checkState(
-        childAdapters.size() == 1,
-        "Wrong number of child adapters; wanted 1, got %s",
-        childAdapters.size());
-    ((ElementListAdapter) childAdapters.get(0))
-        .bindModel(modelTemplate.getElementList(), localFrameContext);
+    if (modelTemplate.hasElement()) {
+      getChildAdapter().bindModel(modelTemplate.getElement(), localFrameContext);
+    } else {
+      ((ElementListAdapter) getChildAdapter())
+          .bindModel(modelTemplate.getElementList(), localFrameContext);
+    }
+  }
+
+  @Override
+  public void onUnbindModel() {
+    if (childAdapter != null) {
+      childAdapter.unbindModel();
+    }
   }
 
   @Override
@@ -104,18 +127,61 @@ class TemplateInstanceAdapter extends ElementContainerAdapter<LinearLayout, Temp
     ElementListAdapter listAdapter =
         getParameters().elementAdapterFactory.createElementListAdapter(list, frameContext);
     listAdapter.createAdapter(list, frameContext);
-    addChildAdapter(listAdapter);
     return listAdapter;
   }
 
-  @VisibleForTesting
-  static LinearLayout createView(Context context) {
-    LinearLayout viewGroup = new LinearLayout(context);
-    viewGroup.setOrientation(LinearLayout.VERTICAL);
-    viewGroup.setLayoutParams(
-        new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-    return viewGroup;
+  private static View createView(Context context) {
+    // This is just a dummy view; should never actually be referenced.
+    return new View(context);
+  }
+
+  @Override
+  public View getView() {
+    return getChildAdapter().getView();
+  }
+
+  @Override
+  protected View getBaseView() {
+    return getChildAdapter().getBaseView();
+  }
+
+  @Override
+  GravityVertical getVerticalGravity() {
+    return getChildAdapter().getVerticalGravity();
+  }
+
+  @Override
+  GravityHorizontal getHorizontalGravity() {
+    return getChildAdapter().getHorizontalGravity();
+  }
+
+  @Override
+  int getComputedWidthPx() {
+    return getChildAdapter().getComputedWidthPx();
+  }
+
+  @Override
+  int getComputedHeightPx() {
+    return getChildAdapter().getComputedHeightPx();
+  }
+
+  @Override
+  StyleIdsStack getElementStyleIdsStack() {
+    return getModel().getTemplate().getElement().getStyleReferences();
+  }
+
+  @Override
+  public StyleProvider getElementStyle() {
+    return getChildAdapter().getElementStyle();
+  }
+
+  @Override
+  public void triggerViewActions(View viewport) {
+    getChildAdapter().triggerViewActions(viewport);
+  }
+
+  private ElementAdapter<?, ?> getChildAdapter() {
+    return checkNotNull(childAdapter, "Child adapter is null; not created yet?");
   }
 
   private RecyclerKey createKey() {

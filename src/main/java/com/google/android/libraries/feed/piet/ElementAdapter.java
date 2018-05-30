@@ -30,6 +30,7 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
+import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
@@ -407,6 +408,10 @@ abstract class ElementAdapter<V extends View, M> {
   /** Returns the {@code model}, but is only legal to call when the Adapter is bound to a model */
   M getModel() {
     return checkNotNull(model);
+  }
+
+  GravityVertical getVerticalGravity() {
+    return baseElement.getGravityVertical();
   }
 
   GravityHorizontal getHorizontalGravity() {

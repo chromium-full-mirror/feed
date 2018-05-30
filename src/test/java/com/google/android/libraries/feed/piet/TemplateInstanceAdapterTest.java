@@ -23,7 +23,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
@@ -231,11 +230,8 @@ public class TemplateInstanceAdapterTest {
     // Check the recycling key
     assertThat(adapter.getKey()).isEqualTo(new TemplateKey(DEFAULT_TEMPLATE, pietSharedStates));
 
-    // Assert that all child views have been created
-    LinearLayout templateView = adapter.getBaseView();
-    assertThat(templateView.getChildCount()).isEqualTo(1);
-
-    LinearLayout elementListView = (LinearLayout) templateView.getChildAt(0);
+    // Assert that all child view has been created
+    LinearLayout elementListView = (LinearLayout) adapter.getBaseView();
 
     // Check that default layout params are set.
     assertThat(elementListView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
@@ -282,8 +278,7 @@ public class TemplateInstanceAdapterTest {
     adapter.createAdapter(model, frameContext);
 
     // Assert that all child views have been created and that text is set.
-    LinearLayout templateView = adapter.getBaseView();
-    LinearLayout elementListView = (LinearLayout) templateView.getChildAt(0);
+    LinearLayout elementListView = (LinearLayout) adapter.getBaseView();
     TextView textElementView = (TextView) elementListView.getChildAt(0);
 
     // Text style comes from the Template stylesheet.
@@ -301,62 +296,18 @@ public class TemplateInstanceAdapterTest {
   public void testReleaseAdapter_doesNothing() {
     adapter.createAdapter(DEFAULT_TEMPLATE_MODEL, frameContext);
     adapter.bindModel(DEFAULT_TEMPLATE_MODEL, frameContext);
-    LinearLayout templateView = adapter.getBaseView();
-    assertThat(templateView.getChildCount()).isEqualTo(1);
-    LinearLayout elementListView = (LinearLayout) templateView.getChildAt(0);
+    LinearLayout elementListView = (LinearLayout) adapter.getBaseView();
     assertThat(((TextView) elementListView.getChildAt(0)).getText().toString())
         .isEqualTo(TEXT_CONTENTS);
-    ElementListAdapter listAdapter = (ElementListAdapter) adapter.childAdapters.get(0);
+    ElementListAdapter listAdapter = (ElementListAdapter) adapter.childAdapter;
 
     adapter.releaseAdapter();
 
     // Assert that nothing has changed.
-    assertThat(templateView.getChildCount()).isEqualTo(1);
     assertThat(elementListView.getChildCount()).isEqualTo(1);
     assertThat(((TextView) elementListView.getChildAt(0)).getText().toString())
         .isEqualTo(TEXT_CONTENTS);
-    assertThat(adapter.childAdapters).containsExactly(listAdapter);
-  }
-
-  @Test
-  public void testOverlaysAreRecreatedOnReBind() {
-    Element overlayElement =
-        Element.newBuilder()
-            .setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION)
-            .addOverlayElements(
-                ElementList.newBuilder()
-                    .addElements(
-                        Element.newBuilder()
-                            .setTextElement(
-                                TextElement.newBuilder()
-                                    .setParameterizedText(
-                                        ParameterizedText.newBuilder().setText(TEXT_CONTENTS)))))
-            .build();
-
-    adapter.createAdapter(DEFAULT_TEMPLATE_MODEL, overlayElement, frameContext);
-    adapter.bindModel(DEFAULT_TEMPLATE_MODEL, overlayElement, frameContext);
-    assertThat(adapter.overlays).hasSize(1);
-    assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
-    assertThat(((FrameLayout) adapter.getView()).getChildCount()).isEqualTo(2);
-
-    adapter.releaseAdapter();
-    assertThat(adapter.overlays).isEmpty();
-    assertThat(adapter.getView()).isSameAs(adapter.getBaseView());
-
-    adapter.createAdapter(DEFAULT_TEMPLATE_MODEL, overlayElement, frameContext);
-    adapter.bindModel(DEFAULT_TEMPLATE_MODEL, overlayElement, frameContext);
-    assertThat(adapter.overlays).hasSize(1);
-    assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
-    assertThat(((FrameLayout) adapter.getView()).getChildCount()).isEqualTo(2);
-  }
-
-  @Test
-  public void testCreateViewGroup() {
-    LinearLayout viewGroup = TemplateInstanceAdapter.createView(context);
-
-    assertThat(viewGroup.getOrientation()).isEqualTo(LinearLayout.VERTICAL);
-    assertThat(viewGroup.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
-    assertThat(viewGroup.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(adapter.childAdapter).isSameAs(listAdapter);
   }
 
   @Test
