@@ -327,7 +327,8 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
   @VisibleForTesting
   StreamDriver createStreamDriver(
       ModelProvider modelProvider, ThreadUtils threadUtils, Configuration configuration) {
-    return new StreamDriver(modelProvider, threadUtils, configuration);
+    return new StreamDriver(
+        modelProvider, threadUtils, configuration, /* contentChangedListener= */ this);
   }
 
   @VisibleForTesting

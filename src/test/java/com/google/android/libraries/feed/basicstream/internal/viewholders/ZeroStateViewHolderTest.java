@@ -61,7 +61,7 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testBind_setsOnClickListener() {
-    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START);
+    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
 
     View actionButton = frameLayout.findViewById(R.id.action_button);
     actionButton.performClick();
@@ -71,7 +71,7 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testBind_setsMorningMessage_forMorningStart() {
-    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START);
+    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
@@ -80,7 +80,7 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testBind_setsMorningMessage_forMorningEnd() {
-    zeroStateViewHolder.bind(onClickListener, AFTERNOON_HOUR_START - 1);
+    zeroStateViewHolder.bind(onClickListener, AFTERNOON_HOUR_START - 1, /* showSpinner= */ false);
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
@@ -89,7 +89,7 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testBind_setsAfternoonMessage_forAfternoonStart() {
-    zeroStateViewHolder.bind(onClickListener, AFTERNOON_HOUR_START);
+    zeroStateViewHolder.bind(onClickListener, AFTERNOON_HOUR_START, /* showSpinner= */ false);
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
@@ -99,7 +99,7 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testBind_setsAfternoonMessage_forAfternoonEnd() {
-    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START - 1);
+    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START - 1, /* showSpinner= */ false);
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
@@ -109,7 +109,7 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testBind_setsEveningMessage_forEveningStart() {
-    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START);
+    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START, /* showSpinner= */ false);
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
@@ -117,8 +117,23 @@ public class ZeroStateViewHolderTest {
   }
 
   @Test
+  public void testBind_hidesSpinner() {
+    View actionButton = frameLayout.findViewById(R.id.action_button);
+    View spinner = frameLayout.findViewById(R.id.loading_spinner);
+    zeroStateViewHolder.showSpinner(true);
+
+    assertThat(actionButton.getVisibility()).isEqualTo(View.GONE);
+    assertThat(spinner.getVisibility()).isEqualTo(View.VISIBLE);
+
+    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
+
+    assertThat(actionButton.getVisibility()).isEqualTo(View.VISIBLE);
+    assertThat(spinner.getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
   public void testUnbind() {
-    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START);
+    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
 
     View actionButton = frameLayout.findViewById(R.id.action_button);
     assertThat(actionButton.hasOnClickListeners()).isTrue();
@@ -128,5 +143,31 @@ public class ZeroStateViewHolderTest {
 
     assertThat(actionButton.hasOnClickListeners()).isFalse();
     assertThat(actionButton.isClickable()).isFalse();
+  }
+
+  @Test
+  public void testShowSpinner_showsSpinner() {
+    View actionButton = frameLayout.findViewById(R.id.action_button);
+    View spinner = frameLayout.findViewById(R.id.loading_spinner);
+
+    zeroStateViewHolder.showSpinner(true);
+
+    assertThat(actionButton.getVisibility()).isEqualTo(View.GONE);
+    assertThat(spinner.getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
+  public void testShowSpinner_hidesSpinner() {
+    View actionButton = frameLayout.findViewById(R.id.action_button);
+    View spinner = frameLayout.findViewById(R.id.loading_spinner);
+    zeroStateViewHolder.showSpinner(true);
+
+    assertThat(actionButton.getVisibility()).isEqualTo(View.GONE);
+    assertThat(spinner.getVisibility()).isEqualTo(View.VISIBLE);
+
+    zeroStateViewHolder.showSpinner(false);
+
+    assertThat(actionButton.getVisibility()).isEqualTo(View.VISIBLE);
+    assertThat(spinner.getVisibility()).isEqualTo(View.GONE);
   }
 }

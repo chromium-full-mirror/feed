@@ -64,10 +64,21 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/body_text"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="@dimen/zero_state_button_margin_top"
         android:text="Refresh"
         android:textAllCaps="true"
         android:textColor="@color/google_blue_500"
         android:textSize="@dimen/zero_state_button_text_size" />
+
+    <ProgressBar
+        android:visibility="gone"
+        android:id="@+id/loading_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/body_text"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/zero_state_button_margin_top"
+        android:indeterminateTintMode="src_atop"
+        android:indeterminateTint="@color/google_blue_500" />
 
 </RelativeLayout>

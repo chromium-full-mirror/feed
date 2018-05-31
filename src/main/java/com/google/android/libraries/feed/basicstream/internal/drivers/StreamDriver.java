@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
 import java.util.ArrayList;
@@ -42,18 +43,23 @@ public class StreamDriver implements FeatureChangeObserver {
   private final Map<ModelChild, FeatureDriver> modelChildFeatureDriverMap;
   private final List<FeatureDriver> featureDrivers;
   private final Configuration configuration;
+  private final ContentChangedListener contentChangedListener;
 
   private boolean rootFeatureConsumed;
 
   /*@Nullable*/ private StreamContentListener contentListener;
 
   public StreamDriver(
-      ModelProvider modelProvider, ThreadUtils threadUtils, Configuration configuration) {
+      ModelProvider modelProvider,
+      ThreadUtils threadUtils,
+      Configuration configuration,
+      ContentChangedListener contentChangedListener) {
     this.threadUtils = threadUtils;
     this.modelProvider = modelProvider;
     this.modelChildFeatureDriverMap = new HashMap<>();
     this.featureDrivers = new ArrayList<>();
     this.configuration = configuration;
+    this.contentChangedListener = contentChangedListener;
   }
 
   /**
@@ -279,7 +285,7 @@ public class StreamDriver implements FeatureChangeObserver {
 
   @VisibleForTesting
   ZeroStateDriver createZeroStateDriver() {
-    return new ZeroStateDriver(modelProvider);
+    return new ZeroStateDriver(modelProvider, contentChangedListener);
   }
 
   public void setStreamContentListener(/*@Nullable*/ StreamContentListener contentListener) {

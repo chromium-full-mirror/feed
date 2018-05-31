@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
@@ -59,6 +60,7 @@ public class StreamDriverTest {
   @Mock private ModelProvider modelProvider;
   @Mock private ContinuationDriver continuationDriver;
   @Mock private StreamContentListener contentListener;
+  @Mock private ContentChangedListener contentChangedListener;
   private Configuration configuration = new Configuration.Builder().build();
 
   @Before
@@ -317,7 +319,7 @@ public class StreamDriverTest {
     private List<FeatureDriver> childrenCreated;
 
     StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils) {
-      super(modelProvider, threadUtils, configuration);
+      super(modelProvider, threadUtils, configuration, contentChangedListener);
       childrenCreated = new ArrayList<>();
     }
 

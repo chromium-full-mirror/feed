@@ -20,6 +20,7 @@ import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.View.OnClickListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
@@ -30,10 +31,13 @@ import java.util.Calendar;
 public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListener {
   private static final String TAG = "ZeroStateDriver";
   private final ModelProvider modelProvider;
+  private final ContentChangedListener contentChangedListener;
+  private boolean spinnerShown;
   /*@Nullable*/ private ZeroStateViewHolder zeroStateViewHolder;
 
-  ZeroStateDriver(ModelProvider modelProvider) {
+  ZeroStateDriver(ModelProvider modelProvider, ContentChangedListener contentChangedListener) {
     this.modelProvider = modelProvider;
+    this.contentChangedListener = contentChangedListener;
   }
 
   @Override
@@ -44,7 +48,7 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
     checkState(viewHolder instanceof ZeroStateViewHolder);
 
     zeroStateViewHolder = (ZeroStateViewHolder) viewHolder;
-    zeroStateViewHolder.bind(this, getHourOfDay());
+    zeroStateViewHolder.bind(this, getHourOfDay(), spinnerShown);
   }
 
   @Override
@@ -64,11 +68,14 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
 
   @Override
   public void onClick(View v) {
-    if (!isBound()) {
+    if (zeroStateViewHolder == null) {
       Logger.wtf(TAG, "Calling onClick before binding.");
       return;
     }
 
+    spinnerShown = true;
+    zeroStateViewHolder.showSpinner(true);
+    contentChangedListener.onContentChanged();
     modelProvider.triggerRefresh();
   }
 

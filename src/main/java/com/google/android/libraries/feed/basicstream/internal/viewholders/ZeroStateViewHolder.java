@@ -32,15 +32,18 @@ public class ZeroStateViewHolder extends FeedViewHolder {
   private final View view;
   private final View actionButton;
   private final TextView bodyText;
+  private final View spinner;
 
   public ZeroStateViewHolder(Context context, FrameLayout frameLayout) {
     super(frameLayout);
     view = LayoutInflater.from(context).inflate(R.layout.zero_state, frameLayout);
     actionButton = view.findViewById(R.id.action_button);
     bodyText = view.findViewById(R.id.body_text);
+    spinner = view.findViewById(R.id.loading_spinner);
   }
 
-  public void bind(OnClickListener onClickListener, int hour) {
+  public void bind(OnClickListener onClickListener, int hour, boolean showSpinner) {
+    showSpinner(showSpinner);
     bodyText.setText(getBodyText(hour));
     actionButton.setOnClickListener(onClickListener);
   }
@@ -52,6 +55,11 @@ public class ZeroStateViewHolder extends FeedViewHolder {
 
     // Set clickable to false as setting OnClickListener to null sets clickable to true.
     actionButton.setClickable(false);
+  }
+
+  public void showSpinner(boolean showSpinner) {
+    actionButton.setVisibility(showSpinner ? View.GONE : View.VISIBLE);
+    spinner.setVisibility(showSpinner ? View.VISIBLE : View.GONE);
   }
 
   @StringRes
