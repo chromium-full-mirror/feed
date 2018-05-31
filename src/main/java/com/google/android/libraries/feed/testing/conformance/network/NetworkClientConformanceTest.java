@@ -33,6 +33,9 @@ public abstract class NetworkClientConformanceTest {
     return new Uri.Builder().path("http://www.google.com/").build();
   }
 
+  /** Allows conformance tests to delay assertions until after the request completes. */
+  protected void waitForRequest() {}
+
   @Test
   public void send_get() {
     @HttpMethod String method = HttpMethod.GET;
@@ -45,6 +48,7 @@ public abstract class NetworkClientConformanceTest {
             });
 
     networkClient.send(request, responseConsumer);
+    waitForRequest();
     assertThat(responseConsumer.isCalled()).isTrue();
   }
 
@@ -60,6 +64,7 @@ public abstract class NetworkClientConformanceTest {
             });
 
     networkClient.send(request, responseConsumer);
+    waitForRequest();
     assertThat(responseConsumer.isCalled()).isTrue();
   }
 
@@ -75,6 +80,7 @@ public abstract class NetworkClientConformanceTest {
             });
 
     networkClient.send(request, responseConsumer);
+    waitForRequest();
     assertThat(responseConsumer.isCalled()).isTrue();
   }
 
@@ -90,6 +96,7 @@ public abstract class NetworkClientConformanceTest {
             });
 
     networkClient.send(request, responseConsumer);
+    waitForRequest();
     assertThat(responseConsumer.isCalled()).isTrue();
   }
 }
