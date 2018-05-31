@@ -122,7 +122,18 @@ public class FeedRequestManager implements RequestManager {
       RequestReason reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
     Logger.i(TAG, "trigger refresh %s", reason);
     RequestBuilder request = newDefaultRequest();
-    executeRequest(request, consumer);
+
+    // TODO: clean up threading
+    // executeRequest needs to be on background thread, but triggerRefresh can be called from
+    // anywhere.
+    if (threadUtils.isMainThread()) {
+      executor.execute(
+          () -> {
+            executeRequest(request, consumer);
+          });
+    } else {
+      executeRequest(request, consumer);
+    }
   }
 
   private RequestBuilder newDefaultRequest() {
@@ -131,6 +142,7 @@ public class FeedRequestManager implements RequestManager {
 
   private void executeRequest(
       RequestBuilder requestBuilder, Consumer<Result<List<StreamDataOperation>>> consumer) {
+    threadUtils.checkNotMainThread();
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
         actionReader.getDismissActionsWithSemanticProperties();
     if (dismissActionsResult.isSuccessful()) {
