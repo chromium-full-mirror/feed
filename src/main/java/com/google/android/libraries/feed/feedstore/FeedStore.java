@@ -59,6 +59,8 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -442,8 +444,25 @@ public class FeedStore implements Store, Dumpable {
   @Override
   public Runnable triggerContentGc(
       Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
+    Supplier<Set<StreamAction>> dismissActionSupplier =
+        () -> {
+          Result<List<StreamAction>> dismissActionsResult = getAllDismissActions();
+          if (!dismissActionsResult.isSuccessful()) {
+            // TODO: clean up error condition
+            Logger.e(TAG, "Error retrieving dismiss actions for content garbage collection");
+            return Collections.emptySet();
+          } else {
+            return new HashSet<>(dismissActionsResult.getValue());
+          }
+        };
+
     return new ContentGc(
-            accessibleContent, reservedContentIds, contentStorage, mainThreadRunner, timingUtils)
+            accessibleContent,
+            reservedContentIds,
+            dismissActionSupplier,
+            contentStorage,
+            mainThreadRunner,
+            timingUtils)
         ::gc;
   }
 

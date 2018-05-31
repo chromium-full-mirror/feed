@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTrac
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class ContentGc {
 
   private final Supplier<Set<String>> accessibleContentSupplier;
   private final Set<String> reservedContentIds;
+  private final Supplier<Set<StreamAction>> actionsSupplier;
   private final ContentStorage contentStorage;
   private final MainThreadRunner mainThreadRunner;
   private final TimingUtils timingUtils;
@@ -46,11 +48,13 @@ public class ContentGc {
   public ContentGc(
       Supplier<Set<String>> accessibleContentSupplier,
       Set<String> reservedContentIds,
+      Supplier<Set<StreamAction>> actionsSupplier,
       ContentStorage contentStorage,
       MainThreadRunner mainThreadRunner,
       TimingUtils timingUtils) {
     this.accessibleContentSupplier = accessibleContentSupplier;
     this.reservedContentIds = reservedContentIds;
+    this.actionsSupplier = actionsSupplier;
     this.contentStorage = contentStorage;
     this.mainThreadRunner = mainThreadRunner;
     this.timingUtils = timingUtils;
@@ -59,9 +63,13 @@ public class ContentGc {
   public void gc() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Set<String> population = getPopulation();
-    // remove the items in the population that are accessible or reserved
-    population.removeAll(getAccessible());
+    // remove the items in the population that are accessible, reserved, or semantic properties
+    // either accessible or associated with an action
+    Set<String> accessibleContent = getAccessible();
+    population.removeAll(accessibleContent);
     population.removeAll(reservedContentIds);
+    population.removeAll(getAccessibleSemanticProperties(accessibleContent));
+    population.removeAll(getActionSemanticProperties(getActions()));
     filterPrefixed(population);
 
     // Population now contains only un-accessible items
@@ -97,7 +105,7 @@ public class ContentGc {
     Iterator<String> i = population.iterator();
     while (i.hasNext()) {
       String key = i.next();
-      if (key.startsWith(SEMANTIC_PROPERTIES_PREFIX) || key.startsWith(SHARED_STATE_PREFIX)) {
+      if (key.startsWith(SHARED_STATE_PREFIX)) {
         i.remove();
       }
     }
@@ -109,6 +117,13 @@ public class ContentGc {
     Set<String> accessibleContent = accessibleContentSupplier.get();
     tracker.stop("", "getAccessible", "accessableContent", accessibleContent.size());
     return accessibleContent;
+  }
+
+  private Set<StreamAction> getActions() {
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    Set<StreamAction> actions = actionsSupplier.get();
+    tracker.stop("", "getActions", "actionCount", actions.size());
+    return actions;
   }
 
   private Set<String> getPopulation() {
@@ -129,5 +144,35 @@ public class ContentGc {
       // TODO: ???
       throw new IllegalStateException("Couldn't read stream structures", e);
     }
+  }
+
+  private Set<String> getAccessibleSemanticProperties(Set<String> accessibleContent) {
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    Set<String> semanticPropertiesKeys = new HashSet<>();
+    for (String accessibleContentId : accessibleContent) {
+      String semanticPropertyKey = SEMANTIC_PROPERTIES_PREFIX + accessibleContentId;
+      semanticPropertiesKeys.add(semanticPropertyKey);
+    }
+    tracker.stop(
+        "",
+        "getAccessibleSemanticProperties",
+        "accessibleSemanticPropertiesSize",
+        semanticPropertiesKeys.size());
+    return semanticPropertiesKeys;
+  }
+
+  private Set<String> getActionSemanticProperties(Set<StreamAction> actions) {
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    Set<String> semanticPropertiesKeys = new HashSet<>();
+    for (StreamAction action : actions) {
+      String semanticPropertyKey = SEMANTIC_PROPERTIES_PREFIX + action.getFeatureContentId();
+      semanticPropertiesKeys.add(semanticPropertyKey);
+    }
+    tracker.stop(
+        "",
+        "getActionSemanticProperties",
+        "actionSemanticPropertiesSize",
+        semanticPropertiesKeys.size());
+    return semanticPropertiesKeys;
   }
 }
