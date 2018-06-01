@@ -337,6 +337,16 @@ public class FeedStoreTest {
   }
 
   @Test
+  public void getDismissActions_notIncludedInSessions() {
+    when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
+    store.editActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
+    Result<List<StreamSession>> allSessionsResult = store.getAllSessions();
+    assertThat(allSessionsResult.isSuccessful()).isTrue();
+    List<StreamSession> allSessions = allSessionsResult.getValue();
+    assertThat(allSessions).isEmpty();
+  }
+
+  @Test
   public void getDismissActions_multipleDismisses() {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
     store

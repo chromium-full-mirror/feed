@@ -242,6 +242,10 @@ public class FeedStore implements Store, Dumpable {
           // Don't add $HEAD to the sessions list
           continue;
         }
+        if (DISMISS_ACTION_JOURNAL.equals(name)) {
+          // Don't add Dismiss Actions journal to sessions list
+          continue;
+        }
         sessions.add(StreamSession.newBuilder().setStreamToken(name).build());
       }
     } catch (ExecutionException | InterruptedException e) {
