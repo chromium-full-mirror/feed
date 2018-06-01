@@ -111,7 +111,7 @@ public class PietViewHolderTest {
 
   @Test
   public void testBind_setsTheming() {
-    when(cardConfiguration.getCardBottomPadding()).thenReturn((float) CARD_BOTTOM_PADDING);
+    when(cardConfiguration.getCardBottomMargin()).thenReturn(CARD_BOTTOM_PADDING);
 
     pietViewHolder.bind(
         Frame.getDefaultInstance(), pietSharedStates, FeedActionPayload.getDefaultInstance());

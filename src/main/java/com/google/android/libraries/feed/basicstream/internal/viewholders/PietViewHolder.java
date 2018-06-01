@@ -81,7 +81,7 @@ public class PietViewHolder extends FeedViewHolder {
     LinearLayout.LayoutParams lp =
         new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-    lp.bottomMargin = (int) cardConfiguration.getCardBottomPadding();
+    lp.bottomMargin = cardConfiguration.getCardBottomMargin();
     cardView.setLayoutParams(lp);
 
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);

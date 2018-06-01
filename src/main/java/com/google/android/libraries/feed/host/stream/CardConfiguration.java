@@ -24,6 +24,6 @@ public interface CardConfiguration {
 
   Drawable getCardBackground();
 
-  /** Returns the amount of padding (in px) at the end of a card in the Stream */
-  float getCardBottomPadding();
+  /** Returns the amount of margin (in px) at the end of a card in the Stream */
+  int getCardBottomMargin();
 }
