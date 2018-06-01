@@ -341,6 +341,8 @@ abstract class ElementAdapter<V extends View, M> {
       getParameters().elementAdapterFactory.releaseAdapter(overlayAdapter);
     }
     overlays.clear();
+
+    setVisibility(Visibility.VISIBLE);
   }
 
   /** Performs child-adapter-specific release logic; to be overridden. */

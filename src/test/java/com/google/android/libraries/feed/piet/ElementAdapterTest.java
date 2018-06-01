@@ -436,6 +436,18 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testReleaseAdapter_resetsVisibility() {
+    Element defaultElement = Element.getDefaultInstance();
+
+    adapter.createAdapter(defaultElement, defaultElement, frameContext);
+    adapter.setVisibility(Visibility.INVISIBLE);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
+
+    adapter.releaseAdapter();
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
   public void testSetVisibility() {
     adapter.createAdapter(Element.getDefaultInstance(), Element.getDefaultInstance(), frameContext);
     adapter.getBaseView().setVisibility(View.GONE);
