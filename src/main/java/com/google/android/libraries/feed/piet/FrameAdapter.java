@@ -225,8 +225,7 @@ public class FrameAdapter {
               new TemplateAdapterModel(
                   templateInvocation.getTemplateId(), frameContext, bindingContext);
           TemplateInstanceAdapter templateAdapter =
-              parameters.elementAdapterFactory.createTemplateAdapter(
-                  templateInvocation, frameContext);
+              parameters.elementAdapterFactory.createTemplateAdapter(model, frameContext);
           templateAdapter.createAdapter(model, frameContext);
           templateAdapter.bindModel(model, frameContext);
           returnList.add(templateAdapter);

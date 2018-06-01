@@ -111,7 +111,7 @@ public class FrameAdapterTest {
     doReturn(elementAdapter)
         .when(adapterFactory)
         .createAdapterForElement(any(Element.class), eq(frameContext));
-    when(adapterFactory.createTemplateAdapter(any(TemplateInvocation.class), eq(frameContext)))
+    when(adapterFactory.createTemplateAdapter(any(TemplateAdapterModel.class), eq(frameContext)))
         .thenReturn(templateAdapter);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(frameContext.getAssetProvider()).thenReturn(assetProvider);
@@ -182,12 +182,36 @@ public class FrameAdapterTest {
             .setTemplateInvocation(
                 TemplateInvocation.newBuilder()
                     .setTemplateId(templateId)
-                    .addBindingContexts(BindingContext.getDefaultInstance())
-                    .addBindingContexts(BindingContext.getDefaultInstance())
-                    .addBindingContexts(BindingContext.getDefaultInstance()))
+                    .addBindingContexts(
+                        BindingContext.newBuilder()
+                            .addBindingValues(BindingValue.newBuilder().setBindingId("1")))
+                    .addBindingContexts(
+                        BindingContext.newBuilder()
+                            .addBindingValues(BindingValue.newBuilder().setBindingId("2")))
+                    .addBindingContexts(
+                        BindingContext.newBuilder()
+                            .addBindingValues(BindingValue.newBuilder().setBindingId("3"))))
             .build();
     viewAdapters = frameAdapter.getBoundAdaptersForContent(content, frameContext);
     assertThat(viewAdapters).containsExactly(templateAdapter, templateAdapter, templateAdapter);
+    verify(adapterFactory)
+        .createTemplateAdapter(
+            new TemplateAdapterModel(
+                Template.getDefaultInstance(),
+                content.getTemplateInvocation().getBindingContexts(0)),
+            frameContext);
+    verify(adapterFactory)
+        .createTemplateAdapter(
+            new TemplateAdapterModel(
+                Template.getDefaultInstance(),
+                content.getTemplateInvocation().getBindingContexts(1)),
+            frameContext);
+    verify(adapterFactory)
+        .createTemplateAdapter(
+            new TemplateAdapterModel(
+                Template.getDefaultInstance(),
+                content.getTemplateInvocation().getBindingContexts(2)),
+            frameContext);
 
     verify(frameContext, never()).reportError(anyInt(), anyString());
   }
@@ -376,9 +400,9 @@ public class FrameAdapterTest {
             .addContents(Content.newBuilder().setTemplateInvocation(templateSlice))
             .build();
     frameAdapter.bindModel(templateSliceFrame, (ShardingControl) null, pietSharedStates);
-    verify(adapterFactory).createTemplateAdapter(templateSlice, frameContext);
-    verify(templateAdapter)
-        .bindModel(new TemplateAdapterModel(template, bindingContext), frameContext);
+    TemplateAdapterModel model = new TemplateAdapterModel(template, bindingContext);
+    verify(adapterFactory).createTemplateAdapter(model, frameContext);
+    verify(templateAdapter).bindModel(model, frameContext);
 
     frameAdapter.unbindModel();
     verify(adapterFactory).releaseAdapter(templateAdapter);
