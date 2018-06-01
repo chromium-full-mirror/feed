@@ -128,8 +128,6 @@ public class ElementContainerAdapterTest {
   @Mock private AssetProvider assetProvider;
 
   private Context context;
-  private AdapterParameters adapterParameters;
-  private LinearLayout view;
 
   private TestElementContainerAdapter adapter;
 
@@ -156,14 +154,14 @@ public class ElementContainerAdapterTest {
     when(frameContext.getElementBindingValue(DEFAULT_ELEMENT_BINDING))
         .thenReturn(DEFAULT_ELEMENT_BINDING_VALUE);
 
-    view = new LinearLayout(context);
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null));
+    LinearLayout view = new LinearLayout(context);
+    AdapterParameters adapterParameters = new AdapterParameters(context, Suppliers.of(null));
     adapter = new TestElementContainerAdapter(context, adapterParameters, view);
   }
 
   @Test
   public void testCreateChildAdapters_elementCreatesOneAdapter() {
-    adapter.createInlineChildAdapters(
+    adapter.createAdapter(
         Collections.singletonList(Content.newBuilder().setElement(DEFAULT_ELEMENT).build()),
         frameContext);
 
@@ -178,7 +176,7 @@ public class ElementContainerAdapterTest {
 
   @Test
   public void testCreateChildAdapters_templateCreatesMultipleAdapters() {
-    adapter.createInlineChildAdapters(
+    adapter.createAdapter(
         Collections.singletonList(
             Content.newBuilder().setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION).build()),
         frameContext);
@@ -207,7 +205,7 @@ public class ElementContainerAdapterTest {
   public void testCreateChildAdapters_templateNotFound() {
     when(frameContext.getTemplate(DEFAULT_TEMPLATE_ID)).thenReturn(null);
 
-    adapter.createInlineChildAdapters(
+    adapter.createAdapter(
         Collections.singletonList(
             Content.newBuilder().setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION).build()),
         frameContext);
@@ -220,7 +218,7 @@ public class ElementContainerAdapterTest {
 
   @Test
   public void testCreateChildAdapters_boundElement_doesNothing() {
-    adapter.createInlineChildAdapters(
+    adapter.createAdapter(
         Collections.singletonList(
             Content.newBuilder().setBoundElement(DEFAULT_ELEMENT_BINDING).build()),
         frameContext);
@@ -236,7 +234,7 @@ public class ElementContainerAdapterTest {
     when(frameContext.getElementBindingValue(DEFAULT_ELEMENT_BINDING))
         .thenReturn(BindingValue.getDefaultInstance());
 
-    adapter.createInlineChildAdapters(
+    adapter.createAdapter(
         Collections.singletonList(
             Content.newBuilder().setBoundElement(DEFAULT_ELEMENT_BINDING).build()),
         frameContext);
@@ -249,7 +247,7 @@ public class ElementContainerAdapterTest {
 
   @Test
   public void testCreateChildAdapters_boundTemplate_doesNothing() {
-    adapter.createInlineChildAdapters(
+    adapter.createAdapter(
         Collections.singletonList(
             Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build()),
         frameContext);
@@ -265,7 +263,7 @@ public class ElementContainerAdapterTest {
     when(frameContext.getTemplateInvocationBindingValue(DEFAULT_TEMPLATE_BINDING))
         .thenReturn(BindingValue.getDefaultInstance());
 
-    adapter.createInlineChildAdapters(
+    adapter.createAdapter(
         Collections.singletonList(
             Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build()),
         frameContext);
@@ -283,7 +281,7 @@ public class ElementContainerAdapterTest {
     contents.add(Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build());
     contents.add(Content.newBuilder().setElement(DEFAULT_ELEMENT).build());
 
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
 
     // Adapters created:  2 templates, (nothing for the binding), 1 element list
     assertThat(adapter.childAdapters).hasSize(3);
@@ -307,13 +305,13 @@ public class ElementContainerAdapterTest {
 
   @Test
   public void testCreateChildAdapters_failsIfAdapterNotReleased() {
-    adapter.createInlineChildAdapters(
+    adapter.createAdapter(
         Collections.singletonList(Content.newBuilder().setElement(DEFAULT_ELEMENT).build()),
         frameContext);
 
     assertThatRunnable(
             () ->
-                adapter.createInlineChildAdapters(
+                adapter.createAdapter(
                     Collections.singletonList(
                         Content.newBuilder().setElement(DEFAULT_ELEMENT).build()),
                     frameContext))
@@ -327,7 +325,7 @@ public class ElementContainerAdapterTest {
   public void testBindChildAdapters_errorIfNotCreatedFirst() {
     assertThatRunnable(
             () ->
-                adapter.bindChildAdapters(
+                adapter.bindModel(
                     Collections.singletonList(
                         Content.newBuilder().setElement(DEFAULT_ELEMENT).build()),
                     frameContext))
@@ -341,11 +339,11 @@ public class ElementContainerAdapterTest {
   public void testBindChildAdapters_element() {
     List<Content> contents =
         Collections.singletonList(Content.newBuilder().setElement(DEFAULT_ELEMENT).build());
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
     ElementAdapter<? extends View, ?> mockChildAdapter = mock(ElementListAdapter.class);
     adapter.childAdapters.set(0, mockChildAdapter);
 
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     verify(mockChildAdapter).bindModel(DEFAULT_ELEMENT, frameContext);
   }
@@ -355,13 +353,13 @@ public class ElementContainerAdapterTest {
     List<Content> contents =
         Collections.singletonList(
             Content.newBuilder().setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION).build());
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
     TemplateInstanceAdapter mockChildAdapter1 = mock(TemplateInstanceAdapter.class);
     TemplateInstanceAdapter mockChildAdapter2 = mock(TemplateInstanceAdapter.class);
     adapter.childAdapters.set(0, mockChildAdapter1);
     adapter.childAdapters.set(1, mockChildAdapter2);
 
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     verify(mockChildAdapter1)
         .bindModel(
@@ -382,9 +380,9 @@ public class ElementContainerAdapterTest {
     List<Content> contents =
         Collections.singletonList(
             Content.newBuilder().setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION).build());
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
 
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     // No child adapters are created; binding does nothing.
     assertThat(adapter.childAdapters).isEmpty();
@@ -399,11 +397,11 @@ public class ElementContainerAdapterTest {
     View paddingViewL = new View(context);
     View paddingViewR = new View(context);
     adapter.getBaseView().addView(paddingViewL);
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
     adapter.getBaseView().addView(paddingViewR);
 
     adapter.setFirstAdapterViewOffset(1);
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
     assertThat(adapter.getBaseView().getChildAt(0)).isSameAs(paddingViewL);
@@ -422,9 +420,9 @@ public class ElementContainerAdapterTest {
     List<Content> contents =
         Collections.singletonList(
             Content.newBuilder().setBoundElement(DEFAULT_ELEMENT_BINDING).build());
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
 
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
     assertThat(adapter.getBaseView().getChildAt(0))
@@ -438,9 +436,9 @@ public class ElementContainerAdapterTest {
     List<Content> contents =
         Collections.singletonList(
             Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build());
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
 
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
     assertThat(adapter.getBaseView().getChildAt(0))
@@ -461,11 +459,11 @@ public class ElementContainerAdapterTest {
     View paddingViewL = new View(context);
     View paddingViewR = new View(context);
     adapter.getBaseView().addView(paddingViewL);
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
     adapter.getBaseView().addView(paddingViewR);
 
     adapter.setFirstAdapterViewOffset(1);
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(5);
     assertThat(adapter.getBaseView().getChildAt(0)).isSameAs(paddingViewL);
@@ -487,9 +485,9 @@ public class ElementContainerAdapterTest {
     List<Content> contents =
         Collections.singletonList(
             Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build());
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
 
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {0});
@@ -503,9 +501,9 @@ public class ElementContainerAdapterTest {
     List<Content> contents =
         Collections.singletonList(
             Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build());
-    adapter.createInlineChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
 
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {0});
@@ -518,8 +516,8 @@ public class ElementContainerAdapterTest {
     contents.add(Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build());
     contents.add(Content.newBuilder().setElement(DEFAULT_ELEMENT).build());
 
-    adapter.createInlineChildAdapters(contents, frameContext);
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     // 2 templates, 3 templates, 1 element list
     assertThat(adapter.childAdapters).hasSize(6);
@@ -557,10 +555,10 @@ public class ElementContainerAdapterTest {
     contents.add(Content.newBuilder().setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION).build());
     contents.add(Content.newBuilder().setElement(DEFAULT_ELEMENT).build());
 
-    adapter.createInlineChildAdapters(contents, frameContext);
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
-    adapter.unbindChildAdapters(contents);
+    adapter.unbindModel();
 
     // 2 templates, 3 templates, 1 element list
     assertThat(adapter.childAdapters).hasSize(3);
@@ -586,10 +584,10 @@ public class ElementContainerAdapterTest {
     List<Content> contents =
         Collections.singletonList(
             Content.newBuilder().setBoundElement(DEFAULT_ELEMENT_BINDING).build());
-    adapter.createInlineChildAdapters(contents, frameContext);
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
-    adapter.unbindChildAdapters(contents);
+    adapter.unbindModel();
 
     // All (bound) adapters and views have been destroyed
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
@@ -602,10 +600,10 @@ public class ElementContainerAdapterTest {
     List<Content> contents =
         Collections.singletonList(
             Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build());
-    adapter.createInlineChildAdapters(contents, frameContext);
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
-    adapter.unbindChildAdapters(contents);
+    adapter.unbindModel();
 
     // All (bound) adapters and views have been destroyed
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
@@ -620,14 +618,14 @@ public class ElementContainerAdapterTest {
     contents.add(Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build());
     contents.add(Content.newBuilder().setElement(DEFAULT_ELEMENT).build());
 
-    adapter.createInlineChildAdapters(contents, frameContext);
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     assertThat(adapter.childAdapters).hasSize(6);
     TemplateInstanceAdapter mockTemplateAdapter = mock(TemplateInstanceAdapter.class);
     adapter.childAdapters.set(3, mockTemplateAdapter);
 
-    adapter.unbindChildAdapters(contents);
+    adapter.unbindModel();
 
     // The inline adapters have been unbound; the bound adapters have been destroyed.
     assertThat(adapter.childAdapters).hasSize(3);
@@ -657,13 +655,13 @@ public class ElementContainerAdapterTest {
     View paddingView = new View(context);
     adapter.getBaseView().addView(paddingView);
     adapter.setFirstAdapterViewOffset(1);
-    adapter.createInlineChildAdapters(contents, frameContext);
-    adapter.bindChildAdapters(contents, frameContext);
+    adapter.createAdapter(contents, frameContext);
+    adapter.bindModel(contents, frameContext);
 
     assertThat(adapter.childAdapters).hasSize(6);
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(7);
 
-    adapter.unbindChildAdapters(contents);
+    adapter.unbindModel();
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(4);
     for (int i = 0; i < 3; i++) {
@@ -675,7 +673,7 @@ public class ElementContainerAdapterTest {
   }
 
   private static class TestElementContainerAdapter
-      extends ElementContainerAdapter<LinearLayout, String> {
+      extends ElementContainerAdapter<LinearLayout, List<Content>> {
 
     TestElementContainerAdapter(
         Context context, AdapterParameters adapterParameters, LinearLayout view) {
@@ -683,8 +681,13 @@ public class ElementContainerAdapterTest {
     }
 
     @Override
-    String getModelFromElement(Element baseElement) {
-      return baseElement.getVed();
+    List<Content> getContentsFromModel(List<Content> model) {
+      return model;
+    }
+
+    @Override
+    List<Content> getModelFromElement(Element baseElement) {
+      throw new UnsupportedOperationException("Not used in this test");
     }
   }
 }

@@ -60,11 +60,28 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
     factory = parameters.elementAdapterFactory;
   }
 
+  @Override
+  void onCreateAdapter(M model, Element baseElement, FrameContext frameContext) {
+    createInlineChildAdapters(getContentsFromModel(model), frameContext);
+  }
+
+  abstract List<Content> getContentsFromModel(M model);
+
+  @Override
+  void onBindModel(M model, Element baseElement, FrameContext frameContext) {
+    bindChildAdapters(getContentsFromModel(model), frameContext);
+  }
+
   /** Unbind the model and release child adapters. Be sure to call this in any overrides. */
   @Override
   void onUnbindModel() {
-    for (ElementAdapter<?, ?> childAdapter : childAdapters) {
-      childAdapter.unbindModel();
+    // TODO: Remove this logic and always unbindChildAdapters.
+    if (getRawModel() != null && !getContentsFromModel(getModel()).isEmpty()) {
+      unbindChildAdapters(getContentsFromModel(getModel()));
+    } else {
+      for (ElementAdapter<?, ?> childAdapter : childAdapters) {
+        childAdapter.unbindModel();
+      }
     }
     super.onUnbindModel();
   }
@@ -223,6 +240,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           adapter.createAdapter(element, frameContext);
           adapter.bindModel(element, frameContext);
           childAdapters.add(adapterIndex++, adapter);
+          adapter.setVisibility(elementBinding.getVisibility());
           getBaseView().addView(adapter.getView(), viewIndex++);
           adaptersPerContent[contentIndex] = 1;
           break;
@@ -230,7 +248,8 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           // Look up the binding, then create, bind, and add template adapters.
           BindingValue templateBindingValue =
               frameContext.getTemplateInvocationBindingValue(content.getTemplateBinding());
-          if (!templateBindingValue.hasTemplateInvocation()) {
+          if (!templateBindingValue.hasTemplateInvocation()
+              || templateBindingValue.getVisibility() == Visibility.GONE) {
             continue;
           }
           TemplateInvocation boundTemplateInvocation = templateBindingValue.getTemplateInvocation();
@@ -251,6 +270,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
             boundTemplateAdapter.createAdapter(templateModel, frameContext);
             boundTemplateAdapter.bindModel(templateModel, frameContext);
             childAdapters.add(adapterIndex++, boundTemplateAdapter);
+            boundTemplateAdapter.setVisibility(templateBindingValue.getVisibility());
             getBaseView().addView(boundTemplateAdapter.getView(), viewIndex++);
           }
           break;

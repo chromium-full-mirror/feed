@@ -41,10 +41,12 @@ import com.google.android.libraries.feed.testing.shadows.ExtendedShadowLinearLay
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
+import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
@@ -75,16 +77,18 @@ public class ElementListAdapterTest {
 
   private static final Element DEFAULT_ELEMENT =
       Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()).build();
+  private static final Content DEFAULT_CONTENT =
+      Content.newBuilder().setElement(DEFAULT_ELEMENT).build();
   private static final Element IMAGE_ELEMENT =
       Element.newBuilder().setImageElement(ImageElement.getDefaultInstance()).build();
   private static final ElementList DEFAULT_LIST =
-      ElementList.newBuilder().addElements(DEFAULT_ELEMENT).build();
+      ElementList.newBuilder().addContents(DEFAULT_CONTENT).build();
 
-  private static final ElementListBindingRef LIST_BINDING_REF =
-      ElementListBindingRef.newBuilder().setBindingId("shopping").build();
+  private static final ElementBindingRef ELEMENT_BINDING_REF =
+      ElementBindingRef.newBuilder().setBindingId("shopping").build();
   private static final ElementList LIST_WITH_BOUND_LIST =
       ElementList.newBuilder()
-          .addElements(Element.newBuilder().setElementListBinding(LIST_BINDING_REF))
+          .addContents(Content.newBuilder().setBoundElement(ELEMENT_BINDING_REF))
           .build();
 
   @Mock private ActionHandler actionHandler;
@@ -131,9 +135,9 @@ public class ElementListAdapterTest {
     ElementList listWithStyles =
         ElementList.newBuilder()
             .setStyleReferences(LIST_STYLES)
-            .addElements(DEFAULT_ELEMENT)
-            .addElements(DEFAULT_ELEMENT)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
+            .addContents(DEFAULT_CONTENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -147,7 +151,7 @@ public class ElementListAdapterTest {
     ElementList listWithStyles =
         ElementList.newBuilder()
             .setStyleReferences(LIST_STYLES)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -163,7 +167,10 @@ public class ElementListAdapterTest {
         Element.newBuilder()
             .setSpacerElement(SpacerElement.newBuilder().setStyleReferences(marginsStyles))
             .build();
-    ElementList listWithStyles = ElementList.newBuilder().addElements(elementWithMargins).build();
+    ElementList listWithStyles =
+        ElementList.newBuilder()
+            .addContents(Content.newBuilder().setElement(elementWithMargins))
+            .build();
     when(frameContext.makeStyleFor(marginsStyles)).thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.bindNewStyle(marginsStyles)).thenReturn(childFrameContext);
     when(childFrameContext.getCurrentStyle()).thenReturn(childStyleProvider);
@@ -186,8 +193,12 @@ public class ElementListAdapterTest {
   public void testOnCreateAdapter_setsLayoutParams() {
     ElementList listWithStyles =
         ElementList.newBuilder()
-            .addElements(
-                DEFAULT_ELEMENT.toBuilder().setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER))
+            .addContents(
+                Content.newBuilder()
+                    .setElement(
+                        DEFAULT_ELEMENT
+                            .toBuilder()
+                            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)))
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -208,7 +219,7 @@ public class ElementListAdapterTest {
     Action action = Action.newBuilder().build();
     ElementList listWithActions =
         ElementList.newBuilder()
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .setActions(Actions.newBuilder().setOnClickAction(action))
             .build();
 
@@ -230,7 +241,7 @@ public class ElementListAdapterTest {
     Actions actions = Actions.newBuilder().setOnClickAction(action).build();
     ElementList listWithActions =
         ElementList.newBuilder()
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .setActionsBinding(actionsBindingRef)
             .build();
     when(frameContext.getActionsFromBinding(actionsBindingRef)).thenReturn(actions);
@@ -307,8 +318,11 @@ public class ElementListAdapterTest {
         Element.newBuilder()
             .setElementList(
                 ElementList.newBuilder()
-                    .addElements(
-                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
+                    .addContents(
+                        Content.newBuilder()
+                            .setElement(
+                                Element.newBuilder()
+                                    .setElementList(ElementList.getDefaultInstance()))))
             .build();
     adapter.createAdapter(baseElement, frameContext);
     adapter.bindModel(baseElement, frameContext);
@@ -333,7 +347,7 @@ public class ElementListAdapterTest {
     ElementList listWithStyles =
         ElementList.newBuilder()
             .setStyleReferences(LIST_STYLES)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -344,7 +358,7 @@ public class ElementListAdapterTest {
     ElementList otherListWithStyles =
         ElementList.newBuilder()
             .setStyleReferences(otherStyles)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.bindModel(otherListWithStyles, frameContext);
@@ -359,7 +373,7 @@ public class ElementListAdapterTest {
     ElementList otherListWithStyleBindings =
         ElementList.newBuilder()
             .setStyleReferences(otherStylesWithBinding)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
     when(frameContext.bindNewStyle(otherStylesWithBinding)).thenReturn(frameContext);
     when(frameContext.makeStyleFor(otherStylesWithBinding)).thenReturn(styleProvider);
@@ -373,9 +387,9 @@ public class ElementListAdapterTest {
     ElementList listWithThreeElements =
         ElementList.newBuilder()
             .setStyleReferences(LIST_STYLES)
-            .addElements(DEFAULT_ELEMENT)
-            .addElements(DEFAULT_ELEMENT)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
+            .addContents(DEFAULT_CONTENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.createAdapter(listWithThreeElements, frameContext);
@@ -385,41 +399,49 @@ public class ElementListAdapterTest {
     ElementList listWithTwoElements =
         ElementList.newBuilder()
             .setStyleReferences(LIST_STYLES)
-            .addElements(DEFAULT_ELEMENT)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     assertThatRunnable(() -> adapter.bindModel(listWithTwoElements, frameContext))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
-        .contains("Number of elements mismatch");
+        .contains("Internal error in adapters per content");
   }
 
   @Test
   public void testOnBindModel_elementListBindingRecreatesAdapter() {
-    ElementList listWithOneElement = ElementList.newBuilder().addElements(DEFAULT_ELEMENT).build();
-    ElementList listWithTwoElements =
-        ElementList.newBuilder().addElements(DEFAULT_ELEMENT).addElements(DEFAULT_ELEMENT).build();
+    Element listWithOneItem =
+        Element.newBuilder()
+            .setElementList(ElementList.newBuilder().addContents(DEFAULT_CONTENT))
+            .build();
+    Element listWithTwoItems =
+        Element.newBuilder()
+            .setElementList(
+                ElementList.newBuilder().addContents(DEFAULT_CONTENT).addContents(DEFAULT_CONTENT))
+            .build();
 
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
-        .thenReturn(BindingValue.newBuilder().setElementList(listWithOneElement).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
+        .thenReturn(BindingValue.newBuilder().setElement(listWithOneItem).build());
     adapter.createAdapter(LIST_WITH_BOUND_LIST, frameContext);
-    // The list adapter is created but has no child views.
-    assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(0);
+    // No child adapters have been created yet.
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
 
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
-        .thenReturn(BindingValue.newBuilder().setElementList(listWithTwoElements).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
+        .thenReturn(BindingValue.newBuilder().setElement(listWithTwoItems).build());
     adapter.bindModel(LIST_WITH_BOUND_LIST, frameContext);
     // The list adapter creates its one view on bind.
     assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(2);
 
     adapter.unbindModel();
     // The list adapter has been released.
-    assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(0);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
 
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
-        .thenReturn(BindingValue.newBuilder().setElementList(listWithOneElement).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
+        .thenReturn(BindingValue.newBuilder().setElement(listWithOneItem).build());
     adapter.bindModel(LIST_WITH_BOUND_LIST, frameContext);
     // The list adapter can bind to a different model.
     assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(1);
@@ -427,84 +449,82 @@ public class ElementListAdapterTest {
 
   @Test
   public void testOnBindModel_bindingWithVisibilityGone() {
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
         .thenReturn(
             BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_REF.getBindingId())
-                .setElementList(DEFAULT_LIST)
+                .setBindingId(ELEMENT_BINDING_REF.getBindingId())
+                .setElement(Element.newBuilder().setElementList(DEFAULT_LIST))
                 .build());
     adapter.createAdapter(LIST_WITH_BOUND_LIST, frameContext);
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
         .thenReturn(
             BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_REF.getBindingId())
+                .setBindingId(ELEMENT_BINDING_REF.getBindingId())
                 .setVisibility(Visibility.GONE)
                 .build());
 
     adapter.bindModel(LIST_WITH_BOUND_LIST, frameContext);
 
-    assertThat(adapter.getBaseView().getChildAt(0).getVisibility()).isEqualTo(View.GONE);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
   }
 
   @Test
   public void testOnBindModel_bindingWithNoContent() {
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
         .thenReturn(
             BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_REF.getBindingId())
-                .setElementList(DEFAULT_LIST)
+                .setBindingId(ELEMENT_BINDING_REF.getBindingId())
+                .setElement(DEFAULT_ELEMENT)
                 .build());
     adapter.createAdapter(LIST_WITH_BOUND_LIST, frameContext);
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
         .thenReturn(
-            BindingValue.newBuilder().setBindingId(LIST_BINDING_REF.getBindingId()).build());
+            BindingValue.newBuilder().setBindingId(ELEMENT_BINDING_REF.getBindingId()).build());
 
-    assertThatRunnable(() -> adapter.bindModel(LIST_WITH_BOUND_LIST, frameContext))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
-        .that()
-        .hasMessageThat()
-        .contains("ElementList binding shopping had no content");
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
   }
 
   @Test
   public void testOnBindModel_bindingWithOptionalAbsent() {
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
         .thenReturn(
             BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_REF.getBindingId())
-                .setElementList(DEFAULT_LIST)
+                .setBindingId(ELEMENT_BINDING_REF.getBindingId())
+                .setElement(DEFAULT_ELEMENT)
                 .build());
     adapter.createAdapter(LIST_WITH_BOUND_LIST, frameContext);
 
-    ElementListBindingRef optionalBinding =
-        LIST_BINDING_REF.toBuilder().setIsOptional(true).build();
+    ElementBindingRef optionalBinding = ELEMENT_BINDING_REF.toBuilder().setIsOptional(true).build();
     ElementList optionalBindingList =
         ElementList.newBuilder()
-            .addElements(Element.newBuilder().setElementListBinding(optionalBinding))
+            .addContents(Content.newBuilder().setBoundElement(optionalBinding))
             .build();
-    when(frameContext.getElementListBindingValue(optionalBinding))
+    when(frameContext.getElementBindingValue(optionalBinding))
         .thenReturn(BindingValue.newBuilder().setBindingId(optionalBinding.getBindingId()).build());
 
-    // This should not fail.
     adapter.bindModel(optionalBindingList, frameContext);
-    assertThat(adapter.getBaseView().getChildAt(0).getVisibility()).isEqualTo(View.GONE);
+
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
   }
 
   @Test
   public void testOnBindModel_bindingSetsVisibility() {
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
         .thenReturn(
             BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_REF.getBindingId())
-                .setElementList(DEFAULT_LIST)
+                .setBindingId(ELEMENT_BINDING_REF.getBindingId())
+                .setElement(DEFAULT_ELEMENT)
                 .build());
     adapter.createAdapter(LIST_WITH_BOUND_LIST, frameContext);
-    when(frameContext.getElementListBindingValue(LIST_BINDING_REF))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
         .thenReturn(
             BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_REF.getBindingId())
+                .setBindingId(ELEMENT_BINDING_REF.getBindingId())
                 .setVisibility(Visibility.INVISIBLE)
-                .setElementList(DEFAULT_LIST)
+                .setElement(DEFAULT_ELEMENT)
                 .build());
 
     adapter.bindModel(LIST_WITH_BOUND_LIST, frameContext);
@@ -515,7 +535,7 @@ public class ElementListAdapterTest {
   public void testUnbindModel_unsetsActions() {
     ElementList listWithActions =
         ElementList.newBuilder()
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
             .build();
 
@@ -532,9 +552,9 @@ public class ElementListAdapterTest {
     ElementList listWithStyles =
         ElementList.newBuilder()
             .setStyleReferences(LIST_STYLES)
-            .addElements(DEFAULT_ELEMENT)
-            .addElements(DEFAULT_ELEMENT)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
+            .addContents(DEFAULT_CONTENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -551,7 +571,7 @@ public class ElementListAdapterTest {
     ElementList listWithStyles =
         ElementList.newBuilder()
             .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -571,7 +591,7 @@ public class ElementListAdapterTest {
     listWithStyles =
         ElementList.newBuilder()
             .setGravityVertical(GravityVertical.GRAVITY_TOP)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -588,7 +608,7 @@ public class ElementListAdapterTest {
     listWithStyles =
         ElementList.newBuilder()
             .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -603,7 +623,7 @@ public class ElementListAdapterTest {
     adapter.releaseAdapter();
 
     listWithStyles =
-        ElementList.newBuilder().clearGravityVertical().addElements(DEFAULT_ELEMENT).build();
+        ElementList.newBuilder().clearGravityVertical().addContents(DEFAULT_CONTENT).build();
 
     adapter.createAdapter(listWithStyles, frameContext);
 
@@ -624,7 +644,7 @@ public class ElementListAdapterTest {
     ElementList listWithStyles =
         ElementList.newBuilder()
             .setStyleReferences(LIST_STYLES)
-            .addElements(DEFAULT_ELEMENT)
+            .addContents(DEFAULT_CONTENT)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -672,8 +692,12 @@ public class ElementListAdapterTest {
   public void testSetLayoutParams() {
     ElementList listWithStyles =
         ElementList.newBuilder()
-            .addElements(
-                DEFAULT_ELEMENT.toBuilder().setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER))
+            .addContents(
+                Content.newBuilder()
+                    .setElement(
+                        DEFAULT_ELEMENT
+                            .toBuilder()
+                            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)))
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -696,7 +720,10 @@ public class ElementListAdapterTest {
     when(childStyleProvider.hasWidth()).thenReturn(true);
     when(childStyleProvider.getWidth()).thenReturn(childWidth);
 
-    ElementList listWithStyles = ElementList.newBuilder().addElements(IMAGE_ELEMENT).build();
+    ElementList listWithStyles =
+        ElementList.newBuilder()
+            .addContents(Content.newBuilder().setElement(IMAGE_ELEMENT))
+            .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
 
@@ -716,7 +743,10 @@ public class ElementListAdapterTest {
 
   @Test
   public void testSetLayoutParams_widthSetOnList() {
-    ElementList listWithStyles = ElementList.newBuilder().addElements(IMAGE_ELEMENT).build();
+    ElementList listWithStyles =
+        ElementList.newBuilder()
+            .addContents(Content.newBuilder().setElement(IMAGE_ELEMENT))
+            .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
 

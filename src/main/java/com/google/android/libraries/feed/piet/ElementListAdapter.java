@@ -25,10 +25,12 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.Space;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import java.util.List;
 
 /** An {@link ElementContainerAdapter} which manages vertical lists of elements. */
 class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementList> {
@@ -50,46 +52,63 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
 
   @Override
   void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
-    for (Element line : model.getElementsList()) {
-      ElementAdapter<? extends View, ?> adapter;
-      if (line.hasElementListBinding()) {
-        adapter =
-            getParameters()
-                .elementAdapterFactory
-                .createElementListAdapter(ElementList.getDefaultInstance(), frameContext);
+    if (model.getContentsCount() > 0) {
+      super.onCreateAdapter(model, baseElement, frameContext);
+      for (ElementAdapter<? extends View, ?> adapter : childAdapters) {
+        updateChildLayoutParams(adapter);
+      }
+    } else {
+      for (Element line : model.getElementsList()) {
+        ElementAdapter<? extends View, ?> adapter;
+        if (line.hasElementListBinding()) {
+          adapter =
+              getParameters()
+                  .elementAdapterFactory
+                  .createElementListAdapter(ElementList.getDefaultInstance(), frameContext);
+          addChildAdapter(adapter);
+          getBaseView().addView(adapter.getView());
+          return;
+        } else {
+          adapter =
+              getParameters().elementAdapterFactory.createAdapterForElement(line, frameContext);
+          adapter.createAdapter(line, frameContext);
+        }
         addChildAdapter(adapter);
         getBaseView().addView(adapter.getView());
-        return;
-      } else {
-        adapter = getParameters().elementAdapterFactory.createAdapterForElement(line, frameContext);
-        adapter.createAdapter(line, frameContext);
-      }
-      addChildAdapter(adapter);
-      getBaseView().addView(adapter.getView());
 
-      updateChildLayoutParams(adapter);
+        updateChildLayoutParams(adapter);
+      }
     }
     setupGravityViews();
   }
 
   @Override
+  List<Content> getContentsFromModel(ElementList model) {
+    return model.getContentsList();
+  }
+
+  @Override
   void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
-    checkState(
-        model.getElementsCount() == childAdapters.size(),
-        "Number of elements mismatch: got %s elements, had %s adapters",
-        model.getElementsCount(),
-        childAdapters.size());
-    for (int i = 0; i < model.getElementsCount(); i++) {
-      Element cellModel = model.getElements(i);
-      if (cellModel.hasElementListBinding()) {
-        ElementListAdapter targetAdapter = (ElementListAdapter) childAdapters.get(i);
-        createAndBindChildListAdapter(
-            targetAdapter, cellModel.getElementListBinding(), cellModel, frameContext);
-        // TODO: If a style on the bound ElementList could cause the adapter to create
-        // a wrapper view (or lose one), remove the adapter's view from the LinearLayout and
-        // re-add the result of getView().
-      } else {
-        childAdapters.get(i).bindModel(model.getElements(i), frameContext);
+    if (model.getContentsCount() > 0) {
+      super.onBindModel(model, baseElement, frameContext);
+    } else {
+      checkState(
+          model.getElementsCount() == childAdapters.size(),
+          "Number of elements mismatch: got %s elements, had %s adapters",
+          model.getElementsCount(),
+          childAdapters.size());
+      for (int i = 0; i < model.getElementsCount(); i++) {
+        Element cellModel = model.getElements(i);
+        if (cellModel.hasElementListBinding()) {
+          ElementListAdapter targetAdapter = (ElementListAdapter) childAdapters.get(i);
+          createAndBindChildListAdapter(
+              targetAdapter, cellModel.getElementListBinding(), cellModel, frameContext);
+          // TODO: If a style on the bound ElementList could cause the adapter to create
+          // a wrapper view (or lose one), remove the adapter's view from the LinearLayout and
+          // re-add the result of getView().
+        } else {
+          childAdapters.get(i).bindModel(model.getElements(i), frameContext);
+        }
       }
     }
   }
@@ -157,6 +176,7 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
         topView = new Space(getContext());
         listView.addView(topView, 0);
         ((LayoutParams) topView.getLayoutParams()).weight = 1.0f;
+        setFirstAdapterViewOffset(1);
         break;
       case GRAVITY_MIDDLE:
         topView = new Space(getContext());
@@ -165,6 +185,7 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
         bottomView = new Space(getContext());
         listView.addView(bottomView);
         ((LayoutParams) bottomView.getLayoutParams()).weight = 1.0f;
+        setFirstAdapterViewOffset(1);
         break;
       case GRAVITY_TOP:
         bottomView = new Space(getContext());

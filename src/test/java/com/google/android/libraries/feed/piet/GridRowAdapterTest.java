@@ -30,15 +30,15 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.Space;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
+import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
@@ -63,17 +63,17 @@ public class GridRowAdapterTest {
   private static final String GRID_STYLE_ID = "cybercat";
   private static final StyleIdsStack GRID_STYLES =
       StyleIdsStack.newBuilder().addStyleIds(GRID_STYLE_ID).build();
-  private static final ElementList DEFAULT_CONTENTS =
-      ElementList.newBuilder()
-          .addElements(Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()))
-          .build();
-  private static final String LIST_BINDING_ID = "stripes";
-  private static final ElementListBindingRef ELEMENT_LIST_BINDING =
-      ElementListBindingRef.newBuilder().setBindingId(LIST_BINDING_ID).build();
+  private static final Element DEFAULT_ELEMENT =
+      Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()).build();
+  private static final Content DEFAULT_CONTENT =
+      Content.newBuilder().setElement(DEFAULT_ELEMENT).build();
+  private static final String BINDING_ID = "stripes";
+  private static final ElementBindingRef ELEMENT_BINDING =
+      ElementBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+  private static final Content BOUND_CONTENTS =
+      Content.newBuilder().setBoundElement(ELEMENT_BINDING).build();
   private static final GridRow GRID_ROW_WITH_BOUND_CELL =
-      GridRow.newBuilder()
-          .addCells(GridCell.newBuilder().setElementListBinding(ELEMENT_LIST_BINDING))
-          .build();
+      GridRow.newBuilder().addCells(GridCell.newBuilder().setContent(BOUND_CONTENTS)).build();
 
   private Context context;
   private AdapterParameters adapterParameters;
@@ -103,49 +103,27 @@ public class GridRowAdapterTest {
 
   @Test
   public void testOnCreateAdapter_makesRow() {
-    // check that when we have n elements, we have n views
-    ElementListBindingRef listBinding =
-        ElementListBindingRef.newBuilder().setBindingId("meow").build();
+    // We create an adapter for the inline content, but not for the bound content.
     GridRow gridRow =
         GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
-            .addCells(GridCell.newBuilder().setElementListBinding(listBinding))
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
+            .addCells(GridCell.newBuilder().setContent(BOUND_CONTENTS))
             .build();
 
-    when(frameContext.getElementListBindingValue(listBinding))
-        .thenReturn(BindingValue.newBuilder().setElementList(DEFAULT_CONTENTS).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
+        .thenReturn(BindingValue.newBuilder().setElement(DEFAULT_ELEMENT).build());
 
     adapter.createAdapter(gridRow, frameContext);
 
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
     assertThat(adapter.getBaseView().getBaseline()).isEqualTo(-1);
-    assertThat(adapter.childAdapters).hasSize(2);
+    assertThat(adapter.childAdapters).hasSize(1);
     assertThat(adapter.getBaseView().getChildAt(0))
         .isSameAs(adapter.childAdapters.get(0).getView());
-    assertThat(adapter.getBaseView().getChildAt(1))
-        .isSameAs(adapter.childAdapters.get(1).getView());
     LayoutParams cellLayoutParams =
         (LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
     assertThat(cellLayoutParams.width).isEqualTo(LayoutParams.WRAP_CONTENT);
     assertThat(cellLayoutParams.height).isEqualTo(LayoutParams.MATCH_PARENT);
-  }
-
-  @Test
-  public void testOnCreateAdapter_missingBindingCreatesEmptyCell() {
-    ElementListBindingRef listBinding =
-        ElementListBindingRef.newBuilder().setBindingId("meow").build();
-    GridRow gridRow =
-        GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
-            .addCells(GridCell.newBuilder().setElementListBinding(listBinding))
-            .build();
-
-    when(frameContext.getElementListBindingValue(listBinding)).thenReturn(null);
-
-    adapter.createAdapter(gridRow, frameContext);
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
-    assertThat(adapter.childAdapters).hasSize(2);
   }
 
   @Test
@@ -163,7 +141,7 @@ public class GridRowAdapterTest {
   public void testOnCreateAdapter_setsGridRowStyles() {
     GridRow gridRow =
         GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
             .setStyleReferences(GRID_STYLES)
             .build();
 
@@ -180,7 +158,7 @@ public class GridRowAdapterTest {
         GridRow.newBuilder()
             .addCells(
                 GridCell.newBuilder()
-                    .setElementList(DEFAULT_CONTENTS)
+                    .setContent(DEFAULT_CONTENT)
                     .setWidth(GridCellWidth.newBuilder().setDp(widthDp)))
             .build();
 
@@ -200,7 +178,7 @@ public class GridRowAdapterTest {
         GridRow.newBuilder()
             .addCells(
                 GridCell.newBuilder()
-                    .setElementList(DEFAULT_CONTENTS)
+                    .setContent(DEFAULT_CONTENT)
                     .setWidth(GridCellWidth.newBuilder().setWeight(widthWeight)))
             .build();
 
@@ -222,9 +200,7 @@ public class GridRowAdapterTest {
     GridRow gridRow =
         GridRow.newBuilder()
             .addCells(
-                GridCell.newBuilder()
-                    .setElementList(DEFAULT_CONTENTS)
-                    .setWidthBinding(widthBindingRef))
+                GridCell.newBuilder().setContent(DEFAULT_CONTENT).setWidthBinding(widthBindingRef))
             .build();
     when(frameContext.getGridCellWidthFromBinding(widthBindingRef))
         .thenReturn(GridCellWidth.newBuilder().setDp(widthDp).build());
@@ -244,100 +220,69 @@ public class GridRowAdapterTest {
         GridRow.newBuilder()
             .addCells(
                 GridCell.newBuilder()
-                    .setElementList(
-                        DEFAULT_CONTENTS
-                            .toBuilder()
-                            .setGravityVertical(GravityVertical.GRAVITY_TOP)))
+                    .setContent(
+                        Content.newBuilder()
+                            .setElement(
+                                DEFAULT_ELEMENT
+                                    .toBuilder()
+                                    .setGravityVertical(GravityVertical.GRAVITY_TOP))))
             .build();
 
     adapter.createAdapter(gridRowTop, frameContext);
 
-    ElementListAdapter cellAdapter = (ElementListAdapter) adapter.childAdapters.get(0);
+    SpacerElementAdapter cellAdapter = (SpacerElementAdapter) adapter.childAdapters.get(0);
     LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
     assertThat(params.gravity).isEqualTo(Gravity.TOP);
-    assertThat(cellAdapter.getBaseView().getChildCount()).isEqualTo(2);
-    assertThat(cellAdapter.getBaseView().getChildAt(0))
-        .isSameAs(cellAdapter.childAdapters.get(0).getView());
-    assertThat(cellAdapter.getBaseView().getChildAt(1)).isInstanceOf(Space.class);
-  }
-
-  @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_verticalGravityCenter() {
-    GridRow gridRowCenter =
-        GridRow.newBuilder()
-            .addCells(
-                GridCell.newBuilder()
-                    .setElementList(
-                        DEFAULT_CONTENTS
-                            .toBuilder()
-                            .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)))
-            .build();
-
-    adapter.createAdapter(gridRowCenter, frameContext);
-
-    ElementListAdapter cellAdapter = (ElementListAdapter) adapter.childAdapters.get(0);
-    LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
-    assertThat(params.gravity).isEqualTo(Gravity.CENTER_VERTICAL);
-    assertThat(cellAdapter.getBaseView().getChildCount()).isEqualTo(3);
-    assertThat(cellAdapter.getBaseView().getChildAt(0)).isInstanceOf(Space.class);
-    assertThat(cellAdapter.getBaseView().getChildAt(1))
-        .isSameAs(cellAdapter.childAdapters.get(0).getView());
-    assertThat(cellAdapter.getBaseView().getChildAt(2)).isInstanceOf(Space.class);
-  }
-
-  @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_verticalGravityBottom() {
-    GridRow gridRowBottom =
-        GridRow.newBuilder()
-            .addCells(
-                GridCell.newBuilder()
-                    .setElementList(
-                        DEFAULT_CONTENTS
-                            .toBuilder()
-                            .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)))
-            .build();
-
-    adapter.createAdapter(gridRowBottom, frameContext);
-
-    ElementListAdapter cellAdapter = (ElementListAdapter) adapter.childAdapters.get(0);
-    LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
-    assertThat(params.gravity).isEqualTo(Gravity.BOTTOM);
-    assertThat(cellAdapter.getBaseView().getChildCount()).isEqualTo(2);
-    assertThat(cellAdapter.getBaseView().getChildAt(0)).isInstanceOf(Space.class);
-    assertThat(cellAdapter.getBaseView().getChildAt(1))
-        .isSameAs(cellAdapter.childAdapters.get(0).getView());
   }
 
   @Test
   public void testOnBindModel_recreatesBindingCells() {
-    ElementList cellWithOneElement =
-        ElementList.newBuilder()
-            .addElements(Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()))
+    Element cellWithOneElement =
+        Element.newBuilder()
+            .setElementList(
+                ElementList.newBuilder()
+                    .addContents(
+                        Content.newBuilder()
+                            .setElement(
+                                Element.newBuilder()
+                                    .setSpacerElement(SpacerElement.getDefaultInstance()))))
             .build();
-    ElementList cellWithTwoElements =
-        ElementList.newBuilder()
-            .addElements(Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()))
-            .addElements(Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()))
+    Element cellWithTwoElements =
+        Element.newBuilder()
+            .setElementList(
+                ElementList.newBuilder()
+                    .addContents(
+                        Content.newBuilder()
+                            .setElement(
+                                Element.newBuilder()
+                                    .setSpacerElement(SpacerElement.getDefaultInstance())))
+                    .addContents(
+                        Content.newBuilder()
+                            .setElement(
+                                Element.newBuilder()
+                                    .setSpacerElement(SpacerElement.getDefaultInstance()))))
             .build();
 
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
-        .thenReturn(BindingValue.newBuilder().setElementList(cellWithOneElement).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
+        .thenReturn(BindingValue.newBuilder().setElement(cellWithOneElement).build());
     adapter.createAdapter(GRID_ROW_WITH_BOUND_CELL, frameContext);
-    // The cell adapter is created but has no child views.
-    assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(0);
+    // The cell adapter has not been created yet
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
 
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
-        .thenReturn(BindingValue.newBuilder().setElementList(cellWithTwoElements).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
+        .thenReturn(BindingValue.newBuilder().setElement(cellWithTwoElements).build());
     adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext);
     // The cell adapter creates its one view on bind.
     assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(2);
 
     adapter.unbindModel();
     // The cell adapter has been released.
-    assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(0);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
 
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
-        .thenReturn(BindingValue.newBuilder().setElementList(cellWithOneElement).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
+        .thenReturn(BindingValue.newBuilder().setElement(cellWithOneElement).build());
     adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext);
     // The cell adapter can bind to a different model.
     assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(1);
@@ -345,83 +290,71 @@ public class GridRowAdapterTest {
 
   @Test
   public void testOnBindModel_visibilityGone() {
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
         .thenReturn(
-            BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_ID)
-                .setElementList(DEFAULT_CONTENTS)
-                .build());
+            BindingValue.newBuilder().setBindingId(BINDING_ID).setElement(DEFAULT_ELEMENT).build());
     adapter.createAdapter(GRID_ROW_WITH_BOUND_CELL, frameContext);
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
         .thenReturn(
             BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_ID)
+                .setBindingId(BINDING_ID)
                 .setVisibility(Visibility.GONE)
                 .build());
 
     adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext);
 
-    assertThat(adapter.getBaseView().getChildAt(0).getVisibility()).isEqualTo(View.GONE);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
   }
 
   @Test
   public void testOnBindModel_noContent() {
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
         .thenReturn(
-            BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_ID)
-                .setElementList(DEFAULT_CONTENTS)
-                .build());
+            BindingValue.newBuilder().setBindingId(BINDING_ID).setElement(DEFAULT_ELEMENT).build());
     adapter.createAdapter(GRID_ROW_WITH_BOUND_CELL, frameContext);
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
-        .thenReturn(BindingValue.newBuilder().setBindingId(LIST_BINDING_ID).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
+        .thenReturn(BindingValue.newBuilder().setBindingId(BINDING_ID).build());
 
-    assertThatRunnable(() -> adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
-        .that()
-        .hasMessageThat()
-        .contains("ElementList binding stripes had no content");
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
   }
 
   @Test
   public void testOnBindModel_optionalAbsent() {
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
         .thenReturn(
-            BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_ID)
-                .setElementList(DEFAULT_CONTENTS)
-                .build());
+            BindingValue.newBuilder().setBindingId(BINDING_ID).setElement(DEFAULT_ELEMENT).build());
     adapter.createAdapter(GRID_ROW_WITH_BOUND_CELL, frameContext);
 
-    ElementListBindingRef optionalBinding =
-        ELEMENT_LIST_BINDING.toBuilder().setIsOptional(true).build();
+    ElementBindingRef optionalBinding = ELEMENT_BINDING.toBuilder().setIsOptional(true).build();
     GridRow optionalBindingRow =
         GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementListBinding(optionalBinding))
+            .addCells(
+                GridCell.newBuilder()
+                    .setContent(Content.newBuilder().setBoundElement(optionalBinding)))
             .build();
-    when(frameContext.getElementListBindingValue(optionalBinding))
-        .thenReturn(BindingValue.newBuilder().setBindingId(LIST_BINDING_ID).build());
+    when(frameContext.getElementBindingValue(optionalBinding))
+        .thenReturn(BindingValue.newBuilder().setBindingId(BINDING_ID).build());
 
     adapter.bindModel(optionalBindingRow, frameContext);
-    assertThat(((LinearLayout) adapter.getBaseView().getChildAt(0)).getChildCount()).isEqualTo(0);
-    assertThat(adapter.getBaseView().getChildAt(0).getVisibility()).isEqualTo(View.GONE);
+
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
+    assertThat(adapter.childAdapters).isEmpty();
   }
 
   @Test
   public void testOnBindModel_setsVisibility() {
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
         .thenReturn(
-            BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_ID)
-                .setElementList(DEFAULT_CONTENTS)
-                .build());
+            BindingValue.newBuilder().setBindingId(BINDING_ID).setElement(DEFAULT_ELEMENT).build());
     adapter.createAdapter(GRID_ROW_WITH_BOUND_CELL, frameContext);
-    when(frameContext.getElementListBindingValue(ELEMENT_LIST_BINDING))
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
         .thenReturn(
             BindingValue.newBuilder()
-                .setBindingId(LIST_BINDING_ID)
+                .setBindingId(BINDING_ID)
                 .setVisibility(Visibility.INVISIBLE)
-                .setElementList(DEFAULT_CONTENTS)
+                .setElement(DEFAULT_ELEMENT)
                 .build());
 
     adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext);
@@ -432,14 +365,12 @@ public class GridRowAdapterTest {
   public void testOnBindModel_throwsExceptionOnCellCountMismatch() {
     GridRow gridRowWithTwoElements =
         GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
             .build();
 
     GridRow gridRowWithOneElement =
-        GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
-            .build();
+        GridRow.newBuilder().addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT)).build();
 
     adapter.createAdapter(gridRowWithTwoElements, frameContext);
 
@@ -447,14 +378,14 @@ public class GridRowAdapterTest {
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
-        .contains("Number of cells mismatch");
+        .contains("Internal error in adapters per content");
   }
 
   @Test
   public void testOnBindModel_setsStylesOnlyIfBindingIsDefined() {
     GridRow gridRowWithStyle =
         GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
             .setStyleReferences(GRID_STYLES)
             .build();
 
@@ -465,7 +396,7 @@ public class GridRowAdapterTest {
     StyleIdsStack otherStyles = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
     GridRow gridRowWithOtherStyle =
         GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
             .setStyleReferences(otherStyles)
             .build();
 
@@ -479,7 +410,7 @@ public class GridRowAdapterTest {
             .build();
     GridRow gridRowWithBoundStyle =
         GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
             .setStyleReferences(styleWithBinding)
             .build();
     StyleProvider otherStyleProvider = mock(StyleProvider.class);
@@ -493,43 +424,40 @@ public class GridRowAdapterTest {
 
   @Test
   public void testUnbindModel() {
-    ElementListBindingRef listBinding =
-        ElementListBindingRef.newBuilder().setBindingId("meow").build();
     GridRow gridRow =
         GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
-            .addCells(GridCell.newBuilder().setElementListBinding(listBinding))
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setContent(Content.newBuilder().setBoundElement(ELEMENT_BINDING)))
             .build();
 
-    when(frameContext.getElementListBindingValue(listBinding))
-        .thenReturn(BindingValue.newBuilder().setElementList(DEFAULT_CONTENTS).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
+        .thenReturn(BindingValue.newBuilder().setElement(DEFAULT_ELEMENT).build());
 
     adapter.createAdapter(gridRow, frameContext);
     adapter.bindModel(gridRow, frameContext);
 
     adapter.unbindModel();
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
-    assertThat(adapter.childAdapters).hasSize(2);
-    // The inline adapter still has its child view
-    assertThat(((ElementListAdapter) adapter.childAdapters.get(0)).getBaseView().getChildCount())
-        .isEqualTo(1);
-    // The bound adapter has been released.
-    assertThat(((ElementListAdapter) adapter.childAdapters.get(1)).getBaseView().getChildCount())
-        .isEqualTo(0);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(adapter.childAdapters).hasSize(1);
+
+    // The inline adapter has been unbound.
+    assertThat(adapter.childAdapters.get(0).getRawModel()).isNull();
   }
 
   @Test
   public void testReleaseAdapter() {
-    ElementListBindingRef listBinding =
-        ElementListBindingRef.newBuilder().setBindingId("meow").build();
     GridRow gridRow =
         GridRow.newBuilder()
-            .addCells(GridCell.newBuilder().setElementList(DEFAULT_CONTENTS))
-            .addCells(GridCell.newBuilder().setElementListBinding(listBinding))
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setContent(Content.newBuilder().setBoundElement(ELEMENT_BINDING)))
             .build();
 
-    when(frameContext.getElementListBindingValue(listBinding))
-        .thenReturn(BindingValue.newBuilder().setElementList(DEFAULT_CONTENTS).build());
+    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
+        .thenReturn(BindingValue.newBuilder().setElement(DEFAULT_ELEMENT).build());
 
     adapter.createAdapter(gridRow, frameContext);
     adapter.bindModel(gridRow, frameContext);

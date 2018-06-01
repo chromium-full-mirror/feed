@@ -19,16 +19,21 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GridCell;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /** An {@link ElementContainerAdapter} which manages {@code GridRow} slices. */
 class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
@@ -50,56 +55,110 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
 
   @Override
   void onCreateAdapter(GridRow gridRow, Element baseElement, FrameContext frameContext) {
-    // Populate the LinearLayout with cells.
-    for (GridCell cell : gridRow.getCellsList()) {
-      ElementListAdapter cellAdapter;
-      switch (cell.getCellContentCase()) {
-        case ELEMENT_LIST:
-          cellAdapter = getAdapterForChildList(cell.getElementList(), frameContext);
-          cellAdapter.createAdapter(cell.getElementList(), frameContext);
-          setLayoutParamsOnCell(cellAdapter, cell, frameContext);
-          break;
-        case ELEMENT_LIST_BINDING:
-          cellAdapter = getAdapterForChildList(ElementList.getDefaultInstance(), frameContext);
-          break;
-        default:
-          throw new IllegalArgumentException(
-              String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
+    // TODO: temporary: just look at the first cell to see if it has Content.
+    if (gridRow.getCellsCount() > 0 && gridRow.getCells(0).hasContent()) {
+      super.onCreateAdapter(gridRow, baseElement, frameContext);
+
+      int adapterIndex = 0;
+      for (int contentIndex = 0; contentIndex < gridRow.getCellsCount(); contentIndex++) {
+        GridCell cell = gridRow.getCells(contentIndex);
+        for (int i = 0; i < adaptersPerContent[contentIndex]; i++) {
+          setLayoutParamsOnCell(childAdapters.get(adapterIndex), cell, frameContext);
+          adapterIndex++;
+        }
       }
-      getBaseView().addView(cellAdapter.getView());
+    } else {
+      // Populate the LinearLayout with cells.
+      for (GridCell cell : gridRow.getCellsList()) {
+        ElementListAdapter cellAdapter;
+        switch (cell.getCellContentCase()) {
+          case ELEMENT_LIST:
+            cellAdapter = getAdapterForChildList(cell.getElementList(), frameContext);
+            cellAdapter.createAdapter(cell.getElementList(), frameContext);
+            setLayoutParamsOnCell(cellAdapter, cell, frameContext);
+            break;
+          case ELEMENT_LIST_BINDING:
+            cellAdapter = getAdapterForChildList(ElementList.getDefaultInstance(), frameContext);
+            break;
+          default:
+            throw new IllegalArgumentException(
+                String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
+        }
+        getBaseView().addView(cellAdapter.getView());
+      }
     }
   }
 
   @Override
+  List<Content> getContentsFromModel(GridRow model) {
+    List<Content> contents = new ArrayList<>();
+    // TODO: remove this check after all GridCells contain Content.
+    if (model.getCellsCount() > 0 && !model.getCells(0).hasContent()) {
+      return Collections.emptyList();
+    }
+    for (GridCell cell : model.getCellsList()) {
+      contents.add(cell.getContent());
+    }
+    return contents;
+  }
+
+  @Override
   void onBindModel(GridRow gridRow, Element baseElement, FrameContext frameContext) {
-    // Populate the LinearLayout with cells.
-    checkState(
-        gridRow.getCellsCount() == childAdapters.size(),
-        "Number of cells mismatch: got %s cells, had %s adapters",
-        gridRow.getCellsCount(),
-        childAdapters.size());
-    // When re-binding, we should be able to assume that the locations of bound or inline cells in
-    // the list are the same, since we are re-binding the same template.
-    for (int i = 0; i < gridRow.getCellsCount(); i++) {
-      GridCell cell = gridRow.getCells(i);
-      ElementListAdapter targetAdapter = (ElementListAdapter) childAdapters.get(i);
-      switch (cell.getCellContentCase()) {
-        case ELEMENT_LIST:
-          targetAdapter.bindModel(cell.getElementList(), frameContext);
-          break;
-        case ELEMENT_LIST_BINDING:
-          createAndBindChildListAdapter(
-              targetAdapter, cell.getElementListBinding(), null, frameContext);
+    // TODO: temporary: just look at the first cell to see if it has Content.
+    if (gridRow.getCellsCount() > 0 && gridRow.getCells(0).hasContent()) {
+      super.onBindModel(gridRow, baseElement, frameContext);
 
-          // TODO: If a style on the bound ElementList could cause the adapter to create
-          // a wrapper view (or lose one), remove the adapter's view from the LinearLayout and
-          // re-add the result of getView().
+      int adapterIndex = 0;
+      checkState(
+          gridRow.getCellsCount() == adaptersPerContent.length,
+          "Mismatch between number of cells (%s) and adaptersPerContent (%s); problem in creation?",
+          gridRow.getCellsCount(),
+          adaptersPerContent.length);
+      for (int contentIndex = 0; contentIndex < gridRow.getCellsCount(); contentIndex++) {
+        GridCell cell = gridRow.getCells(contentIndex);
+        switch (cell.getContent().getContentTypeCase()) {
+          case BOUND_ELEMENT:
+          case TEMPLATE_BINDING:
+            for (int i = 0; i < adaptersPerContent[contentIndex]; i++) {
+              setLayoutParamsOnCell(childAdapters.get(adapterIndex), cell, frameContext);
+              adapterIndex++;
+            }
+            break;
+          default:
+            adapterIndex += adaptersPerContent[contentIndex];
+        }
+      }
+    } else {
+      // Populate the LinearLayout with cells.
+      checkState(
+          gridRow.getCellsCount() == childAdapters.size(),
+          "Number of cells mismatch: got %s cells, had %s adapters",
+          gridRow.getCellsCount(),
+          childAdapters.size());
+      // When re-binding, we should be able to assume that the locations of bound or inline cells in
+      // the list are the same, since we are re-binding the same template.
+      for (int i = 0; i < gridRow.getCellsCount(); i++) {
+        GridCell cell = gridRow.getCells(i);
+        ElementListAdapter targetAdapter = (ElementListAdapter) childAdapters.get(i);
+        switch (cell.getCellContentCase()) {
+          case ELEMENT_LIST:
+            targetAdapter.bindModel(cell.getElementList(), frameContext);
+            break;
+          case ELEMENT_LIST_BINDING:
+            createAndBindChildListAdapter(
+                targetAdapter, cell.getElementListBinding(), null, frameContext);
 
-          setLayoutParamsOnCell(targetAdapter, cell, frameContext);
-          break;
-        default:
-          throw new IllegalArgumentException(
-              String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
+            // TODO: If a style on the bound ElementList could cause the adapter to
+            // create
+            // a wrapper view (or lose one), remove the adapter's view from the LinearLayout and
+            // re-add the result of getView().
+
+            setLayoutParamsOnCell(targetAdapter, cell, frameContext);
+            break;
+          default:
+            throw new IllegalArgumentException(
+                String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
+        }
       }
     }
   }
@@ -127,7 +186,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
   }
 
   private void setLayoutParamsOnCell(
-      ElementListAdapter cellAdapter, GridCell cell, FrameContext frameContext) {
+      ElementAdapter<? extends View, ?> cellAdapter, GridCell cell, FrameContext frameContext) {
     LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
 
     GridCellWidth gridCellWidth = null;
