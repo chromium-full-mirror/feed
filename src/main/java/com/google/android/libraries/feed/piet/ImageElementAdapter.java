@@ -113,9 +113,25 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
                 "Unsupported or missing content in ImageElement: %s", model.getContentCase()));
     }
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
-    LoadImageCallback loadImageCallback = new LoadImageCallback(getBaseView());
+    LoadImageCallback loadImageCallback =
+        new LoadImageCallback(getBaseView(), toAndroidScaleType(image.getScaleType()));
     currentlyLoadingImage = loadImageCallback;
     getFrameContext().getAssetProvider().getImage(image, loadImageCallback);
+  }
+
+  @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
+  private static ScaleType toAndroidScaleType(Image.ScaleType pietScaleType) {
+    switch (pietScaleType) {
+      case CENTER_CROP:
+        return ScaleType.CENTER_CROP;
+      case CENTER_INSIDE:
+        return ScaleType.CENTER_INSIDE;
+      case SCALE_TYPE_UNSPECIFIED:
+        return ScaleType.CENTER_INSIDE;
+      default:
+        throw new IllegalArgumentException(
+            String.format("Unsupported ScaleType: %s", pietScaleType));
+    }
   }
 
   @Override
@@ -148,17 +164,19 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
 
   private static class LoadImageCallback implements Consumer<Drawable> {
     private final ImageView imageView;
+    private final ScaleType scaleType;
     boolean cancelled = false;
 
-    LoadImageCallback(ImageView imageView) {
+    LoadImageCallback(ImageView imageView, ScaleType scaleType) {
       this.imageView = imageView;
+      this.scaleType = scaleType;
     }
 
     @Override
     public void accept(Drawable drawable) {
       if (!cancelled) {
         imageView.setImageDrawable(drawable);
-        imageView.setScaleType(ScaleType.CENTER_CROP);
+        imageView.setScaleType(scaleType);
       }
     }
   }

@@ -210,7 +210,6 @@ public class ImageElementAdapterTest {
 
     imageView = adapter.getBaseView();
     assertDrawableSet(imageView);
-    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
 
     assertThat(adapter.getModel()).isSameAs(model);
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(styles);
@@ -328,6 +327,25 @@ public class ImageElementAdapterTest {
                 .build());
     adapter.bindModel(imageBindingElement, frameContext);
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
+  public void testBindModel_setsScaleType() {
+    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
+    Image imageWithScaleType =
+        DEFAULT_IMAGE.toBuilder().setScaleType(Image.ScaleType.CENTER_CROP).build();
+    ImageElement model =
+        ImageElement.newBuilder().setImage(imageWithScaleType).setStyleReferences(styles).build();
+
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    // Fire the callback
+    verify(assetProvider).getImage(eq(imageWithScaleType), consumerArgumentCaptor.capture());
+    consumerArgumentCaptor.getValue().accept(defaultDrawable);
+
+    imageView = adapter.getBaseView();
+    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
   }
 
   @Test
@@ -538,6 +556,6 @@ public class ImageElementAdapterTest {
     verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(defaultDrawable);
     assertThat(imageView.getDrawable()).isEqualTo(defaultDrawable);
-    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
+    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_INSIDE);
   }
 }
