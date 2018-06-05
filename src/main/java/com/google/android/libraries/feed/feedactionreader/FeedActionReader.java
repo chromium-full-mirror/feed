@@ -27,7 +27,9 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -68,7 +70,7 @@ public class FeedActionReader implements ActionReader {
       return Result.failure();
     }
     List<StreamAction> dismissActions = dismissActionsResult.getValue();
-    List<String> contentIds = new ArrayList<>(dismissActions.size());
+    Set<String> contentIds = new HashSet<>(dismissActions.size());
     long minValidTime =
         TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()) - dismissActionTTLSeconds;
     for (StreamAction dismissAction : dismissActions) {
@@ -78,12 +80,14 @@ public class FeedActionReader implements ActionReader {
     }
 
     // Clean up if necessary
+    // Note that since we're using a Set, it's possible this will trigger prematurely due to
+    // duplicates not being counted as valid.
     if ((double) contentIds.size() / dismissActions.size() < minValidActionRatio) {
-      executor.execute(store.triggerActionGc(dismissActions, contentIds));
+      executor.execute(store.triggerActionGc(dismissActions, new ArrayList<>(contentIds)));
     }
 
     Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
-        store.getSemanticProperties(contentIds);
+        store.getSemanticProperties(new ArrayList<>(contentIds));
     if (!semanticPropertiesResult.isSuccessful()) {
       return Result.failure();
     }

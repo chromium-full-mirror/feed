@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.common;
 
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import java.util.Arrays;
 
 /**
  * Represents the content needed for a dismiss action internally. Holds the content ID of the
@@ -36,5 +37,29 @@ public class DismissActionWithSemanticProperties {
 
   public byte /*@Nullable*/ [] getSemanticProperties() {
     return semanticProperties;
+  }
+
+  @Override
+  public boolean equals(/*@Nullable*/ Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DismissActionWithSemanticProperties that = (DismissActionWithSemanticProperties) o;
+
+    if (!contentId.equals(that.contentId)) {
+      return false;
+    }
+    return Arrays.equals(semanticProperties, that.semanticProperties);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = contentId.hashCode();
+    result = 31 * result + Arrays.hashCode(semanticProperties);
+    return result;
   }
 }

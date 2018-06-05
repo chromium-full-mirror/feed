@@ -99,9 +99,8 @@ public class FeedActionReaderTest {
         actionReader.getDismissActionsWithSemanticProperties();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     List<DismissActionWithSemanticProperties> dismissActions = dismissActionsResult.getValue();
-    assertThat(dismissActions).hasSize(1);
-    assertThat(dismissActions.get(0).getContentId()).isEqualTo(CONTENT_ID);
-    assertThat(dismissActions.get(0).getSemanticProperties()).isNull();
+    assertThat(dismissActions)
+        .containsExactly(new DismissActionWithSemanticProperties(CONTENT_ID, null));
   }
 
   @Test
@@ -173,9 +172,8 @@ public class FeedActionReaderTest {
         actionReader.getDismissActionsWithSemanticProperties();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     List<DismissActionWithSemanticProperties> dismissActions = dismissActionsResult.getValue();
-    assertThat(dismissActions).hasSize(1);
-    assertThat(dismissActions.get(0).getContentId()).isEqualTo(CONTENT_ID);
-    assertThat(dismissActions.get(0).getSemanticProperties()).isEqualTo(semanticData);
+    assertThat(dismissActions)
+        .containsExactly(new DismissActionWithSemanticProperties(CONTENT_ID, semanticData));
     verify(store, never()).triggerActionGc(anyList(), anyList());
   }
 
@@ -192,11 +190,10 @@ public class FeedActionReaderTest {
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     List<DismissActionWithSemanticProperties> dismissActions = dismissActionsResult.getValue();
 
-    assertThat(dismissActions).hasSize(2);
-    assertThat(dismissActions.get(0).getContentId()).isEqualTo(CONTENT_ID);
-    assertThat(dismissActions.get(0).getSemanticProperties()).isNull();
-    assertThat(dismissActions.get(1).getContentId()).isEqualTo(CONTENT_ID_2);
-    assertThat(dismissActions.get(1).getSemanticProperties()).isNull();
+    assertThat(dismissActions)
+        .containsExactly(
+            new DismissActionWithSemanticProperties(CONTENT_ID, null),
+            new DismissActionWithSemanticProperties(CONTENT_ID_2, null));
     verify(store, never()).triggerActionGc(anyList(), anyList());
   }
 
@@ -219,11 +216,10 @@ public class FeedActionReaderTest {
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     List<DismissActionWithSemanticProperties> dismissActions = dismissActionsResult.getValue();
 
-    assertThat(dismissActions).hasSize(2);
-    assertThat(dismissActions.get(0).getContentId()).isEqualTo(CONTENT_ID);
-    assertThat(dismissActions.get(0).getSemanticProperties()).isEqualTo(semanticData);
-    assertThat(dismissActions.get(1).getContentId()).isEqualTo(CONTENT_ID_2);
-    assertThat(dismissActions.get(1).getSemanticProperties()).isEqualTo(semanticData2);
+    assertThat(dismissActions)
+        .containsExactly(
+            new DismissActionWithSemanticProperties(CONTENT_ID, semanticData),
+            new DismissActionWithSemanticProperties(CONTENT_ID_2, semanticData2));
     verify(store, never()).triggerActionGc(anyList(), anyList());
   }
 
@@ -239,17 +235,36 @@ public class FeedActionReaderTest {
             .setFeatureContentId(CONTENT_ID_STRING_2)
             .setTimestampSeconds(DEFAULT_TIME + TimeUnit.DAYS.toSeconds(2))
             .build();
-    List<StreamAction> dismissActions = Arrays.asList(dismissAction, dismissAction2);
-    mockStoreCalls(dismissActions, Collections.emptyList());
+    mockStoreCalls(Arrays.asList(dismissAction, dismissAction2), Collections.emptyList());
 
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
         actionReader.getDismissActionsWithSemanticProperties();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
 
-    assertThat(dismissActionsResult.getValue()).hasSize(1);
-    assertThat(dismissActionsResult.getValue().get(0).getContentId()).isEqualTo(CONTENT_ID_2);
-    assertThat(dismissActionsResult.getValue().get(0).getSemanticProperties()).isNull();
-    verify(store).triggerActionGc(dismissActions, Collections.singletonList(CONTENT_ID_STRING_2));
+    assertThat(dismissActionsResult.getValue())
+        .containsExactly(new DismissActionWithSemanticProperties(CONTENT_ID_2, null));
+    verify(store)
+        .triggerActionGc(
+            Arrays.asList(dismissAction, dismissAction2),
+            Collections.singletonList(CONTENT_ID_STRING_2));
+  }
+
+  @Test
+  public void getAllDismissedActions_duplicateActions() {
+    when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
+
+    StreamAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
+    StreamAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING);
+    mockStoreCalls(Arrays.asList(dismissAction, dismissAction2), Collections.emptyList());
+
+    Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
+        actionReader.getDismissActionsWithSemanticProperties();
+    assertThat(dismissActionsResult.isSuccessful()).isTrue();
+    List<DismissActionWithSemanticProperties> dismissActions = dismissActionsResult.getValue();
+
+    assertThat(dismissActions).hasSize(1);
+    assertThat(dismissActions)
+        .containsExactly(new DismissActionWithSemanticProperties(CONTENT_ID, null));
   }
 
   private StreamAction buildDismissAction(String contentId) {
