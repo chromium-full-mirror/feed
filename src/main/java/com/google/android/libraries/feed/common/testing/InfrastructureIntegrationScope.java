@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFact
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedstore.FeedStore;
+import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
@@ -104,7 +105,8 @@ public class InfrastructureIntegrationScope {
             journalStorage,
             threadUtils,
             mainThreadRunner,
-            clock);
+            clock,
+            new FeedStoreHelper());
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter);
     feedSessionManager =

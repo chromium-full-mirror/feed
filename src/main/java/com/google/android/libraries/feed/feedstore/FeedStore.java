@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedstore;
 
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.DISMISS_ACTION_JOURNAL;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
-import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SESSION_NAME_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
@@ -64,7 +63,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -84,6 +82,7 @@ public class FeedStore implements Store, Dumpable {
   private final ThreadUtils threadUtils;
   private final MainThreadRunner mainThreadRunner;
   private final Clock clock;
+  private final FeedStoreHelper storeHelper;
 
   public FeedStore(
       TimingUtils timingUtils,
@@ -92,7 +91,8 @@ public class FeedStore implements Store, Dumpable {
       JournalStorage journalStorage,
       ThreadUtils threadUtils,
       MainThreadRunner mainThreadRunner,
-      Clock clock) {
+      Clock clock,
+      FeedStoreHelper storeHelper) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
     this.contentStorage = contentStorage;
@@ -100,6 +100,7 @@ public class FeedStore implements Store, Dumpable {
     this.threadUtils = threadUtils;
     this.mainThreadRunner = mainThreadRunner;
     this.clock = clock;
+    this.storeHelper = storeHelper;
   }
 
   @Override
@@ -336,8 +337,7 @@ public class FeedStore implements Store, Dumpable {
     threadUtils.checkNotMainThread();
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    String sessionName = SESSION_NAME_PREFIX + UUID.randomUUID();
-    StreamSession streamSession = StreamSession.newBuilder().setStreamToken(sessionName).build();
+    StreamSession streamSession = storeHelper.getNewStreamSession();
     SessionState session = new SessionState();
     Result<List<StreamStructure>> streamStructuresResult = getStreamStructures(HEAD);
     if (!streamStructuresResult.isSuccessful()) {

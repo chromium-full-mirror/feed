@@ -48,6 +48,7 @@ import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFact
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
+import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
@@ -545,7 +546,8 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
-            clock);
+            clock,
+            new FeedStoreHelper());
     return new FeedSessionManager(
         executor,
         store,
