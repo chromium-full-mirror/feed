@@ -123,6 +123,23 @@ public class TaskQueue implements Dumpable {
   }
 
   /**
+   * This method will reset the task queue. This means we will delay all tasks created until the
+   * {@link #initialize(Runnable)} task is called again. Also any currently delayed tasks will be
+   * removed from the Queue and not run.
+   */
+  public void resetTaskQueue() {
+    synchronized (lock) {
+      waitingForHeadReset = false;
+      initialized = false;
+
+      // clear all delayed tasks
+      immediateTasks.clear();
+      userTasks.clear();
+      backgroundTasks.clear();
+    }
+  }
+
+  /**
    * Called to initialize the {@link
    * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}. This needs to be the
    * first task run, all other tasks are delayed until initialization finishes.

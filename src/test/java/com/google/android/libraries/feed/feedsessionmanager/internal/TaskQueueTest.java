@@ -98,6 +98,42 @@ public class TaskQueueTest {
     assertOrder(1, 4, 5, 3, 2);
   }
 
+  @Test
+  public void testResetTaskQueue_immediate() {
+    TaskQueue taskQueue = getTaskQueue();
+    taskQueue.initialize(this::noOp);
+    assertThat(taskQueue.isDelayed()).isFalse();
+
+    taskQueue.resetTaskQueue();
+    assertThat(taskQueue.isDelayed()).isTrue();
+    taskQueue.initialize(this::noOp);
+    assertThat(taskQueue.isDelayed()).isFalse();
+  }
+
+  @Test
+  public void testResetQueue_withDelay() {
+    TaskQueue taskQueue = getTaskQueue();
+    taskQueue.initialize(this::noOp);
+    assertThat(taskQueue.isDelayed()).isFalse();
+
+    Runnable headInvalidate = () -> runnable(1);
+    Runnable background = () -> runnable(2);
+    Runnable userFacing = () -> runnable(3);
+    Runnable postInit = () -> runnable(4);
+
+    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, headInvalidate);
+    taskQueue.execute("background", TaskType.BACKGROUND, background);
+    taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
+    taskQueue.execute("postInit", TaskType.POST_INIT, postInit);
+    assertThat(taskQueue.hasBacklog()).isTrue();
+
+    taskQueue.resetTaskQueue();
+    assertThat(taskQueue.isDelayed()).isTrue();
+    assertThat(taskQueue.hasBacklog()).isFalse();
+    taskQueue.initialize(this::noOp);
+    assertThat(taskQueue.isDelayed()).isFalse();
+  }
+
   private void assertOrder(Integer... args) {
     assertThat(callOrder.size()).isEqualTo(args.length);
     for (int i = 0; i < args.length; i++) {
