@@ -723,6 +723,9 @@ message BindingValue {
   // the host can determine what to show or even if the element should be
   // shown.
   optional HostBindingData host_binding_data = 14;
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
 }
 
 // Data to be displayed in a CustomElement. Clients using Piet should add
