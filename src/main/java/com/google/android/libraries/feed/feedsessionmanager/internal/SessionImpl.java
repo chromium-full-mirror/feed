@@ -42,19 +42,19 @@ import java.util.Set;
 public class SessionImpl implements InitializableSession, Dumpable {
   private static final String TAG = "SessionImpl";
 
-  private final Store store;
-  private final TaskQueue taskQueue;
-  private final ThreadUtils threadUtils;
-  private final TimingUtils timingUtils;
+  protected final Store store;
+  protected final TaskQueue taskQueue;
+  protected final ThreadUtils threadUtils;
+  protected final TimingUtils timingUtils;
 
   // Allow creation of the session without a model provider, this becomes an unbound session
-  private /*@Nullable*/ ModelProvider modelProvider;
-  private StreamSession streamSession;
+  protected /*@Nullable*/ ModelProvider modelProvider;
+  protected StreamSession streamSession;
 
-  @VisibleForTesting final Set<String> contentInSession = new HashSet<>();
+  @VisibleForTesting public final Set<String> contentInSession = new HashSet<>();
 
   // operation counts for the dumper
-  private int updateCount = 0;
+  protected int updateCount = 0;
 
   SessionImpl(Store store, TaskQueue taskQueue, TimingUtils timingUtils, ThreadUtils threadUtils) {
     this.store = store;
@@ -123,11 +123,27 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
   @Override
   public void updateSession(
-      List<StreamStructure> streamStructures, /*@Nullable*/ StreamToken mutationSourceToken) {
-    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+      boolean clearHead,
+      List<StreamStructure> streamStructures,
+      /*@Nullable*/ StreamToken mutationSourceToken) {
     Validators.checkNotNull(streamSession);
     updateCount++;
+    if (clearHead) {
+      Logger.i(TAG, "Session %s not  updated due to clearHead");
+      return;
+    }
+    updateSessionInternal(streamStructures, mutationSourceToken);
+  }
 
+  @Override
+  public boolean invalidateOnResetHead() {
+    return true;
+  }
+
+  protected void updateSessionInternal(
+      List<StreamStructure> streamStructures, /*@Nullable*/ StreamToken mutationSourceToken) {
+
+    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     if (mutationSourceToken != null) {
       String contentId = mutationSourceToken.getContentId();
       if (contentId != null && !contentInSession.contains(contentId)) {

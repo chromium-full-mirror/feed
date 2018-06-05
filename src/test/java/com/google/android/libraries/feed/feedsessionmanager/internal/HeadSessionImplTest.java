@@ -61,6 +61,12 @@ public class HeadSessionImplTest {
   }
 
   @Test
+  public void testInvalidateOnResetHead() {
+    HeadSessionImpl session = new HeadSessionImpl(store, timingUtils);
+    assertThat(session.invalidateOnResetHead()).isFalse();
+  }
+
+  @Test
   public void testUpdateSession_features() {
     HeadSessionImpl headSession = new HeadSessionImpl(store, timingUtils);
 
@@ -71,7 +77,7 @@ public class HeadSessionImplTest {
 
     // 1 clear, 3 features
     assertThat(streamStructures.size()).isEqualTo(4);
-    headSession.updateSession(streamStructures, null);
+    headSession.updateSession(false, streamStructures, null);
 
     // expect: 3 features
     assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt);
@@ -92,7 +98,7 @@ public class HeadSessionImplTest {
 
     // 1 clear, 3 features, token
     assertThat(streamStructures.size()).isEqualTo(5);
-    headSession.updateSession(streamStructures, null);
+    headSession.updateSession(false, streamStructures, null);
 
     // expect: 3 features, 1 token
     assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt + 1);
@@ -113,7 +119,7 @@ public class HeadSessionImplTest {
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
     // The token needs to be in the session
     headSession.contentInSession.add(token.getContentId());
-    headSession.updateSession(streamStructures, token);
+    headSession.updateSession(false, streamStructures, token);
     // features 3, plus the token added above
     assertThat(headSession.contentInSession).hasSize(featureCnt + 1);
   }
@@ -130,7 +136,7 @@ public class HeadSessionImplTest {
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
 
     // The token needs to be in the session, if not we ignore the update
-    headSession.updateSession(streamStructures, token);
+    headSession.updateSession(false, streamStructures, token);
     assertThat(headSession.contentInSession).hasSize(0);
   }
 
@@ -147,7 +153,7 @@ public class HeadSessionImplTest {
 
     // 1 clear, 3 features, 1 remove
     assertThat(streamStructures.size()).isEqualTo(5);
-    headSession.updateSession(streamStructures, null);
+    headSession.updateSession(false, streamStructures, null);
 
     // expect: 2 features (3 added, then 1 removed)
     assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt + 1);
@@ -169,7 +175,7 @@ public class HeadSessionImplTest {
     assertThat(streamStructures.size()).isEqualTo(4);
 
     // 1 clear, 3 features
-    headSession.updateSession(streamStructures, null);
+    headSession.updateSession(false, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt);
     assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
 
@@ -181,7 +187,7 @@ public class HeadSessionImplTest {
     assertThat(streamStructures.size()).isEqualTo(1);
 
     // 0 features
-    headSession.updateSession(streamStructures, null);
+    headSession.updateSession(false, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(0);
     assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
   }
@@ -197,7 +203,7 @@ public class HeadSessionImplTest {
     assertThat(streamStructures.size()).isEqualTo(4);
 
     // 1 clear, 3 features
-    headSession.updateSession(streamStructures, null);
+    headSession.updateSession(false, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt);
     assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
 
@@ -210,7 +216,7 @@ public class HeadSessionImplTest {
     assertThat(streamStructures.size()).isEqualTo(additionalFeatureCnt);
 
     // 0 features
-    headSession.updateSession(streamStructures, null);
+    headSession.updateSession(false, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(additionalFeatureCnt);
     assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt + additionalFeatureCnt);
   }
@@ -226,7 +232,7 @@ public class HeadSessionImplTest {
     assertThat(streamStructures.size()).isEqualTo(4);
 
     // 1 clear, 3 features
-    headSession.updateSession(streamStructures, null);
+    headSession.updateSession(false, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(featureCnt);
     assertThat(headSession.contentInSession.size()).isEqualTo(featureCnt);
 
@@ -241,7 +247,7 @@ public class HeadSessionImplTest {
     assertThat(streamStructures.size()).isEqualTo(3);
 
     // 0 features
-    headSession.updateSession(streamStructures, null);
+    headSession.updateSession(false, streamStructures, null);
     assertThat(fakeSessionMutation.streamStructures.size()).isEqualTo(newFeatureCnt);
     assertThat(headSession.contentInSession.size()).isEqualTo(newFeatureCnt);
     }

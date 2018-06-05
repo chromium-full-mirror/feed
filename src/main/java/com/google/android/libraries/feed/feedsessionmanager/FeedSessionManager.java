@@ -14,6 +14,11 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
+import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.NO_REQUEST_WITH_TIMEOUT;
+import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_CONTENT;
+import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_TIMEOUT;
+import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_WAIT;
+
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import com.google.android.libraries.feed.api.common.MutationContext;
@@ -70,6 +75,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.GuardedBy;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
@@ -78,7 +84,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private static final String TAG = "FeedSessionManager";
 
   @VisibleForTesting static final String STREAM_SESSION_CONTENT_ID = "FSM::Sessions::0";
-  @VisibleForTesting static final long DEFAULT_LIFETIME_MS = 3_600_000; // 1 Hour
+  @VisibleForTesting static final long DEFAULT_LIFETIME_MS = TimeUnit.HOURS.toMillis(1);
+  private static final long TIMEOUT_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(5);
 
   // Used to synchronize the stored data
   private final Object lock = new Object();
@@ -106,6 +113,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final TaskQueue taskQueue;
   private final Clock clock;
   private final long lifetimeMs;
+  private final long sessionPopulationTimeoutMs;
 
   // operation counts for the dumper
   private int commitCount = 0;
@@ -138,7 +146,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     lifetimeMs =
         configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
-    sessionFactory = new SessionFactory(store, taskQueue, timingUtils, threadUtils);
+    sessionPopulationTimeoutMs =
+        configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
+    sessionFactory = new SessionFactory(store, taskQueue, timingUtils, threadUtils, configuration);
     contentCache = new ContentCache();
 
     // Suppress /*@UnderInitialization*/ warning
@@ -372,66 +382,93 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             head.getStreamSession().getLastAccessed(),
             taskQueue.isMakingRequest());
     @RequestBehavior int behavior = schedulerApi.shouldSessionRequestData(sessionManagerState);
-    Logger.i(TAG, "populateSession - request behavior: %s", behavior);
 
-    // TODO: Need to support each of these specifically.
+    Runnable timeoutTask = null;
+    if (behavior == REQUEST_WITH_TIMEOUT || behavior == NO_REQUEST_WITH_TIMEOUT) {
+      timeoutTask = () -> populateTimeoutTask(session);
+    }
     boolean makeRequest =
-        behavior == RequestBehavior.REQUEST_WITH_TIMEOUT
-            || behavior == RequestBehavior.REQUEST_WITH_WAIT
-            || behavior == RequestBehavior.REQUEST_WITH_CONTENT;
-    if (makeRequest && !taskQueue.isMakingRequest()) {
-      Logger.i(TAG, "TriggerRefresh to create a new $HEAD");
+        (behavior == REQUEST_WITH_TIMEOUT
+                || behavior == REQUEST_WITH_WAIT
+                || behavior == REQUEST_WITH_CONTENT)
+            && !taskQueue.isMakingRequest();
+    Logger.i(
+        TAG,
+        "request behavior: %s, making request %s, timeout task %s",
+        getRequestBehavior(behavior),
+        makeRequest,
+        timeoutTask != null);
+
+    // if we are making a request, there are two orders, request -> populate for all cases except
+    // for REQUEST_WITH_CONTENT which is populate -> request
+    if (makeRequest && behavior != REQUEST_WITH_CONTENT) {
+      // determine if we make the request before or after populating a session
       triggerRefresh(null);
+    }
+
+    if (behavior == RequestBehavior.NO_REQUEST_WITH_CONTENT && taskQueue.isMakingRequest()) {
+      // TODO: Need to support this
+      Logger.i(TAG, "No support for showing content while a request is being made");
     }
 
     // Task which creates and populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
-    Runnable populateSession =
-        () -> {
-          ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-
-          Result<StreamSession> streamSessionResult = store.createNewSession();
-          if (!streamSessionResult.isSuccessful()) {
-            // TODO: We should invalidate the session with an error
-            Logger.e(TAG, "Unable to create a new session");
-            timeTracker.stop("task", "Create/Populate New Session", "Failure", "createNewSession");
-            return;
-          }
-          StreamSession streamSession = streamSessionResult.getValue();
-          StreamSession recordedSession =
-              streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
-
-          Result<List<StreamStructure>> streamStructuresResult =
-              store.getStreamStructures(streamSession);
-          if (!streamStructuresResult.isSuccessful()) {
-            // TODO: We should invalidate the session with an error
-            Logger.e(TAG, "Unable to create a new session");
-            timeTracker.stop(
-                "task", "Create/Populate New Session", "Failure", "getStreamStructures");
-            return;
-          }
-
-          boolean cachedBindings;
-          synchronized (lock) {
-            cachedBindings = contentCache.size() > 0;
-          }
-          session.populateModelProvider(
-              recordedSession, streamStructuresResult.getValue(), cachedBindings);
-          synchronized (lock) {
-            sessions.put(session.getStreamSession().getStreamToken(), session);
-          }
-          updateStoredSessions();
-          newSessionCount++;
-          Logger.i(
-              TAG,
-              "Populate new session: %s, creation time %s",
-              session.getStreamSession().getStreamToken(),
-              StringFormattingUtils.formatLogDate(session.getStreamSession().getLastAccessed()));
-          timeTracker.stop("task", "Create/Populate New Session");
-        };
-
-    taskQueue.execute("populateNewSession", TaskType.USER_FACING, populateSession);
+    taskQueue.execute(
+        "populateNewSession",
+        TaskType.USER_FACING,
+        () -> populateSessionTask(session),
+        timeoutTask,
+        sessionPopulationTimeoutMs);
+    if (makeRequest && behavior == REQUEST_WITH_CONTENT) {
+      triggerRefresh(null);
+    }
     result.accept(true);
+  }
+
+  private void populateTimeoutTask(InitializableSession session) {
+    Logger.i(TAG, "****** populateSessionTimeout Task");
+    populateSessionTask(session);
+  }
+
+  private void populateSessionTask(InitializableSession session) {
+    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+
+    Result<StreamSession> streamSessionResult = store.createNewSession();
+    if (!streamSessionResult.isSuccessful()) {
+      // TODO: We should invalidate the session with an error
+      Logger.e(TAG, "Unable to create a new session");
+      timeTracker.stop("task", "Create/Populate New Session", "Failure", "createNewSession");
+      return;
+    }
+    StreamSession streamSession = streamSessionResult.getValue();
+    StreamSession recordedSession =
+        streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
+
+    Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(streamSession);
+    if (!streamStructuresResult.isSuccessful()) {
+      // TODO: We should invalidate the session with an error
+      Logger.e(TAG, "Unable to create a new session");
+      timeTracker.stop("task", "Create/Populate New Session", "Failure", "getStreamStructures");
+      return;
+    }
+
+    boolean cachedBindings;
+    synchronized (lock) {
+      cachedBindings = contentCache.size() > 0;
+    }
+    session.populateModelProvider(
+        recordedSession, streamStructuresResult.getValue(), cachedBindings);
+    synchronized (lock) {
+      sessions.put(session.getStreamSession().getStreamToken(), session);
+    }
+    updateStoredSessions();
+    newSessionCount++;
+    Logger.i(
+        TAG,
+        "Populate new session: %s, creation time %s",
+        session.getStreamSession().getStreamToken(),
+        StringFormattingUtils.formatLogDate(session.getStreamSession().getLastAccessed()));
+    timeTracker.stop("task", "Create/Populate New Session");
   }
 
   @VisibleForTesting
@@ -525,27 +562,29 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     taskQueue.execute(
         "triggerRefresh/Request/InvalidateSession",
         TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
-        () -> {
-          requestManager.triggerRefresh(
-              RequestReason.MANUAL_REFRESH,
-              new CommitterTask("triggerRefresh", MutationContext.EMPTY_CONTEXT));
-          if (streamSession != null) {
-            String streamToken = streamSession.getStreamToken();
-            synchronized (lock) {
-              Session session = sessions.get(streamToken);
-              if (session != null) {
-                ModelProvider modelProvider = session.getModelProvider();
-                if (modelProvider != null) {
-                  invalidateSession(modelProvider, session);
-                } else {
-                  Logger.w(TAG, "Session didn't have a ModelProvider %s", streamToken);
-                }
-              } else {
-                Logger.w(TAG, "TriggerRefresh didn't find session %s", streamToken);
-              }
-            }
+        () -> triggerRefreshTask(streamSession));
+  }
+
+  private void triggerRefreshTask(/*@Nullable*/ StreamSession streamSession) {
+    requestManager.triggerRefresh(
+        RequestReason.MANUAL_REFRESH,
+        new CommitterTask("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+    if (streamSession != null) {
+      String streamToken = streamSession.getStreamToken();
+      synchronized (lock) {
+        Session session = sessions.get(streamToken);
+        if (session != null) {
+          ModelProvider modelProvider = session.getModelProvider();
+          if (modelProvider != null) {
+            invalidateSession(modelProvider, session);
+          } else {
+            Logger.w(TAG, "Session didn't have a ModelProvider %s", streamToken);
           }
-        });
+        } else {
+          Logger.w(TAG, "TriggerRefresh didn't find session %s", streamToken);
+        }
+      }
+    }
   }
 
   @Override
@@ -653,7 +692,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     store.clearHead();
     for (Session session : currentSessions) {
       ModelProvider modelProvider = session.getModelProvider();
-      if (modelProvider != null && shouldInvalidateSession(streamSession, modelProvider)) {
+      if (modelProvider != null
+          && session.invalidateOnResetHead()
+          && shouldInvalidateSession(streamSession, modelProvider)) {
         invalidateSession(modelProvider, session);
       }
     }
@@ -835,9 +876,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         updates = new ArrayList<>(sessions.values());
       }
       for (Session session : updates) {
-        if (clearedHead) {
-          if (session == head) {
-            session.updateSession(streamStructures, mutationSourceToken);
+        if (clearedHead && session == head) {
+          session.updateSession(clearedHead, streamStructures, mutationSourceToken);
             long updateTime = clock.currentTimeMillis();
             head.updateAccessTime(updateTime);
             mainThreadRunner.execute(TAG, () -> schedulerApi.onReceiveNewContent(updateTime));
@@ -845,14 +885,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
                 TAG,
                 "Cleared Head, new creation time %s",
                 StringFormattingUtils.formatLogDate(updateTime));
-          } else {
-            // TODO: We need to ask the session if it supports clear
-            Logger.i(TAG, "Session %s not cleared", session.getStreamSession().getStreamToken());
-          }
-        } else {
-          Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
-          session.updateSession(streamStructures, mutationSourceToken);
+          continue;
         }
+        Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
+        session.updateSession(clearedHead, streamStructures, mutationSourceToken);
       }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
     }
@@ -900,5 +936,30 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         sessions.put(session.getStreamSession().getStreamToken(), session);
       }
     }
+  }
+
+  private String getRequestBehavior(@RequestBehavior int behavior) {
+    switch (behavior) {
+      case RequestBehavior.REQUEST_WITH_WAIT:
+        return "REQUEST_WITH_WAIT";
+      case RequestBehavior.REQUEST_WITH_CONTENT:
+        return "REQUEST_WITH_CONTENT";
+      case RequestBehavior.REQUEST_WITH_TIMEOUT:
+        return "REQUEST_WITH_TIMEOUT";
+      case RequestBehavior.NO_REQUEST_WITH_WAIT:
+        return "NO_REQUEST_WITH_WAIT";
+      case RequestBehavior.NO_REQUEST_WITH_CONTENT:
+        return "NO_REQUEST_WITH_CONTENT";
+      case RequestBehavior.NO_REQUEST_WITH_TIMEOUT:
+        return "NO_REQUEST_WITH_TIMEOUT";
+      case RequestBehavior.UNKNOWN:
+      default:
+        return "UNKNOWN";
+    }
+  }
+
+  @VisibleForTesting
+  public boolean isDelayed() {
+    return taskQueue.isDelayed();
   }
 }

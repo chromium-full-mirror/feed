@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
@@ -38,12 +39,24 @@ import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This is a Scope type object which is used in the Infrastructure Integration tests. It sets the
  * Feed objects from ProtocolAdapter through the SessionManager.
  */
 public class InfrastructureIntegrationScope {
+  private static final boolean USE_TIMEOUT_SCHEDULER = true;
+  private static final long TIMEOUT_STORIES_ARE_CURRENT = 2;
+  private static final long TIMEOUT_STORIES_CURRENT_WITH_REFRESH = 4;
+  private static final long TIMEOUT_TIMEOUT_MS = 2;
+
+  /**
+   * For the TimeoutSession tests, this is how long we allow it to run before declaring a timeout
+   * error.
+   */
+  public static final long TIMEOUT_TEST_TIMEOUT = TimeUnit.SECONDS.toMillis(20);
+
   /** Scope which disables making requests when $HEAD is empty. */
   private static final SchedulerApi DISABLED_EMPTY_HEAD_REQUEST =
       new SchedulerApi() {
@@ -72,14 +85,17 @@ public class InfrastructureIntegrationScope {
   private final FeedStore store;
 
   InfrastructureIntegrationScope(
-      ThreadUtils threadUtils, ExecutorService executorService, Configuration configuration) {
+      ThreadUtils threadUtils,
+      ExecutorService executorService,
+      SchedulerApi schedulerApi,
+      Clock clock,
+      Configuration configuration) {
     TimingUtils timingUtils = new TimingUtils();
     MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorage contentStorage = new InMemoryContentStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage(threadUtils);
-    Clock clock = new SystemClockImpl();
     store =
         new FeedStore(
             timingUtils,
@@ -100,7 +116,7 @@ public class InfrastructureIntegrationScope {
             mainThreadRunner,
             feedProtocolAdapter,
             fakeRequestManager,
-            DISABLED_EMPTY_HEAD_REQUEST,
+            schedulerApi,
             configuration,
             clock);
     modelProviderFactory =
@@ -135,12 +151,23 @@ public class InfrastructureIntegrationScope {
     }
   }
 
+  public static Configuration getTimeoutSchedulerConfig() {
+    return new Configuration.Builder()
+        .put(ConfigKey.USE_TIMEOUT_SCHEDULER, USE_TIMEOUT_SCHEDULER)
+        .put(ConfigKey.TIMEOUT_STORIES_ARE_CURRENT, TIMEOUT_STORIES_ARE_CURRENT)
+        .put(ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH, TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
+        .put(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS)
+        .build();
+  }
+
   /** Builder for creating the {@link InfrastructureIntegrationScope} */
   public static class Builder {
     private final ThreadUtils mockThreadUtils;
     private final ExecutorService executorService;
 
+    private SchedulerApi schedulerApi = DISABLED_EMPTY_HEAD_REQUEST;
     private Configuration configuration = new Configuration.Builder().build();
+    private Clock clock = new SystemClockImpl();
 
     public Builder(ThreadUtils mockThreadUtils, ExecutorService executorService) {
       this.mockThreadUtils = mockThreadUtils;
@@ -152,8 +179,20 @@ public class InfrastructureIntegrationScope {
       return this;
     }
 
+    public Builder setClock(Clock clock) {
+      this.clock = clock;
+      return this;
+    }
+
+    public Builder setSchedulerApi(SchedulerApi schedulerApi) {
+      this.schedulerApi = schedulerApi;
+      return this;
+    }
+
     public InfrastructureIntegrationScope build() {
-      return new InfrastructureIntegrationScope(mockThreadUtils, executorService, configuration);
+      return new InfrastructureIntegrationScope(
+          mockThreadUtils, executorService, schedulerApi, clock, configuration);
     }
   }
+
 }

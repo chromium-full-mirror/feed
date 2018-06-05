@@ -26,7 +26,11 @@ public interface Session {
 
   /** Called to update the Session, this is responsible for updating the Stored session instance. */
   void updateSession(
-      List<StreamStructure> streamStructures, /*@Nullable*/ StreamToken mutationSourceToken);
+      boolean clearHead,
+      List<StreamStructure> streamStructures,
+      /*@Nullable*/ StreamToken mutationSourceToken);
+
+  boolean invalidateOnResetHead();
 
   /** The unique identifier created by the storage layer for the session. */
   StreamSession getStreamSession();

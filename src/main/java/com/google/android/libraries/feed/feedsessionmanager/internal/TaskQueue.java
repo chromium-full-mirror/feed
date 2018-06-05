@@ -240,7 +240,7 @@ public class TaskQueue implements Dumpable {
 
   /** Indicates that tasks are being delayed until a response is processed */
   @VisibleForTesting
-  boolean isDelayed() {
+  public boolean isDelayed() {
     synchronized (lock) {
       return !initialized || waitingForHeadReset;
     }
@@ -324,19 +324,20 @@ public class TaskQueue implements Dumpable {
     private final String task;
     private final @TaskType int taskType;
     private final Runnable taskRunnable;
-    private final Runnable timeOutRunnable;
+    private final Runnable timeoutRunnable;
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     TimeoutTaskWrapper(
-        String task, @TaskType int taskType, Runnable taskRunnable, Runnable timeOutRunnable) {
+        String task, @TaskType int taskType, Runnable taskRunnable, Runnable timeoutRunnable) {
       this.task = task;
       this.taskType = taskType;
       this.taskRunnable = taskRunnable;
-      this.timeOutRunnable = timeOutRunnable;
+      this.timeoutRunnable = timeoutRunnable;
     }
 
     TimeoutTaskWrapper startTimeout(long timeoutMillis) {
-      mainThreadHandler.postDelayed(this::runCallback, timeoutMillis);
+      Logger.i("FeedSessionManager", "startingTimeout %s", timeoutMillis);
+      mainThreadHandler.postDelayed(this::runTimeoutCallback, timeoutMillis);
       return this;
     }
 
@@ -347,12 +348,12 @@ public class TaskQueue implements Dumpable {
       executor.execute(taskRunnable);
     }
 
-    void runCallback() {
+    void runTimeoutCallback() {
       if (started.get()) {
         return;
       }
       Logger.i(TAG, "Execute Timeout [%s]: %s", taskType, task);
-      executor.execute(timeOutRunnable);
+      executor.execute(timeoutRunnable);
     }
   }
 

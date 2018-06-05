@@ -17,6 +17,8 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 
 /**
  * Factory for creating a {@link InitializableSession} instance used in the {@link
@@ -27,17 +29,25 @@ public class SessionFactory {
   private final TaskQueue taskQueue;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
+  private final boolean useTimeScheduler;
 
   public SessionFactory(
-      Store store, TaskQueue taskQueue, TimingUtils timingUtils, ThreadUtils threadUtils) {
+      Store store,
+      TaskQueue taskQueue,
+      TimingUtils timingUtils,
+      ThreadUtils threadUtils,
+      Configuration config) {
     this.store = store;
     this.taskQueue = taskQueue;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    useTimeScheduler = config.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, false);
   }
 
   public InitializableSession getSession() {
-    return new SessionImpl(store, taskQueue, timingUtils, threadUtils);
+    return useTimeScheduler
+        ? new TimeoutSessionImpl(store, taskQueue, timingUtils, threadUtils)
+        : new SessionImpl(store, taskQueue, timingUtils, threadUtils);
   }
 
   public HeadSessionImpl getHeadSession() {
