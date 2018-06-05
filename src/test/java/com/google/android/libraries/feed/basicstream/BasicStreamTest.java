@@ -49,6 +49,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -80,6 +81,7 @@ public class BasicStreamTest {
   @Mock private ModelProvider initialModelProvider;
   @Mock private ModelProvider modelProvider;
   @Mock private PietManager pietManager;
+  @Mock private SnackbarApi snackbarApi;
   @Mock private StreamDriver streamDriver;
   @Mock private StreamRecyclerViewAdapter adapter;
   @Mock private StreamScrollMonitor streamScrollMonitor;
@@ -338,7 +340,8 @@ public class BasicStreamTest {
           modelProviderFactory,
           hostBindingProvider,
           actionManager,
-          configuration);
+          configuration,
+          snackbarApi);
     }
 
     @Override
@@ -355,7 +358,11 @@ public class BasicStreamTest {
 
     @Override
     StreamDriver createStreamDriver(
-        ModelProvider modelProvider, ThreadUtils threadUtils, Configuration configuration) {
+        ModelProvider modelProvider,
+        ThreadUtils threadUtils,
+        Configuration configuration,
+        Context context,
+        SnackbarApi snackbarApi) {
       return streamDriver;
     }
 

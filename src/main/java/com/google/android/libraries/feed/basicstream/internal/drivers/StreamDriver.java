@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
-
+import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
@@ -26,8 +26,10 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +45,8 @@ public class StreamDriver implements FeatureChangeObserver {
   private final Map<ModelChild, FeatureDriver> modelChildFeatureDriverMap;
   private final List<FeatureDriver> featureDrivers;
   private final Configuration configuration;
+  private final Context context;
+  private final SnackbarApi snackbarApi;
   private final ContentChangedListener contentChangedListener;
 
   private boolean rootFeatureConsumed;
@@ -53,9 +57,13 @@ public class StreamDriver implements FeatureChangeObserver {
       ModelProvider modelProvider,
       ThreadUtils threadUtils,
       Configuration configuration,
+      Context context,
+      SnackbarApi snackbarApi,
       ContentChangedListener contentChangedListener) {
     this.threadUtils = threadUtils;
     this.modelProvider = modelProvider;
+    this.context = context;
+    this.snackbarApi = snackbarApi;
     this.modelChildFeatureDriverMap = new HashMap<>();
     this.featureDrivers = new ArrayList<>();
     this.configuration = configuration;
@@ -128,6 +136,14 @@ public class StreamDriver implements FeatureChangeObserver {
               List<FeatureDriver> newChildren =
                   createAndInsertChildrenAtIndex(
                       tokenCompleted.getCursor(), modelProvider, continuationIndex);
+
+              if (newChildren.isEmpty()
+                  || (newChildren.size() == 1 && isLastDriverContinuationDriver())) {
+                snackbarApi.show(
+                    context
+                        .getResources()
+                        .getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
+              }
 
               notifyContentsAdded(continuationIndex, buildLeafFeatureDrivers(newChildren));
               if (shouldRemoveNoContentCardOrZeroState()) {

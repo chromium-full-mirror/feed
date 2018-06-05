@@ -24,4 +24,8 @@
   <string name="ntp_all_dismissed_body_text_afternoon">More articles will appear soon. Enjoy your afternoon!</string>
   <string name="ntp_all_dismissed_body_text_evening">More articles will appear soon. Enjoy your evening!</string>
   <string name="ntp_title_no_suggestions">That’s all for now</string>
+
+  <!-- String resources for snackbar pagination errors -->
+  <string name="ntp_suggestions_fetch_failed">Can\'t get suggestions</string>
+  <string name="ntp_suggestions_fetch_no_new_suggestions">No new suggestions</string>
 </resources>

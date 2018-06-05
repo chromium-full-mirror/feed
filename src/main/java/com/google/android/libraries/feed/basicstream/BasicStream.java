@@ -45,6 +45,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -71,6 +72,7 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
   private final ActionApi actionApi;
   private final ActionManager actionManager;
   private final Configuration configuration;
+  private final SnackbarApi snackbarApi;
   private final HashSet<ContentChangedListener> contentChangedListeners;
 
   private RecyclerView recyclerView;
@@ -97,7 +99,8 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
       ModelProviderFactory modelProviderFactory,
       /*@Nullable*/ HostBindingProvider hostBindingProvider,
       ActionManager actionManager,
-      Configuration configuration) {
+      Configuration configuration,
+      SnackbarApi snackbarApi) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
     this.pietManager =
@@ -117,6 +120,7 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.configuration = configuration;
+    this.snackbarApi = snackbarApi;
     this.contentChangedListeners = new HashSet<>();
   }
 
@@ -301,7 +305,8 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
   }
 
   private void updateAdapter(ModelProvider modelProvider) {
-    streamDriver = createStreamDriver(modelProvider, threadUtils, configuration);
+    streamDriver =
+        createStreamDriver(modelProvider, threadUtils, configuration, context, snackbarApi);
 
     adapter.setDriver(streamDriver);
   }
@@ -326,9 +331,18 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
 
   @VisibleForTesting
   StreamDriver createStreamDriver(
-      ModelProvider modelProvider, ThreadUtils threadUtils, Configuration configuration) {
+      ModelProvider modelProvider,
+      ThreadUtils threadUtils,
+      Configuration configuration,
+      Context context,
+      SnackbarApi snackbarApi) {
     return new StreamDriver(
-        modelProvider, threadUtils, configuration, /* contentChangedListener= */ this);
+        modelProvider,
+        threadUtils,
+        configuration,
+        context,
+        snackbarApi,
+        /* contentChangedListener= */ this);
   }
 
   @VisibleForTesting

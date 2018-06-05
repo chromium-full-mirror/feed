@@ -49,6 +49,7 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
@@ -69,7 +70,8 @@ public class FeedProcessScope implements Dumpable {
       ImageLoaderApi imageLoaderApi,
       ActionApi actionApi,
       StreamConfiguration streamConfiguration,
-      CardConfiguration cardConfiguration) {
+      CardConfiguration cardConfiguration,
+      SnackbarApi snackbarApi) {
     return new FeedStreamScope.Builder(
         context,
         actionApi,
@@ -85,7 +87,8 @@ public class FeedProcessScope implements Dumpable {
         streamConfiguration,
         cardConfiguration,
         actionManager,
-        configuration);
+        configuration,
+        snackbarApi);
   }
 
   @Override

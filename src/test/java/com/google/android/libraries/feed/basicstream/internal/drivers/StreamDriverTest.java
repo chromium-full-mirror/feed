@@ -20,6 +20,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -32,7 +34,9 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
@@ -48,6 +52,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link StreamDriver}. */
@@ -61,11 +66,14 @@ public class StreamDriverTest {
   @Mock private ContinuationDriver continuationDriver;
   @Mock private StreamContentListener contentListener;
   @Mock private ContentChangedListener contentChangedListener;
+  @Mock private SnackbarApi snackbarApi;
   private Configuration configuration = new Configuration.Builder().build();
+  private Context context;
 
   @Before
   public void setup() {
     initMocks(this);
+    context = Robolectric.setupActivity(Activity.class);
     ThreadUtils threadUtils = new ThreadUtils();
 
     when(continuationDriver.getLeafFeatureDriver()).thenReturn(continuationDriver);
@@ -128,6 +136,28 @@ public class StreamDriverTest {
     verify(contentListener).notifyContentRemoved(0);
     verify(contentListener)
         .notifyContentsAdded(0, Lists.newArrayList(getLeafFeatureDriverFromCluster(1)));
+  }
+
+  @Test
+  public void testContinuationToken_createsSnackbar_whenCursorReturnsEmptyPage() {
+    new TokenHandlingTestBuilder()
+        .setInitialCursor(new FakeCursorBuilder().addToken().build())
+        .setTokenPayloadCursor(new FakeCursorBuilder().build())
+        .setTokenIndex(0)
+        .run();
+
+    verify(snackbarApi).show(context.getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
+  }
+
+  @Test
+  public void testContinuationToken_createsSnackbar_whenCursorJustReturnsToken() {
+    new TokenHandlingTestBuilder()
+        .setInitialCursor(new FakeCursorBuilder().addToken().build())
+        .setTokenPayloadCursor(new FakeCursorBuilder().addToken().build())
+        .setTokenIndex(0)
+        .run();
+
+    verify(snackbarApi).show(context.getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
   }
 
   @Test
@@ -319,7 +349,8 @@ public class StreamDriverTest {
     private List<FeatureDriver> childrenCreated;
 
     StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils) {
-      super(modelProvider, threadUtils, configuration, contentChangedListener);
+      super(
+          modelProvider, threadUtils, configuration, context, snackbarApi, contentChangedListener);
       childrenCreated = new ArrayList<>();
     }
 
