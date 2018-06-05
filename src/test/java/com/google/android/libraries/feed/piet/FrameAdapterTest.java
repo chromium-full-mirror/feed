@@ -21,7 +21,6 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +41,9 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
+import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.ActionsProto.Actions;
+import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
@@ -243,13 +245,13 @@ public class FrameAdapterTest {
             assetProvider,
             customElementProvider,
             new HostBindingProvider(),
-            mock(ActionHandler.class));
+            actionHandler);
 
     frameAdapter =
         new FrameAdapter(
             context,
             adapterParameters,
-            mock(ActionHandler.class),
+            actionHandler,
             debugBehavior,
             assetProvider,
             customElementProvider,
@@ -318,6 +320,56 @@ public class FrameAdapterTest {
     verify(elementAdapter).setLayoutParams(layoutParamsCaptor.capture());
     assertThat(layoutParamsCaptor.getValue().width).isEqualTo(width);
     assertThat(layoutParamsCaptor.getValue().height).isEqualTo(height);
+  }
+
+  @Test
+  public void testAdapterWithActions() {
+    String templateId = "lights-camera";
+    String actionBindingId = "action";
+    ActionsBindingRef actionBinding =
+        ActionsBindingRef.newBuilder().setBindingId(actionBindingId).build();
+    Template templateWithActions =
+        Template.newBuilder()
+            .setTemplateId(templateId)
+            .setElement(
+                Element.newBuilder()
+                    .setActionsBinding(actionBinding)
+                    .setElementList(ElementList.getDefaultInstance()))
+            .build();
+    BindingValue actionBindingValue =
+        BindingValue.newBuilder()
+            .setBindingId(actionBindingId)
+            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
+            .build();
+    Content content =
+        Content.newBuilder()
+            .setTemplateInvocation(
+                TemplateInvocation.newBuilder()
+                    .setTemplateId(templateId)
+                    .addBindingContexts(
+                        BindingContext.newBuilder().addBindingValues(actionBindingValue)))
+            .build();
+    Frame frame = Frame.newBuilder().addContents(content).build();
+    PietSharedState pietSharedState =
+        PietSharedState.newBuilder().addTemplates(templateWithActions).build();
+
+    pietSharedStates.add(pietSharedState);
+
+    AdapterParameters parameters = new AdapterParameters(context, Suppliers.of(null));
+    FrameAdapter frameAdapter =
+        new FrameAdapter(
+            context,
+            parameters,
+            actionHandler,
+            debugBehavior,
+            assetProvider,
+            customElementProvider,
+            new HostBindingProvider());
+
+    frameAdapter.bindModel(frame, null, pietSharedStates);
+
+    assertThat(frameAdapter.getFrameContainer().getChildCount()).isEqualTo(1);
+    assertThat(frameAdapter.getFrameContainer().getChildAt(0).hasOnClickListeners()).isTrue();
   }
 
   @Test

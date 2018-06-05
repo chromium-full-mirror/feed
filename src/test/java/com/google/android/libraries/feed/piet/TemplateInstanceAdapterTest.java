@@ -35,6 +35,9 @@ import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.ActionsProto.Actions;
+import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
@@ -290,6 +293,37 @@ public class TemplateInstanceAdapterTest {
     // Text is populated after binding.
     adapter.bindModel(model, frameContext);
     assertThat(textElementView.getText().toString()).isEqualTo(TEXT_CONTENTS);
+  }
+
+  @Test
+  public void testBindModel_actions() {
+    String templateId = "lights-camera";
+    String actionBindingId = "action";
+    ActionsBindingRef actionBinding =
+        ActionsBindingRef.newBuilder().setBindingId(actionBindingId).build();
+    Template templateWithActions =
+        Template.newBuilder()
+            .setTemplateId(templateId)
+            .setElement(
+                Element.newBuilder()
+                    .setActionsBinding(actionBinding)
+                    .setElementList(ElementList.getDefaultInstance()))
+            .build();
+    BindingValue actionBindingValue =
+        BindingValue.newBuilder()
+            .setBindingId(actionBindingId)
+            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
+            .build();
+    BindingContext bindingContext =
+        BindingContext.newBuilder().addBindingValues(actionBindingValue).build();
+
+    TemplateAdapterModel templateModel =
+        new TemplateAdapterModel(templateWithActions, bindingContext);
+
+    adapter.createAdapter(templateModel, frameContext);
+    adapter.bindModel(templateModel, frameContext);
+
+    assertThat(adapter.getView().hasOnClickListeners()).isTrue();
   }
 
   @Test

@@ -58,8 +58,10 @@ class TemplateInstanceAdapter extends ElementAdapter<View, TemplateAdapterModel>
   }
 
   @Override
-  public void onCreateAdapter(
+  public void createAdapter(
       TemplateAdapterModel model, Element baseElement, FrameContext frameContext) {
+    super.createAdapter(model, baseElement, frameContext);
+
     Template modelTemplate = model.getTemplate();
 
     // Adapter has already been created.
@@ -92,8 +94,10 @@ class TemplateInstanceAdapter extends ElementAdapter<View, TemplateAdapterModel>
   }
 
   @Override
-  public void onBindModel(
+  public void bindModel(
       TemplateAdapterModel model, Element baseElement, FrameContext frameContext) {
+    super.bindModel(model, baseElement, frameContext);
+
     Template modelTemplate = model.getTemplate();
     if (!templateEquals(modelTemplate, template)) {
       throw new IllegalArgumentException("Model template does not match adapter template");
