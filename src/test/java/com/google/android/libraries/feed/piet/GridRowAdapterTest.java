@@ -28,11 +28,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
@@ -46,7 +48,9 @@ import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridCell;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
+import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
+import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
@@ -123,7 +127,8 @@ public class GridRowAdapterTest {
     LayoutParams cellLayoutParams =
         (LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
     assertThat(cellLayoutParams.width).isEqualTo(LayoutParams.WRAP_CONTENT);
-    assertThat(cellLayoutParams.height).isEqualTo(LayoutParams.MATCH_PARENT);
+    assertThat(cellLayoutParams.height)
+        .isEqualTo(adapter.childAdapters.get(0).getComputedHeightPx());
   }
 
   @Test
@@ -212,6 +217,102 @@ public class GridRowAdapterTest {
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
     assertThat(params.width).isEqualTo((int) ViewUtils.dpToPx(widthDp, context));
+  }
+
+  @Test
+  public void testOnCreateAdapter_setsLayoutParamsOnCell_widthOfChildAdapter() {
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setContent(
+                        Content.newBuilder()
+                            .setElement(
+                                Element.newBuilder()
+                                    .setImageElement(
+                                        ImageElement.newBuilder()
+                                            .setImage(Image.getDefaultInstance())))))
+            .build();
+
+    when(frameContext.getAssetProvider()).thenReturn(mock(AssetProvider.class));
+    when(styleProvider.hasWidth()).thenReturn(true);
+    when(styleProvider.getWidth()).thenReturn(456);
+
+    adapter.createAdapter(gridRow, frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(LinearLayout.LayoutParams.class);
+    LayoutParams params =
+        (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
+    assertThat(params.width).isEqualTo((int) ViewUtils.dpToPx(456, context));
+  }
+
+  @Test
+  public void testOnCreateAdapter_setsLayoutParamsOnCell_heightOfChildAdapter() {
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setContent(
+                        Content.newBuilder()
+                            .setElement(
+                                Element.newBuilder()
+                                    .setImageElement(
+                                        ImageElement.newBuilder()
+                                            .setImage(Image.getDefaultInstance())))))
+            .build();
+
+    when(frameContext.getAssetProvider()).thenReturn(mock(AssetProvider.class));
+    when(styleProvider.hasHeight()).thenReturn(true);
+    when(styleProvider.getHeight()).thenReturn(123);
+
+    adapter.createAdapter(gridRow, frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(LinearLayout.LayoutParams.class);
+    LayoutParams params =
+        (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
+    assertThat(params.height).isEqualTo((int) ViewUtils.dpToPx(123, context));
+  }
+
+  @Test
+  public void testOnCreateAdapter_setsLayoutParamsOnCell_heightOfChildAdapterNotDefined() {
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setContent(
+                        Content.newBuilder()
+                            .setElement(
+                                Element.newBuilder()
+                                    .setImageElement(
+                                        ImageElement.newBuilder()
+                                            .setImage(Image.getDefaultInstance())))))
+            .build();
+
+    when(frameContext.getAssetProvider()).thenReturn(mock(AssetProvider.class));
+    when(styleProvider.hasHeight()).thenReturn(false);
+    when(styleProvider.getHeight()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+
+    adapter.createAdapter(gridRow, frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(LinearLayout.LayoutParams.class);
+    LayoutParams params =
+        (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
+    assertThat(params.height).isEqualTo(LayoutParams.WRAP_CONTENT);
+  }
+
+  @Test
+  public void testOnCreateAdapter_setsLayoutParamsOnCell_margins() {
+    GridRow gridRow =
+        GridRow.newBuilder().addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT)).build();
+
+    adapter.createAdapter(gridRow, frameContext);
+
+    verify(styleProvider)
+        .setMargins(
+            context, (MarginLayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams());
   }
 
   @Test

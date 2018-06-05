@@ -187,7 +187,10 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
 
   private void setLayoutParamsOnCell(
       ElementAdapter<? extends View, ?> cellAdapter, GridCell cell, FrameContext frameContext) {
-    LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+    // TODO: Support full-cell backgrounds and horizontal/vertical gravity for all
+    // types of ElementAdapter in GridCell.
+
+    LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
     GridCellWidth gridCellWidth = null;
     if (cell.hasWidth()) {
@@ -204,8 +207,16 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
       } else if (gridCellWidth.hasDp()) {
         params.width = (int) ViewUtils.dpToPx(gridCellWidth.getDp(), getContext());
       }
+    } else if (cellAdapter.getComputedWidthPx() != DIMENSION_NOT_SET) {
+      params.width = cellAdapter.getComputedWidthPx();
     }
 
+    int height = cellAdapter.getComputedHeightPx();
+    params.height = height == ElementAdapter.DIMENSION_NOT_SET ? params.height : height;
+
+    cellAdapter.getElementStyle().setMargins(getContext(), params);
+
+    // TODO: Switch this to use the ViewUtils method in the next CL.
     switch (cellAdapter.getVerticalGravity()) {
       case GRAVITY_BOTTOM:
         params.gravity = Gravity.BOTTOM;
