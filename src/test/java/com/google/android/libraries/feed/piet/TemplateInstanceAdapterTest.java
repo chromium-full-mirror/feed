@@ -23,7 +23,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.Suppliers;
@@ -39,7 +38,6 @@ import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
-import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
@@ -85,22 +83,19 @@ public class TemplateInstanceAdapterTest {
   private static final Template DEFAULT_TEMPLATE =
       Template.newBuilder()
           .setTemplateId(TEMPLATE_ID)
-          .setElementList(
-              ElementList.newBuilder()
-                  .addElements(
-                      Element.newBuilder()
-                          .setTextElement(
-                              TextElement.newBuilder()
-                                  .setStyleReferences(
-                                      StyleIdsStack.newBuilder().addStyleIds(TEXT_STYLE_ID))
-                                  .setParameterizedTextBinding(
-                                      ParameterizedTextBindingRef.newBuilder()
-                                          .setBindingId(TEXT_BINDING_ID)))))
+          .setElement(
+              Element.newBuilder()
+                  .setTextElement(
+                      TextElement.newBuilder()
+                          .setStyleReferences(StyleIdsStack.newBuilder().addStyleIds(TEXT_STYLE_ID))
+                          .setParameterizedTextBinding(
+                              ParameterizedTextBindingRef.newBuilder()
+                                  .setBindingId(TEXT_BINDING_ID))))
           .build();
   private static final Template OTHER_TEMPLATE =
       Template.newBuilder()
           .setTemplateId(OTHER_TEMPLATE_ID)
-          .setElementList(ElementList.getDefaultInstance())
+          .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
           .build();
 
   private static final Frame DEFAULT_FRAME =
@@ -233,16 +228,12 @@ public class TemplateInstanceAdapterTest {
     // Check the recycling key
     assertThat(adapter.getKey()).isEqualTo(new TemplateKey(DEFAULT_TEMPLATE, pietSharedStates));
 
-    // Assert that all child view has been created
-    LinearLayout elementListView = (LinearLayout) adapter.getBaseView();
+    // Check for child element
+    TextView textElementView = (TextView) adapter.getBaseView();
 
     // Check that default layout params are set.
-    assertThat(elementListView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
-    assertThat(elementListView.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
-
-    // Check for child element
-    assertThat(elementListView.getChildCount()).isEqualTo(1);
-    TextView textElementView = (TextView) elementListView.getChildAt(0);
+    assertThat(textElementView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
+    assertThat(textElementView.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
 
     // Text style comes from the default style since template doesn't set one.
     assertThat(textElementView.getTextColors().getDefaultColor())
@@ -281,8 +272,7 @@ public class TemplateInstanceAdapterTest {
     adapter.createAdapter(model, frameContext);
 
     // Assert that all child views have been created and that text is set.
-    LinearLayout elementListView = (LinearLayout) adapter.getBaseView();
-    TextView textElementView = (TextView) elementListView.getChildAt(0);
+    TextView textElementView = (TextView) adapter.getBaseView();
 
     // Text style comes from the Template stylesheet.
     assertThat(textElementView.getTextColors().getDefaultColor()).isEqualTo(TEMPLATE_COLOR);
@@ -330,17 +320,14 @@ public class TemplateInstanceAdapterTest {
   public void testReleaseAdapter_doesNothing() {
     adapter.createAdapter(DEFAULT_TEMPLATE_MODEL, frameContext);
     adapter.bindModel(DEFAULT_TEMPLATE_MODEL, frameContext);
-    LinearLayout elementListView = (LinearLayout) adapter.getBaseView();
-    assertThat(((TextView) elementListView.getChildAt(0)).getText().toString())
-        .isEqualTo(TEXT_CONTENTS);
-    ElementListAdapter listAdapter = (ElementListAdapter) adapter.childAdapter;
+    TextView elementTextView = (TextView) adapter.getBaseView();
+    assertThat(elementTextView.getText().toString()).isEqualTo(TEXT_CONTENTS);
+    TextElementAdapter listAdapter = (TextElementAdapter) adapter.childAdapter;
 
     adapter.releaseAdapter();
 
     // Assert that nothing has changed.
-    assertThat(elementListView.getChildCount()).isEqualTo(1);
-    assertThat(((TextView) elementListView.getChildAt(0)).getText().toString())
-        .isEqualTo(TEXT_CONTENTS);
+    assertThat(elementTextView.getText().toString()).isEqualTo(TEXT_CONTENTS);
     assertThat(adapter.childAdapter).isSameAs(listAdapter);
   }
 

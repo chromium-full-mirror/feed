@@ -139,7 +139,7 @@ public class GridRowAdapterTest {
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
-        .contains("Cell has no recognized content");
+        .contains("Unhandled Content type: CONTENTTYPE_NOT_SET");
   }
 
   @Test

@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Element;
-import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
@@ -81,15 +80,11 @@ class TemplateInstanceAdapter extends ElementAdapter<View, TemplateAdapterModel>
 
     BindingContext bindingContext = model.getBindingContext();
     FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
-    if (modelTemplate.hasElement()) {
-      childAdapter =
-          getParameters()
-              .elementAdapterFactory
-              .createAdapterForElement(modelTemplate.getElement(), localFrameContext);
-      childAdapter.createAdapter(modelTemplate.getElement(), localFrameContext);
-    } else {
-      childAdapter = getAdapterForChildList(modelTemplate.getElementList(), localFrameContext);
-    }
+    childAdapter =
+        getParameters()
+            .elementAdapterFactory
+            .createAdapterForElement(modelTemplate.getElement(), localFrameContext);
+    childAdapter.createAdapter(modelTemplate.getElement(), localFrameContext);
     setLayoutParamsOnChild(childAdapter);
   }
 
@@ -105,12 +100,7 @@ class TemplateInstanceAdapter extends ElementAdapter<View, TemplateAdapterModel>
 
     BindingContext bindingContext = model.getBindingContext();
     FrameContext localFrameContext = frameContext.bindTemplate(modelTemplate, bindingContext);
-    if (modelTemplate.hasElement()) {
-      getChildAdapter().bindModel(modelTemplate.getElement(), localFrameContext);
-    } else {
-      ((ElementListAdapter) getChildAdapter())
-          .bindModel(modelTemplate.getElementList(), localFrameContext);
-    }
+    getChildAdapter().bindModel(modelTemplate.getElement(), localFrameContext);
   }
 
   @Override
@@ -124,14 +114,6 @@ class TemplateInstanceAdapter extends ElementAdapter<View, TemplateAdapterModel>
   public void onReleaseAdapter() {
     // Because we recycle templates as a unit, we don't actually want to do anything here - we want
     // to keep the existing layout and styles so we can quickly re-bind content to the template.
-  }
-
-  /** Create an Adapter for the {@code ElementList}. */
-  private ElementListAdapter getAdapterForChildList(ElementList list, FrameContext frameContext) {
-    ElementListAdapter listAdapter =
-        getParameters().elementAdapterFactory.createElementListAdapter(list, frameContext);
-    listAdapter.createAdapter(list, frameContext);
-    return listAdapter;
   }
 
   private static View createView(Context context) {

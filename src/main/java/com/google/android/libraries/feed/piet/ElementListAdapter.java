@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -50,21 +49,9 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
 
   @Override
   void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
-    if (model.getContentsCount() > 0) {
-      super.onCreateAdapter(model, baseElement, frameContext);
-      for (ElementAdapter<? extends View, ?> adapter : childAdapters) {
-        updateChildLayoutParams(adapter);
-      }
-    } else {
-      for (Element line : model.getElementsList()) {
-        ElementAdapter<? extends View, ?> adapter =
-            getParameters().elementAdapterFactory.createAdapterForElement(line, frameContext);
-        adapter.createAdapter(line, frameContext);
-        addChildAdapter(adapter);
-        getBaseView().addView(adapter.getView());
-
-        updateChildLayoutParams(adapter);
-      }
+    super.onCreateAdapter(model, baseElement, frameContext);
+    for (ElementAdapter<? extends View, ?> adapter : childAdapters) {
+      updateChildLayoutParams(adapter);
     }
     setupGravityViews();
   }
@@ -72,22 +59,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   @Override
   List<Content> getContentsFromModel(ElementList model) {
     return model.getContentsList();
-  }
-
-  @Override
-  void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
-    if (model.getContentsCount() > 0) {
-      super.onBindModel(model, baseElement, frameContext);
-    } else {
-      checkState(
-          model.getElementsCount() == childAdapters.size(),
-          "Number of elements mismatch: got %s elements, had %s adapters",
-          model.getElementsCount(),
-          childAdapters.size());
-      for (int i = 0; i < model.getElementsCount(); i++) {
-        childAdapters.get(i).bindModel(model.getElements(i), frameContext);
-      }
-    }
   }
 
   @Override
