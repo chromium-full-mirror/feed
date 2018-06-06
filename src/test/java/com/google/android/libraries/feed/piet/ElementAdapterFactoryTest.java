@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -33,6 +34,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRe
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
@@ -46,6 +48,7 @@ import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,6 +71,7 @@ public class ElementAdapterFactoryTest {
   @Mock private GridRowAdapter gridRowAdapter;
   @Mock private ElementListAdapter elementListAdapter;
   @Mock private TemplateInstanceAdapter templateAdapter;
+  @Mock private StackedElementAdapter stackedAdapter;
 
   @Mock private AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory;
 
@@ -87,6 +91,8 @@ public class ElementAdapterFactoryTest {
 
   @Mock private AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel> templateFactory;
 
+  @Mock private AdapterFactory<StackedElementAdapter, List<Content>> stackedElementFactory;
+
   private final List<AdapterFactory<?, ?>> adapterFactories = new ArrayList<>();
 
   private ElementAdapterFactory adapterFactory;
@@ -103,7 +109,8 @@ public class ElementAdapterFactoryTest {
             spacerElementFactory,
             gridRowFactory,
             elementListFactory,
-            templateFactory);
+            templateFactory,
+            stackedElementFactory);
     when(customElementFactory.get(any(CustomElement.class), eq(frameContext)))
         .thenReturn(customElementAdapter);
     when(chunkedTextElementFactory.get(any(TextElement.class), eq(frameContext)))
@@ -123,6 +130,8 @@ public class ElementAdapterFactoryTest {
         .thenReturn(templateAdapter);
     when(templateFactory.get(any(TemplateAdapterModel.class), eq(frameContext)))
         .thenReturn(templateAdapter);
+    when(stackedElementFactory.get(anyListOf(Content.class), eq(frameContext)))
+        .thenReturn(stackedAdapter);
     adapterFactories.add(customElementFactory);
     adapterFactories.add(chunkedTextElementFactory);
     adapterFactories.add(parameterizedTextElementFactory);
@@ -131,6 +140,7 @@ public class ElementAdapterFactoryTest {
     adapterFactories.add(gridRowFactory);
     adapterFactories.add(elementListFactory);
     adapterFactories.add(templateFactory);
+    adapterFactories.add(stackedElementFactory);
   }
 
   @Test
@@ -373,11 +383,27 @@ public class ElementAdapterFactoryTest {
   }
 
   @Test
+  public void testReleaseAdapter_stacked() {
+    adapterFactory.releaseAdapter(stackedAdapter);
+    verify(stackedElementFactory).release(stackedAdapter);
+    testNoOtherFactoryInteractions();
+  }
+
+  @Test
   public void testCreateElementListAdapter() {
     ElementList list = ElementList.getDefaultInstance();
     ElementListAdapter adapter = adapterFactory.createElementListAdapter(list, frameContext);
     verify(elementListFactory).get(list, frameContext);
     assertThat(adapter).isSameAs(elementListAdapter);
+  }
+
+  @Test
+  public void testCreateOverlayAdapter() {
+    List<Content> overlays = Collections.emptyList();
+    StackedElementAdapter adapter =
+        adapterFactory.createStackedElementAdapter(overlays, frameContext);
+    verify(stackedElementFactory).get(overlays, frameContext);
+    assertThat(adapter).isSameAs(stackedAdapter);
   }
 
   @Test

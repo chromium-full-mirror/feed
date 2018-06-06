@@ -26,7 +26,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -670,6 +672,58 @@ public class ElementContainerAdapterTest {
     }
 
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {2, 0, 1});
+  }
+
+  @Test
+  public void testSetChildWidthAndHeightOnParams_setsDefaultsOnChild() {
+    FrameLayout.LayoutParams parentParams = new FrameLayout.LayoutParams(12, 34);
+    adapter.setLayoutParams(parentParams);
+
+    ElementAdapter<?, ?> childAdapter = mock(ElementAdapter.class);
+    when(childAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+    when(childAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+
+    FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(0, 0);
+
+    adapter.setChildWidthAndHeightOnParams(childAdapter, childParams);
+
+    assertThat(childParams.width).isEqualTo(LayoutParams.MATCH_PARENT);
+    assertThat(childParams.height).isEqualTo(LayoutParams.WRAP_CONTENT);
+  }
+
+  @Test
+  public void testSetLayoutParams_adapterWidthIsWrapContent() {
+    FrameLayout.LayoutParams parentParams =
+        new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+    adapter.setLayoutParams(parentParams);
+
+    ElementAdapter<?, ?> childAdapter = mock(ElementAdapter.class);
+    when(childAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+    when(childAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+
+    FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(0, 0);
+
+    adapter.setChildWidthAndHeightOnParams(childAdapter, childParams);
+
+    assertThat(childParams.width).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(childParams.height).isEqualTo(LayoutParams.WRAP_CONTENT);
+  }
+
+  @Test
+  public void testSetLChildWidthAndHeightOnParams_childWidthAndHeightSet() {
+    FrameLayout.LayoutParams parentParams = new FrameLayout.LayoutParams(12, 34);
+    adapter.setLayoutParams(parentParams);
+
+    ElementAdapter<?, ?> childAdapter = mock(ElementAdapter.class);
+    when(childAdapter.getComputedWidthPx()).thenReturn(56);
+    when(childAdapter.getComputedHeightPx()).thenReturn(78);
+
+    FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(0, 0);
+
+    adapter.setChildWidthAndHeightOnParams(childAdapter, childParams);
+
+    assertThat(childParams.width).isEqualTo(56);
+    assertThat(childParams.height).isEqualTo(78);
   }
 
   private static class TestElementContainerAdapter

@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -207,44 +206,13 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   }
 
   private void updateChildLayoutParams(ElementAdapter<? extends View, ?> adapter) {
-    ViewGroup.LayoutParams params = getBaseView().getLayoutParams();
+    LayoutParams childParams = new LayoutParams(0, 0);
 
-    // First try to set the width to the dimension the child wants.
-    int width = adapter.getComputedWidthPx();
-
-    // If a child doesn't have a computed width then we update to match the list.
-    if (width == ElementAdapter.DIMENSION_NOT_SET) {
-
-      // If the list is set to WRAP_CONTENT then we will need to make sure that children are set to
-      // also WRAP_CONTENT otherwise the list can't determine the actual size.
-      if (params.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
-        width = ViewGroup.LayoutParams.WRAP_CONTENT;
-      } else {
-        width = ViewGroup.LayoutParams.MATCH_PARENT;
-      }
-    }
-
-    int height = adapter.getComputedHeightPx();
-    height =
-        height == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
-
-    LayoutParams childParams = new LayoutParams(width, height);
+    setChildWidthAndHeightOnParams(adapter, childParams);
 
     adapter.getElementStyle().setMargins(getContext(), childParams);
 
-    switch (adapter.getHorizontalGravity()) {
-      case GRAVITY_START:
-        childParams.gravity = Gravity.START;
-        break;
-      case GRAVITY_CENTER:
-        childParams.gravity = Gravity.CENTER_HORIZONTAL;
-        break;
-      case GRAVITY_END:
-        childParams.gravity = Gravity.END;
-        break;
-      default:
-        childParams.gravity = Gravity.START;
-    }
+    childParams.gravity = ViewUtils.gravityHorizontalToGravity(adapter.getHorizontalGravity());
 
     adapter.setLayoutParams(childParams);
   }

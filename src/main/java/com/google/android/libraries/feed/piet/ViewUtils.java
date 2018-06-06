@@ -19,10 +19,13 @@ import android.graphics.Rect;
 import android.support.v4.view.ViewCompat;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
+import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
+import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import java.util.Set;
 
@@ -34,6 +37,42 @@ public class ViewUtils {
   public static float dpToPx(float dp, Context context) {
     DisplayMetrics metrics = context.getResources().getDisplayMetrics();
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, metrics);
+  }
+
+  static int pietGravityToGravity(
+      GravityHorizontal gravityHorizontal, GravityVertical gravityVertical) {
+    return gravityHorizontalToGravity(gravityHorizontal)
+        | gravityVerticalToGravity(gravityVertical);
+  }
+
+  @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
+  static int gravityHorizontalToGravity(GravityHorizontal gravityHorizontal) {
+    switch (gravityHorizontal) {
+      case GRAVITY_START:
+        return Gravity.START;
+      case GRAVITY_CENTER:
+        return Gravity.CENTER_HORIZONTAL;
+      case GRAVITY_END:
+        return Gravity.END;
+      case GRAVITY_HORIZONTAL_UNSPECIFIED:
+      default:
+        return Gravity.START;
+    }
+  }
+
+  @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
+  static int gravityVerticalToGravity(GravityVertical gravityVertical) {
+    switch (gravityVertical) {
+      case GRAVITY_TOP:
+        return Gravity.TOP;
+      case GRAVITY_MIDDLE:
+        return Gravity.CENTER_VERTICAL;
+      case GRAVITY_BOTTOM:
+        return Gravity.BOTTOM;
+      case GRAVITY_VERTICAL_UNSPECIFIED:
+      default:
+        return Gravity.NO_GRAVITY;
+    }
   }
 
   /** Attaches the onClick action from actions to the view, executed by the handler. */

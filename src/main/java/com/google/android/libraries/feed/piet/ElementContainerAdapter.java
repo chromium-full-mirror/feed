@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -313,6 +314,33 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
               String.format("Unhandled Content type: %s", content.getContentTypeCase()));
       }
     }
+  }
+
+  void setChildWidthAndHeightOnParams(
+      ElementAdapter<?, ?> childAdapter, LayoutParams childLayoutParams) {
+    ViewGroup.LayoutParams params = getBaseView().getLayoutParams();
+
+    // First try to set the width to the dimension the child wants.
+    int width = childAdapter.getComputedWidthPx();
+
+    // If a child doesn't have a computed width then we update to match the list.
+    if (width == ElementAdapter.DIMENSION_NOT_SET) {
+
+      // If the adapter is set to WRAP_CONTENT then we will need to make sure that children are set
+      // to also WRAP_CONTENT otherwise the list can't determine the actual size.
+      if (params.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
+        width = ViewGroup.LayoutParams.WRAP_CONTENT;
+      } else {
+        width = ViewGroup.LayoutParams.MATCH_PARENT;
+      }
+    }
+
+    int height = childAdapter.getComputedHeightPx();
+    height =
+        height == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
+
+    childLayoutParams.width = width;
+    childLayoutParams.height = height;
   }
 
   /**

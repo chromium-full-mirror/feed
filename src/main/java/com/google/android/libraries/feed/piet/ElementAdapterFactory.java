@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
@@ -46,6 +47,7 @@ class ElementAdapterFactory {
   private final AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
   private final AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel>
       templateInstanceFactory;
+  private final AdapterFactory<StackedElementAdapter, List<Content>> stackedElementFactory;
   private final List<AdapterFactory<?, ?>> factories;
 
   ElementAdapterFactory(Context context, AdapterParameters parameters) {
@@ -59,7 +61,8 @@ class ElementAdapterFactory {
         new AdapterFactory<>(context, parameters, new GridRowAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new ElementListAdapter.KeySupplier()),
         new AdapterFactory<>(
-            context, parameters, new TemplateInstanceAdapter.TemplateKeySupplier()));
+            context, parameters, new TemplateInstanceAdapter.TemplateKeySupplier()),
+        new AdapterFactory<>(context, parameters, new StackedElementAdapter.KeySupplier()));
   }
 
   /** Testing-only constructor for mocking the factories. */
@@ -72,7 +75,8 @@ class ElementAdapterFactory {
       AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory,
       AdapterFactory<GridRowAdapter, GridRow> gridRowFactory,
       AdapterFactory<ElementListAdapter, ElementList> elementListFactory,
-      AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel> templateInstanceFactory) {
+      AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel> templateInstanceFactory,
+      AdapterFactory<StackedElementAdapter, List<Content>> stackedElementFactory) {
     this.customElementFactory = customElementFactory;
     this.chunkedTextElementFactory = chunkedTextElementFactory;
     this.parameterizedTextElementFactory = parameterizedTextElementFactory;
@@ -81,6 +85,7 @@ class ElementAdapterFactory {
     this.gridRowFactory = gridRowFactory;
     this.elementListFactory = elementListFactory;
     this.templateInstanceFactory = templateInstanceFactory;
+    this.stackedElementFactory = stackedElementFactory;
     factories =
         Collections.unmodifiableList(
             Arrays.asList(
@@ -91,7 +96,8 @@ class ElementAdapterFactory {
                 spacerElementFactory,
                 gridRowFactory,
                 elementListFactory,
-                templateInstanceFactory));
+                templateInstanceFactory,
+                stackedElementFactory));
   }
 
   ElementAdapter<? extends View, ?> createAdapterForElement(
@@ -154,9 +160,9 @@ class ElementAdapterFactory {
     return elementListFactory.get(elementList, frameContext);
   }
 
-  ParameterizedTextElementAdapter createAdapterForParameterizedText(
-      TextElement textLine, FrameContext frameContext) {
-    return parameterizedTextElementFactory.get(textLine, frameContext);
+  StackedElementAdapter createStackedElementAdapter(
+      List<Content> overlays, FrameContext frameContext) {
+    return stackedElementFactory.get(overlays, frameContext);
   }
 
   TemplateInstanceAdapter createTemplateAdapter(
@@ -191,6 +197,8 @@ class ElementAdapterFactory {
       elementListFactory.release((ElementListAdapter) adapter);
     } else if (adapter instanceof TemplateInstanceAdapter) {
       templateInstanceFactory.release((TemplateInstanceAdapter) adapter);
+    } else if (adapter instanceof StackedElementAdapter) {
+      stackedElementFactory.release((StackedElementAdapter) adapter);
     }
   }
 

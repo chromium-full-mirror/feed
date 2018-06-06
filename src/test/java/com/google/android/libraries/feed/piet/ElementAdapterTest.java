@@ -32,7 +32,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
@@ -42,7 +41,10 @@ import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
+import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
@@ -215,16 +217,19 @@ public class ElementAdapterTest {
 
   @Test
   public void testCreateAdapter_setsOverlayLayoutParams() {
-    Element elementWithOverlays =
-        Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
+    Content overlayContent =
+        Content.newBuilder()
+            .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
+            .build();
+    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
 
     ElementAdapterFactory mockFactory = mock(ElementAdapterFactory.class);
-    ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
+    StackedElementAdapter mockOverlayAdapter = mock(StackedElementAdapter.class);
     View overlayView = new View(context);
-    when(mockFactory.createElementListAdapter(ElementList.getDefaultInstance(), frameContext))
+    when(mockFactory.createStackedElementAdapter(
+            elementWithOverlays.getOverlaysList(), frameContext))
         .thenReturn(mockOverlayAdapter);
     when(mockOverlayAdapter.getView()).thenReturn(overlayView);
-    when(mockOverlayAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_TOP);
     when(mockOverlayAdapter.getElementStyle()).thenReturn(styleProvider);
 
     parameters =
@@ -241,8 +246,28 @@ public class ElementAdapterTest {
     ArgumentCaptor<LayoutParams> layoutParamsCaptor = ArgumentCaptor.forClass(LayoutParams.class);
     verify(mockOverlayAdapter).setLayoutParams(layoutParamsCaptor.capture());
     assertThat(layoutParamsCaptor.getValue().width).isEqualTo(LayoutParams.MATCH_PARENT);
-    assertThat(layoutParamsCaptor.getValue().height).isEqualTo(LayoutParams.WRAP_CONTENT);
-    verify(styleProvider).setMargins(context, (MarginLayoutParams) layoutParamsCaptor.getValue());
+    assertThat(layoutParamsCaptor.getValue().height).isEqualTo(LayoutParams.MATCH_PARENT);
+  }
+
+  @Test
+  public void testCreateAdapter_doesNothingForBoundOverlays() {
+    ElementList overlayModel =
+        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+    ElementBindingRef bindingRef = ElementBindingRef.newBuilder().setBindingId("overlay").build();
+    BindingValue bindingValue =
+        BindingValue.newBuilder()
+            .setElement(Element.newBuilder().setElementList(overlayModel))
+            .build();
+    Content overlayContent = Content.newBuilder().setBoundElement(bindingRef).build();
+    when(frameContext.getElementBindingValue(bindingRef)).thenReturn(bindingValue);
+    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
+
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
+
+    // No overlays have been created yet, but adapter exists
+    assertThat(adapter.overlays).hasSize(1);
+    assertThat(adapter.overlays.get(0)).isInstanceOf(StackedElementAdapter.class);
+    assertThat(((StackedElementAdapter) adapter.overlays.get(0)).childAdapters).isEmpty();
   }
 
   @Test
@@ -267,16 +292,44 @@ public class ElementAdapterTest {
   public void testBindModel_bindsOverlays() {
     ElementList overlayModel =
         ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
-    Element elementWithOverlays = Element.newBuilder().addOverlayElements(overlayModel).build();
+    Content overlayContent =
+        Content.newBuilder()
+            .setElement(
+                Element.newBuilder()
+                    .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
+                    .setElementList(overlayModel))
+            .build();
+    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
 
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlays.get(0)).isInstanceOf(ElementListAdapter.class);
+    assertThat(adapter.overlays.get(0)).isInstanceOf(StackedElementAdapter.class);
 
-    ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
+    StackedElementAdapter mockOverlayAdapter = mock(StackedElementAdapter.class);
     adapter.overlays.set(0, mockOverlayAdapter);
 
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-    verify(mockOverlayAdapter).bindModel(overlayModel, frameContext);
+    verify(mockOverlayAdapter).bindModel(elementWithOverlays.getOverlaysList(), frameContext);
+  }
+
+  @Test
+  public void testBindModel_bindsBoundOverlays() {
+    ElementList overlayModel =
+        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
+    ElementBindingRef bindingRef = ElementBindingRef.newBuilder().setBindingId("overlay").build();
+    BindingValue bindingValue =
+        BindingValue.newBuilder()
+            .setElement(Element.newBuilder().setElementList(overlayModel))
+            .build();
+    Content overlayContent = Content.newBuilder().setBoundElement(bindingRef).build();
+    when(frameContext.getElementBindingValue(bindingRef)).thenReturn(bindingValue);
+    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
+
+    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
+
+    assertThat(((StackedElementAdapter) adapter.overlays.get(0)).childAdapters).hasSize(1);
+    assertThat(((StackedElementAdapter) adapter.overlays.get(0)).childAdapters.get(0))
+        .isInstanceOf(ElementListAdapter.class);
   }
 
   @Test
@@ -321,15 +374,18 @@ public class ElementAdapterTest {
   public void testBindModel_failsWithIncompatibleOverlays() {
     ElementList overlayModel =
         ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
-    Element elementWithOverlays =
-        Element.newBuilder()
-            .addOverlayElements(overlayModel)
-            .addOverlayElements(overlayModel)
+    Content overlayContent =
+        Content.newBuilder()
+            .setElement(
+                Element.newBuilder()
+                    .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
+                    .setElementList(overlayModel))
             .build();
+    Element elementWithOverlays =
+        Element.newBuilder().addOverlays(overlayContent).addOverlays(overlayContent).build();
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
 
-    Element elementWithFewerOverlays =
-        Element.newBuilder().addOverlayElements(overlayModel).build();
+    Element elementWithFewerOverlays = Element.newBuilder().addOverlays(overlayContent).build();
 
     assertThatRunnable(
             () ->
@@ -337,7 +393,7 @@ public class ElementAdapterTest {
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
-        .contains("Overlay count mismatch");
+        .contains("Internal error in adapters per content");
   }
 
   @Test
@@ -390,16 +446,54 @@ public class ElementAdapterTest {
   public void testUnbindModel_unbindsOverlayAdapters() {
     ElementList overlayModel =
         ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
-    Element elementWithOverlays = Element.newBuilder().addOverlayElements(overlayModel).build();
+    Content overlayContent =
+        Content.newBuilder()
+            .setElement(
+                Element.newBuilder()
+                    .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
+                    .setElementList(overlayModel))
+            .build();
+    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlays.get(0)).isInstanceOf(ElementListAdapter.class);
-    ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
-    adapter.overlays.set(0, mockOverlayAdapter);
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
+    assertThat(adapter.overlays.get(0)).isInstanceOf(StackedElementAdapter.class);
+    assertThat(adapter.overlays.get(0).getRawModel()).isNotNull();
 
     adapter.unbindModel();
+    assertThat(adapter.overlays.get(0).getRawModel()).isNull();
+  }
 
-    verify(mockOverlayAdapter).unbindModel();
+  @Test
+  public void testUnbindModel_releasesBoundOverlays() {
+    Element overlayElement =
+        Element.newBuilder()
+            .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
+            .setElementList(
+                ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE))
+            .build();
+    String overlayBindingId = "overlay";
+    ElementBindingRef overlayBindingRef =
+        ElementBindingRef.newBuilder().setBindingId(overlayBindingId).build();
+    BindingValue overlayBindingValue =
+        BindingValue.newBuilder().setBindingId(overlayBindingId).setElement(overlayElement).build();
+    when(frameContext.getElementBindingValue(overlayBindingRef)).thenReturn(overlayBindingValue);
+    Content overlayContent = Content.newBuilder().setBoundElement(overlayBindingRef).build();
+    Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
+    assertThat(adapter.overlays).hasSize(1);
+
+    adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
+    assertThat(adapter.overlays).hasSize(1);
+    StackedElementAdapter overlayAdapter = (StackedElementAdapter) adapter.overlays.get(0);
+    assertThat(overlayAdapter.childAdapters).hasSize(1);
+    assertThat(overlayAdapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
+    ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
+    overlayAdapter.childAdapters.set(0, mockOverlayAdapter);
+
+    adapter.unbindModel();
+    assertThat(adapter.overlays).hasSize(1);
+    assertThat(overlayAdapter.childAdapters).isEmpty();
+    verify(mockOverlayAdapter).releaseAdapter();
   }
 
   @Test
@@ -416,7 +510,12 @@ public class ElementAdapterTest {
   @Test
   public void testReleaseAdapter_removesOverlays() {
     Element elementWithOverlays =
-        Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
+        Element.newBuilder()
+            .addOverlays(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
+            .build();
 
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);

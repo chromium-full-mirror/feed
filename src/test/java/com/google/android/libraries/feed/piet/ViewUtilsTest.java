@@ -23,12 +23,15 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.content.Context;
+import android.view.Gravity;
 import android.view.View;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
+import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
+import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import java.util.HashSet;
 import java.util.Set;
@@ -102,6 +105,47 @@ public class ViewUtilsTest {
   @Test
   public void testDpToPx() {
     assertThat(ViewUtils.dpToPx(1000.0f, context)).isEqualTo(1000.0f);
+  }
+
+  @Test
+  public void testGravity() {
+    assertThat(
+            ViewUtils.pietGravityToGravity(
+                GravityHorizontal.GRAVITY_CENTER, GravityVertical.GRAVITY_BOTTOM))
+        .isEqualTo(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
+    assertThat(
+            ViewUtils.pietGravityToGravity(
+                GravityHorizontal.GRAVITY_END, GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED))
+        .isEqualTo(Gravity.END);
+    assertThat(
+            ViewUtils.pietGravityToGravity(
+                GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED, GravityVertical.GRAVITY_MIDDLE))
+        .isEqualTo(Gravity.START | Gravity.CENTER_VERTICAL);
+  }
+
+  @Test
+  public void testHorizontalGravity() {
+    assertThat(ViewUtils.gravityHorizontalToGravity(GravityHorizontal.GRAVITY_START))
+        .isEqualTo(Gravity.START);
+    assertThat(ViewUtils.gravityHorizontalToGravity(GravityHorizontal.GRAVITY_CENTER))
+        .isEqualTo(Gravity.CENTER_HORIZONTAL);
+    assertThat(ViewUtils.gravityHorizontalToGravity(GravityHorizontal.GRAVITY_END))
+        .isEqualTo(Gravity.END);
+    assertThat(
+            ViewUtils.gravityHorizontalToGravity(GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED))
+        .isEqualTo(Gravity.START);
+  }
+
+  @Test
+  public void testVerticalGravity() {
+    assertThat(ViewUtils.gravityVerticalToGravity(GravityVertical.GRAVITY_TOP))
+        .isEqualTo(Gravity.TOP);
+    assertThat(ViewUtils.gravityVerticalToGravity(GravityVertical.GRAVITY_MIDDLE))
+        .isEqualTo(Gravity.CENTER_VERTICAL);
+    assertThat(ViewUtils.gravityVerticalToGravity(GravityVertical.GRAVITY_BOTTOM))
+        .isEqualTo(Gravity.BOTTOM);
+    assertThat(ViewUtils.gravityVerticalToGravity(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED))
+        .isEqualTo(Gravity.NO_GRAVITY);
   }
 
   @Test

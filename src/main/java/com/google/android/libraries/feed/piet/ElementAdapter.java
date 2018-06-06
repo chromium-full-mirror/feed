@@ -65,7 +65,7 @@ abstract class ElementAdapter<V extends View, M> {
   private FrameContext frameContext;
 
   /*@Nullable*/ private FrameLayout overlayView = null;
-  @VisibleForTesting final List<ElementListAdapter> overlays = new ArrayList<>();
+  @VisibleForTesting final List<ElementAdapter<?, ?>> overlays = new ArrayList<>();
 
   Actions actions = Actions.getDefaultInstance();
   /** Set of actions that are currently active / triggered so they only get called once. */
@@ -197,7 +197,22 @@ abstract class ElementAdapter<V extends View, M> {
   void onBindModel(M model, Element baseElement, FrameContext frameContext) {}
 
   private void initializeOverlays(FrameContext frameContext) {
-    if (baseElement.getOverlayElementsCount() > 0) {
+    if (baseElement.getOverlaysCount() > 0) {
+      FrameLayout overlayWrapper = new FrameLayout(getContext());
+      overlayWrapper.addView(getBaseView());
+
+      StackedElementAdapter overlayAdapter =
+          getParameters()
+              .elementAdapterFactory
+              .createStackedElementAdapter(baseElement.getOverlaysList(), frameContext);
+      overlayAdapter.createAdapter(baseElement.getOverlaysList(), frameContext);
+      overlayAdapter.setLayoutParams(
+          new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+      overlays.add(overlayAdapter);
+      overlayWrapper.addView(overlayAdapter.getView());
+
+      overlayView = overlayWrapper;
+    } else if (baseElement.getOverlayElementsCount() > 0) {
       FrameLayout overlayWrapper = new FrameLayout(getContext());
       overlayWrapper.addView(getBaseView());
 
@@ -233,14 +248,26 @@ abstract class ElementAdapter<V extends View, M> {
   }
 
   private void bindOverlays(FrameContext frameContext) {
-    if (baseElement.getOverlayElementsCount() > 0) {
+    if (baseElement.getOverlaysCount() > 0) {
+      checkState(
+          overlays.size() == 1,
+          "Unexpected number of overlay adapters; wanted 1, got %s",
+          overlays.size());
+      checkState(
+          overlays.get(0) instanceof StackedElementAdapter,
+          "Unexpected overlay adapter type; was %s",
+          overlays.get(0).getClass());
+      ((StackedElementAdapter) overlays.get(0))
+          .bindModel(baseElement.getOverlaysList(), frameContext);
+    } else if (baseElement.getOverlayElementsCount() > 0) {
       checkState(
           baseElement.getOverlayElementsCount() == overlays.size(),
           "Overlay count mismatch: %s overlay adapters, %s overlays defined",
           overlays.size(),
           baseElement.getOverlayElementsCount());
       for (int i = 0; i < baseElement.getOverlayElementsCount(); i++) {
-        overlays.get(i).bindModel(baseElement.getOverlayElements(i), frameContext);
+        ((ElementListAdapter) overlays.get(i))
+            .bindModel(baseElement.getOverlayElements(i), frameContext);
       }
     }
   }
@@ -317,7 +344,7 @@ abstract class ElementAdapter<V extends View, M> {
       ViewUtils.clearOnClickActions(getBaseView());
     }
 
-    for (ElementListAdapter overlayAdapter : overlays) {
+    for (ElementAdapter<?, ?> overlayAdapter : overlays) {
       overlayAdapter.unbindModel();
     }
   }
@@ -337,7 +364,7 @@ abstract class ElementAdapter<V extends View, M> {
       overlayView.removeAllViews();
       overlayView = null;
     }
-    for (ElementListAdapter overlayAdapter : overlays) {
+    for (ElementAdapter<?, ?> overlayAdapter : overlays) {
       getParameters().elementAdapterFactory.releaseAdapter(overlayAdapter);
     }
     overlays.clear();
