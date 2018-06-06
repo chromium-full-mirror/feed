@@ -14,35 +14,64 @@
 
 package com.google.android.libraries.feed.feedapplifecyclelistener;
 
+import android.database.Observable;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
+import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener.LifecycleEvent;
 
 /** Default implementation of {@link AppLifecycleListener} */
-public class FeedAppLifecycleListener implements AppLifecycleListener {
+public class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
+    implements AppLifecycleListener {
   private static final String TAG = "FeedAppLifecycleListener";
+
+  private final ThreadUtils threadUtils;
+
+  public FeedAppLifecycleListener(ThreadUtils threadUtils) {
+    this.threadUtils = threadUtils;
+  }
 
   @Override
   public void onEnterForeground() {
+    threadUtils.checkMainThread();
     Logger.i(TAG, "onEnterForeground called");
+    dispatchLifecycleEvent(LifecycleEvent.ENTER_FORERGROUND);
   }
 
   @Override
   public void onEnterBackground() {
+    threadUtils.checkMainThread();
     Logger.i(TAG, "onEnterBackground called");
+    dispatchLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
   }
 
   @Override
   public void onOptOut() {
+    threadUtils.checkMainThread();
     Logger.i(TAG, "onOptOut called");
+    dispatchLifecycleEvent(LifecycleEvent.OPT_OUT);
   }
 
   @Override
   public void onOptIn() {
+    threadUtils.checkMainThread();
     Logger.i(TAG, "onOptIn called");
+    dispatchLifecycleEvent(LifecycleEvent.OPT_IN);
   }
 
   @Override
   public void onClearAll() {
+    threadUtils.checkMainThread();
     Logger.i(TAG, "onClearAll called");
+    dispatchLifecycleEvent(LifecycleEvent.CLEAR_ALL);
+  }
+
+  private void dispatchLifecycleEvent(@LifecycleEvent String event) {
+    synchronized (mObservers) {
+      for (FeedLifecycleListener listener : mObservers) {
+        listener.onLifecycleEvent(event);
+      }
+    }
   }
 }

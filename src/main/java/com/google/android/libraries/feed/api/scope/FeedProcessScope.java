@@ -237,7 +237,7 @@ public class FeedProcessScope implements Dumpable {
                 clock);
       }
 
-      AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener();
+      AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
       ActionManager actionManager =
           new FeedActionManagerImpl(sessionManager, store, threadUtils, singleThreadExecutor);
 
