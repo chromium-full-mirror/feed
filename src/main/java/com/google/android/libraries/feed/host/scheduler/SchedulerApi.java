@@ -86,6 +86,6 @@ public interface SchedulerApi {
   /** Notify scheduler that new content has been received. */
   void onReceiveNewContent(long contentCreationDateTimeMs);
 
-  /** Notify scheduler that an error occurred handling a request. */
+  /** Notify scheduler that an error occurred while handling a request. */
   void onRequestError(int networkResponseCode);
 }
