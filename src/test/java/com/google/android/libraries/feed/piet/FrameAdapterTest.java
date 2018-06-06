@@ -76,9 +76,7 @@ public class FrameAdapterTest {
           .setElement(
               Element.newBuilder()
                   .setElementList(
-                      ElementList.newBuilder()
-                          .addContents(
-                              Content.newBuilder().setElement(Element.getDefaultInstance()))))
+                      ElementList.newBuilder().addElements(Element.getDefaultInstance())))
           .build();
 
   @Mock private AssetProvider assetProvider;
@@ -226,22 +224,15 @@ public class FrameAdapterTest {
     String templateId = "template";
     ElementList defaultList =
         ElementList.newBuilder()
-            .addContents(
-                Content.newBuilder()
-                    .setElement(
-                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
-            .addContents(
-                Content.newBuilder()
-                    .setElement(Element.newBuilder().setGridRow(GridRow.getDefaultInstance())))
+            .addElements(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
+            .addElements(Element.newBuilder().setGridRow(GridRow.getDefaultInstance()))
             .build();
     AdapterParameters adapterParameters =
         new AdapterParameters(context, Suppliers.of(new LinearLayout(context)));
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
             .addTemplates(
-                Template.newBuilder()
-                    .setTemplateId(templateId)
-                    .setElement(Element.newBuilder().setElementList(defaultList)))
+                Template.newBuilder().setTemplateId(templateId).setElementList(defaultList))
             .build();
     pietSharedStates.add(pietSharedState);
     FrameContext frameContext =
