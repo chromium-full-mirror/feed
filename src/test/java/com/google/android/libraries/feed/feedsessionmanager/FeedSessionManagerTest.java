@@ -47,8 +47,8 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
-import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
+import com.google.android.libraries.feed.feedstore.PersistentFeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
@@ -538,8 +538,8 @@ public class FeedSessionManagerTest {
 
   private FeedSessionManager getInitializedSessionManager() {
     ListeningExecutorService executor = MoreExecutors.newDirectExecutorService();
-    FeedStore store =
-        new FeedStore(
+    PersistentFeedStore store =
+        new PersistentFeedStore(
             timingUtils,
             extensionRegistry,
             new InMemoryContentStorage(),

@@ -68,12 +68,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Implementation of the Store. The FeedStore will call the host APIs {@link ContentStorage} and
- * {@link JournalStorage} to make persistent changes.
+ * Implementation of the Store. The PersistentFeedStore will call the host APIs {@link
+ * ContentStorage} and {@link JournalStorage} to make persistent changes.
  */
-public class FeedStore implements Store, Dumpable {
+public class PersistentFeedStore implements Store, Dumpable {
 
-  private static final String TAG = "FeedStore";
+  private static final String TAG = "PersistentFeedStore";
 
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
@@ -84,7 +84,7 @@ public class FeedStore implements Store, Dumpable {
   private final Clock clock;
   private final FeedStoreHelper storeHelper;
 
-  public FeedStore(
+  public PersistentFeedStore(
       TimingUtils timingUtils,
       FeedExtensionRegistry extensionRegistry,
       ContentStorage contentStorage,
@@ -348,7 +348,7 @@ public class FeedStore implements Store, Dumpable {
 
     session.addAll(streamStructuresResult.getValue());
 
-    // While journal storage is async, we want FeedStore calls to be synchronous (for now)
+    // While journal storage is async, we want PersistentFeedStore calls to be synchronous (for now)
     CountDownLatch latch = new CountDownLatch(1);
     mainThreadRunner.execute(
         TAG,
@@ -380,7 +380,7 @@ public class FeedStore implements Store, Dumpable {
       // TODO: What type of exception should this throw?
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
-    // While journal storage is async, we want FeedStore calls to be synchronous (for now)
+    // While journal storage is async, we want PersistentFeedStore calls to be synchronous (for now)
     CountDownLatch latch = new CountDownLatch(1);
     mainThreadRunner.execute(
         TAG,
@@ -401,7 +401,7 @@ public class FeedStore implements Store, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    // While journal storage is async, we want FeedStore calls to be synchronous (for now)
+    // While journal storage is async, we want PersistentFeedStore calls to be synchronous (for now)
     CountDownLatch latch = new CountDownLatch(1);
     mainThreadRunner.execute(
         TAG,

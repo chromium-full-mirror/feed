@@ -26,8 +26,8 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
-import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
+import com.google.android.libraries.feed.feedstore.PersistentFeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
@@ -83,7 +83,7 @@ public class InfrastructureIntegrationScope {
   private final FeedProtocolAdapter feedProtocolAdapter;
   private final FeedModelProviderFactory modelProviderFactory;
   private final FakeRequestManager fakeRequestManager;
-  private final FeedStore store;
+  private final PersistentFeedStore store;
 
   InfrastructureIntegrationScope(
       ThreadUtils threadUtils,
@@ -98,7 +98,7 @@ public class InfrastructureIntegrationScope {
     ContentStorage contentStorage = new InMemoryContentStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage(threadUtils);
     store =
-        new FeedStore(
+        new PersistentFeedStore(
             timingUtils,
             extensionRegistry,
             contentStorage,
@@ -138,7 +138,7 @@ public class InfrastructureIntegrationScope {
     return modelProviderFactory;
   }
 
-  public FeedStore getStore() {
+  public PersistentFeedStore getStore() {
     return store;
   }
 

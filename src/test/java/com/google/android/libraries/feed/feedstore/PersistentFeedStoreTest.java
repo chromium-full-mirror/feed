@@ -30,9 +30,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests of the {@link FeedStore} class. */
+/** Tests of the {@link PersistentFeedStore} class. */
 @RunWith(RobolectricTestRunner.class)
-public class FeedStoreTest extends AbstractFeedStoreTest {
+public class PersistentFeedStoreTest extends AbstractFeedStoreTest {
 
   @Mock private ThreadUtils threadUtils;
 
@@ -47,7 +47,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
 
   @Override
   protected Store getStore() {
-    return new FeedStore(
+    return new PersistentFeedStore(
         timingUtils,
         extensionRegistry,
         contentStorage,

@@ -37,8 +37,8 @@ import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecyc
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
-import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
+import com.google.android.libraries.feed.feedstore.PersistentFeedStore;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -193,8 +193,8 @@ public class FeedProcessScope implements Dumpable {
       }
       TimingUtils timingUtils = new TimingUtils();
       MainThreadRunner mainThreadRunner = new MainThreadRunner();
-      FeedStore store =
-          new FeedStore(
+      PersistentFeedStore store =
+          new PersistentFeedStore(
               timingUtils,
               extensionRegistry,
               contentStorage,

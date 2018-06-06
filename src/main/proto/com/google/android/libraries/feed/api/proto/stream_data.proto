@@ -124,8 +124,9 @@ message StreamPayload {
     StreamFeature stream_feature = 3;
 
     // This contains a shared state, such as the Piet shared state.  The
-    // Feed store prepends a prefix (see FeedStore.SHARED_STATE_PREFIX) so these
-    // can be retrieved through a prefix query.
+    // Feed store prepends a prefix (see
+    // FeedStoreConstants.SHARED_STATE_PREFIX) so these can be retrieved
+    // through a prefix query.
     StreamSharedState stream_shared_state = 4;
 
     // Continuation Token for a parent.  These are stored in the same way other
@@ -141,7 +142,7 @@ message StreamPayload {
 
     // The semantic data associated with a Feature.  These are stored as content
     // with a prefix added by the Store (see
-    // FeedStore.SEMANTIC_PROPERTIES_PREFIX) allowing prefix queries.
+    // FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX) allowing prefix queries.
     bytes semantic_data = 7;
   }
 }

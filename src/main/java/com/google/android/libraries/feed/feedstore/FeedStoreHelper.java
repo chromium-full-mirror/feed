@@ -19,10 +19,10 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import java.util.UUID;
 
-/** Helper class for shared {@link FeedStore} methods */
+/** Helper class for shared FeedStore methods */
 public class FeedStoreHelper {
   /** Get a new, unique stream session */
-  public StreamSession getNewStreamSession() {
+  StreamSession getNewStreamSession() {
     String sessionName = SESSION_NAME_PREFIX + UUID.randomUUID();
     return StreamSession.newBuilder().setStreamToken(sessionName).build();
   }
