@@ -158,24 +158,8 @@ public class PietHostBindingProviderTest {
   }
 
   @Test
-  public void testGetElementListBindingForValue() {
-    assertThat(hostBindingProvider.getElementListBindingForValue(BINDING_WITH_HOST_DATA))
-        .isEqualTo(BINDING_WITHOUT_HOST_DATA);
-  }
-
-  @Test
-  public void testGetElementListBindingForValue_delegating() {
-    BindingValue hostBinding = BindingValue.newBuilder().setBindingId("element-list").build();
-    when(hostHostBindingProvider.getElementListBindingForValue(BINDING_WITH_HOST_DATA))
-        .thenReturn(hostBinding);
-
-    assertThat(delegatingHostBindingProvider.getElementListBindingForValue(BINDING_WITH_HOST_DATA))
-        .isEqualTo(hostBinding);
-  }
-
-  @Test
   public void testGetVedBindingForValue() {
-    assertThat(hostBindingProvider.getElementListBindingForValue(BINDING_WITH_HOST_DATA))
+    assertThat(hostBindingProvider.getVedBindingForValue(BINDING_WITH_HOST_DATA))
         .isEqualTo(BINDING_WITHOUT_HOST_DATA);
   }
 

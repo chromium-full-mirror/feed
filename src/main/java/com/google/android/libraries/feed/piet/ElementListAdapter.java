@@ -41,7 +41,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
 
   @Override
   ElementList getModelFromElement(Element baseElement) {
-    // Will also throw for ElementListBindingRef; looking up bindings is not supported here.
     if (!baseElement.hasElementList()) {
       throw new IllegalArgumentException(
           String.format("Missing ElementList; has %s", baseElement.getElementsCase()));
@@ -58,20 +57,9 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
       }
     } else {
       for (Element line : model.getElementsList()) {
-        ElementAdapter<? extends View, ?> adapter;
-        if (line.hasElementListBinding()) {
-          adapter =
-              getParameters()
-                  .elementAdapterFactory
-                  .createElementListAdapter(ElementList.getDefaultInstance(), frameContext);
-          addChildAdapter(adapter);
-          getBaseView().addView(adapter.getView());
-          return;
-        } else {
-          adapter =
-              getParameters().elementAdapterFactory.createAdapterForElement(line, frameContext);
-          adapter.createAdapter(line, frameContext);
-        }
+        ElementAdapter<? extends View, ?> adapter =
+            getParameters().elementAdapterFactory.createAdapterForElement(line, frameContext);
+        adapter.createAdapter(line, frameContext);
         addChildAdapter(adapter);
         getBaseView().addView(adapter.getView());
 
@@ -97,17 +85,7 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
           model.getElementsCount(),
           childAdapters.size());
       for (int i = 0; i < model.getElementsCount(); i++) {
-        Element cellModel = model.getElements(i);
-        if (cellModel.hasElementListBinding()) {
-          ElementListAdapter targetAdapter = (ElementListAdapter) childAdapters.get(i);
-          createAndBindChildListAdapter(
-              targetAdapter, cellModel.getElementListBinding(), cellModel, frameContext);
-          // TODO: If a style on the bound ElementList could cause the adapter to create
-          // a wrapper view (or lose one), remove the adapter's view from the LinearLayout and
-          // re-add the result of getView().
-        } else {
-          childAdapters.get(i).bindModel(model.getElements(i), frameContext);
-        }
+        childAdapters.get(i).bindModel(model.getElements(i), frameContext);
       }
     }
   }
@@ -138,18 +116,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   void onUnbindModel() {
     ViewUtils.clearOnClickActions(getView());
     super.onUnbindModel();
-
-    // Bound item layout is created at bind time. We can't reuse the layout in child adapters, so we
-    // call release at unbind time so that the child adapter's children can be recycled.
-    ElementList model = getRawModel();
-    if (model != null) {
-      for (int i = 0; i < model.getElementsCount(); i++) {
-        Element element = model.getElements(i);
-        if (element.hasElementListBinding()) {
-          childAdapters.get(i).releaseAdapter();
-        }
-      }
-    }
   }
 
   @Override

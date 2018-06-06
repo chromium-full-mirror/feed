@@ -42,7 +42,6 @@ import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
-import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
@@ -661,16 +660,6 @@ public class ElementListAdapterTest {
 
     Element elementWithModel = Element.newBuilder().setElementList(model).build();
     assertThat(adapter.getModelFromElement(elementWithModel)).isSameAs(model);
-
-    Element elementWithListBinding =
-        Element.newBuilder()
-            .setElementListBinding(ElementListBindingRef.newBuilder().setBindingId("binding"))
-            .build();
-    assertThatRunnable(() -> adapter.getModelFromElement(elementWithListBinding))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Missing ElementList");
 
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();

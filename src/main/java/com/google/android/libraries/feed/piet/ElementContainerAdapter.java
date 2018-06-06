@@ -22,12 +22,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
-import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
-import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.PietProto.Template;
 import java.util.ArrayList;
@@ -341,35 +339,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
 
     childLayoutParams.width = width;
     childLayoutParams.height = height;
-  }
-
-  /**
-   * When we bind an item that has an ElementListBinding, the adapter hasn't been initialized yet so
-   * we need to both create and bind it.
-   */
-  @Deprecated
-  void createAndBindChildListAdapter(
-      ElementListAdapter adapter,
-      ElementListBindingRef listBindingRef,
-      /*@Nullable*/ Element optionalBaseElement,
-      FrameContext frameContext) {
-    Element baseElement =
-        optionalBaseElement == null ? Element.getDefaultInstance() : optionalBaseElement;
-    BindingValue listBinding = frameContext.getElementListBindingValue(listBindingRef);
-    adapter.setVisibility(listBinding.getVisibility());
-    if (!listBinding.hasElementList()) {
-      if (listBinding.getVisibility() == Visibility.GONE || listBindingRef.getIsOptional()) {
-        adapter.setVisibility(Visibility.GONE);
-        return;
-      } else {
-        throw new IllegalArgumentException(
-            String.format("ElementList binding %s had no content", listBinding.getBindingId()));
-      }
-    }
-    ElementList list = listBinding.getElementList();
-    // If this is a re-bind, we assume this adapter has been released in onUnbindModel
-    adapter.createAdapter(list, baseElement, frameContext);
-    adapter.bindModel(list, baseElement, frameContext);
   }
 
   void addChildAdapter(ElementAdapter<? extends View, ?> adapter) {

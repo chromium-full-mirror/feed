@@ -36,7 +36,6 @@ import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
-import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
@@ -477,84 +476,6 @@ public class FrameContextTest {
 
     // Succeed in looking up binding
     assertThat(frameContext.getImageBindingValue(imageBindingRef)).isEqualTo(imageBindingValue);
-  }
-
-  @Test
-  public void testGetElementList() {
-    ElementList list =
-        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
-    BindingValue listBindingValue = defaultBinding().setElementList(list).build();
-    ElementListBindingRef listBindingRef =
-        ElementListBindingRef.newBuilder().setBindingId(BINDING_ID).build();
-
-    frameContext = makeFrameContextWithBinding(listBindingValue);
-
-    // Succeed in looking up binding
-    assertThat(frameContext.getElementListBindingValue(listBindingRef)).isEqualTo(listBindingValue);
-
-    // Can't look up binding
-    assertThatRunnable(
-            () ->
-                frameContext.getElementListBindingValue(
-                    ElementListBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("ElementList binding not found");
-
-    // Binding has no content
-    assertThatRunnable(
-            () -> makeFrameContextWithEmptyBinding().getElementListBindingValue(listBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("ElementList binding not found");
-
-    // Binding has no content but is GONE
-    listBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
-    frameContext = makeFrameContextWithBinding(listBindingValue);
-    assertThatRunnable(() -> frameContext.getElementListBindingValue(listBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("ElementList binding not found");
-
-    // Binding is missine but is optional
-    ElementListBindingRef listBindingRefInvalidOptional =
-        ElementListBindingRef.newBuilder()
-            .setBindingId(INVALID_BINDING_ID)
-            .setIsOptional(true)
-            .build();
-    assertThat(
-            makeFrameContextWithEmptyBinding()
-                .getElementListBindingValue(listBindingRefInvalidOptional))
-        .isEqualTo(BindingValue.getDefaultInstance());
-
-    // Binding has no content but is optional
-    ElementListBindingRef listBindingRefOptional =
-        ElementListBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
-    assertThat(
-            makeFrameContextWithEmptyBinding().getElementListBindingValue(listBindingRefOptional))
-        .isEqualTo(BindingValue.getDefaultInstance());
-  }
-
-  @Test
-  public void testGetElementList_hostBinding() {
-    ElementList list =
-        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
-    BindingValue listBindingValue = defaultBinding().setElementList(list).build();
-    BindingValue hostListBindingValue =
-        defaultBinding()
-            .setHostBindingData(HostBindingData.newBuilder())
-            .setElementList(list)
-            .build();
-    ElementListBindingRef listBindingRef =
-        ElementListBindingRef.newBuilder().setBindingId(BINDING_ID).build();
-
-    frameContext = makeFrameContextWithBinding(hostListBindingValue);
-
-    // Succeed in looking up binding
-    assertThat(frameContext.getElementListBindingValue(listBindingRef)).isEqualTo(listBindingValue);
   }
 
   @Test

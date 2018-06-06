@@ -17,10 +17,7 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
-import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
-import com.google.search.now.ui.piet.ElementsProto.BindingContext;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -30,7 +27,6 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
-import com.google.search.now.ui.piet.PietProto.Template;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -126,29 +122,6 @@ class ElementAdapterFactory {
         return gridRowFactory.get(element.getGridRow(), frameContext);
       case ELEMENT_LIST:
         return elementListFactory.get(element.getElementList(), frameContext);
-      case ELEMENT_LIST_BINDING:
-        BindingValue elementListBindingValue =
-            frameContext.getElementListBindingValue(element.getElementListBinding());
-        // TODO: support the various bits of metadata in BindingValue
-        return elementListFactory.get(elementListBindingValue.getElementList(), frameContext);
-      case TEMPLATE_BINDING:
-        BindingValue templateBindingValue =
-            frameContext.getTemplateInvocationBindingValue(element.getTemplateBinding());
-        if (templateBindingValue.hasTemplateInvocation()) {
-          return createTemplateAdapter(templateBindingValue.getTemplateInvocation(), frameContext);
-        } else {
-          if (!element.getTemplateBinding().getIsOptional()) {
-            frameContext.reportError(
-                MessageType.ERROR,
-                String.format(
-                    "Template binding %s missing content",
-                    element.getTemplateBinding().getBindingId()));
-          }
-          return createTemplateAdapter(
-              new TemplateAdapterModel(
-                  Template.getDefaultInstance(), BindingContext.getDefaultInstance()),
-              frameContext);
-        }
       case ELEMENTS_NOT_SET:
       default:
         throw new IllegalArgumentException(

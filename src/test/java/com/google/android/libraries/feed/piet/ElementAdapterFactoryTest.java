@@ -29,7 +29,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
-import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
@@ -244,75 +243,6 @@ public class ElementAdapterFactoryTest {
     assertThat(adapterFactory.createAdapterForElement(element, frameContext))
         .isSameAs(elementListAdapter);
     verify(elementListFactory).get(model, frameContext);
-  }
-
-  @Test
-  public void testCreateAdapterForElement_elementListBinding() {
-    ElementListBindingRef bindingRef =
-        ElementListBindingRef.newBuilder().setBindingId("ELEMENTLIST").build();
-    Element element = Element.newBuilder().setElementListBinding(bindingRef).build();
-    ElementList elementList =
-        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
-    BindingValue bindingValue = BindingValue.newBuilder().setElementList(elementList).build();
-    when(frameContext.getElementListBindingValue(bindingRef)).thenReturn(bindingValue);
-    ElementAdapter<?, ?> adapter = adapterFactory.createAdapterForElement(element, frameContext);
-    ArgumentCaptor<ElementList> captor = ArgumentCaptor.forClass(ElementList.class);
-    verify(elementListFactory).get(captor.capture(), eq(frameContext));
-    assertThat(adapter).isSameAs(elementListAdapter);
-    assertThat(captor.getValue()).isSameAs(elementList);
-  }
-
-  @Test
-  public void testCreateAdapterForElement_templateBinding() {
-    String bindingId = "TEMPLATE";
-    TemplateBindingRef bindingRef = TemplateBindingRef.newBuilder().setBindingId(bindingId).build();
-    Element element = Element.newBuilder().setTemplateBinding(bindingRef).build();
-    String templateId = "potato";
-    TemplateInvocation templateInvocation =
-        TemplateInvocation.newBuilder()
-            .setTemplateId(templateId)
-            .addBindingContexts(BindingContext.getDefaultInstance())
-            .build();
-    BindingValue templateBindingValue =
-        BindingValue.newBuilder()
-            .setBindingId(bindingId)
-            .setTemplateInvocation(templateInvocation)
-            .build();
-    when(frameContext.getTemplateInvocationBindingValue(bindingRef))
-        .thenReturn(templateBindingValue);
-    Template template = Template.newBuilder().setTemplateId("spud").build();
-    when(frameContext.getTemplate(templateId)).thenReturn(template);
-
-    ElementAdapter<?, ?> adapter = adapterFactory.createAdapterForElement(element, frameContext);
-
-    verify(templateFactory)
-        .get(new TemplateAdapterModel(template, BindingContext.getDefaultInstance()), frameContext);
-    assertThat(adapter).isSameAs(templateAdapter);
-    verify(frameContext, never()).reportError(eq(MessageType.ERROR), any());
-
-    TemplateBindingRef optionalBinding = bindingRef.toBuilder().setIsOptional(true).build();
-    when(frameContext.getTemplateInvocationBindingValue(optionalBinding))
-        .thenReturn(BindingValue.getDefaultInstance());
-    adapterFactory.createAdapterForElement(
-        Element.newBuilder().setTemplateBinding(optionalBinding).build(), frameContext);
-    verify(frameContext, never()).reportError(eq(MessageType.ERROR), any());
-    verify(templateFactory)
-        .get(
-            new TemplateAdapterModel(
-                Template.getDefaultInstance(), BindingContext.getDefaultInstance()),
-            frameContext);
-
-    when(frameContext.getTemplateInvocationBindingValue(bindingRef))
-        .thenReturn(BindingValue.getDefaultInstance());
-    adapterFactory.createAdapterForElement(element, frameContext);
-    verify(templateFactory, times(2))
-        .get(
-            new TemplateAdapterModel(
-                Template.getDefaultInstance(), BindingContext.getDefaultInstance()),
-            frameContext);
-    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-    verify(frameContext).reportError(eq(MessageType.ERROR), captor.capture());
-    assertThat(captor.getValue()).contains("Template binding TEMPLATE missing content");
   }
 
   @Test

@@ -77,9 +77,6 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
             cellAdapter.createAdapter(cell.getElementList(), frameContext);
             setLayoutParamsOnCell(cellAdapter, cell, frameContext);
             break;
-          case ELEMENT_LIST_BINDING:
-            cellAdapter = getAdapterForChildList(ElementList.getDefaultInstance(), frameContext);
-            break;
           default:
             throw new IllegalArgumentException(
                 String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
@@ -144,17 +141,6 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
           case ELEMENT_LIST:
             targetAdapter.bindModel(cell.getElementList(), frameContext);
             break;
-          case ELEMENT_LIST_BINDING:
-            createAndBindChildListAdapter(
-                targetAdapter, cell.getElementListBinding(), null, frameContext);
-
-            // TODO: If a style on the bound ElementList could cause the adapter to
-            // create
-            // a wrapper view (or lose one), remove the adapter's view from the LinearLayout and
-            // re-add the result of getView().
-
-            setLayoutParamsOnCell(targetAdapter, cell, frameContext);
-            break;
           default:
             throw new IllegalArgumentException(
                 String.format("Cell has no recognized content; got %s", cell.getCellContentCase()));
@@ -166,18 +152,6 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
   @Override
   void onUnbindModel() {
     super.onUnbindModel();
-
-    // Bound cell layout is created at bind time. We can't reuse the layout in child adapters, so we
-    // call release at unbind time so that the child adapter's children can be recycled.
-    GridRow model = getRawModel();
-    if (model != null) {
-      for (int i = 0; i < model.getCellsCount(); i++) {
-        GridCell cell = model.getCells(i);
-        if (cell.hasElementListBinding()) {
-          childAdapters.get(i).releaseAdapter();
-        }
-      }
-    }
   }
 
   @Override

@@ -79,14 +79,6 @@ public class PietHostBindingProvider extends HostBindingProvider {
   }
 
   @Override
-  public BindingValue getElementListBindingForValue(BindingValue bindingValue) {
-    if (hostHostBindingProvider != null) {
-      return hostHostBindingProvider.getElementListBindingForValue(bindingValue);
-    }
-    return super.getElementListBindingForValue(bindingValue);
-  }
-
-  @Override
   public BindingValue getVedBindingForValue(BindingValue bindingValue) {
     if (hostHostBindingProvider != null) {
       return hostHostBindingProvider.getVedBindingForValue(bindingValue);

@@ -32,7 +32,6 @@ import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
-import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
@@ -514,25 +513,6 @@ class FrameContext {
           reportError(
               MessageType.ERROR,
               String.format("Element binding not found for %s", binding.getBindingId())));
-    } else {
-      return bindingValue;
-    }
-  }
-
-  /**
-   * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
-   * does not point to a ElementList.
-   */
-  BindingValue getElementListBindingValue(ElementListBindingRef binding) {
-    BindingValue bindingValue = getBindingValue(binding.getBindingId());
-    if (bindingValue.hasHostBindingData()) {
-      bindingValue = hostBindingProvider.getElementListBindingForValue(bindingValue);
-    }
-    if (!bindingValue.hasElementList() && !binding.getIsOptional()) {
-      throw new IllegalStateException(
-          reportError(
-              MessageType.ERROR,
-              String.format("ElementList binding not found for %s", binding.getBindingId())));
     } else {
       return bindingValue;
     }

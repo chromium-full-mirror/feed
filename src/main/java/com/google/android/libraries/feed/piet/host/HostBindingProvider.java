@@ -18,7 +18,6 @@ import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
-import com.google.search.now.ui.piet.BindingRefsProto.ElementListBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
@@ -92,14 +91,6 @@ public class HostBindingProvider {
    * has specified a BindingValue which includes {@link HostBindingData} set.
    */
   public BindingValue getGridCellWidthBindingForValue(BindingValue bindingValue) {
-    return clearHostBindingData(bindingValue);
-  }
-
-  /**
-   * Called by Piet during the binding process for a {@link ElementListBindingRef} if the server has
-   * specified a BindingValue which includes {@link HostBindingData} set.
-   */
-  public BindingValue getElementListBindingForValue(BindingValue bindingValue) {
     return clearHostBindingData(bindingValue);
   }
 

@@ -433,14 +433,6 @@ public class TemplateInstanceAdapterTest {
 
   @Test
   public void testGetModelFromElement() {
-    Element elementWithModel =
-        Element.newBuilder().setTemplateBinding(TemplateBindingRef.getDefaultInstance()).build();
-    assertThatRunnable(() -> adapter.getModelFromElement(elementWithModel))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Templates must be re-bound");
-
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
     assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
