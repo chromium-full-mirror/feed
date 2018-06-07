@@ -127,6 +127,14 @@ public class FeedActionParser implements ActionParser {
 
         streamActionApi.downloadUrl(feedActionMetadata.getDownloadData().getUrl());
         break;
+      case LEARN_MORE:
+        if (!streamActionApi.canLearnMore()) {
+          Logger.e(TAG, "Cannot learn more: StreamActionApi does not support it");
+          break;
+        }
+
+        streamActionApi.learnMore();
+        break;
       default:
         Logger.wtf(TAG, "Haven't implemented host handling of %s", feedActionMetadata.getType());
     }
@@ -194,6 +202,8 @@ public class FeedActionParser implements ActionParser {
         return streamActionApi.canDismiss();
       case DOWNLOAD:
         return streamActionApi.canDownloadUrl();
+      case LEARN_MORE:
+        return streamActionApi.canLearnMore();
       case UNKNOWN:
         break;
     }

@@ -52,6 +52,7 @@ message FeedActionMetadata {
     DISMISS = 5;
     DOWNLOAD = 6;
     OPEN_URL_NEW_TAB = 7;
+    LEARN_MORE = 8;
   }
   optional Type type = 1;
 

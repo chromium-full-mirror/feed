@@ -147,6 +147,15 @@ public class FeedActionParserTest {
                   .build())
           .build();
 
+  private static final FeedActionPayload LEARN_MORE_FEED_ACTION =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(FeedActionMetadata.newBuilder().setType(Type.LEARN_MORE))
+                  .build())
+          .build();
+
   private static final Action OPEN_URL_ACTION =
       Action.newBuilder()
           .setExtension(
@@ -181,6 +190,14 @@ public class FeedActionParserTest {
                   .build())
           .build();
 
+  private static final Action LEARN_MORE_ACTION =
+      Action.newBuilder()
+          .setExtension(
+              PietFeedActionPayload.pietFeedActionPayloadExtension,
+              PietFeedActionPayload.newBuilder()
+                  .setFeedActionPayload(LEARN_MORE_FEED_ACTION)
+                  .build())
+          .build();
   private static final ContentId DISMISS_CONTENT_ID = ContentId.newBuilder().setId(123).build();
 
   private static final String DISMISS_CONTENT_ID_STRING = "dismissContentId";
@@ -353,6 +370,14 @@ public class FeedActionParserTest {
   }
 
   @Test
+  public void testCanPerformActionFromContextMenu_learnMore() {
+    when(streamActionApi.canLearnMore()).thenReturn(true);
+    assertThat(feedActionParser.canPerformAction(LEARN_MORE_FEED_ACTION, streamActionApi)).isTrue();
+    verify(streamActionApi).canLearnMore();
+    verifyNoMoreInteractions(streamActionApi);
+  }
+
+  @Test
   public void testDismiss_noApiSupport() {
     when(streamActionApi.canDismiss()).thenReturn(false);
     feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
@@ -405,5 +430,23 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
 
     verify(streamActionApi).dismiss(DISMISS_CONTENT_ID_STRING, streamDataOperations);
+  }
+
+  @Test
+  public void testLearnMore() {
+    when(streamActionApi.canLearnMore()).thenReturn(true);
+    feedActionParser.parseAction(
+        LEARN_MORE_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken- */ null);
+
+    verify(streamActionApi).learnMore();
+  }
+
+  @Test
+  public void testLearnMore_noApiSupport() {
+    when(streamActionApi.canLearnMore()).thenReturn(false);
+    feedActionParser.parseAction(
+        LEARN_MORE_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken- */ null);
+
+    verify(streamActionApi, never()).learnMore();
   }
 }
