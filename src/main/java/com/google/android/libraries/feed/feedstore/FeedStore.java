@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedstore;
 
+import android.database.Observable;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -41,7 +42,7 @@ import java.util.Set;
  * {@link Store} implementation that delegates between {@link PersistentFeedStore} and {@link
  * EphemeralFeedStore}.
  */
-public class FeedStore implements Store {
+public class FeedStore extends Observable<FeedStoreListener> implements Store {
   // Permanent reference to the persistent store (used for setting off cleanup)
   private final Store persistentStore;
   // The current store
@@ -171,6 +172,11 @@ public class FeedStore implements Store {
       persistentStore.switchToEphemeralMode();
       delegate = new EphemeralFeedStore(clock, timingUtils, storeHelper);
       isEphemeralMode = true;
+      synchronized (mObservers) {
+        for (FeedStoreListener listener : mObservers) {
+          listener.onSwitchToEphemeralMode();
+        }
+      }
     }
   }
 }

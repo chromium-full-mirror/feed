@@ -10,7 +10,7 @@ package_group(
     ],
 )
 
-java_library(
+android_library(
     name = "feedstore",
     srcs = glob(["*.java"]),
     deps = [
@@ -26,9 +26,6 @@ java_library(
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal:constants",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
-        "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
-        "@androidsdk//com.android.support:support-annotations-25.3.1",
-        "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
     ],
 )
