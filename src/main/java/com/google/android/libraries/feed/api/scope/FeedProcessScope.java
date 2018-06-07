@@ -223,7 +223,7 @@ public class FeedProcessScope implements Dumpable {
                 actionReader);
       }
       if (sessionManager == null) {
-        sessionManager =
+        FeedSessionManager fsm =
             new FeedSessionManager(
                 singleThreadExecutor,
                 store,
@@ -235,6 +235,9 @@ public class FeedProcessScope implements Dumpable {
                 schedulerApi,
                 configuration,
                 clock);
+        // TODO: Should this be tied to a Lifecycle call?
+        fsm.initialize();
+        sessionManager = fsm;
       }
 
       AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);

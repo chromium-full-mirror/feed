@@ -27,7 +27,11 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
 
-/** The SessionManager is responsible for creating and updating sessions within Jardin. */
+/**
+ * The SessionManager is responsible for creating and updating. A session has a one-to-one
+ * relationship with a ModelProvider. The SessionManager implements the session functionality and
+ * management.
+ */
 public interface SessionManager {
 
   /**
@@ -66,7 +70,7 @@ public interface SessionManager {
    * reads, therefore the payloads are returned through a consumer. The returned values will contain
    * both the payload and the content id of the payload.
    */
-  void getStreamFeatures(List<String> contentIds, Consumer<List<PayloadWithId>> consumer);
+  void getStreamFeatures(List<String> contentIds, Consumer<Result<List<PayloadWithId>>> consumer);
 
   /**
    * Return the shared state. This operation will be fast, so it can be called on the UI Thread.

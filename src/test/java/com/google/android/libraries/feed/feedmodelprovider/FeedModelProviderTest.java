@@ -38,6 +38,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -91,9 +92,9 @@ public class FeedModelProviderTest {
     doAnswer(
             invocation -> {
               @SuppressWarnings("unchecked")
-              Consumer<List<PayloadWithId>> consumer =
-                  (Consumer<List<PayloadWithId>>) invocation.getArguments()[1];
-              consumer.accept(childBindings);
+              Consumer<Result<List<PayloadWithId>>> consumer =
+                  (Consumer<Result<List<PayloadWithId>>>) invocation.getArguments()[1];
+              consumer.accept(Result.success(childBindings));
               return null;
             })
         .when(sessionManager)

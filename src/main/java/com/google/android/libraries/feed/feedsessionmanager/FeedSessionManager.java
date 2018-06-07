@@ -150,11 +150,16 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
     sessionFactory = new SessionFactory(store, taskQueue, timingUtils, threadUtils, configuration);
     contentCache = new ContentCache();
+  }
 
-    // Suppress /*@UnderInitialization*/ warning
-    @SuppressWarnings("nullness")
-    Runnable initializationTask = this::initializationTask;
-    taskQueue.initialize(initializationTask);
+  /**
+   * Called to initialize the session manager. This creates an executor task which does the actual
+   * work of setting up the current state. If this is not called, the session manager will not
+   * populate new or existing sessions. There isn't error checking on this since this happens on an
+   * executor task.
+   */
+  public void initialize() {
+    taskQueue.initialize(this::initializationTask);
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the
@@ -173,8 +178,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         }
       }
     } else {
-      // TODO: handle errors
-      Logger.e(TAG, "SharedStates failed to load, no shared states are loaded.");
+      // without shared states we need to switch to ephemeral mode
+      switchToEphemeralMode("SharedStates failed to load, no shared states are loaded.");
+      taskQueue.resetTaskQueue();
+      timeTracker.stop("task", "Initialization", "error", "switchToEphemeralMode");
+      return;
     }
     sharedStateTimeTracker.stop("", "sharedStateTimeTracker");
 
@@ -188,9 +196,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         store.getStreamStructures(head.getStreamSession());
     List<StreamStructure> results;
     if (!streamStructuresResult.isSuccessful()) {
-      Logger.i(TAG, "Unable to retrieve HEAD from Store.");
-      // TODO: handle errors - We need to put things into a in-memory mode.
-      results = new ArrayList<>();
+      // without $HEAD switch to ephemeral mode
+      switchToEphemeralMode("Unable to retrieve $HEAD from Store.");
+      timeTracker.stop("task", "Initialization", "error", "switchToEphemeralMode");
+      return;
     } else {
       results = streamStructuresResult.getValue();
     }
@@ -249,8 +258,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
                 unboundSession.populateModelProvider(
                     session, streamStructuresResult.getValue(), false);
               } else {
-                // TODO: handle errors
+                // ignore unbound session failures, remove this from tracking
                 Logger.e(TAG, "Failed to read unbound session state, ignored");
+                synchronized (lock) {
+                  sessions.remove(session.getStreamToken());
+                }
               }
               timeTracker.stop("task", "createUnboundSession");
               unboundSessionCount++;
@@ -272,7 +284,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         store.triggerContentGc(reservedContentIds, accessibleContentSupplier));
   }
 
-  private Supplier<Set<String>> accessibleContentSupplier =
+  @VisibleForTesting
+  final Supplier<Set<String>> accessibleContentSupplier =
       () -> {
         Set<String> accessibleContent = new HashSet<>();
         synchronized (lock) {
@@ -304,8 +317,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         }
       }
     } else {
-      // TODO: This is ignorable, but should we have a way to mark the storage layer
-      // to delete all Journal files?
+      // We were unable to read all the sessions, log an error and then ignore the fact that
+      // cleanup failed.
       Logger.e(TAG, "Error reading all sessions, Unable to cleanup session journals");
     }
     timeTracker.stop(
@@ -315,7 +328,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         expiredSessionsCleared - sessionCleared);
   }
 
-  /** Returns the persisted {@link StreamSessions} or {@code null} if it's not found. */
+  /** Returns the persisted sessions as {@link StreamSessions} or {@code null} if it's not found. */
   /*@Nullable*/
   @VisibleForTesting
   StreamSessions getPersistedSessions() {
@@ -323,7 +336,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     sessionIds.add(STREAM_SESSION_CONTENT_ID);
     Result<List<PayloadWithId>> sessionPayloadResult = store.getPayloads(sessionIds);
     if (!sessionPayloadResult.isSuccessful()) {
-      // TODO: handle errors
+      // If we cant read the persisted sessions, report the error and return null. No sessions will
+      // be created, this is as if we deleted all existing sessions.  It should be safe to ignore
+      // the error.
+      Logger.e(TAG, "getPayloads failed to read the Persisted sessions");
       return null;
     }
 
@@ -368,7 +384,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     try {
       sharedStatesFuture.get();
     } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "poplulateSession main thread portion failed");
+      Logger.e(TAG, e, "populateSession main thread portion failed");
     }
   }
 
@@ -385,7 +401,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     Runnable timeoutTask = null;
     if (behavior == REQUEST_WITH_TIMEOUT || behavior == NO_REQUEST_WITH_TIMEOUT) {
-      timeoutTask = () -> populateTimeoutTask(session);
+      timeoutTask = () -> populateSessionTask(session);
     }
     boolean makeRequest =
         (behavior == REQUEST_WITH_TIMEOUT
@@ -425,18 +441,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     result.accept(true);
   }
 
-  private void populateTimeoutTask(InitializableSession session) {
-    Logger.i(TAG, "****** populateSessionTimeout Task");
-    populateSessionTask(session);
-  }
-
   private void populateSessionTask(InitializableSession session) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
     Result<StreamSession> streamSessionResult = store.createNewSession();
     if (!streamSessionResult.isSuccessful()) {
-      // TODO: We should invalidate the session with an error
-      Logger.e(TAG, "Unable to create a new session");
+      notifySessionError(session);
+      switchToEphemeralMode("Unable to create a new session, createNewSession failed");
       timeTracker.stop("task", "Create/Populate New Session", "Failure", "createNewSession");
       return;
     }
@@ -446,8 +457,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
     Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(streamSession);
     if (!streamStructuresResult.isSuccessful()) {
-      // TODO: We should invalidate the session with an error
-      Logger.e(TAG, "Unable to create a new session");
+      notifySessionError(session);
+      switchToEphemeralMode("Unable to create a new session, getStreamStructures failed");
       timeTracker.stop("task", "Create/Populate New Session", "Failure", "getStreamStructures");
       return;
     }
@@ -469,6 +480,18 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         session.getStreamSession().getStreamToken(),
         StringFormattingUtils.formatLogDate(session.getStreamSession().getLastAccessed()));
     timeTracker.stop("task", "Create/Populate New Session");
+  }
+
+  @VisibleForTesting
+  void switchToEphemeralMode(String message) {
+    Logger.e(TAG, message);
+    // TODO: This needs to call the store method which switches to ephemeral mode
+  }
+
+  @VisibleForTesting
+  void notifySessionError(Session session) {
+    Logger.e(TAG, "notify Session an error has occurred");
+    // TODO: We should invalidate the session with an error
   }
 
   @VisibleForTesting
@@ -521,11 +544,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
             synchronized (lock) {
               sessions.put(session.getStreamSession().getStreamToken(), session);
             }
+            existingSessionCount++;
           } else {
-            // TODO: handle errors
-            Logger.e(TAG, "unable to get stream structure for existing session");
+            Logger.e(
+                TAG,
+                "unable to get stream structure for existing session %s",
+                session.getStreamSession().getStreamToken());
+            notifySessionError(session);
+            switchToEphemeralMode("unable to get stream structure for existing session");
           }
-          existingSessionCount++;
         });
     return true;
   }
@@ -588,7 +615,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
-  public void getStreamFeatures(List<String> contentIds, Consumer<List<PayloadWithId>> consumer) {
+  public void getStreamFeatures(
+      List<String> contentIds, Consumer<Result<List<PayloadWithId>>> consumer) {
     List<PayloadWithId> results = new ArrayList<>();
     List<String> cacheMisses = new ArrayList<>();
     int contentSize;
@@ -609,8 +637,9 @@ public class FeedSessionManager implements SessionManager, Dumpable {
       if (contentResult.isSuccessful()) {
         results.addAll(contentResult.getValue());
       } else {
-        // TODO: handle errors
-        Logger.e(TAG, "Unable to get the payloads in getStreamFeatures");
+        // since we couldn't populate the content, switch to ephemeral mode
+        switchToEphemeralMode("Unable to get the payloads in getStreamFeatures");
+        consumer.accept(Result.failure());
       }
     }
     Logger.i(
@@ -619,7 +648,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         contentIds.size(),
         cacheMisses.size(),
         contentSize);
-    consumer.accept(results);
+    consumer.accept(Result.success(results));
   }
 
   @Override
@@ -680,7 +709,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
-  private void resetHead(/*@Nullable*/ StreamSession streamSession) {
+  @VisibleForTesting
+  void resetHead(/*@Nullable*/ StreamSession streamSession) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     List<Session> currentSessions;
     synchronized (lock) {
@@ -761,7 +791,17 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         if (mutationContext.getContinuationToken() != null) {
           Logger.e(
               TAG, "Error found with a token request %s", mutationContext.getContinuationToken());
-          // TODO: We need to route this issue through the UI for display
+          Session session = null;
+          StreamSession streamSession = mutationContext.getRequestingSession();
+          String sessionToken = (streamSession != null) ? streamSession.getStreamToken() : null;
+          if (sessionToken != null) {
+            synchronized (lock) {
+              session = sessions.get(sessionToken);
+            }
+          }
+          if (session != null) {
+            notifySessionError(session);
+          }
         } else {
           Logger.e(TAG, "Unexpected Update error found, the update is being ignored");
         }

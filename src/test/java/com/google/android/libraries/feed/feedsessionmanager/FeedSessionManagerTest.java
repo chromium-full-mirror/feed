@@ -18,8 +18,11 @@ import static com.google.android.libraries.feed.api.store.Store.HEAD;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -77,6 +80,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -124,7 +128,7 @@ public class FeedSessionManagerTest {
     when(store.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
     when(store.getStreamStructures(any(StreamSession.class)))
         .thenReturn(Result.success(new ArrayList<>()));
-    when(store.getPayloads(any(List.class))).thenReturn(Result.success(new ArrayList<>()));
+    when(store.getPayloads(any())).thenReturn(Result.success(new ArrayList<>()));
     when(store.getAllSessions()).thenReturn(Result.success(new ArrayList<>()));
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
@@ -167,6 +171,7 @@ public class FeedSessionManagerTest {
             schedulerApi,
             configuration,
             clock);
+    sessionManager.initialize();
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
@@ -208,6 +213,16 @@ public class FeedSessionManagerTest {
       cursorCount++;
     }
     assertThat(cursorCount).isEqualTo(featureCnt * 2);
+  }
+
+  @Test
+  public void testAccessibleContentSupplier() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    int featureCnt = 3;
+    populateSession(sessionManager, featureCnt, 1, true, null);
+    Set<String> accessibleContent = sessionManager.accessibleContentSupplier.get();
+    // Add one for the root feature
+    assertThat(accessibleContent).hasSize(featureCnt + 1);
   }
 
   @Test
@@ -287,6 +302,7 @@ public class FeedSessionManagerTest {
             schedulerApi,
             configuration,
             clock);
+    sessionManager.initialize();
 
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     StreamDataOperation streamDataOperation =
@@ -327,6 +343,7 @@ public class FeedSessionManagerTest {
             schedulerApi,
             configuration,
             clock);
+    sessionManager.initialize();
     when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
     assertThat(sessionManager.isSessionAlive(session1)).isFalse();
     assertThat(sessionManager.isSessionAlive(session2)).isTrue();
@@ -338,7 +355,7 @@ public class FeedSessionManagerTest {
     StreamSessions streamSessions = StreamSessions.getDefaultInstance();
     StreamPayload payload = StreamPayload.newBuilder().setStreamSessions(streamSessions).build();
     persistedSessions.add(new PayloadWithId(FeedSessionManager.STREAM_SESSION_CONTENT_ID, payload));
-    when(store.getPayloads(any(List.class))).thenReturn(Result.success(persistedSessions));
+    when(store.getPayloads(any())).thenReturn(Result.success(persistedSessions));
 
     FeedSessionManager sessionManager =
         new FeedSessionManager(
@@ -352,6 +369,7 @@ public class FeedSessionManagerTest {
             schedulerApi,
             configuration,
             clock);
+    sessionManager.initialize();
     StreamSessions sessions = sessionManager.getPersistedSessions();
     assertThat(sessions).isEqualTo(streamSessions);
   }
@@ -377,6 +395,7 @@ public class FeedSessionManagerTest {
             schedulerApi,
             configuration,
             clock);
+    sessionManager.initialize();
     Session s2 = mock(Session.class);
     when(s2.getStreamSession()).thenReturn(session2);
     sessionManager.setSessionsForTest(s2);
@@ -401,7 +420,7 @@ public class FeedSessionManagerTest {
     StreamPayload payload =
         StreamPayload.newBuilder().setStreamSessions(streamSessionsBuilder.build()).build();
     persistedSessions.add(new PayloadWithId(FeedSessionManager.STREAM_SESSION_CONTENT_ID, payload));
-    when(store.getPayloads(any(List.class))).thenReturn(Result.success(persistedSessions));
+    when(store.getPayloads(any())).thenReturn(Result.success(persistedSessions));
 
     when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
     FeedSessionManager sessionManager =
@@ -416,6 +435,7 @@ public class FeedSessionManagerTest {
             schedulerApi,
             configuration,
             clock);
+    sessionManager.initialize();
     Map<String, Session> sessionMap = sessionManager.getSessionsMapForTest();
     // Sessions will include $HEAD
     HeadSessionImpl head = (HeadSessionImpl) sessionMap.get(HEAD.getStreamToken());
@@ -441,6 +461,7 @@ public class FeedSessionManagerTest {
             schedulerApi,
             configuration,
             clock);
+    sessionManager.initialize();
     StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
     StreamSession session2 = StreamSession.newBuilder().setStreamToken("stream:2").build();
     Session s1 = mock(Session.class);
@@ -453,7 +474,7 @@ public class FeedSessionManagerTest {
     when(store.editContent()).thenReturn(contentMutation);
 
     sessionManager.updateStoredSessions();
-    assertThat(contentMutation.commited).isTrue();
+    assertThat(contentMutation.committed).isTrue();
     assertThat(contentMutation.contentId).isEqualTo(FeedSessionManager.STREAM_SESSION_CONTENT_ID);
     assertThat(contentMutation.payload.hasStreamSessions()).isTrue();
     List<StreamSession> streamSessionList =
@@ -465,43 +486,85 @@ public class FeedSessionManagerTest {
   }
 
   @Test
+  public void testErrors_initializationSharedStateError() {
+    Store errorStore = mock(Store.class);
+    when(errorStore.getSharedStates()).thenReturn(Result.failure());
+    FeedSessionManager spySessionManager = getInitializedSpySessionManager(errorStore);
+
+    verify(spySessionManager).switchToEphemeralMode(anyString());
+  }
+
+  @Test
+  public void testErrors_initializationStreamStructureError() {
+    Store errorStore = mock(Store.class);
+    when(errorStore.getHeadSession()).thenReturn(HEAD);
+    when(errorStore.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
+    when(errorStore.getStreamStructures(any(StreamSession.class))).thenReturn(Result.failure());
+    FeedSessionManager spySessionManager = getInitializedSpySessionManager(errorStore);
+
+    verify(spySessionManager).switchToEphemeralMode(anyString());
+  }
+
+  @Test
+  public void testErrors_persistedSession() {
+    Store errorStore = mock(Store.class);
+    when(errorStore.getHeadSession()).thenReturn(HEAD);
+    when(errorStore.triggerContentGc(anyObject(), anyObject())).thenReturn(() -> {});
+    when(errorStore.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
+    when(errorStore.getStreamStructures(any(StreamSession.class)))
+        .thenReturn(Result.success(new ArrayList<>()));
+
+    StreamSessions.Builder streamSessionsBuilder = StreamSessions.newBuilder();
+    StreamSession session1 =
+        StreamSession.newBuilder().setStreamToken("stream:1").setLastAccessed(0).build();
+    streamSessionsBuilder.addStreamSessions(session1);
+    when(errorStore.getPayloads(any())).thenReturn(Result.failure());
+
+    when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
+    FeedSessionManager spySessionManager = getInitializedSpySessionManager(errorStore);
+
+    assertThat(spySessionManager.getPersistedSessions()).isNull();
+  }
+
+  @Test
+  public void testErrors_createNewSessionError() {
+    PersistentFeedStore spyFeedStore = getSpyFeedStore();
+    doReturn(Result.failure()).when(spyFeedStore).createNewSession();
+    FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
+    populateSession(spySessionManager, 5, 1, true, null);
+
+    ModelProviderFactory modelProviderFactory =
+        new FeedModelProviderFactory(
+            spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+    modelProviderFactory.createNew();
+    verify(spySessionManager).switchToEphemeralMode(anyString());
+    verify(spySessionManager).notifySessionError(any());
+  }
+
+  @Test
+  public void testErrors_getStreamStructuresError() {
+    PersistentFeedStore spyFeedStore = getSpyFeedStore();
+    doReturn(Result.failure())
+        .when(spyFeedStore)
+        .getStreamStructures(AdditionalMatchers.not(eq(Store.HEAD)));
+    FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
+    populateSession(spySessionManager, 5, 1, true, null);
+
+    ModelProviderFactory modelProviderFactory =
+        new FeedModelProviderFactory(
+            spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+    modelProviderFactory.createNew();
+    verify(spySessionManager).switchToEphemeralMode(anyString());
+    verify(spySessionManager).notifySessionError(any());
+  }
+
+  @Test
   public void testInvalidateHead() {
-    /*
-    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
-    when(store.createNewSession()).thenReturn(Result.success(streamSession));
-    ContentMutation content = mock(ContentMutation.class);
-    when(store.editContent()).thenReturn(content);
-    FeedSessionManager sessionManager =
-        new FeedSessionManager(
-            MoreExecutors.newDirectExecutorService(),
-            store,
-            timingUtils,
-            threadUtils,
-            protocolAdapter,
-            requestManager,
-            schedulerApi,
-            configuration,
-            clock);
-    assertThat(sessionManager.getInvalidateHeadStateForTest()).isFalse();
-    Map<String, Session> sessionMap = sessionManager.getSessionsMapForTest();
-    assertThat(sessionMap).hasSize(1);
-
-    sessionManager.invalidateHead();
-    assertThat(sessionManager.getInvalidateHeadStateForTest()).isTrue();
-    sessionManager.getNewSession(modelProvider);
-
-    // The session hasn't been added yet.
-    sessionMap = sessionManager.getSessionsMapForTest();
-    assertThat(sessionMap).hasSize(1);
-
-    List<Runnable> delayedRunnables = sessionManager.getDelayedRunnables();
-    assertThat(delayedRunnables).hasSize(1);
-    delayedRunnables.get(0).run();
-
-    // The session hasn't been added yet.
-    sessionMap = sessionManager.getSessionsMapForTest();
-    assertThat(sessionMap).hasSize(2);
-    */
+    PersistentFeedStore spyFeedStore = getSpyFeedStore();
+    FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
+    spySessionManager.invalidateHead();
+    verify(spySessionManager).resetHead(null);
+    verify(spyFeedStore).clearHead();
   }
 
   private int populateSession(
@@ -548,23 +611,57 @@ public class FeedSessionManagerTest {
             mainThreadRunner,
             clock,
             new FeedStoreHelper());
-    return new FeedSessionManager(
-        executor,
-        store,
-        timingUtils,
-        threadUtils,
-        mainThreadRunner,
-        protocolAdapter,
-        requestManager,
-        schedulerApi,
-        configuration,
-        clock);
+    FeedSessionManager fsm =
+        new FeedSessionManager(
+            executor,
+            store,
+            timingUtils,
+            threadUtils,
+            mainThreadRunner,
+            protocolAdapter,
+            requestManager,
+            schedulerApi,
+            configuration,
+            clock);
+    fsm.initialize();
+    return fsm;
+  }
+
+  private PersistentFeedStore getSpyFeedStore() {
+    return spy(
+        new PersistentFeedStore(
+            timingUtils,
+            extensionRegistry,
+            new InMemoryContentStorage(),
+            new InMemoryJournalStorage(threadUtils),
+            threadUtils,
+            mainThreadRunner,
+            clock,
+            new FeedStoreHelper()));
+  }
+
+  private FeedSessionManager getInitializedSpySessionManager(Store feedStore) {
+    FeedSessionManager spySessionManager =
+        spy(
+            new FeedSessionManager(
+                MoreExecutors.newDirectExecutorService(),
+                feedStore,
+                timingUtils,
+                threadUtils,
+                mainThreadRunner,
+                protocolAdapter,
+                requestManager,
+                schedulerApi,
+                configuration,
+                clock));
+    spySessionManager.initialize();
+    return spySessionManager;
   }
 
   private static class FakeContentMutation implements ContentMutation {
     String contentId;
     StreamPayload payload;
-    boolean commited = false;
+    boolean committed = false;
 
     @Override
     public ContentMutation add(String contentId, StreamPayload payload) {
@@ -575,7 +672,7 @@ public class FeedSessionManagerTest {
 
     @Override
     public CommitResult commit() {
-      commited = true;
+      committed = true;
       return CommitResult.SUCCESS;
     }
   }

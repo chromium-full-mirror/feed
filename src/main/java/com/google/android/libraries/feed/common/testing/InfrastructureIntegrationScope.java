@@ -121,6 +121,7 @@ public class InfrastructureIntegrationScope {
             schedulerApi,
             configuration,
             clock);
+    feedSessionManager.initialize();
     modelProviderFactory =
         new FeedModelProviderFactory(
             feedSessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);

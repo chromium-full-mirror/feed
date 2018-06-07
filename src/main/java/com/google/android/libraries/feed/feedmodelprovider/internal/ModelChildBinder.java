@@ -18,6 +18,7 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -47,7 +48,8 @@ public class ModelChildBinder {
     this.timingUtils = timingUtils;
   }
 
-  public void bindChildren(List<UpdatableModelChild> childrenToBind, Consumer<Integer> consumer) {
+  public void bindChildren(
+      List<UpdatableModelChild> childrenToBind, Consumer<Result<Void>> consumer) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     Map<String, UpdatableModelChild> bindingChildren = new HashMap<>();
     List<String> contentIds = new ArrayList<>();
@@ -58,7 +60,14 @@ public class ModelChildBinder {
     }
     sessionManager.getStreamFeatures(
         contentIds,
-        payloads -> {
+        results -> {
+          if (!results.isSuccessful()) {
+            // If we failed, it's likely that this ModelProvider will soon be invalidated by the
+            // SessionManager
+            Logger.e(TAG, "Unable to get the stream features.");
+            consumer.accept(Result.failure());
+          }
+          List<PayloadWithId> payloads = results.getValue();
           if (contentIds.size() > payloads.size()) {
             Logger.e(
                 TAG,
@@ -87,7 +96,7 @@ public class ModelChildBinder {
             }
           }
           timeTracker.stop("", "bindingChildren", "childrenToBind", childrenToBind.size());
-          consumer.accept(payloads.size());
+          consumer.accept(Result.success(null));
         });
   }
 }

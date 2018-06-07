@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Committer;
@@ -257,6 +258,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   public void invalidate() {
     Logger.i(TAG, "Invalidating the current ModelProvider: session %s", getSessionToken());
     synchronized (lock) {
+      if (currentState == State.INVALIDATED) {
+        Logger.i(TAG, "Invalidated an already invalid ModelProvider");
+        return;
+      }
       currentState = State.INVALIDATED;
       for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
         ModelCursorImpl cursor = cursorRef.get();
@@ -440,7 +445,16 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             childrenToBind = tokenTracker.insertToken();
           }
 
-          bindChildrenAndTokens(childrenToBind, (bindingCount) -> mutationHandler.postMutation());
+          bindChildrenAndTokens(
+              childrenToBind,
+              (result) -> {
+                if (result.isSuccessful()) {
+                  mutationHandler.postMutation();
+                } else {
+                  Logger.e(TAG, "bindChildrenAndTokens failed, not processing mutation");
+                  invalidate();
+                }
+              });
           timeTracker.stop("", "modelProviderCommit");
           Logger.i(
               TAG,
@@ -538,7 +552,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       };
 
   private void bindChildrenAndTokens(
-      List<UpdatableModelChild> childrenToBind, Consumer<Integer> consumer) {
+      List<UpdatableModelChild> childrenToBind, Consumer<Result<Void>> consumer) {
     // Bind the unbound children
     modelChildBinder.bindChildren(childrenToBind, consumer);
 
