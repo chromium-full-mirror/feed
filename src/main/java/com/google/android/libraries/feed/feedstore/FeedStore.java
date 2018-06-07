@@ -42,7 +42,17 @@ import java.util.Set;
  * EphemeralFeedStore}.
  */
 public class FeedStore implements Store {
-  private final Store delegate;
+  // Permanent reference to the persistent store (used for setting off cleanup)
+  private final Store persistentStore;
+  // The current store
+  private Store delegate;
+
+  // Needed for switching to ephemeral mode
+  private final Clock clock;
+  private final FeedStoreHelper storeHelper;
+  private final TimingUtils timingUtils;
+
+  private boolean isEphemeralMode = false;
 
   public FeedStore(
       TimingUtils timingUtils,
@@ -53,16 +63,20 @@ public class FeedStore implements Store {
       MainThreadRunner mainThreadRunner,
       Clock clock,
       FeedStoreHelper storeHelper) {
-    this.delegate =
+    this.clock = clock;
+    this.storeHelper = storeHelper;
+    this.timingUtils = timingUtils;
+    this.persistentStore =
         new PersistentFeedStore(
-            timingUtils,
+            this.timingUtils,
             extensionRegistry,
             contentStorage,
             journalStorage,
             threadUtils,
             mainThreadRunner,
-            clock,
-            storeHelper);
+            this.clock,
+            this.storeHelper);
+    delegate = persistentStore;
   }
 
   @Override
@@ -144,5 +158,19 @@ public class FeedStore implements Store {
   @Override
   public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
     return delegate.triggerActionGc(actions, validContentIds);
+  }
+
+  @Override
+  public boolean isEphemeralMode() {
+    return isEphemeralMode;
+  }
+
+  @Override
+  public void switchToEphemeralMode() {
+    if (!isEphemeralMode) {
+      persistentStore.switchToEphemeralMode();
+      delegate = new EphemeralFeedStore(clock, timingUtils, storeHelper);
+      isEphemeralMode = true;
+    }
   }
 }

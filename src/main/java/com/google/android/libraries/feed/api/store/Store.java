@@ -110,4 +110,13 @@ public interface Store {
    * a new copy of the journal.
    */
   Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds);
+
+  /**
+   * Switches to an ephemeral version of the store. Ephemeral mode of the store should run in memory
+   * and not attempt to write to disk.
+   */
+  void switchToEphemeralMode();
+
+  /** Whether the store is in ephemeral mode */
+  boolean isEphemeralMode();
 }

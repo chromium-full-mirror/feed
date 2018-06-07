@@ -53,7 +53,7 @@ public class EphemeralFeedStore implements Store {
 
   private final Clock clock;
   private final TimingUtils timingUtils;
-  private final FeedStoreHelper sessionGenerator;
+  private final FeedStoreHelper storeHelper;
 
   private final Map<String, PayloadWithId> payloadWithIdMap = new HashMap<>();
   private final Map<String, StreamSharedState> sharedStateMap = new HashMap<>();
@@ -61,11 +61,10 @@ public class EphemeralFeedStore implements Store {
   private final Map<Integer, List<StreamAction>> actionsMap = new HashMap<>();
   private final Map<StreamSession, List<StreamStructure>> sessionsMap = new HashMap<>();
 
-  public EphemeralFeedStore(
-      Clock clock, TimingUtils timingUtils, FeedStoreHelper sessionGenerator) {
+  public EphemeralFeedStore(Clock clock, TimingUtils timingUtils, FeedStoreHelper storeHelper) {
     this.clock = clock;
     this.timingUtils = timingUtils;
-    this.sessionGenerator = sessionGenerator;
+    this.storeHelper = storeHelper;
   }
 
   @Override
@@ -127,7 +126,7 @@ public class EphemeralFeedStore implements Store {
   @Override
   public Result<StreamSession> createNewSession() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    StreamSession streamSession = sessionGenerator.getNewStreamSession();
+    StreamSession streamSession = storeHelper.getNewStreamSession();
     Result<List<StreamStructure>> streamStructuresResult = getStreamStructures(HEAD);
     sessionsMap.put(streamSession, new ArrayList<>(streamStructuresResult.getValue()));
     tracker.stop("createNewSession", streamSession.getStreamToken());
@@ -250,5 +249,15 @@ public class EphemeralFeedStore implements Store {
   public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
     // No garbage collection in ephemeral mode
     return EMPTY_RUNNABLE;
+  }
+
+  @Override
+  public void switchToEphemeralMode() {
+    // Do nothing
+  }
+
+  @Override
+  public boolean isEphemeralMode() {
+    return true;
   }
 }

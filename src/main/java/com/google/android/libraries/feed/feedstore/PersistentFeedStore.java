@@ -482,6 +482,16 @@ public class PersistentFeedStore implements Store, Dumpable {
         ::gc;
   }
 
+  @Override
+  public void switchToEphemeralMode() {
+    // TODO: implement cleanup
+  }
+
+  @Override
+  public boolean isEphemeralMode() {
+    return false;
+  }
+
   private CommitResult commitSemanticPropertiesMutation(
       Map<String, ByteString> semanticPropertiesMap) {
     threadUtils.checkNotMainThread();

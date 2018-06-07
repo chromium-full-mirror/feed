@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedstore;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -26,6 +27,7 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import java.util.ArrayList;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
@@ -56,5 +58,13 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         mainThreadRunner,
         clock,
         new FeedStoreHelper());
+  }
+
+  @Test
+  public void testSwitchToEphemeralMode() {
+    FeedStore store = (FeedStore) getStore();
+    assertThat(store.isEphemeralMode()).isFalse();
+    store.switchToEphemeralMode();
+    assertThat(store.isEphemeralMode()).isTrue();
   }
 }
