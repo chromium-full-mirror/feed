@@ -106,7 +106,7 @@ public class MutationCommitterFactory {
     private final MutationContext mutationContext;
     private final List<StreamStructure> streamStructures = new ArrayList<>();
 
-    private boolean clearedHead = false;
+    @VisibleForTesting boolean clearedHead = false;
     private List<StreamDataOperation> dataOperations;
 
     private MutationCommitter(String task, MutationContext mutationContext) {
@@ -151,8 +151,6 @@ public class MutationCommitterFactory {
       contentCache.startMutation();
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
       commitContent();
-      // TODO: If we are currently delaying creation and we didn't clear head, then this
-      // is an update.  Should we delay commitSessionUpdates until head is population?
       commitSessionUpdates();
       contentCache.finishMutation();
       timeTracker.stop(
@@ -251,7 +249,8 @@ public class MutationCommitterFactory {
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
     }
 
-    private boolean validDataOperation(StreamDataOperation dataOperation) {
+    @VisibleForTesting
+    boolean validDataOperation(StreamDataOperation dataOperation) {
       if (!dataOperation.hasStreamPayload() || !dataOperation.hasStreamStructure()) {
         Logger.e(TAG, "Invalid StreamDataOperation - payload or streamStructure not defined");
         return false;
