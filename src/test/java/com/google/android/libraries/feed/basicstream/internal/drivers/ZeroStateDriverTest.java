@@ -53,7 +53,7 @@ public class ZeroStateDriverTest {
     context = Robolectric.setupActivity(Activity.class);
 
     zeroStateDriver =
-        new ZeroStateDriver(modelProvider, contentChangedListener) {
+        new ZeroStateDriver(modelProvider, contentChangedListener, /* spinnerShown= */ false) {
           @Override
           int getHourOfDay() {
             return HOUR_OF_DAY;
@@ -69,6 +69,20 @@ public class ZeroStateDriverTest {
 
     assertThat(zeroStateDriver.isBound()).isTrue();
     verify(zeroStateViewHolder).bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ false);
+  }
+
+  @Test
+  public void testBind_whenSpinnerShownTrue() {
+    zeroStateDriver =
+        new ZeroStateDriver(modelProvider, contentChangedListener, /* spinnerShown= */ true) {
+          @Override
+          int getHourOfDay() {
+            return HOUR_OF_DAY;
+          }
+        };
+
+    zeroStateDriver.bind(zeroStateViewHolder);
+    verify(zeroStateViewHolder).bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ true);
   }
 
   @Test

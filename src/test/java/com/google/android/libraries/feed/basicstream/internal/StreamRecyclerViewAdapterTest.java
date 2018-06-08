@@ -290,6 +290,29 @@ public class StreamRecyclerViewAdapterTest {
   }
 
   @Test
+  public void testNotifyContentsCleared_notifiesListener() {
+    // Listener triggered in setup.
+    reset(contentChangedListener);
+    streamRecyclerViewAdapter.notifyContentsCleared();
+    assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
+    assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
+    verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testNotifyContentsCleared_streamVisibleFalse() {
+    streamRecyclerViewAdapter.setStreamContentVisible(false);
+    streamAdapterObserver.reset();
+
+    // Listener triggered in setup.
+    reset(contentChangedListener);
+    streamRecyclerViewAdapter.notifyContentsCleared();
+    assertThat(streamAdapterObserver.removedStart).isEqualTo(0);
+    assertThat(streamAdapterObserver.removedCount).isEqualTo(0);
+    verify(contentChangedListener, never()).onContentChanged();
+  }
+
+  @Test
   public void testSetHeaders_notifiesListener() {
     // Listener triggered in setup.
     reset(contentChangedListener);

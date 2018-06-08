@@ -267,4 +267,17 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     }
   }
 
+  @Override
+  public void notifyContentsCleared() {
+    int itemCount = leafFeatureDrivers.size();
+    leafFeatureDrivers.clear();
+
+    if (streamContentVisible) {
+      // TODO: This would notify the listener even if the content being removed is
+      // offscreen. Fix if this becomes an issue.
+      contentChangedListener.onContentChanged();
+
+      notifyItemRangeRemoved(headers.size(), itemCount);
+    }
+  }
 }

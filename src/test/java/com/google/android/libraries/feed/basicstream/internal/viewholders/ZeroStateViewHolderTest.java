@@ -117,18 +117,29 @@ public class ZeroStateViewHolderTest {
   }
 
   @Test
-  public void testBind_hidesSpinner() {
-    View actionButton = frameLayout.findViewById(R.id.action_button);
+  public void testBind_showsLoadingSpinner_whenInitializingFalse() {
+    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START, /* showSpinner= */ false);
+
     View spinner = frameLayout.findViewById(R.id.loading_spinner);
+    View zeroState = frameLayout.findViewById(R.id.zero_state);
+
+    assertThat(spinner.getVisibility()).isEqualTo(View.GONE);
+    assertThat(zeroState.getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
+  public void testBind_hidesSpinner() {
+    View spinner = frameLayout.findViewById(R.id.loading_spinner);
+    View zeroState = frameLayout.findViewById(R.id.zero_state);
     zeroStateViewHolder.showSpinner(true);
 
-    assertThat(actionButton.getVisibility()).isEqualTo(View.GONE);
     assertThat(spinner.getVisibility()).isEqualTo(View.VISIBLE);
+    assertThat(zeroState.getVisibility()).isEqualTo(View.GONE);
 
     zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
 
-    assertThat(actionButton.getVisibility()).isEqualTo(View.VISIBLE);
     assertThat(spinner.getVisibility()).isEqualTo(View.GONE);
+    assertThat(zeroState.getVisibility()).isEqualTo(View.VISIBLE);
   }
 
   @Test
@@ -147,27 +158,27 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testShowSpinner_showsSpinner() {
-    View actionButton = frameLayout.findViewById(R.id.action_button);
     View spinner = frameLayout.findViewById(R.id.loading_spinner);
+    View zeroState = frameLayout.findViewById(R.id.zero_state);
 
     zeroStateViewHolder.showSpinner(true);
 
-    assertThat(actionButton.getVisibility()).isEqualTo(View.GONE);
     assertThat(spinner.getVisibility()).isEqualTo(View.VISIBLE);
+    assertThat(zeroState.getVisibility()).isEqualTo(View.GONE);
   }
 
   @Test
   public void testShowSpinner_hidesSpinner() {
-    View actionButton = frameLayout.findViewById(R.id.action_button);
     View spinner = frameLayout.findViewById(R.id.loading_spinner);
+    View zeroState = frameLayout.findViewById(R.id.zero_state);
     zeroStateViewHolder.showSpinner(true);
 
-    assertThat(actionButton.getVisibility()).isEqualTo(View.GONE);
     assertThat(spinner.getVisibility()).isEqualTo(View.VISIBLE);
+    assertThat(zeroState.getVisibility()).isEqualTo(View.GONE);
 
     zeroStateViewHolder.showSpinner(false);
 
-    assertThat(actionButton.getVisibility()).isEqualTo(View.VISIBLE);
     assertThat(spinner.getVisibility()).isEqualTo(View.GONE);
+    assertThat(zeroState.getVisibility()).isEqualTo(View.VISIBLE);
   }
 }

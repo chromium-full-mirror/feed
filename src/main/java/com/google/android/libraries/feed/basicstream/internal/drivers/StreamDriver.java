@@ -85,7 +85,7 @@ public class StreamDriver implements FeatureChangeObserver {
     }
 
     if (featureDrivers.isEmpty()) {
-      return Collections.singletonList(createZeroStateDriver());
+      return Collections.singletonList(createZeroStateDriver(/* showSpinner= */ false));
     }
 
     return buildLeafFeatureDrivers(featureDrivers);
@@ -210,7 +210,7 @@ public class StreamDriver implements FeatureChangeObserver {
   private void addNoContentCardOrZeroStateIfNecessary() {
     LeafFeatureDriver leafFeatureDriver = null;
     if (featureDrivers.isEmpty()) {
-      leafFeatureDriver = createZeroStateDriver();
+      leafFeatureDriver = createZeroStateDriver(/* showSpinner= */ false);
     } else if (featureDrivers.size() == 1 && isLastDriverContinuationDriver()) {
       leafFeatureDriver = createNoContentDriver();
     }
@@ -278,6 +278,20 @@ public class StreamDriver implements FeatureChangeObserver {
     }
   }
 
+  private void notifyContentsCleared() {
+    if (contentListener != null) {
+      contentListener.notifyContentsCleared();
+    }
+  }
+
+  public void showLoadingSpinner() {
+    ZeroStateDriver zeroStateDriver = createZeroStateDriver(/* showSpinner= */ true);
+    featureDrivers.clear();
+    notifyContentsCleared();
+    featureDrivers.add(zeroStateDriver);
+    notifyContentsAdded(0, Collections.singletonList(zeroStateDriver));
+  }
+
   @VisibleForTesting
   FeatureDriver createClusterDriver(ModelFeature modelFeature) {
     return new ClusterDriver(modelFeature, modelProvider);
@@ -300,8 +314,8 @@ public class StreamDriver implements FeatureChangeObserver {
   }
 
   @VisibleForTesting
-  ZeroStateDriver createZeroStateDriver() {
-    return new ZeroStateDriver(modelProvider, contentChangedListener);
+  ZeroStateDriver createZeroStateDriver(boolean showSpinner) {
+    return new ZeroStateDriver(modelProvider, contentChangedListener, showSpinner);
   }
 
   public void setStreamContentListener(/*@Nullable*/ StreamContentListener contentListener) {
@@ -316,5 +330,8 @@ public class StreamDriver implements FeatureChangeObserver {
 
     /** Called when the content at the given index of stream content has been removed. */
     void notifyContentRemoved(int index);
+
+    /** Called when the content in the stream has been cleared. */
+    void notifyContentsCleared();
   }
 }

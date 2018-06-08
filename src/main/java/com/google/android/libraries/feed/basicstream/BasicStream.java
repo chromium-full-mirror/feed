@@ -176,6 +176,10 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
 
     modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(this);
+    streamDriver =
+        createStreamDriver(modelProvider, threadUtils, configuration, context, snackbarApi);
+    adapter.setDriver(streamDriver);
+    streamDriver.showLoadingSpinner();
   }
 
   @Override
@@ -301,6 +305,7 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
   public void triggerRefresh() {
     // This invalidates the modelProvider, which results in onSessionFinished() then
     // onSessionStart() being called, leading to recreating the entire stream.
+    streamDriver.showLoadingSpinner();
     modelProvider.triggerRefresh();
   }
 

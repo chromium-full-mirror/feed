@@ -29,23 +29,25 @@ public class ZeroStateViewHolder extends FeedViewHolder {
   public static final int AFTERNOON_HOUR_START = 12;
   public static final int EVENING_HOUR_START = 17;
 
-  private final View view;
+  private final View zeroStateView;
+  private final View loadingSpinner;
   private final View actionButton;
   private final TextView bodyText;
-  private final View spinner;
 
   public ZeroStateViewHolder(Context context, FrameLayout frameLayout) {
     super(frameLayout);
-    view = LayoutInflater.from(context).inflate(R.layout.zero_state, frameLayout);
+    View view = LayoutInflater.from(context).inflate(R.layout.zero_state, frameLayout);
+
+    loadingSpinner = view.findViewById(R.id.loading_spinner);
+    zeroStateView = view.findViewById(R.id.zero_state);
     actionButton = view.findViewById(R.id.action_button);
     bodyText = view.findViewById(R.id.body_text);
-    spinner = view.findViewById(R.id.loading_spinner);
   }
 
   public void bind(OnClickListener onClickListener, int hour, boolean showSpinner) {
-    showSpinner(showSpinner);
     bodyText.setText(getBodyText(hour));
     actionButton.setOnClickListener(onClickListener);
+    showSpinner(showSpinner);
   }
 
   @Override
@@ -58,8 +60,8 @@ public class ZeroStateViewHolder extends FeedViewHolder {
   }
 
   public void showSpinner(boolean showSpinner) {
-    actionButton.setVisibility(showSpinner ? View.GONE : View.VISIBLE);
-    spinner.setVisibility(showSpinner ? View.VISIBLE : View.GONE);
+    loadingSpinner.setVisibility(showSpinner ? View.VISIBLE : View.GONE);
+    zeroStateView.setVisibility(showSpinner ? View.GONE : View.VISIBLE);
   }
 
   @StringRes

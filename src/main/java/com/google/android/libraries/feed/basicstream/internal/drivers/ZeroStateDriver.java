@@ -35,9 +35,13 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
   private boolean spinnerShown;
   /*@Nullable*/ private ZeroStateViewHolder zeroStateViewHolder;
 
-  ZeroStateDriver(ModelProvider modelProvider, ContentChangedListener contentChangedListener) {
+  ZeroStateDriver(
+      ModelProvider modelProvider,
+      ContentChangedListener contentChangedListener,
+      boolean spinnerShown) {
     this.modelProvider = modelProvider;
     this.contentChangedListener = contentChangedListener;
+    this.spinnerShown = spinnerShown;
   }
 
   @Override
@@ -74,7 +78,7 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
     }
 
     spinnerShown = true;
-    zeroStateViewHolder.showSpinner(true);
+    zeroStateViewHolder.showSpinner(spinnerShown);
     contentChangedListener.onContentChanged();
     modelProvider.triggerRefresh();
   }

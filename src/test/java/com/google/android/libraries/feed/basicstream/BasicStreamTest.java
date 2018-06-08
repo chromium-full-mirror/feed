@@ -111,6 +111,8 @@ public class BasicStreamTest {
 
   @Test
   public void testOnSessionStart() {
+    reset(adapter);
+
     basicStream.onSessionStart();
 
     verify(adapter).setDriver(streamDriver);
@@ -282,6 +284,16 @@ public class BasicStreamTest {
     reset(adapter);
     basicStream.setStreamContentVisibility(true);
     verify(adapter).setStreamContentVisible(true);
+  }
+
+  @Test
+  public void testTriggerRefresh() {
+    reset(adapter, streamDriver);
+
+    basicStream.triggerRefresh();
+
+    verify(initialModelProvider).triggerRefresh();
+    verify(streamDriver).showLoadingSpinner();
   }
 
   private RecyclerView getStreamRecyclerView() {

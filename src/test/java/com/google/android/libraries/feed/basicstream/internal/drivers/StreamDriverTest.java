@@ -249,6 +249,32 @@ public class StreamDriverTest {
   }
 
   @Test
+  public void testShowLoadingSpinner_createsZeroState() {
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().addCard().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+    assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
+
+    streamDriver.showLoadingSpinner();
+
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+
+    assertThat(leafFeatureDrivers).hasSize(1);
+    assertThat(leafFeatureDrivers.get(0)).isInstanceOf(ZeroStateDriver.class);
+  }
+
+  @Test
+  public void testShowLoadingSpinner_notifiesContentsCleared() {
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().addCard().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    streamDriver.showLoadingSpinner();
+
+    verify(contentListener).notifyContentsCleared();
+  }
+
+  @Test
   public void testTriggerRefresh_removesZeroState() {
     FakeModelCursor fakeModelCursor = new FakeCursorBuilder().build();
 
