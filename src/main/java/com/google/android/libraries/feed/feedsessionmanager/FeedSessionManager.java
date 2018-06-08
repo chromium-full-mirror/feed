@@ -20,7 +20,6 @@ import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.Requ
 import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_WAIT;
 
 import android.support.annotation.VisibleForTesting;
-import android.text.TextUtils;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -29,8 +28,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.api.store.ContentMutation;
-import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
@@ -47,6 +44,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTrac
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
+import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCommitterFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
@@ -62,7 +60,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
@@ -97,6 +94,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final ContentCache contentCache;
 
   private final SessionFactory sessionFactory;
+  private final MutationCommitterFactory mutationCommitterFactory;
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
@@ -109,11 +107,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final long sessionPopulationTimeoutMs;
 
   // operation counts for the dumper
-  private int commitCount = 0;
   private int newSessionCount = 0;
   private int existingSessionCount = 0;
   private int handleTokenCount = 0;
 
+  @SuppressWarnings("methodref.receiver.bound.invalid")
   public FeedSessionManager(
       ExecutorService executor,
       Store store,
@@ -145,6 +143,20 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     sessionPopulationTimeoutMs =
         configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
     contentCache = new ContentCache();
+    mutationCommitterFactory =
+        new MutationCommitterFactory(
+            this::resetHead,
+            this::notifySessionError,
+            store,
+            sessionCache,
+            contentCache,
+            sharedStateCache,
+            taskQueue,
+            mainThreadRunner,
+            schedulerApi,
+            threadUtils,
+            timingUtils,
+            clock);
   }
 
   /**
@@ -384,7 +396,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     handleTokenCount++;
     requestManager.loadMore(
         streamToken,
-        new CommitterTask(
+        mutationCommitterFactory.create(
             "handleToken",
             new MutationContext.Builder()
                 .setContinuationToken(streamToken)
@@ -405,7 +417,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     threadUtils.checkNotMainThread();
     requestManager.triggerRefresh(
         RequestReason.MANUAL_REFRESH,
-        new CommitterTask("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+        mutationCommitterFactory.create("triggerRefresh", MutationContext.EMPTY_CONTEXT));
     if (streamSession != null) {
       String streamToken = streamSession.getStreamToken();
       Session session = sessionCache.get(streamToken);
@@ -472,7 +484,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @Override
   public Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(
       MutationContext mutationContext) {
-    return new CommitterTask("updateConsumer", mutationContext);
+    return mutationCommitterFactory.create("updateConsumer", mutationContext);
   }
 
   @Override
@@ -483,7 +495,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("commitCount").value(commitCount);
     dumper.forKey("newSessionCount").value(newSessionCount).compactPrevious();
     dumper.forKey("existingSessionCount").value(existingSessionCount).compactPrevious();
     dumper.forKey("handleTokenCount").value(handleTokenCount).compactPrevious();
@@ -547,185 +558,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     modelProvider.invalidate();
     store.removeSession(session.getStreamSession());
     sessionCache.remove(session.getStreamSession().getStreamToken());
-  }
-
-  /**
-   * This class will process a List of {@link StreamDataOperation}. The {@link MutationContext} is
-   * stored here and contains the context which made the request resulting in the List of data
-   * operations.
-   */
-  private class CommitterTask implements Consumer<Result<List<StreamDataOperation>>> {
-    private final List<StreamStructure> streamStructures = new ArrayList<>();
-    private final MutationContext mutationContext;
-    private final String task;
-
-    private boolean clearedHead = false;
-    private List<StreamDataOperation> dataOperations;
-
-    CommitterTask(String task, MutationContext mutationContext) {
-      this.task = task;
-      this.mutationContext = mutationContext;
-    }
-
-    @Override
-    public void accept(Result<List<StreamDataOperation>> updateResults) {
-      if (!updateResults.isSuccessful()) {
-        if (mutationContext.getContinuationToken() != null) {
-          Logger.e(
-              TAG, "Error found with a token request %s", mutationContext.getContinuationToken());
-          Session session = null;
-          StreamSession streamSession = mutationContext.getRequestingSession();
-          String sessionToken = (streamSession != null) ? streamSession.getStreamToken() : null;
-          if (sessionToken != null) {
-            session = sessionCache.get(sessionToken);
-          }
-          if (session != null) {
-            notifySessionError(session);
-          }
-        } else {
-          Logger.e(TAG, "Unexpected Update error found, the update is being ignored");
-        }
-        return;
-      }
-      dataOperations = updateResults.getValue();
-      for (StreamDataOperation operation : dataOperations) {
-        if (operation.getStreamStructure().getOperation() == Operation.CLEAR_ALL) {
-          clearedHead = true;
-          break;
-        }
-      }
-      taskQueue.execute(
-          "sessionManagerMutation:" + task + ":clearHead:" + clearedHead,
-          clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING,
-          this::commitTask);
-    }
-
-    private void commitTask() {
-      contentCache.startMutation();
-      ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-      commitContent();
-      // TODO: If we are currently delaying creation and we didn't clear head, then this
-      // is an update.  Should we delay commitSessionUpdates until head is population?
-      commitSessionUpdates();
-      commitCount++;
-      contentCache.finishMutation();
-      timeTracker.stop(
-          "task", "sessionMutation.commitTask:" + task, "mutations", streamStructures.size());
-    }
-
-    private void commitContent() {
-      threadUtils.checkNotMainThread();
-      ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-
-      ContentMutation contentMutation = store.editContent();
-      SemanticPropertiesMutation semanticPropertiesMutation = store.editSemanticProperties();
-      for (StreamDataOperation dataOperation : dataOperations) {
-        Operation operation = dataOperation.getStreamStructure().getOperation();
-        if (operation == Operation.CLEAR_ALL) {
-          streamStructures.add(dataOperation.getStreamStructure());
-          resetHead((mutationContext != null) ? mutationContext.getRequestingSession() : null);
-          continue;
-        }
-        if (operation == Operation.UPDATE_OR_APPEND) {
-          if (!validDataOperation(dataOperation)) {
-            continue;
-          }
-          StreamPayload payload = dataOperation.getStreamPayload();
-          String contentId = dataOperation.getStreamStructure().getContentId();
-          contentCache.put(contentId, payload);
-          if (payload.hasStreamSharedState()) {
-            contentMutation.add(contentId, payload);
-            // cache the shared state here
-            sharedStateCache.put(
-                dataOperation.getStreamStructure().getContentId(), payload.getStreamSharedState());
-          } else if (payload.hasStreamFeature() || payload.hasStreamToken()) {
-            // don't add StreamSharedState to the metadata list stored for sessions
-            streamStructures.add(dataOperation.getStreamStructure());
-            contentMutation.add(contentId, payload);
-          } else {
-            Logger.e(TAG, "Unsupported UPDATE_OR_APPEND payload");
-          }
-          continue;
-        } else if (operation == Operation.REMOVE) {
-          // We don't update the content for REMOVED items, content will be garbage collected.
-          // This is required because a session may not remove the item.
-          // Add the Remove to the structure changes
-          streamStructures.add(dataOperation.getStreamStructure());
-          continue;
-        }
-        if (dataOperation.getStreamPayload().hasSemanticData()) {
-          String contentId = dataOperation.getStreamStructure().getContentId();
-          semanticPropertiesMutation.add(
-              contentId, dataOperation.getStreamPayload().getSemanticData());
-          continue;
-        }
-        Logger.e(
-            TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
-      }
-      taskQueue.execute("contentMutation", TaskType.BACKGROUND, contentMutation::commit);
-      // TODO: currently there is a small window in which an action could occur and the
-      // request be sent to the server before this is written, fix
-      taskQueue.execute(
-          "semanticPropertiesMutation", TaskType.BACKGROUND, semanticPropertiesMutation::commit);
-      timeTracker.stop("", "contentUpdate", "items", dataOperations.size());
-    }
-
-    private void commitSessionUpdates() {
-      threadUtils.checkNotMainThread();
-      ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-
-      /*@Nullable*/
-      StreamToken mutationSourceToken =
-          (mutationContext != null) ? mutationContext.getContinuationToken() : null;
-      // For sessions we want to add the remove operation if the mutation source was a
-      // continuation token.
-      if (mutationSourceToken != null) {
-        StreamStructure removeOperation = addTokenRemoveOperation(mutationSourceToken);
-        if (removeOperation != null) {
-          streamStructures.add(0, removeOperation);
-        }
-      }
-      Collection<Session> updates = sessionCache.getSessions();
-      HeadSessionImpl head = Validators.checkNotNull(sessionCache.getHead());
-      for (Session session : updates) {
-        if (clearedHead && session == head) {
-          session.updateSession(clearedHead, streamStructures, mutationSourceToken);
-          long updateTime = clock.currentTimeMillis();
-          Validators.checkNotNull(head).updateAccessTime(updateTime);
-          mainThreadRunner.execute(TAG, () -> schedulerApi.onReceiveNewContent(updateTime));
-          Logger.i(
-              TAG,
-              "Cleared Head, new creation time %s",
-              StringFormattingUtils.formatLogDate(updateTime));
-          continue;
-        }
-        Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
-        session.updateSession(clearedHead, streamStructures, mutationSourceToken);
-      }
-      timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
-    }
-
-    private boolean validDataOperation(StreamDataOperation dataOperation) {
-      if (!dataOperation.hasStreamPayload() || !dataOperation.hasStreamStructure()) {
-        Logger.e(TAG, "Invalid StreamDataOperation - payload or streamStructure not defined");
-        return false;
-      }
-      String contentId = dataOperation.getStreamStructure().getContentId();
-      if (TextUtils.isEmpty(contentId)) {
-        Logger.i(TAG, "Invalid StreamDataOperation - No ID Found");
-        return false;
-      }
-      return true;
-    }
-
-    /*@Nullable*/
-    private StreamStructure addTokenRemoveOperation(StreamToken token) {
-      return StreamStructure.newBuilder()
-          .setContentId(token.getContentId())
-          .setParentContentId(token.getParentId())
-          .setOperation(Operation.REMOVE)
-          .build();
-    }
   }
 
   // This is only used in tests to verify the contents of the shared state cache.
