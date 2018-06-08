@@ -37,7 +37,6 @@ import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -49,6 +48,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCach
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
+import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.TaskQueue;
 import com.google.android.libraries.feed.feedsessionmanager.internal.TaskQueue.TaskType;
@@ -60,7 +60,6 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionMana
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
-import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -68,27 +67,21 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.concurrent.GuardedBy;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
 public class FeedSessionManager implements SessionManager, Dumpable {
 
   private static final String TAG = "FeedSessionManager";
 
-  @VisibleForTesting static final String STREAM_SESSION_CONTENT_ID = "FSM::Sessions::0";
-  @VisibleForTesting static final long DEFAULT_LIFETIME_MS = TimeUnit.HOURS.toMillis(1);
+  private static final long DEFAULT_LIFETIME_MS = TimeUnit.HOURS.toMillis(1);
   private static final long TIMEOUT_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(5);
-
-  // Used to synchronize the stored data
-  private final Object lock = new Object();
 
   // For the Shared State we will always cache them in the Session Manager
   // Accessed on main thread, updated on Executor task
@@ -97,15 +90,11 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   // All writes are done on background threads, there are accesses on the main thread.  Leaving
   // the lock back accessibleContentSupplier may eventually run on a background task and not
   // on the executor thread.
-  @GuardedBy("lock")
-  private final Map<String, Session> sessions = new HashMap<>();
+  private final SessionCache sessionCache;
 
   // All access to the content cache happens on the executor thread so there is no need to
   // synchronize access.
   private final ContentCache contentCache;
-
-  // Head is in effect final once it's assigned in the initializationTask.
-  /*@MonotonicNonNull*/ private HeadSessionImpl head;
 
   private final SessionFactory sessionFactory;
   private final Store store;
@@ -117,28 +106,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
   private final Clock clock;
-  private final long lifetimeMs;
   private final long sessionPopulationTimeoutMs;
 
   // operation counts for the dumper
   private int commitCount = 0;
   private int newSessionCount = 0;
   private int existingSessionCount = 0;
-  private int unboundSessionCount = 0;
   private int handleTokenCount = 0;
-  private int expiredSessionsCleared = 0;
-
-  @VisibleForTesting
-  final Supplier<Set<String>> accessibleContentSupplier =
-      () -> {
-        Set<String> accessibleContent = new HashSet<>();
-        synchronized (lock) {
-          for (Session session : sessions.values()) {
-            accessibleContent.addAll(session.getContentInSession());
-          }
-        }
-        return accessibleContent;
-      };
 
   public FeedSessionManager(
       ExecutorService executor,
@@ -159,13 +133,17 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     this.requestManager = requestManager;
     this.schedulerApi = schedulerApi;
     this.clock = clock;
-    this.taskQueue = new TaskQueue(executor);
 
-    lifetimeMs =
+    this.taskQueue = new TaskQueue(executor);
+    long lifetimeMs =
         configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
+    sessionFactory = new SessionFactory(store, taskQueue, timingUtils, threadUtils, configuration);
+    this.sessionCache =
+        new SessionCache(
+            store, taskQueue, sessionFactory, lifetimeMs, timingUtils, threadUtils, clock);
+
     sessionPopulationTimeoutMs =
         configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
-    sessionFactory = new SessionFactory(store, taskQueue, timingUtils, threadUtils, configuration);
     contentCache = new ContentCache();
   }
 
@@ -203,162 +181,13 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     sharedStateTimeTracker.stop("", "sharedStateTimeTracker");
 
     // create the head session from the data in the Store
-    ElapsedTimeTracker headTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    head = sessionFactory.getHeadSession();
-    synchronized (lock) {
-      sessions.put(head.getStreamSession().getStreamToken(), head);
-    }
-    Result<List<StreamStructure>> streamStructuresResult =
-        store.getStreamStructures(head.getStreamSession());
-    List<StreamStructure> results;
-    if (!streamStructuresResult.isSuccessful()) {
-      // without $HEAD switch to ephemeral mode
-      switchToEphemeralMode("Unable to retrieve $HEAD from Store.");
+    if (!sessionCache.initialize()) {
+      // we failed to initialize the sessionCache, so switch to ephemeral mode.
+      switchToEphemeralMode("unable to initialize the sessionCache");
       timeTracker.stop("task", "Initialization", "error", "switchToEphemeralMode");
       return;
-    } else {
-      results = streamStructuresResult.getValue();
     }
-    head.initializeSession(results);
-    headTimeTracker.stop("", "createHead");
-    initializePersistedSessions();
     timeTracker.stop("task", "Initialization");
-  }
-
-  @VisibleForTesting
-  void initializePersistedSessions() {
-    threadUtils.checkNotMainThread();
-    StreamSessions persistedSessions = getPersistedSessions();
-    if (persistedSessions == null) {
-      return;
-    }
-
-    boolean cleanupSessions = false;
-    List<StreamSession> sessionList = persistedSessions.getStreamSessionsList();
-    for (StreamSession session : sessionList) {
-      if (!isSessionAlive(session)) {
-        Logger.i(
-            TAG,
-            "Found expired session %s, created %s",
-            session.getStreamToken(),
-            StringFormattingUtils.formatLogDate(session.getLastAccessed()));
-        cleanupSessions = true;
-        continue;
-      }
-      HeadSessionImpl headSession = Validators.checkNotNull(head);
-      if (session.getStreamToken().equals(headSession.getStreamSession().getStreamToken())) {
-        // update the information stored for the $HEAD record we created previously
-        Logger.i(
-            TAG,
-            "Updating $HEAD state, creation %s",
-            StringFormattingUtils.formatLogDate(session.getLastAccessed()));
-        headSession.updateAccessTime(session.getLastAccessed());
-        continue;
-      }
-      InitializableSession unboundSession;
-      synchronized (lock) {
-        if (sessions.containsKey(session.getStreamToken())) {
-          // Don't replace sessions already found in sessions
-          continue;
-        }
-        // Unbound sessions are sessions that are able to be created through restore
-        unboundSession = sessionFactory.getSession();
-        unboundSession.setStreamSession(session);
-        sessions.put(session.getStreamToken(), unboundSession);
-      }
-
-      // Task which populates the newly created unbound session.
-      Runnable createUnboundSession =
-          () -> {
-            Logger.i(TAG, "Task: createUnboundSession %s", session.getStreamToken());
-            ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-            Result<List<StreamStructure>> streamStructuresResult =
-                store.getStreamStructures(session);
-            if (streamStructuresResult.isSuccessful()) {
-              unboundSession.populateModelProvider(
-                  session, streamStructuresResult.getValue(), false);
-            } else {
-              // TODO: handle errors
-              Logger.e(TAG, "Failed to read unbound session state, ignored");
-            }
-            timeTracker.stop("task", "createUnboundSession");
-            unboundSessionCount++;
-          };
-      taskQueue.execute("createUnboundSession", TaskType.BACKGROUND, createUnboundSession);
-    }
-
-    if (cleanupSessions) {
-      // Queue up a task to clear the session journals.
-      taskQueue.execute(
-          "cleanupSessionJournals", TaskType.BACKGROUND, this::cleanupSessionJournals);
-    }
-    Set<String> reservedContentIds = new HashSet<>();
-    reservedContentIds.add(STREAM_SESSION_CONTENT_ID);
-    taskQueue.execute(
-        "contentGc",
-        TaskType.BACKGROUND,
-        store.triggerContentGc(reservedContentIds, accessibleContentSupplier));
-  }
-
-  /**
-   * Remove all session journals which are not currently found in {@code sessions} which contains
-   * all of the known sessions. This is a garbage collection task.
-   */
-  @VisibleForTesting
-  void cleanupSessionJournals() {
-    threadUtils.checkNotMainThread();
-    Logger.i(TAG, "Task: cleanupSessionJournals");
-    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    int sessionCleared = expiredSessionsCleared;
-
-    Result<List<StreamSession>> storedSessionsResult = store.getAllSessions();
-    if (storedSessionsResult.isSuccessful()) {
-      synchronized (lock) {
-        for (StreamSession session : storedSessionsResult.getValue()) {
-          if (!sessions.containsKey(session.getStreamToken())) {
-            store.removeSession(session);
-            expiredSessionsCleared++;
-          }
-        }
-      }
-    } else {
-      // We were unable to read all the sessions, log an error and then ignore the fact that
-      // cleanup failed.
-      Logger.e(TAG, "Error reading all sessions, Unable to cleanup session journals");
-    }
-    timeTracker.stop(
-        "task",
-        "cleanupSessionJournals",
-        "sessionsCleared",
-        expiredSessionsCleared - sessionCleared);
-  }
-
-  /** Returns the persisted sessions as {@link StreamSessions} or {@code null} if it's not found. */
-  /*@Nullable*/
-  @VisibleForTesting
-  StreamSessions getPersistedSessions() {
-    List<String> sessionIds = new ArrayList<>();
-    sessionIds.add(STREAM_SESSION_CONTENT_ID);
-    Result<List<PayloadWithId>> sessionPayloadResult = store.getPayloads(sessionIds);
-    if (!sessionPayloadResult.isSuccessful()) {
-      // If we cant read the persisted sessions, report the error and return null. No sessions will
-      // be created, this is as if we deleted all existing sessions.  It should be safe to ignore
-      // the error.
-      Logger.e(TAG, "getPayloads failed to read the Persisted sessions");
-      return null;
-    }
-
-    List<PayloadWithId> sessionPayload = sessionPayloadResult.getValue();
-    if (sessionPayload.isEmpty()) {
-      Logger.w(TAG, "Persisted Sessions were not found");
-      return null;
-    }
-    StreamPayload payload = sessionPayload.get(0).payload;
-    if (!payload.hasStreamSessions()) {
-      Logger.e(TAG, "Persisted Sessions StreamSessions was not set");
-      return null;
-    }
-    return payload.getStreamSessions();
   }
 
   @Override
@@ -367,7 +196,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     InitializableSession session = sessionFactory.getSession();
     session.bindModelProvider(modelProvider);
 
-    if (head == null) {
+    if (!sessionCache.isHeadInitialized()) {
       Logger.i(TAG, "Delaying populateSession until initialization is finished");
       taskQueue.execute(
           "postInitialization/populateSession",
@@ -379,7 +208,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   private void populateSessionWaitForHead(InitializableSession session) {
-    Validators.checkNotNull(head);
     threadUtils.checkNotMainThread();
 
     // Wait for the main thread call to complete.  This is done to ensure that the
@@ -397,7 +225,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   // run on the main thread, but does most of it's work through the populateSession task.
   private void populateSession(InitializableSession session, Consumer<Boolean> result) {
     threadUtils.checkMainThread();
-    HeadSessionImpl headSession = Validators.checkNotNull(head);
+    HeadSessionImpl headSession = Validators.checkNotNull(sessionCache.getHead());
     SessionManagerState sessionManagerState =
         new SessionManagerState(
             !headSession.isHeadEmpty(),
@@ -474,10 +302,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     cachedBindings = contentCache.size() > 0;
     session.populateModelProvider(
         recordedSession, streamStructuresResult.getValue(), cachedBindings);
-    synchronized (lock) {
-      sessions.put(session.getStreamSession().getStreamToken(), session);
-    }
-    updateStoredSessions();
+    sessionCache.put(session.getStreamSession().getStreamToken(), session);
     newSessionCount++;
     Logger.i(
         TAG,
@@ -499,31 +324,10 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     // TODO: We should invalidate the session with an error
   }
 
-  @VisibleForTesting
-  void updateStoredSessions() {
-    threadUtils.checkNotMainThread();
-    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    StreamSessions.Builder sessionsBuilder = StreamSessions.newBuilder();
-    synchronized (lock) {
-      for (Session s : sessions.values()) {
-        sessionsBuilder.addStreamSessions(s.getStreamSession());
-      }
-    }
-    StreamSessions currentSessions = sessionsBuilder.build();
-    StreamPayload payload = StreamPayload.newBuilder().setStreamSessions(currentSessions).build();
-    ContentMutation contentMutation = store.editContent();
-    contentMutation.add(STREAM_SESSION_CONTENT_ID, payload);
-    contentMutation.commit();
-    timeTracker.stop("task", "Update Stored Session Information");
-  }
-
   @Override
   public boolean getExistingSession(String sessionToken, ModelProvider modelProvider) {
     threadUtils.checkMainThread();
-    Session existingSession;
-    synchronized (lock) {
-      existingSession = sessions.get(sessionToken);
-    }
+    Session existingSession = sessionCache.get(sessionToken);
     if (existingSession == null) {
       // We didn't find the existing session so it probably expired and was cleaned up.
       Logger.i(TAG, "getExistingSession didn't find the requested session %s", sessionToken);
@@ -548,9 +352,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
               store.getStreamStructures(streamSession);
           if (streamStructuresResult.isSuccessful()) {
             session.populateModelProvider(streamSession, streamStructuresResult.getValue(), false);
-            synchronized (lock) {
-              sessions.put(session.getStreamSession().getStreamToken(), session);
-            }
+            sessionCache.put(session.getStreamSession().getStreamToken(), session);
             existingSessionCount++;
           } else {
             Logger.e(
@@ -606,10 +408,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
         new CommitterTask("triggerRefresh", MutationContext.EMPTY_CONTEXT));
     if (streamSession != null) {
       String streamToken = streamSession.getStreamToken();
-      Session session;
-      synchronized (lock) {
-        session = sessions.get(streamToken);
-      }
+      Session session = sessionCache.get(streamToken);
       if (session != null) {
         ModelProvider modelProvider = session.getModelProvider();
         if (modelProvider != null) {
@@ -683,33 +482,15 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   @Override
   public void dump(Dumper dumper) {
-    synchronized (lock) {
-      dumper.title(TAG);
-      dumper.forKey("commitCount").value(commitCount);
-      dumper.forKey("newSessionCount").value(newSessionCount).compactPrevious();
-      dumper.forKey("existingSessionCount").value(existingSessionCount).compactPrevious();
-      dumper.forKey("unboundSessionCount").value(unboundSessionCount).compactPrevious();
-      dumper.forKey("expiredSessionsCleared").value(expiredSessionsCleared).compactPrevious();
-      dumper.forKey("handleTokenCount").value(handleTokenCount).compactPrevious();
-      dumper.forKey("sharedStateCount").value(sharedStateCache.size());
-      dumper.forKey("sessionCount").value(sessions.size()).compactPrevious();
-      dumper.dump(contentCache);
-      dumper.dump(taskQueue);
-      for (Session session : sessions.values()) {
-        if (session instanceof Dumpable) {
-          dumper.dump((Dumpable) session);
-        } else {
-          dumper.forKey("session").value("Session Not Supporting Dumper");
-        }
-      }
-    }
-  }
-
-  @VisibleForTesting
-  boolean isSessionAlive(StreamSession streamSession) {
-    // Today HEAD will does not time out
-    return (Store.HEAD.getStreamToken().equals(streamSession.getStreamToken()))
-        || ((streamSession.getLastAccessed() + lifetimeMs) > clock.currentTimeMillis());
+    dumper.title(TAG);
+    dumper.forKey("commitCount").value(commitCount);
+    dumper.forKey("newSessionCount").value(newSessionCount).compactPrevious();
+    dumper.forKey("existingSessionCount").value(existingSessionCount).compactPrevious();
+    dumper.forKey("handleTokenCount").value(handleTokenCount).compactPrevious();
+    dumper.forKey("sharedStateCount").value(sharedStateCache.size());
+    dumper.dump(contentCache);
+    dumper.dump(taskQueue);
+    dumper.dump(sessionCache);
   }
 
   /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
@@ -717,10 +498,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   void resetHead(/*@Nullable*/ StreamSession streamSession) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<Session> currentSessions;
-    synchronized (lock) {
-      currentSessions = new ArrayList<>(sessions.values());
-    }
+    Collection<Session> currentSessions = sessionCache.getSessions();
 
     // If we have old sessions and we received a clear head, let's invalidate the session that
     // initiated the clear.
@@ -768,9 +546,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getStreamToken());
     modelProvider.invalidate();
     store.removeSession(session.getStreamSession());
-    synchronized (lock) {
-      sessions.remove(session.getStreamSession().getStreamToken());
-    }
+    sessionCache.remove(session.getStreamSession().getStreamToken());
   }
 
   /**
@@ -801,9 +577,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
           StreamSession streamSession = mutationContext.getRequestingSession();
           String sessionToken = (streamSession != null) ? streamSession.getStreamToken() : null;
           if (sessionToken != null) {
-            synchronized (lock) {
-              session = sessions.get(sessionToken);
-            }
+            session = sessionCache.get(sessionToken);
           }
           if (session != null) {
             notifySessionError(session);
@@ -899,21 +673,20 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     private void commitSessionUpdates() {
       threadUtils.checkNotMainThread();
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-      ArrayList<Session> updates;
+
       /*@Nullable*/
       StreamToken mutationSourceToken =
           (mutationContext != null) ? mutationContext.getContinuationToken() : null;
-      synchronized (lock) {
-        // For sessions we want to add the remove operation if the mutation source was a
-        // continuation token.
-        if (mutationSourceToken != null) {
-          StreamStructure removeOperation = addTokenRemoveOperation(mutationSourceToken);
-          if (removeOperation != null) {
-            streamStructures.add(0, removeOperation);
-          }
+      // For sessions we want to add the remove operation if the mutation source was a
+      // continuation token.
+      if (mutationSourceToken != null) {
+        StreamStructure removeOperation = addTokenRemoveOperation(mutationSourceToken);
+        if (removeOperation != null) {
+          streamStructures.add(0, removeOperation);
         }
-        updates = new ArrayList<>(sessions.values());
       }
+      Collection<Session> updates = sessionCache.getSessions();
+      HeadSessionImpl head = Validators.checkNotNull(sessionCache.getHead());
       for (Session session : updates) {
         if (clearedHead && session == head) {
           session.updateSession(clearedHead, streamStructures, mutationSourceToken);
@@ -962,17 +735,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
 
   // This is only used in tests to access a copy of the session state
   Map<String, Session> getSessionsMapForTest() {
-    synchronized (lock) {
-      return new HashMap<>(sessions);
-    }
-  }
-
-  void setSessionsForTest(Session... testSessions) {
-    synchronized (lock) {
-      for (Session session : testSessions) {
-        sessions.put(session.getStreamSession().getStreamToken(), session);
-      }
-    }
+    return sessionCache.getSessionsMapForTest();
   }
 
   private String getRequestBehavior(@RequestBehavior int behavior) {

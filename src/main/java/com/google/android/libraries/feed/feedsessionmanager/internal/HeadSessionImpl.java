@@ -59,7 +59,7 @@ public class HeadSessionImpl implements Session, Dumpable {
   }
 
   /** Initialize head from the stored stream structures. */
-  public void initializeSession(List<StreamStructure> streamStructures) {
+  void initializeSession(List<StreamStructure> streamStructures) {
     for (StreamStructure streamStructure : streamStructures) {
       contentInSession.add(streamStructure.getContentId());
     }
@@ -169,7 +169,7 @@ public class HeadSessionImpl implements Session, Dumpable {
     return contentInSession.isEmpty();
   }
 
-  // This is called only in tests to acess the content in the session.
+  // This is called only in tests to access the content in the session.
   public Set<String> getContentInSessionForTest() {
     return new HashSet<>(contentInSession);
   }

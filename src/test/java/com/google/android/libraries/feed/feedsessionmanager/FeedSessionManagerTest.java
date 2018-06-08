@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
@@ -56,7 +55,6 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
-import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -65,7 +63,6 @@ import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
-import com.google.search.now.feed.client.StreamDataProto.StreamSessions;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -216,16 +213,6 @@ public class FeedSessionManagerTest {
   }
 
   @Test
-  public void testAccessibleContentSupplier() {
-    FeedSessionManager sessionManager = getInitializedSessionManager();
-    int featureCnt = 3;
-    populateSession(sessionManager, featureCnt, 1, true, null);
-    Set<String> accessibleContent = sessionManager.accessibleContentSupplier.get();
-    // Add one for the root feature
-    assertThat(accessibleContent).hasSize(featureCnt + 1);
-  }
-
-  @Test
   public void testReset() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     int featureCnt = 3;
@@ -323,169 +310,6 @@ public class FeedSessionManagerTest {
   }
 
   @Test
-  public void testIsSessionAlive() {
-    StreamSession session1 =
-        StreamSession.newBuilder().setStreamToken("stream:1").setLastAccessed(0).build();
-    StreamSession session2 =
-        StreamSession.newBuilder()
-            .setStreamToken("stream:2")
-            .setLastAccessed(FeedSessionManager.DEFAULT_LIFETIME_MS - 1)
-            .build();
-    FeedSessionManager sessionManager =
-        new FeedSessionManager(
-            MoreExecutors.newDirectExecutorService(),
-            store,
-            timingUtils,
-            threadUtils,
-            mainThreadRunner,
-            protocolAdapter,
-            requestManager,
-            schedulerApi,
-            configuration,
-            clock);
-    sessionManager.initialize();
-    when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
-    assertThat(sessionManager.isSessionAlive(session1)).isFalse();
-    assertThat(sessionManager.isSessionAlive(session2)).isTrue();
-  }
-
-  @Test
-  public void testGetPersistedSessions() {
-    List<PayloadWithId> persistedSessions = new ArrayList<>();
-    StreamSessions streamSessions = StreamSessions.getDefaultInstance();
-    StreamPayload payload = StreamPayload.newBuilder().setStreamSessions(streamSessions).build();
-    persistedSessions.add(new PayloadWithId(FeedSessionManager.STREAM_SESSION_CONTENT_ID, payload));
-    when(store.getPayloads(any())).thenReturn(Result.success(persistedSessions));
-
-    FeedSessionManager sessionManager =
-        new FeedSessionManager(
-            MoreExecutors.newDirectExecutorService(),
-            store,
-            timingUtils,
-            threadUtils,
-            mainThreadRunner,
-            protocolAdapter,
-            requestManager,
-            schedulerApi,
-            configuration,
-            clock);
-    sessionManager.initialize();
-    StreamSessions sessions = sessionManager.getPersistedSessions();
-    assertThat(sessions).isEqualTo(streamSessions);
-  }
-
-  @Test
-  public void testCleanupJournals() {
-    List<StreamSession> storedSessions = new ArrayList<>();
-    StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
-    StreamSession session2 = StreamSession.newBuilder().setStreamToken("stream:2").build();
-    storedSessions.add(session1);
-    storedSessions.add(session2);
-    when(store.getAllSessions()).thenReturn(Result.success(storedSessions));
-
-    FeedSessionManager sessionManager =
-        new FeedSessionManager(
-            MoreExecutors.newDirectExecutorService(),
-            store,
-            timingUtils,
-            threadUtils,
-            mainThreadRunner,
-            protocolAdapter,
-            requestManager,
-            schedulerApi,
-            configuration,
-            clock);
-    sessionManager.initialize();
-    Session s2 = mock(Session.class);
-    when(s2.getStreamSession()).thenReturn(session2);
-    sessionManager.setSessionsForTest(s2);
-    sessionManager.cleanupSessionJournals();
-    verify(store).removeSession(session1);
-    assertThat(sessionManager.getSessionsMapForTest().get(session2.getStreamToken())).isEqualTo(s2);
-  }
-
-  @Test
-  public void testInitializePersistedSessions() {
-    List<PayloadWithId> persistedSessions = new ArrayList<>();
-    StreamSessions.Builder streamSessionsBuilder = StreamSessions.newBuilder();
-    StreamSession session1 =
-        StreamSession.newBuilder().setStreamToken("stream:1").setLastAccessed(0).build();
-    streamSessionsBuilder.addStreamSessions(session1);
-    StreamSession session2 =
-        StreamSession.newBuilder()
-            .setStreamToken("stream:2")
-            .setLastAccessed(FeedSessionManager.DEFAULT_LIFETIME_MS - 1)
-            .build();
-    streamSessionsBuilder.addStreamSessions(session2);
-    StreamPayload payload =
-        StreamPayload.newBuilder().setStreamSessions(streamSessionsBuilder.build()).build();
-    persistedSessions.add(new PayloadWithId(FeedSessionManager.STREAM_SESSION_CONTENT_ID, payload));
-    when(store.getPayloads(any())).thenReturn(Result.success(persistedSessions));
-
-    when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
-    FeedSessionManager sessionManager =
-        new FeedSessionManager(
-            MoreExecutors.newDirectExecutorService(),
-            store,
-            timingUtils,
-            threadUtils,
-            mainThreadRunner,
-            protocolAdapter,
-            requestManager,
-            schedulerApi,
-            configuration,
-            clock);
-    sessionManager.initialize();
-    Map<String, Session> sessionMap = sessionManager.getSessionsMapForTest();
-    // Sessions will include $HEAD
-    HeadSessionImpl head = (HeadSessionImpl) sessionMap.get(HEAD.getStreamToken());
-    assertThat(head).isNotNull();
-    sessionManager.initializePersistedSessions();
-    sessionMap = sessionManager.getSessionsMapForTest();
-    assertThat(sessionMap).hasSize(2);
-    assertThat(sessionMap.get(session2.getStreamToken()).getStreamSession()).isEqualTo(session2);
-    assertThat(sessionMap.get(HEAD.getStreamToken())).isNotNull();
-  }
-
-  @Test
-  public void testUpdateStoredSessions() {
-    FeedSessionManager sessionManager =
-        new FeedSessionManager(
-            MoreExecutors.newDirectExecutorService(),
-            store,
-            timingUtils,
-            threadUtils,
-            mainThreadRunner,
-            protocolAdapter,
-            requestManager,
-            schedulerApi,
-            configuration,
-            clock);
-    sessionManager.initialize();
-    StreamSession session1 = StreamSession.newBuilder().setStreamToken("stream:1").build();
-    StreamSession session2 = StreamSession.newBuilder().setStreamToken("stream:2").build();
-    Session s1 = mock(Session.class);
-    when(s1.getStreamSession()).thenReturn(session1);
-    Session s2 = mock(Session.class);
-    when(s2.getStreamSession()).thenReturn(session2);
-    sessionManager.setSessionsForTest(s1, s2);
-
-    FakeContentMutation contentMutation = new FakeContentMutation();
-    when(store.editContent()).thenReturn(contentMutation);
-
-    sessionManager.updateStoredSessions();
-    assertThat(contentMutation.committed).isTrue();
-    assertThat(contentMutation.contentId).isEqualTo(FeedSessionManager.STREAM_SESSION_CONTENT_ID);
-    assertThat(contentMutation.payload.hasStreamSessions()).isTrue();
-    List<StreamSession> streamSessionList =
-        contentMutation.payload.getStreamSessions().getStreamSessionsList();
-    // There is also a $HEAD session added during initialization
-    assertThat(streamSessionList).hasSize(3);
-    assertThat(streamSessionList).contains(session1);
-    assertThat(streamSessionList).contains(session2);
-  }
-
-  @Test
   public void testErrors_initializationSharedStateError() {
     Store errorStore = mock(Store.class);
     when(errorStore.getSharedStates()).thenReturn(Result.failure());
@@ -503,27 +327,6 @@ public class FeedSessionManagerTest {
     FeedSessionManager spySessionManager = getInitializedSpySessionManager(errorStore);
 
     verify(spySessionManager).switchToEphemeralMode(anyString());
-  }
-
-  @Test
-  public void testErrors_persistedSession() {
-    Store errorStore = mock(Store.class);
-    when(errorStore.getHeadSession()).thenReturn(HEAD);
-    when(errorStore.triggerContentGc(anyObject(), anyObject())).thenReturn(() -> {});
-    when(errorStore.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
-    when(errorStore.getStreamStructures(any(StreamSession.class)))
-        .thenReturn(Result.success(new ArrayList<>()));
-
-    StreamSessions.Builder streamSessionsBuilder = StreamSessions.newBuilder();
-    StreamSession session1 =
-        StreamSession.newBuilder().setStreamToken("stream:1").setLastAccessed(0).build();
-    streamSessionsBuilder.addStreamSessions(session1);
-    when(errorStore.getPayloads(any())).thenReturn(Result.failure());
-
-    when(clock.currentTimeMillis()).thenReturn(FeedSessionManager.DEFAULT_LIFETIME_MS + 2);
-    FeedSessionManager spySessionManager = getInitializedSpySessionManager(errorStore);
-
-    assertThat(spySessionManager.getPersistedSessions()).isNull();
   }
 
   @Test
@@ -656,24 +459,5 @@ public class FeedSessionManagerTest {
                 clock));
     spySessionManager.initialize();
     return spySessionManager;
-  }
-
-  private static class FakeContentMutation implements ContentMutation {
-    String contentId;
-    StreamPayload payload;
-    boolean committed = false;
-
-    @Override
-    public ContentMutation add(String contentId, StreamPayload payload) {
-      this.contentId = contentId;
-      this.payload = payload;
-      return this;
-    }
-
-    @Override
-    public CommitResult commit() {
-      committed = true;
-      return CommitResult.SUCCESS;
-    }
   }
 }
