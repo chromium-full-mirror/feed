@@ -214,7 +214,6 @@ public class FrameAdapter {
         Element element = content.getElement();
         ElementAdapter<?, ?> inlineSliceAdapter =
             parameters.elementAdapterFactory.createAdapterForElement(element, frameContext);
-        inlineSliceAdapter.createAdapter(element, frameContext);
         inlineSliceAdapter.bindModel(element, frameContext);
         return Collections.singletonList(inlineSliceAdapter);
       case TEMPLATE_INVOCATION:
@@ -226,7 +225,6 @@ public class FrameAdapter {
                   templateInvocation.getTemplateId(), frameContext, bindingContext);
           TemplateInstanceAdapter templateAdapter =
               parameters.elementAdapterFactory.createTemplateAdapter(model, frameContext);
-          templateAdapter.createAdapter(model, frameContext);
           templateAdapter.bindModel(model, frameContext);
           returnList.add(templateAdapter);
         }

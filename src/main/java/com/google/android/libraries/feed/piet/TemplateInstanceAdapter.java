@@ -86,7 +86,6 @@ class TemplateInstanceAdapter extends ElementAdapter<View, TemplateAdapterModel>
           getParameters()
               .elementAdapterFactory
               .createAdapterForElement(modelTemplate.getElement(), localFrameContext);
-      childAdapter.createAdapter(modelTemplate.getElement(), localFrameContext);
     } else {
       childAdapter = getAdapterForChildList(modelTemplate.getElementList(), localFrameContext);
     }
@@ -128,10 +127,7 @@ class TemplateInstanceAdapter extends ElementAdapter<View, TemplateAdapterModel>
 
   /** Create an Adapter for the {@code ElementList}. */
   private ElementListAdapter getAdapterForChildList(ElementList list, FrameContext frameContext) {
-    ElementListAdapter listAdapter =
-        getParameters().elementAdapterFactory.createElementListAdapter(list, frameContext);
-    listAdapter.createAdapter(list, frameContext);
-    return listAdapter;
+    return getParameters().elementAdapterFactory.createElementListAdapter(list, frameContext);
   }
 
   private static View createView(Context context) {

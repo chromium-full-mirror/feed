@@ -205,7 +205,6 @@ abstract class ElementAdapter<V extends View, M> {
           getParameters()
               .elementAdapterFactory
               .createStackedElementAdapter(baseElement.getOverlaysList(), frameContext);
-      overlayAdapter.createAdapter(baseElement.getOverlaysList(), frameContext);
       overlayAdapter.setLayoutParams(
           new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
       overlays.add(overlayAdapter);
@@ -221,7 +220,6 @@ abstract class ElementAdapter<V extends View, M> {
             getParameters()
                 .elementAdapterFactory
                 .createElementListAdapter(overlayList, frameContext);
-        overlayAdapter.createAdapter(overlayList, frameContext);
         overlays.add(overlayAdapter);
         overlayWrapper.addView(overlayAdapter.getView());
 

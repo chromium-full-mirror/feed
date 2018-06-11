@@ -98,49 +98,67 @@ class ElementAdapterFactory {
 
   ElementAdapter<? extends View, ?> createAdapterForElement(
       Element element, FrameContext frameContext) {
+    ElementAdapter<? extends View, ?> returnAdapter;
     switch (element.getElementsCase()) {
       case CUSTOM_ELEMENT:
-        return customElementFactory.get(element.getCustomElement(), frameContext);
+        returnAdapter = customElementFactory.get(element.getCustomElement(), frameContext);
+        break;
       case TEXT_ELEMENT:
         switch (element.getTextElement().getContentCase()) {
           case CHUNKED_TEXT:
           case CHUNKED_TEXT_BINDING:
-            return chunkedTextElementFactory.get(element.getTextElement(), frameContext);
+            returnAdapter = chunkedTextElementFactory.get(element.getTextElement(), frameContext);
+            break;
           case PARAMETERIZED_TEXT:
           case PARAMETERIZED_TEXT_BINDING:
-            return parameterizedTextElementFactory.get(element.getTextElement(), frameContext);
+            returnAdapter =
+                parameterizedTextElementFactory.get(element.getTextElement(), frameContext);
+            break;
           default:
             throw new IllegalArgumentException(
                 String.format(
                     "Unsupported TextElement type: %s", element.getTextElement().getContentCase()));
         }
+        break;
       case IMAGE_ELEMENT:
-        return imageElementFactory.get(element.getImageElement(), frameContext);
+        returnAdapter = imageElementFactory.get(element.getImageElement(), frameContext);
+        break;
       case SPACER_ELEMENT:
-        return spacerElementFactory.get(element.getSpacerElement(), frameContext);
+        returnAdapter = spacerElementFactory.get(element.getSpacerElement(), frameContext);
+        break;
       case GRID_ROW:
-        return gridRowFactory.get(element.getGridRow(), frameContext);
+        returnAdapter = gridRowFactory.get(element.getGridRow(), frameContext);
+        break;
       case ELEMENT_LIST:
-        return elementListFactory.get(element.getElementList(), frameContext);
+        returnAdapter = elementListFactory.get(element.getElementList(), frameContext);
+        break;
       case ELEMENTS_NOT_SET:
       default:
         throw new IllegalArgumentException(
             String.format("Unsupported Element type: %s", element.getElementsCase()));
     }
+    returnAdapter.createAdapter(element, frameContext);
+    return returnAdapter;
   }
 
   ElementListAdapter createElementListAdapter(ElementList elementList, FrameContext frameContext) {
-    return elementListFactory.get(elementList, frameContext);
+    ElementListAdapter returnAdapter = elementListFactory.get(elementList, frameContext);
+    returnAdapter.createAdapter(elementList, frameContext);
+    return returnAdapter;
   }
 
   StackedElementAdapter createStackedElementAdapter(
       List<Content> overlays, FrameContext frameContext) {
-    return stackedElementFactory.get(overlays, frameContext);
+    StackedElementAdapter returnAdapter = stackedElementFactory.get(overlays, frameContext);
+    returnAdapter.createAdapter(overlays, frameContext);
+    return returnAdapter;
   }
 
   TemplateInstanceAdapter createTemplateAdapter(
       TemplateAdapterModel model, FrameContext frameContext) {
-    return templateInstanceFactory.get(model, frameContext);
+    TemplateInstanceAdapter returnAdapter = templateInstanceFactory.get(model, frameContext);
+    returnAdapter.createAdapter(model, frameContext);
+    return returnAdapter;
   }
 
   TemplateInstanceAdapter createTemplateAdapter(
@@ -150,7 +168,7 @@ class ElementAdapterFactory {
             templateInvocation.getTemplateId(),
             frameContext,
             templateInvocation.getBindingContexts(0));
-    return templateInstanceFactory.get(model, frameContext);
+    return createTemplateAdapter(model, frameContext);
   }
 
   void releaseAdapter(ElementAdapter<? extends View, ?> adapter) {

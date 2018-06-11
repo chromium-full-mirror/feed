@@ -74,7 +74,6 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
         switch (cell.getCellContentCase()) {
           case ELEMENT_LIST:
             cellAdapter = getAdapterForChildList(cell.getElementList(), frameContext);
-            cellAdapter.createAdapter(cell.getElementList(), frameContext);
             setLayoutParamsOnCell(cellAdapter, cell, frameContext);
             break;
           default:

@@ -140,7 +140,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
   private int createAndAddElementAdapter(Element element, FrameContext frameContext) {
     ElementAdapter<? extends View, ?> adapter =
         factory.createAdapterForElement(element, frameContext);
-    adapter.createAdapter(element, frameContext);
     addChildAdapter(adapter);
     getBaseView().addView(adapter.getView());
     return 1;
@@ -164,7 +163,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           new TemplateAdapterModel(template, templateInvocation.getBindingContexts(templateIndex));
       TemplateInstanceAdapter templateAdapter =
           factory.createTemplateAdapter(templateModel, frameContext);
-      templateAdapter.createAdapter(templateModel, frameContext);
       addChildAdapter(templateAdapter);
       getBaseView().addView(templateAdapter.getView());
     }
@@ -236,7 +234,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           Element element = elementBinding.getElement();
           ElementAdapter<? extends View, ?> adapter =
               factory.createAdapterForElement(element, frameContext);
-          adapter.createAdapter(element, frameContext);
           adapter.bindModel(element, frameContext);
           childAdapters.add(adapterIndex++, adapter);
           adapter.setVisibility(elementBinding.getVisibility());
@@ -266,7 +263,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
                     boundTemplate, boundTemplateInvocation.getBindingContexts(templateIndex));
             TemplateInstanceAdapter boundTemplateAdapter =
                 factory.createTemplateAdapter(templateModel, frameContext);
-            boundTemplateAdapter.createAdapter(templateModel, frameContext);
             boundTemplateAdapter.bindModel(templateModel, frameContext);
             childAdapters.add(adapterIndex++, boundTemplateAdapter);
             boundTemplateAdapter.setVisibility(templateBindingValue.getVisibility());

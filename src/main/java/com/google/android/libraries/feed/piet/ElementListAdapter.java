@@ -59,7 +59,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
       for (Element line : model.getElementsList()) {
         ElementAdapter<? extends View, ?> adapter =
             getParameters().elementAdapterFactory.createAdapterForElement(line, frameContext);
-        adapter.createAdapter(line, frameContext);
         addChildAdapter(adapter);
         getBaseView().addView(adapter.getView());
 
