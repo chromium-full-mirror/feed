@@ -257,7 +257,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     Logger.i(
         TAG,
         "request behavior: %s, making request %s, timeout task %s",
-        getRequestBehavior(behavior),
+        behavior,
         makeRequest,
         timeoutTask != null);
 
@@ -502,6 +502,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     dumper.dump(contentCache);
     dumper.dump(taskQueue);
     dumper.dump(sessionCache);
+    dumper.dump(mutationCommitterFactory);
   }
 
   /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
@@ -536,7 +537,8 @@ public class FeedSessionManager implements SessionManager, Dumpable {
    *       $HEAD
    * </ol>
    */
-  private boolean shouldInvalidateSession(
+  @VisibleForTesting
+  boolean shouldInvalidateSession(
       /*@Nullable*/ StreamSession streamSession, ModelProvider modelProvider) {
     // if the model provider isn't READY, don't invalidate the session
     if (modelProvider.getCurrentState() != State.READY) {
@@ -568,26 +570,6 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   // This is only used in tests to access a copy of the session state
   Map<String, Session> getSessionsMapForTest() {
     return sessionCache.getSessionsMapForTest();
-  }
-
-  private String getRequestBehavior(@RequestBehavior int behavior) {
-    switch (behavior) {
-      case RequestBehavior.REQUEST_WITH_WAIT:
-        return "REQUEST_WITH_WAIT";
-      case RequestBehavior.REQUEST_WITH_CONTENT:
-        return "REQUEST_WITH_CONTENT";
-      case RequestBehavior.REQUEST_WITH_TIMEOUT:
-        return "REQUEST_WITH_TIMEOUT";
-      case RequestBehavior.NO_REQUEST_WITH_WAIT:
-        return "NO_REQUEST_WITH_WAIT";
-      case RequestBehavior.NO_REQUEST_WITH_CONTENT:
-        return "NO_REQUEST_WITH_CONTENT";
-      case RequestBehavior.NO_REQUEST_WITH_TIMEOUT:
-        return "NO_REQUEST_WITH_TIMEOUT";
-      case RequestBehavior.UNKNOWN:
-      default:
-        return "UNKNOWN";
-    }
   }
 
   @VisibleForTesting

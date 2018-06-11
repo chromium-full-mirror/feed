@@ -25,6 +25,8 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.logging.Dumpable;
+import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -51,7 +53,7 @@ import java.util.Map;
  * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager} to commit a mutation
  * defined as a List of {@link StreamDataOperation}.
  */
-public class MutationCommitterFactory {
+public class MutationCommitterFactory implements Dumpable {
   private static final String TAG = "MutationCommitter";
 
   private final Consumer</*@Nullable*/ StreamSession> resetHeadConsumer;
@@ -66,6 +68,11 @@ public class MutationCommitterFactory {
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final Clock clock;
+
+  // operation counts for the dumper
+  private int createCount = 0;
+  private int commitCount = 0;
+  private int errorCount = 0;
 
   public MutationCommitterFactory(
       Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
@@ -100,7 +107,16 @@ public class MutationCommitterFactory {
    */
   public Consumer<Result<List<StreamDataOperation>>> create(
       String task, MutationContext mutationContext) {
+    createCount++;
     return new MutationCommitter(task, mutationContext);
+  }
+
+  @Override
+  public void dump(Dumper dumper) {
+    dumper.title(TAG);
+    dumper.forKey("mutationCreated").value(createCount);
+    dumper.forKey("commitCount").value(commitCount).compactPrevious();
+    dumper.forKey("errorCount").value(errorCount).compactPrevious();
   }
 
   @VisibleForTesting
@@ -134,6 +150,7 @@ public class MutationCommitterFactory {
             notifySessionErrorConsumer.accept(session);
           }
         } else {
+          errorCount++;
           Logger.e(TAG, "Unexpected Update error found, the update is being ignored");
         }
         return;
@@ -155,6 +172,7 @@ public class MutationCommitterFactory {
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
       commitContent();
       commitSessionUpdates();
+      commitCount++;
       timeTracker.stop(
           "task", "sessionMutation.commitTask:" + task, "mutations", streamStructures.size());
     }
@@ -175,11 +193,11 @@ public class MutationCommitterFactory {
           continue;
         }
 
-        String contentId = dataOperation.getStreamStructure().getContentId();
         if (operation == Operation.UPDATE_OR_APPEND) {
           if (!validDataOperation(dataOperation)) {
             continue;
           }
+          String contentId = dataOperation.getStreamStructure().getContentId();
           StreamPayload payload = dataOperation.getStreamPayload();
           contentCache.put(contentId, payload);
           if (payload.hasStreamSharedState()) {
@@ -193,17 +211,18 @@ public class MutationCommitterFactory {
           } else if (dataOperation.getStreamPayload().hasSemanticData()) {
             semanticPropertiesMutation.add(
                 contentId, dataOperation.getStreamPayload().getSemanticData());
-            continue;
           } else {
             Logger.e(TAG, "Unsupported UPDATE_OR_APPEND payload");
           }
           continue;
-        } else if (operation == Operation.REMOVE) {
+        }
+
+        if (operation == Operation.REMOVE) {
           // We don't update the content for REMOVED items, content will be garbage collected.
           streamStructures.add(dataOperation.getStreamStructure());
           continue;
         }
-
+        errorCount++;
         Logger.e(
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
@@ -236,7 +255,7 @@ public class MutationCommitterFactory {
         if (clearedHead && session == head) {
           session.updateSession(clearedHead, streamStructures, mutationSourceToken);
           long updateTime = clock.currentTimeMillis();
-          Validators.checkNotNull(head).updateAccessTime(updateTime);
+          head.updateAccessTime(updateTime);
           mainThreadRunner.execute(TAG, () -> schedulerApi.onReceiveNewContent(updateTime));
           Logger.i(
               TAG,
@@ -254,11 +273,13 @@ public class MutationCommitterFactory {
     boolean validDataOperation(StreamDataOperation dataOperation) {
       if (!dataOperation.hasStreamPayload() || !dataOperation.hasStreamStructure()) {
         Logger.e(TAG, "Invalid StreamDataOperation - payload or streamStructure not defined");
+        errorCount++;
         return false;
       }
       String contentId = dataOperation.getStreamStructure().getContentId();
       if (TextUtils.isEmpty(contentId)) {
         Logger.e(TAG, "Invalid StreamDataOperation - No ID Found");
+        errorCount++;
         return false;
       }
       return true;

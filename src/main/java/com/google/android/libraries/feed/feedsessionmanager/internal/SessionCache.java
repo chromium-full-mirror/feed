@@ -147,7 +147,10 @@ public class SessionCache implements Dumpable {
     return head != null;
   }
 
-  /* Return {@link HeadSessionImpl} for head.  Returns {@code null} if {@link #initialize()} hasn't finished running. */
+  /**
+   * Return {@link HeadSessionImpl} for head. Returns {@code null} if {@link #initialize()} hasn't
+   * finished running.
+   */
   /*@Nullable*/
   public HeadSessionImpl getHead() {
     return head;
@@ -348,7 +351,7 @@ public class SessionCache implements Dumpable {
     synchronized (lock) {
       dumper.forKey("sessions").value(sessions.size());
     }
-    dumper.forKey("expredSessionsCleared").value(expiredSessionsCleared).compactPrevious();
+    dumper.forKey("expiredSessionsCleared").value(expiredSessionsCleared).compactPrevious();
     dumper.forKey("unboundSessionCount").value(unboundSessionCount).compactPrevious();
     dumper.forKey("get").value(getCount);
     dumper.forKey("getAll").value(getAllCount).compactPrevious();
