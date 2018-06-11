@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -259,5 +260,17 @@ public class EphemeralFeedStore implements Store {
   @Override
   public boolean isEphemeralMode() {
     return true;
+  }
+
+  @Override
+  public void registerObserver(StoreListener observer) {
+    throw new UnsupportedOperationException(
+        "PersistentFeedStore does not support observer directly");
+  }
+
+  @Override
+  public void unregisterObserver(StoreListener observer) {
+    throw new UnsupportedOperationException(
+        "PersistentFeedStore does not support observer directly");
   }
 }

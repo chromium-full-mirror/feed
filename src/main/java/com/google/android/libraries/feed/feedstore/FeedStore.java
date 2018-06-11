@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -41,8 +42,14 @@ import java.util.Set;
 /**
  * {@link Store} implementation that delegates between {@link PersistentFeedStore} and {@link
  * EphemeralFeedStore}.
+ *
+ * <p>TODO: We need to design the StoreListener support correctly. For the switch to
+ * ephemeral mode, the Observers are called from here. If we ever have events which are raised by
+ * one of the delegates, we need to make sure the registered observers are called correctly,
+ * independent of what delegate is actually running. The delegates currently throw a
+ * IllegalStateException if the register/unregister methods are called.
  */
-public class FeedStore extends Observable<FeedStoreListener> implements Store {
+public class FeedStore extends Observable<StoreListener> implements Store {
   // Permanent reference to the persistent store (used for setting off cleanup)
   private final Store persistentStore;
   // The current store
@@ -52,6 +59,7 @@ public class FeedStore extends Observable<FeedStoreListener> implements Store {
   private final Clock clock;
   private final FeedStoreHelper storeHelper;
   private final TimingUtils timingUtils;
+  private final ThreadUtils threadUtils;
 
   private boolean isEphemeralMode = false;
 
@@ -67,6 +75,7 @@ public class FeedStore extends Observable<FeedStoreListener> implements Store {
     this.clock = clock;
     this.storeHelper = storeHelper;
     this.timingUtils = timingUtils;
+    this.threadUtils = threadUtils;
     this.persistentStore =
         new PersistentFeedStore(
             this.timingUtils,
@@ -168,12 +177,14 @@ public class FeedStore extends Observable<FeedStoreListener> implements Store {
 
   @Override
   public void switchToEphemeralMode() {
+    // This should be called on a background thread because it's called during error handling.
+    threadUtils.checkNotMainThread();
     if (!isEphemeralMode) {
       persistentStore.switchToEphemeralMode();
       delegate = new EphemeralFeedStore(clock, timingUtils, storeHelper);
       isEphemeralMode = true;
       synchronized (mObservers) {
-        for (FeedStoreListener listener : mObservers) {
+        for (StoreListener listener : mObservers) {
           listener.onSwitchToEphemeralMode();
         }
       }

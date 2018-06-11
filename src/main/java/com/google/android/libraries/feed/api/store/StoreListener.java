@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.feedstore;
+package com.google.android.libraries.feed.api.store;
 
-/** Allows classes to listen to changes to {@link FeedStore} */
-public interface FeedStoreListener {
-  /** Called when {@link FeedStore} switches to ephemeral mode */
+/** Allows classes to listen to changes to {@link Store} */
+public interface StoreListener {
+  /**
+   * Called when {@link Store} switches to ephemeral mode. This will be called on a background
+   * thread.
+   */
   void onSwitchToEphemeralMode();
 }

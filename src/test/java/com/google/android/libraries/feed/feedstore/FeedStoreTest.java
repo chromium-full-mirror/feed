@@ -20,6 +20,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
@@ -38,7 +39,7 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedStoreTest extends AbstractFeedStoreTest {
 
   @Mock private ThreadUtils threadUtils;
-  @Mock private FeedStoreListener listener;
+  @Mock private StoreListener listener;
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorage contentStorage = new InMemoryContentStorage();

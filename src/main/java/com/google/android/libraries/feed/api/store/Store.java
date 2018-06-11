@@ -119,4 +119,10 @@ public interface Store {
 
   /** Whether the store is in ephemeral mode */
   boolean isEphemeralMode();
+
+  /** Register an {@link com.google.android.libraries.feed.api.store.StoreListener}. */
+  void registerObserver(StoreListener observer);
+
+  /** Unregister an {@link com.google.android.libraries.feed.api.store.StoreListener}. */
+  void unregisterObserver(StoreListener observer);
 }

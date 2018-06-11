@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
@@ -490,6 +491,18 @@ public class PersistentFeedStore implements Store, Dumpable {
   @Override
   public boolean isEphemeralMode() {
     return false;
+  }
+
+  @Override
+  public void registerObserver(StoreListener observer) {
+    throw new UnsupportedOperationException(
+        "PersistentFeedStore does not support observer directly");
+  }
+
+  @Override
+  public void unregisterObserver(StoreListener observer) {
+    throw new UnsupportedOperationException(
+        "PersistentFeedStore does not support observer directly");
   }
 
   private CommitResult commitSemanticPropertiesMutation(
