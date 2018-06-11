@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedstore;
 
 import android.database.Observable;
+import android.os.AsyncTask;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -51,7 +52,7 @@ import java.util.Set;
  */
 public class FeedStore extends Observable<StoreListener> implements Store {
   // Permanent reference to the persistent store (used for setting off cleanup)
-  private final Store persistentStore;
+  private final PersistentFeedStore persistentStore;
   // The current store
   private Store delegate;
 
@@ -182,6 +183,20 @@ public class FeedStore extends Observable<StoreListener> implements Store {
     if (!isEphemeralMode) {
       persistentStore.switchToEphemeralMode();
       delegate = new EphemeralFeedStore(clock, timingUtils, storeHelper);
+      AsyncTask<Void, Void, Void> clearPersistentStoreTask =
+          new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+              // Try to just wipe content + sessions
+              boolean clearSuccess = persistentStore.clearStorage();
+              // If that fails, wipe everything.
+              if (!clearSuccess) {
+                persistentStore.clearAll();
+              }
+              return null;
+            }
+          };
+      clearPersistentStoreTask.execute();
       isEphemeralMode = true;
       synchronized (mObservers) {
         for (StoreListener listener : mObservers) {

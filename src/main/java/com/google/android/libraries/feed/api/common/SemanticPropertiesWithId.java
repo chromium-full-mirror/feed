@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.api.common;
 
+import java.util.Arrays;
+
 /**
  * Structure style class which binds a String contentId with the semantic properties data for that
  * contentId. The class is immutable and provides access to the fields directly.
@@ -26,5 +28,29 @@ public class SemanticPropertiesWithId {
   public SemanticPropertiesWithId(String contentId, byte[] semanticData) {
     this.contentId = contentId;
     this.semanticData = semanticData;
+  }
+
+  @Override
+  public boolean equals(/*@Nullable*/ Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    SemanticPropertiesWithId that = (SemanticPropertiesWithId) o;
+
+    if (!contentId.equals(that.contentId)) {
+      return false;
+    }
+    return Arrays.equals(semanticData, that.semanticData);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = contentId.hashCode();
+    result = 31 * result + Arrays.hashCode(semanticData);
+    return result;
   }
 }
