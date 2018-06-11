@@ -42,7 +42,6 @@ public class Result<T> {
     return Validators.checkNotNull(value);
   }
 
-  // TODO: replace isSuccessful with failed()
   public boolean isSuccessful() {
     return isSuccessful;
   }
