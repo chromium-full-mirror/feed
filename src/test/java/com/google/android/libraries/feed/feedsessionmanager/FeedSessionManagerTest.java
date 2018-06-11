@@ -65,6 +65,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
@@ -295,7 +296,10 @@ public class FeedSessionManagerTest {
     StreamDataOperation streamDataOperation =
         StreamDataOperation.newBuilder()
             .setStreamPayload(StreamPayload.newBuilder().setSemanticData(semanticData))
-            .setStreamStructure(StreamStructure.newBuilder().setContentId(rootContentId))
+            .setStreamStructure(
+                StreamStructure.newBuilder()
+                    .setContentId(rootContentId)
+                    .setOperation(Operation.UPDATE_OR_APPEND))
             .build();
 
     Consumer<Result<List<StreamDataOperation>>> updateConsumer =

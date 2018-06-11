@@ -20,11 +20,16 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.util.Pair;
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCommitterFactory.MutationCommitter;
@@ -33,13 +38,16 @@ import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,6 +73,9 @@ public class MutationCommitterFactoryTest {
   private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
   private final Map<String, StreamSharedState> sharedStateCache = new HashMap<>();
+  private final ContentIdGenerators idGenerators = new ContentIdGenerators();
+
+  private final String rootContentId = idGenerators.createRootContentId(0);
 
   private Store storeSpy;
   private SessionCache sessionCache;
@@ -104,7 +115,7 @@ public class MutationCommitterFactoryTest {
     List<StreamDataOperation> dataOperations = new ArrayList<>();
     dataOperations.add(
         getStreamDataOperation(
-            StreamStructure.newBuilder().setOperation(Operation.CLEAR_ALL).build()));
+            StreamStructure.newBuilder().setOperation(Operation.CLEAR_ALL).build(), null));
     String streamToken = "session:1";
     Session session = getSession(streamToken);
 
@@ -118,6 +129,60 @@ public class MutationCommitterFactoryTest {
     mutationCommitter.accept(Result.success(dataOperations));
     assertThat(mutationCommitter.clearedHead).isTrue();
     assertThat(resetSession).isEqualTo(session.getStreamSession());
+  }
+
+  @Test
+  public void testUpdateContent() {
+    MutationCommitterFactory committerFactory = getMutationCommitterFactory();
+    List<String> contentIds = getContentIds(3);
+    List<Pair<StreamStructure, StreamPayload>> features =
+        getFeatures(
+            contentIds,
+            () ->
+                StreamPayload.newBuilder()
+                    .setStreamFeature(StreamFeature.getDefaultInstance())
+                    .build());
+    List<StreamDataOperation> dataOperations = new ArrayList<>();
+    for (Pair<StreamStructure, StreamPayload> feature : features) {
+      dataOperations.add(getStreamDataOperation(feature.first, feature.second));
+    }
+    MutationCommitter mutationCommitter =
+        (MutationCommitter) committerFactory.create("task", MutationContext.EMPTY_CONTEXT);
+    mutationCommitter.accept(Result.success(dataOperations));
+
+    Result<List<PayloadWithId>> result = storeSpy.getPayloads(contentIds);
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.getValue()).hasSize(contentIds.size());
+    for (PayloadWithId payload : result.getValue()) {
+      assertThat(contentIds).contains(payload.contentId);
+    }
+  }
+
+  @Test
+  public void testSemanticData() {
+    MutationCommitterFactory committerFactory = getMutationCommitterFactory();
+    List<String> contentIds = getContentIds(2);
+    List<Pair<StreamStructure, StreamPayload>> features =
+        getFeatures(
+            contentIds,
+            () ->
+                StreamPayload.newBuilder()
+                    .setSemanticData(ByteString.copyFrom("foo", Charset.defaultCharset()))
+                    .build());
+    List<StreamDataOperation> dataOperations = new ArrayList<>();
+    for (Pair<StreamStructure, StreamPayload> feature : features) {
+      dataOperations.add(getStreamDataOperation(feature.first, feature.second));
+    }
+    MutationCommitter mutationCommitter =
+        (MutationCommitter) committerFactory.create("task", MutationContext.EMPTY_CONTEXT);
+    mutationCommitter.accept(Result.success(dataOperations));
+
+    Result<List<SemanticPropertiesWithId>> result = storeSpy.getSemanticProperties(contentIds);
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.getValue()).hasSize(contentIds.size());
+    for (SemanticPropertiesWithId payload : result.getValue()) {
+      assertThat(contentIds).contains(payload.contentId);
+    }
   }
 
   @Test
@@ -156,6 +221,14 @@ public class MutationCommitterFactoryTest {
     assertThat(mutationCommitter.validDataOperation(operation)).isTrue();
   }
 
+  private List<String> getContentIds(int count) {
+    List<String> contentIds = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      contentIds.add(idGenerators.createFeatureContentId(i));
+    }
+    return contentIds;
+  }
+
   private Session getSession(String token) {
     Session session = mock(Session.class);
     StreamSession streamSession = StreamSession.newBuilder().setStreamToken(token).build();
@@ -164,14 +237,37 @@ public class MutationCommitterFactoryTest {
     return session;
   }
 
-  private StreamDataOperation getStreamDataOperation(StreamStructure streamStructure) {
-    return StreamDataOperation.newBuilder().setStreamStructure(streamStructure).build();
+  private List<Pair<StreamStructure, StreamPayload>> getFeatures(
+      List<String> contentIds, Supplier<StreamPayload> payloadConsumer) {
+    List<Pair<StreamStructure, StreamPayload>> values = new ArrayList<>();
+    for (String contentId : contentIds) {
+      StreamStructure streamStructure =
+          StreamStructure.newBuilder()
+              .setOperation(Operation.UPDATE_OR_APPEND)
+              .setParentContentId(rootContentId)
+              .setContentId(contentId)
+              .build();
+      StreamPayload streamPayload = payloadConsumer.get();
+      values.add(new Pair<>(streamStructure, streamPayload));
+    }
+    return values;
+  }
+
+  private StreamDataOperation getStreamDataOperation(
+      StreamStructure streamStructure, StreamPayload payload) {
+    StreamDataOperation.Builder builder =
+        StreamDataOperation.newBuilder().setStreamStructure(streamStructure);
+    if (payload != null) {
+      builder.setStreamPayload(payload);
+    }
+    return builder.build();
   }
 
   private MutationCommitterFactory getMutationCommitterFactory() {
     EphemeralFeedStore store = new EphemeralFeedStore(clock, timingUtils, new FeedStoreHelper());
     storeSpy = spy(store);
     TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue.initialize(() -> {});
     SessionFactory sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
     sessionCache =

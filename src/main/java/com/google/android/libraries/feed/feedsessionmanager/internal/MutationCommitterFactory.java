@@ -94,6 +94,10 @@ public class MutationCommitterFactory {
     this.clock = clock;
   }
 
+  /**
+   * Return a Consumer of StreamDataOperations which will update the {@link
+   * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}.
+   */
   public Consumer<Result<List<StreamDataOperation>>> create(
       String task, MutationContext mutationContext) {
     return new MutationCommitter(task, mutationContext);
@@ -142,17 +146,15 @@ public class MutationCommitterFactory {
         }
       }
       taskQueue.execute(
-          "sessionManagerMutation:" + task + ":clearHead:" + clearedHead,
+          "MutationCommitter:" + task + ":clearHead:" + clearedHead,
           clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING,
           this::commitTask);
     }
 
     private void commitTask() {
-      contentCache.startMutation();
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
       commitContent();
       commitSessionUpdates();
-      contentCache.finishMutation();
       timeTracker.stop(
           "task", "sessionMutation.commitTask:" + task, "mutations", streamStructures.size());
     }
@@ -161,6 +163,7 @@ public class MutationCommitterFactory {
       threadUtils.checkNotMainThread();
       ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
+      contentCache.startMutation();
       ContentMutation contentMutation = store.editContent();
       SemanticPropertiesMutation semanticPropertiesMutation = store.editSemanticProperties();
       for (StreamDataOperation dataOperation : dataOperations) {
@@ -171,42 +174,40 @@ public class MutationCommitterFactory {
               (mutationContext != null) ? mutationContext.getRequestingSession() : null);
           continue;
         }
+
+        String contentId = dataOperation.getStreamStructure().getContentId();
         if (operation == Operation.UPDATE_OR_APPEND) {
           if (!validDataOperation(dataOperation)) {
             continue;
           }
           StreamPayload payload = dataOperation.getStreamPayload();
-          String contentId = dataOperation.getStreamStructure().getContentId();
           contentCache.put(contentId, payload);
           if (payload.hasStreamSharedState()) {
+            // don't add StreamSharedState to the metadata list stored for sessions
             contentMutation.add(contentId, payload);
-            // cache the shared state here
             sharedStateCache.put(
                 dataOperation.getStreamStructure().getContentId(), payload.getStreamSharedState());
           } else if (payload.hasStreamFeature() || payload.hasStreamToken()) {
-            // don't add StreamSharedState to the metadata list stored for sessions
-            streamStructures.add(dataOperation.getStreamStructure());
             contentMutation.add(contentId, payload);
+            streamStructures.add(dataOperation.getStreamStructure());
+          } else if (dataOperation.getStreamPayload().hasSemanticData()) {
+            semanticPropertiesMutation.add(
+                contentId, dataOperation.getStreamPayload().getSemanticData());
+            continue;
           } else {
             Logger.e(TAG, "Unsupported UPDATE_OR_APPEND payload");
           }
           continue;
         } else if (operation == Operation.REMOVE) {
           // We don't update the content for REMOVED items, content will be garbage collected.
-          // This is required because a session may not remove the item.
-          // Add the Remove to the structure changes
           streamStructures.add(dataOperation.getStreamStructure());
           continue;
         }
-        if (dataOperation.getStreamPayload().hasSemanticData()) {
-          String contentId = dataOperation.getStreamStructure().getContentId();
-          semanticPropertiesMutation.add(
-              contentId, dataOperation.getStreamPayload().getSemanticData());
-          continue;
-        }
+
         Logger.e(
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
+      contentCache.finishMutation();
       taskQueue.execute("contentMutation", TaskType.BACKGROUND, contentMutation::commit);
       // TODO: currently there is a small window in which an action could occur and the
       // request be sent to the server before this is written, fix
@@ -257,7 +258,7 @@ public class MutationCommitterFactory {
       }
       String contentId = dataOperation.getStreamStructure().getContentId();
       if (TextUtils.isEmpty(contentId)) {
-        Logger.i(TAG, "Invalid StreamDataOperation - No ID Found");
+        Logger.e(TAG, "Invalid StreamDataOperation - No ID Found");
         return false;
       }
       return true;

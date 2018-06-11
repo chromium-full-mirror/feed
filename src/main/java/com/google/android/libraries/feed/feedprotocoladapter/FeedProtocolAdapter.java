@@ -50,7 +50,7 @@ import java.util.List;
 public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   private static final String TAG = "FeedProtocolAdapter";
-  public static final String CONTENT_ID_DELIMITER = "::";
+  static final String CONTENT_ID_DELIMITER = "::";
 
   private final TimingUtils timingUtils;
 
@@ -280,7 +280,10 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       String contentId, ByteString semanticData) {
     return StreamDataOperation.newBuilder()
         .setStreamPayload(StreamPayload.newBuilder().setSemanticData(semanticData))
-        .setStreamStructure(StreamStructure.newBuilder().setContentId(contentId));
+        .setStreamStructure(
+            StreamStructure.newBuilder()
+                .setContentId(contentId)
+                .setOperation(Operation.UPDATE_OR_APPEND));
   }
 
   private String createContentId(ContentId contentId) {
