@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -30,7 +31,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.testing.Suppliers;
-import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
@@ -186,14 +186,12 @@ public class ElementContainerAdapterTest {
     // One TemplateInstanceAdapter for each BindingContext in the TemplateInvocation.
     assertThat(DEFAULT_TEMPLATE_INVOCATION.getBindingContextsCount()).isEqualTo(2);
     assertThat(adapter.childAdapters).hasSize(2);
-    assertThat(adapter.childAdapters.get(0)).isInstanceOf(TemplateInstanceAdapter.class);
-    assertThat(
-            ((TemplateInstanceAdapter) adapter.childAdapters.get(0)).getModel().getBindingContext())
-        .isSameAs(DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0));
-    assertThat(adapter.childAdapters.get(1)).isInstanceOf(TemplateInstanceAdapter.class);
-    assertThat(
-            ((TemplateInstanceAdapter) adapter.childAdapters.get(1)).getModel().getBindingContext())
-        .isSameAs(DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1));
+    assertThat(adapter.childAdapters.get(0)).isInstanceOf(TextElementAdapter.class);
+    assertThat(adapter.childAdapters.get(1)).isInstanceOf(TextElementAdapter.class);
+    verify(frameContext)
+        .bindTemplate(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0));
+    verify(frameContext)
+        .bindTemplate(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1));
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
     assertThat(adapter.getBaseView().getChildAt(0))
@@ -287,12 +285,8 @@ public class ElementContainerAdapterTest {
 
     // Adapters created:  2 templates, (nothing for the binding), 1 element list
     assertThat(adapter.childAdapters).hasSize(3);
-    assertThat(
-            ((TemplateInstanceAdapter) adapter.childAdapters.get(0)).getModel().getBindingContext())
-        .isSameAs(DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0));
-    assertThat(
-            ((TemplateInstanceAdapter) adapter.childAdapters.get(1)).getModel().getBindingContext())
-        .isSameAs(DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1));
+    assertThat(adapter.childAdapters.get(0)).isInstanceOf(TextElementAdapter.class);
+    assertThat(adapter.childAdapters.get(1)).isInstanceOf(TextElementAdapter.class);
 
     assertThat(adapter.childAdapters.get(2)).isInstanceOf(ElementListAdapter.class);
 
@@ -356,23 +350,28 @@ public class ElementContainerAdapterTest {
         Collections.singletonList(
             Content.newBuilder().setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION).build());
     adapter.createAdapter(contents, frameContext);
-    TemplateInstanceAdapter mockChildAdapter1 = mock(TemplateInstanceAdapter.class);
-    TemplateInstanceAdapter mockChildAdapter2 = mock(TemplateInstanceAdapter.class);
+    RecyclerKey key1 = adapter.childAdapters.get(0).getKey();
+    RecyclerKey key2 = adapter.childAdapters.get(1).getKey();
+    TextElementAdapter mockChildAdapter1 = mock(TextElementAdapter.class);
+    TextElementAdapter mockChildAdapter2 = mock(TextElementAdapter.class);
+    when(mockChildAdapter1.getKey()).thenReturn(key1);
+    when(mockChildAdapter2.getKey()).thenReturn(key2);
     adapter.childAdapters.set(0, mockChildAdapter1);
     adapter.childAdapters.set(1, mockChildAdapter2);
 
+    FrameContext templateContext1 = mock(FrameContext.class);
+    FrameContext templateContext2 = mock(FrameContext.class);
+    when(frameContext.bindTemplate(
+            DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0)))
+        .thenReturn(templateContext1);
+    when(frameContext.bindTemplate(
+            DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1)))
+        .thenReturn(templateContext2);
+
     adapter.bindModel(contents, frameContext);
 
-    verify(mockChildAdapter1)
-        .bindModel(
-            new TemplateAdapterModel(
-                DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0)),
-            frameContext);
-    verify(mockChildAdapter2)
-        .bindModel(
-            new TemplateAdapterModel(
-                DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1)),
-            frameContext);
+    verify(mockChildAdapter1).bindModel(DEFAULT_TEMPLATE.getElement(), templateContext1);
+    verify(mockChildAdapter2).bindModel(DEFAULT_TEMPLATE.getElement(), templateContext2);
   }
 
   @Test
@@ -523,24 +522,32 @@ public class ElementContainerAdapterTest {
 
     // 2 templates, 3 templates, 1 element list
     assertThat(adapter.childAdapters).hasSize(6);
-    assertThat(
-            ((TemplateInstanceAdapter) adapter.childAdapters.get(0)).getModel().getBindingContext())
-        .isSameAs(DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0));
-    assertThat(
-            ((TemplateInstanceAdapter) adapter.childAdapters.get(1)).getModel().getBindingContext())
-        .isSameAs(DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1));
 
-    assertThat(
-            ((TemplateInstanceAdapter) adapter.childAdapters.get(2)).getModel().getBindingContext())
-        .isSameAs(DEFAULT_BOUND_TEMPLATE_INVOCATION.getBindingContexts(0));
-    assertThat(
-            ((TemplateInstanceAdapter) adapter.childAdapters.get(3)).getModel().getBindingContext())
-        .isSameAs(DEFAULT_BOUND_TEMPLATE_INVOCATION.getBindingContexts(1));
-    assertThat(
-            ((TemplateInstanceAdapter) adapter.childAdapters.get(4)).getModel().getBindingContext())
-        .isSameAs(DEFAULT_BOUND_TEMPLATE_INVOCATION.getBindingContexts(2));
+    assertThat(adapter.childAdapters.get(0)).isInstanceOf(TextElementAdapter.class);
+    assertThat(adapter.childAdapters.get(1)).isInstanceOf(TextElementAdapter.class);
+
+    assertThat(adapter.childAdapters.get(2)).isInstanceOf(ImageElementAdapter.class);
+    assertThat(adapter.childAdapters.get(3)).isInstanceOf(ImageElementAdapter.class);
+    assertThat(adapter.childAdapters.get(4)).isInstanceOf(ImageElementAdapter.class);
 
     assertThat(adapter.childAdapters.get(5)).isInstanceOf(ElementListAdapter.class);
+
+    // Each of these occur 2 times; once for create and once for bind.
+    verify(frameContext, times(2))
+        .bindTemplate(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0));
+    verify(frameContext, times(2))
+        .bindTemplate(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1));
+
+    // These only occur once because we do create and bind at the same time.
+    verify(frameContext)
+        .bindTemplate(
+            DEFAULT_BOUND_TEMPLATE, DEFAULT_BOUND_TEMPLATE_INVOCATION.getBindingContexts(0));
+    verify(frameContext)
+        .bindTemplate(
+            DEFAULT_BOUND_TEMPLATE, DEFAULT_BOUND_TEMPLATE_INVOCATION.getBindingContexts(1));
+    verify(frameContext)
+        .bindTemplate(
+            DEFAULT_BOUND_TEMPLATE, DEFAULT_BOUND_TEMPLATE_INVOCATION.getBindingContexts(2));
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(6);
     for (int i = 0; i < 6; i++) {
@@ -562,10 +569,10 @@ public class ElementContainerAdapterTest {
 
     adapter.unbindModel();
 
-    // 2 templates, 3 templates, 1 element list
+    // 2 templates, 1 element list
     assertThat(adapter.childAdapters).hasSize(3);
-    assertThat(adapter.childAdapters.get(0)).isInstanceOf(TemplateInstanceAdapter.class);
-    assertThat(adapter.childAdapters.get(1)).isInstanceOf(TemplateInstanceAdapter.class);
+    assertThat(adapter.childAdapters.get(0)).isInstanceOf(TextElementAdapter.class);
+    assertThat(adapter.childAdapters.get(1)).isInstanceOf(TextElementAdapter.class);
     assertThat(adapter.childAdapters.get(2)).isInstanceOf(ElementListAdapter.class);
 
     assertThat(adapter.childAdapters.get(0).getRawModel()).isNull();
@@ -624,7 +631,7 @@ public class ElementContainerAdapterTest {
     adapter.bindModel(contents, frameContext);
 
     assertThat(adapter.childAdapters).hasSize(6);
-    TemplateInstanceAdapter mockTemplateAdapter = mock(TemplateInstanceAdapter.class);
+    ImageElementAdapter mockTemplateAdapter = mock(ImageElementAdapter.class);
     adapter.childAdapters.set(3, mockTemplateAdapter);
 
     adapter.unbindModel();

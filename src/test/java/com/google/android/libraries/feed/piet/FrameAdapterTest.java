@@ -35,7 +35,7 @@ import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
-import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
+import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -81,12 +81,13 @@ public class FrameAdapterTest {
 
   @Mock private AssetProvider assetProvider;
   @Mock private ElementAdapterFactory adapterFactory;
+  @Mock private TemplateBinder templateBinder;
   @Mock private FrameContext frameContext;
   @Mock private DebugBehavior debugBehavior;
   @Mock private DebugLogger debugLogger;
   @Mock private StyleProvider styleProvider;
   @Mock private ElementAdapter<? extends View, ?> elementAdapter;
-  @Mock private TemplateInstanceAdapter templateAdapter;
+  @Mock private ElementAdapter<? extends View, ?> templateAdapter;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private ActionHandler actionHandler;
 
@@ -107,14 +108,16 @@ public class FrameAdapterTest {
             null,
             Suppliers.of(new FrameLayout(context)),
             new ParameterizedTextEvaluator(),
-            adapterFactory);
+            adapterFactory,
+            templateBinder);
     when(elementAdapter.getView()).thenReturn(new LinearLayout(context));
     when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
     doReturn(elementAdapter)
         .when(adapterFactory)
         .createAdapterForElement(any(Element.class), eq(frameContext));
-    when(adapterFactory.createTemplateAdapter(any(TemplateAdapterModel.class), eq(frameContext)))
-        .thenReturn(templateAdapter);
+    doReturn(templateAdapter)
+        .when(templateBinder)
+        .createAndBindTemplateAdapter(any(TemplateAdapterModel.class), eq(frameContext));
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(frameContext.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.reportError(eq(MessageType.ERROR), anyString()))
@@ -196,20 +199,20 @@ public class FrameAdapterTest {
             .build();
     viewAdapters = frameAdapter.getBoundAdaptersForContent(content, frameContext);
     assertThat(viewAdapters).containsExactly(templateAdapter, templateAdapter, templateAdapter);
-    verify(adapterFactory)
-        .createTemplateAdapter(
+    verify(templateBinder)
+        .createAndBindTemplateAdapter(
             new TemplateAdapterModel(
                 Template.getDefaultInstance(),
                 content.getTemplateInvocation().getBindingContexts(0)),
             frameContext);
-    verify(adapterFactory)
-        .createTemplateAdapter(
+    verify(templateBinder)
+        .createAndBindTemplateAdapter(
             new TemplateAdapterModel(
                 Template.getDefaultInstance(),
                 content.getTemplateInvocation().getBindingContexts(1)),
             frameContext);
-    verify(adapterFactory)
-        .createTemplateAdapter(
+    verify(templateBinder)
+        .createAndBindTemplateAdapter(
             new TemplateAdapterModel(
                 Template.getDefaultInstance(),
                 content.getTemplateInvocation().getBindingContexts(2)),
@@ -224,15 +227,22 @@ public class FrameAdapterTest {
     String templateId = "template";
     ElementList defaultList =
         ElementList.newBuilder()
-            .addElements(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
-            .addElements(Element.newBuilder().setGridRow(GridRow.getDefaultInstance()))
+            .addContents(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
+            .addContents(
+                Content.newBuilder()
+                    .setElement(Element.newBuilder().setGridRow(GridRow.getDefaultInstance())))
             .build();
     AdapterParameters adapterParameters =
         new AdapterParameters(context, Suppliers.of(new LinearLayout(context)));
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
             .addTemplates(
-                Template.newBuilder().setTemplateId(templateId).setElementList(defaultList))
+                Template.newBuilder()
+                    .setTemplateId(templateId)
+                    .setElement(Element.newBuilder().setElementList(defaultList)))
             .build();
     pietSharedStates.add(pietSharedState);
     FrameContext frameContext =
@@ -279,10 +289,7 @@ public class FrameAdapterTest {
     viewAdapters = frameAdapter.getBoundAdaptersForContent(content, frameContext);
     assertThat(viewAdapters).hasSize(1);
     viewAdapter = viewAdapters.get(0);
-    assertThat(viewAdapter.getModel())
-        .isEqualTo(
-            new TemplateAdapterModel(
-                pietSharedState.getTemplates(0), BindingContext.getDefaultInstance()));
+    assertThat(viewAdapter.getModel()).isEqualTo(defaultList);
     frameAdapter.bindModel(Frame.newBuilder().addContents(content).build(), null, pietSharedStates);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
     frameAdapter.unbindModel();
@@ -290,8 +297,7 @@ public class FrameAdapterTest {
 
   @Test
   public void testBindModel_defaultDimensions() {
-    Content content = DEFAULT_CONTENT;
-    Frame frame = Frame.newBuilder().addContents(content).build();
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
     when(elementAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
     when(elementAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
 
@@ -306,8 +312,7 @@ public class FrameAdapterTest {
 
   @Test
   public void testBindModel_explicitDimensions() {
-    Content content = DEFAULT_CONTENT;
-    Frame frame = Frame.newBuilder().addContents(content).build();
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
     int width = 123;
     int height = 456;
     when(elementAdapter.getComputedWidthPx()).thenReturn(width);
@@ -374,16 +379,14 @@ public class FrameAdapterTest {
 
   @Test
   public void testBackgroundColor() {
-    Content content = DEFAULT_CONTENT;
-    Frame frame = Frame.newBuilder().addContents(content).build();
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     verify(frameContext).createBackground(styleProvider, context);
   }
 
   @Test
   public void testUnsetBackgroundIfNotDefined() {
-    Content content = DEFAULT_CONTENT;
-    Frame frame = Frame.newBuilder().addContents(content).build();
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
 
     // Set background
     when(frameContext.createBackground(styleProvider, context))
@@ -400,8 +403,7 @@ public class FrameAdapterTest {
 
   @Test
   public void testUnsetBackgroundIfCreateBackgroundFails() {
-    Content content = DEFAULT_CONTENT;
-    Frame frame = Frame.newBuilder().addContents(content).build();
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
 
     // Set background
     when(frameContext.createBackground(styleProvider, context))
@@ -453,8 +455,7 @@ public class FrameAdapterTest {
             .build();
     frameAdapter.bindModel(templateSliceFrame, (ShardingControl) null, pietSharedStates);
     TemplateAdapterModel model = new TemplateAdapterModel(template, bindingContext);
-    verify(adapterFactory).createTemplateAdapter(model, frameContext);
-    verify(templateAdapter).bindModel(model, frameContext);
+    verify(templateBinder).createAndBindTemplateAdapter(model, frameContext);
 
     frameAdapter.unbindModel();
     verify(adapterFactory).releaseAdapter(templateAdapter);
@@ -467,8 +468,7 @@ public class FrameAdapterTest {
     when(debugLogger.getReportView(MessageType.WARNING, context)).thenReturn(warningView);
     when(debugLogger.getReportView(MessageType.ERROR, context)).thenReturn(errorView);
 
-    Content content = DEFAULT_CONTENT;
-    Frame frame = Frame.newBuilder().addContents(content).build();
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
 
     // Errors silenced by debug behavior
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.SILENT);

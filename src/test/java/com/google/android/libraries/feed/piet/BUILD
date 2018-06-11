@@ -60,7 +60,9 @@ android_local_test(
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/piet",
+        "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
         "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",
@@ -393,10 +395,10 @@ android_local_test(
 )
 
 android_local_test(
-    name = "TemplateInstanceAdapterTest",
+    name = "TemplateBinderTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["TemplateInstanceAdapterTest.java"],
+    srcs = ["TemplateBinderTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

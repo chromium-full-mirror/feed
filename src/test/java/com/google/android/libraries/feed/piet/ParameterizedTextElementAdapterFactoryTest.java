@@ -57,7 +57,8 @@ public class ParameterizedTextElementAdapterFactoryTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    adapterParameters = new AdapterParameters(null, null, new ParameterizedTextEvaluator(), null);
+    adapterParameters =
+        new AdapterParameters(null, null, new ParameterizedTextEvaluator(), null, null);
     when(keySupplier.getAdapter(context, adapterParameters))
         .thenReturn(adapter)
         .thenReturn(adapter2);
@@ -102,9 +103,8 @@ public class ParameterizedTextElementAdapterFactoryTest {
     assertThat(textElementAdapter).isSameAs(adapter);
     textElementAdapter.createAdapter(textElement, frameContext);
 
-    // Ensure that releasing in the factory unbinds and releases the adapter.
+    // Ensure that releasing in the factory releases the adapter.
     textElementFactory.release(textElementAdapter);
-    verify(adapter).unbindModel();
     verify(adapter).releaseAdapter();
 
     // Verify we get the same item when we create it again.

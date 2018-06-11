@@ -95,7 +95,6 @@ class AdapterFactory<A extends ElementAdapter<?, M>, M> {
   /** Release the Adapter, releases the model and will recycle the Adapter */
   public void release(A a) {
     statistics.releaseCalls++;
-    a.unbindModel();
     a.releaseAdapter();
     RecyclerKey key = a.getKey();
     if (key != null) {

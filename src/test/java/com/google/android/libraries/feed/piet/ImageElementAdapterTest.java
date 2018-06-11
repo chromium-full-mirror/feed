@@ -73,6 +73,7 @@ public class ImageElementAdapterTest {
       ImageElement.newBuilder().setImage(DEFAULT_IMAGE).build();
 
   @Mock private ElementAdapterFactory adapterFactory;
+  @Mock private TemplateBinder templateBinder;
   @Mock private FrameContext frameContext;
   @Mock private FrameContext frameContextWithStyle;
   @Mock private AssetProvider assetProvider;
@@ -94,7 +95,8 @@ public class ImageElementAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
     heightPx = (int) ViewUtils.dpToPx(HEIGHT_DP, context);
     widthPx = (int) ViewUtils.dpToPx(WIDTH_DP, context);
-    AdapterParameters parameters = new AdapterParameters(context, null, null, adapterFactory);
+    AdapterParameters parameters =
+        new AdapterParameters(context, null, null, adapterFactory, templateBinder);
 
     when(frameContext.bindNewStyle(any())).thenReturn(frameContextWithStyle);
     when(frameContext.getAssetProvider()).thenReturn(assetProvider);

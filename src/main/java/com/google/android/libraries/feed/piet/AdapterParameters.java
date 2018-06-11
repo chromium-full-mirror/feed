@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.view.View;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.common.functional.Supplier;
 
@@ -26,12 +27,17 @@ import com.google.android.libraries.feed.common.functional.Supplier;
  * <p>TODO: This is basically the Dagger state for Piet. Need to implement dagger support.
  */
 class AdapterParameters {
+  // TODO: Make these configurable instead of constants.
+  private static final int DEFAULT_TEMPLATE_POOL_SIZE = 100;
+  private static final int DEFAULT_NUM_TEMPLATE_POOLS = 30;
+
   final ParameterizedTextEvaluator templatedStringEvaluator;
   final Supplier</*@Nullable*/ ViewGroup> parentViewSupplier;
 
   final Context context;
 
   final ElementAdapterFactory elementAdapterFactory;
+  final TemplateBinder templateBinder;
 
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
@@ -41,7 +47,11 @@ class AdapterParameters {
     this.parentViewSupplier = parentViewSupplier;
 
     templatedStringEvaluator = new ParameterizedTextEvaluator();
-    elementAdapterFactory = new ElementAdapterFactory(context, this);
+
+    KeyedRecyclerPool<ElementAdapter<? extends View, ?>> templateRecyclerPool =
+        new KeyedRecyclerPool<>(DEFAULT_NUM_TEMPLATE_POOLS, DEFAULT_TEMPLATE_POOL_SIZE);
+    elementAdapterFactory = new ElementAdapterFactory(context, this, templateRecyclerPool);
+    templateBinder = new TemplateBinder(templateRecyclerPool, elementAdapterFactory);
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -50,11 +60,13 @@ class AdapterParameters {
       Context context,
       Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
       ParameterizedTextEvaluator templatedStringEvaluator,
-      ElementAdapterFactory elementAdapterFactory) {
+      ElementAdapterFactory elementAdapterFactory,
+      TemplateBinder templateBinder) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
 
     this.templatedStringEvaluator = templatedStringEvaluator;
     this.elementAdapterFactory = elementAdapterFactory;
+    this.templateBinder = templateBinder;
   }
 }

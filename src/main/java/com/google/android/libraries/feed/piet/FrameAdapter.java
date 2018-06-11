@@ -28,7 +28,7 @@ import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
-import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
+import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -223,9 +223,8 @@ public class FrameAdapter {
           TemplateAdapterModel model =
               new TemplateAdapterModel(
                   templateInvocation.getTemplateId(), frameContext, bindingContext);
-          TemplateInstanceAdapter templateAdapter =
-              parameters.elementAdapterFactory.createTemplateAdapter(model, frameContext);
-          templateAdapter.bindModel(model, frameContext);
+          ElementAdapter<? extends View, ?> templateAdapter =
+              parameters.templateBinder.createAndBindTemplateAdapter(model, frameContext);
           returnList.add(templateAdapter);
         }
         return returnList;

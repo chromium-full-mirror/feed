@@ -100,8 +100,9 @@ public class PietManagerTest {
     pietManager.purgeRecyclerPools();
 
     ElementAdapterFactory mockFactory = mock(ElementAdapterFactory.class);
+    TemplateBinder mockTemplateBinder = mock(TemplateBinder.class);
     pietManager.adapterParameters =
-        new AdapterParameters(context, cardViewSupplier, null, mockFactory);
+        new AdapterParameters(context, cardViewSupplier, null, mockFactory, mockTemplateBinder);
     pietManager.purgeRecyclerPools();
     verify(mockFactory).purgeRecyclerPools();
   }

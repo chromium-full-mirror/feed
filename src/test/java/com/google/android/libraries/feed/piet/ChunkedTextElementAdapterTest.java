@@ -142,7 +142,7 @@ public class ChunkedTextElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    adapterParameters = new AdapterParameters(null, null, mockTextEvaluator, null);
+    adapterParameters = new AdapterParameters(null, null, mockTextEvaluator, null, null);
 
     drawable = new ColorDrawable(Color.GREEN);
     shadowDrawable = Shadows.shadowOf(drawable);

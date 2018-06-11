@@ -20,29 +20,24 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
-import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
+import android.view.View;
+import com.google.android.libraries.feed.piet.TemplateBinder.TemplateKey;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
-import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
-import com.google.search.now.ui.piet.ElementsProto.BindingContext;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
-import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
-import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.TextProto.ChunkedText;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
@@ -52,7 +47,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
@@ -69,7 +63,7 @@ public class ElementAdapterFactoryTest {
   @Mock private SpacerElementAdapter spacerElementAdapter;
   @Mock private GridRowAdapter gridRowAdapter;
   @Mock private ElementListAdapter elementListAdapter;
-  @Mock private TemplateInstanceAdapter templateAdapter;
+  @Mock private ElementAdapter<? extends View, ?> templateAdapter;
   @Mock private StackedElementAdapter stackedAdapter;
 
   @Mock private AdapterFactory<CustomElementAdapter, CustomElement> customElementFactory;
@@ -88,9 +82,9 @@ public class ElementAdapterFactoryTest {
 
   @Mock private AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
 
-  @Mock private AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel> templateFactory;
-
   @Mock private AdapterFactory<StackedElementAdapter, List<Content>> stackedElementFactory;
+
+  @Mock private KeyedRecyclerPool<ElementAdapter<? extends View, ?>> templateRecyclerPool;
 
   private final List<AdapterFactory<?, ?>> adapterFactories = new ArrayList<>();
 
@@ -108,8 +102,8 @@ public class ElementAdapterFactoryTest {
             spacerElementFactory,
             gridRowFactory,
             elementListFactory,
-            templateFactory,
-            stackedElementFactory);
+            stackedElementFactory,
+            templateRecyclerPool);
     when(customElementFactory.get(any(CustomElement.class), eq(frameContext)))
         .thenReturn(customElementAdapter);
     when(chunkedTextElementFactory.get(any(TextElement.class), eq(frameContext)))
@@ -123,12 +117,6 @@ public class ElementAdapterFactoryTest {
     when(gridRowFactory.get(any(GridRow.class), eq(frameContext))).thenReturn(gridRowAdapter);
     when(elementListFactory.get(any(ElementList.class), eq(frameContext)))
         .thenReturn(elementListAdapter);
-    when(elementListFactory.get(any(ElementList.class), eq(frameContext)))
-        .thenReturn(elementListAdapter);
-    when(templateFactory.get(any(TemplateAdapterModel.class), eq(frameContext)))
-        .thenReturn(templateAdapter);
-    when(templateFactory.get(any(TemplateAdapterModel.class), eq(frameContext)))
-        .thenReturn(templateAdapter);
     when(stackedElementFactory.get(anyListOf(Content.class), eq(frameContext)))
         .thenReturn(stackedAdapter);
     adapterFactories.add(customElementFactory);
@@ -138,7 +126,6 @@ public class ElementAdapterFactoryTest {
     adapterFactories.add(spacerElementFactory);
     adapterFactories.add(gridRowFactory);
     adapterFactories.add(elementListFactory);
-    adapterFactories.add(templateFactory);
     adapterFactories.add(stackedElementFactory);
   }
 
@@ -257,6 +244,19 @@ public class ElementAdapterFactoryTest {
   }
 
   @Test
+  public void testReleaseAdapter_template() {
+    TemplateKey templateKey = new TemplateKey(Template.getDefaultInstance(), null);
+    when(templateAdapter.getKey()).thenReturn(templateKey);
+
+    adapterFactory.releaseAdapter(templateAdapter);
+
+    // We unbind the adapter but do not release it so it can be created quickly again.
+    verify(templateAdapter).unbindModel();
+    verify(templateAdapter, never()).releaseAdapter();
+    verify(templateRecyclerPool).put(templateKey, templateAdapter);
+  }
+
+  @Test
   public void testReleaseAdapter_custom() {
     adapterFactory.releaseAdapter(customElementAdapter);
     verify(customElementFactory).release(customElementAdapter);
@@ -306,13 +306,6 @@ public class ElementAdapterFactoryTest {
   }
 
   @Test
-  public void testReleaseAdapter_template() {
-    adapterFactory.releaseAdapter(templateAdapter);
-    verify(templateFactory).release(templateAdapter);
-    testNoOtherFactoryInteractions();
-  }
-
-  @Test
   public void testReleaseAdapter_stacked() {
     adapterFactory.releaseAdapter(stackedAdapter);
     verify(stackedElementFactory).release(stackedAdapter);
@@ -337,28 +330,33 @@ public class ElementAdapterFactoryTest {
   }
 
   @Test
-  public void testCreateTemplateAdapter() {
-    String templateId = "papa";
-    TemplateInvocation templateInvocation =
-        TemplateInvocation.newBuilder()
-            .setTemplateId(templateId)
-            .addBindingContexts(BindingContext.getDefaultInstance())
-            .build();
-    Template template = Template.newBuilder().setTemplateId(templateId).build();
-    when(frameContext.getTemplate(templateId)).thenReturn(template);
-    TemplateInstanceAdapter adapter =
-        adapterFactory.createTemplateAdapter(templateInvocation, frameContext);
-    verify(templateFactory)
-        .get(new TemplateAdapterModel(template, BindingContext.getDefaultInstance()), frameContext);
-    assertThat(adapter).isSameAs(templateAdapter);
-  }
-
-  @Test
   public void testPurgeRecyclerPools() {
     adapterFactory.purgeRecyclerPools();
     for (AdapterFactory<?, ?> adapterFactory : adapterFactories) {
       verify(adapterFactory).purgeRecyclerPool();
     }
+  }
+
+  @Test
+  public void testPurgeTemplateRecyclerPool() {
+    Template template =
+        Template.newBuilder()
+            .setTemplateId("template")
+            .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
+            .build();
+    List<PietSharedState> sharedStates = Collections.emptyList();
+    when(templateAdapter.getKey()).thenReturn(new TemplateKey(template, sharedStates));
+    when(frameContext.getPietSharedStates()).thenReturn(sharedStates);
+
+    // Release adapter to populate the recycler pool
+    adapterFactory.releaseAdapter(templateAdapter);
+
+    verify(templateRecyclerPool).put(templateAdapter.getKey(), templateAdapter);
+
+    // Purge the recycler pools.
+    adapterFactory.purgeRecyclerPools();
+
+    verify(templateRecyclerPool).clear();
   }
 
   private void testNoOtherFactoryInteractions() {

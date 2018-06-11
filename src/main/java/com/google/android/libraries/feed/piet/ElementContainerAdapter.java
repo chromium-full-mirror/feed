@@ -21,7 +21,7 @@ import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
+import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Content;
@@ -161,8 +161,8 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
         templateIndex++) {
       TemplateAdapterModel templateModel =
           new TemplateAdapterModel(template, templateInvocation.getBindingContexts(templateIndex));
-      TemplateInstanceAdapter templateAdapter =
-          factory.createTemplateAdapter(templateModel, frameContext);
+      ElementAdapter<? extends View, ?> templateAdapter =
+          getParameters().templateBinder.createTemplateAdapter(templateModel, frameContext);
       addChildAdapter(templateAdapter);
       getBaseView().addView(templateAdapter.getView());
     }
@@ -214,12 +214,14 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           for (int templateIndex = 0;
               templateIndex < adaptersPerContent[contentIndex];
               templateIndex++) {
-            TemplateInstanceAdapter templateAdapter =
-                (TemplateInstanceAdapter) childAdapters.get(adapterIndex);
-            templateAdapter.bindModel(
-                new TemplateAdapterModel(
-                    template, templateInvocation.getBindingContexts(templateIndex)),
-                frameContext);
+            ElementAdapter<? extends View, ?> templateAdapter = childAdapters.get(adapterIndex);
+            getParameters()
+                .templateBinder
+                .bindTemplateAdapter(
+                    templateAdapter,
+                    new TemplateAdapterModel(
+                        template, templateInvocation.getBindingContexts(templateIndex)),
+                    frameContext);
             adapterIndex++;
             viewIndex++;
           }
@@ -261,9 +263,10 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
             TemplateAdapterModel templateModel =
                 new TemplateAdapterModel(
                     boundTemplate, boundTemplateInvocation.getBindingContexts(templateIndex));
-            TemplateInstanceAdapter boundTemplateAdapter =
-                factory.createTemplateAdapter(templateModel, frameContext);
-            boundTemplateAdapter.bindModel(templateModel, frameContext);
+            ElementAdapter<? extends View, ?> boundTemplateAdapter =
+                getParameters()
+                    .templateBinder
+                    .createAndBindTemplateAdapter(templateModel, frameContext);
             childAdapters.add(adapterIndex++, boundTemplateAdapter);
             boundTemplateAdapter.setVisibility(templateBindingValue.getVisibility());
             getBaseView().addView(boundTemplateAdapter.getView(), viewIndex++);

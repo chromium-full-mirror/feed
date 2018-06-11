@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
-import com.google.android.libraries.feed.piet.TemplateInstanceAdapter.TemplateAdapterModel;
+import com.google.android.libraries.feed.piet.TemplateBinder.TemplateKey;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -25,7 +25,6 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
-import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,12 +40,15 @@ class ElementAdapterFactory {
   private final AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory;
   private final AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
   private final AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
-  private final AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel>
-      templateInstanceFactory;
   private final AdapterFactory<StackedElementAdapter, List<Content>> stackedElementFactory;
   private final List<AdapterFactory<?, ?>> factories;
 
-  ElementAdapterFactory(Context context, AdapterParameters parameters) {
+  private final KeyedRecyclerPool<ElementAdapter<? extends View, ?>> templateRecyclerPool;
+
+  ElementAdapterFactory(
+      Context context,
+      AdapterParameters parameters,
+      KeyedRecyclerPool<ElementAdapter<? extends View, ?>> templateRecyclerPool) {
     this(
         new AdapterFactory<>(context, parameters, new CustomElementAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new ChunkedTextElementAdapter.KeySupplier()),
@@ -56,9 +58,8 @@ class ElementAdapterFactory {
         new AdapterFactory<>(context, parameters, new SpacerElementAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new GridRowAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new ElementListAdapter.KeySupplier()),
-        new AdapterFactory<>(
-            context, parameters, new TemplateInstanceAdapter.TemplateKeySupplier()),
-        new AdapterFactory<>(context, parameters, new StackedElementAdapter.KeySupplier()));
+        new AdapterFactory<>(context, parameters, new StackedElementAdapter.KeySupplier()),
+        templateRecyclerPool);
   }
 
   /** Testing-only constructor for mocking the factories. */
@@ -71,8 +72,8 @@ class ElementAdapterFactory {
       AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory,
       AdapterFactory<GridRowAdapter, GridRow> gridRowFactory,
       AdapterFactory<ElementListAdapter, ElementList> elementListFactory,
-      AdapterFactory<TemplateInstanceAdapter, TemplateAdapterModel> templateInstanceFactory,
-      AdapterFactory<StackedElementAdapter, List<Content>> stackedElementFactory) {
+      AdapterFactory<StackedElementAdapter, List<Content>> stackedElementFactory,
+      KeyedRecyclerPool<ElementAdapter<? extends View, ?>> templateRecyclerPool) {
     this.customElementFactory = customElementFactory;
     this.chunkedTextElementFactory = chunkedTextElementFactory;
     this.parameterizedTextElementFactory = parameterizedTextElementFactory;
@@ -80,7 +81,6 @@ class ElementAdapterFactory {
     this.spacerElementFactory = spacerElementFactory;
     this.gridRowFactory = gridRowFactory;
     this.elementListFactory = elementListFactory;
-    this.templateInstanceFactory = templateInstanceFactory;
     this.stackedElementFactory = stackedElementFactory;
     factories =
         Collections.unmodifiableList(
@@ -92,8 +92,8 @@ class ElementAdapterFactory {
                 spacerElementFactory,
                 gridRowFactory,
                 elementListFactory,
-                templateInstanceFactory,
                 stackedElementFactory));
+    this.templateRecyclerPool = templateRecyclerPool;
   }
 
   ElementAdapter<? extends View, ?> createAdapterForElement(
@@ -154,25 +154,16 @@ class ElementAdapterFactory {
     return returnAdapter;
   }
 
-  TemplateInstanceAdapter createTemplateAdapter(
-      TemplateAdapterModel model, FrameContext frameContext) {
-    TemplateInstanceAdapter returnAdapter = templateInstanceFactory.get(model, frameContext);
-    returnAdapter.createAdapter(model, frameContext);
-    return returnAdapter;
-  }
-
-  TemplateInstanceAdapter createTemplateAdapter(
-      TemplateInvocation templateInvocation, FrameContext frameContext) {
-    TemplateAdapterModel model =
-        new TemplateAdapterModel(
-            templateInvocation.getTemplateId(),
-            frameContext,
-            templateInvocation.getBindingContexts(0));
-    return createTemplateAdapter(model, frameContext);
-  }
-
   void releaseAdapter(ElementAdapter<? extends View, ?> adapter) {
-    if (adapter instanceof CustomElementAdapter) {
+    adapter.unbindModel();
+
+    if (adapter.getKey() instanceof TemplateKey) {
+      // Don't release template adapters; just return them to the pool after unbinding.
+      TemplateKey key = (TemplateKey) adapter.getKey();
+      if (key != null) {
+        templateRecyclerPool.put(key, adapter);
+      }
+    } else if (adapter instanceof CustomElementAdapter) {
       customElementFactory.release((CustomElementAdapter) adapter);
     } else if (adapter instanceof ChunkedTextElementAdapter) {
       chunkedTextElementFactory.release((ChunkedTextElementAdapter) adapter);
@@ -186,8 +177,6 @@ class ElementAdapterFactory {
       gridRowFactory.release((GridRowAdapter) adapter);
     } else if (adapter instanceof ElementListAdapter) {
       elementListFactory.release((ElementListAdapter) adapter);
-    } else if (adapter instanceof TemplateInstanceAdapter) {
-      templateInstanceFactory.release((TemplateInstanceAdapter) adapter);
     } else if (adapter instanceof StackedElementAdapter) {
       stackedElementFactory.release((StackedElementAdapter) adapter);
     }
@@ -197,5 +186,6 @@ class ElementAdapterFactory {
     for (AdapterFactory<?, ?> factory : factories) {
       factory.purgeRecyclerPool();
     }
+    templateRecyclerPool.clear();
   }
 }
