@@ -14,23 +14,47 @@
 
 package com.google.android.libraries.feed.feedstore;
 
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.DISMISS_ACTION_JOURNAL;
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
+import com.google.android.libraries.feed.host.storage.ContentMutation;
+import com.google.android.libraries.feed.host.storage.ContentOperation;
+import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.JournalMutation;
+import com.google.android.libraries.feed.host.storage.JournalOperation;
+import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
+import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
@@ -38,6 +62,17 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedStoreTest extends AbstractFeedStoreTest {
 
+  public static final String CONTENT_ID = "contentId";
+  public static final StreamStructure STREAM_STRUCTURE =
+      StreamStructure.newBuilder()
+          .setContentId(CONTENT_ID)
+          .setOperation(Operation.UPDATE_OR_APPEND)
+          .build();
+  public static final StreamPayload PAYLOAD =
+      StreamPayload.newBuilder()
+          .setStreamFeature(StreamFeature.newBuilder().setContentId(CONTENT_ID))
+          .build();
+  public static final byte[] SEMANTIC_PROPERTIES = new byte[] {4, 12, 18, 5};
   @Mock private ThreadUtils threadUtils;
   @Mock private StoreListener listener;
 
@@ -81,5 +116,79 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
     store.switchToEphemeralMode();
     assertThat(store.isEphemeralMode()).isTrue();
     verify(listener).onSwitchToEphemeralMode();
+  }
+
+  @Test
+  public void testDumpEphemeralActions_notEphemeralMode() {
+    JournalStorage journalStorageSpy = spy(new InMemoryJournalStorage(threadUtils));
+    ContentStorage contentStorageSpy = spy(this.contentStorage);
+    FeedStore store =
+        new FeedStore(
+            timingUtils,
+            extensionRegistry,
+            contentStorageSpy,
+            journalStorageSpy,
+            threadUtils,
+            mainThreadRunner,
+            clock,
+            new FeedStoreHelper());
+    store.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
+    verifyZeroInteractions(journalStorageSpy, contentStorageSpy);
+  }
+
+  @Test
+  public void testDumpEphemeralActions_ephemeralMode() throws InvalidProtocolBufferException {
+    JournalStorage journalStorageSpy = spy(new InMemoryJournalStorage(threadUtils));
+    ContentStorage contentStorageSpy = spy(this.contentStorage);
+    FeedStore store =
+        new FeedStore(
+            timingUtils,
+            extensionRegistry,
+            contentStorageSpy,
+            journalStorageSpy,
+            threadUtils,
+            mainThreadRunner,
+            clock,
+            new FeedStoreHelper());
+    store.switchToEphemeralMode();
+    reset(journalStorageSpy, contentStorageSpy);
+
+    // Add ephemeral semantic properties, content, and actions
+    store
+        .editSemanticProperties()
+        .add(CONTENT_ID, ByteString.copyFrom(SEMANTIC_PROPERTIES))
+        .commit();
+    store.editActions().add(ActionType.DISMISS, CONTENT_ID).commit();
+    store.editContent().add(CONTENT_ID, PAYLOAD).commit();
+    store.editSession(Store.HEAD).add(STREAM_STRUCTURE).commit();
+
+    store.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
+
+    // Verify content is written for semantic properties and actions only
+    ArgumentCaptor<JournalMutation> journalMutationArgumentCaptor =
+        ArgumentCaptor.forClass(JournalMutation.class);
+    verify(journalStorageSpy).commit(journalMutationArgumentCaptor.capture(), any(Consumer.class));
+
+    JournalMutation journalMutation = journalMutationArgumentCaptor.getValue();
+    assertThat(journalMutation.getJournalName()).isEqualTo(DISMISS_ACTION_JOURNAL);
+    assertThat(journalMutation.getOperations()).hasSize(1);
+    assertThat(journalMutation.getOperations().get(0).getType())
+        .isEqualTo(JournalOperation.Type.APPEND);
+    byte[] journalMutationBytes = ((Append) journalMutation.getOperations().get(0)).getValue();
+    StreamAction action = StreamAction.parseFrom(journalMutationBytes);
+    assertThat(action.getAction()).isEqualTo(ActionType.DISMISS);
+    assertThat(action.getFeatureContentId()).isEqualTo(CONTENT_ID);
+
+    ArgumentCaptor<ContentMutation> contentMutationArgumentCaptor =
+        ArgumentCaptor.forClass(ContentMutation.class);
+    verify(contentStorageSpy).commit(contentMutationArgumentCaptor.capture(), any(Consumer.class));
+
+    ContentMutation contentMutation = contentMutationArgumentCaptor.getValue();
+    assertThat(contentMutation.getOperations()).hasSize(1);
+    assertThat(contentMutation.getOperations().get(0).getType())
+        .isEqualTo(ContentOperation.Type.UPSERT);
+    Upsert upsert = (Upsert) contentMutation.getOperations().get(0);
+    assertThat(upsert.getKey()).isEqualTo(SEMANTIC_PROPERTIES_PREFIX + CONTENT_ID);
+    assertThat(upsert.getValue()).isEqualTo(SEMANTIC_PROPERTIES);
   }
 }

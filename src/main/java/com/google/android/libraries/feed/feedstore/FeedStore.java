@@ -28,15 +28,20 @@ import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -50,7 +55,9 @@ import java.util.Set;
  * independent of what delegate is actually running. The delegates currently throw a
  * IllegalStateException if the register/unregister methods are called.
  */
-public class FeedStore extends Observable<StoreListener> implements Store {
+public class FeedStore extends Observable<StoreListener> implements Store, FeedLifecycleListener {
+  private static final String TAG = "FeedStore";
+
   // Permanent reference to the persistent store (used for setting off cleanup)
   private final PersistentFeedStore persistentStore;
   // The current store
@@ -203,6 +210,60 @@ public class FeedStore extends Observable<StoreListener> implements Store {
           listener.onSwitchToEphemeralMode();
         }
       }
+    }
+  }
+
+  @Override
+  public void onLifecycleEvent(@LifecycleEvent String event) {
+    switch (event) {
+      case LifecycleEvent.ENTER_BACKGROUND:
+        if (isEphemeralMode) {
+          dumpEphemeralActions();
+        }
+        break;
+      default:
+        // Do nothing
+    }
+  }
+
+  private void dumpEphemeralActions() {
+    // Get all action-related content (actions + semantic data)
+    Result<List<StreamAction>> dismissActionsResult = delegate.getAllDismissActions();
+    if (!dismissActionsResult.isSuccessful()) {
+      Logger.e(TAG, "Error retrieving actions when trying to dump ephemeral actions.");
+      return;
+    }
+    List<StreamAction> dismissActions = dismissActionsResult.getValue();
+    ActionMutation actionMutation = persistentStore.editActions();
+    List<String> dismissActionContentIds = new ArrayList<>(dismissActions.size());
+    for (StreamAction dismiss : dismissActions) {
+      dismissActionContentIds.add(dismiss.getFeatureContentId());
+      actionMutation.add(dismiss.getAction(), dismiss.getFeatureContentId());
+    }
+    Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
+        delegate.getSemanticProperties(dismissActionContentIds);
+    if (!semanticPropertiesResult.isSuccessful()) {
+      Logger.e(TAG, "Error retrieving semantic properties when trying to dump ephemeral actions.");
+      return;
+    }
+    SemanticPropertiesMutation semanticPropertiesMutation =
+        persistentStore.editSemanticProperties();
+    for (SemanticPropertiesWithId semanticProperties : semanticPropertiesResult.getValue()) {
+      semanticPropertiesMutation.add(
+          semanticProperties.contentId, ByteString.copyFrom(semanticProperties.semanticData));
+    }
+
+    // Attempt to write action-related content to persistent storage
+    CommitResult commitResult = actionMutation.commit();
+    if (commitResult != CommitResult.SUCCESS) {
+      Logger.e(TAG, "Error writing actions to persistent store when dumping ephemeral actions.");
+      return;
+    }
+    commitResult = semanticPropertiesMutation.commit();
+    if (commitResult != CommitResult.SUCCESS) {
+      Logger.e(
+          TAG,
+          "Error writing semantic properties to persistent store when dumping ephemeral actions.");
     }
   }
 }
