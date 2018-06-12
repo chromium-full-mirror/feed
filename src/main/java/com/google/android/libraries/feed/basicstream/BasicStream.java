@@ -35,6 +35,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
+import com.google.android.libraries.feed.basicstream.internal.StreamContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.StreamItemAnimator;
 import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCallbacks;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
@@ -53,14 +55,13 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvider;
-import java.util.HashSet;
 import java.util.List;
 
 /**
  * A basic implementation of a Feed {@link Stream} that is just able to render a vertical stream of
  * cards.
  */
-public class BasicStream implements Stream, ModelProviderObserver, ContentChangedListener {
+public class BasicStream implements Stream, ModelProviderObserver {
 
   private static final String TAG = "BasicStream";
 
@@ -73,7 +74,8 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
   private final ActionManager actionManager;
   private final Configuration configuration;
   private final SnackbarApi snackbarApi;
-  private final HashSet<ContentChangedListener> contentChangedListeners;
+  private final StreamContentChangedListener streamContentChangedListener =
+      new StreamContentChangedListener();
 
   private RecyclerView recyclerView;
   private ModelProvider modelProvider;
@@ -121,7 +123,6 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
     this.actionManager = actionManager;
     this.configuration = configuration;
     this.snackbarApi = snackbarApi;
-    this.contentChangedListeners = new HashSet<>();
   }
 
   @VisibleForTesting
@@ -171,13 +172,20 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
           streamConfiguration.getPaddingBottom());
     }
 
-    streamScrollMonitor =
-        createStreamScrollMonitor(recyclerView, /* contentChangedListener= */ this);
+    recyclerView.setItemAnimator(new StreamItemAnimator(streamContentChangedListener));
+
+    streamScrollMonitor = createStreamScrollMonitor(recyclerView, streamContentChangedListener);
 
     modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(this);
     streamDriver =
-        createStreamDriver(modelProvider, threadUtils, configuration, context, snackbarApi);
+        createStreamDriver(
+            modelProvider,
+            threadUtils,
+            configuration,
+            context,
+            snackbarApi,
+            streamContentChangedListener);
     adapter.setDriver(streamDriver);
     streamDriver.showLoadingSpinner();
   }
@@ -293,12 +301,12 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
 
   @Override
   public void addOnContentChangedListener(ContentChangedListener listener) {
-    contentChangedListeners.add(listener);
+    streamContentChangedListener.addContentChangedListener(listener);
   }
 
   @Override
   public void removeOnContentChangedListener(ContentChangedListener listener) {
-    contentChangedListeners.remove(listener);
+    streamContentChangedListener.removeContentChangedListener(listener);
   }
 
   @Override
@@ -311,7 +319,13 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
 
   private void updateAdapter(ModelProvider modelProvider) {
     streamDriver =
-        createStreamDriver(modelProvider, threadUtils, configuration, context, snackbarApi);
+        createStreamDriver(
+            modelProvider,
+            threadUtils,
+            configuration,
+            context,
+            snackbarApi,
+            streamContentChangedListener);
 
     adapter.setDriver(streamDriver);
   }
@@ -340,14 +354,10 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
       ThreadUtils threadUtils,
       Configuration configuration,
       Context context,
-      SnackbarApi snackbarApi) {
+      SnackbarApi snackbarApi,
+      ContentChangedListener contentChangedListener) {
     return new StreamDriver(
-        modelProvider,
-        threadUtils,
-        configuration,
-        context,
-        snackbarApi,
-        /* contentChangedListener= */ this);
+        modelProvider, threadUtils, configuration, context, snackbarApi, contentChangedListener);
   }
 
   @VisibleForTesting
@@ -359,26 +369,13 @@ public class BasicStream implements Stream, ModelProviderObserver, ContentChange
       ActionApi actionApi,
       ActionManager actionManager) {
     return new StreamRecyclerViewAdapter(
-        context,
-        cardConfiguration,
-        pietManager,
-        actionParser,
-        actionApi,
-        actionManager,
-        /* contentChangedListener= */ this);
+        context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
   }
 
   @VisibleForTesting
   StreamScrollMonitor createStreamScrollMonitor(
       RecyclerView recyclerView, ContentChangedListener contentChangedListener) {
     return new StreamScrollMonitor(recyclerView, contentChangedListener);
-  }
-
-  @Override
-  public void onContentChanged() {
-    for (ContentChangedListener changedListener : contentChangedListeners) {
-      changedListener.onContentChanged();
-    }
   }
 
   @VisibleForTesting

@@ -18,10 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -35,7 +32,6 @@ import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
@@ -78,7 +74,6 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private ActionParser actionParser;
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
-  @Mock private ContentChangedListener contentChangedListener;
   private Context context;
   private LinearLayout frameContainer;
   private StreamRecyclerViewAdapter streamRecyclerViewAdapter;
@@ -107,13 +102,7 @@ public class StreamRecyclerViewAdapterTest {
     }
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
-            context,
-            cardConfiguration,
-            pietManager,
-            actionParser,
-            actionApi,
-            actionManager,
-            contentChangedListener);
+            context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
     streamRecyclerViewAdapter.setHeaders(headers);
 
     when(driver.getLeafFeatureDrivers()).thenReturn(Lists.newArrayList(initialFeatureDriver));
@@ -235,21 +224,16 @@ public class StreamRecyclerViewAdapterTest {
 
   @Test
   public void testNotifyContentsRemoved() {
-    // Listener triggered in setup.
-    reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentRemoved(0);
     assertThat(streamRecyclerViewAdapter.getLeafFeatureDrivers()).isEmpty();
   }
 
   @Test
   public void testNotifyContentsAdded_notifiesListener() {
-    // Listener triggered in setup.
-    reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentsAdded(
         0, Lists.newArrayList(featureDriver1, featureDriver2));
     assertThat(streamAdapterObserver.insertedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.insertedCount).isEqualTo(2);
-    verify(contentChangedListener).onContentChanged();
   }
 
   @Test
@@ -257,23 +241,17 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.setStreamContentVisible(false);
     streamAdapterObserver.reset();
 
-    // Listener triggered in setup.
-    reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentsAdded(
         0, Lists.newArrayList(featureDriver1, featureDriver2));
     assertThat(streamAdapterObserver.insertedStart).isEqualTo(0);
     assertThat(streamAdapterObserver.insertedCount).isEqualTo(0);
-    verify(contentChangedListener, never()).onContentChanged();
   }
 
   @Test
   public void testNotifyContentsRemoved_notifiesListener() {
-    // Listener triggered in setup.
-    reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentRemoved(0);
     assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
-    verify(contentChangedListener).onContentChanged();
   }
 
   @Test
@@ -281,22 +259,16 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.setStreamContentVisible(false);
     streamAdapterObserver.reset();
 
-    // Listener triggered in setup.
-    reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentRemoved(0);
     assertThat(streamAdapterObserver.removedStart).isEqualTo(0);
     assertThat(streamAdapterObserver.removedCount).isEqualTo(0);
-    verify(contentChangedListener, never()).onContentChanged();
   }
 
   @Test
   public void testNotifyContentsCleared_notifiesListener() {
-    // Listener triggered in setup.
-    reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentsCleared();
     assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
-    verify(contentChangedListener).onContentChanged();
   }
 
   @Test
@@ -304,28 +276,9 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.setStreamContentVisible(false);
     streamAdapterObserver.reset();
 
-    // Listener triggered in setup.
-    reset(contentChangedListener);
     streamRecyclerViewAdapter.notifyContentsCleared();
     assertThat(streamAdapterObserver.removedStart).isEqualTo(0);
     assertThat(streamAdapterObserver.removedCount).isEqualTo(0);
-    verify(contentChangedListener, never()).onContentChanged();
-  }
-
-  @Test
-  public void testSetHeaders_notifiesListener() {
-    // Listener triggered in setup.
-    reset(contentChangedListener);
-    streamRecyclerViewAdapter.setHeaders(headers);
-    verify(contentChangedListener).onContentChanged();
-  }
-
-  @Test
-  public void testNotifyContentsAdded_noOpWithZeroLength() {
-    // Listener triggered in setup.
-    reset(contentChangedListener);
-    streamRecyclerViewAdapter.notifyContentsAdded(0, new ArrayList<>());
-    verifyNoMoreInteractions(contentChangedListener);
   }
 
   @Test
@@ -341,18 +294,13 @@ public class StreamRecyclerViewAdapterTest {
 
   @Test
   public void setStreamContentVisible_hidesContent() {
-    reset(contentChangedListener);
-
     streamRecyclerViewAdapter.setStreamContentVisible(false);
     assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
-    verify(contentChangedListener).onContentChanged();
   }
 
   @Test
   public void setStreamContentVisible_hidesContent_doubleCall() {
-    reset(contentChangedListener);
-
     streamRecyclerViewAdapter.setStreamContentVisible(false);
 
     streamAdapterObserver.reset();
@@ -361,28 +309,22 @@ public class StreamRecyclerViewAdapterTest {
     // Nothing additional should get called
     assertThat(streamAdapterObserver.removedStart).isEqualTo(0);
     assertThat(streamAdapterObserver.removedCount).isEqualTo(0);
-
-    // Only a single content changed should get called
-    verify(contentChangedListener).onContentChanged();
   }
 
   @Test
   public void setStreamContentVisible_showsContent() {
     streamRecyclerViewAdapter.setStreamContentVisible(false);
     streamAdapterObserver.reset();
-    reset(contentChangedListener);
 
     streamRecyclerViewAdapter.setStreamContentVisible(true);
     assertThat(streamAdapterObserver.insertedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.insertedCount).isEqualTo(1);
-    verify(contentChangedListener).onContentChanged();
   }
 
   @Test
   public void setStreamContentVisible_showsContent_doubleCall() {
     streamRecyclerViewAdapter.setStreamContentVisible(false);
     streamAdapterObserver.reset();
-    reset(contentChangedListener);
 
     streamRecyclerViewAdapter.setStreamContentVisible(true);
 
@@ -392,9 +334,6 @@ public class StreamRecyclerViewAdapterTest {
     // Nothing additional should get called
     assertThat(streamAdapterObserver.insertedStart).isEqualTo(0);
     assertThat(streamAdapterObserver.insertedCount).isEqualTo(0);
-
-    // Only a single content changed should get called
-    verify(contentChangedListener).onContentChanged();
   }
 
   private FrameLayout getCardView(ViewHolder viewHolder) {

@@ -89,7 +89,7 @@ public class BasicStreamTest {
   private Configuration configuration = new Configuration.Builder().build();
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
-  private BasicStream basicStream;
+  private BasicStreamForTest basicStream;
 
   @Before
   public void setUp() {
@@ -255,28 +255,6 @@ public class BasicStreamTest {
   }
 
   @Test
-  public void testOnContentChanged() {
-    ContentChangedListener contentChangedListener = mock(ContentChangedListener.class);
-    basicStream.addOnContentChangedListener(contentChangedListener);
-
-    basicStream.onContentChanged();
-
-    verify(contentChangedListener).onContentChanged();
-  }
-
-  @Test
-  public void testOnContentChanged_noNotificationsAfterRemoval() {
-    ContentChangedListener contentChangedListener = mock(ContentChangedListener.class);
-
-    basicStream.addOnContentChangedListener(contentChangedListener);
-    basicStream.removeOnContentChangedListener(contentChangedListener);
-
-    basicStream.onContentChanged();
-
-    verify(contentChangedListener, never()).onContentChanged();
-  }
-
-  @Test
   public void testStreamContentVisible() {
     basicStream.setStreamContentVisibility(false);
     verify(adapter).setStreamContentVisible(false);
@@ -296,11 +274,33 @@ public class BasicStreamTest {
     verify(streamDriver).showLoadingSpinner();
   }
 
+  @Test
+  public void testAddOnContentChangedListener() {
+    ContentChangedListener contentChangedListener = mock(ContentChangedListener.class);
+
+    basicStream.addOnContentChangedListener(contentChangedListener);
+    basicStream.contentChangedListener.onContentChanged();
+
+    verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testRemoveOnContentChangedListener() {
+    ContentChangedListener contentChangedListener = mock(ContentChangedListener.class);
+
+    basicStream.addOnContentChangedListener(contentChangedListener);
+    basicStream.removeOnContentChangedListener(contentChangedListener);
+
+    basicStream.contentChangedListener.onContentChanged();
+
+    verify(contentChangedListener, never()).onContentChanged();
+  }
+
   private RecyclerView getStreamRecyclerView() {
     return (RecyclerView) basicStream.getView();
   }
 
-  private BasicStream createBasicStream() {
+  private BasicStreamForTest createBasicStream() {
     return new BasicStreamForTest(
         context,
         streamConfiguration,
@@ -320,6 +320,8 @@ public class BasicStreamTest {
   }
 
   private class BasicStreamForTest extends BasicStream {
+
+    private ContentChangedListener contentChangedListener;
 
     public BasicStreamForTest(
         Context context,
@@ -374,7 +376,9 @@ public class BasicStreamTest {
         ThreadUtils threadUtils,
         Configuration configuration,
         Context context,
-        SnackbarApi snackbarApi) {
+        SnackbarApi snackbarApi,
+        ContentChangedListener contentChangedListener) {
+      this.contentChangedListener = contentChangedListener;
       return streamDriver;
     }
 

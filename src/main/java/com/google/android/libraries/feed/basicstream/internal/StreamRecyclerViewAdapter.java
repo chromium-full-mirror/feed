@@ -28,7 +28,6 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
@@ -61,7 +60,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<View> headers;
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
-  private final ContentChangedListener contentChangedListener;
 
   private boolean streamContentVisible;
   /*@Nullable*/ private StreamDriver streamDriver;
@@ -74,15 +72,13 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       PietManager pietManager,
       ActionParser actionParser,
       ActionApi actionApi,
-      ActionManager actionManager,
-      ContentChangedListener contentChangedListener) {
+      ActionManager actionManager) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
     this.actionParser = actionParser;
     this.actionApi = actionApi;
     this.actionManager = actionManager;
-    this.contentChangedListener = contentChangedListener;
     headers = new ArrayList<>();
     leafFeatureDrivers = new ArrayList<>();
     setHasStableIds(true);
@@ -191,10 +187,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     headers.clear();
     headers.addAll(newHeaders);
 
-    // TODO: This would notify the listener even if the headers are offscreen. Fix if
-    // this becomes an issue.
-    contentChangedListener.onContentChanged();
-
     notifyDataSetChanged();
   }
 
@@ -209,7 +201,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       return;
     }
 
-    contentChangedListener.onContentChanged();
     if (streamContentVisible) {
       notifyItemRangeInserted(headers.size(), leafFeatureDrivers.size());
     } else {
@@ -244,10 +235,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     int insertionIndex = headers.size() + index;
 
     if (streamContentVisible) {
-      // TODO: This would notify the listener even if the content being added is
-      // offscreen. Fix if this becomes an issue.
-      contentChangedListener.onContentChanged();
-
       notifyItemRangeInserted(insertionIndex, newFeatureDrivers.size());
     }
   }
@@ -259,10 +246,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     leafFeatureDrivers.remove(index);
 
     if (streamContentVisible) {
-      // TODO: This would notify the listener even if the content being removed is
-      // offscreen. Fix if this becomes an issue.
-      contentChangedListener.onContentChanged();
-
       notifyItemRemoved(removalIndex);
     }
   }
@@ -273,10 +256,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     leafFeatureDrivers.clear();
 
     if (streamContentVisible) {
-      // TODO: This would notify the listener even if the content being removed is
-      // offscreen. Fix if this becomes an issue.
-      contentChangedListener.onContentChanged();
-
       notifyItemRangeRemoved(headers.size(), itemCount);
     }
   }
