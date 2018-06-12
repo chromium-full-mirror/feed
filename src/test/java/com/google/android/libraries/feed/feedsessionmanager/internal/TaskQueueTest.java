@@ -104,7 +104,7 @@ public class TaskQueueTest {
     taskQueue.initialize(this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
 
-    taskQueue.resetTaskQueue();
+    taskQueue.reset();
     assertThat(taskQueue.isDelayed()).isTrue();
     taskQueue.initialize(this::noOp);
     assertThat(taskQueue.isDelayed()).isFalse();
@@ -127,7 +127,7 @@ public class TaskQueueTest {
     taskQueue.execute("postInit", TaskType.POST_INIT, postInit);
     assertThat(taskQueue.hasBacklog()).isTrue();
 
-    taskQueue.resetTaskQueue();
+    taskQueue.reset();
     assertThat(taskQueue.isDelayed()).isTrue();
     assertThat(taskQueue.hasBacklog()).isFalse();
     taskQueue.initialize(this::noOp);

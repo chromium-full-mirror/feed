@@ -48,7 +48,7 @@ public class ContentCache implements Dumpable {
    * commits a new mutation. Everything added to the cache must be retained until {@link
    * #finishMutation()} is called.
    */
-  public void startMutation() {
+  void startMutation() {
     mutationsCount++;
     mutationCache.clear();
   }
@@ -57,7 +57,7 @@ public class ContentCache implements Dumpable {
    * Called when the {@link com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}
    * has finished the mutation. At this point it would be safe to clear the cache.
    */
-  public void finishMutation() {
+  void finishMutation() {
     if (mutationCache.size() > maxMutationCacheSize) {
       // TODO: Should we move the mutationCache.clear here?
       maxMutationCacheSize = mutationCache.size();
@@ -87,6 +87,10 @@ public class ContentCache implements Dumpable {
   /** Returns the current number of items in the cache. */
   public int size() {
     return mutationCache.size();
+  }
+
+  public void reset() {
+    mutationCache.clear();
   }
 
   @Override

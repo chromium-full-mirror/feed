@@ -152,6 +152,35 @@ public class SessionCacheTest {
   }
 
   @Test
+  public void testReset_headOnly() {
+    SessionCache sessionCache = getSessionCache();
+    sessionCache.initialize();
+    List<Session> sessions = sessionCache.getSessions();
+    assertThat(sessions).hasSize(1);
+
+    sessionCache.reset();
+    sessions = sessionCache.getSessions();
+    assertThat(sessions).hasSize(1);
+  }
+
+  @Test
+  public void testReset_sessions() {
+    SessionCache sessionCache = getSessionCache();
+    sessionCache.initialize();
+    int sessionCount = 2;
+    for (int i = 0; i < sessionCount; i++) {
+      Session session = populateSession(sessionCache, i, 2);
+      sessionCache.put(session.getStreamSession().getStreamToken(), session);
+    }
+    List<Session> sessions = sessionCache.getSessions();
+    assertThat(sessions).hasSize(sessionCount + 1);
+
+    sessionCache.reset();
+    sessions = sessionCache.getSessions();
+    assertThat(sessions).hasSize(1);
+  }
+
+  @Test
   public void testAccessibleContentSupplier() {
     SessionCache sessionCache = getSessionCache();
     sessionCache.initialize();

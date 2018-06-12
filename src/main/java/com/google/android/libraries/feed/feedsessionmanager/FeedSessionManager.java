@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -73,7 +74,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
-public class FeedSessionManager implements SessionManager, Dumpable {
+public class FeedSessionManager implements SessionManager, StoreListener, Dumpable {
 
   private static final String TAG = "FeedSessionManager";
 
@@ -166,6 +167,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
    * executor task.
    */
   public void initialize() {
+    store.registerObserver(this);
     taskQueue.initialize(this::initializationTask);
   }
 
@@ -186,7 +188,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     } else {
       // without shared states we need to switch to ephemeral mode
       switchToEphemeralMode("SharedStates failed to load, no shared states are loaded.");
-      taskQueue.resetTaskQueue();
+      taskQueue.reset();
       timeTracker.stop("task", "Initialization", "error", "switchToEphemeralMode");
       return;
     }
@@ -327,7 +329,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   @VisibleForTesting
   void switchToEphemeralMode(String message) {
     Logger.e(TAG, message);
-    // TODO: This needs to call the store method which switches to ephemeral mode
+    store.switchToEphemeralMode();
   }
 
   @VisibleForTesting
@@ -493,6 +495,19 @@ public class FeedSessionManager implements SessionManager, Dumpable {
   }
 
   @Override
+  public void onSwitchToEphemeralMode() {
+    threadUtils.checkNotMainThread();
+
+    // Clear the task queue first, preventing any tasks from running until initialization
+    taskQueue.reset();
+    sessionCache.reset();
+    contentCache.reset();
+    sharedStateCache.clear();
+    // Initialize the TaskQueue so new tasks will start running
+    taskQueue.initialize(() -> {});
+  }
+
+  @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("newSessionCount").value(newSessionCount).compactPrevious();
@@ -572,6 +587,7 @@ public class FeedSessionManager implements SessionManager, Dumpable {
     return sessionCache.getSessionsMapForTest();
   }
 
+  // Called in the integration tests
   @VisibleForTesting
   public boolean isDelayed() {
     return taskQueue.isDelayed();

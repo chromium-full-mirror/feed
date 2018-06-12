@@ -31,8 +31,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -223,8 +221,8 @@ public class SessionImpl implements InitializableSession, Dumpable {
   }
 
   @Override
-  public Collection<String> getContentInSession() {
-    return Collections.unmodifiableCollection(contentInSession);
+  public Set<String> getContentInSession() {
+    return new HashSet<>(contentInSession);
   }
 
   @Override

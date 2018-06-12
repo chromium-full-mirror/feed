@@ -127,7 +127,7 @@ public class TaskQueue implements Dumpable {
    * {@link #initialize(Runnable)} task is called again. Also any currently delayed tasks will be
    * removed from the Queue and not run.
    */
-  public void resetTaskQueue() {
+  public void reset() {
     synchronized (lock) {
       waitingForHeadReset = false;
       initialized = false;

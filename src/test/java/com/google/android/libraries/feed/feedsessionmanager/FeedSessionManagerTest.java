@@ -50,8 +50,8 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
+import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
-import com.google.android.libraries.feed.feedstore.PersistentFeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
@@ -315,12 +315,52 @@ public class FeedSessionManagerTest {
   }
 
   @Test
+  public void testSwitchToEphemeralMode() {
+    FeedStore spyFeedStore = getSpyFeedStore();
+    FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
+
+    spySessionManager.switchToEphemeralMode("An Error Message");
+    verify(spyFeedStore).switchToEphemeralMode();
+    verify(spySessionManager).onSwitchToEphemeralMode();
+  }
+
+  @Test
+  public void testOnSwitchToEphemeralMode() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    String sharedStateId = idGenerators.createSharedStateContentId(0);
+
+    int featureCount = 3;
+    populateSession(sessionManager, featureCount, 1, true, sharedStateId);
+
+    Map<String, StreamSharedState> sharedStates = sessionManager.getSharedStateCacheForTest();
+    assertThat(sharedStates).hasSize(1);
+    Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
+    assertThat(sessions).hasSize(1);
+    Session session = sessions.get(Store.HEAD.getStreamToken());
+    assertThat(session).isNotNull();
+    Set<String> contentInSession = session.getContentInSession();
+    assertThat(contentInSession).hasSize(featureCount + 1);
+
+    sessionManager.onSwitchToEphemeralMode();
+
+    sharedStates = sessionManager.getSharedStateCacheForTest();
+    assertThat(sharedStates).hasSize(0);
+    sessions = sessionManager.getSessionsMapForTest();
+    assertThat(sessions).hasSize(1);
+    session = sessions.get(Store.HEAD.getStreamToken());
+    assertThat(session).isNotNull();
+    contentInSession = session.getContentInSession();
+    assertThat(contentInSession).hasSize(0);
+  }
+
+  @Test
   public void testErrors_initializationSharedStateError() {
     Store errorStore = mock(Store.class);
     when(errorStore.getSharedStates()).thenReturn(Result.failure());
     FeedSessionManager spySessionManager = getInitializedSpySessionManager(errorStore);
 
     verify(spySessionManager).switchToEphemeralMode(anyString());
+    verify(errorStore).switchToEphemeralMode();
   }
 
   @Test
@@ -336,7 +376,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testErrors_createNewSessionError() {
-    PersistentFeedStore spyFeedStore = getSpyFeedStore();
+    FeedStore spyFeedStore = getSpyFeedStore();
     doReturn(Result.failure()).when(spyFeedStore).createNewSession();
     FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
     populateSession(spySessionManager, 5, 1, true, null);
@@ -351,7 +391,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testErrors_getStreamStructuresError() {
-    PersistentFeedStore spyFeedStore = getSpyFeedStore();
+    FeedStore spyFeedStore = getSpyFeedStore();
     doReturn(Result.failure())
         .when(spyFeedStore)
         .getStreamStructures(AdditionalMatchers.not(eq(Store.HEAD)));
@@ -368,7 +408,7 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testInvalidateHead() {
-    PersistentFeedStore spyFeedStore = getSpyFeedStore();
+    FeedStore spyFeedStore = getSpyFeedStore();
     FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
     spySessionManager.invalidateHead();
     verify(spySessionManager).resetHead(null);
@@ -409,7 +449,7 @@ public class FeedSessionManagerTest {
   }
 
   @Test
-  public void testShouldInvalidateSession_differentSessiobn() {
+  public void testShouldInvalidateSession_differentSession() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     String sessionToken = "session:1";
     modelProvider = mock(ModelProvider.class);
@@ -464,8 +504,8 @@ public class FeedSessionManagerTest {
 
   private FeedSessionManager getInitializedSessionManager() {
     ListeningExecutorService executor = MoreExecutors.newDirectExecutorService();
-    PersistentFeedStore store =
-        new PersistentFeedStore(
+    FeedStore store =
+        new FeedStore(
             timingUtils,
             extensionRegistry,
             new InMemoryContentStorage(),
@@ -490,9 +530,9 @@ public class FeedSessionManagerTest {
     return fsm;
   }
 
-  private PersistentFeedStore getSpyFeedStore() {
+  private FeedStore getSpyFeedStore() {
     return spy(
-        new PersistentFeedStore(
+        new FeedStore(
             timingUtils,
             extensionRegistry,
             new InMemoryContentStorage(),

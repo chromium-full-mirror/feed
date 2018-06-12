@@ -71,4 +71,18 @@ public class ContentCacheTest {
     assertThat(cache.size()).isEqualTo(0);
     assertThat(cache.get(contentId)).isNull();
   }
+
+  @Test
+  public void testReset() {
+    ContentCache cache = new ContentCache();
+    StreamPayload payload = StreamPayload.getDefaultInstance();
+    int featureCount = 4;
+    for (int i = 0; i < featureCount; i++) {
+      String contentId = idGenerators.createFeatureContentId(i);
+      cache.put(contentId, payload);
+    }
+    assertThat(cache.size()).isEqualTo(featureCount);
+    cache.reset();
+    assertThat(cache.size()).isEqualTo(0);
+  }
 }

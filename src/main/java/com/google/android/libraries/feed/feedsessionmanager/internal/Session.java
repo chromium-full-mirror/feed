@@ -18,8 +18,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /** A {@code Session} is a instance which supports update and optionally a {@link ModelProvider}. */
 public interface Session {
@@ -43,5 +43,5 @@ public interface Session {
   void updateAccessTime(long time);
 
   /** Returns an unmodifiable set of the StreamContentIds used by the session. */
-  Collection<String> getContentInSession();
+  Set<String> getContentInSession();
 }

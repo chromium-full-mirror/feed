@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
@@ -183,6 +184,22 @@ public class SessionCache implements Dumpable {
 
     initializePersistedSessions();
     return true;
+  }
+
+  public void reset() {
+    synchronized (lock) {
+      for (Session session : sessions.values()) {
+        ModelProvider modelProvider = session.getModelProvider();
+        if (modelProvider != null) {
+          modelProvider.invalidate();
+        }
+      }
+      sessions.clear();
+      if (head != null) {
+        head.reset();
+        sessions.put(head.getStreamSession().getStreamToken(), head);
+      }
+    }
   }
 
   @VisibleForTesting
