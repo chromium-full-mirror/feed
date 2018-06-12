@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.host.storage.ContentStorage;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 
@@ -106,6 +107,12 @@ public abstract class ContentStorageConformanceTest {
 
   private final Consumer<CommitResult> isSuccess =
       input -> assertThat(input).isEqualTo(CommitResult.SUCCESS);
+
+  private final Consumer<Result<List<String>>> isKey0Key1 =
+      result -> {
+        assertThat(result.isSuccessful()).isTrue();
+        assertThat(result.getValue()).containsExactly(KEY_0, KEY_1);
+      };
 
   protected ContentStorage storage;
 
@@ -313,6 +320,24 @@ public abstract class ContentStorageConformanceTest {
                   new RequiredConsumer<>(isKey0Data0Key1Data1);
               storage.getAll(KEY, mapConsumer);
               assertThat(mapConsumer.isCalled()).isTrue();
+            });
+    storage.commit(
+        new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build(),
+        commitResultConsumer);
+    assertThat(commitResultConsumer.isCalled()).isTrue();
+  }
+
+  @Test
+  public void multipleValues_getAllKeys() throws Exception {
+    RequiredConsumer<CommitResult> commitResultConsumer =
+        new RequiredConsumer<>(
+            input -> {
+              assertThat(input).isEqualTo(CommitResult.SUCCESS);
+
+              RequiredConsumer<Result<List<String>>> listConsumer =
+                  new RequiredConsumer<>(isKey0Key1);
+              storage.getAllKeys(listConsumer);
+              assertThat(listConsumer.isCalled()).isTrue();
             });
     storage.commit(
         new ContentMutation.Builder().upsert(KEY_0, DATA_0).upsert(KEY_1, DATA_1).build(),

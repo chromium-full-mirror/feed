@@ -44,4 +44,7 @@ public interface ContentStorage {
    * behavior is undefined. Currently the plan is to wipe out existing data and start over.
    */
   void commit(ContentMutation mutation, Consumer<CommitResult> consumer);
+
+  /** Fetch all keys currently present in the content storage */
+  void getAllKeys(Consumer<Result<List<String>>> consumer);
 }

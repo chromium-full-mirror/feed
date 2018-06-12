@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,6 +169,17 @@ public class PersistentContentStorage implements ContentStorage {
 
           consumer.accept(CommitResult.SUCCESS);
         });
+  }
+
+  @Override
+  public void getAllKeys(Consumer<Result<List<String>>> consumer) {
+    threadUtils.checkMainThread();
+    String[] filenames = contentDir.list();
+    if (filenames != null) {
+      consumer.accept(Result.success(Arrays.asList(filenames)));
+    } else {
+      consumer.accept(Result.failure());
+    }
   }
 
   private boolean deleteAll() {

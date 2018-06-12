@@ -118,6 +118,12 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
     consumer.accept(CommitResult.SUCCESS);
   }
 
+  @Override
+  public void getAllKeys(Consumer<Result<List<String>>> consumer) {
+    threadUtils.checkMainThread();
+    consumer.accept(Result.success(new ArrayList<>(store.keySet())));
+  }
+
   private boolean deleteAll() {
     store.clear();
     return true;
