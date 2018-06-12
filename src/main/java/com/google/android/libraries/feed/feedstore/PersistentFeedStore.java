@@ -742,7 +742,22 @@ public class PersistentFeedStore implements Store, Dumpable {
   }
 
   /** Wipes all content and journals */
-  void clearAll() {
-    // TODO: add nuke method to host storage and use it here.
+  boolean clearAll() {
+    boolean success = true;
+    SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
+    mainThreadRunner.execute(
+        TAG,
+        () -> contentStorage.commit(new Builder().deleteAll().build(), commitResultFuture::put));
+    try {
+      if (commitResultFuture.get() != CommitResult.SUCCESS) {
+        Logger.e(TAG, "Error clearing all. Could not delete all content from content storage.");
+        success = false;
+      }
+    } catch (InterruptedException | ExecutionException e) {
+      Logger.e(TAG, "Error clearing all. Could not delete all content from content storage.");
+      success = false;
+    }
+    // TODO: add nuke method to journal storage and use it here.
+    return success;
   }
 }

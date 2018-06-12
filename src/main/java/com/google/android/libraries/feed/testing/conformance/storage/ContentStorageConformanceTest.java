@@ -76,6 +76,15 @@ public abstract class ContentStorageConformanceTest {
         assertThat(valueMap.get(KEY_0)).isNull();
         assertThat(valueMap.get(KEY_1)).isNull();
       };
+  private final Consumer<Result<Map<String, byte[]>>>
+      isKey0EmptyDataKey1EmptyDataOtherKeyEmptyData =
+          input -> {
+            assertThat(input.isSuccessful()).isTrue();
+            Map<String, byte[]> valueMap = input.getValue();
+            assertThat(valueMap.get(KEY_0)).isNull();
+            assertThat(valueMap.get(KEY_1)).isNull();
+            assertThat(valueMap.get(OTHER_KEY)).isNull();
+          };
 
   private final Consumer<Result<Map<String, byte[]>>> isKey0Data0Key1Data1OtherKeyOtherData =
       result -> {
@@ -248,6 +257,38 @@ public abstract class ContentStorageConformanceTest {
 
               // Confirm Key 0 and Key 1 are deleted, and Other is present
               byteConsumer = new RequiredConsumer<>(isKey0EmptyDataKey1EmptyDataOtherKeyOtherData);
+              storage.get(Arrays.asList(KEY_0, KEY_1, OTHER_KEY), byteConsumer);
+              assertThat(byteConsumer.isCalled()).isTrue();
+            });
+    storage.commit(
+        new ContentMutation.Builder()
+            .upsert(KEY_0, DATA_0)
+            .upsert(KEY_1, DATA_1)
+            .upsert(OTHER_KEY, OTHER_DATA)
+            .build(),
+        consumer);
+    assertThat(consumer.isCalled()).isTrue();
+  }
+
+  @Test
+  public void storeAndDeleteAll() throws Exception {
+    RequiredConsumer<CommitResult> consumer =
+        new RequiredConsumer<>(
+            input -> {
+              assertThat(input).isEqualTo(CommitResult.SUCCESS);
+
+              // Confirm Key 0, Key 1, and Other are present
+              RequiredConsumer<Result<Map<String, byte[]>>> byteConsumer =
+                  new RequiredConsumer<>(isKey0Data0Key1Data1OtherKeyOtherData);
+              storage.get(Arrays.asList(KEY_0, KEY_1, OTHER_KEY), byteConsumer);
+              assertThat(byteConsumer.isCalled()).isTrue();
+
+              // Delete all
+              RequiredConsumer<CommitResult> deleteConsumer = new RequiredConsumer<>(isSuccess);
+              storage.commit(new ContentMutation.Builder().deleteAll().build(), deleteConsumer);
+
+              // Confirm all keys are deleted
+              byteConsumer = new RequiredConsumer<>(isKey0EmptyDataKey1EmptyDataOtherKeyEmptyData);
               storage.get(Arrays.asList(KEY_0, KEY_1, OTHER_KEY), byteConsumer);
               assertThat(byteConsumer.isCalled()).isTrue();
             });

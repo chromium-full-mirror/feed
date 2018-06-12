@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Delete;
 import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteByPrefix;
+import com.google.android.libraries.feed.host.storage.ContentOperation.Type;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import java.util.ArrayList;
@@ -102,6 +103,11 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
           consumer.accept(CommitResult.FAILURE);
           return;
         }
+      } else if (operation.getType() == Type.DELETE_ALL) {
+        if (!deleteAll()) {
+          consumer.accept(CommitResult.FAILURE);
+          return;
+        }
       } else {
         Logger.e(TAG, "Invalid ContentMutation: unexpected operation: %s", operation.getType());
         consumer.accept(CommitResult.FAILURE);
@@ -110,6 +116,11 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
     }
 
     consumer.accept(CommitResult.SUCCESS);
+  }
+
+  private boolean deleteAll() {
+    store.clear();
+    return true;
   }
 
   private boolean deleteByPrefix(DeleteByPrefix operation) {

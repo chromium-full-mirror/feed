@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.hostimpl.storage;
 
 import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.DELETE;
+import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.DELETE_ALL;
 import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.DELETE_BY_PREFIX;
 import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.UPSERT;
 
@@ -155,6 +156,11 @@ public class PersistentContentStorage implements ContentStorage {
                 consumer.accept(CommitResult.FAILURE);
                 return;
               }
+            } else if (operation.getType() == DELETE_ALL) {
+              if (!deleteAll()) {
+                consumer.accept(CommitResult.FAILURE);
+                return;
+              }
             } else {
               Logger.e(TAG, "Unrecognized ContentOperation type: %s", operation.getType());
             }
@@ -162,6 +168,24 @@ public class PersistentContentStorage implements ContentStorage {
 
           consumer.accept(CommitResult.SUCCESS);
         });
+  }
+
+  private boolean deleteAll() {
+    threadUtils.checkNotMainThread();
+
+    boolean success = true;
+
+    File[] files = contentDir.listFiles();
+    if (files != null) {
+      // Delete all files in the content directory
+      for (File file : files) {
+        if (!file.delete()) {
+          Logger.e(TAG, "Error deleting file when deleting all for file %s", file.getName());
+          success = false;
+        }
+      }
+    }
+    return contentDir.delete() && success;
   }
 
   private boolean deleteByPrefix(DeleteByPrefix operation) {

@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
@@ -194,12 +195,14 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
           new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
+              ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
               // Try to just wipe content + sessions
               boolean clearSuccess = persistentStore.clearStorage();
               // If that fails, wipe everything.
               if (!clearSuccess) {
                 persistentStore.clearAll();
               }
+              tracker.stop("clearPersistentStore completed");
               return null;
             }
           };

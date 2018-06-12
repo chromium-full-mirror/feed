@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.host.storage;
 
 import com.google.android.libraries.feed.host.storage.ContentOperation.Delete;
+import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteAll;
 import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteByPrefix;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
 import java.util.ArrayList;
@@ -81,6 +82,12 @@ public class ContentMutation {
      */
     public Builder deleteByPrefix(String prefix) {
       operations.add(new DeleteByPrefix(prefix));
+      return this;
+    }
+
+    /** Deletes all values from {@link ContentStorage}. */
+    public Builder deleteAll() {
+      operations.add(new DeleteAll());
       return this;
     }
 

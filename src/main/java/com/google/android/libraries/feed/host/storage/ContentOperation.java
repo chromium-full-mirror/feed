@@ -20,11 +20,16 @@ import java.util.Arrays;
 /** A mutation to the underlying {@link ContentStorage}. */
 public abstract class ContentOperation {
   /** The types of operations. */
-  @IntDef({Type.DELETE, Type.DELETE_BY_PREFIX, Type.UPSERT})
+  @IntDef({Type.DELETE, Type.DELETE_BY_PREFIX, Type.UPSERT, Type.DELETE_ALL})
   public @interface Type {
+    /** Delete the content for the provided key */
     int DELETE = 0;
+    /** Delete all content with keys beginning with the specified prefix */
     int DELETE_BY_PREFIX = 1;
+    /** Insert or update the content for the provided key */
     int UPSERT = 3;
+    /** Delete all content for all keys. */
+    int DELETE_ALL = 4;
   }
 
   public @Type int getType() {
@@ -150,6 +155,24 @@ public abstract class ContentOperation {
     @Override
     public int hashCode() {
       return prefix.hashCode();
+    }
+  }
+
+  // TODO: replace these comments with better details
+  /** A {@link ContentOperation} created by calling {@link ContentMutation.Builder#deleteAll()} */
+  public static class DeleteAll extends ContentOperation {
+    DeleteAll() {
+      super(Type.DELETE_ALL);
+    }
+
+    @Override
+    public boolean equals(/*@Nullable*/ Object o) {
+      return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+      return super.hashCode();
     }
   }
 
