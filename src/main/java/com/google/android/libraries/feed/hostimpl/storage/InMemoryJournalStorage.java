@@ -107,6 +107,13 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
     consumer.accept(Result.success(new ArrayList<>(journals.keySet())));
   }
 
+  @Override
+  public void deleteAll(Consumer<CommitResult> consumer) {
+    threadUtils.checkMainThread();
+    journals.clear();
+    consumer.accept(CommitResult.SUCCESS);
+  }
+
   private boolean append(byte[] value, String journalName) {
     List<byte[]> journal = journals.get(journalName);
     if (value == null) {

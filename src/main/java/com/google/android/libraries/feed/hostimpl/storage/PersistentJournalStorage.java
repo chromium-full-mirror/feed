@@ -148,6 +148,38 @@ public class PersistentJournalStorage implements JournalStorage {
         });
   }
 
+  @Override
+  public void deleteAll(Consumer<CommitResult> consumer) {
+    threadUtils.checkMainThread();
+
+    executor.execute(
+        () -> {
+          initializeJournalDir();
+
+          boolean success = true;
+
+          File[] files = journalDir.listFiles();
+          if (files != null) {
+            // Delete all files in the journal directory
+            for (File file : files) {
+              if (!file.delete()) {
+                Logger.e(
+                    TAG,
+                    "Error deleting file when deleting all journals for file %s",
+                    file.getName());
+                success = false;
+              }
+            }
+          }
+          success &= journalDir.delete();
+          if (success) {
+            consumer.accept(CommitResult.SUCCESS);
+          } else {
+            consumer.accept(CommitResult.FAILURE);
+          }
+        });
+  }
+
   private boolean delete(File journal) {
     threadUtils.checkNotMainThread();
 

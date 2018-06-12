@@ -21,8 +21,11 @@ public abstract class JournalOperation {
   /** The types of operations. */
   @IntDef({Type.APPEND, Type.COPY, Type.DELETE})
   public @interface Type {
+    /** Append bytes to the provided journal */
     int APPEND = 0;
+    /** Copy the provided journal to the given journal name */
     int COPY = 1;
+    /** Delete the provided journal */
     int DELETE = 2;
   }
 

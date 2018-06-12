@@ -156,6 +156,33 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
+  public void deleteAllJournals() throws Exception {
+    // Write some data, then copy into two journals.
+    RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME)
+            .append(DATA_0)
+            .append(DATA_1)
+            .copy(JOURNAL_COPY_NAME)
+            .build(),
+        commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
+
+    // Delete all journals
+    commitConsumer = new RequiredConsumer<>(isSuccess);
+    journalStorage.deleteAll(commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
+
+    // Try to read the deleted journals
+    RequiredConsumer<Result<Boolean>> existsConsumer = new RequiredConsumer<>(isFalse);
+    journalStorage.exists(JOURNAL_NAME, existsConsumer);
+    assertThat(existsConsumer.isCalled()).isTrue();
+    existsConsumer = new RequiredConsumer<>(isFalse);
+    journalStorage.exists(JOURNAL_COPY_NAME, existsConsumer);
+    assertThat(existsConsumer.isCalled()).isTrue();
+  }
+
+  @Test
   public void exists() throws Exception {
     // Write some data.
     RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);

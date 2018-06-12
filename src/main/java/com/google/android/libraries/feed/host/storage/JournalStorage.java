@@ -49,4 +49,7 @@ public interface JournalStorage {
 
   /** Asynchronously retrieve a list of all current journals */
   void getAllJournals(Consumer<Result<List<String>>> consumer);
+
+  /** Delete all journals. Reports success or failure with the {@code consumer}. */
+  void deleteAll(Consumer<CommitResult> consumer);
 }

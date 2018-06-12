@@ -744,20 +744,33 @@ public class PersistentFeedStore implements Store, Dumpable {
   /** Wipes all content and journals */
   boolean clearAll() {
     boolean success = true;
-    SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
+    // Run clear on both content and journal
+    SimpleSettableFuture<CommitResult> contentCommitResult = new SimpleSettableFuture<>();
     mainThreadRunner.execute(
         TAG,
-        () -> contentStorage.commit(new Builder().deleteAll().build(), commitResultFuture::put));
+        () -> contentStorage.commit(new Builder().deleteAll().build(), contentCommitResult::put));
+    SimpleSettableFuture<CommitResult> journalCommitResult = new SimpleSettableFuture<>();
+    mainThreadRunner.execute(TAG, () -> journalStorage.deleteAll(journalCommitResult::put));
+
+    // Confirm results were successful
     try {
-      if (commitResultFuture.get() != CommitResult.SUCCESS) {
+      if (contentCommitResult.get() != CommitResult.SUCCESS) {
         Logger.e(TAG, "Error clearing all. Could not delete all content from content storage.");
         success = false;
       }
     } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, "Error clearing all. Could not delete all content from content storage.");
+      Logger.e(TAG, e, "Error clearing all. Could not delete all content from content storage.");
       success = false;
     }
-    // TODO: add nuke method to journal storage and use it here.
+    try {
+      if (contentCommitResult.get() != CommitResult.SUCCESS) {
+        Logger.e(TAG, "Error clearing all. Could not delete all journals from journal storage.");
+        success = false;
+      }
+    } catch (InterruptedException | ExecutionException e) {
+      Logger.e(TAG, e, "Error clearing all. Could not delete all content from content storage.");
+      success = false;
+    }
     return success;
   }
 }
