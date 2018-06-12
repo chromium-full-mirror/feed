@@ -22,6 +22,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange.ChildChanges;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -180,6 +181,11 @@ public class TimeoutSessionWithContentTest {
           public void onRootSet() {
             System.out.println("onRootSet");
           }
+
+          @Override
+          public void onError(ModelError modelError) {
+            System.out.println("onError");
+          }
         });
   }
 
@@ -227,6 +233,11 @@ public class TimeoutSessionWithContentTest {
           @Override
           public void onRootSet() {
             System.out.println("onRootSet");
+          }
+
+          @Override
+          public void onError(ModelError modelError) {
+            System.out.println("onError");
           }
         });
   }

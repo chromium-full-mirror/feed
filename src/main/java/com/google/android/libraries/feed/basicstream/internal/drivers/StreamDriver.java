@@ -22,9 +22,12 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -128,27 +131,35 @@ public class StreamDriver implements FeatureChangeObserver {
             createContinuationDriver(modelProvider, modelToken, configuration);
 
         modelToken.registerObserver(
-            tokenCompleted -> {
-              threadUtils.checkMainThread();
+            new TokenCompletedObserver() {
+              @Override
+              public void onTokenCompleted(TokenCompleted tokenCompleted) {
+                threadUtils.checkMainThread();
 
-              int continuationIndex = removeDriver(child);
+                int continuationIndex = removeDriver(child);
 
-              List<FeatureDriver> newChildren =
-                  createAndInsertChildrenAtIndex(
-                      tokenCompleted.getCursor(), modelProvider, continuationIndex);
+                List<FeatureDriver> newChildren =
+                    createAndInsertChildrenAtIndex(
+                        tokenCompleted.getCursor(), modelProvider, continuationIndex);
 
-              if (newChildren.isEmpty()
-                  || (newChildren.size() == 1 && isLastDriverContinuationDriver())) {
-                snackbarApi.show(
-                    context
-                        .getResources()
-                        .getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
+                if (newChildren.isEmpty()
+                    || (newChildren.size() == 1 && isLastDriverContinuationDriver())) {
+                  snackbarApi.show(
+                      context
+                          .getResources()
+                          .getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
+                }
+
+                notifyContentsAdded(continuationIndex, buildLeafFeatureDrivers(newChildren));
+                if (shouldRemoveNoContentCardOrZeroState()) {
+                  featureDrivers.remove(0);
+                  notifyContentRemoved(0);
+                }
               }
 
-              notifyContentsAdded(continuationIndex, buildLeafFeatureDrivers(newChildren));
-              if (shouldRemoveNoContentCardOrZeroState()) {
-                featureDrivers.remove(0);
-                notifyContentRemoved(0);
+              @Override
+              public void onError(ModelError modelError) {
+                // TODO: Handle this?
               }
             });
 

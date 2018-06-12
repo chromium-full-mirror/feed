@@ -30,12 +30,14 @@ import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
@@ -408,7 +410,16 @@ public class FeedModelProviderTest {
     tokens = modelProvider.getTokensForTest();
     assertThat(tokens).hasSize(0);
 
-    TokenCompletedObserver tokenCompletedObserver = change -> assertThat(change).isNotNull();
+    TokenCompletedObserver tokenCompletedObserver =
+        new TokenCompletedObserver() {
+          @Override
+          public void onTokenCompleted(TokenCompleted tokenCompleted) {
+            assertThat(tokenCompleted).isNotNull();
+          }
+
+          @Override
+          public void onError(ModelError error) {}
+        };
     continuationToken.getModelToken().registerObserver(tokenCompletedObserver);
     tokenMutation.postMutation();
   }

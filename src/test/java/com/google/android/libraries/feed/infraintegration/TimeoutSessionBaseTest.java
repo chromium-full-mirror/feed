@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
@@ -165,6 +166,11 @@ public class TimeoutSessionBaseTest {
           @Override
           public void onRootSet() {
             System.out.println("onRootSet");
+          }
+
+          @Override
+          public void onError(ModelError modelError) {
+            System.out.println("onError");
           }
         });
   }
