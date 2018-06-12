@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
+import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -110,18 +111,18 @@ public class InfrastructureIntegrationScope {
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter);
     feedSessionManager =
-        new FeedSessionManager(
-            executorService,
-            store,
-            timingUtils,
-            threadUtils,
-            mainThreadRunner,
-            feedProtocolAdapter,
-            fakeRequestManager,
-            schedulerApi,
-            configuration,
-            clock);
-    feedSessionManager.initialize();
+        new FeedSessionManagerFactory(
+                executorService,
+                store,
+                timingUtils,
+                threadUtils,
+                mainThreadRunner,
+                feedProtocolAdapter,
+                fakeRequestManager,
+                schedulerApi,
+                configuration,
+                clock)
+            .create();
     modelProviderFactory =
         new FeedModelProviderFactory(
             feedSessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);

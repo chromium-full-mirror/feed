@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
+import static com.google.android.libraries.feed.api.common.MutationContext.EMPTY_CONTEXT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -78,6 +79,7 @@ public class MutationCommitterFactoryTest {
   private final String rootContentId = idGenerators.createRootContentId(0);
 
   private Store storeSpy;
+  private TaskQueue taskQueue;
   private SessionCache sessionCache;
   private Session notifySession;
   private StreamSession resetSession;
@@ -89,12 +91,19 @@ public class MutationCommitterFactoryTest {
     sharedStateCache.clear();
     notifySession = null;
     resetSession = null;
+    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue.initialize(() -> {});
+    EphemeralFeedStore store = new EphemeralFeedStore(clock, timingUtils, new FeedStoreHelper());
+    storeSpy = spy(store);
+    SessionFactory sessionFactory =
+        new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
+    sessionCache =
+        new SessionCache(storeSpy, taskQueue, sessionFactory, 10L, timingUtils, threadUtils, clock);
+    sessionCache.initialize();
   }
 
   @Test
   public void testResultError() {
-    MutationCommitterFactory committerFactory = getMutationCommitterFactory();
-
     String streamToken = "session:1";
     Session session = getSession(streamToken);
 
@@ -103,15 +112,13 @@ public class MutationCommitterFactoryTest {
             .setContinuationToken(StreamToken.getDefaultInstance())
             .setRequestingSession(session.getStreamSession())
             .build();
-    MutationCommitter mutationCommitter =
-        (MutationCommitter) committerFactory.create("task", mutationContext);
+    MutationCommitter mutationCommitter = getMutationCommitter(mutationContext);
     mutationCommitter.accept(Result.failure());
     assertThat(notifySession).isEqualTo(session);
   }
 
   @Test
   public void testResetHead() {
-    MutationCommitterFactory committerFactory = getMutationCommitterFactory();
     List<StreamDataOperation> dataOperations = new ArrayList<>();
     dataOperations.add(
         getStreamDataOperation(
@@ -120,12 +127,8 @@ public class MutationCommitterFactoryTest {
     Session session = getSession(streamToken);
 
     MutationCommitter mutationCommitter =
-        (MutationCommitter)
-            committerFactory.create(
-                "task",
-                new MutationContext.Builder()
-                    .setRequestingSession(session.getStreamSession())
-                    .build());
+        getMutationCommitter(
+            new MutationContext.Builder().setRequestingSession(session.getStreamSession()).build());
     mutationCommitter.accept(Result.success(dataOperations));
     assertThat(mutationCommitter.clearedHead).isTrue();
     assertThat(resetSession).isEqualTo(session.getStreamSession());
@@ -133,7 +136,6 @@ public class MutationCommitterFactoryTest {
 
   @Test
   public void testUpdateContent() {
-    MutationCommitterFactory committerFactory = getMutationCommitterFactory();
     List<String> contentIds = getContentIds(3);
     List<Pair<StreamStructure, StreamPayload>> features =
         getFeatures(
@@ -146,8 +148,7 @@ public class MutationCommitterFactoryTest {
     for (Pair<StreamStructure, StreamPayload> feature : features) {
       dataOperations.add(getStreamDataOperation(feature.first, feature.second));
     }
-    MutationCommitter mutationCommitter =
-        (MutationCommitter) committerFactory.create("task", MutationContext.EMPTY_CONTEXT);
+    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
     mutationCommitter.accept(Result.success(dataOperations));
 
     Result<List<PayloadWithId>> result = storeSpy.getPayloads(contentIds);
@@ -160,7 +161,6 @@ public class MutationCommitterFactoryTest {
 
   @Test
   public void testSemanticData() {
-    MutationCommitterFactory committerFactory = getMutationCommitterFactory();
     List<String> contentIds = getContentIds(2);
     List<Pair<StreamStructure, StreamPayload>> features =
         getFeatures(
@@ -173,8 +173,7 @@ public class MutationCommitterFactoryTest {
     for (Pair<StreamStructure, StreamPayload> feature : features) {
       dataOperations.add(getStreamDataOperation(feature.first, feature.second));
     }
-    MutationCommitter mutationCommitter =
-        (MutationCommitter) committerFactory.create("task", MutationContext.EMPTY_CONTEXT);
+    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
     mutationCommitter.accept(Result.success(dataOperations));
 
     Result<List<SemanticPropertiesWithId>> result = storeSpy.getSemanticProperties(contentIds);
@@ -187,9 +186,7 @@ public class MutationCommitterFactoryTest {
 
   @Test
   public void testValidDataOperation() {
-    MutationCommitterFactory committerFactory = getMutationCommitterFactory();
-    MutationCommitter mutationCommitter =
-        (MutationCommitter) committerFactory.create("task", MutationContext.EMPTY_CONTEXT);
+    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
 
     StreamDataOperation operation = StreamDataOperation.getDefaultInstance();
     assertThat(mutationCommitter.validDataOperation(operation)).isFalse();
@@ -219,6 +216,23 @@ public class MutationCommitterFactoryTest {
             .setStreamStructure(StreamStructure.newBuilder().setContentId("content").build())
             .build();
     assertThat(mutationCommitter.validDataOperation(operation)).isTrue();
+  }
+
+  private MutationCommitter getMutationCommitter(MutationContext mutationContext) {
+    MutationCommitterFactory committerFactory =
+        new MutationCommitterFactory(
+            storeSpy,
+            sessionCache,
+            contentCache,
+            taskQueue,
+            mainThreadRunner,
+            schedulerApi,
+            threadUtils,
+            timingUtils,
+            clock);
+    return (MutationCommitter)
+        committerFactory.create(
+            "task", mutationContext, this::resetHead, this::notifySessionError, sharedStateCache);
   }
 
   private List<String> getContentIds(int count) {
@@ -261,31 +275,6 @@ public class MutationCommitterFactoryTest {
       builder.setStreamPayload(payload);
     }
     return builder.build();
-  }
-
-  private MutationCommitterFactory getMutationCommitterFactory() {
-    EphemeralFeedStore store = new EphemeralFeedStore(clock, timingUtils, new FeedStoreHelper());
-    storeSpy = spy(store);
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
-    taskQueue.initialize(() -> {});
-    SessionFactory sessionFactory =
-        new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
-    sessionCache =
-        new SessionCache(storeSpy, taskQueue, sessionFactory, 10L, timingUtils, threadUtils, clock);
-    sessionCache.initialize();
-    return new MutationCommitterFactory(
-        this::resetHead,
-        this::notifySessionError,
-        storeSpy,
-        sessionCache,
-        contentCache,
-        sharedStateCache,
-        taskQueue,
-        mainThreadRunner,
-        schedulerApi,
-        threadUtils,
-        timingUtils,
-        clock);
   }
 
   private void resetHead(StreamSession streamSession) {

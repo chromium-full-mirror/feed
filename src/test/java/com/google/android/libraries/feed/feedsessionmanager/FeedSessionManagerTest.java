@@ -159,18 +159,18 @@ public class FeedSessionManagerTest {
     when(sessionMutation.commit()).thenReturn(true);
 
     FeedSessionManager sessionManager =
-        new FeedSessionManager(
-            MoreExecutors.newDirectExecutorService(),
-            store,
-            timingUtils,
-            threadUtils,
-            mainThreadRunner,
-            protocolAdapter,
-            requestManager,
-            schedulerApi,
-            configuration,
-            clock);
-    sessionManager.initialize();
+        new FeedSessionManagerFactory(
+                MoreExecutors.newDirectExecutorService(),
+                store,
+                timingUtils,
+                threadUtils,
+                mainThreadRunner,
+                protocolAdapter,
+                requestManager,
+                schedulerApi,
+                configuration,
+                clock)
+            .create();
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
@@ -280,18 +280,18 @@ public class FeedSessionManagerTest {
     when(store.editSemanticProperties()).thenReturn(semanticPropertiesMutation);
 
     FeedSessionManager sessionManager =
-        new FeedSessionManager(
-            MoreExecutors.newDirectExecutorService(),
-            store,
-            timingUtils,
-            threadUtils,
-            mainThreadRunner,
-            protocolAdapter,
-            requestManager,
-            schedulerApi,
-            configuration,
-            clock);
-    sessionManager.initialize();
+        new FeedSessionManagerFactory(
+                MoreExecutors.newDirectExecutorService(),
+                store,
+                timingUtils,
+                threadUtils,
+                mainThreadRunner,
+                protocolAdapter,
+                requestManager,
+                schedulerApi,
+                configuration,
+                clock)
+            .create();
 
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     StreamDataOperation streamDataOperation =
@@ -515,17 +515,18 @@ public class FeedSessionManagerTest {
             clock,
             new FeedStoreHelper());
     FeedSessionManager fsm =
-        new FeedSessionManager(
-            executor,
-            store,
-            timingUtils,
-            threadUtils,
-            mainThreadRunner,
-            protocolAdapter,
-            requestManager,
-            schedulerApi,
-            configuration,
-            clock);
+        new FeedSessionManagerFactory(
+                executor,
+                store,
+                timingUtils,
+                threadUtils,
+                mainThreadRunner,
+                protocolAdapter,
+                requestManager,
+                schedulerApi,
+                configuration,
+                clock)
+            .createUninitialized();
     fsm.initialize();
     return fsm;
   }
@@ -546,17 +547,18 @@ public class FeedSessionManagerTest {
   private FeedSessionManager getInitializedSpySessionManager(Store feedStore) {
     FeedSessionManager spySessionManager =
         spy(
-            new FeedSessionManager(
-                MoreExecutors.newDirectExecutorService(),
-                feedStore,
-                timingUtils,
-                threadUtils,
-                mainThreadRunner,
-                protocolAdapter,
-                requestManager,
-                schedulerApi,
-                configuration,
-                clock));
+            new FeedSessionManagerFactory(
+                    MoreExecutors.newDirectExecutorService(),
+                    feedStore,
+                    timingUtils,
+                    threadUtils,
+                    mainThreadRunner,
+                    protocolAdapter,
+                    requestManager,
+                    schedulerApi,
+                    configuration,
+                    clock)
+                .createUninitialized());
     spySessionManager.initialize();
     return spySessionManager;
   }

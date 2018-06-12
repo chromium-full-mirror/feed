@@ -70,7 +70,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
@@ -78,7 +77,6 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
 
   private static final String TAG = "FeedSessionManager";
 
-  private static final long DEFAULT_LIFETIME_MS = TimeUnit.HOURS.toMillis(1);
   private static final long TIMEOUT_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(5);
 
   // For the Shared State we will always cache them in the Session Manager
@@ -112,9 +110,12 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
   private int existingSessionCount = 0;
   private int handleTokenCount = 0;
 
-  @SuppressWarnings("methodref.receiver.bound.invalid")
   public FeedSessionManager(
-      ExecutorService executor,
+      TaskQueue taskQueue,
+      SessionFactory sessionFactory,
+      SessionCache sessionCache,
+      MutationCommitterFactory mutationCommitterFactory,
+      ContentCache contentCache,
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
@@ -124,6 +125,12 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
       SchedulerApi schedulerApi,
       Configuration configuration,
       Clock clock) {
+    this.taskQueue = taskQueue;
+    this.sessionFactory = sessionFactory;
+    this.sessionCache = sessionCache;
+    this.mutationCommitterFactory = mutationCommitterFactory;
+    this.contentCache = contentCache;
+
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
@@ -133,31 +140,8 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
     this.schedulerApi = schedulerApi;
     this.clock = clock;
 
-    this.taskQueue = new TaskQueue(executor);
-    long lifetimeMs =
-        configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
-    sessionFactory = new SessionFactory(store, taskQueue, timingUtils, threadUtils, configuration);
-    this.sessionCache =
-        new SessionCache(
-            store, taskQueue, sessionFactory, lifetimeMs, timingUtils, threadUtils, clock);
-
     sessionPopulationTimeoutMs =
         configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
-    contentCache = new ContentCache();
-    mutationCommitterFactory =
-        new MutationCommitterFactory(
-            this::resetHead,
-            this::notifySessionError,
-            store,
-            sessionCache,
-            contentCache,
-            sharedStateCache,
-            taskQueue,
-            mainThreadRunner,
-            schedulerApi,
-            threadUtils,
-            timingUtils,
-            clock);
   }
 
   /**
@@ -403,7 +387,10 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
             new MutationContext.Builder()
                 .setContinuationToken(streamToken)
                 .setRequestingSession(streamSession)
-                .build()));
+                .build(),
+            this::resetHead,
+            this::notifySessionError,
+            sharedStateCache));
   }
 
   @Override
@@ -419,7 +406,12 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
     threadUtils.checkNotMainThread();
     requestManager.triggerRefresh(
         RequestReason.MANUAL_REFRESH,
-        mutationCommitterFactory.create("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+        mutationCommitterFactory.create(
+            "triggerRefresh",
+            MutationContext.EMPTY_CONTEXT,
+            this::resetHead,
+            this::notifySessionError,
+            sharedStateCache));
     if (streamSession != null) {
       String streamToken = streamSession.getStreamToken();
       Session session = sessionCache.get(streamToken);
@@ -486,7 +478,12 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
   @Override
   public Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(
       MutationContext mutationContext) {
-    return mutationCommitterFactory.create("updateConsumer", mutationContext);
+    return mutationCommitterFactory.create(
+        "updateConsumer",
+        mutationContext,
+        this::resetHead,
+        this::notifySessionError,
+        sharedStateCache);
   }
 
   @Override

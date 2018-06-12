@@ -36,7 +36,7 @@ import com.google.android.libraries.feed.feedactionreader.FeedActionReader;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
-import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager;
+import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -223,8 +223,8 @@ public class FeedProcessScope implements Dumpable {
                 actionReader);
       }
       if (sessionManager == null) {
-        FeedSessionManager fsm =
-            new FeedSessionManager(
+        FeedSessionManagerFactory fsmFactory =
+            new FeedSessionManagerFactory(
                 singleThreadExecutor,
                 store,
                 timingUtils,
@@ -235,9 +235,7 @@ public class FeedProcessScope implements Dumpable {
                 schedulerApi,
                 configuration,
                 clock);
-        // TODO: Should this be tied to a Lifecycle call?
-        fsm.initialize();
-        sessionManager = fsm;
+        sessionManager = fsmFactory.create();
       }
 
       AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);

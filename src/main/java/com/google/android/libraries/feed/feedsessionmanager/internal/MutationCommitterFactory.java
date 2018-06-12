@@ -56,12 +56,9 @@ import java.util.Map;
 public class MutationCommitterFactory implements Dumpable {
   private static final String TAG = "MutationCommitter";
 
-  private final Consumer</*@Nullable*/ StreamSession> resetHeadConsumer;
-  private final Consumer<Session> notifySessionErrorConsumer;
   private final Store store;
   private final SessionCache sessionCache;
   private final ContentCache contentCache;
-  private final Map<String, StreamSharedState> sharedStateCache;
   private final TaskQueue taskQueue;
   private final MainThreadRunner mainThreadRunner;
   private final SchedulerApi schedulerApi;
@@ -75,24 +72,18 @@ public class MutationCommitterFactory implements Dumpable {
   private int errorCount = 0;
 
   public MutationCommitterFactory(
-      Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
-      Consumer<Session> notifySessionErrorConsumer,
       Store store,
       SessionCache sessionCache,
       ContentCache contentCache,
-      Map<String, StreamSharedState> sharedStateCache,
       TaskQueue taskQueue,
       MainThreadRunner mainThreadRunner,
       SchedulerApi schedulerApi,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
       Clock clock) {
-    this.resetHeadConsumer = resetHeadConsumer;
-    this.notifySessionErrorConsumer = notifySessionErrorConsumer;
     this.store = store;
     this.sessionCache = sessionCache;
     this.contentCache = contentCache;
-    this.sharedStateCache = sharedStateCache;
     this.taskQueue = taskQueue;
     this.mainThreadRunner = mainThreadRunner;
     this.schedulerApi = schedulerApi;
@@ -106,9 +97,14 @@ public class MutationCommitterFactory implements Dumpable {
    * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}.
    */
   public Consumer<Result<List<StreamDataOperation>>> create(
-      String task, MutationContext mutationContext) {
+      String task,
+      MutationContext mutationContext,
+      Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
+      Consumer<Session> notifySessionErrorConsumer,
+      Map<String, StreamSharedState> sharedStateCache) {
     createCount++;
-    return new MutationCommitter(task, mutationContext);
+    return new MutationCommitter(
+        task, mutationContext, resetHeadConsumer, notifySessionErrorConsumer, sharedStateCache);
   }
 
   @Override
@@ -124,14 +120,26 @@ public class MutationCommitterFactory implements Dumpable {
 
     private final String task;
     private final MutationContext mutationContext;
+    private final Consumer</*@Nullable*/ StreamSession> resetHeadConsumer;
+    private final Consumer<Session> notifySessionErrorConsumer;
+    private final Map<String, StreamSharedState> sharedStateCache;
+
     private final List<StreamStructure> streamStructures = new ArrayList<>();
 
     @VisibleForTesting boolean clearedHead = false;
     private List<StreamDataOperation> dataOperations;
 
-    private MutationCommitter(String task, MutationContext mutationContext) {
+    private MutationCommitter(
+        String task,
+        MutationContext mutationContext,
+        Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
+        Consumer<Session> notifySessionErrorConsumer,
+        Map<String, StreamSharedState> sharedStateCache) {
       this.task = task;
       this.mutationContext = mutationContext;
+      this.resetHeadConsumer = resetHeadConsumer;
+      this.notifySessionErrorConsumer = notifySessionErrorConsumer;
+      this.sharedStateCache = sharedStateCache;
     }
 
     @Override
