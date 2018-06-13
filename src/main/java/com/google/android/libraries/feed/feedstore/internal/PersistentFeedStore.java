@@ -766,6 +766,11 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
       Logger.e(TAG, e, "Error clearing all. Could not delete all content from content storage.");
       success = false;
     }
+
+    // Try to recreate $HEAD (it needs to exist in order to create new sessions)
+    // #clearHead() also will create it if it does not exist
+    clearHead();
+
     return success;
   }
 }

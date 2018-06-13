@@ -240,6 +240,15 @@ public class PersistentJournalStorage implements JournalStorage {
   private boolean append(Append operation, File journal) {
     threadUtils.checkNotMainThread();
 
+    if (!journal.exists()) {
+      try {
+        journal.createNewFile();
+      } catch (IOException e) {
+        Logger.e(TAG, "Could not create file to append to for journal %s.", journal.getName());
+        return false;
+      }
+    }
+
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(journal, /* append= */ true))) {
       writer.write(new String(operation.getValue(), CHARSET));
       writer.newLine();
@@ -295,6 +304,9 @@ public class PersistentJournalStorage implements JournalStorage {
 
     if (journalDir == null) {
       journalDir = context.getDir(JOURNAL_DIR, Context.MODE_PRIVATE);
+    }
+    if (!journalDir.exists()) {
+      journalDir.mkdir();
     }
   }
 

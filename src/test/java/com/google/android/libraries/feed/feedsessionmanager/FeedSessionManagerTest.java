@@ -47,6 +47,7 @@ import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
@@ -100,6 +101,7 @@ public class FeedSessionManagerTest {
   private final String rootContentId = idGenerators.createRootContentId(0);
 
   private MainThreadRunner mainThreadRunner;
+  private FeedAppLifecycleListener appLifecycleListener;
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
@@ -120,6 +122,7 @@ public class FeedSessionManagerTest {
   public void setUp() {
     initMocks(this);
     mainThreadRunner = new MainThreadRunner();
+    appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
     when(store.getHeadSession()).thenReturn(HEAD);
     when(modelProvider.edit()).thenReturn(modelMutation);
     when(store.triggerContentGc(anyObject(), anyObject())).thenReturn(() -> {});
@@ -168,7 +171,8 @@ public class FeedSessionManagerTest {
                 requestManager,
                 schedulerApi,
                 configuration,
-                clock)
+                clock,
+                appLifecycleListener)
             .create();
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
@@ -289,7 +293,8 @@ public class FeedSessionManagerTest {
                 requestManager,
                 schedulerApi,
                 configuration,
-                clock)
+                clock,
+                appLifecycleListener)
             .create();
 
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
@@ -511,6 +516,7 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
+            executor,
             clock);
     FeedSessionManager fsm =
         new FeedSessionManagerFactory(
@@ -523,7 +529,8 @@ public class FeedSessionManagerTest {
                 requestManager,
                 schedulerApi,
                 configuration,
-                clock)
+                clock,
+                appLifecycleListener)
             .createUninitialized();
     fsm.initialize();
     return fsm;
@@ -538,6 +545,7 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
+            MoreExecutors.newDirectExecutorService(),
             clock));
   }
 
@@ -554,7 +562,8 @@ public class FeedSessionManagerTest {
                     requestManager,
                     schedulerApi,
                     configuration,
-                    clock)
+                    clock,
+                    appLifecycleListener)
                 .createUninitialized());
     spySessionManager.initialize();
     return spySessionManager;

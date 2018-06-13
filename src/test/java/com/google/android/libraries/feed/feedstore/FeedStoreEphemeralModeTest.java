@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -55,6 +56,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
+            MoreExecutors.newDirectExecutorService(),
             clock);
     feedStore.switchToEphemeralMode();
     return feedStore;

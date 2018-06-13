@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
+import android.database.Observable;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -22,6 +23,7 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCommitterFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
@@ -51,6 +53,7 @@ public class FeedSessionManagerFactory {
   private final SchedulerApi schedulerApi;
   private final Configuration configuration;
   private final Clock clock;
+  private final Observable<FeedLifecycleListener> lifecycleListenerObservable;
 
   public FeedSessionManagerFactory(
       ExecutorService executor,
@@ -62,7 +65,8 @@ public class FeedSessionManagerFactory {
       RequestManager requestManager,
       SchedulerApi schedulerApi,
       Configuration configuration,
-      Clock clock) {
+      Clock clock,
+      Observable<FeedLifecycleListener> lifecycleListenerObservable) {
     this.executor = executor;
     this.store = store;
     this.timingUtils = timingUtils;
@@ -73,6 +77,7 @@ public class FeedSessionManagerFactory {
     this.schedulerApi = schedulerApi;
     this.configuration = configuration;
     this.clock = clock;
+    this.lifecycleListenerObservable = lifecycleListenerObservable;
   }
 
   /** Creates a new FeedSessionManager and initializes it */
@@ -120,6 +125,7 @@ public class FeedSessionManagerFactory {
         requestManager,
         schedulerApi,
         configuration,
-        clock);
+        clock,
+        lifecycleListenerObservable);
   }
 }

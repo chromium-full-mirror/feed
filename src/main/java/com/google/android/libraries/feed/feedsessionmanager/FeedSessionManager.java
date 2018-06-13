@@ -19,6 +19,7 @@ import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.Requ
 import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_TIMEOUT;
 import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_WAIT;
 
+import android.database.Observable;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
@@ -42,6 +43,7 @@ import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
@@ -73,7 +75,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
-public class FeedSessionManager implements SessionManager, StoreListener, Dumpable {
+public class FeedSessionManager
+    implements SessionManager, StoreListener, FeedLifecycleListener, Dumpable {
 
   private static final String TAG = "FeedSessionManager";
 
@@ -103,6 +106,7 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
   private final Clock clock;
+  private final Observable<FeedLifecycleListener> lifecycleListenerObservable;
   private final long sessionPopulationTimeoutMs;
 
   // operation counts for the dumper
@@ -124,7 +128,8 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
       RequestManager requestManager,
       SchedulerApi schedulerApi,
       Configuration configuration,
-      Clock clock) {
+      Clock clock,
+      Observable<FeedLifecycleListener> lifecycleListenerObservable) {
     this.taskQueue = taskQueue;
     this.sessionFactory = sessionFactory;
     this.sessionCache = sessionCache;
@@ -139,6 +144,7 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
     this.requestManager = requestManager;
     this.schedulerApi = schedulerApi;
     this.clock = clock;
+    this.lifecycleListenerObservable = lifecycleListenerObservable;
 
     sessionPopulationTimeoutMs =
         configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
@@ -152,6 +158,7 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
    */
   public void initialize() {
     store.registerObserver(this);
+    lifecycleListenerObservable.registerObserver(this);
     taskQueue.initialize(this::initializationTask);
   }
 
@@ -493,6 +500,10 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
 
   @Override
   public void onSwitchToEphemeralMode() {
+    reset();
+  }
+
+  private void reset() {
     threadUtils.checkNotMainThread();
 
     // Clear the task queue first, preventing any tasks from running until initialization
@@ -588,5 +599,16 @@ public class FeedSessionManager implements SessionManager, StoreListener, Dumpab
   @VisibleForTesting
   public boolean isDelayed() {
     return taskQueue.isDelayed();
+  }
+
+  @Override
+  public void onLifecycleEvent(@LifecycleEvent String event) {
+    switch (event) {
+      case LifecycleEvent.CLEAR_ALL:
+        taskQueue.execute("reset", TaskType.POST_INIT, this::reset);
+        break;
+      default:
+        // Do nothing
+    }
   }
 }

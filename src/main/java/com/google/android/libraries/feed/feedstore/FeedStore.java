@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
+import com.google.android.libraries.feed.feedstore.internal.ClearableStore;
 import com.google.android.libraries.feed.feedstore.internal.EphemeralFeedStore;
 import com.google.android.libraries.feed.feedstore.internal.FeedStoreHelper;
 import com.google.android.libraries.feed.feedstore.internal.PersistentFeedStore;
@@ -48,6 +49,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * {@link Store} implementation that delegates between {@link PersistentFeedStore} and {@link
@@ -65,7 +67,9 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
   // Permanent reference to the persistent store (used for setting off cleanup)
   private final PersistentFeedStore persistentStore;
   // The current store
-  private Store delegate;
+  private ClearableStore delegate;
+
+  private final ExecutorService executor;
 
   // Needed for switching to ephemeral mode
   private final FeedStoreHelper storeHelper = new FeedStoreHelper();
@@ -82,7 +86,9 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
       JournalStorage journalStorage,
       ThreadUtils threadUtils,
       MainThreadRunner mainThreadRunner,
+      ExecutorService executor,
       Clock clock) {
+    this.executor = executor;
     this.clock = clock;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
@@ -222,8 +228,11 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
     switch (event) {
       case LifecycleEvent.ENTER_BACKGROUND:
         if (isEphemeralMode) {
-          dumpEphemeralActions();
+          executor.execute(this::dumpEphemeralActions);
         }
+        break;
+      case LifecycleEvent.CLEAR_ALL:
+        executor.execute(delegate::clearAll);
         break;
       default:
         // Do nothing

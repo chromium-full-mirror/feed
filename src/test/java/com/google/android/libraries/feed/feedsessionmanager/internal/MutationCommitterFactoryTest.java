@@ -106,6 +106,7 @@ public class MutationCommitterFactoryTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
+            MoreExecutors.newDirectExecutorService(),
             clock);
     storeSpy = spy(store);
     SessionFactory sessionFactory =

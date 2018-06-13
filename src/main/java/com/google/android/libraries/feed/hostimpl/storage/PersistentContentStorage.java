@@ -252,6 +252,9 @@ public class PersistentContentStorage implements ContentStorage {
     if (contentDir == null) {
       contentDir = context.getDir(CONTENT_DIR, Context.MODE_PRIVATE);
     }
+    if (!contentDir.exists()) {
+      contentDir.mkdir();
+    }
   }
 }
 

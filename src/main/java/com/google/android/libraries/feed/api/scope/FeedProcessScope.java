@@ -200,7 +200,12 @@ public class FeedProcessScope implements Dumpable {
               journalStorage,
               threadUtils,
               mainThreadRunner,
+              singleThreadExecutor,
               clock);
+
+      FeedAppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
+      appLifecycleListener.registerObserver(store);
+
       if (protocolAdapter == null) {
         protocolAdapter = new FeedProtocolAdapter(timingUtils);
       }
@@ -232,11 +237,11 @@ public class FeedProcessScope implements Dumpable {
                 requestManager,
                 schedulerApi,
                 configuration,
-                clock);
+                clock,
+                appLifecycleListener);
         sessionManager = fsmFactory.create();
       }
 
-      AppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
       ActionManager actionManager =
           new FeedActionManagerImpl(sessionManager, store, threadUtils, singleThreadExecutor);
 
