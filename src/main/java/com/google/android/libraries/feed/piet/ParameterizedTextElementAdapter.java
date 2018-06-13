@@ -85,11 +85,6 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
   void setTextOnView(
       FrameContext frameContext, TextView textView, ParameterizedText parameterizedText) {
     if (!parameterizedText.hasText()) {
-      Logger.e(
-          TAG,
-          frameContext.reportError(
-              MessageType.ERROR,
-              "ParameterizedText missing for TextElement, setting to empty String"));
       textView.setText("");
       return;
     }

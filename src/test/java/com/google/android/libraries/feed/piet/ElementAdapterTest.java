@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.content.Context;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -125,7 +124,12 @@ public class ElementAdapterTest {
   @Test
   public void testSetLayoutParams_overlay() {
     Element elementWithOverlays =
-        Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
+        Element.newBuilder()
+            .addOverlays(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
+            .build();
 
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
 
@@ -181,38 +185,20 @@ public class ElementAdapterTest {
   @Test
   public void testCreateAdapter_createsOverlays() {
     Element elementWithOverlays =
-        Element.newBuilder().addOverlayElements(ElementList.getDefaultInstance()).build();
-
-    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-
-    assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
-    assertThat(adapter.getView()).isInstanceOf(FrameLayout.class);
-    // Check gravity on the overlay view
-    assertThat(
-            ((FrameLayout.LayoutParams)
-                    ((FrameLayout) adapter.getView()).getChildAt(1).getLayoutParams())
-                .gravity)
-        .isEqualTo(Gravity.NO_GRAVITY);
-  }
-
-  @Test
-  public void testCreateAdapter_createsOverlaysWithGravity() {
-    Element elementWithOverlays =
         Element.newBuilder()
-            .addOverlayElements(
-                ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE))
+            .addOverlays(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
             .build();
 
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
 
     assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
     assertThat(adapter.getView()).isInstanceOf(FrameLayout.class);
-    // Check gravity on the overlay view
-    assertThat(
-            ((FrameLayout.LayoutParams)
-                    ((FrameLayout) adapter.getView()).getChildAt(1).getLayoutParams())
-                .gravity)
-        .isEqualTo(Gravity.CENTER_VERTICAL);
+    assertThat(adapter.overlays).hasSize(1);
+    assertThat(adapter.overlays.get(0)).isInstanceOf(StackedElementAdapter.class);
+    assertThat(((StackedElementAdapter) adapter.overlays.get(0)).childAdapters).isNotEmpty();
   }
 
   @Test
@@ -425,9 +411,13 @@ public class ElementAdapterTest {
   public void testUnbindModel_unsetsActions() {
     Element elementWithOverlaysAndActions =
         Element.newBuilder()
-            .addOverlayElements(
-                ElementList.newBuilder()
-                    .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance())))
+            .addOverlays(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder()
+                            .setActions(
+                                Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
+                            .setElementList(ElementList.getDefaultInstance())))
             .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
             .build();
 

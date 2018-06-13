@@ -410,7 +410,7 @@ public class TemplateBinderTest {
     String templateId2 = "mama";
     Template template2 =
         Template.newBuilder()
-            .setTemplateId(templateId1)
+            .setTemplateId(templateId2)
             .setElement(Element.newBuilder().setGridRow(GridRow.getDefaultInstance()))
             .build();
     when(frameContext.getTemplate(templateId1)).thenReturn(template1);
@@ -425,6 +425,8 @@ public class TemplateBinderTest {
             .build();
     TemplateAdapterModel model1 = new TemplateAdapterModel(template1, bindingContext);
     TemplateAdapterModel model2 = new TemplateAdapterModel(template2, bindingContext);
+    assertThat(new TemplateKey(template1, sharedStates))
+        .isNotEqualTo(new TemplateKey(template2, sharedStates));
 
     // Set frameContext to return a new frameContext when a template is bound
     FrameContext templateContext = mock(FrameContext.class);

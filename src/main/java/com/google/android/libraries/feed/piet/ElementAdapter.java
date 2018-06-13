@@ -19,7 +19,6 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
@@ -28,7 +27,6 @@ import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
-import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -211,37 +209,6 @@ abstract class ElementAdapter<V extends View, M> {
       overlayWrapper.addView(overlayAdapter.getView());
 
       overlayView = overlayWrapper;
-    } else if (baseElement.getOverlayElementsCount() > 0) {
-      FrameLayout overlayWrapper = new FrameLayout(getContext());
-      overlayWrapper.addView(getBaseView());
-
-      for (ElementList overlayList : baseElement.getOverlayElementsList()) {
-        ElementListAdapter overlayAdapter =
-            getParameters()
-                .elementAdapterFactory
-                .createElementListAdapter(overlayList, frameContext);
-        overlays.add(overlayAdapter);
-        overlayWrapper.addView(overlayAdapter.getView());
-
-        FrameLayout.LayoutParams params =
-            new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        switch (overlayAdapter.getVerticalGravity()) {
-          case GRAVITY_BOTTOM:
-            params.gravity = Gravity.BOTTOM;
-            break;
-          case GRAVITY_MIDDLE:
-            params.gravity = Gravity.CENTER_VERTICAL;
-            break;
-          case GRAVITY_TOP:
-            params.gravity = Gravity.TOP;
-            break;
-          default:
-            params.gravity = Gravity.NO_GRAVITY;
-        }
-        overlayAdapter.getElementStyle().setMargins(getContext(), params);
-        overlayAdapter.setLayoutParams(params);
-      }
-      overlayView = overlayWrapper;
     }
   }
 
@@ -257,16 +224,6 @@ abstract class ElementAdapter<V extends View, M> {
           overlays.get(0).getClass());
       ((StackedElementAdapter) overlays.get(0))
           .bindModel(baseElement.getOverlaysList(), frameContext);
-    } else if (baseElement.getOverlayElementsCount() > 0) {
-      checkState(
-          baseElement.getOverlayElementsCount() == overlays.size(),
-          "Overlay count mismatch: %s overlay adapters, %s overlays defined",
-          overlays.size(),
-          baseElement.getOverlayElementsCount());
-      for (int i = 0; i < baseElement.getOverlayElementsCount(); i++) {
-        ((ElementListAdapter) overlays.get(i))
-            .bindModel(baseElement.getOverlayElements(i), frameContext);
-      }
     }
   }
 

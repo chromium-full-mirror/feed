@@ -76,7 +76,9 @@ public class FrameAdapterTest {
           .setElement(
               Element.newBuilder()
                   .setElementList(
-                      ElementList.newBuilder().addElements(Element.getDefaultInstance())))
+                      ElementList.newBuilder()
+                          .addContents(
+                              Content.newBuilder().setElement(Element.getDefaultInstance()))))
           .build();
 
   @Mock private AssetProvider assetProvider;
