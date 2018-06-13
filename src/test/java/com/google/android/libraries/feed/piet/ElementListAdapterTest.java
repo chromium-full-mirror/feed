@@ -19,7 +19,6 @@ import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -38,9 +37,6 @@ import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.ElementListAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowLinearLayout;
-import com.google.search.now.ui.piet.ActionsProto.Action;
-import com.google.search.now.ui.piet.ActionsProto.Actions;
-import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -211,102 +207,6 @@ public class ElementListAdapterTest {
         .isEqualTo(ViewGroup.LayoutParams.MATCH_PARENT);
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
         .isEqualTo(0);
-  }
-
-  @Test
-  public void testOnBindModel_setsActions() {
-    Action action = Action.newBuilder().build();
-    ElementList listWithActions =
-        ElementList.newBuilder()
-            .addContents(DEFAULT_CONTENT)
-            .setActions(Actions.newBuilder().setOnClickAction(action))
-            .build();
-
-    adapter.createAdapter(listWithActions, frameContext);
-    adapter.bindModel(listWithActions, frameContext);
-    adapter.getView().callOnClick();
-
-    assertThat(adapter.getView().hasOnClickListeners()).isTrue();
-    verify(actionHandler)
-        .handleAction(same(action), any(Frame.class), eq(adapter.getView()), any(String.class));
-    assertThat(adapter.actions).isSameAs(listWithActions.getActions());
-  }
-
-  @Test
-  public void testOnBindModel_setsBoundActions() {
-    Action action = Action.getDefaultInstance();
-    ActionsBindingRef actionsBindingRef =
-        ActionsBindingRef.newBuilder().setBindingId("catastrophe").build();
-    Actions actions = Actions.newBuilder().setOnClickAction(action).build();
-    ElementList listWithActions =
-        ElementList.newBuilder()
-            .addContents(DEFAULT_CONTENT)
-            .setActionsBinding(actionsBindingRef)
-            .build();
-    when(frameContext.getActionsFromBinding(actionsBindingRef)).thenReturn(actions);
-
-    adapter.createAdapter(listWithActions, frameContext);
-    adapter.bindModel(listWithActions, frameContext);
-    adapter.getView().callOnClick();
-
-    assertThat(adapter.getView().hasOnClickListeners()).isTrue();
-    verify(actionHandler)
-        .handleAction(eq(action), any(Frame.class), eq(adapter.getView()), any(String.class));
-    assertThat(adapter.actions).isSameAs(actions);
-  }
-
-  @Test
-  public void testOnBindModel_ElementDoesntOverrideListActions() {
-    ElementList baseListElement =
-        ElementList.newBuilder()
-            .setActions(Actions.newBuilder().setOnClickAction(Action.newBuilder().build()))
-            .build();
-    Element listElementWithActions =
-        Element.newBuilder()
-            .setElementList(baseListElement)
-            .setActions(Actions.newBuilder().setOnClickAction(Action.newBuilder().build()).build())
-            .build();
-
-    ElementListAdapter listAdapter =
-        new ElementListAdapter.KeySupplier().getAdapter(context, adapterParameters);
-
-    listAdapter.createAdapter(baseListElement, listElementWithActions, frameContext);
-    listAdapter.bindModel(baseListElement, listElementWithActions, frameContext);
-    listAdapter.getView().callOnClick();
-
-    assertThat(listAdapter.getView().hasOnClickListeners()).isTrue();
-    verify(actionHandler)
-        .handleAction(
-            same(baseListElement.getActions().getOnClickAction()),
-            any(Frame.class),
-            eq(listAdapter.getView()),
-            any(String.class));
-    assertThat(listAdapter.actions).isSameAs(baseListElement.getActions());
-  }
-
-  @Test
-  public void testOnBindModel_fallsBackToElementActions() {
-    ElementList baseListElement = ElementList.getDefaultInstance();
-    Element listElementWithActions =
-        Element.newBuilder()
-            .setElementList(baseListElement)
-            .setActions(Actions.newBuilder().setOnClickAction(Action.newBuilder().build()))
-            .build();
-
-    ElementListAdapter listAdapter =
-        new ElementListAdapter.KeySupplier().getAdapter(context, adapterParameters);
-
-    listAdapter.createAdapter(baseListElement, listElementWithActions, frameContext);
-    listAdapter.bindModel(baseListElement, listElementWithActions, frameContext);
-    listAdapter.getView().callOnClick();
-
-    assertThat(listAdapter.getView().hasOnClickListeners()).isTrue();
-    verify(actionHandler)
-        .handleAction(
-            same(listElementWithActions.getActions().getOnClickAction()),
-            any(Frame.class),
-            eq(listAdapter.getView()),
-            any(String.class));
   }
 
   @Config(shadows = {ExtendedShadowLinearLayout.class})
@@ -531,22 +431,6 @@ public class ElementListAdapterTest {
   }
 
   @Test
-  public void testUnbindModel_unsetsActions() {
-    ElementList listWithActions =
-        ElementList.newBuilder()
-            .addContents(DEFAULT_CONTENT)
-            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
-            .build();
-
-    adapter.createAdapter(listWithActions, frameContext);
-    adapter.bindModel(listWithActions, frameContext);
-    View view = adapter.getView();
-    adapter.unbindModel();
-
-    assertThat(view.hasOnClickListeners()).isFalse();
-  }
-
-  @Test
   public void testReleaseAdapter() {
     ElementList listWithStyles =
         ElementList.newBuilder()
@@ -567,10 +451,10 @@ public class ElementListAdapterTest {
   // Tests creation of the vertical gravity spacers, and ensures they are destroyed appropriately.
   @Test
   public void testVerticalGravity() {
-    ElementList listWithStyles =
-        ElementList.newBuilder()
+    Element listWithStyles =
+        Element.newBuilder()
             .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-            .addContents(DEFAULT_CONTENT)
+            .setElementList(DEFAULT_LIST)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -588,9 +472,9 @@ public class ElementListAdapterTest {
     adapter.releaseAdapter();
 
     listWithStyles =
-        ElementList.newBuilder()
+        Element.newBuilder()
             .setGravityVertical(GravityVertical.GRAVITY_TOP)
-            .addContents(DEFAULT_CONTENT)
+            .setElementList(DEFAULT_LIST)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -605,9 +489,9 @@ public class ElementListAdapterTest {
     adapter.releaseAdapter();
 
     listWithStyles =
-        ElementList.newBuilder()
+        Element.newBuilder()
             .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
-            .addContents(DEFAULT_CONTENT)
+            .setElementList(DEFAULT_LIST)
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
@@ -622,7 +506,7 @@ public class ElementListAdapterTest {
     adapter.releaseAdapter();
 
     listWithStyles =
-        ElementList.newBuilder().clearGravityVertical().addContents(DEFAULT_CONTENT).build();
+        Element.newBuilder().clearGravityVertical().setElementList(DEFAULT_LIST).build();
 
     adapter.createAdapter(listWithStyles, frameContext);
 

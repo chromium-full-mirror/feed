@@ -238,12 +238,10 @@ public class ElementAdapterTest {
 
   @Test
   public void testCreateAdapter_doesNothingForBoundOverlays() {
-    ElementList overlayModel =
-        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
     ElementBindingRef bindingRef = ElementBindingRef.newBuilder().setBindingId("overlay").build();
     BindingValue bindingValue =
         BindingValue.newBuilder()
-            .setElement(Element.newBuilder().setElementList(overlayModel))
+            .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
             .build();
     Content overlayContent = Content.newBuilder().setBoundElement(bindingRef).build();
     when(frameContext.getElementBindingValue(bindingRef)).thenReturn(bindingValue);
@@ -277,14 +275,12 @@ public class ElementAdapterTest {
 
   @Test
   public void testBindModel_bindsOverlays() {
-    ElementList overlayModel =
-        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
     Content overlayContent =
         Content.newBuilder()
             .setElement(
                 Element.newBuilder()
                     .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-                    .setElementList(overlayModel))
+                    .setElementList(ElementList.getDefaultInstance()))
             .build();
     Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
 
@@ -300,12 +296,10 @@ public class ElementAdapterTest {
 
   @Test
   public void testBindModel_bindsBoundOverlays() {
-    ElementList overlayModel =
-        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
     ElementBindingRef bindingRef = ElementBindingRef.newBuilder().setBindingId("overlay").build();
     BindingValue bindingValue =
         BindingValue.newBuilder()
-            .setElement(Element.newBuilder().setElementList(overlayModel))
+            .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
             .build();
     Content overlayContent = Content.newBuilder().setBoundElement(bindingRef).build();
     when(frameContext.getElementBindingValue(bindingRef)).thenReturn(bindingValue);
@@ -359,14 +353,12 @@ public class ElementAdapterTest {
 
   @Test
   public void testBindModel_failsWithIncompatibleOverlays() {
-    ElementList overlayModel =
-        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
     Content overlayContent =
         Content.newBuilder()
             .setElement(
                 Element.newBuilder()
                     .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-                    .setElementList(overlayModel))
+                    .setElementList(ElementList.getDefaultInstance()))
             .build();
     Element elementWithOverlays =
         Element.newBuilder().addOverlays(overlayContent).addOverlays(overlayContent).build();
@@ -435,14 +427,12 @@ public class ElementAdapterTest {
 
   @Test
   public void testUnbindModel_unbindsOverlayAdapters() {
-    ElementList overlayModel =
-        ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE).build();
     Content overlayContent =
         Content.newBuilder()
             .setElement(
                 Element.newBuilder()
                     .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-                    .setElementList(overlayModel))
+                    .setElementList(ElementList.getDefaultInstance()))
             .build();
     Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
@@ -459,8 +449,7 @@ public class ElementAdapterTest {
     Element overlayElement =
         Element.newBuilder()
             .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-            .setElementList(
-                ElementList.newBuilder().setGravityVertical(GravityVertical.GRAVITY_MIDDLE))
+            .setElementList(ElementList.getDefaultInstance())
             .build();
     String overlayBindingId = "overlay";
     ElementBindingRef overlayBindingRef =

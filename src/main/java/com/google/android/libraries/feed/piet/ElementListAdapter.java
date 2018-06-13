@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplie
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
-import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.List;
 
@@ -59,23 +58,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   @Override
   List<Content> getContentsFromModel(ElementList model) {
     return model.getContentsList();
-  }
-
-  @Override
-  void bindActions(FrameContext frameContext) {
-    switch (getModel().getActionsDataCase()) {
-      case ACTIONS:
-        actions = getModel().getActions();
-        break;
-      case ACTIONS_BINDING:
-        actions = frameContext.getActionsFromBinding(getModel().getActionsBinding());
-        break;
-      default:
-        super.bindActions(frameContext);
-        return;
-    }
-    ViewUtils.setOnClickActions(actions, getView(), frameContext.getActionHandler(), frameContext);
-    setHideActionsActive();
   }
 
   @Override
@@ -130,15 +112,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
         break;
       default:
         // do nothing
-    }
-  }
-
-  GravityVertical getVerticalGravity() {
-    ElementList model = getRawModel();
-    if (model != null) {
-      return model.getGravityVertical();
-    } else {
-      return GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED;
     }
   }
 
