@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.feedstore;
+package com.google.android.libraries.feed.feedstore.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
@@ -56,7 +56,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests of the {@link PersistentFeedStore} class. */
+/**
+ * Tests of the {@link com.google.android.libraries.feed.feedstore.internal.PersistentFeedStore}
+ * class.
+ */
 @RunWith(RobolectricTestRunner.class)
 public class PersistentFeedStoreTest extends AbstractFeedStoreTest {
 

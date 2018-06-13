@@ -55,8 +55,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
-            clock,
-            new FeedStoreHelper());
+            clock);
     feedStore.switchToEphemeralMode();
     return feedStore;
   }

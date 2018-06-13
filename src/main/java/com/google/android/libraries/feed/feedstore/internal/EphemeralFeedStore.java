@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.feedstore;
+package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
@@ -28,10 +28,6 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.feedstore.internal.FeedActionMutation;
-import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
-import com.google.android.libraries.feed.feedstore.internal.FeedSemanticPropertiesMutation;
-import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;

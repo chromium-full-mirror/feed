@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.feedstore;
+package com.google.android.libraries.feed.feedstore.internal;
 
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.DISMISS_ACTION_JOURNAL;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
@@ -39,13 +39,6 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.feedstore.internal.ActionGc;
-import com.google.android.libraries.feed.feedstore.internal.ContentGc;
-import com.google.android.libraries.feed.feedstore.internal.FeedActionMutation;
-import com.google.android.libraries.feed.feedstore.internal.FeedContentMutation;
-import com.google.android.libraries.feed.feedstore.internal.FeedSemanticPropertiesMutation;
-import com.google.android.libraries.feed.feedstore.internal.FeedSessionMutation;
-import com.google.android.libraries.feed.feedstore.internal.SessionState;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation.Builder;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
@@ -666,7 +659,7 @@ public class PersistentFeedStore implements Store, Dumpable {
    *
    * @return {@code true} when the clear succeeded
    */
-  boolean clearStorage() {
+  public boolean clearStorage() {
     try {
       if (!clearContentStorage()) {
         return false;
@@ -742,7 +735,7 @@ public class PersistentFeedStore implements Store, Dumpable {
   }
 
   /** Wipes all content and journals */
-  boolean clearAll() {
+  public boolean clearAll() {
     boolean success = true;
     // Run clear on both content and journal
     SimpleSettableFuture<CommitResult> contentCommitResult = new SimpleSettableFuture<>();

@@ -38,7 +38,6 @@ import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
 import com.google.android.libraries.feed.feedstore.FeedStore;
-import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -201,8 +200,7 @@ public class FeedProcessScope implements Dumpable {
               journalStorage,
               threadUtils,
               mainThreadRunner,
-              clock,
-              new FeedStoreHelper());
+              clock);
       if (protocolAdapter == null) {
         protocolAdapter = new FeedProtocolAdapter(timingUtils);
       }

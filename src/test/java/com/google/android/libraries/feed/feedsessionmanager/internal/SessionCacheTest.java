@@ -28,11 +28,15 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.feedstore.EphemeralFeedStore;
-import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
+import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
+import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -62,6 +66,9 @@ public class SessionCacheTest {
   private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
+  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
+  private final ContentStorage contentStorage = new InMemoryContentStorage();
+  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
   @Before
   public void setUp() {
@@ -318,7 +325,15 @@ public class SessionCacheTest {
   }
 
   private SessionCache getSessionCache() {
-    EphemeralFeedStore store = new EphemeralFeedStore(clock, timingUtils, new FeedStoreHelper());
+    Store store =
+        new FeedStore(
+            timingUtils,
+            extensionRegistry,
+            contentStorage,
+            new InMemoryJournalStorage(threadUtils),
+            threadUtils,
+            mainThreadRunner,
+            clock);
     storeSpy = spy(store);
     TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
     sessionFactory =

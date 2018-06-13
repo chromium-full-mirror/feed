@@ -31,13 +31,16 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCommitterFactory.MutationCommitter;
-import com.google.android.libraries.feed.feedstore.EphemeralFeedStore;
-import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
+import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
+import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -71,6 +74,8 @@ public class MutationCommitterFactoryTest {
   @Mock private Clock clock;
 
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
+  private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
+  private final ContentStorage contentStorage = new InMemoryContentStorage();
   private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
   private final Map<String, StreamSharedState> sharedStateCache = new HashMap<>();
@@ -93,7 +98,15 @@ public class MutationCommitterFactoryTest {
     resetSession = null;
     taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
     taskQueue.initialize(() -> {});
-    EphemeralFeedStore store = new EphemeralFeedStore(clock, timingUtils, new FeedStoreHelper());
+    Store store =
+        new FeedStore(
+            timingUtils,
+            extensionRegistry,
+            contentStorage,
+            new InMemoryJournalStorage(threadUtils),
+            threadUtils,
+            mainThreadRunner,
+            clock);
     storeSpy = spy(store);
     SessionFactory sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);

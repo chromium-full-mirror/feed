@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * Class which holds the state associated with a Session. This is a support class used by {@link
- * com.google.android.libraries.feed.feedstore.PersistentFeedStore}.
+ * PersistentFeedStore}.
  */
 public class SessionState {
   private final List<StreamStructure> streamStructures = new ArrayList<>();

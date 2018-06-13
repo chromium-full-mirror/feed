@@ -34,6 +34,9 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
+import com.google.android.libraries.feed.feedstore.internal.EphemeralFeedStore;
+import com.google.android.libraries.feed.feedstore.internal.FeedStoreHelper;
+import com.google.android.libraries.feed.feedstore.internal.PersistentFeedStore;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
@@ -65,8 +68,8 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
   private Store delegate;
 
   // Needed for switching to ephemeral mode
+  private final FeedStoreHelper storeHelper = new FeedStoreHelper();
   private final Clock clock;
-  private final FeedStoreHelper storeHelper;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
 
@@ -79,10 +82,8 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
       JournalStorage journalStorage,
       ThreadUtils threadUtils,
       MainThreadRunner mainThreadRunner,
-      Clock clock,
-      FeedStoreHelper storeHelper) {
+      Clock clock) {
     this.clock = clock;
-    this.storeHelper = storeHelper;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.persistentStore =

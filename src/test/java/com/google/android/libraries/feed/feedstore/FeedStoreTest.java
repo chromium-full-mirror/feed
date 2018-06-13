@@ -94,8 +94,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         new InMemoryJournalStorage(threadUtils),
         threadUtils,
         mainThreadRunner,
-        clock,
-        new FeedStoreHelper());
+        clock);
   }
 
   @Test
@@ -130,8 +129,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             journalStorageSpy,
             threadUtils,
             mainThreadRunner,
-            clock,
-            new FeedStoreHelper());
+            clock);
     store.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
     verifyZeroInteractions(journalStorageSpy, contentStorageSpy);
   }
@@ -148,8 +146,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             journalStorageSpy,
             threadUtils,
             mainThreadRunner,
-            clock,
-            new FeedStoreHelper());
+            clock);
     store.switchToEphemeralMode();
     reset(journalStorageSpy, contentStorageSpy);
 

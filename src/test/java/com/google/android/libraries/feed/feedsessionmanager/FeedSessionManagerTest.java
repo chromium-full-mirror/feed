@@ -51,7 +51,6 @@ import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFact
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
-import com.google.android.libraries.feed.feedstore.FeedStoreHelper;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
@@ -512,8 +511,7 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
-            clock,
-            new FeedStoreHelper());
+            clock);
     FeedSessionManager fsm =
         new FeedSessionManagerFactory(
                 executor,
@@ -540,8 +538,7 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
-            clock,
-            new FeedStoreHelper()));
+            clock));
   }
 
   private FeedSessionManager getInitializedSpySessionManager(Store feedStore) {
