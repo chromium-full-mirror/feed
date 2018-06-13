@@ -30,7 +30,7 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
-import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
+import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
@@ -40,8 +40,6 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
-import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -61,39 +59,12 @@ import org.robolectric.RobolectricTestRunner;
  * class.
  */
 @RunWith(RobolectricTestRunner.class)
-public class PersistentFeedStoreTest extends AbstractFeedStoreTest {
-
-  public static final String CONTENT_ID = "CONTENT_ID";
-  public static final String CONTENT_ID_2 = "CONTENT_ID_2";
-  public static final String SESSION_TOKEN = "SESSION";
-  public static final String SESSION_TOKEN_2 = "SESSION_2";
-  public static final StreamSession STREAM_SESSION =
-      StreamSession.newBuilder().setStreamToken(SESSION_TOKEN).build();
-  public static final StreamSession STREAM_SESSION_2 =
-      StreamSession.newBuilder().setStreamToken(SESSION_TOKEN_2).build();
-  @Mock private ThreadUtils threadUtils;
+public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorage contentStorage = new InMemoryContentStorage();
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
-  public static final StreamPayload STREAM_PAYLOAD =
-      StreamPayload.newBuilder()
-          .setStreamFeature(StreamFeature.newBuilder().setContentId(CONTENT_ID))
-          .build();
-  public static final StreamPayload STREAM_PAYLOAD_2 =
-      StreamPayload.newBuilder()
-          .setStreamFeature(StreamFeature.newBuilder().setContentId(CONTENT_ID_2))
-          .build();
-  public static final StreamPayload STREAM_PAYLOAD_SHARED_STATE =
-      StreamPayload.newBuilder()
-          .setStreamSharedState(StreamSharedState.newBuilder().setContentId(CONTENT_ID))
-          .build();
-  public static final StreamPayload STREAM_PAYLOAD_SHARED_STATE_2 =
-      StreamPayload.newBuilder()
-          .setStreamSharedState(StreamSharedState.newBuilder().setContentId(CONTENT_ID_2))
-          .build();
-  public static final byte[] SEMANTIC_PROPERTIES = new byte[] {14, 23, 54, 7};
-  public static final byte[] SEMANTIC_PROPERTIES_2 = new byte[] {12, 24, 18, 9};
+  @Mock private ThreadUtils threadUtils;
 
   @Before
   public void setUp() throws Exception {
@@ -366,121 +337,5 @@ public class PersistentFeedStoreTest extends AbstractFeedStoreTest {
     assertThat(dismissActionsResult.getValue().get(1).getFeatureContentId())
         .isEqualTo(CONTENT_ID_2);
     assertThat(dismissActionsResult.getValue().get(1).getAction()).isEqualTo(ActionType.DISMISS);
-  }
-
-  @Test
-  public void clearAll() {
-    PersistentFeedStore store = (PersistentFeedStore) getStore();
-
-    /*
-    SETUP
-    */
-
-    // Payload
-    CommitResult commitResult =
-        store
-            .editContent()
-            .add(CONTENT_ID, STREAM_PAYLOAD)
-            .add(CONTENT_ID_2, STREAM_PAYLOAD_2)
-            .commit();
-    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
-
-    Result<List<PayloadWithId>> payloadsResult =
-        store.getPayloads(Arrays.asList(CONTENT_ID, CONTENT_ID_2));
-    assertThat(payloadsResult.isSuccessful()).isTrue();
-    assertThat(payloadsResult.getValue()).hasSize(2);
-
-    // Semantic properties
-    commitResult =
-        store
-            .editSemanticProperties()
-            .add(CONTENT_ID, ByteString.copyFrom(SEMANTIC_PROPERTIES))
-            .add(CONTENT_ID_2, ByteString.copyFrom(SEMANTIC_PROPERTIES_2))
-            .commit();
-    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
-
-    Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
-        store.getSemanticProperties(Arrays.asList(CONTENT_ID, CONTENT_ID_2));
-    assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
-    assertThat(semanticPropertiesResult.getValue()).hasSize(2);
-
-    // Shared State
-    commitResult =
-        store
-            .editContent()
-            .add(CONTENT_ID, STREAM_PAYLOAD_SHARED_STATE)
-            .add(CONTENT_ID_2, STREAM_PAYLOAD_SHARED_STATE_2)
-            .commit();
-    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
-
-    Result<List<StreamSharedState>> sharedStatesResult = store.getSharedStates();
-    assertThat(sharedStatesResult.isSuccessful()).isTrue();
-    assertThat(sharedStatesResult.getValue()).hasSize(2);
-
-    // Journal
-    boolean boolCommitResult =
-        store
-            .editSession(STREAM_SESSION)
-            .add(StreamStructure.newBuilder().setContentId(CONTENT_ID).build())
-            .commit();
-    assertThat(boolCommitResult).isTrue();
-    boolCommitResult =
-        store
-            .editSession(STREAM_SESSION_2)
-            .add(StreamStructure.newBuilder().setContentId(CONTENT_ID_2).build())
-            .commit();
-    assertThat(boolCommitResult).isTrue();
-
-    Result<List<StreamSession>> sessionsResult = store.getAllSessions();
-    assertThat(sessionsResult.isSuccessful()).isTrue();
-    assertThat(sessionsResult.getValue()).hasSize(2);
-
-    // Actions
-    commitResult =
-        store
-            .editActions()
-            .add(ActionType.DISMISS, CONTENT_ID)
-            .add(ActionType.DISMISS, CONTENT_ID_2)
-            .commit();
-    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
-
-    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
-    assertThat(dismissActionsResult.isSuccessful()).isTrue();
-    assertThat(dismissActionsResult.getValue()).hasSize(2);
-
-    /*
-    CLEAR
-    */
-
-    assertThat(store.clearAll()).isTrue();
-
-    /*
-    VERIFICATION
-    */
-
-    // Payload
-    payloadsResult = store.getPayloads(Collections.singletonList(CONTENT_ID));
-    assertThat(payloadsResult.isSuccessful()).isTrue();
-    assertThat(payloadsResult.getValue()).hasSize(0);
-
-    // Semantic properties (should not be cleared)
-    semanticPropertiesResult = store.getSemanticProperties(Arrays.asList(CONTENT_ID, CONTENT_ID_2));
-    assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
-    assertThat(semanticPropertiesResult.getValue()).hasSize(0);
-
-    // Shared state
-    sharedStatesResult = store.getSharedStates();
-    assertThat(sharedStatesResult.isSuccessful()).isTrue();
-    assertThat(sharedStatesResult.getValue()).hasSize(0);
-
-    // Journal
-    sessionsResult = store.getAllSessions();
-    assertThat(sessionsResult.isSuccessful()).isTrue();
-    assertThat(sessionsResult.getValue()).hasSize(0);
-
-    // Actions (should not be cleared)
-    dismissActionsResult = store.getAllDismissActions();
-    assertThat(dismissActionsResult.isSuccessful()).isTrue();
-    assertThat(dismissActionsResult.getValue()).hasSize(0);
   }
 }

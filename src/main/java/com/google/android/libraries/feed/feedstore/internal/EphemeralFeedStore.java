@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
-import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -43,7 +42,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /** Ephemeral version of Store */
-public class EphemeralFeedStore implements Store {
+public class EphemeralFeedStore implements ClearableStore {
 
   private static final String TAG = "EphemeralFeedStore";
   private static final Runnable EMPTY_RUNNABLE = () -> {};
@@ -268,5 +267,15 @@ public class EphemeralFeedStore implements Store {
   public void unregisterObserver(StoreListener observer) {
     throw new UnsupportedOperationException(
         "PersistentFeedStore does not support observer directly");
+  }
+
+  @Override
+  public boolean clearAll() {
+    payloadWithIdMap.clear();
+    actionsMap.clear();
+    semanticPropertiesMap.clear();
+    sessionsMap.clear();
+    sharedStateMap.clear();
+    return true;
   }
 }

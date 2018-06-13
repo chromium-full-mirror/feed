@@ -16,14 +16,14 @@ package com.google.android.libraries.feed.feedstore.internal;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
+import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link EphemeralFeedStore} class. */
 @RunWith(RobolectricTestRunner.class)
-public class EphemeralFeedStoreTest extends AbstractFeedStoreTest {
+public class EphemeralFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Before
   public void setUp() throws Exception {

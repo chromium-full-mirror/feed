@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
-import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -65,7 +64,7 @@ import java.util.concurrent.TimeUnit;
  * Implementation of the Store. The PersistentFeedStore will call the host APIs {@link
  * ContentStorage} and {@link JournalStorage} to make persistent changes.
  */
-public class PersistentFeedStore implements Store, Dumpable {
+public class PersistentFeedStore implements ClearableStore, Dumpable {
 
   private static final String TAG = "PersistentFeedStore";
 
@@ -735,7 +734,10 @@ public class PersistentFeedStore implements Store, Dumpable {
   }
 
   /** Wipes all content and journals */
+  @Override
   public boolean clearAll() {
+    threadUtils.checkNotMainThread();
+
     boolean success = true;
     // Run clear on both content and journal
     SimpleSettableFuture<CommitResult> contentCommitResult = new SimpleSettableFuture<>();
