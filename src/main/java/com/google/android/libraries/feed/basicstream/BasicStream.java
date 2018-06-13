@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCal
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -75,17 +76,17 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final ActionManager actionManager;
   private final Configuration configuration;
   private final SnackbarApi snackbarApi;
-  private final StreamContentChangedListener streamContentChangedListener =
-      new StreamContentChangedListener();
+  private final StreamContentChangedListener streamContentChangedListener;
 
   private RecyclerView recyclerView;
-  private ModelProvider modelProvider;
   private Context context;
   private List<View> headers;
   private StreamConfiguration streamConfiguration;
   private StreamRecyclerViewAdapter adapter;
-  private StreamDriver streamDriver;
   private StreamScrollMonitor streamScrollMonitor;
+
+  /*@MonotonicNonNull*/ private ModelProvider modelProvider;
+  /*@MonotonicNonNull*/ private StreamDriver streamDriver;
 
   public BasicStream(
       Context context,
@@ -124,6 +125,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.actionManager = actionManager;
     this.configuration = configuration;
     this.snackbarApi = snackbarApi;
+    this.streamContentChangedListener = createStreamContentChangedListener();
   }
 
   @VisibleForTesting
@@ -176,23 +178,28 @@ public class BasicStream implements Stream, ModelProviderObserver {
     recyclerView.setItemAnimator(new StreamItemAnimator(streamContentChangedListener));
 
     streamScrollMonitor = createStreamScrollMonitor(recyclerView, streamContentChangedListener);
-
-    modelProvider = modelProviderFactory.createNew();
-    modelProvider.registerObserver(this);
-    streamDriver =
-        createStreamDriver(
-            modelProvider,
-            threadUtils,
-            configuration,
-            context,
-            snackbarApi,
-            streamContentChangedListener);
-    adapter.setDriver(streamDriver);
-    streamDriver.showLoadingSpinner();
   }
 
   @Override
-  public void onShow() {}
+  public void onShow() {
+    if (modelProvider == null) {
+      modelProvider = modelProviderFactory.createNew();
+      modelProvider.registerObserver(this);
+    }
+
+    if (streamDriver == null) {
+      streamDriver =
+          createStreamDriver(
+              modelProvider,
+              threadUtils,
+              configuration,
+              context,
+              snackbarApi,
+              streamContentChangedListener);
+      adapter.setDriver(streamDriver);
+      streamDriver.showLoadingSpinner();
+    }
+  }
 
   @Override
   public void onActive() {}
@@ -312,6 +319,14 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public void triggerRefresh() {
+    if (streamDriver == null || modelProvider == null) {
+      Logger.w(
+          TAG,
+          "Refresh requested before Stream was shown.  Scheduler should be used instead "
+              + "in this instance.");
+      return;
+    }
+
     // This invalidates the modelProvider, which results in onSessionFinished() then
     // onSessionStart() being called, leading to recreating the entire stream.
     streamDriver.showLoadingSpinner();
@@ -334,12 +349,16 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @Override
   public void onSessionStart() {
     threadUtils.checkMainThread();
-    updateAdapter(modelProvider);
+    ModelProvider localModelProvider =
+        checkNotNull(modelProvider, "Model Provider must be set if a session is active");
+    updateAdapter(localModelProvider);
   }
 
   @Override
   public void onSessionFinished() {
-    modelProvider.unregisterObserver(this);
+    if (modelProvider != null) {
+      modelProvider.unregisterObserver(this);
+    }
     modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(this);
   }
@@ -387,5 +406,11 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @VisibleForTesting
   LinearLayoutManager createRecyclerViewLayoutManager(Context context) {
     return new LinearLayoutManager(context);
+  }
+
+  @VisibleForTesting
+  StreamContentChangedListener createStreamContentChangedListener(
+      /*@UnderInitialization*/ BasicStream this) {
+    return new StreamContentChangedListener();
   }
 }

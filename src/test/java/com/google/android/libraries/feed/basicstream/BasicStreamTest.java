@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
+import com.google.android.libraries.feed.basicstream.internal.StreamContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
@@ -111,6 +112,7 @@ public class BasicStreamTest {
 
   @Test
   public void testOnSessionStart() {
+    basicStream.onShow();
     reset(adapter);
 
     basicStream.onSessionStart();
@@ -120,6 +122,7 @@ public class BasicStreamTest {
 
   @Test
   public void testOnSessionFinished() {
+    basicStream.onShow();
     basicStream.onSessionFinished();
 
     verify(initialModelProvider).unregisterObserver(basicStream);
@@ -143,7 +146,15 @@ public class BasicStreamTest {
   }
 
   @Test
-  public void testLifecycle_onDestroy() {
+  public void testLifecycle_onCreate_onDestroy() {
+    basicStream.onDestroy();
+    verify(initialModelProvider, never()).invalidate();
+  }
+
+  @Test
+  public void testLifecycle_onCreate_onShow_onHide_onDestroy() {
+    basicStream.onShow();
+    basicStream.onHide();
     basicStream.onDestroy();
     verify(initialModelProvider).invalidate();
   }
@@ -266,12 +277,22 @@ public class BasicStreamTest {
 
   @Test
   public void testTriggerRefresh() {
+    basicStream.onShow();
+
     reset(adapter, streamDriver);
 
     basicStream.triggerRefresh();
 
     verify(initialModelProvider).triggerRefresh();
     verify(streamDriver).showLoadingSpinner();
+  }
+
+  @Test
+  public void testTriggerRefresh_beforeOnShow() {
+    basicStream.triggerRefresh();
+
+    verify(initialModelProvider, never()).triggerRefresh();
+    verify(streamDriver, never()).showLoadingSpinner();
   }
 
   @Test
@@ -321,7 +342,7 @@ public class BasicStreamTest {
 
   private class BasicStreamForTest extends BasicStream {
 
-    private ContentChangedListener contentChangedListener;
+    private StreamContentChangedListener contentChangedListener;
 
     public BasicStreamForTest(
         Context context,
@@ -378,8 +399,13 @@ public class BasicStreamTest {
         Context context,
         SnackbarApi snackbarApi,
         ContentChangedListener contentChangedListener) {
-      this.contentChangedListener = contentChangedListener;
       return streamDriver;
+    }
+
+    @Override
+    StreamContentChangedListener createStreamContentChangedListener() {
+      contentChangedListener = new StreamContentChangedListener();
+      return contentChangedListener;
     }
 
     @Override
