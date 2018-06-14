@@ -680,7 +680,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
    */
   private boolean clearJournalStorage() throws InterruptedException, ExecutionException {
     SimpleSettableFuture<Result<List<String>>> journalFuture = new SimpleSettableFuture<>();
-    journalStorage.getAllJournals(journalFuture::put);
+    mainThreadRunner.execute(TAG, () -> journalStorage.getAllJournals(journalFuture::put));
     Result<List<String>> allJournalsResult = journalFuture.get();
     if (!allJournalsResult.isSuccessful()) {
       Logger.e(TAG, "Error clearing all contents. Could not fetch all journals.");
@@ -692,8 +692,11 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
         continue;
       }
       SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
-      journalStorage.commit(
-          new JournalMutation.Builder(journal).delete().build(), commitResultFuture::put);
+      mainThreadRunner.execute(
+          TAG,
+          () ->
+              journalStorage.commit(
+                  new JournalMutation.Builder(journal).delete().build(), commitResultFuture::put));
       if (commitResultFuture.get() != CommitResult.SUCCESS) {
         Logger.e(TAG, "Error clearing all contents. Could not delete journal %s", journal);
         return false;
@@ -710,7 +713,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
   private boolean clearContentStorage() throws InterruptedException, ExecutionException {
     SimpleSettableFuture<Result<Map<String, byte[]>>> contentFuture = new SimpleSettableFuture<>();
     // TODO: replace with getAllKeys call
-    contentStorage.getAll("", contentFuture::put);
+    mainThreadRunner.execute(TAG, () -> contentStorage.getAll("", contentFuture::put));
     Result<Map<String, byte[]>> allContentMapResult = contentFuture.get();
     if (!allContentMapResult.isSuccessful()) {
       Logger.e(TAG, "Error clearing all contents. Could not fetch all content.");

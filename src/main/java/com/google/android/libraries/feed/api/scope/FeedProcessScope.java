@@ -360,4 +360,8 @@ public class FeedProcessScope implements Dumpable {
   public ActionManager getActionManager() {
     return actionManager;
   }
+
+  public Store getStore() {
+    return store;
+  }
 }
