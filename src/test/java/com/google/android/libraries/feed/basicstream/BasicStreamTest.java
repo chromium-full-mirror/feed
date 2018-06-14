@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream;
 
 import static com.google.android.libraries.feed.api.stream.Stream.POSITION_NOT_KNOWN;
+import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_SESSION_TOKEN;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -28,6 +29,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Build.VERSION_CODES;
+import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -77,10 +79,13 @@ public class BasicStreamTest {
   private static final int TOP_PADDING = 3;
   private static final int BOTTOM_PADDING = 4;
 
+  private static final String SESSION_TOKEN = "session-token";
+
   @Mock private StreamConfiguration streamConfiguration;
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private ModelProvider initialModelProvider;
   @Mock private ModelProvider modelProvider;
+  @Mock private ModelProvider restoredModelProvider;
   @Mock private PietManager pietManager;
   @Mock private SnackbarApi snackbarApi;
   @Mock private StreamDriver streamDriver;
@@ -103,10 +108,12 @@ public class BasicStreamTest {
     
     when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
 
+    when(initialModelProvider.getSessionToken()).thenReturn(SESSION_TOKEN);
+
     context = Robolectric.setupActivity(Activity.class);
     layoutManager = new LinearLayoutManagerWithFakePositioning(context);
 
-    basicStream = createBasicStream();
+    basicStream = createBasicStream(layoutManager);
     basicStream.onCreate(null);
   }
 
@@ -140,7 +147,7 @@ public class BasicStreamTest {
   @Test
   public void testLifecycle_getViewBeforeOnCreateCrashes() {
     // create BasicStream that has not had onCreate() called.
-    basicStream = createBasicStream();
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
     assertThatRunnable(() -> basicStream.getView())
         .throwsAnExceptionOfType(IllegalStateException.class);
   }
@@ -157,6 +164,65 @@ public class BasicStreamTest {
     basicStream.onHide();
     basicStream.onDestroy();
     verify(initialModelProvider).invalidate();
+  }
+
+  @Test
+  public void testGetSavedInstanceState_beforeShow() {
+    Bundle bundle = basicStream.getSavedInstanceState();
+    assertThat(bundle.getString(KEY_SESSION_TOKEN)).isNull();
+  }
+
+  @Test
+  public void testGetSavedInstanceState_afterOnShow_beforeSessionStart() {
+    when(initialModelProvider.getSessionToken()).thenReturn(null);
+
+    basicStream.onShow();
+
+    Bundle bundle = basicStream.getSavedInstanceState();
+    assertThat(bundle.getString(KEY_SESSION_TOKEN)).isNull();
+  }
+
+  @Test
+  public void testGetSavedInstanceState_afterOnShow_afterSessionStart() {
+    basicStream.onShow();
+
+    Bundle bundle = basicStream.getSavedInstanceState();
+    assertThat(bundle.getString(KEY_SESSION_TOKEN)).isEqualTo(SESSION_TOKEN);
+  }
+
+  @Test
+  public void testRestore() {
+    basicStream.onShow();
+
+    Bundle bundle = basicStream.getSavedInstanceState();
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
+    basicStream.onCreate(bundle);
+
+    basicStream.onShow();
+
+    verify(restoredModelProvider).registerObserver(basicStream);
+  }
+
+  @Test
+  public void testRestore_invalidSession() {
+    basicStream.onShow();
+
+    Bundle bundle = basicStream.getSavedInstanceState();
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
+    basicStream.onCreate(bundle);
+    basicStream.onShow();
+
+    verify(modelProvider).registerObserver(basicStream);
   }
 
   @Test
@@ -321,7 +387,8 @@ public class BasicStreamTest {
     return (RecyclerView) basicStream.getView();
   }
 
-  private BasicStreamForTest createBasicStream() {
+  private BasicStreamForTest createBasicStream(LinearLayoutManager layoutManager) {
+
     return new BasicStreamForTest(
         context,
         streamConfiguration,
@@ -337,11 +404,13 @@ public class BasicStreamTest {
         modelProviderFactory,
         new HostBindingProvider(),
         mock(ActionManager.class),
-        configuration);
+        configuration,
+        layoutManager);
   }
 
   private class BasicStreamForTest extends BasicStream {
 
+    private final LinearLayoutManager layoutManager;
     private StreamContentChangedListener contentChangedListener;
 
     public BasicStreamForTest(
@@ -359,7 +428,8 @@ public class BasicStreamTest {
         ModelProviderFactory modelProviderFactory,
         /*@Nullable*/ HostBindingProvider hostBindingProvider,
         ActionManager actionManager,
-        Configuration configuration) {
+        Configuration configuration,
+        LinearLayoutManager layoutManager) {
       super(
           context,
           streamConfiguration,
@@ -377,6 +447,7 @@ public class BasicStreamTest {
           actionManager,
           configuration,
           snackbarApi);
+      this.layoutManager = layoutManager;
     }
 
     @Override

@@ -67,6 +67,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   private static final String TAG = "BasicStream";
 
+  @VisibleForTesting static final String KEY_SESSION_TOKEN = "session-id";
+
   private final CardConfiguration cardConfiguration;
   private final ThreadUtils threadUtils;
   private final PietManager pietManager;
@@ -87,6 +89,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   /*@MonotonicNonNull*/ private ModelProvider modelProvider;
   /*@MonotonicNonNull*/ private StreamDriver streamDriver;
+
+  /*@Nullable*/ private String savedSessionToken;
 
   public BasicStream(
       Context context,
@@ -178,12 +182,31 @@ public class BasicStream implements Stream, ModelProviderObserver {
     recyclerView.setItemAnimator(new StreamItemAnimator(streamContentChangedListener));
 
     streamScrollMonitor = createStreamScrollMonitor(recyclerView, streamContentChangedListener);
+
+    if (savedInstanceState != null) {
+      savedSessionToken = savedInstanceState.getString(KEY_SESSION_TOKEN);
+    }
   }
 
   @Override
   public void onShow() {
     if (modelProvider == null) {
-      modelProvider = modelProviderFactory.createNew();
+
+      // For nullness checker
+      ModelProvider localModelProvider = null;
+      String localSavedSessionToken = savedSessionToken;
+      if (localSavedSessionToken != null) {
+        Logger.d(TAG, "Attempting to restoring session token: %s.", localSavedSessionToken);
+        localModelProvider = modelProviderFactory.create(localSavedSessionToken);
+      }
+
+      if (localModelProvider == null) {
+        // If a session is no longer valid then a ModelProvider will not have been created above.
+        Logger.d(TAG, "Creating new session for showing.");
+        localModelProvider = modelProviderFactory.createNew();
+      }
+
+      modelProvider = localModelProvider;
       modelProvider.registerObserver(this);
     }
 
@@ -220,8 +243,11 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public Bundle getSavedInstanceState() {
-    // TODO: Implement save/restore.
-    return new Bundle();
+    Bundle bundle = new Bundle();
+    if (modelProvider != null) {
+      bundle.putString(KEY_SESSION_TOKEN, modelProvider.getSessionToken());
+    }
+    return bundle;
   }
 
   @Override
