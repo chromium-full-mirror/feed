@@ -55,7 +55,7 @@ public class EphemeralFeedStore implements ClearableStore {
   private final Map<String, StreamSharedState> sharedStateMap = new HashMap<>();
   private final Map<String, ByteString> semanticPropertiesMap = new HashMap<>();
   private final Map<Integer, List<StreamAction>> actionsMap = new HashMap<>();
-  private final Map<StreamSession, List<StreamStructure>> sessionsMap = new HashMap<>();
+  private final Map<String, List<StreamStructure>> sessionsMap = new HashMap<>();
 
   public EphemeralFeedStore(Clock clock, TimingUtils timingUtils, FeedStoreHelper storeHelper) {
     this.clock = clock;
@@ -82,7 +82,7 @@ public class EphemeralFeedStore implements ClearableStore {
 
   @Override
   public Result<List<StreamStructure>> getStreamStructures(StreamSession session) {
-    List<StreamStructure> streamStructures = sessionsMap.get(session);
+    List<StreamStructure> streamStructures = sessionsMap.get(session.getStreamToken());
     if (streamStructures == null) {
       streamStructures = Collections.emptyList();
     }
@@ -91,9 +91,14 @@ public class EphemeralFeedStore implements ClearableStore {
 
   @Override
   public Result<List<StreamSession>> getAllSessions() {
-    ArrayList<StreamSession> sessions = new ArrayList<>(sessionsMap.keySet());
-    sessions.remove(HEAD);
-    return Result.success(sessions);
+    Set<String> sessions = sessionsMap.keySet();
+    ArrayList<StreamSession> returnValues = new ArrayList<>();
+    for (String sessionToken : sessions) {
+      if (!HEAD.getStreamToken().equals(sessionToken)) {
+        returnValues.add(StreamSession.newBuilder().setStreamToken(sessionToken).build());
+      }
+    }
+    return Result.success(returnValues);
   }
 
   @Override
@@ -124,7 +129,8 @@ public class EphemeralFeedStore implements ClearableStore {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     StreamSession streamSession = storeHelper.getNewStreamSession();
     Result<List<StreamStructure>> streamStructuresResult = getStreamStructures(HEAD);
-    sessionsMap.put(streamSession, new ArrayList<>(streamStructuresResult.getValue()));
+    sessionsMap.put(
+        streamSession.getStreamToken(), new ArrayList<>(streamStructuresResult.getValue()));
     tracker.stop("createNewSession", streamSession.getStreamToken());
     return Result.success(streamSession);
   }
@@ -140,14 +146,14 @@ public class EphemeralFeedStore implements ClearableStore {
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    sessionsMap.remove(session);
+    sessionsMap.remove(session.getStreamToken());
     tracker.stop("removeSession", session.getStreamToken());
   }
 
   @Override
   public void clearHead() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    sessionsMap.remove(HEAD);
+    sessionsMap.remove(HEAD.getStreamToken());
     tracker.stop("", "clearHead");
   }
 
@@ -181,10 +187,10 @@ public class EphemeralFeedStore implements ClearableStore {
   private Boolean commitSessionMutation(
       StreamSession streamSession, List<StreamStructure> streamStructures) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<StreamStructure> sessionStructures = sessionsMap.get(streamSession);
+    List<StreamStructure> sessionStructures = sessionsMap.get(streamSession.getStreamToken());
     if (sessionStructures == null) {
       sessionStructures = new ArrayList<>();
-      sessionsMap.put(streamSession, sessionStructures);
+      sessionsMap.put(streamSession.getStreamToken(), sessionStructures);
     }
     sessionStructures.addAll(streamStructures);
     tracker.stop("", "commitSessionMutation", "mutations", streamStructures.size());
