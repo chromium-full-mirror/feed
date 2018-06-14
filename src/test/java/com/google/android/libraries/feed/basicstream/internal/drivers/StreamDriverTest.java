@@ -25,6 +25,8 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
@@ -158,6 +160,16 @@ public class StreamDriverTest {
         .run();
 
     verify(snackbarApi).show(context.getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
+  }
+
+  @Test
+  public void testContinuationToken_createsSnackbar_whenTokenCompletedObservableHasError() {
+    new TokenHandlingTestBuilder()
+        .setInitialCursor(new FakeCursorBuilder().addToken().build())
+        .setTokenIndex(0)
+        .fail();
+
+    verify(snackbarApi).show(context.getString(R.string.ntp_suggestions_fetch_failed));
   }
 
   @Test
@@ -497,6 +509,23 @@ public class StreamDriverTest {
       }
 
       return streamDriver.getLeafFeatureDrivers();
+    }
+
+    void fail() {
+      when(streamFeature.getCursor()).thenReturn(initialCursor);
+
+      // Causes StreamDriver to build a list of children based on the children from the cursor.
+      streamDriver.getLeafFeatureDrivers();
+
+      FakeModelToken token = (FakeModelToken) initialCursor.getChildAt(tokenIndex).getModelToken();
+
+      HashSet<TokenCompletedObserver> tokenCompletedObservers = token.getObservers();
+
+      assertThat(tokenCompletedObservers).hasSize(1);
+
+      for (TokenCompletedObserver tokenCompletedObserver : tokenCompletedObservers) {
+        tokenCompletedObserver.onError(new ModelError(ErrorType.PAGINATION_ERROR));
+      }
     }
   }
 

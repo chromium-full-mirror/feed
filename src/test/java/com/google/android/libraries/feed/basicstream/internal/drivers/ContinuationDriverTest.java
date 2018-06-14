@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -105,4 +107,31 @@ public class ContinuationDriverTest {
     assertThat(continuationDriver.isBound()).isFalse();
   }
 
+  @Test
+  public void testHidesSpinner() {
+    continuationDriver.bind(continuationViewHolder);
+
+    continuationDriver.hideSpinner();
+
+    verify(continuationViewHolder).setShowSpinner(false);
+  }
+
+  @Test
+  public void testHidesSpinner_hidesSpinnerAfterBeingBound() {
+    continuationDriver =
+        new ContinuationDriver(
+            modelProvider,
+            modelToken,
+            new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build());
+
+    continuationDriver.bind(continuationViewHolder);
+    verify(continuationViewHolder).bind(continuationDriver, true);
+
+    continuationDriver.unbind();
+    continuationDriver.hideSpinner();
+    continuationDriver.bind(continuationViewHolder);
+
+    verify(continuationViewHolder).bind(continuationDriver, false);
+    verify(continuationViewHolder, never()).setShowSpinner(anyBoolean());
+  }
 }

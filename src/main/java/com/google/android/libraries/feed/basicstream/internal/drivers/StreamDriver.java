@@ -159,7 +159,8 @@ public class StreamDriver implements FeatureChangeObserver {
 
               @Override
               public void onError(ModelError modelError) {
-                // TODO: Handle this?
+                continuationDriver.hideSpinner();
+                snackbarApi.show(context.getString(R.string.ntp_suggestions_fetch_failed));
               }
             });
 

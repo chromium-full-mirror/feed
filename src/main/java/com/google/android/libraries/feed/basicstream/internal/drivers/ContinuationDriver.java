@@ -85,6 +85,14 @@ public class ContinuationDriver extends LeafFeatureDriver implements OnClickList
     continuationViewHolder = null;
   }
 
+  public void hideSpinner() {
+    showSpinner = false;
+
+    if (continuationViewHolder != null) {
+      continuationViewHolder.setShowSpinner(false);
+    }
+  }
+
   @VisibleForTesting
   boolean isBound() {
     return continuationViewHolder != null;

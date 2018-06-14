@@ -21,6 +21,8 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -78,6 +80,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private static final List<UpdatableModelChild> EMPTY_LIST =
       Collections.unmodifiableList(new ArrayList<>());
   private static final String SYNTHETIC_TOKEN_PREFIX = "_token:";
+  private static final int PAGINATON_REQUEST_FAILURE_DELAY = 2000;
 
   private final Object lock = new Object();
 
@@ -122,6 +125,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final int nonCacheInitialPageSize;
   private final int nonCachePageSize;
   private final int nonCacheMinPageSize;
+  private final boolean failPaginationRequests;
 
   /*@Nullable*/ @VisibleForTesting StreamSession streamSession;
 
@@ -139,6 +143,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0);
     this.nonCachePageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0);
     this.nonCacheMinPageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0);
+    this.failPaginationRequests =
+        config.getValueOrDefault(ConfigKey.FAIL_PAGINATION_REQUESTS, false);
 
     CursorProvider cursorProvider =
         parentId -> {
@@ -193,6 +199,19 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   public void handleToken(ModelToken modelToken) {
     if (modelToken instanceof UpdatableModelToken) {
       UpdatableModelToken token = (UpdatableModelToken) modelToken;
+      // TODO: Move immediate failure logic to Audrey2.
+      if (failPaginationRequests) {
+        mainThreadRunner.executeWithDelay(
+            TAG + " - onTokenChange",
+            () -> {
+              for (TokenCompletedObserver observer : token.getObserversToNotify()) {
+                observer.onError(new ModelError(ErrorType.PAGINATION_ERROR));
+              }
+            },
+            PAGINATON_REQUEST_FAILURE_DELAY);
+        return;
+      }
+
       if (token.isSynthetic()) {
         SyntheticTokenTracker tokenTracker;
         synchronized (lock) {

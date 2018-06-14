@@ -16,12 +16,20 @@ package com.google.android.libraries.feed.common.concurrent;
 
 import android.os.Handler;
 import android.os.Looper;
+import com.google.android.libraries.feed.common.logging.Logger;
 
 /** A {@link AbstractRunner} that executes on the main thread (UI thread). */
 public class MainThreadRunner extends AbstractRunner {
+  private static final String TAG = "MainThreadRunner";
   private static final Handler handler = new Handler(Looper.getMainLooper());
 
   public MainThreadRunner() {
     super(handler::post, "UI thread");
+  }
+
+  /** Executes the {@code runnable} on the with a delay. */
+  public void executeWithDelay(String name, Runnable runnable, int delayMs) {
+    Logger.d(TAG, "Running task [%s] on [%s]", name, "UI thread");
+    handler.postDelayed(runnable, delayMs);
   }
 }
