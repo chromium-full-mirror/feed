@@ -330,21 +330,10 @@ public class FeedSessionManager
   }
 
   @Override
-  public boolean getExistingSession(String sessionToken, ModelProvider modelProvider) {
+  public void getExistingSession(String sessionToken, ModelProvider modelProvider) {
     threadUtils.checkMainThread();
-    Session existingSession = sessionCache.get(sessionToken);
-    if (existingSession == null) {
-      // We didn't find the existing session so it probably expired and was cleaned up.
-      Logger.i(TAG, "getExistingSession didn't find the requested session %s", sessionToken);
-      return false;
-    }
     InitializableSession session = sessionFactory.getSession();
     session.bindModelProvider(modelProvider);
-    ModelProvider existingModelProvider = existingSession.getModelProvider();
-    if (existingModelProvider != null) {
-      existingModelProvider.invalidate();
-    }
-    StreamSession streamSession = existingSession.getStreamSession();
 
     // Task which populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
@@ -353,6 +342,19 @@ public class FeedSessionManager
         TaskType.USER_FACING,
         () -> {
           threadUtils.checkNotMainThread();
+          Session existingSession = sessionCache.get(sessionToken);
+          if (existingSession == null) {
+            modelProvider.invalidate();
+            return;
+          }
+          if (!existingSession.getContentInSession().isEmpty()) {
+            ModelProvider existingModelProvider = existingSession.getModelProvider();
+            if (existingModelProvider != null) {
+              existingModelProvider.invalidate();
+            }
+          }
+          StreamSession streamSession = existingSession.getStreamSession();
+
           Result<List<StreamStructure>> streamStructuresResult =
               store.getStreamStructures(streamSession);
           if (streamStructuresResult.isSuccessful()) {
@@ -368,7 +370,6 @@ public class FeedSessionManager
             switchToEphemeralMode("unable to get stream structure for existing session");
           }
         });
-    return true;
   }
 
   @Override

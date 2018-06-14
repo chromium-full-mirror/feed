@@ -134,7 +134,8 @@ public class ExistingSessionTest {
 
     // Create a second model provider using an unknown session token, this should return null
     ModelProvider modelProvider2 = modelProviderFactory.create("unknown-session");
-    assertThat(modelProvider2).isNull();
+    assertThat(modelProvider2).isNotNull();
+    assertThat(modelProvider2.getCurrentState()).isEqualTo(State.INVALIDATED);
 
     // Now create one from head
     modelProvider2 = modelProviderFactory.createNew();

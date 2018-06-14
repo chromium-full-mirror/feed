@@ -14,15 +14,12 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
-
 /** Factory method for creating {@link ModelProvider} instances. */
 public interface ModelProviderFactory {
   /**
-   * Returns a new instance of a {@link ModelProvider} from an existing session.
-   *
-   * @return {@code null} if the session is no longer available.
+   * Returns a new instance of a {@link ModelProvider} from an existing session. This session may
+   * become INVALIDATED if the session was garbage collected by the Session Manager.
    */
-  /*@Nullable*/
   ModelProvider create(String sessionToken);
 
   /** Returns a new instance of a {@link ModelProvider} from $HEAD. */

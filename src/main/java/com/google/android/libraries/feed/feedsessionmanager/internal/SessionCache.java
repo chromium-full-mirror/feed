@@ -221,6 +221,9 @@ public class SessionCache implements Dumpable {
             session.getStreamToken(),
             StringFormattingUtils.formatLogDate(session.getLastAccessed()));
         cleanupSessions = true;
+        synchronized (lock) {
+          sessions.remove(session.getStreamToken());
+        }
         continue;
       }
       HeadSessionImpl headSession = Validators.checkNotNull(head);
