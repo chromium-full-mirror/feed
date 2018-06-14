@@ -107,7 +107,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
         .when(contentStorageSpy)
         .getAll(eq(""), any(Consumer.class));
 
-    boolean clearSuccess = store.clearStorage();
+    boolean clearSuccess = store.clearNonActionContent();
     assertThat(clearSuccess).isFalse();
   }
 
@@ -144,7 +144,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
         .when(contentStorageSpy)
         .commit(any(ContentMutation.class), any(Consumer.class));
 
-    boolean clearSuccess = store.clearStorage();
+    boolean clearSuccess = store.clearNonActionContent();
     assertThat(clearSuccess).isFalse();
   }
 
@@ -183,7 +183,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
         .when(journalStorageSpy)
         .commit(any(JournalMutation.class), any(Consumer.class));
 
-    boolean clearSuccess = store.clearStorage();
+    boolean clearSuccess = store.clearNonActionContent();
     assertThat(clearSuccess).isFalse();
   }
 
@@ -210,7 +210,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
         .when(journalStorageSpy)
         .getAllJournals(any(Consumer.class));
 
-    boolean clearSuccess = store.clearStorage();
+    boolean clearSuccess = store.clearNonActionContent();
     assertThat(clearSuccess).isFalse();
   }
 
@@ -298,7 +298,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     CLEAR
     */
 
-    assertThat(store.clearStorage()).isTrue();
+    assertThat(store.clearNonActionContent()).isTrue();
 
     /*
     VERIFICATION

@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedstore;
 
+import android.annotation.SuppressLint;
 import android.database.Observable;
 import android.os.AsyncTask;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
@@ -198,13 +199,15 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
     if (!isEphemeralMode) {
       persistentStore.switchToEphemeralMode();
       delegate = new EphemeralFeedStore(clock, timingUtils, storeHelper);
+
+      @SuppressLint("StaticFieldLeak")
       AsyncTask<Void, Void, Void> clearPersistentStoreTask =
           new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
               ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
               // Try to just wipe content + sessions
-              boolean clearSuccess = persistentStore.clearStorage();
+              boolean clearSuccess = persistentStore.clearNonActionContent();
               // If that fails, wipe everything.
               if (!clearSuccess) {
                 persistentStore.clearAll();
@@ -214,6 +217,7 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
             }
           };
       clearPersistentStoreTask.execute();
+
       isEphemeralMode = true;
       synchronized (mObservers) {
         for (StoreListener listener : mObservers) {

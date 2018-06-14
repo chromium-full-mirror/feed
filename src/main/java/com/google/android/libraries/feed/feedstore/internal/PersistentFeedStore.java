@@ -331,15 +331,12 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     StreamSession streamSession = storeHelper.getNewStreamSession();
-    SessionState session = new SessionState();
     Result<List<StreamStructure>> streamStructuresResult = getStreamStructures(HEAD);
     if (!streamStructuresResult.isSuccessful()) {
       Logger.e(TAG, "Could not retrieve stream structures");
       tracker.stop("createNewSession failed");
       return Result.failure();
     }
-
-    session.addAll(streamStructuresResult.getValue());
 
     // While journal storage is async, we want PersistentFeedStore calls to be synchronous (for now)
     CountDownLatch latch = new CountDownLatch(1);
@@ -658,7 +655,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
    *
    * @return {@code true} when the clear succeeded
    */
-  public boolean clearStorage() {
+  public boolean clearNonActionContent() {
     try {
       if (!clearContentStorage()) {
         return false;
