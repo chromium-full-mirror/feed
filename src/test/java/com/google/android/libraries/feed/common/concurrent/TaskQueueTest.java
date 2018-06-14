@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.feedsessionmanager.internal;
+package com.google.android.libraries.feed.common.concurrent;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.feedsessionmanager.internal.TaskQueue.TaskType;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import java.util.List;
