@@ -27,6 +27,8 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -88,6 +90,7 @@ public class MutationCommitterFactoryTest {
   private TaskQueue taskQueue;
   private SessionCache sessionCache;
   private Session notifySession;
+  private ModelError notifyError;
   private StreamSession resetSession;
 
   @Before
@@ -130,6 +133,15 @@ public class MutationCommitterFactoryTest {
     MutationCommitter mutationCommitter = getMutationCommitter(mutationContext);
     mutationCommitter.accept(Result.failure());
     assertThat(notifySession).isEqualTo(session);
+    assertThat(notifyError.getErrorType()).isEqualTo(ErrorType.PAGINATION_ERROR);
+  }
+
+  @Test
+  public void testResultError_noSession() {
+    MutationCommitter mutationCommitter = getMutationCommitter(MutationContext.EMPTY_CONTEXT);
+    mutationCommitter.accept(Result.failure());
+    assertThat(notifySession).isEqualTo(null);
+    assertThat(notifyError.getErrorType()).isEqualTo(ErrorType.NO_CARDS_ERROR);
   }
 
   @Test
@@ -296,7 +308,8 @@ public class MutationCommitterFactoryTest {
     this.resetSession = streamSession;
   }
 
-  private void notifySessionError(Session session) {
+  private void notifySessionError(Session session, ModelError error) {
     notifySession = session;
+    notifyError = error;
   }
 }

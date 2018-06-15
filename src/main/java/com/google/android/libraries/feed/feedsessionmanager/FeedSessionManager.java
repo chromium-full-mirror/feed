@@ -24,6 +24,9 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
+import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -94,6 +97,10 @@ public class FeedSessionManager
   // All access to the content cache happens on the executor thread so there is no need to
   // synchronize access.
   private final ContentCache contentCache;
+
+  // This captures the NO_CARDS_ERROR when a request fails. The request fails in one task and this
+  // is sent to the ModelProvider in the populateSessionTask.
+  /*@Nullable*/ @VisibleForTesting ModelError noCardsError;
 
   private final SessionFactory sessionFactory;
   private final MutationCommitterFactory mutationCommitterFactory;
@@ -284,9 +291,41 @@ public class FeedSessionManager
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
+    if (noCardsError != null) {
+      ModelProvider modelProvider = session.getModelProvider();
+      if (modelProvider == null) {
+        Logger.e(TAG, "populateSessionTask - noCardsError, modelProvider not found");
+        timeTracker.stop("task", "Create/Populate New Session", "Failure", "noCardsError");
+        return;
+      }
+      Logger.w(TAG, "populateSessionTask - noCardsError %s", modelProvider);
+
+      Result<StreamSession> streamSessionResult = store.createNewSession();
+      if (!streamSessionResult.isSuccessful()) {
+        switchToEphemeralMode("Unable to create a new session during noCardsError failure");
+        timeTracker.stop("task", "Create/Populate New Session", "Failure", "noCardsError");
+        return;
+      }
+
+      // properly track the session so that it's empty.
+      modelProvider.raiseError(Validators.checkNotNull(noCardsError));
+      StreamSession streamSession = streamSessionResult.getValue();
+      StreamSession recordedSession =
+          streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
+      session.setStreamSession(recordedSession);
+      sessionCache.put(session.getStreamSession().getStreamToken(), session);
+
+      // Set the streamSession on the ModelProvider.
+      // TODO: This makes the ModelProvider READY, what state should we leave it in?
+      ModelMutation mutation = modelProvider.edit();
+      mutation.setStreamSession(streamSession);
+      mutation.commit();
+      timeTracker.stop("task", "Create/Populate New Session", "Failure", "noCardsError");
+      return;
+    }
+
     Result<StreamSession> streamSessionResult = store.createNewSession();
     if (!streamSessionResult.isSuccessful()) {
-      notifySessionError(session);
       switchToEphemeralMode("Unable to create a new session, createNewSession failed");
       timeTracker.stop("task", "Create/Populate New Session", "Failure", "createNewSession");
       return;
@@ -297,7 +336,6 @@ public class FeedSessionManager
 
     Result<List<StreamStructure>> streamStructuresResult = store.getStreamStructures(streamSession);
     if (!streamStructuresResult.isSuccessful()) {
-      notifySessionError(session);
       switchToEphemeralMode("Unable to create a new session, getStreamStructures failed");
       timeTracker.stop("task", "Create/Populate New Session", "Failure", "getStreamStructures");
       return;
@@ -324,9 +362,22 @@ public class FeedSessionManager
   }
 
   @VisibleForTesting
-  void notifySessionError(Session session) {
-    Logger.e(TAG, "notify Session an error has occurred");
-    // TODO: We should invalidate the session with an error
+  void modelErrorObserver(/*@Nullable*/ Session session, ModelError error) {
+    if (session == null && error.getErrorType() == ErrorType.NO_CARDS_ERROR) {
+      Logger.e(TAG, "No Cards Found on TriggerRefresh, setting noCardsError");
+      noCardsError = error;
+      // queue a clear which will run after all currently delayed tasks.  This allows delayed
+      // session population tasks to inform the ModelProvider of errors then we clear the error
+      // state.
+      taskQueue.execute("clearNoCardsError", TaskType.USER_FACING, () -> noCardsError = null);
+      return;
+    }
+    // TODO: Handle the PAGINATION_ERROR case
+    Logger.e(
+        TAG,
+        "unhandled modelErrorObserver: session, %s, error %s",
+        session != null,
+        error.getErrorType());
   }
 
   @Override
@@ -366,7 +417,6 @@ public class FeedSessionManager
                 TAG,
                 "unable to get stream structure for existing session %s",
                 session.getStreamSession().getStreamToken());
-            notifySessionError(session);
             switchToEphemeralMode("unable to get stream structure for existing session");
           }
         });
@@ -388,16 +438,18 @@ public class FeedSessionManager
 
     // TODO: This should only create the request once.
     handleTokenCount++;
+    MutationContext mutationContext =
+        new MutationContext.Builder()
+            .setContinuationToken(streamToken)
+            .setRequestingSession(streamSession)
+            .build();
     requestManager.loadMore(
         streamToken,
         mutationCommitterFactory.create(
             "handleToken",
-            new MutationContext.Builder()
-                .setContinuationToken(streamToken)
-                .setRequestingSession(streamSession)
-                .build(),
+            mutationContext,
             this::resetHead,
-            this::notifySessionError,
+            this::modelErrorObserver,
             sharedStateCache));
   }
 
@@ -418,7 +470,7 @@ public class FeedSessionManager
             "triggerRefresh",
             MutationContext.EMPTY_CONTEXT,
             this::resetHead,
-            this::notifySessionError,
+            this::modelErrorObserver,
             sharedStateCache));
     if (streamSession != null) {
       String streamToken = streamSession.getStreamToken();
@@ -490,7 +542,7 @@ public class FeedSessionManager
         "updateConsumer",
         mutationContext,
         this::resetHead,
-        this::notifySessionError,
+        this::modelErrorObserver,
         sharedStateCache);
   }
 

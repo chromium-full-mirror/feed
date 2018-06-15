@@ -40,6 +40,9 @@ public interface ModelProvider {
    */
   void invalidate();
 
+  /** Used by the session to raises a {@link ModelError} with the ModelProvider. */
+  void raiseError(ModelError error);
+
   /**
    * Returns a {@code ModelFeature} which represents the root of the stream tree. Returns {@code
    * null} if the stream is empty.

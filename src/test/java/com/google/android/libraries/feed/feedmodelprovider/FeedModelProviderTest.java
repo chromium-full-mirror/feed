@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -360,6 +361,17 @@ public class FeedModelProviderTest {
     List<ModelProviderObserver> observers = modelProvider.getObserversToNotify();
     assertThat(observers.size()).isEqualTo(1);
     assertThat(observers.get(0)).isEqualTo(observer);
+  }
+
+  @Test
+  public void testRaiseError() {
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    ModelProviderObserver observer = mock(ModelProviderObserver.class);
+    modelProvider.registerObserver(observer);
+
+    ModelError modelError = new ModelError(ErrorType.NO_CARDS_ERROR);
+    modelProvider.raiseError(modelError);
+    verify(observer).onError(modelError);
   }
 
   @Test

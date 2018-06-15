@@ -32,6 +32,8 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
@@ -218,6 +220,36 @@ public class FeedSessionManagerTest {
   }
 
   @Test
+  public void testNoCardsError() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    sessionManager.noCardsError = new ModelError(ErrorType.NO_CARDS_ERROR);
+    int featureCnt = 2;
+    populateSession(sessionManager, featureCnt, 1, true, null);
+
+    ModelProviderFactory modelProviderFactory =
+        new FeedModelProviderFactory(
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+    // TODO: We can't verify that raiseError was called on ModelProvider since all of that
+    // happens in the createNew() call due to the single threaded nature.  We may want to have a
+    // test method on the factory to install the observer when creating the ModelProvider.
+    ModelProvider modelProvider = modelProviderFactory.createNew();
+
+    // Verify the failed session is correct
+    Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
+    assertThat(sessions).hasSize(2);
+    Session session = sessions.get(modelProvider.getSessionToken());
+    assertThat(session).isNotNull();
+  }
+
+  @Test
+  public void testModelErrorObserver() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    // verify this runs.  Another method that can'be be verified on a single thread since
+    // the noCardsError will be set and unset.
+    sessionManager.modelErrorObserver(null, new ModelError(ErrorType.NO_CARDS_ERROR));
+  }
+
+  @Test
   public void testReset() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     int featureCnt = 3;
@@ -390,7 +422,6 @@ public class FeedSessionManagerTest {
             spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
     modelProviderFactory.createNew();
     verify(spySessionManager).switchToEphemeralMode(anyString());
-    verify(spySessionManager).notifySessionError(any());
   }
 
   @Test
@@ -407,7 +438,6 @@ public class FeedSessionManagerTest {
             spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
     modelProviderFactory.createNew();
     verify(spySessionManager).switchToEphemeralMode(anyString());
-    verify(spySessionManager).notifySessionError(any());
   }
 
   @Test

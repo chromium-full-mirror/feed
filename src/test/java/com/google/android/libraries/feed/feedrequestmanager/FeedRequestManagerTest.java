@@ -42,6 +42,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.wire.feed.ActionTypeProto.ActionType;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
@@ -73,20 +74,22 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedRequestManagerTest {
 
   private static final int NOT_FOUND = 404;
-  public static final String TABLE = "table";
-  public static final String TABLE_2 = "table2";
-  public static final String CONTENT_DOMAIN = "contentDomain";
-  public static final String CONTENT_DOMAIN_2 = "contentDomain2";
+  private static final String TABLE = "table";
+  private static final String TABLE_2 = "table2";
+  private static final String CONTENT_DOMAIN = "contentDomain";
+  private static final String CONTENT_DOMAIN_2 = "contentDomain2";
   public static final long ID = 42;
-  public static final long ID_2 = 2;
+  private static final long ID_2 = 2;
   @Mock private NetworkClient networkClient;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SchedulerApi scheduler;
   @Mock private ThreadUtils threadUtils;
   @Mock private ActionReader actionReader;
+  @Mock private Consumer<Result<List<StreamDataOperation>>> consumer;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
   @Captor private ArgumentCaptor<Response> responseCaptor;
+  @Captor private ArgumentCaptor<Result<List<StreamDataOperation>>> consumerCapture;
   private ExtensionRegistryLite registry;
   private FeedRequestManager requestManager;
   private final TimingUtils timingUtils = new TimingUtils();
@@ -573,7 +576,7 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testHandleResponse() throws Exception {
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, consumer);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -583,11 +586,17 @@ public class FeedRequestManagerTest {
 
     verify(protocolAdapter).createModel(responseCaptor.capture());
     LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
+
+    verify(consumer).accept(consumerCapture.capture());
+    List<Result<List<StreamDataOperation>>> consumerCaptures = consumerCapture.getAllValues();
+    assertThat(consumerCaptures).hasSize(1);
+    Result<List<StreamDataOperation>> result = consumerCaptures.get(0);
+    assertThat(result.isSuccessful()).isTrue();
   }
 
   @Test
   public void testHandleResponse_notFound() throws Exception {
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
     Response response = Response.getDefaultInstance();
@@ -596,6 +605,11 @@ public class FeedRequestManagerTest {
         .accept(createHttpResponse(/* responseCode= */ NOT_FOUND, response));
 
     verify(scheduler).onRequestError(NOT_FOUND);
+    verify(consumer).accept(consumerCapture.capture());
+    List<Result<List<StreamDataOperation>>> consumerCaptures = consumerCapture.getAllValues();
+    assertThat(consumerCaptures).hasSize(1);
+    Result<List<StreamDataOperation>> result = consumerCaptures.get(0);
+    assertThat(result.isSuccessful()).isFalse();
   }
 
   @Test

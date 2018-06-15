@@ -18,6 +18,8 @@ import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -72,6 +74,11 @@ public class MutationCommitterFactory implements Dumpable {
   private int commitCount = 0;
   private int errorCount = 0;
 
+  /** Listens for errors which need to be reported to a ModelProvider. */
+  public interface ModelErrorObserver {
+    void onError(/*@Nullable*/ Session session, ModelError error);
+  }
+
   public MutationCommitterFactory(
       Store store,
       SessionCache sessionCache,
@@ -101,11 +108,11 @@ public class MutationCommitterFactory implements Dumpable {
       String task,
       MutationContext mutationContext,
       Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
-      Consumer<Session> notifySessionErrorConsumer,
+      ModelErrorObserver modelErrorObserver,
       Map<String, StreamSharedState> sharedStateCache) {
     createCount++;
     return new MutationCommitter(
-        task, mutationContext, resetHeadConsumer, notifySessionErrorConsumer, sharedStateCache);
+        task, mutationContext, resetHeadConsumer, modelErrorObserver, sharedStateCache);
   }
 
   @Override
@@ -122,7 +129,7 @@ public class MutationCommitterFactory implements Dumpable {
     private final String task;
     private final MutationContext mutationContext;
     private final Consumer</*@Nullable*/ StreamSession> resetHeadConsumer;
-    private final Consumer<Session> notifySessionErrorConsumer;
+    private final ModelErrorObserver modelErrorObserver;
     private final Map<String, StreamSharedState> sharedStateCache;
 
     private final List<StreamStructure> streamStructures = new ArrayList<>();
@@ -134,34 +141,36 @@ public class MutationCommitterFactory implements Dumpable {
         String task,
         MutationContext mutationContext,
         Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
-        Consumer<Session> notifySessionErrorConsumer,
+        ModelErrorObserver modelErrorObserver,
         Map<String, StreamSharedState> sharedStateCache) {
       this.task = task;
       this.mutationContext = mutationContext;
       this.resetHeadConsumer = resetHeadConsumer;
-      this.notifySessionErrorConsumer = notifySessionErrorConsumer;
+      this.modelErrorObserver = modelErrorObserver;
       this.sharedStateCache = sharedStateCache;
     }
 
     @Override
     public void accept(Result<List<StreamDataOperation>> updateResults) {
       if (!updateResults.isSuccessful()) {
+        errorCount++;
+        Session session = null;
+        StreamSession streamSession = mutationContext.getRequestingSession();
+        String sessionToken = (streamSession != null) ? streamSession.getStreamToken() : null;
+        if (sessionToken != null) {
+          session = sessionCache.get(sessionToken);
+        }
         if (mutationContext.getContinuationToken() != null) {
           Logger.e(
               TAG, "Error found with a token request %s", mutationContext.getContinuationToken());
-          Session session = null;
-          StreamSession streamSession = mutationContext.getRequestingSession();
-          String sessionToken = (streamSession != null) ? streamSession.getStreamToken() : null;
-          if (sessionToken != null) {
-            session = sessionCache.get(sessionToken);
-          }
           if (session != null) {
-            notifySessionErrorConsumer.accept(session);
+            modelErrorObserver.onError(session, new ModelError(ErrorType.PAGINATION_ERROR));
           }
         } else {
-          errorCount++;
-          Logger.e(TAG, "Unexpected Update error found, the update is being ignored");
+          Logger.e(TAG, "Update error, the update is being ignored");
+          modelErrorObserver.onError(session, new ModelError(ErrorType.NO_CARDS_ERROR));
         }
+        taskQueue.execute("MutationCommitter:requestFailure", TaskType.HEAD_RESET, () -> {});
         return;
       }
       dataOperations = updateResults.getValue();

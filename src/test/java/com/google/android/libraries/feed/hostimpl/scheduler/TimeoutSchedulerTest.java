@@ -62,7 +62,7 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
     TimeoutScheduler scheduler = getScheduler(false);
     SessionManagerState state = new SessionManagerState(true, 1L, false);
     assertThat(scheduler.shouldSessionRequestData(state))
-        .isEqualTo(RequestBehavior.NO_REQUEST_WITH_CONTENT);
+        .isEqualTo(RequestBehavior.NO_REQUEST_WITH_WAIT);
   }
 
   @Test

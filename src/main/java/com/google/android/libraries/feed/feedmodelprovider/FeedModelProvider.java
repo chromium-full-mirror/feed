@@ -306,6 +306,18 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
+  public void raiseError(ModelError error) {
+    List<ModelProviderObserver> observers = getObserversToNotify();
+    mainThreadRunner.execute(
+        TAG + " - onError",
+        () -> {
+          for (ModelProviderObserver observer : observers) {
+            observer.onError(error);
+          }
+        });
+  }
+
+  @Override
   public void dump(Dumper dumper) {
     synchronized (lock) {
       dumper.title(TAG);

@@ -179,6 +179,7 @@ public class FeedRequestManager implements RequestManager {
                   Logger.e(TAG, "errorResponse: %s", errorBody);
                   mainThreadRunner.execute(
                       TAG, () -> scheduler.onRequestError(input.getResponseCode()));
+                  consumer.accept(Result.failure());
                   return;
                 }
 

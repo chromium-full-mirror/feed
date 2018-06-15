@@ -57,7 +57,7 @@ public class TimeoutScheduler implements SchedulerApi {
     threadUtils.checkMainThread();
     if (!useTimeScheduler) {
       Logger.i(TAG, "TimeoutScheduler is Disabled: NO_REQUEST_WITH_CONTENT");
-      return RequestBehavior.NO_REQUEST_WITH_CONTENT;
+      return RequestBehavior.NO_REQUEST_WITH_WAIT;
     }
     Logger.i(
         TAG,
