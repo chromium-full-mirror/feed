@@ -26,7 +26,7 @@ option java_package = "com.google.search.now.ui.stream";
 option java_outer_classname = "StreamStructureProto";
 option cc_enable_arenas = true;
 
-// Top level feature which shows a stream of cards.  Provides any UI inforamtion
+// Top level feature which shows a stream of cards.  Provides any UI information
 // which may be needed in order to render the stream of cards.
 message Stream {
   extend search.now.wire.feed.Feature {
