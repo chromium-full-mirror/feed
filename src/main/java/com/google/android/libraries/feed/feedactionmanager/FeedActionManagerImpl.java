@@ -22,10 +22,11 @@ import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 /** Default implementation of {@link ActionManager} */
 public class FeedActionManagerImpl implements ActionManager {
@@ -33,17 +34,14 @@ public class FeedActionManagerImpl implements ActionManager {
   private final SessionManager sessionManager;
   private final Store store;
   private final ThreadUtils threadUtils;
-  private final ExecutorService executor;
+  private final TaskQueue taskQueue;
 
   public FeedActionManagerImpl(
-      SessionManager sessionManager,
-      Store store,
-      ThreadUtils threadUtils,
-      ExecutorService executor) {
+      SessionManager sessionManager, Store store, ThreadUtils threadUtils, TaskQueue taskQueue) {
     this.sessionManager = sessionManager;
     this.store = store;
     this.threadUtils = threadUtils;
-    this.executor = executor;
+    this.taskQueue = taskQueue;
   }
 
   @Override
@@ -66,7 +64,9 @@ public class FeedActionManagerImpl implements ActionManager {
         .accept(Result.success(streamDataOperations));
 
     // Store the dismiss actions
-    executor.execute(
+    taskQueue.execute(
+        "feedActionManagerDismiss",
+        TaskType.BACKGROUND,
         () -> {
           ActionMutation actionMutation = store.editActions();
           for (String contentId : contentIds) {

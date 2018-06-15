@@ -32,7 +32,6 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFact
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class FeedSessionManagerFactory {
   private static final long DEFAULT_LIFETIME_MS = TimeUnit.HOURS.toMillis(1);
 
-  private final ExecutorService executor;
+  private final TaskQueue taskQueue;
   private final Store store;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
@@ -56,7 +55,7 @@ public class FeedSessionManagerFactory {
   private final Observable<FeedLifecycleListener> lifecycleListenerObservable;
 
   public FeedSessionManagerFactory(
-      ExecutorService executor,
+      TaskQueue taskQueue,
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
@@ -67,7 +66,7 @@ public class FeedSessionManagerFactory {
       Configuration configuration,
       Clock clock,
       Observable<FeedLifecycleListener> lifecycleListenerObservable) {
-    this.executor = executor;
+    this.taskQueue = taskQueue;
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
@@ -90,7 +89,6 @@ public class FeedSessionManagerFactory {
   /** Creates an uninitialized FeedSessionManager. */
   @VisibleForTesting
   FeedSessionManager createUninitialized() {
-    TaskQueue taskQueue = new TaskQueue(executor);
     long lifetimeMs =
         configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
     SessionFactory sessionFactory =

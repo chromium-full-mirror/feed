@@ -24,6 +24,8 @@ import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -58,7 +60,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 /** Default implementation of RequestManager. */
 public class FeedRequestManager implements RequestManager {
@@ -73,7 +74,7 @@ public class FeedRequestManager implements RequestManager {
   private final ProtocolAdapter protocolAdapter;
   private final FeedExtensionRegistry extensionRegistry;
   private final SchedulerApi scheduler;
-  private final ExecutorService executor;
+  private final TaskQueue taskQueue;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
   private final MainThreadRunner mainThreadRunner;
@@ -85,7 +86,7 @@ public class FeedRequestManager implements RequestManager {
       ProtocolAdapter protocolAdapter,
       FeedExtensionRegistry extensionRegistry,
       SchedulerApi scheduler,
-      ExecutorService executor,
+      TaskQueue taskQueue,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
       MainThreadRunner mainThreadRunner,
@@ -95,7 +96,7 @@ public class FeedRequestManager implements RequestManager {
     this.protocolAdapter = protocolAdapter;
     this.extensionRegistry = extensionRegistry;
     this.scheduler = scheduler;
-    this.executor = executor;
+    this.taskQueue = taskQueue;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.mainThreadRunner = mainThreadRunner;
@@ -106,7 +107,9 @@ public class FeedRequestManager implements RequestManager {
   public void loadMore(
       StreamToken streamToken, Consumer<Result<List<StreamDataOperation>>> consumer) {
     threadUtils.checkMainThread();
-    executor.execute(
+    taskQueue.execute(
+        "requestManagerLoadMore",
+        TaskType.POST_INIT, // always run requests as soon as possible
         () -> {
           Logger.i(TAG, "Task: FeedRequestManager LoadMore");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -123,14 +126,11 @@ public class FeedRequestManager implements RequestManager {
     Logger.i(TAG, "trigger refresh %s", reason);
     RequestBuilder request = newDefaultRequest();
 
-    // TODO: clean up threading
-    // executeRequest needs to be on background thread, but triggerRefresh can be called from
-    // anywhere.
     if (threadUtils.isMainThread()) {
-      executor.execute(
-          () -> {
-            executeRequest(request, consumer);
-          });
+      taskQueue.execute(
+          "requestManagerTriggerRefresh",
+          TaskType.POST_INIT, // always run requests as soon as possible
+          () -> executeRequest(request, consumer));
     } else {
       executeRequest(request, consumer);
     }

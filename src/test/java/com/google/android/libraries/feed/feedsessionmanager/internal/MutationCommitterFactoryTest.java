@@ -110,7 +110,7 @@ public class MutationCommitterFactoryTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
-            MoreExecutors.newDirectExecutorService(),
+            new TaskQueue(MoreExecutors.newDirectExecutorService()),
             clock);
     storeSpy = spy(store);
     SessionFactory sessionFactory =

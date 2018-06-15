@@ -38,7 +38,6 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -327,7 +326,8 @@ public class SessionCacheTest {
   }
 
   private SessionCache getSessionCache() {
-    ListeningExecutorService executor = MoreExecutors.newDirectExecutorService();
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue.initialize(() -> {});
     Store store =
         new FeedStore(
             timingUtils,
@@ -336,10 +336,9 @@ public class SessionCacheTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
-            executor,
+            taskQueue,
             clock);
     storeSpy = spy(store);
-    TaskQueue taskQueue = new TaskQueue(executor);
     sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
     return new SessionCache(

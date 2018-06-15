@@ -19,6 +19,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
@@ -99,6 +100,7 @@ public class InfrastructureIntegrationScope {
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorage contentStorage = new InMemoryContentStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage(threadUtils);
+    TaskQueue taskQueue = new TaskQueue(executorService);
     store =
         new FeedStore(
             timingUtils,
@@ -107,13 +109,13 @@ public class InfrastructureIntegrationScope {
             journalStorage,
             threadUtils,
             mainThreadRunner,
-            executorService,
+            taskQueue,
             clock);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter);
     feedSessionManager =
         new FeedSessionManagerFactory(
-                executorService,
+                taskQueue,
                 store,
                 timingUtils,
                 threadUtils,

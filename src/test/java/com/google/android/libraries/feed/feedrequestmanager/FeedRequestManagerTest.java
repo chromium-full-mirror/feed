@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -110,7 +111,7 @@ public class FeedRequestManagerTest {
             protocolAdapter,
             feedExtensionRegistry,
             scheduler,
-            MoreExecutors.newDirectExecutorService(),
+            getTaskQueue(),
             timingUtils,
             threadUtils,
             mainThreadRunner,
@@ -650,5 +651,11 @@ public class FeedRequestManagerTest {
     ContentId contentId =
         ContentId.newBuilder().setTable(table).setContentDomain(contentDomain).setId(id).build();
     return new DismissActionWithSemanticProperties(contentId, semanticProperties);
+  }
+
+  private TaskQueue getTaskQueue() {
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue.initialize(() -> {});
+    return taskQueue;
   }
 }

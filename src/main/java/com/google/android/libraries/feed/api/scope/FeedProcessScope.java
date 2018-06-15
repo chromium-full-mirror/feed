@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -126,11 +127,12 @@ public class FeedProcessScope implements Dumpable {
         SchedulerApi schedulerApi,
         DebugBehavior debugBehavior) {
       this.configuration = configuration;
-      this.singleThreadExecutor = singleThreadExecutor;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
       this.schedulerApi = schedulerApi;
       this.debugBehavior = debugBehavior;
+
+      this.taskQueue = new TaskQueue(singleThreadExecutor);
     }
 
     public Builder setProtocolAdapter(FeedProtocolAdapter protocolAdapter) {
@@ -200,7 +202,7 @@ public class FeedProcessScope implements Dumpable {
               journalStorage,
               threadUtils,
               mainThreadRunner,
-              singleThreadExecutor,
+              taskQueue,
               clock);
 
       FeedAppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
@@ -210,7 +212,7 @@ public class FeedProcessScope implements Dumpable {
         protocolAdapter = new FeedProtocolAdapter(timingUtils);
       }
       ActionReader actionReader =
-          new FeedActionReader(store, clock, protocolAdapter, singleThreadExecutor, configuration);
+          new FeedActionReader(store, clock, protocolAdapter, taskQueue, configuration);
       if (requestManager == null) {
         requestManager =
             new FeedRequestManager(
@@ -219,7 +221,7 @@ public class FeedProcessScope implements Dumpable {
                 protocolAdapter,
                 extensionRegistry,
                 schedulerApi,
-                singleThreadExecutor,
+                taskQueue,
                 timingUtils,
                 threadUtils,
                 mainThreadRunner,
@@ -228,7 +230,7 @@ public class FeedProcessScope implements Dumpable {
       if (sessionManager == null) {
         FeedSessionManagerFactory fsmFactory =
             new FeedSessionManagerFactory(
-                singleThreadExecutor,
+                taskQueue,
                 store,
                 timingUtils,
                 threadUtils,
@@ -243,7 +245,7 @@ public class FeedProcessScope implements Dumpable {
       }
 
       ActionManager actionManager =
-          new FeedActionManagerImpl(sessionManager, store, threadUtils, singleThreadExecutor);
+          new FeedActionManagerImpl(sessionManager, store, threadUtils, taskQueue);
 
       return new FeedProcessScope(
           loggingApi,
@@ -264,7 +266,7 @@ public class FeedProcessScope implements Dumpable {
 
     // Required fields.
     private final Configuration configuration;
-    private final ExecutorService singleThreadExecutor;
+    private final TaskQueue taskQueue;
     private final LoggingApi loggingApi;
     private final NetworkClient networkClient;
     private final SchedulerApi schedulerApi;

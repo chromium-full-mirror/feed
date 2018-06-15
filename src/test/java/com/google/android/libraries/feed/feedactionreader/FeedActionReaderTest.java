@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -80,7 +81,8 @@ public class FeedActionReaderTest {
 
     when(store.triggerActionGc(anyList(), anyList())).thenReturn(() -> {});
 
-    actionReader = new FeedActionReader(store, clock, protocolAdapter, executor, configuration);
+    actionReader =
+        new FeedActionReader(store, clock, protocolAdapter, getTaskQueue(), configuration);
 
     when(protocolAdapter.getWireContentId(CONTENT_ID_STRING))
         .thenReturn(Result.success(CONTENT_ID));
@@ -279,5 +281,11 @@ public class FeedActionReaderTest {
       List<StreamAction> dismissActions, List<SemanticPropertiesWithId> semanticProperties) {
     when(store.getAllDismissActions()).thenReturn(Result.success(dismissActions));
     when(store.getSemanticProperties(anyList())).thenReturn(Result.success(semanticProperties));
+  }
+
+  private TaskQueue getTaskQueue() {
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue.initialize(() -> {});
+    return taskQueue;
   }
 }

@@ -45,6 +45,7 @@ import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -60,7 +61,6 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBeha
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -104,6 +104,7 @@ public class FeedSessionManagerTest {
 
   private MainThreadRunner mainThreadRunner;
   private FeedAppLifecycleListener appLifecycleListener;
+  private TaskQueue taskQueue;
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
@@ -135,6 +136,7 @@ public class FeedSessionManagerTest {
     when(store.getAllSessions()).thenReturn(Result.success(new ArrayList<>()));
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
+    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
   }
 
   @Test
@@ -164,7 +166,7 @@ public class FeedSessionManagerTest {
 
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
-                MoreExecutors.newDirectExecutorService(),
+                taskQueue,
                 store,
                 timingUtils,
                 threadUtils,
@@ -316,7 +318,7 @@ public class FeedSessionManagerTest {
 
     FeedSessionManager sessionManager =
         new FeedSessionManagerFactory(
-                MoreExecutors.newDirectExecutorService(),
+                taskQueue,
                 store,
                 timingUtils,
                 threadUtils,
@@ -537,7 +539,6 @@ public class FeedSessionManagerTest {
   }
 
   private FeedSessionManager getInitializedSessionManager() {
-    ListeningExecutorService executor = MoreExecutors.newDirectExecutorService();
     FeedStore store =
         new FeedStore(
             timingUtils,
@@ -546,11 +547,11 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
-            executor,
+            taskQueue,
             clock);
     FeedSessionManager fsm =
         new FeedSessionManagerFactory(
-                executor,
+                taskQueue,
                 store,
                 timingUtils,
                 threadUtils,
@@ -575,7 +576,7 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
-            MoreExecutors.newDirectExecutorService(),
+            taskQueue,
             clock));
   }
 
@@ -583,7 +584,7 @@ public class FeedSessionManagerTest {
     FeedSessionManager spySessionManager =
         spy(
             new FeedSessionManagerFactory(
-                    MoreExecutors.newDirectExecutorService(),
+                    taskQueue,
                     feedStore,
                     timingUtils,
                     threadUtils,

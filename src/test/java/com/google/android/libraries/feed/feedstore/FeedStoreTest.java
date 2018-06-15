@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener.LifecycleEvent;
@@ -77,6 +78,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private StoreListener listener;
 
+  private TaskQueue taskQueue;
+
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorage contentStorage = new InMemoryContentStorage();
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
@@ -84,6 +87,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue.initialize(() -> {});
   }
 
   @Override
@@ -95,7 +100,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         new InMemoryJournalStorage(threadUtils),
         threadUtils,
         mainThreadRunner,
-        MoreExecutors.newDirectExecutorService(),
+        taskQueue,
         clock);
   }
 
@@ -131,7 +136,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             journalStorageSpy,
             threadUtils,
             mainThreadRunner,
-            MoreExecutors.newDirectExecutorService(),
+            taskQueue,
             clock);
     store.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
     verifyZeroInteractions(journalStorageSpy, contentStorageSpy);
@@ -149,7 +154,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             journalStorageSpy,
             threadUtils,
             mainThreadRunner,
-            MoreExecutors.newDirectExecutorService(),
+            taskQueue,
             clock);
     store.switchToEphemeralMode();
     reset(journalStorageSpy, contentStorageSpy);

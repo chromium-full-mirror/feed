@@ -20,6 +20,8 @@ import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -30,7 +32,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /** Feed implementation of {@link ActionReader} */
@@ -40,7 +41,7 @@ public class FeedActionReader implements ActionReader {
   private final Store store;
   private final Clock clock;
   private final ProtocolAdapter protocolAdapter;
-  private final ExecutorService executor;
+  private final TaskQueue taskQueue;
   private final long dismissActionTTLSeconds;
   private final double minValidActionRatio;
 
@@ -48,12 +49,12 @@ public class FeedActionReader implements ActionReader {
       Store store,
       Clock clock,
       ProtocolAdapter protocolAdapter,
-      ExecutorService executor,
+      TaskQueue taskQueue,
       Configuration configuration) {
     this.store = store;
     this.clock = clock;
     this.protocolAdapter = protocolAdapter;
-    this.executor = executor;
+    this.taskQueue = taskQueue;
     this.dismissActionTTLSeconds =
         configuration.getValueOrDefault(
             ConfigKey.DEFAULT_ACTION_TTL_SECONDS, TimeUnit.DAYS.toSeconds(3));
@@ -83,7 +84,10 @@ public class FeedActionReader implements ActionReader {
     // Note that since we're using a Set, it's possible this will trigger prematurely due to
     // duplicates not being counted as valid.
     if ((double) contentIds.size() / dismissActions.size() < minValidActionRatio) {
-      executor.execute(store.triggerActionGc(dismissActions, new ArrayList<>(contentIds)));
+      taskQueue.execute(
+          "triggerActionGc",
+          TaskType.BACKGROUND,
+          store.triggerActionGc(dismissActions, new ArrayList<>(contentIds)));
     }
 
     Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =

@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -66,9 +67,7 @@ public class FeedActionManagerImplTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    actionManager =
-        new FeedActionManagerImpl(
-            sessionManager, store, threadUtils, MoreExecutors.newDirectExecutorService());
+    actionManager = new FeedActionManagerImpl(sessionManager, store, threadUtils, getTaskQueue());
   }
 
   @Test
@@ -139,5 +138,11 @@ public class FeedActionManagerImplTest {
         .thenReturn(streamDataOperationsConsumer);
     when(actionMutation.add(anyInt(), anyString())).thenReturn(actionMutation);
     when(store.editActions()).thenReturn(actionMutation);
+  }
+
+  private TaskQueue getTaskQueue() {
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue.initialize(() -> {});
+    return taskQueue;
   }
 }

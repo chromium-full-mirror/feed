@@ -28,6 +28,8 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -50,7 +52,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 /**
  * {@link Store} implementation that delegates between {@link PersistentFeedStore} and {@link
@@ -70,7 +71,7 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
   // The current store
   private ClearableStore delegate;
 
-  private final ExecutorService executor;
+  private final TaskQueue taskQueue;
 
   // Needed for switching to ephemeral mode
   private final FeedStoreHelper storeHelper = new FeedStoreHelper();
@@ -87,9 +88,9 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
       JournalStorage journalStorage,
       ThreadUtils threadUtils,
       MainThreadRunner mainThreadRunner,
-      ExecutorService executor,
+      TaskQueue taskQueue,
       Clock clock) {
-    this.executor = executor;
+    this.taskQueue = taskQueue;
     this.clock = clock;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
@@ -232,11 +233,12 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
     switch (event) {
       case LifecycleEvent.ENTER_BACKGROUND:
         if (isEphemeralMode) {
-          executor.execute(this::dumpEphemeralActions);
+          taskQueue.execute(
+              "dumpEphemeralActions", TaskType.BACKGROUND, this::dumpEphemeralActions);
         }
         break;
       case LifecycleEvent.CLEAR_ALL:
-        executor.execute(delegate::clearAll);
+        taskQueue.execute("clearAll", TaskType.USER_FACING, this::dumpEphemeralActions);
         break;
       default:
         // Do nothing
