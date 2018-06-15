@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedmodelprovider;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
@@ -60,5 +61,11 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
         new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
     sessionManager.getNewSession(modelProvider);
     return modelProvider;
+  }
+
+  @Override
+  public ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+    // TODO: Implement the view depth functionality
+    return createNew();
   }
 }

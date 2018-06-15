@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
+
 /** Factory method for creating {@link ModelProvider} instances. */
 public interface ModelProviderFactory {
   /**
@@ -22,6 +24,14 @@ public interface ModelProviderFactory {
    */
   ModelProvider create(String sessionToken);
 
-  /** Returns a new instance of a {@link ModelProvider} from $HEAD. */
+  /**
+   * Returns a new instance of a {@link ModelProvider} from $HEAD.
+   *
+   * @deprecated use {@link #createNew(ViewDepthProvider)}
+   */
+  @Deprecated
   ModelProvider createNew();
+
+  /** Returns a new instance of a {@link ModelProvider} from $HEAD. */
+  ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider);
 }
