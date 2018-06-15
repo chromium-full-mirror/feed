@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -53,7 +55,11 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -69,8 +75,31 @@ public class StreamDriverTest {
   @Mock private StreamContentListener contentListener;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private SnackbarApi snackbarApi;
+
+  @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
+
   private Configuration configuration = new Configuration.Builder().build();
   private Context context;
+
+  public static FakeModelChild createFakeClusterModelChild() {
+    return new FakeModelChild.Builder()
+        .setModelFeature(
+            new FakeModelFeature.Builder()
+                .setStreamFeature(
+                    StreamFeature.newBuilder().setCluster(Cluster.getDefaultInstance()).build())
+                .build())
+        .build();
+  }
+
+  private static FakeModelChild createFakeCardModelChild() {
+    return new FakeModelChild.Builder()
+        .setModelFeature(
+            new FakeModelFeature.Builder()
+                .setStreamFeature(
+                    StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
+                .build())
+        .build();
+  }
 
   @Before
   public void setup() {
@@ -222,7 +251,7 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers).hasSize(4);
 
     streamDriver.onChange(
-        new ChildRemoveBuilder()
+        new ChildChangeBuilder()
             .addChildForRemoval(fakeModelCursor.getChildAt(1))
             .addChildForRemoval(fakeModelCursor.getChildAt(2))
             .build());
@@ -242,7 +271,7 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers).hasSize(1);
 
     streamDriver.onChange(
-        new ChildRemoveBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+        new ChildChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(ZeroStateDriver.class);
@@ -318,7 +347,7 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers).hasSize(2);
 
     streamDriver.onChange(
-        new ChildRemoveBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+        new ChildChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
@@ -333,7 +362,7 @@ public class StreamDriverTest {
     streamDriver.getLeafFeatureDrivers();
 
     streamDriver.onChange(
-        new ChildRemoveBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+        new ChildChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
@@ -359,10 +388,60 @@ public class StreamDriverTest {
     streamDriver.getLeafFeatureDrivers();
 
     streamDriver.onChange(
-        new ChildRemoveBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+        new ChildChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
 
     verify(contentListener).notifyContentRemoved(0);
     verifyNoMoreInteractions(contentListener);
+  }
+
+  @Test
+  public void testOnChange_addAndRemoveContent() {
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().addCard().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    // Causes StreamDriver to build a list of children based on the children from the cursor.
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.onChange(
+        new ChildChangeBuilder()
+            .addChildForRemoval(fakeModelCursor.getChildAt(0))
+            .addChildForAppending(createFakeClusterModelChild())
+            .build());
+
+    InOrder inOrder = Mockito.inOrder(contentListener);
+
+    inOrder.verify(contentListener).notifyContentRemoved(0);
+    inOrder.verify(contentListener).notifyContentsAdded(eq(1), featureDriversCaptor.capture());
+    inOrder.verifyNoMoreInteractions();
+
+    assertThat(featureDriversCaptor.getValue()).hasSize(1);
+    assertThat(featureDriversCaptor.getValue().get(0))
+        .isEqualTo(getLeafFeatureDriverFromCluster(2));
+  }
+
+  @Test
+  public void testOnChange_addContent() {
+    FakeModelCursor fakeModelCursor = new FakeCursorBuilder().addCard().addCard().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    // Causes StreamDriver to build a list of children based on the children from the cursor.
+    streamDriver.getLeafFeatureDrivers();
+
+    reset(contentListener);
+
+    streamDriver.onChange(
+        new ChildChangeBuilder().addChildForAppending(createFakeClusterModelChild()).build());
+
+    InOrder inOrder = Mockito.inOrder(contentListener);
+
+    inOrder.verify(contentListener).notifyContentsAdded(eq(2), featureDriversCaptor.capture());
+    inOrder.verifyNoMoreInteractions();
+
+    assertThat(featureDriversCaptor.getValue()).hasSize(1);
+    assertThat(featureDriversCaptor.getValue().get(0))
+        .isEqualTo(getLeafFeatureDriverFromCluster(2));
   }
 
   // TODO: Instead of just checking that the ModelFeature is of the correct type, check
@@ -422,14 +501,7 @@ public class StreamDriverTest {
     List<ModelChild> cursorChildren = new ArrayList<>();
 
     FakeCursorBuilder addCard() {
-      ModelChild cardChild =
-          new FakeModelChild.Builder()
-              .setModelFeature(
-                  new FakeModelFeature.Builder()
-                      .setStreamFeature(
-                          StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
-                      .build())
-              .build();
+      ModelChild cardChild = createFakeCardModelChild();
 
       cursorChildren.add(cardChild);
 
@@ -437,19 +509,7 @@ public class StreamDriverTest {
     }
 
     FakeCursorBuilder addCluster() {
-      ModelChild clusterChild =
-          new FakeModelChild.Builder()
-              .setModelFeature(
-                  new FakeModelFeature.Builder()
-                      .setStreamFeature(
-                          StreamFeature.newBuilder()
-                              .setCluster(Cluster.getDefaultInstance())
-                              .build())
-                      .build())
-              .build();
-
-      cursorChildren.add(clusterChild);
-
+      cursorChildren.add(createFakeClusterModelChild());
       return this;
     }
 
@@ -533,12 +593,18 @@ public class StreamDriverTest {
    * Builds a {@link FeatureChange} representing the removal of given {@link FakeFeatureDriver}
    * instances.
    */
-  private static class ChildRemoveBuilder {
+  private static class ChildChangeBuilder {
 
     private List<ModelChild> removedChildren = new ArrayList<>();
+    private List<ModelChild> appendedChildren = new ArrayList<>();
 
-    ChildRemoveBuilder addChildForRemoval(ModelChild modelChild) {
+    ChildChangeBuilder addChildForRemoval(ModelChild modelChild) {
       removedChildren.add(modelChild);
+      return this;
+    }
+
+    ChildChangeBuilder addChildForAppending(ModelChild modelChild) {
+      appendedChildren.add(modelChild);
       return this;
     }
 
@@ -564,7 +630,7 @@ public class StreamDriverTest {
           return new ChildChanges() {
             @Override
             public List<ModelChild> getAppendedChildren() {
-              return null;
+              return appendedChildren;
             }
 
             @Override

@@ -110,14 +110,45 @@ public class StreamDriver implements FeatureChangeObserver {
     List<FeatureDriver> newChildren = new ArrayList<>();
     ModelChild child;
     while ((child = streamCursor.getNextItem()) != null) {
-      FeatureDriver featureDriverChild = createChild(child, modelProvider);
+      FeatureDriver featureDriverChild =
+          createAndInsertChildAtIndex(insertionIndex, child, modelProvider);
       if (featureDriverChild != null) {
+        insertionIndex++;
         newChildren.add(featureDriverChild);
-        featureDrivers.add(insertionIndex++, featureDriverChild);
-        modelChildFeatureDriverMap.put(child, featureDriverChild);
       }
     }
     return newChildren;
+  }
+
+  private List<FeatureDriver> createAndInsertChildrenAtIndex(
+      List<ModelChild> modelChildren, ModelProvider modelProvider, int insertionIndex) {
+    List<FeatureDriver> newChildren = new ArrayList<>();
+
+    for (ModelChild child : modelChildren) {
+      FeatureDriver featureDriverChild =
+          createAndInsertChildAtIndex(insertionIndex, child, modelProvider);
+      if (featureDriverChild != null) {
+        insertionIndex++;
+        newChildren.add(featureDriverChild);
+      }
+    }
+
+    return newChildren;
+  }
+
+  /*@Nullable*/
+  private FeatureDriver createAndInsertChildAtIndex(
+      int index, ModelChild modelChild, ModelProvider modelProvider) {
+    FeatureDriver featureDriver = createChild(modelChild, modelProvider);
+
+    if (featureDriver == null) {
+      return null;
+    }
+
+    featureDrivers.add(index, featureDriver);
+    modelChildFeatureDriverMap.put(modelChild, featureDriver);
+
+    return featureDriver;
   }
 
   /*@Nullable*/
@@ -216,6 +247,17 @@ public class StreamDriver implements FeatureChangeObserver {
       removeDriver(removedChild);
     }
 
+    List<ModelChild> appendedChildren = change.getChildChanges().getAppendedChildren();
+
+    if (!appendedChildren.isEmpty()) {
+      int insertionIndex = featureDrivers.size();
+
+      notifyContentsAdded(
+          insertionIndex,
+          buildLeafFeatureDrivers(
+              createAndInsertChildrenAtIndex(appendedChildren, modelProvider, insertionIndex)));
+    }
+
     addNoContentCardOrZeroStateIfNecessary();
   }
 
@@ -237,6 +279,7 @@ public class StreamDriver implements FeatureChangeObserver {
     if (featureDrivers.isEmpty()) {
       return false;
     }
+
     if (!(featureDrivers.get(0) instanceof NoContentDriver)
         && !(featureDrivers.get(0) instanceof ZeroStateDriver)) {
       return false;
