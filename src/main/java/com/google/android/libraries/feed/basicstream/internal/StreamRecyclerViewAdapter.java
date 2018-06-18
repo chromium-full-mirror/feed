@@ -222,6 +222,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (streamContentVisible) {
       notifyDataSetChanged();
     }
+
+    newStreamDriver.maybeRestoreScroll();
   }
 
   @Override

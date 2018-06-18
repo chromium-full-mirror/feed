@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream;
 
 import static com.google.android.libraries.feed.api.stream.Stream.POSITION_NOT_KNOWN;
+import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_SCROLL_STATE;
 import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_SESSION_TOKEN;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
@@ -38,6 +39,7 @@ import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
@@ -45,6 +47,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamContentChang
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
+import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -91,11 +94,14 @@ public class BasicStreamTest {
   @Mock private StreamDriver streamDriver;
   @Mock private StreamRecyclerViewAdapter adapter;
   @Mock private StreamScrollMonitor streamScrollMonitor;
+  @Mock private ScrollRestorer nonRestoringScrollRestorer;
+  @Mock private ScrollRestorer scrollRestorer;
 
   private Configuration configuration = new Configuration.Builder().build();
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
   private BasicStreamForTest basicStream;
+  private Bundle scrollRestoreBundle;
 
   @Before
   public void setUp() {
@@ -109,6 +115,8 @@ public class BasicStreamTest {
     when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
 
     when(initialModelProvider.getSessionToken()).thenReturn(SESSION_TOKEN);
+
+    when(scrollRestorer.getBundleForScrollRestore()).thenReturn(scrollRestoreBundle);
 
     context = Robolectric.setupActivity(Activity.class);
     layoutManager = new LinearLayoutManagerWithFakePositioning(context);
@@ -125,6 +133,7 @@ public class BasicStreamTest {
     basicStream.onSessionStart();
 
     verify(adapter).setDriver(streamDriver);
+    assertThat(basicStream.streamDriverScrollRestorer).isSameAs(scrollRestorer);
   }
 
   @Test
@@ -132,6 +141,7 @@ public class BasicStreamTest {
     basicStream.onShow();
     basicStream.onSessionFinished();
 
+    verify(scrollRestorer).abandonRestoringScroll();
     verify(initialModelProvider).unregisterObserver(basicStream);
     verify(modelProviderFactory, times(2)).createNew();
     verify(modelProvider).registerObserver(basicStream);
@@ -170,6 +180,7 @@ public class BasicStreamTest {
   public void testGetSavedInstanceState_beforeShow() {
     Bundle bundle = basicStream.getSavedInstanceState();
     assertThat(bundle.getString(KEY_SESSION_TOKEN)).isNull();
+    assertThat(bundle.getBundle(KEY_SCROLL_STATE)).isSameAs(scrollRestoreBundle);
   }
 
   @Test
@@ -180,6 +191,7 @@ public class BasicStreamTest {
 
     Bundle bundle = basicStream.getSavedInstanceState();
     assertThat(bundle.getString(KEY_SESSION_TOKEN)).isNull();
+    assertThat(bundle.getBundle(KEY_SCROLL_STATE)).isSameAs(scrollRestoreBundle);
   }
 
   @Test
@@ -188,6 +200,16 @@ public class BasicStreamTest {
 
     Bundle bundle = basicStream.getSavedInstanceState();
     assertThat(bundle.getString(KEY_SESSION_TOKEN)).isEqualTo(SESSION_TOKEN);
+    assertThat(bundle.getBundle(KEY_SCROLL_STATE)).isSameAs(scrollRestoreBundle);
+  }
+
+  @Test
+  public void testGetSavedInstanceState_noScrollRestoreBundle() {
+    basicStream.onShow();
+
+    when(scrollRestorer.getBundleForScrollRestore()).thenReturn(null);
+    Bundle bundle = basicStream.getSavedInstanceState();
+    assertThat(bundle.getBundle(KEY_SCROLL_STATE)).isNull();
   }
 
   @Test
@@ -383,6 +405,21 @@ public class BasicStreamTest {
     verify(contentChangedListener, never()).onContentChanged();
   }
 
+  @Test
+  public void testOnShow_nonRestoringRestorer() {
+    basicStream.onShow();
+
+    assertThat(basicStream.streamDriverScrollRestorer).isEqualTo(nonRestoringScrollRestorer);
+  }
+
+  @Test
+  public void testOnShow_restoringScrollRestorer() {
+    when(initialModelProvider.getCurrentState()).thenReturn(State.READY);
+    basicStream.onShow();
+
+    assertThat(basicStream.streamDriverScrollRestorer).isEqualTo(scrollRestorer);
+  }
+
   private RecyclerView getStreamRecyclerView() {
     return (RecyclerView) basicStream.getView();
   }
@@ -411,6 +448,8 @@ public class BasicStreamTest {
   private class BasicStreamForTest extends BasicStream {
 
     private final LinearLayoutManager layoutManager;
+
+    private ScrollRestorer streamDriverScrollRestorer;
     private StreamContentChangedListener contentChangedListener;
 
     public BasicStreamForTest(
@@ -469,7 +508,9 @@ public class BasicStreamTest {
         Configuration configuration,
         Context context,
         SnackbarApi snackbarApi,
-        ContentChangedListener contentChangedListener) {
+        ContentChangedListener contentChangedListener,
+        ScrollRestorer scrollRestorer) {
+      streamDriverScrollRestorer = scrollRestorer;
       return streamDriver;
     }
 
@@ -499,6 +540,17 @@ public class BasicStreamTest {
     @Override
     LinearLayoutManager createRecyclerViewLayoutManager(Context context) {
       return layoutManager;
+    }
+
+    @Override
+    ScrollRestorer createScrollRestorer(
+        RecyclerView recyclerView, /*@Nullable*/ Bundle savedInstanceState) {
+      return scrollRestorer;
+    }
+
+    @Override
+    ScrollRestorer createNonRestoringScrollRestorer(RecyclerView recyclerView) {
+      return nonRestoringScrollRestorer;
     }
   }
 

@@ -115,6 +115,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers/testing:fake_feature_driver",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers/testing:fake_leaf_feature_driver",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/scroll",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/stream",

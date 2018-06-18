@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -38,6 +39,7 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
+import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
@@ -75,6 +77,7 @@ public class StreamDriverTest {
   @Mock private StreamContentListener contentListener;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private SnackbarApi snackbarApi;
+  @Mock private ScrollRestorer scrollRestorer;
 
   @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
 
@@ -128,6 +131,30 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers.get(0)).isEqualTo(getLeafFeatureDriverFromCard(0));
     assertThat(leafFeatureDrivers.get(1)).isEqualTo(getLeafFeatureDriverFromCluster(1));
     assertThat(leafFeatureDrivers.get(2)).isEqualTo(continuationDriver);
+  }
+
+  @Test
+  public void testMaybeRestoreScroll() {
+    when(streamFeature.getCursor()).thenReturn(new FakeCursorBuilder().addCard().build());
+
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.maybeRestoreScroll();
+
+    verify(scrollRestorer).maybeRestoreScroll();
+  }
+
+  @Test
+  public void testMaybeRestoreScroll_withToken() {
+    when(streamFeature.getCursor())
+        .thenReturn(new FakeCursorBuilder().addCard().addCluster().addToken().build());
+
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.maybeRestoreScroll();
+
+    // Should never restore scroll if token is last
+    verify(scrollRestorer, never()).maybeRestoreScroll();
   }
 
   @Test
@@ -467,7 +494,13 @@ public class StreamDriverTest {
 
     StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils) {
       super(
-          modelProvider, threadUtils, configuration, context, snackbarApi, contentChangedListener);
+          modelProvider,
+          threadUtils,
+          configuration,
+          context,
+          snackbarApi,
+          contentChangedListener,
+          scrollRestorer);
       childrenCreated = new ArrayList<>();
     }
 

@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -51,6 +52,7 @@ public class StreamDriver implements FeatureChangeObserver {
   private final Context context;
   private final SnackbarApi snackbarApi;
   private final ContentChangedListener contentChangedListener;
+  private final ScrollRestorer scrollRestorer;
 
   private boolean rootFeatureConsumed;
 
@@ -62,7 +64,8 @@ public class StreamDriver implements FeatureChangeObserver {
       Configuration configuration,
       Context context,
       SnackbarApi snackbarApi,
-      ContentChangedListener contentChangedListener) {
+      ContentChangedListener contentChangedListener,
+      ScrollRestorer scrollRestorer) {
     this.threadUtils = threadUtils;
     this.modelProvider = modelProvider;
     this.context = context;
@@ -71,6 +74,7 @@ public class StreamDriver implements FeatureChangeObserver {
     this.featureDrivers = new ArrayList<>();
     this.configuration = configuration;
     this.contentChangedListener = contentChangedListener;
+    this.scrollRestorer = scrollRestorer;
   }
 
   /**
@@ -92,6 +96,15 @@ public class StreamDriver implements FeatureChangeObserver {
     }
 
     return buildLeafFeatureDrivers(featureDrivers);
+  }
+
+  public void maybeRestoreScroll() {
+    // TODO: Handle continuation driver. This needs to handle synthetic tokens.
+    if (isLastDriverContinuationDriver()) {
+      return;
+    }
+
+    scrollRestorer.maybeRestoreScroll();
   }
 
   @VisibleForTesting

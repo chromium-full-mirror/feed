@@ -21,6 +21,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/scroll",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/logging",

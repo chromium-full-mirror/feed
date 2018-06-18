@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
@@ -42,6 +43,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCal
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
+import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -68,6 +70,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private static final String TAG = "BasicStream";
 
   @VisibleForTesting static final String KEY_SESSION_TOKEN = "session-id";
+  @VisibleForTesting static final String KEY_SCROLL_STATE = "scroll-state";
 
   private final CardConfiguration cardConfiguration;
   private final ThreadUtils threadUtils;
@@ -86,6 +89,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private StreamConfiguration streamConfiguration;
   private StreamRecyclerViewAdapter adapter;
   private StreamScrollMonitor streamScrollMonitor;
+  private ScrollRestorer scrollRestorer;
 
   /*@MonotonicNonNull*/ private ModelProvider modelProvider;
   /*@MonotonicNonNull*/ private StreamDriver streamDriver;
@@ -186,6 +190,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
     if (savedInstanceState != null) {
       savedSessionToken = savedInstanceState.getString(KEY_SESSION_TOKEN);
     }
+
+    scrollRestorer = createScrollRestorer(recyclerView, savedInstanceState);
   }
 
   @Override
@@ -211,6 +217,14 @@ public class BasicStream implements Stream, ModelProviderObserver {
     }
 
     if (streamDriver == null) {
+      // If the ModelProvider is not ready we don't want to restore the Stream at all.  Instead we
+      // need to wait for it to become active and we can reset the StreamDriver with the correct
+      // scroll restorer in order to finally restore scroll position.
+      ScrollRestorer initialScrollRestorer =
+          modelProvider.getCurrentState() == State.READY
+              ? scrollRestorer
+              : createNonRestoringScrollRestorer(recyclerView);
+
       streamDriver =
           createStreamDriver(
               modelProvider,
@@ -218,7 +232,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
               configuration,
               context,
               snackbarApi,
-              streamContentChangedListener);
+              streamContentChangedListener,
+              initialScrollRestorer);
       adapter.setDriver(streamDriver);
       streamDriver.showLoadingSpinner();
     }
@@ -246,6 +261,11 @@ public class BasicStream implements Stream, ModelProviderObserver {
     Bundle bundle = new Bundle();
     if (modelProvider != null) {
       bundle.putString(KEY_SESSION_TOKEN, modelProvider.getSessionToken());
+    }
+
+    Bundle scrollRestorerBundle = scrollRestorer.getBundleForScrollRestore();
+    if (scrollRestorerBundle != null) {
+      bundle.putBundle(KEY_SCROLL_STATE, scrollRestorerBundle);
     }
     return bundle;
   }
@@ -367,7 +387,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             configuration,
             context,
             snackbarApi,
-            streamContentChangedListener);
+            streamContentChangedListener,
+            scrollRestorer);
 
     adapter.setDriver(streamDriver);
   }
@@ -382,6 +403,12 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public void onSessionFinished() {
+    // Our previous session isn't valid anymore.  There are some circumstances we could probably
+    // restore our scroll (say if scroll was in headers), other times, if we were to restore scroll
+    // it would be to a card which is no longer present.  For simplicity just abandon scroll
+    // restoring for now.  We can improve logic if this doesn't prove to be sufficient enough.
+    scrollRestorer.abandonRestoringScroll();
+
     if (modelProvider != null) {
       modelProvider.unregisterObserver(this);
     }
@@ -406,9 +433,16 @@ public class BasicStream implements Stream, ModelProviderObserver {
       Configuration configuration,
       Context context,
       SnackbarApi snackbarApi,
-      ContentChangedListener contentChangedListener) {
+      ContentChangedListener contentChangedListener,
+      ScrollRestorer scrollRestorer) {
     return new StreamDriver(
-        modelProvider, threadUtils, configuration, context, snackbarApi, contentChangedListener);
+        modelProvider,
+        threadUtils,
+        configuration,
+        context,
+        snackbarApi,
+        contentChangedListener,
+        scrollRestorer);
   }
 
   @VisibleForTesting
@@ -438,5 +472,18 @@ public class BasicStream implements Stream, ModelProviderObserver {
   StreamContentChangedListener createStreamContentChangedListener(
       /*@UnderInitialization*/ BasicStream this) {
     return new StreamContentChangedListener();
+  }
+
+  @VisibleForTesting
+  ScrollRestorer createScrollRestorer(
+      RecyclerView recyclerView, /*@Nullable*/ Bundle savedInstanceState) {
+    return new ScrollRestorer(
+        recyclerView,
+        savedInstanceState == null ? null : savedInstanceState.getBundle(KEY_SCROLL_STATE));
+  }
+
+  @VisibleForTesting
+  ScrollRestorer createNonRestoringScrollRestorer(RecyclerView recyclerView) {
+    return ScrollRestorer.nonRestoringRestorer(recyclerView);
   }
 }

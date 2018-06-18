@@ -204,6 +204,7 @@ public class StreamRecyclerViewAdapterTest {
         .isEqualTo(FEATURE_DRIVER_1_ID);
     assertThat(streamRecyclerViewAdapter.getItemId(getContentBindingIndex(1)))
         .isEqualTo(FEATURE_DRIVER_2_ID);
+    verify(newDriver).maybeRestoreScroll();
   }
 
   @Test

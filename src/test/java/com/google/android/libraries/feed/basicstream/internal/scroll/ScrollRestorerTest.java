@@ -1,0 +1,141 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.basicstream.internal.scroll;
+
+import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.KEY_SCROLL_OFFSET;
+import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.KEY_SCROLL_POSITION;
+import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.getScrollBundle;
+import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.nonRestoringRestorer;
+import static com.google.common.truth.Truth.assertThat;
+
+import android.app.Activity;
+import android.content.Context;
+import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+
+/** Tests for {@link ScrollRestorer}. */
+@RunWith(RobolectricTestRunner.class)
+public class ScrollRestorerTest {
+
+  private static int POSITION = 4;
+  private static int OFFSET = -10;
+
+  private RecyclerView recyclerView;
+  private LinearLayoutManagerForTest layoutManager;
+
+  @Before
+  public void setUp() {
+    Context context = Robolectric.setupActivity(Activity.class);
+    recyclerView = new RecyclerView(context);
+    layoutManager = new LinearLayoutManagerForTest(context);
+    recyclerView.setLayoutManager(layoutManager);
+  }
+
+  @Test
+  public void testRestoreScroll() {
+    ScrollRestorer scrollRestorer =
+        new ScrollRestorer(recyclerView, getScrollBundle(POSITION, OFFSET));
+    scrollRestorer.maybeRestoreScroll();
+
+    assertThat(layoutManager.scrolledPosition).isEqualTo(POSITION);
+    assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
+  }
+
+  @Test
+  public void testRestoreScroll_repeatedCall() {
+    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, getScrollBundle(10, 20));
+    scrollRestorer.maybeRestoreScroll();
+
+    layoutManager.scrollToPositionWithOffset(POSITION, OFFSET);
+    scrollRestorer.maybeRestoreScroll();
+
+    assertThat(layoutManager.scrolledPosition).isEqualTo(POSITION);
+    assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
+  }
+
+  @Test
+  public void testAbandonRestoringScroll() {
+    layoutManager.scrollToPositionWithOffset(POSITION, OFFSET);
+
+    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, getScrollBundle(10, 20));
+    scrollRestorer.abandonRestoringScroll();
+    scrollRestorer.maybeRestoreScroll();
+
+    assertThat(layoutManager.scrolledPosition).isEqualTo(POSITION);
+    assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
+  }
+
+  @Test
+  public void testGetBundleForScrollPosition() {
+    layoutManager.firstVisibleItemPosition = POSITION;
+    layoutManager.firstVisibleViewOffset = OFFSET;
+    Bundle restorerBundle = nonRestoringRestorer(recyclerView).getBundleForScrollRestore();
+    Bundle expectedBundle = getScrollBundle(POSITION, OFFSET);
+    assertThat(restorerBundle.getInt(KEY_SCROLL_POSITION))
+        .isEqualTo(expectedBundle.getInt(KEY_SCROLL_POSITION));
+    assertThat(restorerBundle.getInt(KEY_SCROLL_OFFSET))
+        .isEqualTo(expectedBundle.getInt(KEY_SCROLL_OFFSET));
+  }
+
+  @Test
+  public void testGetBundleForScrollPosition_invalidPosition() {
+    assertThat(nonRestoringRestorer(recyclerView).getBundleForScrollRestore()).isNull();
+  }
+
+  private class LinearLayoutManagerForTest extends LinearLayoutManager {
+
+    private final Context context;
+
+    private int firstVisibleItemPosition = RecyclerView.NO_POSITION;
+    private int firstVisibleViewOffset;
+
+    private int scrolledPosition;
+    private int scrolledOffset;
+
+    public LinearLayoutManagerForTest(Context context) {
+      super(context);
+      this.context = context;
+    }
+
+    @Override
+    public int findFirstVisibleItemPosition() {
+      return firstVisibleItemPosition;
+    }
+
+    @Override
+    public View findViewByPosition(int position) {
+      if (position == firstVisibleItemPosition) {
+        View view = new View(context);
+        view.setTop(firstVisibleViewOffset);
+        return view;
+      }
+
+      return super.findViewByPosition(position);
+    }
+
+    @Override
+    public void scrollToPositionWithOffset(int scrollPosition, int scrollOffset) {
+      scrolledPosition = scrollPosition;
+      scrolledOffset = scrollOffset;
+    }
+  }
+}
