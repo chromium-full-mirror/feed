@@ -24,7 +24,7 @@ import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedL
 /** Default implementation of {@link AppLifecycleListener} */
 public class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
     implements AppLifecycleListener {
-  private static final String TAG = "FeedAppLifecycleListener";
+  private static final String TAG = "FeedAppLifecycleLstnr";
 
   private final ThreadUtils threadUtils;
 
