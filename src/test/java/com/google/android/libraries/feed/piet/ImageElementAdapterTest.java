@@ -21,6 +21,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -78,6 +79,7 @@ public class ImageElementAdapterTest {
   @Mock private FrameContext frameContextWithStyle;
   @Mock private AssetProvider assetProvider;
   @Mock private StyleProvider styleProvider;
+  @Mock private HostProviders hostProviders;
 
   @Captor ArgumentCaptor<Consumer<Drawable>> consumerArgumentCaptor;
 
@@ -96,17 +98,16 @@ public class ImageElementAdapterTest {
     heightPx = (int) ViewUtils.dpToPx(HEIGHT_DP, context);
     widthPx = (int) ViewUtils.dpToPx(WIDTH_DP, context);
     AdapterParameters parameters =
-        new AdapterParameters(context, null, null, adapterFactory, templateBinder);
+        new AdapterParameters(context, null, null, adapterFactory, templateBinder, hostProviders);
 
     when(frameContext.bindNewStyle(any())).thenReturn(frameContextWithStyle);
-    when(frameContext.getAssetProvider()).thenReturn(assetProvider);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.getCurrentStyle()).thenReturn(DEFAULT_STYLE_PROVIDER);
-    when(frameContextWithStyle.getAssetProvider()).thenReturn(assetProvider);
     when(frameContextWithStyle.getCurrentStyle()).thenReturn(styleProvider);
     when(styleProvider.getPadding()).thenReturn(PADDING);
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
-    when(frameContext.getRoundedCornerRadius(styleProvider, context))
+    when(styleProvider.getRoundedCornerRadius(context, assetProvider))
         .thenReturn(CORNERS.getRadius());
 
     adapter = new KeySupplier().getAdapter(context, parameters);
@@ -128,7 +129,7 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
     assertThat(adapter.getBaseView().getCropToPadding()).isTrue();
-    verify(styleProvider).setElementStyles(context, frameContextWithStyle, adapter.getView());
+    verify(styleProvider).setElementStyles(context, assetProvider, adapter.getView());
   }
 
   @Test
@@ -400,7 +401,7 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    verify(styleProvider).setElementStyles(context, frameContextWithStyle, adapter.getView());
+    verify(styleProvider).setElementStyles(context, assetProvider, adapter.getView());
 
     // Styles do not change when a different model is bound
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
@@ -411,7 +412,6 @@ public class ImageElementAdapterTest {
             .build();
     FrameContext frameContextWithOtherStyle = mock(FrameContext.class);
     when(frameContext.bindNewStyle(otherStyle)).thenReturn(frameContextWithOtherStyle);
-    when(frameContextWithOtherStyle.getAssetProvider()).thenReturn(assetProvider);
     adapter.bindModel(imageWithOtherStyle, frameContext);
     adapter.unbindModel();
 
@@ -429,11 +429,10 @@ public class ImageElementAdapterTest {
             .build();
     FrameContext frameContextWithBoundStyle = mock(FrameContext.class);
     when(frameContext.bindNewStyle(boundStyle)).thenReturn(frameContextWithBoundStyle);
-    when(frameContextWithBoundStyle.getAssetProvider()).thenReturn(assetProvider);
     when(frameContextWithBoundStyle.getCurrentStyle()).thenReturn(styleProvider);
     adapter.bindModel(imageWithBoundStyle, frameContext);
 
-    verify(styleProvider).setElementStyles(context, frameContextWithBoundStyle, adapter.getView());
+    verify(styleProvider, times(2)).setElementStyles(context, assetProvider, adapter.getView());
   }
 
   @Test

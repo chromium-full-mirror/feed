@@ -127,6 +127,7 @@ public class ElementContainerAdapterTest {
           .build();
 
   @Mock private FrameContext frameContext;
+  @Mock private HostProviders hostProviders;
   @Mock private AssetProvider assetProvider;
 
   private Context context;
@@ -146,7 +147,7 @@ public class ElementContainerAdapterTest {
         .thenReturn(frameContext);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
-    when(frameContext.getAssetProvider()).thenReturn(assetProvider);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
 
     // Default no-errors behavior
     when(frameContext.getTemplateInvocationBindingValue(DEFAULT_TEMPLATE_BINDING))
@@ -157,7 +158,8 @@ public class ElementContainerAdapterTest {
         .thenReturn(DEFAULT_ELEMENT_BINDING_VALUE);
 
     LinearLayout view = new LinearLayout(context);
-    AdapterParameters adapterParameters = new AdapterParameters(context, Suppliers.of(null));
+    AdapterParameters adapterParameters =
+        new AdapterParameters(context, Suppliers.of(null), hostProviders);
     adapter = new TestElementContainerAdapter(context, adapterParameters, view);
   }
 

@@ -123,6 +123,7 @@ public class TemplateBinderTest {
   @Mock private ElementAdapter<? extends View, ?> templateAdapter;
   @Mock private FrameContext frameContext;
   @Mock private ElementAdapterFactory adapterFactory;
+  @Mock private ActionHandler actionHandler;
 
   private KeyedRecyclerPool<ElementAdapter<? extends View, ?>> templateRecyclerPool;
 
@@ -286,9 +287,6 @@ public class TemplateBinderTest {
             .build();
 
     // Set up a "real" frameContext, adapterParameters, factory
-    AssetProvider assetProvider = mock(AssetProvider.class);
-    ActionHandler actionHandler = mock(ActionHandler.class);
-    CustomElementProvider customElementProvider = mock(CustomElementProvider.class);
     Context context = Robolectric.setupActivity(Activity.class);
     List<PietSharedState> pietSharedStates = Collections.singletonList(pietSharedState);
     frameContext =
@@ -298,11 +296,10 @@ public class TemplateBinderTest {
             pietSharedStates,
             DebugBehavior.VERBOSE,
             new DebugLogger(),
-            assetProvider,
-            customElementProvider,
-            new HostBindingProvider(),
-            actionHandler);
-    AdapterParameters adapterParameters = new AdapterParameters(context, Suppliers.of(null));
+            actionHandler,
+            new HostBindingProvider());
+    AdapterParameters adapterParameters =
+        new AdapterParameters(context, Suppliers.of(null), mock(HostProviders.class));
     TemplateBinder templateBinder = adapterParameters.templateBinder;
 
     // Create and bind adapter
@@ -623,10 +620,8 @@ public class TemplateBinderTest {
             pietSharedStates,
             DebugBehavior.VERBOSE,
             new DebugLogger(),
-            assetProvider,
-            customElementProvider,
-            new HostBindingProvider(),
-            actionHandler);
+            actionHandler,
+            new HostBindingProvider());
 
     TemplateAdapterModel model =
         new TemplateAdapterModel(

@@ -26,6 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.SpacerElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
@@ -45,12 +46,13 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link SpacerElementAdapter}. */
 @RunWith(RobolectricTestRunner.class)
 public class SpacerElementAdapterTest {
-  @Mock private AdapterParameters adapterParameters;
   @Mock private FrameContext frameContext;
   @Mock private AssetProvider assetProvider;
   @Mock private StyleProvider mockStyleProvider;
+  @Mock private HostProviders hostProviders;
 
   private Context context;
+  private AdapterParameters adapterParameters;
 
   private SpacerElementAdapter adapter;
 
@@ -58,7 +60,8 @@ public class SpacerElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    when(frameContext.getAssetProvider()).thenReturn(assetProvider);
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
     when(frameContext.getCurrentStyle()).thenReturn(mockStyleProvider);
     when(mockStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
@@ -77,7 +80,7 @@ public class SpacerElementAdapterTest {
     adapter.createAdapter(spacerElement, frameContext);
     View v = adapter.getView();
     assertThat(v).isNotNull();
-    verify(mockStyleProvider).setElementStyles(context, frameContext, v);
+    verify(mockStyleProvider).setElementStyles(context, assetProvider, v);
   }
 
   @Test

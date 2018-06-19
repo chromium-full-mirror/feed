@@ -76,8 +76,8 @@ public class ViewUtils {
   }
 
   /** Attaches the onClick action from actions to the view, executed by the handler. */
-  static void setOnClickActions(
-      Actions actions, View view, ActionHandler handler, FrameContext frameContext) {
+  static void setOnClickActions(Actions actions, View view, FrameContext frameContext) {
+    ActionHandler handler = frameContext.getActionHandler();
     if (actions.hasOnLongClickAction()) {
       view.setOnLongClickListener(
           v -> {

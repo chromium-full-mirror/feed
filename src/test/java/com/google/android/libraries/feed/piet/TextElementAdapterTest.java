@@ -32,6 +32,7 @@ import android.text.TextUtils.TruncateAt;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -53,6 +54,8 @@ import org.robolectric.RobolectricTestRunner;
 public class TextElementAdapterTest {
   @Mock private FrameContext frameContext;
   @Mock private StyleProvider mockStyleProvider;
+  @Mock private HostProviders mockHostProviders;
+  @Mock private AssetProvider mockAssetProvider;
 
   private AdapterParameters adapterParameters;
 
@@ -65,9 +68,11 @@ public class TextElementAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
-        new AdapterParameters(null, null, new ParameterizedTextEvaluator(), null, null);
+        new AdapterParameters(
+            null, null, new ParameterizedTextEvaluator(), null, null, mockHostProviders);
     when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
+    when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
 
     adapter = new TestTextElementAdapter(context, adapterParameters);
   }
@@ -83,7 +88,7 @@ public class TextElementAdapterTest {
 
     adapter.createAdapter(textElement, frameContext);
 
-    verify(mockStyleProvider).setElementStyles(context, frameContext, adapter.getBaseView());
+    verify(mockStyleProvider).setElementStyles(context, mockAssetProvider, adapter.getBaseView());
     assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
     assertThat(adapter.getBaseView().getEllipsize()).isEqualTo(TruncateAt.END);
     assertThat(adapter.getBaseView().getCurrentTextColor()).isEqualTo(color);

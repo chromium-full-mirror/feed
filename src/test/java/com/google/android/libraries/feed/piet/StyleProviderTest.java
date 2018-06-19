@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -24,18 +23,13 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
-import com.google.android.libraries.feed.host.config.DebugBehavior;
-import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
-import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Style;
-import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,10 +42,6 @@ import org.robolectric.RobolectricTestRunner;
 public class StyleProviderTest {
 
   @Mock private AssetProvider mockAssetProvider;
-  @Mock private CustomElementProvider mockCustomElementProvider;
-  @Mock private ActionHandler mockActionHandler;
-
-  private FrameContext frameContext;
 
   private Context context;
 
@@ -59,17 +49,6 @@ public class StyleProviderTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    frameContext =
-        FrameContext.createFrameContext(
-            Frame.getDefaultInstance(),
-            DEFAULT_STYLE,
-            new ArrayList<>(),
-            DebugBehavior.VERBOSE,
-            new DebugLogger(),
-            mockAssetProvider,
-            mockCustomElementProvider,
-            new HostBindingProvider(),
-            mockActionHandler);
   }
 
   @Test
@@ -147,7 +126,7 @@ public class StyleProviderTest {
     Style paddingStyle = Style.newBuilder().setPadding(padding).build();
     View view = new View(context);
 
-    new StyleProvider(paddingStyle).setElementStyles(context, frameContext, view);
+    new StyleProvider(paddingStyle).setElementStyles(context, mockAssetProvider, view);
     verifyPadding(view, padding);
   }
 
@@ -167,9 +146,9 @@ public class StyleProviderTest {
             .build();
 
     StyleProvider styleProvider = new StyleProvider(style);
-    styleProvider.setElementStyles(context, frameContext, view);
+    styleProvider.setElementStyles(context, mockAssetProvider, view);
 
-    Drawable drawable = frameContext.createBackground(styleProvider, context);
+    Drawable drawable = styleProvider.createBackground(context, mockAssetProvider);
 
     assertThat(view.getBackground()).isEqualTo(drawable);
   }
@@ -179,7 +158,8 @@ public class StyleProviderTest {
     View view = new View(context);
     view.setBackground(new ColorDrawable(0xffff0000));
 
-    new StyleProvider(Style.getDefaultInstance()).setElementStyles(context, frameContext, view);
+    new StyleProvider(Style.getDefaultInstance())
+        .setElementStyles(context, mockAssetProvider, view);
     assertThat(view.getBackground()).isNull();
   }
 
@@ -190,7 +170,7 @@ public class StyleProviderTest {
 
     Style style = Style.newBuilder().setBackground(Fill.getDefaultInstance()).build();
 
-    new StyleProvider(style).setElementStyles(context, frameContext, view);
+    new StyleProvider(style).setElementStyles(context, mockAssetProvider, view);
 
     assertThat(view.getBackground()).isNull();
   }
@@ -201,7 +181,7 @@ public class StyleProviderTest {
     Style heightStyle = Style.newBuilder().setMinHeight(minHeight).build();
     View view = new View(context);
 
-    new StyleProvider(heightStyle).setElementStyles(context, frameContext, view);
+    new StyleProvider(heightStyle).setElementStyles(context, mockAssetProvider, view);
 
     assertThat(view.getMinimumHeight()).isEqualTo(minHeight);
   }
@@ -212,7 +192,7 @@ public class StyleProviderTest {
     View view = new View(context);
     view.setMinimumHeight(12345);
 
-    new StyleProvider(noHeightStyle).setElementStyles(context, frameContext, view);
+    new StyleProvider(noHeightStyle).setElementStyles(context, mockAssetProvider, view);
 
     assertThat(view.getMinimumHeight()).isEqualTo(0);
   }
@@ -224,6 +204,28 @@ public class StyleProviderTest {
     assertThat(view.getPaddingStart())
         .isEqualTo((int) ViewUtils.dpToPx(padding.getStart(), context));
     assertThat(view.getPaddingEnd()).isEqualTo((int) ViewUtils.dpToPx(padding.getEnd(), context));
+  }
+
+  @Test
+  public void testCreateBackground() {
+    int color = 12345;
+    Fill fill = Fill.newBuilder().setColor(color).build();
+    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadius(4321).build();
+    StyleProvider styleProvider;
+
+    styleProvider = new StyleProvider(Style.getDefaultInstance());
+    assertThat(styleProvider.createBackground(context, mockAssetProvider)).isNull();
+
+    styleProvider =
+        new StyleProvider(
+            Style.newBuilder().setBackground(fill).setRoundedCorners(roundedCorners).build());
+    Drawable backgroundDrawable = styleProvider.createBackground(context, mockAssetProvider);
+    assertThat(backgroundDrawable).isInstanceOf(RoundedCornerColorDrawable.class);
+
+    RoundedCornerColorDrawable background = (RoundedCornerColorDrawable) backgroundDrawable;
+    assertThat(background.getColor()).isEqualTo(color);
+
+    // TODO: how to test rounded corners?
   }
 
   private void verifyMargins(MarginLayoutParams params, EdgeWidths margins) {

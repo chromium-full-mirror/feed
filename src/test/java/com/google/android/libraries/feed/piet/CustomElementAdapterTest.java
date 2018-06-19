@@ -25,6 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.CustomElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
@@ -50,20 +51,22 @@ public class CustomElementAdapterTest {
   private static final CustomElement DEFAULT_MODEL =
       CustomElement.newBuilder().setCustomElementData(DUMMY_DATA).build();
 
-  @Mock private AdapterParameters adapterParameters;
   @Mock private FrameContext frameContext;
   @Mock private CustomElementProvider customElementProvider;
+  @Mock private HostProviders hostProviders;
 
   private Context context;
   private View customView;
   private CustomElementAdapter adapter;
+  private AdapterParameters adapterParameters;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     customView = new View(context);
-    when(frameContext.getCustomElementProvider()).thenReturn(customElementProvider);
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
+    when(hostProviders.getCustomElementProvider()).thenReturn(customElementProvider);
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
     when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
     when(customElementProvider.createCustomElement(DUMMY_DATA)).thenReturn(customView);

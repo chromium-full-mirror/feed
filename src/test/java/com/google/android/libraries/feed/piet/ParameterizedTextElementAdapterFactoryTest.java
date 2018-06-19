@@ -58,7 +58,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
-        new AdapterParameters(null, null, new ParameterizedTextEvaluator(), null, null);
+        new AdapterParameters(null, null, new ParameterizedTextEvaluator(), null, null, null);
     when(keySupplier.getAdapter(context, adapterParameters))
         .thenReturn(adapter)
         .thenReturn(adapter2);

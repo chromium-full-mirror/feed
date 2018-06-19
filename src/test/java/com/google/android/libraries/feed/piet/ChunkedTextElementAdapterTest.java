@@ -126,6 +126,7 @@ public class ChunkedTextElementAdapterTest {
   @Mock private ParameterizedTextEvaluator mockTextEvaluator;
   @Mock private AssetProvider mockAssetProvider;
   @Mock private ActionHandler mockActionHandler;
+  @Mock private HostProviders hostProviders;
 
   private Drawable drawable;
   private ShadowDrawable shadowDrawable;
@@ -142,7 +143,8 @@ public class ChunkedTextElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    adapterParameters = new AdapterParameters(null, null, mockTextEvaluator, null, null);
+    adapterParameters =
+        new AdapterParameters(null, null, mockTextEvaluator, null, null, hostProviders);
 
     drawable = new ColorDrawable(Color.GREEN);
     shadowDrawable = Shadows.shadowOf(drawable);
@@ -153,15 +155,15 @@ public class ChunkedTextElementAdapterTest {
     textView = new TextView(context);
 
     when(mockTextEvaluator.evaluate(
-            frameContext, ParameterizedText.newBuilder().setText(CHUNKY_TEXT).build()))
+            mockAssetProvider, ParameterizedText.newBuilder().setText(CHUNKY_TEXT).build()))
         .thenReturn(PROCESSED_TEXT);
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
     when(frameContext.bindNewStyle(CHUNK_STYLE)).thenReturn(frameContext);
     when(frameContext.makeStyleFor(CHUNK_STYLE)).thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
-    when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
+    when(hostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getActionHandler()).thenReturn(mockActionHandler);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
 
@@ -243,7 +245,6 @@ public class ChunkedTextElementAdapterTest {
         TextElement.newBuilder()
             .setChunkedText(ChunkedText.newBuilder().addChunks(IMAGE_CHUNK))
             .build();
-    when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
 
     adapter.createAdapter(chunkedImageElement, frameContext);
     adapter.bindModel(chunkedImageElement, frameContext);
@@ -368,7 +369,7 @@ public class ChunkedTextElementAdapterTest {
     adapter.addTextChunk(frameContext, spannable, TEXT_CHUNK);
 
     verify(mockTextEvaluator)
-        .evaluate(frameContext, TEXT_CHUNK.getTextChunk().getParameterizedText());
+        .evaluate(mockAssetProvider, TEXT_CHUNK.getTextChunk().getParameterizedText());
 
     assertThat(spannable.toString()).isEqualTo(PROCESSED_TEXT);
   }
@@ -446,7 +447,6 @@ public class ChunkedTextElementAdapterTest {
                                 Actions.newBuilder()
                                     .setOnClickAction(Action.getDefaultInstance()))))
             .build();
-    when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
 
     adapter.createAdapter(imageChunkWithActions, frameContext);
@@ -473,7 +473,6 @@ public class ChunkedTextElementAdapterTest {
                 ChunkedText.newBuilder()
                     .addChunks(IMAGE_CHUNK.toBuilder().setActionsBinding(binding)))
             .build();
-    when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getActionsFromBinding(binding))
         .thenReturn(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build());
     when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
@@ -502,7 +501,6 @@ public class ChunkedTextElementAdapterTest {
                 ChunkedText.newBuilder()
                     .addChunks(IMAGE_CHUNK.toBuilder().setActionsBinding(binding)))
             .build();
-    when(frameContext.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getActionsFromBinding(binding)).thenReturn(Actions.getDefaultInstance());
     when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
 

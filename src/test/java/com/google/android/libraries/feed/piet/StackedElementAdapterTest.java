@@ -65,6 +65,7 @@ public class StackedElementAdapterTest {
   @Mock private FrameContext frameContext;
   @Mock private AssetProvider assetProvider;
   @Mock private StyleProvider mockStyleProvider;
+  @Mock private HostProviders mockHostProviders;
 
   private Context context;
   private AdapterParameters adapterParameters;
@@ -80,9 +81,9 @@ public class StackedElementAdapterTest {
     when(frameContext.getCurrentStyle()).thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(any())).thenReturn(mockStyleProvider);
     when(frameContext.bindNewStyle(any())).thenReturn(frameContext);
-    when(frameContext.getAssetProvider()).thenReturn(assetProvider);
+    when(mockHostProviders.getAssetProvider()).thenReturn(assetProvider);
 
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null));
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null), mockHostProviders);
 
     adapter = new StackedElementAdapter.KeySupplier().getAdapter(context, adapterParameters);
   }

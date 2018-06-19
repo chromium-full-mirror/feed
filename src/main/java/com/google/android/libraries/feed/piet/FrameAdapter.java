@@ -30,9 +30,6 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Content;
@@ -64,28 +61,19 @@ public class FrameAdapter {
   private final AdapterParameters parameters;
   private final ActionHandler actionHandler;
   private final DebugBehavior debugBehavior;
-  private final AssetProvider assetProvider;
-  private final CustomElementProvider customElementProvider;
-  private final HostBindingProvider hostBindingProvider;
   private final Set<VisibilityAction> activeActions = new HashSet<>();
   /*@Nullable*/ private LinearLayout view = null;
-  /*@Nullable*/ private Frame frame = null;
+  /*@Nullable*/ private FrameContext frameContext = null;
 
   public FrameAdapter(
       Context context,
       AdapterParameters parameters,
       ActionHandler actionHandler,
-      DebugBehavior debugBehavior,
-      AssetProvider assetProvider,
-      CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider) {
+      DebugBehavior debugBehavior) {
     this.context = context;
     this.parameters = parameters;
     this.actionHandler = actionHandler;
     this.debugBehavior = debugBehavior;
-    this.assetProvider = assetProvider;
-    this.customElementProvider = customElementProvider;
-    this.hostBindingProvider = hostBindingProvider;
     childAdapters = new HashSet<>();
   }
 
@@ -100,8 +88,8 @@ public class FrameAdapter {
       /*@Nullable*/ ShardingControl shardingControl,
       List<PietSharedState> pietSharedStates) {
     long startTime = System.nanoTime();
-    this.frame = frame;
-    FrameContext frameContext = createFrameContext(frame, pietSharedStates);
+    FrameContext localFrameContext = createFrameContext(frame, pietSharedStates);
+    frameContext = localFrameContext;
     initialBind(parameters.parentViewSupplier.get());
     activeActions.clear();
     activeActions.addAll(frame.getActions().getOnHideActionsList());
@@ -111,7 +99,8 @@ public class FrameAdapter {
       for (Content content : frame.getContentsList()) {
         // For Slice we will create the lower level slice instead to remove the extra
         // level.
-        List<ElementAdapter<?, ?>> adapters = getBoundAdaptersForContent(content, frameContext);
+        List<ElementAdapter<?, ?>> adapters =
+            getBoundAdaptersForContent(content, localFrameContext);
         for (ElementAdapter<?, ?> adapter : adapters) {
           childAdapters.add(adapter);
           setLayoutParamsOnChild(adapter);
@@ -119,13 +108,14 @@ public class FrameAdapter {
         }
       }
 
-      StyleProvider style = frameContext.getCurrentStyle();
-      Drawable bg = frameContext.createBackground(style, context);
+      StyleProvider style = localFrameContext.getCurrentStyle();
+      Drawable bg = style.createBackground(context, parameters.hostProviders.getAssetProvider());
       frameView.setBackground(bg);
     } catch (RuntimeException e) {
       // TODO: Remove this once error reporting is fully implemented.
       Logger.e(TAG, e, "Catch top level exception");
-      frameContext.reportError(MessageType.ERROR, "Top Level Exception was caught - see logcat");
+      localFrameContext.reportError(
+          MessageType.ERROR, "Top Level Exception was caught - see logcat");
     }
     startTime = System.nanoTime() - startTime;
     // TODO: We should be targeting < 15ms and warn at 10ms?
@@ -134,17 +124,18 @@ public class FrameAdapter {
     if (startTime / 1000000 > 30) {
       Logger.w(
           TAG,
-          frameContext.reportError(
+          localFrameContext.reportError(
               MessageType.WARNING,
               String.format("Slow Bind (%s) time: %s ps", frame.getTag(), startTime / 1000)));
     }
     // If there were errors add an error slice to the frame
-    if (frameContext.getDebugBehavior().getShowDebugViews()) {
-      View errorView = frameContext.getDebugLogger().getReportView(MessageType.ERROR, context);
+    if (localFrameContext.getDebugBehavior().getShowDebugViews()) {
+      View errorView = localFrameContext.getDebugLogger().getReportView(MessageType.ERROR, context);
       if (errorView != null) {
         frameView.addView(errorView);
       }
-      View warningView = frameContext.getDebugLogger().getReportView(MessageType.WARNING, context);
+      View warningView =
+          localFrameContext.getDebugLogger().getReportView(MessageType.WARNING, context);
       if (warningView != null) {
         frameView.addView(warningView);
       }
@@ -158,7 +149,7 @@ public class FrameAdapter {
     }
     childAdapters.clear();
     view.removeAllViews();
-    frame = null;
+    frameContext = null;
   }
 
   private void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
@@ -187,22 +178,25 @@ public class FrameAdapter {
         pietSharedStates,
         debugBehavior,
         new DebugLogger(),
-        assetProvider,
-        customElementProvider,
-        hostBindingProvider,
-        actionHandler);
+        actionHandler,
+        parameters.hostProviders.getHostBindingProvider());
   }
 
   public void triggerViewActions(View viewport) {
-    Frame localFrame = frame;
-    if (localFrame == null || view == null) {
+    if (frameContext == null || view == null) {
       return;
     }
+    FrameContext localFrameContext = frameContext;
     ViewUtils.maybeTriggerViewActions(
-        view, viewport, localFrame.getActions(), actionHandler, localFrame, activeActions);
+        view,
+        viewport,
+        localFrameContext.getFrame().getActions(),
+        localFrameContext.getActionHandler(),
+        localFrameContext.getFrame(),
+        activeActions);
 
     for (ElementAdapter<?, ?> adapter : childAdapters) {
-      adapter.triggerViewActions(viewport);
+      adapter.triggerViewActions(viewport, localFrameContext);
     }
   }
 

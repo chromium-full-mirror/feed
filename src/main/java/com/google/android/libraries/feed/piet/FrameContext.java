@@ -17,16 +17,11 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 
-import android.content.Context;
-import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
@@ -40,11 +35,9 @@ import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
-import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
-import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -63,10 +56,8 @@ class FrameContext {
   private final List<PietSharedState> pietSharedStates;
   private final DebugBehavior debugBehavior;
   private final DebugLogger debugLogger;
-  private final AssetProvider assetProvider;
-  private final CustomElementProvider customElementProvider;
-  private final HostBindingProvider hostBindingProvider;
   private final ActionHandler actionHandler;
+  private final HostBindingProvider hostBindingProvider;
   private final Map<String, Template> templates;
 
   // This is the Frame which contains all the slices being processed.
@@ -94,10 +85,8 @@ class FrameContext {
       PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
-      AssetProvider assetProvider,
-      CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider,
-      ActionHandler actionHandler) {
+      ActionHandler actionHandler,
+      HostBindingProvider hostBindingProvider) {
     this(
         frame,
         stylesheet,
@@ -108,10 +97,8 @@ class FrameContext {
         pietStylesHelper,
         debugBehavior,
         debugLogger,
-        assetProvider,
-        customElementProvider,
-        hostBindingProvider,
         actionHandler,
+        hostBindingProvider,
         new NoKeyOverwriteHashMap<>("Template"));
 
     stylesHelper.addSharedStateTemplatesToFrame(templates);
@@ -133,10 +120,8 @@ class FrameContext {
       PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
-      AssetProvider assetProvider,
-      CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider,
       ActionHandler actionHandler,
+      HostBindingProvider hostBindingProvider,
       Map<String, Template> templates) {
     currentFrame = frame;
     this.stylesheet = stylesheet;
@@ -147,10 +132,8 @@ class FrameContext {
     this.pietSharedStates = pietSharedStates;
     this.debugBehavior = debugBehavior;
     this.debugLogger = debugLogger;
-    this.assetProvider = assetProvider;
-    this.customElementProvider = customElementProvider;
-    this.hostBindingProvider = hostBindingProvider;
     this.actionHandler = actionHandler;
+    this.hostBindingProvider = hostBindingProvider;
     this.templates = templates;
   }
 
@@ -164,10 +147,8 @@ class FrameContext {
       List<PietSharedState> pietSharedStates,
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
-      AssetProvider assetProvider,
-      CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider,
-      ActionHandler actionHandler) {
+      ActionHandler actionHandler,
+      HostBindingProvider hostBindingProvider) {
     PietStylesHelper pietStylesHelper = new PietStylesHelper(pietSharedStates);
     NoKeyOverwriteHashMap<String, Style> styleMap = null;
     if (frame.hasStylesheetId()) {
@@ -200,10 +181,8 @@ class FrameContext {
             pietStylesHelper,
             debugBehavior,
             debugLogger,
-            assetProvider,
-            customElementProvider,
-            hostBindingProvider,
-            actionHandler);
+            actionHandler,
+            hostBindingProvider);
     frameContext.computeErrors(frameStyle);
 
     return frameContext;
@@ -215,14 +194,6 @@ class FrameContext {
 
   public DebugLogger getDebugLogger() {
     return debugLogger;
-  }
-
-  public AssetProvider getAssetProvider() {
-    return assetProvider;
-  }
-
-  public CustomElementProvider getCustomElementProvider() {
-    return customElementProvider;
   }
 
   public Frame getFrame() {
@@ -292,10 +263,8 @@ class FrameContext {
         stylesHelper,
         debugBehavior,
         debugLogger,
-        assetProvider,
-        customElementProvider,
-        hostBindingProvider,
         actionHandler,
+        hostBindingProvider,
         templates);
   }
 
@@ -315,10 +284,8 @@ class FrameContext {
         stylesHelper,
         debugBehavior,
         debugLogger,
-        assetProvider,
-        customElementProvider,
-        hostBindingProvider,
         actionHandler,
+        hostBindingProvider,
         templates);
   }
 
@@ -331,24 +298,6 @@ class FrameContext {
   public StyleProvider makeStyleFor(StyleIdsStack styles) {
     return new StyleProvider(
         PietStylesHelper.mergeStyleIdsStack(baseStyle, styles, stylesheet, this));
-  }
-
-  /**
-   * Return a {@link Drawable} with the fill and rounded corners defined on the style; returns
-   * {@code null} if the background has no color defined.
-   */
-  /*@Nullable*/
-  Drawable createBackground(StyleProvider style, Context context) {
-    Fill background = style.getBackground();
-    if (!background.hasColor()) {
-      return null;
-    }
-    RoundedCornerColorDrawable bgDrawable = new RoundedCornerColorDrawable(background.getColor());
-    if (style.hasRoundedCorners()) {
-      bgDrawable.setRoundedCorners(style.getRoundedCorners().getBitmask());
-      bgDrawable.setRadius(getRoundedCornerRadius(style, context));
-    }
-    return bgDrawable;
   }
 
   /**
@@ -553,15 +502,6 @@ class FrameContext {
               "Couldn't find frame styles [%s] in the Stylesheet",
               currentFrame.getStyleReferences());
       Logger.e(TAG, reportError(MessageType.ERROR, error));
-    }
-  }
-
-  public int getRoundedCornerRadius(StyleProvider style, Context context) {
-    RoundedCorners roundedCorners = style.getRoundedCorners();
-    if (roundedCorners.hasRadius()) {
-      return (int) ViewUtils.dpToPx(roundedCorners.getRadius(), context);
-    } else {
-      return assetProvider.getDefaultCornerRadius();
     }
   }
 

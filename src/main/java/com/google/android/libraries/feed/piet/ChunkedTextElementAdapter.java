@@ -181,7 +181,9 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     String evaluatedText =
         getParameters()
             .templatedStringEvaluator
-            .evaluate(frameContext, chunk.getTextChunk().getParameterizedText());
+            .evaluate(
+                getParameters().hostProviders.getAssetProvider(),
+                chunk.getTextChunk().getParameterizedText());
     spannable.append(evaluatedText);
     StyleProvider chunkStyle = frameContext.makeStyleFor(chunk.getTextChunk().getStyleReferences());
     if (chunkStyle.hasColor()) {
@@ -242,7 +244,10 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     ImageSpanDrawableCallback imageSpanLoader =
         new ImageSpanDrawableCallback(wrapper, chunkStyle, textView);
     loadingImages.add(imageSpanLoader);
-    getFrameContext().getAssetProvider().getImage(imageChunk.getImage(), imageSpanLoader);
+    getParameters()
+        .hostProviders
+        .getAssetProvider()
+        .getImage(imageChunk.getImage(), imageSpanLoader);
   }
 
   @Override

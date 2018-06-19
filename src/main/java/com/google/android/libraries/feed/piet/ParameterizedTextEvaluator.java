@@ -18,6 +18,7 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.text.Html;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
@@ -36,13 +37,13 @@ public class ParameterizedTextEvaluator {
    */
   /*@Nullable*/
   public CharSequence evaluateHtml(
-      FrameContext frameContext, Context context, ParameterizedText templatedString) {
+      AssetProvider assetProvider, Context context, ParameterizedText templatedString) {
     if (!templatedString.hasText()) {
       Logger.w(TAG, "Got templated string with no display string");
       return null;
     }
 
-    String evaluated = evaluate(frameContext, templatedString);
+    String evaluated = evaluate(assetProvider, templatedString);
     if (evaluated == null) {
       return null;
     }
@@ -54,7 +55,7 @@ public class ParameterizedTextEvaluator {
    * Evaluates the given ParameterizedText, and returns the raw evaluated value, without any Html
    * wrapping.
    */
-  public String evaluate(FrameContext frameContext, ParameterizedText templatedString) {
+  public String evaluate(AssetProvider assetProvider, ParameterizedText templatedString) {
 
     if (!templatedString.hasText()) {
       Logger.w(TAG, "Got templated string with no display string");
@@ -67,7 +68,7 @@ public class ParameterizedTextEvaluator {
 
     List<String> params = new ArrayList<>();
     for (ParameterizedText.Parameter param : templatedString.getParametersList()) {
-      String value = evaluateParam(frameContext, param);
+      String value = evaluateParam(assetProvider, param);
       // Add a placeholder for any invalid parameters so that it will be obvious which one
       // failed.
       if (value == null) {
@@ -87,11 +88,11 @@ public class ParameterizedTextEvaluator {
   }
 
   /*@Nullable*/
-  private String evaluateParam(FrameContext frameContext, ParameterizedText.Parameter param) {
+  private String evaluateParam(AssetProvider assetProvider, ParameterizedText.Parameter param) {
     if (param.hasTimestampSeconds()) {
       long elapsedTimeMillis =
           getCurrentTimeMillis() - TimeUnit.SECONDS.toMillis(param.getTimestampSeconds());
-      return frameContext.getAssetProvider().getRelativeElapsedString(elapsedTimeMillis);
+      return assetProvider.getRelativeElapsedString(elapsedTimeMillis);
     }
     return null;
   }

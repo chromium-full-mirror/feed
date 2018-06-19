@@ -41,7 +41,7 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
     switch (textLine.getContentCase()) {
       case PARAMETERIZED_TEXT:
         // No bindings found, so use the inlined value (or empty if not set)
-        setTextOnView(frameContext, getBaseView(), textLine.getParameterizedText());
+        setTextOnView(getBaseView(), textLine.getParameterizedText());
         setVisibility(Visibility.VISIBLE);
         break;
       case PARAMETERIZED_TEXT_BINDING:
@@ -72,7 +72,7 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
         // Always set text even if visibility is set to GONE or INVISIBLE,
         // in case a later optimistic update operation changes the visibility but wants to retain
         // the previously-set text.
-        setTextOnView(frameContext, getBaseView(), bindingValue.getParameterizedText());
+        setTextOnView(getBaseView(), bindingValue.getParameterizedText());
         break;
       default:
         throw new IllegalArgumentException(
@@ -82,14 +82,15 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
     }
   }
 
-  void setTextOnView(
-      FrameContext frameContext, TextView textView, ParameterizedText parameterizedText) {
+  void setTextOnView(TextView textView, ParameterizedText parameterizedText) {
     if (!parameterizedText.hasText()) {
       textView.setText("");
       return;
     }
 
-    textView.setText(getTemplatedStringEvaluator().evaluate(frameContext, parameterizedText));
+    textView.setText(
+        getTemplatedStringEvaluator()
+            .evaluate(getParameters().hostProviders.getAssetProvider(), parameterizedText));
   }
 
   @Override

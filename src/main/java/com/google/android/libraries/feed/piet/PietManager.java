@@ -37,10 +37,7 @@ public class PietManager {
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider) {
-    this.debugBehavior = debugBehavior;
-    this.assetProvider = assetProvider;
-    this.customElementProvider = customElementProvider;
-    this.hostBindingProvider = new HostBindingProvider();
+    this(debugBehavior, assetProvider, customElementProvider, new HostBindingProvider());
   }
 
   public PietManager(
@@ -60,14 +57,7 @@ public class PietManager {
       Context context) {
     AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
 
-    return new FrameAdapter(
-        context,
-        parameters,
-        actionHandler,
-        debugBehavior,
-        assetProvider,
-        customElementProvider,
-        hostBindingProvider);
+    return new FrameAdapter(context, parameters, actionHandler, debugBehavior);
   }
 
   /**
@@ -78,7 +68,11 @@ public class PietManager {
   AdapterParameters getAdapterParameters(
       Context context, Supplier</*@Nullable*/ ViewGroup> cardViewProducer) {
     if (adapterParameters == null || adapterParameters.context != context) {
-      adapterParameters = new AdapterParameters(context, cardViewProducer);
+      adapterParameters =
+          new AdapterParameters(
+              context,
+              cardViewProducer,
+              new HostProviders(assetProvider, customElementProvider, hostBindingProvider));
     }
     return adapterParameters;
   }

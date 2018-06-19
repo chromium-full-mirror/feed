@@ -20,6 +20,8 @@ import android.os.Build;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
@@ -124,11 +126,11 @@ class StyleProvider {
   }
 
   /** Sets the Padding and Background Color on the view. */
-  public void setElementStyles(Context context, FrameContext frameContext, View view) {
+  public void setElementStyles(Context context, AssetProvider assetProvider, View view) {
     EdgeWidths padding = getPadding();
     setPadding(context, view, padding);
 
-    Drawable bg = frameContext.createBackground(this, context);
+    Drawable bg = createBackground(context, assetProvider);
     if (bg != null) {
       view.setBackground(bg);
     } else {
@@ -172,5 +174,34 @@ class StyleProvider {
       marginLayoutParams.setMarginStart(startMargin);
       marginLayoutParams.setMarginEnd(endMargin);
     }
+  }
+
+  public int getRoundedCornerRadius(Context context, AssetProvider assetProvider) {
+    RoundedCorners roundedCorners = getRoundedCorners();
+    if (roundedCorners.hasRadius()) {
+      return (int) ViewUtils.dpToPx(roundedCorners.getRadius(), context);
+    } else {
+      return assetProvider.getDefaultCornerRadius();
+    }
+  }
+
+  /**
+   * Return a {@link Drawable} with the fill and rounded corners defined on the style; returns
+   * {@code null} if the background has no color defined.
+   *
+   * @param context
+   */
+  /*@Nullable*/
+  Drawable createBackground(Context context, AssetProvider assetProvider) {
+    Fill background = getBackground();
+    if (!background.hasColor()) {
+      return null;
+    }
+    RoundedCornerColorDrawable bgDrawable = new RoundedCornerColorDrawable(background.getColor());
+    if (hasRoundedCorners()) {
+      bgDrawable.setRoundedCorners(getRoundedCorners().getBitmask());
+      bgDrawable.setRadius(getRoundedCornerRadius(context, assetProvider));
+    }
+    return bgDrawable;
   }
 }

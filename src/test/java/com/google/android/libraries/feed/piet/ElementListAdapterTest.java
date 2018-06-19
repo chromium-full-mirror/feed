@@ -36,6 +36,7 @@ import android.widget.Space;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.ElementListAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowLinearLayout;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
@@ -93,6 +94,8 @@ public class ElementListAdapterTest {
   @Mock private StyleProvider styleProvider;
   @Mock private StyleProvider childStyleProvider;
   @Mock private StyleProvider listStyleProvider;
+  @Mock private HostProviders hostProviders;
+  @Mock private AssetProvider assetProvider;
 
   private Context context;
   private AdapterParameters adapterParameters;
@@ -104,7 +107,7 @@ public class ElementListAdapterTest {
     initMocks(this);
     context = RuntimeEnvironment.application;
 
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null));
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance()))
@@ -121,8 +124,7 @@ public class ElementListAdapterTest {
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(childStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
-    when(childFrameContext.getActionHandler()).thenReturn(actionHandler);
-    when(listFrameContext.getActionHandler()).thenReturn(actionHandler);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
   }
 
   @Test
@@ -151,7 +153,7 @@ public class ElementListAdapterTest {
 
     adapter.createAdapter(listWithStyles, frameContext);
 
-    verify(listStyleProvider).setElementStyles(context, listFrameContext, adapter.getView());
+    verify(listStyleProvider).setElementStyles(context, assetProvider, adapter.getView());
   }
 
   @Test
@@ -212,7 +214,8 @@ public class ElementListAdapterTest {
   @Config(shadows = {ExtendedShadowLinearLayout.class})
   @Test
   public void testTriggerActions_triggersChildren() {
-    when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
+    Frame frame = Frame.newBuilder().setTag("Frame").build();
+    when(frameContext.getFrame()).thenReturn(frame);
     Element baseElement =
         Element.newBuilder()
             .setElementList(
@@ -236,9 +239,9 @@ public class ElementListAdapterTest {
 
     View viewport = new View(context);
 
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
 
-    verify(mockChildAdapter).triggerViewActions(viewport);
+    verify(mockChildAdapter).triggerViewActions(viewport, frameContext);
   }
 
   @Test

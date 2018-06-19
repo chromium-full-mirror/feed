@@ -72,7 +72,11 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
         return;
     }
 
-    View v = frameContext.getCustomElementProvider().createCustomElement(customElementData);
+    View v =
+        getParameters()
+            .hostProviders
+            .getCustomElementProvider()
+            .createCustomElement(customElementData);
     getBaseView().addView(v);
   }
 
@@ -81,7 +85,10 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
     FrameLayout baseView = getBaseView();
     if (baseView != null && baseView.getChildCount() > 0) {
       for (int i = 0; i < baseView.getChildCount(); i++) {
-        getFrameContext().getCustomElementProvider().releaseCustomView(baseView.getChildAt(i));
+        getParameters()
+            .hostProviders
+            .getCustomElementProvider()
+            .releaseCustomView(baseView.getChildAt(i));
       }
       baseView.removeAllViews();
     }

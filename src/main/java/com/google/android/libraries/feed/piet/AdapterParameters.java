@@ -39,12 +39,18 @@ class AdapterParameters {
   final ElementAdapterFactory elementAdapterFactory;
   final TemplateBinder templateBinder;
 
+  final HostProviders hostProviders;
+
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
   @SuppressWarnings("initialization")
-  public AdapterParameters(Context context, Supplier</*@Nullable*/ ViewGroup> parentViewSupplier) {
+  public AdapterParameters(
+      Context context,
+      Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
+      HostProviders hostProviders) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
+    this.hostProviders = hostProviders;
 
     templatedStringEvaluator = new ParameterizedTextEvaluator();
 
@@ -61,12 +67,14 @@ class AdapterParameters {
       Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
       ParameterizedTextEvaluator templatedStringEvaluator,
       ElementAdapterFactory elementAdapterFactory,
-      TemplateBinder templateBinder) {
+      TemplateBinder templateBinder,
+      HostProviders hostProviders) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
 
     this.templatedStringEvaluator = templatedStringEvaluator;
     this.elementAdapterFactory = elementAdapterFactory;
     this.templateBinder = templateBinder;
+    this.hostProviders = hostProviders;
   }
 }

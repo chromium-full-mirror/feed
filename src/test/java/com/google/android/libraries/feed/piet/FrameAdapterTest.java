@@ -92,6 +92,7 @@ public class FrameAdapterTest {
   @Mock private ElementAdapter<? extends View, ?> templateAdapter;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private ActionHandler actionHandler;
+  @Mock private HostProviders hostProviders;
 
   @Captor private ArgumentCaptor<LayoutParams> layoutParamsCaptor;
 
@@ -111,7 +112,8 @@ public class FrameAdapterTest {
             Suppliers.of(new FrameLayout(context)),
             new ParameterizedTextEvaluator(),
             adapterFactory,
-            templateBinder);
+            templateBinder,
+            hostProviders);
     when(elementAdapter.getView()).thenReturn(new LinearLayout(context));
     when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
     doReturn(elementAdapter)
@@ -121,7 +123,7 @@ public class FrameAdapterTest {
         .when(templateBinder)
         .createAndBindTemplateAdapter(any(TemplateAdapterModel.class), eq(frameContext));
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
-    when(frameContext.getAssetProvider()).thenReturn(assetProvider);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.reportError(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
             invocationOnMock -> {
@@ -132,14 +134,7 @@ public class FrameAdapterTest {
 
     pietSharedStates = new ArrayList<>();
     frameAdapter =
-        new FrameAdapter(
-            context,
-            adapterParameters,
-            actionHandler,
-            debugBehavior,
-            assetProvider,
-            customElementProvider,
-            new HostBindingProvider()) {
+        new FrameAdapter(context, adapterParameters, actionHandler, debugBehavior) {
           @Override
           FrameContext createFrameContext(Frame frame, List<PietSharedState> pietSharedStates) {
             return frameContext;
@@ -238,7 +233,7 @@ public class FrameAdapterTest {
                     .setElement(Element.newBuilder().setGridRow(GridRow.getDefaultInstance())))
             .build();
     AdapterParameters adapterParameters =
-        new AdapterParameters(context, Suppliers.of(new LinearLayout(context)));
+        new AdapterParameters(context, Suppliers.of(new LinearLayout(context)), hostProviders);
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
             .addTemplates(
@@ -254,20 +249,10 @@ public class FrameAdapterTest {
             pietSharedStates,
             debugBehavior,
             new DebugLogger(),
-            assetProvider,
-            customElementProvider,
-            new HostBindingProvider(),
-            actionHandler);
-
-    frameAdapter =
-        new FrameAdapter(
-            context,
-            adapterParameters,
             actionHandler,
-            debugBehavior,
-            assetProvider,
-            customElementProvider,
             new HostBindingProvider());
+
+    frameAdapter = new FrameAdapter(context, adapterParameters, actionHandler, debugBehavior);
 
     Content content =
         Content.newBuilder().setElement(Element.newBuilder().setElementList(defaultList)).build();
@@ -362,16 +347,9 @@ public class FrameAdapterTest {
 
     pietSharedStates.add(pietSharedState);
 
-    AdapterParameters parameters = new AdapterParameters(context, Suppliers.of(null));
-    FrameAdapter frameAdapter =
-        new FrameAdapter(
-            context,
-            parameters,
-            actionHandler,
-            debugBehavior,
-            assetProvider,
-            customElementProvider,
-            new HostBindingProvider());
+    AdapterParameters parameters =
+        new AdapterParameters(context, Suppliers.of(null), hostProviders);
+    FrameAdapter frameAdapter = new FrameAdapter(context, parameters, actionHandler, debugBehavior);
 
     frameAdapter.bindModel(frame, null, pietSharedStates);
 
@@ -383,7 +361,7 @@ public class FrameAdapterTest {
   public void testBackgroundColor() {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
-    verify(frameContext).createBackground(styleProvider, context);
+    styleProvider.createBackground(context, assetProvider);
   }
 
   @Test
@@ -391,14 +369,14 @@ public class FrameAdapterTest {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
 
     // Set background
-    when(frameContext.createBackground(styleProvider, context))
+    when(styleProvider.createBackground(context, assetProvider))
         .thenReturn(new RoundedCornerColorDrawable(12345));
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNotNull();
     frameAdapter.unbindModel();
 
     // Re-bind and check that background is unset
-    when(frameContext.createBackground(styleProvider, context)).thenReturn(null);
+    when(styleProvider.createBackground(context, assetProvider)).thenReturn(null);
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNull();
   }
@@ -408,14 +386,14 @@ public class FrameAdapterTest {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
 
     // Set background
-    when(frameContext.createBackground(styleProvider, context))
+    when(styleProvider.createBackground(context, assetProvider))
         .thenReturn(new RoundedCornerColorDrawable(12345));
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNotNull();
     frameAdapter.unbindModel();
 
     // Re-bind and check that background is unset
-    when(frameContext.createBackground(styleProvider, context)).thenReturn(null);
+    when(styleProvider.createBackground(context, assetProvider)).thenReturn(null);
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNull();
   }

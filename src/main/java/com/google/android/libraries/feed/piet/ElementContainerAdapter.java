@@ -345,10 +345,10 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
   }
 
   @Override
-  public void triggerViewActions(View viewport) {
-    super.triggerViewActions(viewport);
+  public void triggerViewActions(View viewport, FrameContext frameContext) {
+    super.triggerViewActions(viewport, frameContext);
     for (ElementAdapter<?, ?> childAdapter : childAdapters) {
-      childAdapter.triggerViewActions(viewport);
+      childAdapter.triggerViewActions(viewport, frameContext);
     }
   }
 }

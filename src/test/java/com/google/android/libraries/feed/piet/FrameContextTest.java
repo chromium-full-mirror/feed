@@ -18,19 +18,12 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import android.app.Activity;
-import android.content.Context;
-import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
@@ -46,7 +39,6 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
-import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.HostBindingData;
@@ -59,7 +51,6 @@ import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
-import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
@@ -77,7 +68,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FrameContext}. */
@@ -105,15 +95,12 @@ public class FrameContextTest {
     DEFAULT_TEMPLATES.put(DEFAULT_TEMPLATE_ID, DEFAULT_TEMPLATE);
   }
 
-  @Mock private AssetProvider assetProvider;
-  @Mock private CustomElementProvider customElementProvider;
-  @Mock private StyleProvider styleProvider;
   @Mock private ActionHandler actionHandler;
+  @Mock private StyleProvider styleProvider;
 
   private final Map<String, Style> defaultStylesheet = new HashMap<>();
   private final DebugLogger debugLogger = new DebugLogger();
 
-  private Context context;
   private HostBindingProvider hostBindingProvider;
   private FrameContext frameContext;
   private List<PietSharedState> pietSharedStates;
@@ -122,7 +109,6 @@ public class FrameContextTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
 
     hostBindingProvider = new HostBindingProvider();
 
@@ -186,19 +172,14 @@ public class FrameContextTest {
             new PietStylesHelper(pietSharedStates),
             DebugBehavior.VERBOSE,
             debugLogger,
-            assetProvider,
-            customElementProvider,
-            hostBindingProvider,
-            actionHandler);
+            actionHandler,
+            hostBindingProvider);
 
-    assertThat(frameContext.getAssetProvider()).isEqualTo(assetProvider);
-    assertThat(frameContext.getCustomElementProvider()).isEqualTo(customElementProvider);
     assertThat(frameContext.getFrame()).isEqualTo(DEFAULT_FRAME);
     assertThat(frameContext.getCurrentStyle()).isEqualTo(styleProvider);
     assertThat(frameContext.getActionHandler()).isEqualTo(actionHandler);
 
     assertThat(frameContext.getTemplate(DEFAULT_TEMPLATE_ID)).isEqualTo(DEFAULT_TEMPLATE);
-
     assertThat(frameContext.getTemplate(template2BindingId)).isEqualTo(template2);
   }
 
@@ -303,28 +284,6 @@ public class FrameContextTest {
         frameContext.makeStyleFor(
             StyleIdsStack.newBuilder().addStyleIds(INVALID_BINDING_ID).build());
     assertThat(notFoundStyle.getColor()).isEqualTo(BASE_STYLE_COLOR);
-  }
-
-  @Test
-  public void testCreateBackground() {
-    int color = 12345;
-    Fill fill = Fill.newBuilder().setColor(color).build();
-    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadius(4321).build();
-    when(styleProvider.getRoundedCorners()).thenReturn(roundedCorners);
-
-    frameContext = defaultFrameContext();
-
-    when(styleProvider.getBackground()).thenReturn(Fill.getDefaultInstance());
-    assertThat(frameContext.createBackground(styleProvider, context)).isNull();
-
-    when(styleProvider.getBackground()).thenReturn(fill);
-    Drawable backgroundDrawable = frameContext.createBackground(styleProvider, context);
-    assertThat(backgroundDrawable).isInstanceOf(RoundedCornerColorDrawable.class);
-
-    RoundedCornerColorDrawable background = (RoundedCornerColorDrawable) backgroundDrawable;
-    assertThat(background.getColor()).isEqualTo(color);
-
-    // TODO: how to test rounded corners?
   }
 
   @Test
@@ -1069,10 +1028,8 @@ public class FrameContextTest {
         new PietStylesHelper(pietSharedStates),
         DebugBehavior.VERBOSE,
         debugLogger,
-        assetProvider,
-        customElementProvider,
-        hostBindingProvider,
-        actionHandler);
+        actionHandler,
+        hostBindingProvider);
   }
 
   private FrameContext makeFrameContextWithBinding(BindingValue bindingValue) {
@@ -1088,10 +1045,8 @@ public class FrameContextTest {
         pietStylesHelper,
         DebugBehavior.VERBOSE,
         debugLogger,
-        assetProvider,
-        customElementProvider,
-        hostBindingProvider,
         actionHandler,
+        hostBindingProvider,
         DEFAULT_TEMPLATES);
   }
 
@@ -1108,10 +1063,8 @@ public class FrameContextTest {
         pietStylesHelper,
         DebugBehavior.VERBOSE,
         debugLogger,
-        assetProvider,
-        customElementProvider,
-        hostBindingProvider,
         actionHandler,
+        hostBindingProvider,
         DEFAULT_TEMPLATES);
   }
 
@@ -1122,10 +1075,8 @@ public class FrameContextTest {
         pietSharedStates,
         DebugBehavior.VERBOSE,
         debugLogger,
-        assetProvider,
-        customElementProvider,
-        hostBindingProvider,
-        actionHandler);
+        actionHandler,
+        hostBindingProvider);
   }
 
   private void setUpPietSharedStates() {

@@ -33,20 +33,18 @@ import org.robolectric.RobolectricTestRunner;
 // TODO: Create a test of evaluteHtml
 public class ParameterizedTextEvaluatorTest {
 
-  @Mock private FrameContext frameContext;
   @Mock private AssetProvider assetProvider;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    when(frameContext.getAssetProvider()).thenReturn(assetProvider);
   }
 
   @Test
   public void testEvaluate_noText() {
     ParameterizedText text = ParameterizedText.getDefaultInstance();
     ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
-    assertThat(evaluator.evaluate(frameContext, text)).isEmpty();
+    assertThat(evaluator.evaluate(assetProvider, text)).isEmpty();
   }
 
   @Test
@@ -55,7 +53,7 @@ public class ParameterizedTextEvaluatorTest {
     ParameterizedText.Builder text = ParameterizedText.newBuilder();
     text.setText(content);
     ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
-    assertThat(evaluator.evaluate(frameContext, text.build())).isEqualTo(content);
+    assertThat(evaluator.evaluate(assetProvider, text.build())).isEqualTo(content);
   }
 
   @Test
@@ -69,7 +67,7 @@ public class ParameterizedTextEvaluatorTest {
     text.addParameters(Parameter.newBuilder().setTimestampSeconds(10).build());
     ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
 
-    assertThat(evaluator.evaluate(frameContext, text.build()))
+    assertThat(evaluator.evaluate(assetProvider, text.build()))
         .isEqualTo(String.format(content, time));
   }
 
@@ -86,7 +84,7 @@ public class ParameterizedTextEvaluatorTest {
     text.addParameters(Parameter.newBuilder().setTimestampSeconds(2).build());
     ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
 
-    assertThat(evaluator.evaluate(frameContext, text.build()))
+    assertThat(evaluator.evaluate(assetProvider, text.build()))
         .isEqualTo(String.format(content, time1, time2));
   }
 
@@ -107,7 +105,7 @@ public class ParameterizedTextEvaluatorTest {
           }
         };
 
-    assertThat(evaluator.evaluate(frameContext, text.build()))
+    assertThat(evaluator.evaluate(assetProvider, text.build()))
         .isEqualTo(String.format(content, time));
   }
 }

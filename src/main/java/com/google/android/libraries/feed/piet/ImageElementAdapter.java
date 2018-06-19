@@ -78,7 +78,9 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     int cornerBitmask = 0;
     if (style.hasRoundedCorners()) {
       cornerBitmask = style.getRoundedCorners().getBitmask();
-      cornerRadius = frameContext.getRoundedCornerRadius(style, getContext());
+      cornerRadius =
+          style.getRoundedCornerRadius(
+              getContext(), getParameters().hostProviders.getAssetProvider());
     }
     getBaseView().setRoundedCorners(cornerBitmask);
     getBaseView().setCornerRadius(cornerRadius);
@@ -116,7 +118,7 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     LoadImageCallback loadImageCallback =
         new LoadImageCallback(getBaseView(), toAndroidScaleType(image.getScaleType()));
     currentlyLoadingImage = loadImageCallback;
-    getFrameContext().getAssetProvider().getImage(image, loadImageCallback);
+    getParameters().hostProviders.getAssetProvider().getImage(image, loadImageCallback);
   }
 
   @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")

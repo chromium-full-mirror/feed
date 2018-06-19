@@ -28,6 +28,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
@@ -54,6 +55,8 @@ public class ParameterizedTextElementAdapterTest {
 
   @Mock private FrameContext frameContext;
   @Mock private StyleProvider mockStyleProvider;
+  @Mock private HostProviders hostProviders;
+  @Mock private AssetProvider assetProvider;
 
   private AdapterParameters adapterParameters;
 
@@ -66,9 +69,11 @@ public class ParameterizedTextElementAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
-        new AdapterParameters(null, null, new ParameterizedTextEvaluator(), null, null);
+        new AdapterParameters(
+            null, null, new ParameterizedTextEvaluator(), null, null, hostProviders);
     when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
     when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
 
     adapter =
         new ParameterizedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);
@@ -215,7 +220,7 @@ public class ParameterizedTextElementAdapterTest {
 
     adapter.createAdapter(textElement, frameContext);
     assertThat(adapter.getView()).isNotNull();
-    verify(mockStyleProvider).setElementStyles(context, frameContext, adapter.getView());
+    verify(mockStyleProvider).setElementStyles(context, assetProvider, adapter.getView());
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
   }

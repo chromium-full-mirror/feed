@@ -145,7 +145,9 @@ abstract class ElementAdapter<V extends View, M> {
 
     initializeOverflow(baseElement);
 
-    this.frameContext.getCurrentStyle().setElementStyles(getContext(), this.frameContext, view);
+    this.frameContext
+        .getCurrentStyle()
+        .setElementStyles(getContext(), getParameters().hostProviders.getAssetProvider(), view);
   }
 
   /** Performs child-class-specific adapter creation; to be overridden. */
@@ -184,7 +186,9 @@ abstract class ElementAdapter<V extends View, M> {
 
     // Reapply styles if we have style bindings
     if (getElementStyleIdsStack().hasStyleBinding()) {
-      this.frameContext.getCurrentStyle().setElementStyles(getContext(), this.frameContext, view);
+      this.frameContext
+          .getCurrentStyle()
+          .setElementStyles(getContext(), getParameters().hostProviders.getAssetProvider(), view);
     }
   }
 
@@ -232,13 +236,11 @@ abstract class ElementAdapter<V extends View, M> {
     switch (baseElement.getActionsDataCase()) {
       case ACTIONS:
         actions = baseElement.getActions();
-        ViewUtils.setOnClickActions(
-            actions, getView(), frameContext.getActionHandler(), frameContext);
+        ViewUtils.setOnClickActions(actions, getView(), frameContext);
         break;
       case ACTIONS_BINDING:
         actions = frameContext.getActionsFromBinding(baseElement.getActionsBinding());
-        ViewUtils.setOnClickActions(
-            actions, getView(), frameContext.getActionHandler(), frameContext);
+        ViewUtils.setOnClickActions(actions, getView(), frameContext);
         break;
       default:
         actions = Actions.getDefaultInstance();
@@ -442,7 +444,7 @@ abstract class ElementAdapter<V extends View, M> {
     }
   }
 
-  void triggerViewActions(View viewport) {
+  void triggerViewActions(View viewport, FrameContext frameContext) {
     ViewUtils.maybeTriggerViewActions(
         getView(),
         viewport,

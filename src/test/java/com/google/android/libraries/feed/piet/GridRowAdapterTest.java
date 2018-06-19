@@ -85,6 +85,8 @@ public class GridRowAdapterTest {
   @Mock private ActionHandler actionHandler;
   @Mock private FrameContext frameContext;
   @Mock private StyleProvider styleProvider;
+  @Mock private HostProviders hostProviders;
+  @Mock private AssetProvider assetProvider;
 
   private GridRowAdapter adapter;
 
@@ -93,7 +95,7 @@ public class GridRowAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null));
+    adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
@@ -102,6 +104,7 @@ public class GridRowAdapterTest {
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
   }
 
@@ -153,7 +156,7 @@ public class GridRowAdapterTest {
     adapter.createAdapter(gridRow, frameContext);
 
     verify(frameContext).bindNewStyle(GRID_STYLES);
-    verify(styleProvider).setElementStyles(context, frameContext, adapter.getBaseView());
+    verify(styleProvider).setElementStyles(context, assetProvider, adapter.getBaseView());
   }
 
   @Test
@@ -234,7 +237,6 @@ public class GridRowAdapterTest {
                                             .setImage(Image.getDefaultInstance())))))
             .build();
 
-    when(frameContext.getAssetProvider()).thenReturn(mock(AssetProvider.class));
     when(styleProvider.hasWidth()).thenReturn(true);
     when(styleProvider.getWidth()).thenReturn(456);
 
@@ -262,7 +264,6 @@ public class GridRowAdapterTest {
                                             .setImage(Image.getDefaultInstance())))))
             .build();
 
-    when(frameContext.getAssetProvider()).thenReturn(mock(AssetProvider.class));
     when(styleProvider.hasHeight()).thenReturn(true);
     when(styleProvider.getHeight()).thenReturn(123);
 
@@ -290,7 +291,6 @@ public class GridRowAdapterTest {
                                             .setImage(Image.getDefaultInstance())))))
             .build();
 
-    when(frameContext.getAssetProvider()).thenReturn(mock(AssetProvider.class));
     when(styleProvider.hasHeight()).thenReturn(false);
     when(styleProvider.getHeight()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
 
@@ -520,7 +520,7 @@ public class GridRowAdapterTest {
 
     adapter.bindModel(gridRowWithBoundStyle, frameContext);
     verify(frameContext).bindNewStyle(styleWithBinding);
-    verify(otherStyleProvider).setElementStyles(context, frameContext, adapter.getBaseView());
+    verify(otherStyleProvider).setElementStyles(context, assetProvider, adapter.getBaseView());
   }
 
   @Test

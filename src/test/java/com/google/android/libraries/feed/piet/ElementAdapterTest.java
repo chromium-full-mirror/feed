@@ -67,6 +67,7 @@ public class ElementAdapterTest {
   private static final int HEIGHT = 456;
 
   @Mock private FrameContext frameContext;
+  @Mock private HostProviders hostProviders;
   @Mock private ActionHandler actionHandler;
   @Mock private StyleProvider styleProvider;
 
@@ -80,7 +81,7 @@ public class ElementAdapterTest {
   public void setUp() {
     initMocks(this);
     context = RuntimeEnvironment.application;
-    parameters = new AdapterParameters(context, Suppliers.of((ViewGroup) null));
+    parameters = new AdapterParameters(context, Suppliers.of((ViewGroup) null), hostProviders);
     when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
@@ -224,7 +225,8 @@ public class ElementAdapterTest {
             Suppliers.of((ViewGroup) null),
             new ParameterizedTextEvaluator(),
             mockFactory,
-            mock(TemplateBinder.class));
+            mock(TemplateBinder.class),
+            hostProviders);
     adapter = new TestElementAdapter(context, parameters, view);
 
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
@@ -550,7 +552,7 @@ public class ElementAdapterTest {
     // No actions defined
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
     adapter.bindModel(Element.getDefaultInstance(), frameContext);
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
     verifyZeroInteractions(actionHandler);
     adapter.releaseAdapter();
 
@@ -561,7 +563,7 @@ public class ElementAdapterTest {
             .build();
     adapter.createAdapter(elementWithNoViewActions, frameContext);
     adapter.bindModel(elementWithNoViewActions, frameContext);
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
     verifyZeroInteractions(actionHandler);
     adapter.unbindModel();
     adapter.releaseAdapter();
@@ -576,7 +578,7 @@ public class ElementAdapterTest {
     Element elementWithActions = Element.newBuilder().setActions(fullViewActions).build();
     adapter.createAdapter(elementWithActions, frameContext);
     adapter.bindModel(elementWithActions, frameContext);
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
     verifyZeroInteractions(actionHandler);
     adapter.unbindModel();
     adapter.releaseAdapter();
@@ -593,7 +595,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(elementWithActions, frameContext);
     adapter.bindModel(elementWithActions, frameContext);
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
     verify(actionHandler)
         .handleAction(
             same(fullViewActions.getOnViewActions(0).getAction()), eq(frame), eq(view), eq(null));
@@ -609,7 +611,7 @@ public class ElementAdapterTest {
     // No actions defined
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
     adapter.bindModel(Element.getDefaultInstance(), frameContext);
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
     verifyZeroInteractions(actionHandler);
     adapter.releaseAdapter();
 
@@ -620,7 +622,7 @@ public class ElementAdapterTest {
             .build();
     adapter.createAdapter(elementWithNoViewActions, frameContext);
     adapter.bindModel(elementWithNoViewActions, frameContext);
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
     verifyZeroInteractions(actionHandler);
     adapter.unbindModel();
     adapter.releaseAdapter();
@@ -638,7 +640,7 @@ public class ElementAdapterTest {
     Element elementWithActions = Element.newBuilder().setActions(partialViewActions).build();
     adapter.createAdapter(elementWithActions, frameContext);
     adapter.bindModel(elementWithActions, frameContext);
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
     verifyZeroInteractions(actionHandler);
     adapter.unbindModel();
     adapter.releaseAdapter();
@@ -655,7 +657,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(elementWithActions, frameContext);
     adapter.bindModel(elementWithActions, frameContext);
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
     verify(actionHandler)
         .handleAction(
             same(partialViewActions.getOnViewActions(0).getAction()),
@@ -669,7 +671,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(elementWithActions, frameContext);
     adapter.bindModel(elementWithActions, frameContext);
-    adapter.triggerViewActions(viewport);
+    adapter.triggerViewActions(viewport, frameContext);
     verify(actionHandler, times(2))
         .handleAction(
             same(partialViewActions.getOnViewActions(0).getAction()),
