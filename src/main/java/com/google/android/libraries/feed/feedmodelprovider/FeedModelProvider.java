@@ -688,46 +688,54 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
     /** Handle the synthetic token */
     void handleSyntheticToken(UpdatableModelToken token) {
+      StreamToken streamToken = token.getStreamToken();
+      SyntheticTokenTracker tracker;
       synchronized (lock) {
-        StreamToken streamToken = token.getStreamToken();
-        SyntheticTokenTracker tracker = syntheticTokens.remove(streamToken.getContentId());
-        if (tracker == null) {
-          Logger.e(TAG, "SyntheticTokenTracker was not found");
-          return;
+        tracker = syntheticTokens.remove(streamToken.getContentId());
+      }
+      if (tracker == null) {
+        Logger.e(TAG, "SyntheticTokenTracker was not found");
+        return;
+      }
+
+      UpdatableModelChild tokenChild = tracker.getTokenChild();
+      Logger.i(TAG, "Found Token %s", tokenChild != null);
+      UpdatableModelChild currentRoot;
+      synchronized (lock) {
+        currentRoot = root;
+      }
+      if (tokenChild != null && currentRoot != null) {
+        List<UpdatableModelChild> rootChildren;
+        synchronized (lock) {
+          rootChildren = containers.get(currentRoot.getContentId());
         }
+        if (rootChildren != null) {
+          int pos = rootChildren.indexOf(tokenChild);
+          if (pos > 0) {
+            rootChildren.remove(pos);
+            SyntheticTokenTracker tokenTracker =
+                new SyntheticTokenTracker(currentRoot, pos, nonCachePageSize);
+            List<UpdatableModelChild> childrenToBind = tokenTracker.insertToken();
+            List<UpdatableModelChild> cursorSublist =
+                rootChildren.subList(pos, rootChildren.size());
 
-        UpdatableModelChild tokenChild = tracker.getTokenChild();
-        Logger.i(TAG, "Found Token %s", tokenChild != null);
-        if (tokenChild != null && root != null) {
-          List<UpdatableModelChild> rootChildren = containers.get(root.getContentId());
-          if (rootChildren != null) {
-            int pos = rootChildren.indexOf(tokenChild);
-            if (pos > 0) {
-              rootChildren.remove(pos);
-              SyntheticTokenTracker tokenTracker =
-                  new SyntheticTokenTracker(Validators.checkNotNull(root), pos, nonCachePageSize);
-              List<UpdatableModelChild> childrenToBind = tokenTracker.insertToken();
-              List<UpdatableModelChild> cursorSublist =
-                  rootChildren.subList(pos, rootChildren.size());
+            // Bind the unbound children
+            bindChildrenAndTokens(
+                childrenToBind,
+                (bindingCount) -> {
+                  ModelCursorImpl cursor =
+                      new ModelCursorImpl(streamToken.getParentId(), cursorSublist, threadUtils);
 
-              // Bind the unbound children
-              bindChildrenAndTokens(
-                  childrenToBind,
-                  (bindingCount) -> {
-                    ModelCursorImpl cursor =
-                        new ModelCursorImpl(streamToken.getParentId(), cursorSublist, threadUtils);
-
-                    TokenCompleted tokenCompleted = new TokenCompleted(cursor);
-                    List<TokenCompletedObserver> observers = token.getObserversToNotify();
-                    mainThreadRunner.execute(
-                        TAG + " - onTokenChange",
-                        () -> {
-                          for (TokenCompletedObserver observer : observers) {
-                            observer.onTokenCompleted(tokenCompleted);
-                          }
-                        });
-                  });
-            }
+                  TokenCompleted tokenCompleted = new TokenCompleted(cursor);
+                  List<TokenCompletedObserver> observers = token.getObserversToNotify();
+                  mainThreadRunner.execute(
+                      TAG + " - onTokenChange",
+                      () -> {
+                        for (TokenCompletedObserver observer : observers) {
+                          observer.onTokenCompleted(tokenCompleted);
+                        }
+                      });
+                });
           }
         }
       }
