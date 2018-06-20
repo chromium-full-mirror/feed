@@ -188,13 +188,17 @@ public class SessionCache implements Dumpable {
   }
 
   public void reset() {
+    List<Session> sessionList;
     synchronized (lock) {
-      for (Session session : sessions.values()) {
-        ModelProvider modelProvider = session.getModelProvider();
-        if (modelProvider != null) {
-          modelProvider.invalidate();
-        }
+      sessionList = new ArrayList<>(sessions.values());
+    }
+    for (Session session : sessionList) {
+      ModelProvider modelProvider = session.getModelProvider();
+      if (modelProvider != null) {
+        modelProvider.invalidate();
       }
+    }
+    synchronized (lock) {
       sessions.clear();
       if (head != null) {
         head.reset();
