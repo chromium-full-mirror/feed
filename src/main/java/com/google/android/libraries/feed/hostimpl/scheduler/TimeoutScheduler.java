@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
 import android.database.Observable;
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
@@ -24,6 +25,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Concrete impl of {@link SchedulerApi}. The implementation will timeout session creation when a
@@ -41,6 +43,8 @@ public class TimeoutScheduler implements SchedulerApi {
   private final long storiesAreCurrentMs;
   private final long currentStoresWithRefreshMs;
 
+  @VisibleForTesting final AtomicBoolean clearAllTriggered = new AtomicBoolean(false);
+
   public TimeoutScheduler(
       ThreadUtils threadUtils,
       Clock clock,
@@ -55,6 +59,17 @@ public class TimeoutScheduler implements SchedulerApi {
     currentStoresWithRefreshMs =
         configuration.getValueOrDefault(
             ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH, TIMEOUT_STORIES_CURRENT_WITH_REFRESH);
+
+    lifecycleListenerObservable.registerObserver(
+        (event) -> {
+          switch (event) {
+            case FeedLifecycleListener.LifecycleEvent.CLEAR_ALL:
+              clearAllTriggered.set(true);
+              break;
+            default:
+              // Do nothing
+          }
+        });
   }
 
   @Override
@@ -64,6 +79,10 @@ public class TimeoutScheduler implements SchedulerApi {
     if (!useTimeScheduler) {
       Logger.i(TAG, "TimeoutScheduler is Disabled: NO_REQUEST_WITH_CONTENT");
       return RequestBehavior.NO_REQUEST_WITH_WAIT;
+    }
+    if (clearAllTriggered.get()) {
+      clearAllTriggered.set(false);
+      return RequestBehavior.NO_REQUEST_WITH_CONTENT;
     }
     Logger.i(
         TAG,

@@ -18,10 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import android.database.Observable;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
@@ -41,7 +40,7 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
   private static final long TIMEOUT_STORIES_CURRENT_WITH_REFRESH = 4;
 
   @Mock private ThreadUtils threadUtils;
-  @Mock private Observable<FeedLifecycleListener> lifecycleListenerObservable;
+  private FeedAppLifecycleListener lifecycleListenerObservable;
   @Mock private Clock clock;
 
   private Configuration config;
@@ -57,6 +56,7 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
                 ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH,
                 TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
             .build();
+    lifecycleListenerObservable = new FeedAppLifecycleListener(threadUtils);
     scheduler = new TimeoutScheduler(threadUtils, clock, config, lifecycleListenerObservable);
   }
 
@@ -117,6 +117,18 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
     SessionManagerState state = new SessionManagerState(true, 1L, false);
     assertThat(scheduler.shouldSessionRequestData(state))
         .isEqualTo(RequestBehavior.REQUEST_WITH_TIMEOUT);
+  }
+
+  @Test
+  public void testLifecycleEvent() {
+    TimeoutScheduler scheduler = getScheduler(true);
+    assertThat(scheduler.clearAllTriggered.get()).isFalse();
+    lifecycleListenerObservable.onClearAll();
+    assertThat(scheduler.clearAllTriggered.get()).isTrue();
+    SessionManagerState state = new SessionManagerState(true, 1L, false);
+    assertThat(scheduler.shouldSessionRequestData(state))
+        .isEqualTo(RequestBehavior.NO_REQUEST_WITH_CONTENT);
+    assertThat(scheduler.clearAllTriggered.get()).isFalse();
   }
 
   private TimeoutScheduler getScheduler(boolean useScheduler) {
