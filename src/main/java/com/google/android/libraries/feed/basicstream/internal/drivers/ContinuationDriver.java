@@ -36,6 +36,7 @@ public class ContinuationDriver extends LeafFeatureDriver implements OnClickList
   private final ModelToken modelToken;
   private final ModelProvider modelProvider;
   private boolean showSpinner;
+  private boolean initialized;
   /*@Nullable*/ private ContinuationViewHolder continuationViewHolder;
 
   ContinuationDriver(
@@ -44,6 +45,23 @@ public class ContinuationDriver extends LeafFeatureDriver implements OnClickList
     this.modelToken = modelToken;
     this.showSpinner =
         configuration.getValueOrDefault(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false);
+  }
+
+  public boolean isSynthetic() {
+    return modelToken.isSynthetic();
+  }
+
+  public void initialize() {
+    if (initialized) {
+      return;
+    }
+
+    initialized = true;
+    if (modelToken.isSynthetic()) {
+      Logger.d(TAG, "Handling synthetic token");
+      showSpinner = true;
+      modelProvider.handleToken(modelToken);
+    }
   }
 
   // TODO: Instead of implementing an onClickListener, define a new interface with a method
@@ -61,6 +79,7 @@ public class ContinuationDriver extends LeafFeatureDriver implements OnClickList
 
   @Override
   public void bind(FeedViewHolder viewHolder) {
+    checkState(initialized);
     if (isBound()) {
       Logger.wtf(TAG, "Rebinding.");
     }
@@ -86,6 +105,8 @@ public class ContinuationDriver extends LeafFeatureDriver implements OnClickList
   }
 
   public void hideSpinner() {
+    checkState(initialized);
+
     showSpinner = false;
 
     if (continuationViewHolder != null) {

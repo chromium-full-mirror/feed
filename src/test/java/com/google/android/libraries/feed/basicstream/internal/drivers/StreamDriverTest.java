@@ -131,6 +131,8 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers.get(0)).isEqualTo(getLeafFeatureDriverFromCard(0));
     assertThat(leafFeatureDrivers.get(1)).isEqualTo(getLeafFeatureDriverFromCluster(1));
     assertThat(leafFeatureDrivers.get(2)).isEqualTo(continuationDriver);
+
+    verify(continuationDriver).initialize();
   }
 
   @Test
@@ -153,7 +155,21 @@ public class StreamDriverTest {
 
     streamDriver.maybeRestoreScroll();
 
-    // Should never restore scroll if token is last
+    // Should restore scroll if a non-sythetic token is last
+    verify(scrollRestorer).maybeRestoreScroll();
+  }
+
+  @Test
+  public void testMaybeRestoreScroll_withSyntheticToken() {
+    when(streamFeature.getCursor())
+        .thenReturn(new FakeCursorBuilder().addCard().addCluster().addSyntheticToken().build());
+    when(continuationDriver.isSynthetic()).thenReturn(true);
+
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.maybeRestoreScroll();
+
+    // Should never restore scroll if a synthetic token is last
     verify(scrollRestorer, never()).maybeRestoreScroll();
   }
 
@@ -181,6 +197,8 @@ public class StreamDriverTest {
     // If the above two assertions pass, this is also guaranteed to pass. This is just to explicitly
     // check that the ContinuationDriver has been removed.
     assertThat(finalContentModels).doesNotContain(continuationDriver);
+
+    verify(scrollRestorer).maybeRestoreScroll();
   }
 
   @Test
@@ -546,13 +564,23 @@ public class StreamDriverTest {
       return this;
     }
 
-    FakeCursorBuilder addToken() {
+    FakeCursorBuilder addToken(boolean isSynthetic) {
       ModelChild tokenChild =
-          new FakeModelChild.Builder().setModelToken(new FakeModelToken.Builder().build()).build();
+          new FakeModelChild.Builder()
+              .setModelToken(new FakeModelToken.Builder().setIsSynthetic(isSynthetic).build())
+              .build();
 
       cursorChildren.add(tokenChild);
 
       return this;
+    }
+
+    FakeCursorBuilder addToken() {
+      return addToken(/* isSynthetic= */ false);
+    }
+
+    FakeCursorBuilder addSyntheticToken() {
+      return addToken(/* isSynthetic= */ true);
     }
 
     public FakeModelCursor build() {

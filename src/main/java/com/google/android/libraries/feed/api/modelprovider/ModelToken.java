@@ -21,6 +21,9 @@ public interface ModelToken {
   /** Returns the {@link StreamToken} proto instance. */
   StreamToken getStreamToken();
 
+  /** Returns {@code true} if token was generated on-device and can complete quickly. */
+  boolean isSynthetic();
+
   /** Register a {@link TokenCompletedObserver} for completion of this continuation token. */
   void registerObserver(TokenCompletedObserver observer);
 

@@ -101,7 +101,11 @@ public class StreamDriver implements FeatureChangeObserver {
   public void maybeRestoreScroll() {
     // TODO: Handle continuation driver. This needs to handle synthetic tokens.
     if (isLastDriverContinuationDriver()) {
-      return;
+      ContinuationDriver continuationDriver =
+          (ContinuationDriver) featureDrivers.get(featureDrivers.size() - 1);
+      if (continuationDriver.isSynthetic()) {
+        return;
+      }
     }
 
     scrollRestorer.maybeRestoreScroll();
@@ -199,6 +203,8 @@ public class StreamDriver implements FeatureChangeObserver {
                   featureDrivers.remove(0);
                   notifyContentRemoved(0);
                 }
+
+                maybeRestoreScroll();
               }
 
               @Override
@@ -208,6 +214,10 @@ public class StreamDriver implements FeatureChangeObserver {
               }
             });
 
+        // TODO: Look into moving initialize() into a more generic location. We don't
+        // really want work to be done in the constructor so we call an initialize() method to
+        // kick off any expensive work the driver may need to do.
+        continuationDriver.initialize();
         return continuationDriver;
       case Type.UNBOUND:
         Logger.e(TAG, "Found unbound child %s, ignoring it", child.getContentId());

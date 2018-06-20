@@ -31,6 +31,7 @@ public class UpdatableModelToken extends Observable<TokenCompletedObserver> impl
     this.isSynthetic = isSynthetic;
   }
 
+  @Override
   public boolean isSynthetic() {
     return isSynthetic;
   }

@@ -78,6 +78,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",

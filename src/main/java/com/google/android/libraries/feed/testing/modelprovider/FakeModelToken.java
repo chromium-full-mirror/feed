@@ -23,10 +23,12 @@ import java.util.HashSet;
 public class FakeModelToken implements ModelToken {
 
   private final StreamToken streamToken;
+  private final boolean isSynthetic;
   private final HashSet<TokenCompletedObserver> observers = new HashSet<>();
 
-  private FakeModelToken(StreamToken streamToken) {
+  private FakeModelToken(StreamToken streamToken, boolean isSynthetic) {
     this.streamToken = streamToken;
+    this.isSynthetic = isSynthetic;
   }
 
   public HashSet<TokenCompletedObserver> getObservers() {
@@ -48,16 +50,27 @@ public class FakeModelToken implements ModelToken {
     observers.remove(observer);
   }
 
+  @Override
+  public boolean isSynthetic() {
+    return isSynthetic;
+  }
+
   public static class Builder {
     private StreamToken streamToken = StreamToken.getDefaultInstance();
+    private boolean isSynthetic;
 
     public Builder setStreamToken(StreamToken streamToken) {
       this.streamToken = streamToken;
       return this;
     }
 
+    public Builder setIsSynthetic(boolean isSynthetic) {
+      this.isSynthetic = isSynthetic;
+      return this;
+    }
+
     public FakeModelToken build() {
-      return new FakeModelToken(streamToken);
+      return new FakeModelToken(streamToken, isSynthetic);
     }
   }
 }
