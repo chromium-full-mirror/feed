@@ -12,6 +12,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
         "//src/main/java/com/google/android/libraries/feed/api/scope",
         "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
         "//src/main/java/com/google/android/libraries/feed/feedprotocoladapter",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",

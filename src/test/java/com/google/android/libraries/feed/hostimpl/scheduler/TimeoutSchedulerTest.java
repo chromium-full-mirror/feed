@@ -18,8 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.database.Observable;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
@@ -39,6 +41,7 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
   private static final long TIMEOUT_STORIES_CURRENT_WITH_REFRESH = 4;
 
   @Mock private ThreadUtils threadUtils;
+  @Mock private Observable<FeedLifecycleListener> lifecycleListenerObservable;
   @Mock private Clock clock;
 
   private Configuration config;
@@ -54,7 +57,7 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
                 ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH,
                 TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
             .build();
-    scheduler = new TimeoutScheduler(threadUtils, clock, config);
+    scheduler = new TimeoutScheduler(threadUtils, clock, config, lifecycleListenerObservable);
   }
 
   @Test
@@ -125,6 +128,6 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
                 ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH,
                 TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
             .build();
-    return new TimeoutScheduler(threadUtils, clock, config);
+    return new TimeoutScheduler(threadUtils, clock, config, lifecycleListenerObservable);
   }
 }

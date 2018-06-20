@@ -32,7 +32,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
-import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener.LifecycleEvent;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;

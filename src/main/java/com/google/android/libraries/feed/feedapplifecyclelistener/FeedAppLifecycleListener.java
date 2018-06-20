@@ -18,8 +18,7 @@ import android.database.Observable;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
-import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener.LifecycleEvent;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 
 /** Default implementation of {@link AppLifecycleListener} */
 public class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
@@ -36,7 +35,7 @@ public class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
   public void onEnterForeground() {
     threadUtils.checkMainThread();
     Logger.i(TAG, "onEnterForeground called");
-    dispatchLifecycleEvent(LifecycleEvent.ENTER_FORERGROUND);
+    dispatchLifecycleEvent(LifecycleEvent.ENTER_FOREGROUND);
   }
 
   @Override

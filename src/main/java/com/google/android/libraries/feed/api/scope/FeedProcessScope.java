@@ -66,7 +66,7 @@ import java.util.concurrent.ExecutorService;
 public class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
-  public FeedStreamScope.Builder createFeedStreamScopeBuilder(
+  FeedStreamScope.Builder createFeedStreamScopeBuilder(
       Context context,
       ImageLoaderApi imageLoaderApi,
       ActionApi actionApi,
@@ -125,11 +125,13 @@ public class FeedProcessScope implements Dumpable {
         LoggingApi loggingApi,
         NetworkClient networkClient,
         SchedulerApi schedulerApi,
+        FeedAppLifecycleListener lifecycleListener,
         DebugBehavior debugBehavior) {
       this.configuration = configuration;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
       this.schedulerApi = schedulerApi;
+      this.lifecycleListener = lifecycleListener;
       this.debugBehavior = debugBehavior;
 
       this.taskQueue = new TaskQueue(singleThreadExecutor);
@@ -205,8 +207,7 @@ public class FeedProcessScope implements Dumpable {
               taskQueue,
               clock);
 
-      FeedAppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
-      appLifecycleListener.registerObserver(store);
+      lifecycleListener.registerObserver(store);
 
       if (protocolAdapter == null) {
         protocolAdapter = new FeedProtocolAdapter(timingUtils);
@@ -240,7 +241,7 @@ public class FeedProcessScope implements Dumpable {
                 schedulerApi,
                 configuration,
                 clock,
-                appLifecycleListener);
+                lifecycleListener);
         sessionManager = fsmFactory.create();
       }
 
@@ -257,7 +258,7 @@ public class FeedProcessScope implements Dumpable {
           timingUtils,
           threadUtils,
           mainThreadRunner,
-          appLifecycleListener,
+          lifecycleListener,
           clock,
           debugBehavior,
           actionManager,
@@ -270,6 +271,7 @@ public class FeedProcessScope implements Dumpable {
     private final LoggingApi loggingApi;
     private final NetworkClient networkClient;
     private final SchedulerApi schedulerApi;
+    private final FeedAppLifecycleListener lifecycleListener;
     private final DebugBehavior debugBehavior;
 
     // Optional fields - if they are not provided, we will use default implementations.

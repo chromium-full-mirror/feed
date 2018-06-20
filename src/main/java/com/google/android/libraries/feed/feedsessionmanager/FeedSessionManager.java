@@ -48,7 +48,7 @@ import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;

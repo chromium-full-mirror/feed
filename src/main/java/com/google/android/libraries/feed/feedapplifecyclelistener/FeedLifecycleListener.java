@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.feedapplifecyclelistener.internal;
+package com.google.android.libraries.feed.feedapplifecyclelistener;
 
 import android.support.annotation.StringDef;
 
@@ -23,14 +23,14 @@ import android.support.annotation.StringDef;
 public interface FeedLifecycleListener {
   /** The types of lifecycle events. */
   @StringDef({
-    LifecycleEvent.ENTER_FORERGROUND,
+    LifecycleEvent.ENTER_FOREGROUND,
     LifecycleEvent.ENTER_BACKGROUND,
     LifecycleEvent.OPT_IN,
     LifecycleEvent.OPT_OUT,
     LifecycleEvent.CLEAR_ALL
   })
   @interface LifecycleEvent {
-    String ENTER_FORERGROUND = "foreground";
+    String ENTER_FOREGROUND = "foreground";
     String ENTER_BACKGROUND = "background";
     String OPT_IN = "optIn";
     String OPT_OUT = "optOut";

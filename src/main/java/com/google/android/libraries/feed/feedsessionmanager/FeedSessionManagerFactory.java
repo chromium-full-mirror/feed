@@ -24,7 +24,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCommitterFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;

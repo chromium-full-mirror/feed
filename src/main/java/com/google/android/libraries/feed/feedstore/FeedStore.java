@@ -36,7 +36,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
-import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.feedstore.internal.ClearableStore;
 import com.google.android.libraries.feed.feedstore.internal.EphemeralFeedStore;
 import com.google.android.libraries.feed.feedstore.internal.FeedStoreHelper;

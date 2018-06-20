@@ -18,8 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener;
-import com.google.android.libraries.feed.feedapplifecyclelistener.internal.FeedLifecycleListener.LifecycleEvent;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +42,7 @@ public class FeedAppLifecycleListenerTest {
   @Test
   public void onEnterForeground() {
     appLifecycleListener.onEnterForeground();
-    verify(lifecycleListener).onLifecycleEvent(LifecycleEvent.ENTER_FORERGROUND);
+    verify(lifecycleListener).onLifecycleEvent(LifecycleEvent.ENTER_FOREGROUND);
   }
 
   @Test

@@ -14,10 +14,12 @@
 
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
+import android.database.Observable;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
@@ -39,7 +41,11 @@ public class TimeoutScheduler implements SchedulerApi {
   private final long storiesAreCurrentMs;
   private final long currentStoresWithRefreshMs;
 
-  public TimeoutScheduler(ThreadUtils threadUtils, Clock clock, Configuration configuration) {
+  public TimeoutScheduler(
+      ThreadUtils threadUtils,
+      Clock clock,
+      Configuration configuration,
+      Observable<FeedLifecycleListener> lifecycleListenerObservable) {
     this.threadUtils = threadUtils;
     this.clock = clock;
     useTimeScheduler = configuration.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, false);
