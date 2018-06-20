@@ -25,9 +25,13 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
  * model to build the UI displayed to the user.
  */
 public interface ModelProvider {
-  /** Provides the contentId of the lowest child of the root viewed by the user. */
+  /**
+   * Provides the contentId of the lowest child of the root viewed by the user, or {@code null} if
+   * no content with a ContentId has been seen.
+   */
   interface ViewDepthProvider {
     /** Returns a contentId of the lowest root child seen by the user. */
+    /*@Nullable*/
     String getChildViewDepth();
   }
 

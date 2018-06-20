@@ -8,6 +8,7 @@ android_library(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/actionparser",
+        "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",

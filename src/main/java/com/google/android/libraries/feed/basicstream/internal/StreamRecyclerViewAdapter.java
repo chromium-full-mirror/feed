@@ -60,8 +60,10 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<View> headers;
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
+  private final DeepestContentTracker deepestContentTracker;
 
   private boolean streamContentVisible;
+
   /*@Nullable*/ private StreamDriver streamDriver;
 
   // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
@@ -72,7 +74,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       PietManager pietManager,
       ActionParser actionParser,
       ActionApi actionApi,
-      ActionManager actionManager) {
+      ActionManager actionManager,
+      DeepestContentTracker deepestContentTracker) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
@@ -84,6 +87,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     setHasStableIds(true);
     boundViewHolderToLeafFeatureDriverMap = new HashMap<>();
     streamContentVisible = true;
+    this.deepestContentTracker = deepestContentTracker;
   }
 
   @Override
@@ -108,13 +112,16 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   }
 
   @Override
-  public void onBindViewHolder(FeedViewHolder viewHolder, int i) {
-    if (isHeader(i)) {
-      injectHeader((HeaderViewHolder) viewHolder, i);
+  public void onBindViewHolder(FeedViewHolder viewHolder, int index) {
+    if (isHeader(index)) {
+      injectHeader((HeaderViewHolder) viewHolder, index);
       return;
     }
-    Logger.d(TAG, "onBindViewHolder %s", i);
-    LeafFeatureDriver leafFeatureDriver = leafFeatureDrivers.get(positionToStreamIndex(i));
+    Logger.d(TAG, "onBindViewHolder %s", index);
+    LeafFeatureDriver leafFeatureDriver = leafFeatureDrivers.get(positionToStreamIndex(index));
+
+    deepestContentTracker.updateDeepestContentTracker(
+        positionToStreamIndex(index), leafFeatureDriver.getContentId());
 
     leafFeatureDriver.bind(viewHolder);
     boundViewHolderToLeafFeatureDriverMap.put(viewHolder, leafFeatureDriver);

@@ -138,11 +138,6 @@ public class ContinuationDriver extends LeafFeatureDriver
     continuationViewHolder = null;
   }
 
-  @VisibleForTesting
-  boolean isBound() {
-    return continuationViewHolder != null;
-  }
-
   @Override
   public void onTokenCompleted(TokenCompleted tokenCompleted) {
     threadUtils.checkMainThread();
@@ -201,5 +196,15 @@ public class ContinuationDriver extends LeafFeatureDriver
      * @param modelChildren the list of new {@link ModelChild} from the token.
      */
     void onNewChildren(ModelChild modelChild, List<ModelChild> modelChildren);
+  }
+
+  @VisibleForTesting
+  boolean isBound() {
+    return continuationViewHolder != null;
+  }
+
+  @Override
+  public String getContentId() {
+    return modelToken.getStreamToken().getContentId();
   }
 }

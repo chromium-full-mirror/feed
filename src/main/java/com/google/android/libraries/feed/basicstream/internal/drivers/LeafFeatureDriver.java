@@ -49,4 +49,10 @@ public abstract class LeafFeatureDriver implements FeatureDriver {
    * and their previously bound {@link FeedViewHolder}.
    */
   public abstract void unbind();
+
+  /** Returns the contentId of the {@link LeafFeatureDriver} if it has one. */
+  /*@Nullable*/
+  public String getContentId() {
+    return null;
+  };
 }

@@ -19,6 +19,7 @@ import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_SCRO
 import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_SESSION_TOKEN;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -40,9 +41,11 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
+import com.google.android.libraries.feed.basicstream.internal.DeepestContentTracker;
 import com.google.android.libraries.feed.basicstream.internal.StreamContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
@@ -111,8 +114,9 @@ public class BasicStreamTest {
     when(streamConfiguration.getPaddingEnd()).thenReturn(END_PADDING);
     when(streamConfiguration.getPaddingTop()).thenReturn(TOP_PADDING);
     when(streamConfiguration.getPaddingBottom()).thenReturn(BOTTOM_PADDING);
-    
-    when(modelProviderFactory.createNew()).thenReturn(initialModelProvider, modelProvider);
+
+    when(modelProviderFactory.createNew(any(ViewDepthProvider.class)))
+        .thenReturn(initialModelProvider, modelProvider);
 
     when(initialModelProvider.getSessionToken()).thenReturn(SESSION_TOKEN);
 
@@ -143,7 +147,7 @@ public class BasicStreamTest {
 
     verify(scrollRestorer).abandonRestoringScroll();
     verify(initialModelProvider).unregisterObserver(basicStream);
-    verify(modelProviderFactory, times(2)).createNew();
+    verify(modelProviderFactory, times(2)).createNew(any(ViewDepthProvider.class));
     verify(modelProvider).registerObserver(basicStream);
   }
 
@@ -527,7 +531,8 @@ public class BasicStreamTest {
         PietManager pietManager,
         ActionParser actionParser,
         ActionApi actionApi,
-        ActionManager actionManager) {
+        ActionManager actionManager,
+        DeepestContentTracker deepestContentTracker) {
       return adapter;
     }
 

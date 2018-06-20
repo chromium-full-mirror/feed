@@ -32,6 +32,7 @@ import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
@@ -63,21 +64,26 @@ public class StreamRecyclerViewAdapterTest {
   private static final int HEADER_COUNT = 2;
   private static final long FEATURE_DRIVER_1_ID = 123;
   private static final long FEATURE_DRIVER_2_ID = 321;
+  private static final String INITIAL_CONTENT_ID = "INITIAL_CONTENT_ID";
+  private static final String FEATURE_DRIVER_1_CONTENT_ID = "FEATURE_DRIVER_1_CONTENT_ID";
+  private static final String FEATURE_DRIVER_2_CONTENT_ID = "FEATURE_DRIVER_2_CONTENT_ID";
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private PietManager pietManager;
   @Mock private FrameAdapter frameAdapter;
   @Mock private StreamDriver driver;
-  @Mock private LeafFeatureDriver initialFeatureDriver;
-  @Mock private LeafFeatureDriver featureDriver1;
-  @Mock private LeafFeatureDriver featureDriver2;
+  @Mock private ContentDriver initialFeatureDriver;
+  @Mock private ContentDriver featureDriver1;
+  @Mock private ContentDriver featureDriver2;
   @Mock private ActionParser actionParser;
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
+  @Mock private DeepestContentTracker deepestContentTracker;
+
   private Context context;
   private LinearLayout frameContainer;
   private StreamRecyclerViewAdapter streamRecyclerViewAdapter;
-  private ArrayList headers;
+  private List<View> headers;
   private StreamAdapterObserver streamAdapterObserver;
 
   @SuppressWarnings("unchecked") // Needed for templated captures.
@@ -95,14 +101,22 @@ public class StreamRecyclerViewAdapterTest {
 
     when(featureDriver1.itemId()).thenReturn(FEATURE_DRIVER_1_ID);
     when(featureDriver2.itemId()).thenReturn(FEATURE_DRIVER_2_ID);
+    when(initialFeatureDriver.getContentId()).thenReturn(INITIAL_CONTENT_ID);
 
-    headers = new ArrayList<>();
-    for (int i = 0; i < HEADER_COUNT; ++i) {
-      headers.add(new View(context));
-    }
+    headers = createHeaders(HEADER_COUNT);
+
+    when(featureDriver1.getContentId()).thenReturn(FEATURE_DRIVER_1_CONTENT_ID);
+    when(featureDriver2.getContentId()).thenReturn(FEATURE_DRIVER_2_CONTENT_ID);
+
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
-            context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
+            context,
+            cardConfiguration,
+            pietManager,
+            actionParser,
+            actionApi,
+            actionManager,
+            deepestContentTracker);
     streamRecyclerViewAdapter.setHeaders(headers);
 
     when(driver.getLeafFeatureDrivers()).thenReturn(Lists.newArrayList(initialFeatureDriver));
@@ -335,6 +349,23 @@ public class StreamRecyclerViewAdapterTest {
     // Nothing additional should get called
     assertThat(streamAdapterObserver.insertedStart).isEqualTo(0);
     assertThat(streamAdapterObserver.insertedCount).isEqualTo(0);
+  }
+
+  @Test
+  public void testOnBindViewHolder_updatesDeepestViewedContent() {
+    PietViewHolder viewHolder = mock(PietViewHolder.class);
+
+    streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getContentBindingIndex(0));
+
+    verify(deepestContentTracker).updateDeepestContentTracker(0, INITIAL_CONTENT_ID);
+  }
+
+  private List<View> createHeaders(int numHeaders) {
+    List<View> headerViews = new ArrayList<>(numHeaders);
+    for (int i = 0; i < numHeaders; i++) {
+      headerViews.add(new View(context));
+    }
+    return headerViews;
   }
 
   private FrameLayout getCardView(ViewHolder viewHolder) {

@@ -1,6 +1,23 @@
 licenses(["notice"])  # Apache 2
 
 android_local_test(
+    name = "DeepestContentTrackerTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["DeepestContentTrackerTest.java"],
+    manifest = "AndroidManifest.xml",
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
+        "@bazel_android//:robolectric",
+        "@com_google_truth_truth//jar",
+        "@org_mockito_mockito_all//jar",
+    ],
+)
+
+android_local_test(
     name = "StreamActionApiImplTest",
     size = "small",
     timeout = "moderate",

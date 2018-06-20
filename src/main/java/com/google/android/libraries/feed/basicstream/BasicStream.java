@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
+import com.google.android.libraries.feed.basicstream.internal.DeepestContentTracker;
 import com.google.android.libraries.feed.basicstream.internal.StreamContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamItemAnimator;
 import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCallbacks;
@@ -82,6 +83,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final Configuration configuration;
   private final SnackbarApi snackbarApi;
   private final StreamContentChangedListener streamContentChangedListener;
+  private final DeepestContentTracker deepestContentTracker;
 
   private RecyclerView recyclerView;
   private Context context;
@@ -134,6 +136,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.configuration = configuration;
     this.snackbarApi = snackbarApi;
     this.streamContentChangedListener = createStreamContentChangedListener();
+    this.deepestContentTracker = new DeepestContentTracker();
   }
 
   @VisibleForTesting
@@ -159,7 +162,13 @@ public class BasicStream implements Stream, ModelProviderObserver {
     // TODO: Implement save/restore.
     adapter =
         createRecyclerViewAdapter(
-            context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
+            context,
+            cardConfiguration,
+            pietManager,
+            actionParser,
+            actionApi,
+            actionManager,
+            deepestContentTracker);
     adapter.setHeaders(headers);
 
     recyclerView = new RecyclerView(context);
@@ -209,7 +218,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
       if (localModelProvider == null) {
         // If a session is no longer valid then a ModelProvider will not have been created above.
         Logger.d(TAG, "Creating new session for showing.");
-        localModelProvider = modelProviderFactory.createNew();
+        localModelProvider = modelProviderFactory.createNew(deepestContentTracker);
       }
 
       modelProvider = localModelProvider;
@@ -391,6 +400,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             scrollRestorer);
 
     adapter.setDriver(streamDriver);
+
+    deepestContentTracker.reset();
   }
 
   @Override
@@ -412,7 +423,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     if (modelProvider != null) {
       modelProvider.unregisterObserver(this);
     }
-    modelProvider = modelProviderFactory.createNew();
+    modelProvider = modelProviderFactory.createNew(deepestContentTracker);
     modelProvider.registerObserver(this);
   }
 
@@ -447,9 +458,16 @@ public class BasicStream implements Stream, ModelProviderObserver {
       PietManager pietManager,
       ActionParser actionParser,
       ActionApi actionApi,
-      ActionManager actionManager) {
+      ActionManager actionManager,
+      DeepestContentTracker deepestContentTracker) {
     return new StreamRecyclerViewAdapter(
-        context, cardConfiguration, pietManager, actionParser, actionApi, actionManager);
+        context,
+        cardConfiguration,
+        pietManager,
+        actionParser,
+        actionApi,
+        actionManager,
+        deepestContentTracker);
   }
 
   @VisibleForTesting

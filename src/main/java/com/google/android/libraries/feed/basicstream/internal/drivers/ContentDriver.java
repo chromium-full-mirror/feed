@@ -42,6 +42,7 @@ public class ContentDriver extends LeafFeatureDriver {
   private final List<PietSharedState> pietSharedStates;
   private final Frame frame;
   private final FeedActionPayload swipeAction;
+  private final String contentId;
 
   /*@Nullable*/ private PietViewHolder viewHolder;
 
@@ -52,6 +53,7 @@ public class ContentDriver extends LeafFeatureDriver {
     PietContent pietContent = getPietContent(contentFeatureModel.getStreamFeature().getContent());
     frame = pietContent.getFrame();
     pietSharedStates = getPietSharedStates(pietContent, modelProvider);
+    contentId = contentFeatureModel.getStreamFeature().getContentId();
     this.swipeAction = swipeAction;
   }
 
@@ -138,5 +140,10 @@ public class ContentDriver extends LeafFeatureDriver {
   @VisibleForTesting
   boolean isBound() {
     return viewHolder != null;
+  }
+
+  @Override
+  public String getContentId() {
+    return contentId;
   }
 }
