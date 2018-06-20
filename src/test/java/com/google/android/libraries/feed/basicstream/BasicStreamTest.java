@@ -372,7 +372,7 @@ public class BasicStreamTest {
     basicStream.triggerRefresh();
 
     verify(initialModelProvider).triggerRefresh();
-    verify(streamDriver).showLoadingSpinner();
+    verify(streamDriver).showZeroState(/* showSpinner= */ true);
   }
 
   @Test
@@ -380,7 +380,7 @@ public class BasicStreamTest {
     basicStream.triggerRefresh();
 
     verify(initialModelProvider, never()).triggerRefresh();
-    verify(streamDriver, never()).showLoadingSpinner();
+    verify(streamDriver, never()).showZeroState(/* showSpinner= */ true);
   }
 
   @Test

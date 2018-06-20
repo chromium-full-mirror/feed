@@ -16,6 +16,11 @@ package com.google.android.libraries.feed.testing.modelprovider;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.common.collect.ImmutableList;
+import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.ui.stream.StreamStructureProto.Card;
+import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
+import java.util.ArrayList;
 import java.util.List;
 
 /** A fake {@link ModelCursor} for testing. */
@@ -45,5 +50,68 @@ public class FakeModelCursor implements ModelCursor {
 
   public ModelChild getChildAt(int i) {
     return modelChildren.get(i);
+  }
+
+  public List<ModelChild> getModelChildren() {
+    return ImmutableList.copyOf(modelChildren);
+  }
+
+  public static class Builder {
+    List<ModelChild> cursorChildren = new ArrayList<>();
+
+    public Builder addCard() {
+      ModelChild cardChild =
+          new FakeModelChild.Builder()
+              .setModelFeature(
+                  new FakeModelFeature.Builder()
+                      .setStreamFeature(
+                          StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
+                      .build())
+              .build();
+
+      cursorChildren.add(cardChild);
+
+      return this;
+    }
+
+    public Builder addCluster() {
+      ModelChild clusterChild =
+          new FakeModelChild.Builder()
+              .setModelFeature(
+                  new FakeModelFeature.Builder()
+                      .setStreamFeature(
+                          StreamFeature.newBuilder()
+                              .setCluster(Cluster.getDefaultInstance())
+                              .build())
+                      .build())
+              .build();
+
+      cursorChildren.add(clusterChild);
+
+      return this;
+    }
+
+    public Builder addToken(boolean isSynthetic) {
+      ModelChild tokenChild =
+          new FakeModelChild.Builder()
+              .setModelToken(new FakeModelToken.Builder().setIsSynthetic(isSynthetic).build())
+              .build();
+
+      cursorChildren.add(tokenChild);
+
+      return this;
+    }
+
+    public Builder addToken() {
+      return addToken(/* isSynthetic= */ false);
+    }
+
+    public Builder addSyntheticToken() {
+      return addToken(/* isSynthetic= */ true);
+    }
+
+    public FakeModelCursor build() {
+      return new FakeModelCursor(cursorChildren);
+    }
   }
 }

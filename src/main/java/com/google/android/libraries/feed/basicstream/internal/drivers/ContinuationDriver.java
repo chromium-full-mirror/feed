@@ -17,32 +17,65 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
+import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.View.OnClickListener;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
+import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
+import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
+import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.stream.SnackbarApi;
+import java.util.ArrayList;
+import java.util.List;
 
 /** {@link FeatureDriver} for the more button. */
-public class ContinuationDriver extends LeafFeatureDriver implements OnClickListener {
+public class ContinuationDriver extends LeafFeatureDriver
+    implements OnClickListener, TokenCompletedObserver {
 
   private static final String TAG = "ContinuationDriver";
+  private final Context context;
+  private final CursorChangedListener cursorChangedListener;
+  private final ModelChild modelChild;
   private final ModelToken modelToken;
   private final ModelProvider modelProvider;
+  private final ScrollRestorer scrollRestorer;
+  private final SnackbarApi snackbarApi;
+  private final ThreadUtils threadUtils;
   private boolean showSpinner;
   private boolean initialized;
   /*@Nullable*/ private ContinuationViewHolder continuationViewHolder;
 
   ContinuationDriver(
-      ModelProvider modelProvider, ModelToken modelToken, Configuration configuration) {
+      Configuration configuration,
+      Context context,
+      CursorChangedListener cursorChangedListener,
+      ModelChild modelChild,
+      ModelProvider modelProvider,
+      ScrollRestorer scrollRestorer,
+      SnackbarApi snackbarApi,
+      ThreadUtils threadUtils) {
+    this.context = context;
+    this.cursorChangedListener = cursorChangedListener;
+    this.modelChild = modelChild;
     this.modelProvider = modelProvider;
-    this.modelToken = modelToken;
+    this.modelToken = modelChild.getModelToken();
+    this.scrollRestorer = scrollRestorer;
+    this.snackbarApi = snackbarApi;
+    this.threadUtils = threadUtils;
     this.showSpinner =
         configuration.getValueOrDefault(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false);
   }
@@ -57,6 +90,7 @@ public class ContinuationDriver extends LeafFeatureDriver implements OnClickList
     }
 
     initialized = true;
+    modelToken.registerObserver(this);
     if (modelToken.isSynthetic()) {
       Logger.d(TAG, "Handling synthetic token");
       showSpinner = true;
@@ -104,19 +138,68 @@ public class ContinuationDriver extends LeafFeatureDriver implements OnClickList
     continuationViewHolder = null;
   }
 
-  public void hideSpinner() {
-    checkState(initialized);
-
-    showSpinner = false;
-
-    if (continuationViewHolder != null) {
-      continuationViewHolder.setShowSpinner(false);
-    }
-  }
-
   @VisibleForTesting
   boolean isBound() {
     return continuationViewHolder != null;
   }
 
+  @Override
+  public void onTokenCompleted(TokenCompleted tokenCompleted) {
+    threadUtils.checkMainThread();
+    ModelCursor cursor = tokenCompleted.getCursor();
+    List<ModelChild> modelChildren = extractModelChildrenFromCursor(cursor);
+
+    // Display snackbar if there are no more cards.
+    if (modelChildren.isEmpty()
+        || (modelChildren.size() == 1 && modelChildren.get(0).getType() == Type.TOKEN)) {
+      snackbarApi.show(
+          context.getResources().getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
+    }
+
+    // TODO: Handle continuation driver. This needs to handle synthetic tokens.
+    if (!isSynthetic()) {
+      scrollRestorer.maybeRestoreScroll();
+    }
+    cursorChangedListener.onNewChildren(modelChild, modelChildren);
+  }
+
+  @Override
+  public void onError(ModelError modelError) {
+    showSpinner = false;
+
+    if (continuationViewHolder != null) {
+      continuationViewHolder.setShowSpinner(false);
+    }
+
+    snackbarApi.show(context.getString(R.string.ntp_suggestions_fetch_failed));
+  }
+
+  private List<ModelChild> extractModelChildrenFromCursor(ModelCursor cursor) {
+    List<ModelChild> modelChildren = new ArrayList<>();
+    ModelChild child;
+    while ((child = cursor.getNextItem()) != null) {
+      if (child.getType() == Type.UNBOUND) {
+        Logger.e(TAG, "Found unbound child %s, ignoring it", child.getContentId());
+        continue;
+      } else if (child.getType() != Type.FEATURE && child.getType() != Type.TOKEN) {
+        Logger.wtf(TAG, "Received illegal child: %s from cursor.", child.getType());
+        continue;
+      }
+      modelChildren.add(child);
+    }
+
+    return modelChildren;
+  }
+
+  /** Interface for notifying parents of new model children from a token. */
+  public interface CursorChangedListener {
+
+    /**
+     * Called to inform parent of new model children.
+     *
+     * @param modelChild the {@link ModelChild} representing the token that was processed.
+     * @param modelChildren the list of new {@link ModelChild} from the token.
+     */
+    void onNewChildren(ModelChild modelChild, List<ModelChild> modelChildren);
+  }
 }

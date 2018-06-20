@@ -10,7 +10,7 @@ android_library(
         ":fake_leaf_feature_driver",
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
-        "//src/main/java/com/google/android/libraries/feed/testing/modelprovider:fake_model_feature",
+        "//src/main/java/com/google/android/libraries/feed/testing/modelprovider:fake_model_cursor",
         "@com_google_code_findbugs_jsr305//jar",
     ],
 )

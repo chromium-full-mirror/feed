@@ -22,15 +22,11 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
-import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelToken;
-import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
-import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
-import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
@@ -41,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Generates a list of {@link LeafFeatureDriver} instances for an entire stream. */
-public class StreamDriver implements FeatureChangeObserver {
+public class StreamDriver implements CursorChangedListener, FeatureChangeObserver {
 
   private static final String TAG = "StreamDriver";
   private final ThreadUtils threadUtils;
@@ -174,45 +170,9 @@ public class StreamDriver implements FeatureChangeObserver {
       case Type.FEATURE:
         return createFeatureChild(child.getModelFeature());
       case Type.TOKEN:
-        ModelToken modelToken = child.getModelToken();
         ContinuationDriver continuationDriver =
-            createContinuationDriver(modelProvider, modelToken, configuration);
-
-        modelToken.registerObserver(
-            new TokenCompletedObserver() {
-              @Override
-              public void onTokenCompleted(TokenCompleted tokenCompleted) {
-                threadUtils.checkMainThread();
-
-                int continuationIndex = removeDriver(child);
-
-                List<FeatureDriver> newChildren =
-                    createAndInsertChildrenAtIndex(
-                        tokenCompleted.getCursor(), modelProvider, continuationIndex);
-
-                if (newChildren.isEmpty()
-                    || (newChildren.size() == 1 && isLastDriverContinuationDriver())) {
-                  snackbarApi.show(
-                      context
-                          .getResources()
-                          .getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
-                }
-
-                notifyContentsAdded(continuationIndex, buildLeafFeatureDrivers(newChildren));
-                if (shouldRemoveNoContentCardOrZeroState()) {
-                  featureDrivers.remove(0);
-                  notifyContentRemoved(0);
-                }
-
-                maybeRestoreScroll();
-              }
-
-              @Override
-              public void onError(ModelError modelError) {
-                continuationDriver.hideSpinner();
-                snackbarApi.show(context.getString(R.string.ntp_suggestions_fetch_failed));
-              }
-            });
+            createContinuationDriver(
+                configuration, context, child, modelProvider, scrollRestorer, snackbarApi);
 
         // TODO: Look into moving initialize() into a more generic location. We don't
         // really want work to be done in the constructor so we call an initialize() method to
@@ -282,6 +242,25 @@ public class StreamDriver implements FeatureChangeObserver {
     }
 
     addNoContentCardOrZeroStateIfNecessary();
+  }
+
+  @Override
+  public void onNewChildren(ModelChild modelChild, List<ModelChild> modelChildren) {
+    int continuationIndex = removeDriver(modelChild);
+    List<FeatureDriver> newChildren =
+        createAndInsertChildrenAtIndex(modelChildren, modelProvider, continuationIndex);
+
+    notifyContentsAdded(continuationIndex, buildLeafFeatureDrivers(newChildren));
+    if (shouldRemoveNoContentCardOrZeroState()) {
+      featureDrivers.remove(0);
+      notifyContentRemoved(0);
+    }
+    // Swap no content card with zero state if there are no more drivers.
+    if (newChildren.isEmpty()
+        && featureDrivers.size() == 1
+        && featureDrivers.get(0) instanceof NoContentDriver) {
+      showZeroState(false);
+    }
   }
 
   private void addNoContentCardOrZeroStateIfNecessary() {
@@ -362,8 +341,9 @@ public class StreamDriver implements FeatureChangeObserver {
     }
   }
 
-  public void showLoadingSpinner() {
-    ZeroStateDriver zeroStateDriver = createZeroStateDriver(/* showSpinner= */ true);
+  public void showZeroState(boolean showSpinner) {
+    ZeroStateDriver zeroStateDriver = createZeroStateDriver(showSpinner);
+    // TODO: Make sure to not notify listeners when driver is destroyed.
     featureDrivers.clear();
     notifyContentsCleared();
     featureDrivers.add(zeroStateDriver);
@@ -382,8 +362,21 @@ public class StreamDriver implements FeatureChangeObserver {
 
   @VisibleForTesting
   ContinuationDriver createContinuationDriver(
-      ModelProvider modelProvider, ModelToken modelToken, Configuration configuration) {
-    return new ContinuationDriver(modelProvider, modelToken, configuration);
+      Configuration configuration,
+      Context context,
+      ModelChild modelChild,
+      ModelProvider modelProvider,
+      ScrollRestorer scrollRestorer,
+      SnackbarApi snackbarApi) {
+    return new ContinuationDriver(
+        configuration,
+        context,
+        this,
+        modelChild,
+        modelProvider,
+        scrollRestorer,
+        snackbarApi,
+        threadUtils);
   }
 
   @VisibleForTesting

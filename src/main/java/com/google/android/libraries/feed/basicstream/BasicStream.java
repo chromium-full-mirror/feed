@@ -235,7 +235,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
               streamContentChangedListener,
               initialScrollRestorer);
       adapter.setDriver(streamDriver);
-      streamDriver.showLoadingSpinner();
+      streamDriver.showZeroState(/* showSpinner= */ true);
     }
   }
 
@@ -375,7 +375,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
     // This invalidates the modelProvider, which results in onSessionFinished() then
     // onSessionStart() being called, leading to recreating the entire stream.
-    streamDriver.showLoadingSpinner();
+    streamDriver.showZeroState(/* showSpinner= */ true);
     modelProvider.triggerRefresh();
   }
 
