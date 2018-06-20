@@ -417,11 +417,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   @Override
-  public void onRootSet() {
-    // TODO: Handle onRootSet
-  }
-
-  @Override
   public void onError(ModelError modelError) {
     // TODO: Handle this?
   }

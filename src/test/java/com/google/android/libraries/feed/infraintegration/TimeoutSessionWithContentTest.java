@@ -178,11 +178,6 @@ public class TimeoutSessionWithContentTest {
           }
 
           @Override
-          public void onRootSet() {
-            System.out.println("onRootSet");
-          }
-
-          @Override
           public void onError(ModelError modelError) {
             System.out.println("onError");
           }
@@ -228,11 +223,6 @@ public class TimeoutSessionWithContentTest {
           @Override
           public void onSessionFinished() {
             System.out.println("onSessionFinished");
-          }
-
-          @Override
-          public void onRootSet() {
-            System.out.println("onRootSet");
           }
 
           @Override

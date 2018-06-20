@@ -20,6 +20,8 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -270,6 +272,13 @@ public class MutationCommitterFactory implements Dumpable {
       Collection<Session> updates = sessionCache.getSessions();
       HeadSessionImpl head = Validators.checkNotNull(sessionCache.getHead());
       for (Session session : updates) {
+        ModelProvider modelProvider = session.getModelProvider();
+        if (modelProvider != null && modelProvider.getCurrentState() == State.INVALIDATED) {
+          Logger.w(TAG, "Removing an invalidate session");
+          // Remove all invalidated sessions
+          sessionCache.remove(session.getStreamSession().getStreamToken());
+          continue;
+        }
         if (clearedHead && session == head) {
           session.updateSession(clearedHead, streamStructures, mutationSourceToken);
           long updateTime = clock.currentTimeMillis();

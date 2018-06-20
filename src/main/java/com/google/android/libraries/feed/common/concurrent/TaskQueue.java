@@ -343,7 +343,7 @@ public class TaskQueue implements Dumpable {
 
     @Override
     public void runTask() {
-      Logger.i(TAG, "Execute task [%s]: %s", taskType, task);
+      Logger.i(TAG, "Execute task [%s - %s]: %s", taskType, isDelayed(), task);
       started.set(true);
       executor.execute(taskRunnable);
     }

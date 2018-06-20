@@ -315,7 +315,6 @@ public class FeedModelProviderTest {
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
     mutator.commit();
     verify(observer1).onSessionStart();
-    verify(observer1, never()).onRootSet();
 
     ModelProviderObserver observer2 = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer2);
@@ -342,14 +341,14 @@ public class FeedModelProviderTest {
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
     mutator.commit();
     verify(observer).onSessionStart();
-    verify(observer, never()).onRootSet();
 
     mutator = modelProvider.edit();
     String anotherRootId = idGenerators.createRootContentId(100);
     rootStreamFeature = StreamFeature.newBuilder().setContentId(anotherRootId).build();
     mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
     mutator.commit();
-    verify(observer).onRootSet();
+    verify(observer).onSessionFinished();
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
   }
 
   @Test

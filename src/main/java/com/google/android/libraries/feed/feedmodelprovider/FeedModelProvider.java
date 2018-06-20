@@ -275,7 +275,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   public void invalidate() {
-    Logger.i(TAG, "Invalidating the current ModelProvider: session %s", getSessionToken());
+    String sessionToken = getSessionToken();
+    Logger.i(TAG, "Invalidating the current ModelProvider: session %s", sessionToken);
     synchronized (lock) {
       if (currentState == State.INVALIDATED) {
         Logger.i(TAG, "Invalidated an already invalid ModelProvider");
@@ -292,6 +293,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       cursors.clear();
       tokens.clear();
       containers.clear();
+      if (sessionToken != null) {
+        sessionManager.invalidatedSession(sessionToken);
+      }
     }
 
     // Always run the observers on the UI Thread
@@ -427,6 +431,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       new Committer<Void, Change>() {
         @Override
         public Void commit(Change change) {
+          Logger.i(
+              TAG,
+              "committer, structure changes %s, update changes %s",
+              change.structureChanges.size(),
+              change.updateChanges.size());
           threadUtils.checkNotMainThread();
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
           commitCount++;
@@ -531,12 +540,23 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             mutationHandler.preMutation();
 
             // process the structure changes
-            boolean rootChanged = false;
             String currentParentKey = null;
             ArrayList<UpdatableModelChild> childrenList = null;
             for (UpdatableModelChild modelChild : appendedChildren) {
               if (!modelChild.hasParentId()) {
-                rootChanged = createRoot(modelChild);
+                if (!createRoot(modelChild)) {
+                  Logger.e(TAG, "Root update failed, invalidating model");
+                  currentState = State.INVALIDATED;
+                  List<ModelProviderObserver> observers = getObserversToNotify();
+                  mainThreadRunner.execute(
+                      TAG + " - multipleRootInvalidation",
+                      () -> {
+                        for (ModelProviderObserver observer : observers) {
+                          observer.onSessionFinished();
+                        }
+                      });
+                  return;
+                }
                 contents.put(modelChild.getContentId(), modelChild);
                 continue;
               }
@@ -558,18 +578,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             for (StreamStructure removeChild : removedChildren) {
               handleRemoveOperation(mutationHandler, removeChild);
               contents.remove(removeChild.getContentId());
-            }
-
-            // check if we need to notify that the root was changed
-            if (rootChanged && currentState == State.READY) {
-              List<ModelProviderObserver> observers = getObserversToNotify();
-              mainThreadRunner.execute(
-                  TAG + " - onRootSet",
-                  () -> {
-                    for (ModelProviderObserver observer : observers) {
-                      observer.onRootSet();
-                    }
-                  });
             }
           }
           timeTracker.stop(
@@ -947,7 +955,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       newParents.add(childKey);
       FeatureChangeImpl change = getChange(parentKey);
       if (change != null) {
-        Logger.i(TAG, "Add child %s to a parent %s", childKey, parentKey);
+        Logger.i(TAG, "Add child %s [%s] to a parent %s", childKey, child.getType(), parentKey);
         change.getChildChangesImpl().addAppendChild(child);
       }
     }
@@ -1012,19 +1020,27 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       // this must be a root
       if (child.getType() == Type.FEATURE || child.getType() == Type.UNBOUND) {
         if (root != null) {
-          // TODO: What do we do about multiple roots?
-          Logger.e(
-              TAG,
-              "Found multiple roots, this will overwrite the previous definition: %s",
-              child.getContentId());
+          // For multiple roots, check to see if they have the same content id, if so then ignore
+          // the new root.  Otherwise, invalidate the model because we don't support multiple roots
+          if (root.getContentId().equals(child.getContentId())) {
+            Logger.w(TAG, "Multiple Roots - duplicate root is ignored");
+            return true;
+          } else {
+            Logger.e(
+                TAG,
+                "Found multiple roots [%s, %s] which is not supported.  Invalidating model",
+                Validators.checkNotNull(root).getContentId(),
+                child.getContentId());
+            return false;
+          }
         }
         root = child;
-        return true;
       } else {
         // continuation tokens can not be roots.
         Logger.e(TAG, "Invalid Root, type %s", child.getType());
+        return false;
       }
-      return false;
+      return true;
     }
   }
 

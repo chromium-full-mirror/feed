@@ -31,9 +31,6 @@ public interface ModelProviderObserver {
    */
   void onSessionFinished();
 
-  /** This event is triggered if the Root is set or reset after onSessionStart has been called. */
-  void onRootSet();
-
   /**
    * This is called in the event of an error. For example, if we are making a request and it fails
    * due to network connectivity issues, this event will indicate the error.

@@ -48,6 +48,9 @@ public interface SessionManager {
    */
   void getExistingSession(String sessionToken, ModelProvider modelProvider);
 
+  /** This is called by the ModelProvider when it is invalidated. */
+  void invalidatedSession(String sessionToken);
+
   /**
    * This method will invalidate head. All {@link #getNewSession(ModelProvider)} will block until a
    * new a response updates the SessionManager providing the new head.

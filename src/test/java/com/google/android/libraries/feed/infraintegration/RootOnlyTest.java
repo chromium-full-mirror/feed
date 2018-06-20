@@ -78,7 +78,6 @@ public class RootOnlyTest {
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(changeObserver);
     verify(changeObserver).onSessionStart();
-    verify(changeObserver, never()).onRootSet();
     verify(changeObserver, never()).onSessionFinished();
 
     assertThat(modelProvider).isNotNull();
@@ -102,7 +101,6 @@ public class RootOnlyTest {
     ModelProvider modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(changeObserver);
     verify(changeObserver).onSessionStart();
-    verify(changeObserver, never()).onRootSet();
     verify(changeObserver, never()).onSessionFinished();
 
     WireProtocolResponseBuilder responseBuilder =
@@ -111,7 +109,6 @@ public class RootOnlyTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    verify(changeObserver).onRootSet();
     verify(changeObserver, never()).onSessionFinished();
 
     assertThat(modelProvider).isNotNull();
@@ -140,7 +137,6 @@ public class RootOnlyTest {
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew();
     modelProvider.registerObserver(changeObserver);
-    verify(changeObserver, never()).onRootSet();
     modelValidator.assertRoot(modelProvider);
 
     ContentId anotherRoot =
@@ -154,7 +150,6 @@ public class RootOnlyTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    verify(changeObserver).onRootSet();
-    modelValidator.assertRoot(modelProvider, anotherRoot);
+    verify(changeObserver).onSessionFinished();
   }
 }

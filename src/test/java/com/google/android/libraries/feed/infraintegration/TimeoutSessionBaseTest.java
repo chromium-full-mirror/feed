@@ -164,11 +164,6 @@ public class TimeoutSessionBaseTest {
           }
 
           @Override
-          public void onRootSet() {
-            System.out.println("onRootSet");
-          }
-
-          @Override
           public void onError(ModelError modelError) {
             System.out.println("onError");
           }

@@ -423,6 +423,11 @@ public class FeedSessionManager
   }
 
   @Override
+  public void invalidatedSession(String sessionToken) {
+    sessionCache.remove(sessionToken);
+  }
+
+  @Override
   public void invalidateHead() {
     taskQueue.execute("invalidateHead", TaskType.HEAD_INVALIDATE, () -> resetHead(null));
   }
@@ -634,8 +639,6 @@ public class FeedSessionManager
     threadUtils.checkNotMainThread();
     Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getStreamToken());
     modelProvider.invalidate();
-    store.removeSession(session.getStreamSession());
-    sessionCache.remove(session.getStreamSession().getStreamToken());
   }
 
   // This is only used in tests to verify the contents of the shared state cache.
