@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -203,7 +204,8 @@ public class FeedSessionManager
   }
 
   @Override
-  public void getNewSession(ModelProvider modelProvider) {
+  public void getNewSession(
+      ModelProvider modelProvider, /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
     threadUtils.checkMainThread();
     InitializableSession session = sessionFactory.getSession();
     session.bindModelProvider(modelProvider);

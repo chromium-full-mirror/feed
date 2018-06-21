@@ -79,7 +79,7 @@ public class SimpleStreamTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelValidator.assertRoot(modelProvider);
 
     WireProtocolInfo protocolInfo = responseBuilder.getWireProtocolInfo();
@@ -121,7 +121,7 @@ public class SimpleStreamTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelValidator.assertRoot(modelProvider);
 
     WireProtocolInfo protocolInfo = responseBuilder.getWireProtocolInfo();

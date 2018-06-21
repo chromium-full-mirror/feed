@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.api.sessionmanager;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -40,7 +41,7 @@ public interface SessionManager {
    * the stream. It will also decide which changes should be made to existing sessions and the life
    * time of existing sessions.
    */
-  void getNewSession(ModelProvider modelProvider);
+  void getNewSession(ModelProvider modelProvider, /*@Nullable*/ ViewDepthProvider viewDepthProvider);
 
   /**
    * Create a new Session attached to the ModelProvider for an existing sessionId. This will
@@ -52,8 +53,8 @@ public interface SessionManager {
   void invalidatedSession(String sessionToken);
 
   /**
-   * This method will invalidate head. All {@link #getNewSession(ModelProvider)} will block until a
-   * new a response updates the SessionManager providing the new head.
+   * This method will invalidate head. All {@link #getNewSession(ModelProvider, ViewDepthProvider)}
+   * will block until a new a response updates the SessionManager providing the new head.
    */
   void invalidateHead();
 

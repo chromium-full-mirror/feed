@@ -71,7 +71,7 @@ public class SharedStateTest {
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     StreamSharedState sharedState =
         modelProvider.getSharedState(WireProtocolResponseBuilder.PIET_SHARED_STATE);
     assertThat(sharedState).isNotNull();
@@ -83,7 +83,7 @@ public class SharedStateTest {
   @Test
   public void sharedState_headAfterModelProvider() {
     // ModelProvider is created from empty $HEAD, simple shared state added
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     StreamSharedState sharedState =
         modelProvider.getSharedState(WireProtocolResponseBuilder.PIET_SHARED_STATE);
     assertThat(sharedState).isNull();

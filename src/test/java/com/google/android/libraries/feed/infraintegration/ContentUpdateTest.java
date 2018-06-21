@@ -89,7 +89,7 @@ public class ContentUpdateTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     ModelFeature root = modelProvider.getRootFeature();
     assertThat(root).isNotNull();

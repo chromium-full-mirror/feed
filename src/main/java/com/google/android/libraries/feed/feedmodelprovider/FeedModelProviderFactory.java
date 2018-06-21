@@ -56,16 +56,10 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   }
 
   @Override
-  public ModelProvider createNew() {
+  public ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
-    sessionManager.getNewSession(modelProvider);
+    sessionManager.getNewSession(modelProvider, viewDepthProvider);
     return modelProvider;
-  }
-
-  @Override
-  public ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider) {
-    // TODO: Implement the view depth functionality
-    return createNew();
   }
 }

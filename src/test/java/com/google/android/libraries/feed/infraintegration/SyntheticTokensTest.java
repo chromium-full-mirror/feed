@@ -125,7 +125,7 @@ public class SyntheticTokensTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     ModelFeature root = modelProvider.getRootFeature();
@@ -137,7 +137,7 @@ public class SyntheticTokensTest {
     clearSessionManagerContentCache();
 
     // Create a new ModelProvider and verify the first page size is INITIAL_PAGE_SIZE (4)
-    modelProvider = modelProviderFactory.createNew();
+    modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     root = modelProvider.getRootFeature();

@@ -54,6 +54,6 @@ public class FeedModelProviderFactoryTest {
     FeedModelProviderFactory factory =
         new FeedModelProviderFactory(
             sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
-    assertThat(factory.createNew()).isNotNull();
+    assertThat(factory.createNew(null)).isNotNull();
   }
 }

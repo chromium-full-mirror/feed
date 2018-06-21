@@ -87,7 +87,7 @@ public class ContentRemoveTest {
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getRootFeature()).isNotNull();
     ModelFeature rootFeature = modelProvider.getRootFeature();
     FeatureChangeObserver observer = mock(FeatureChangeObserver.class);

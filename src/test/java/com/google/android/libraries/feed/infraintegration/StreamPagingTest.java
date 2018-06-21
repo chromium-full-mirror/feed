@@ -104,7 +104,7 @@ public class StreamPagingTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelValidator.assertRoot(modelProvider);
 
     // Validate the structure of the stream after the initial response
@@ -170,7 +170,7 @@ public class StreamPagingTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     ModelFeature rootFeature = modelProvider.getRootFeature();
     assertThat(rootFeature).isNotNull();
     ModelCursor cursor = rootFeature.getCursor();
@@ -180,7 +180,7 @@ public class StreamPagingTest {
     modelValidator.assertCursorContents(cursor, cards[0], cards[1], pageCards[0], pageCards[1]);
 
     // Now create a second ModelProvider and verify the cursor.
-    ModelProvider session2 = modelProviderFactory.createNew();
+    ModelProvider session2 = modelProviderFactory.createNew(null);
     rootFeature = session2.getRootFeature();
     assertThat(rootFeature).isNotNull();
     cursor = rootFeature.getCursor();

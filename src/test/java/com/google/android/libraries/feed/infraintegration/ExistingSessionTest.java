@@ -80,7 +80,7 @@ public class ExistingSessionTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     ModelFeature initRoot = modelProvider.getRootFeature();
     assertThat(initRoot).isNotNull();
@@ -122,7 +122,7 @@ public class ExistingSessionTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     ModelFeature initRoot = modelProvider.getRootFeature();
     assertThat(initRoot).isNotNull();
@@ -138,7 +138,7 @@ public class ExistingSessionTest {
     assertThat(modelProvider2.getCurrentState()).isEqualTo(State.INVALIDATED);
 
     // Now create one from head
-    modelProvider2 = modelProviderFactory.createNew();
+    modelProvider2 = modelProviderFactory.createNew(null);
     assertThat(modelProvider2).isNotNull();
     ModelFeature root2 = modelProvider2.getRootFeature();
     assertThat(root2).isNotNull();

@@ -122,7 +122,7 @@ public class MultiSessionPagingTest {
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
-    ModelProvider mp1 = modelProviderFactory.createNew();
+    ModelProvider mp1 = modelProviderFactory.createNew(null);
     modelValidator.assertRoot(mp1);
     WireProtocolInfo protocolInfo = s1InitialResponse.getWireProtocolInfo();
     assertThat(protocolInfo.hasToken).isTrue();
@@ -130,7 +130,7 @@ public class MultiSessionPagingTest {
     assertThat(mp1.getCurrentState()).isEqualTo(State.READY);
 
     // Create a second session against the S1 head.
-    ModelProvider mp2 = modelProviderFactory.createNew();
+    ModelProvider mp2 = modelProviderFactory.createNew(null);
     assertThat(mp2.getCurrentState()).isEqualTo(State.READY);
     modelValidator.assertCursorContentsWithToken(mp2, s1Cards);
 
@@ -146,7 +146,7 @@ public class MultiSessionPagingTest {
     assertThat(mp2.getCurrentState()).isEqualTo(State.INVALIDATED);
 
     // Now create a ModelProvider against the new session.
-    mp2 = modelProviderFactory.createNew();
+    mp2 = modelProviderFactory.createNew(null);
     modelValidator.assertRoot(mp2);
     protocolInfo = s1InitialResponse.getWireProtocolInfo();
     assertThat(protocolInfo.hasToken).isTrue();

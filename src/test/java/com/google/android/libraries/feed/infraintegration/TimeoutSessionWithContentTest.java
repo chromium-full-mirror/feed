@@ -123,7 +123,7 @@ public class TimeoutSessionWithContentTest {
     // complete to populate the new session.
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_WAIT);
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     // This will wait for the session to be created and validate the root cursor
     AtomicBoolean finished = new AtomicBoolean(false);
@@ -145,7 +145,7 @@ public class TimeoutSessionWithContentTest {
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
     // This will wait for the session to be created and validate the root cursor
-    modelProvider = modelProviderFactory.createNew();
+    modelProvider = modelProviderFactory.createNew(null);
     assertSessionCreationWithRequest(modelProvider, finished);
     while (!finished.get()) {
       // Loop through the tasks and wait for the assertSessionCreation to set finished to true

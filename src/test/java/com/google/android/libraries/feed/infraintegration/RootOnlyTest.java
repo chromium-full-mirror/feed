@@ -73,7 +73,7 @@ public class RootOnlyTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(changeObserver);
@@ -98,7 +98,7 @@ public class RootOnlyTest {
     // ModelProvider created from empty $HEAD, followed by a response adding head
     // Verify the observer lifecycle is correctly called
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelProvider.registerObserver(changeObserver);
     verify(changeObserver).onSessionStart();
     verify(changeObserver, never()).onSessionFinished();
@@ -135,7 +135,7 @@ public class RootOnlyTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelProvider.registerObserver(changeObserver);
     modelValidator.assertRoot(modelProvider);
 

@@ -63,7 +63,7 @@ public class EmptyStreamTest {
   @Test
   public void emptyStream_observable() {
     // ModelProvider will be initialized from empty $HEAD
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     assertThat(modelProvider.getRootFeature()).isNull();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
@@ -74,7 +74,7 @@ public class EmptyStreamTest {
   @Test
   public void emptyStream_observableInvalidate() {
     // Verify both ModelProviderObserver events are called
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
@@ -86,7 +86,7 @@ public class EmptyStreamTest {
   @Test
   public void emptyStream_unregisterObservable() {
     // Verify unregister works, so the ModelProviderObserver is not called for invalidate
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
@@ -104,7 +104,7 @@ public class EmptyStreamTest {
     requestManager.triggerRefresh(
         RequestReason.APP_OPEN_REFRESH,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
