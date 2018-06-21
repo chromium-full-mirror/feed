@@ -49,7 +49,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
 
   @Override
   protected Store getStore() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     FeedStore feedStore =
         new FeedStore(

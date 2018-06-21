@@ -15,21 +15,28 @@
 package com.google.android.libraries.feed.common.concurrent;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link TaskQueue} class. */
 @RunWith(RobolectricTestRunner.class)
 public class TaskQueueTest {
   private final List<Integer> callOrder = new ArrayList<>();
+
+  @Mock Clock clock;
 
   @Before
   public void setUp() {
@@ -134,6 +141,34 @@ public class TaskQueueTest {
     assertThat(taskQueue.isDelayed()).isFalse();
   }
 
+  @Test
+  public void testStarvation_initialization() {
+    TaskQueue spyTaskQueue = spy(getTaskQueue());
+    spyTaskQueue.initialize(this::noOp);
+
+    verify(spyTaskQueue, never()).startStarvationCheck();
+  }
+
+  @Test
+  public void testStarvation_headInvalidate() {
+    TaskQueue spyTaskQueue = spy(getTaskQueue());
+    spyTaskQueue.initialize(this::noOp);
+    spyTaskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, this::noOp);
+
+    verify(spyTaskQueue).startStarvationCheck();
+    assertThat(spyTaskQueue.isDelayed()).isTrue();
+  }
+
+  @Test
+  public void testStarvation_reset() {
+    TaskQueue spyTaskQueue = spy(getTaskQueue());
+    spyTaskQueue.initialize(this::noOp);
+    spyTaskQueue.reset();
+
+    verify(spyTaskQueue).startStarvationCheck();
+    assertThat(spyTaskQueue.isDelayed()).isTrue();
+  }
+
   private void assertOrder(Integer... args) {
     assertThat(callOrder.size()).isEqualTo(args.length);
     for (int i = 0; i < args.length; i++) {
@@ -148,6 +183,6 @@ public class TaskQueueTest {
   private void noOp() {}
 
   private TaskQueue getTaskQueue() {
-    return new TaskQueue(MoreExecutors.newDirectExecutorService());
+    return new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
   }
 }

@@ -21,10 +21,14 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
+import com.google.android.libraries.feed.common.time.Clock;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -51,6 +55,17 @@ import javax.annotation.concurrent.GuardedBy;
  */
 public class TaskQueue implements Dumpable {
   private static final String TAG = "TaskQueue";
+
+  /**
+   * Once we delay the queue, if we are not making any progress after the initial {@link
+   * #STARVATION_TIMEOUT_MS}, we will start running tasks. {@link #STARVATION_CHECK_MS} is the
+   * amount of time until we check for starvation. Checking for starvation is done on the main
+   * thread. Starvation checkin is started when we initially delay the queue an only runs while the
+   * queue is delayed.
+   */
+  private static final long STARVATION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(15);
+
+  private static final long STARVATION_CHECK_MS = TimeUnit.SECONDS.toMillis(6);
 
   /** TaskType identifies the type of task being run and implicitly the priority of the task */
   @IntDef({
@@ -94,7 +109,12 @@ public class TaskQueue implements Dumpable {
   @GuardedBy("lock")
   private boolean initialized = false;
 
+  /** Track the time the last task finished. Used for Starvation checks. */
+  private final AtomicLong lastTaskFinished = new AtomicLong();
+
   private final ExecutorService executor;
+  private final Clock clock;
+  private final boolean checkStarvation;
   private final Handler mainThreadHandler;
 
   // counters used for dump
@@ -110,8 +130,15 @@ public class TaskQueue implements Dumpable {
   private int maxUserFacingTasks = 0;
   private int maxBackgroundTasks = 0;
 
-  public TaskQueue(ExecutorService executor) {
+  /**
+   * @param checkStarvation This should be set to {@code false} in tests to disable Starvation
+   *     checks during tests. Starvation checks on the Main Thread Executor (used by tests) will
+   *     result in an infinite loop if the queue is ever delayed.
+   */
+  public TaskQueue(ExecutorService executor, Clock clock, boolean checkStarvation) {
     this.executor = executor;
+    this.clock = clock;
+    this.checkStarvation = checkStarvation;
     mainThreadHandler = new Handler(Looper.getMainLooper());
   }
 
@@ -136,6 +163,9 @@ public class TaskQueue implements Dumpable {
       immediateTasks.clear();
       userTasks.clear();
       backgroundTasks.clear();
+
+      // Since we are delaying thing, start the starvation checker
+      startStarvationCheck();
     }
   }
 
@@ -178,6 +208,43 @@ public class TaskQueue implements Dumpable {
       taskWrapper = new BaseTaskWrapper(task, taskType, taskRunnable);
     }
     scheduleTask(queueTask, taskWrapper, taskType);
+  }
+
+  @VisibleForTesting
+  void startStarvationCheck() {
+    if (!checkStarvation) {
+      return;
+    }
+    if (isDelayed()) {
+      Logger.i(TAG, " * Starting starvation checks");
+      mainThreadHandler.postDelayed(this::checkForStarvation, STARVATION_CHECK_MS);
+    }
+  }
+
+  private void checkForStarvation() {
+    if (!isDelayed()) {
+      Logger.i(TAG, " * Starvation checks being turned off");
+      // Quick out, we are not delaying things, this stops starvation checking
+      return;
+    }
+    long lastTask = lastTaskFinished.get();
+    Logger.i(
+        TAG, " * Starvation Check, last task %s", StringFormattingUtils.formatLogDate(lastTask));
+    if (clock.currentTimeMillis() > lastTask + STARVATION_TIMEOUT_MS) {
+      Logger.e(TAG, "Starvation check failed, stopping the delay and running tasks");
+      // Reset the delay since things aren't being run
+      synchronized (lock) {
+        if (waitingForHeadReset) {
+          waitingForHeadReset = false;
+        }
+        if (!initialized) {
+          initialized = true;
+        }
+      }
+      executor.execute(this::executeNextTask);
+    } else {
+      mainThreadHandler.postDelayed(this::checkForStarvation, STARVATION_CHECK_MS);
+    }
   }
 
   private void scheduleTask(boolean queueTask, TaskWrapper taskWrapper, @TaskType int taskType) {
@@ -273,6 +340,7 @@ public class TaskQueue implements Dumpable {
     runnable.run();
     synchronized (lock) {
       waitingForHeadReset = true;
+      startStarvationCheck();
     }
     executeNextTask();
   }
@@ -283,6 +351,7 @@ public class TaskQueue implements Dumpable {
   }
 
   private void executeNextTask() {
+    lastTaskFinished.set(clock.currentTimeMillis());
     synchronized (lock) {
       if (!immediateTasks.isEmpty()) {
         TaskWrapper task = immediateTasks.remove();

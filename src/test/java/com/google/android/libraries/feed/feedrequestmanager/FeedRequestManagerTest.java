@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.network.HttpRequest;
@@ -87,6 +88,7 @@ public class FeedRequestManagerTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private ActionReader actionReader;
   @Mock private Consumer<Result<List<StreamDataOperation>>> consumer;
+  @Mock private Clock clock;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
   @Captor private ArgumentCaptor<Response> responseCaptor;
@@ -654,7 +656,7 @@ public class FeedRequestManagerTest {
   }
 
   private TaskQueue getTaskQueue() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }

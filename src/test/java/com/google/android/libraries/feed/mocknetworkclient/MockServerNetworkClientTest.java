@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -68,6 +69,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   @Mock private SchedulerApi scheduler;
   @Mock private ThreadUtils threadUtils;
   @Mock private ActionReader actionReader;
+  @Mock private Clock clock;
   @Captor private ArgumentCaptor<Response> responseCaptor;
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
@@ -221,7 +223,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   }
 
   private TaskQueue getTaskQueue() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }

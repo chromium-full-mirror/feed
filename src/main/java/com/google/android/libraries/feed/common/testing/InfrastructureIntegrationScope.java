@@ -100,7 +100,7 @@ public class InfrastructureIntegrationScope {
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorage contentStorage = new InMemoryContentStorage();
     JournalStorage journalStorage = new InMemoryJournalStorage(threadUtils);
-    TaskQueue taskQueue = new TaskQueue(executorService);
+    TaskQueue taskQueue = new TaskQueue(executorService, clock, false);
     store =
         new FeedStore(
             timingUtils,

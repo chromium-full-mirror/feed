@@ -136,7 +136,7 @@ public class FeedSessionManagerTest {
     when(store.getAllSessions()).thenReturn(Result.success(new ArrayList<>()));
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
-    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
   }
 
   @Test
@@ -199,7 +199,7 @@ public class FeedSessionManagerTest {
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
             sessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getRootFeature()).isNotNull();
 
@@ -234,7 +234,7 @@ public class FeedSessionManagerTest {
     // TODO: We can't verify that raiseError was called on ModelProvider since all of that
     // happens in the createNew() call due to the single threaded nature.  We may want to have a
     // test method on the factory to install the observer when creating the ModelProvider.
-    ModelProvider modelProvider = modelProviderFactory.createNew();
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     // Verify the failed session is correct
     Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
@@ -422,7 +422,7 @@ public class FeedSessionManagerTest {
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
             spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
-    modelProviderFactory.createNew();
+    modelProviderFactory.createNew(null);
     verify(spySessionManager).switchToEphemeralMode(anyString());
   }
 
@@ -438,7 +438,7 @@ public class FeedSessionManagerTest {
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
             spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
-    modelProviderFactory.createNew();
+    modelProviderFactory.createNew(null);
     verify(spySessionManager).switchToEphemeralMode(anyString());
   }
 

@@ -128,13 +128,12 @@ public class FeedProcessScope implements Dumpable {
         FeedAppLifecycleListener lifecycleListener,
         DebugBehavior debugBehavior) {
       this.configuration = configuration;
+      this.singleThreadExecutor = singleThreadExecutor;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
       this.schedulerApi = schedulerApi;
       this.lifecycleListener = lifecycleListener;
       this.debugBehavior = debugBehavior;
-
-      this.taskQueue = new TaskQueue(singleThreadExecutor);
     }
 
     public Builder setProtocolAdapter(FeedProtocolAdapter protocolAdapter) {
@@ -196,6 +195,7 @@ public class FeedProcessScope implements Dumpable {
       }
       TimingUtils timingUtils = new TimingUtils();
       MainThreadRunner mainThreadRunner = new MainThreadRunner();
+      TaskQueue taskQueue = new TaskQueue(singleThreadExecutor, clock, true);
       FeedStore store =
           new FeedStore(
               timingUtils,
@@ -267,7 +267,7 @@ public class FeedProcessScope implements Dumpable {
 
     // Required fields.
     private final Configuration configuration;
-    private final TaskQueue taskQueue;
+    ExecutorService singleThreadExecutor;
     private final LoggingApi loggingApi;
     private final NetworkClient networkClient;
     private final SchedulerApi schedulerApi;

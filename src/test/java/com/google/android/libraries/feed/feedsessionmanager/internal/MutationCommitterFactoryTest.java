@@ -100,7 +100,7 @@ public class MutationCommitterFactoryTest {
     sharedStateCache.clear();
     notifySession = null;
     resetSession = null;
-    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     Store store =
         new FeedStore(
@@ -110,7 +110,7 @@ public class MutationCommitterFactoryTest {
             new InMemoryJournalStorage(threadUtils),
             threadUtils,
             mainThreadRunner,
-            new TaskQueue(MoreExecutors.newDirectExecutorService()),
+            taskQueue,
             clock);
     storeSpy = spy(store);
     SessionFactory sessionFactory =

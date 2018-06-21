@@ -23,6 +23,7 @@ android_local_test(
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
+        "//src/main/java/com/google/android/libraries/feed/common/time",
         "@bazel_android//:robolectric",
         "@com_google_guava_guava//jar",
         "@com_google_truth_truth//jar",

@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
@@ -64,19 +65,22 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedStoreTest extends AbstractFeedStoreTest {
 
-  public static final String CONTENT_ID = "contentId";
-  public static final StreamStructure STREAM_STRUCTURE =
+  private static final String CONTENT_ID = "contentId";
+  private static final StreamStructure STREAM_STRUCTURE =
       StreamStructure.newBuilder()
           .setContentId(CONTENT_ID)
           .setOperation(Operation.UPDATE_OR_APPEND)
           .build();
-  public static final StreamPayload PAYLOAD =
+  private static final StreamPayload PAYLOAD =
       StreamPayload.newBuilder()
           .setStreamFeature(StreamFeature.newBuilder().setContentId(CONTENT_ID))
           .build();
-  public static final byte[] SEMANTIC_PROPERTIES = new byte[] {4, 12, 18, 5};
+  private static final byte[] SEMANTIC_PROPERTIES = new byte[] {4, 12, 18, 5};
+
   @Mock private ThreadUtils threadUtils;
   @Mock private StoreListener listener;
+  // Used only in the task queue to prevent conflicts with the one defined in AbstractFeedStoreTest
+  @Mock private Clock taskQueueClock;
 
   private TaskQueue taskQueue;
 
@@ -87,7 +91,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), taskQueueClock, false);
     taskQueue.initialize(() -> {});
   }
 

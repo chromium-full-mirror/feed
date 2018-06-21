@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -35,6 +36,8 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   @Mock private ThreadUtils threadUtils;
+  @Mock private Clock clock;
+
   private final TimingUtils timingUtils = new TimingUtils();
 
   @Before
@@ -69,7 +72,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
   @Override
   protected TimeoutSessionImpl getSessionImpl() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     TimeoutSessionImpl session = new TimeoutSessionImpl(store, taskQueue, timingUtils, threadUtils);
     session.bindModelProvider(modelProvider);

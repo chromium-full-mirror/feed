@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -49,12 +50,13 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedActionManagerImplTest {
 
-  public static final String CONTENT_ID_STRING = "contentIdString";
-  public static final String SESSION_TOKEN = "session";
+  private static final String CONTENT_ID_STRING = "contentIdString";
+  private static final String SESSION_TOKEN = "session";
+
   @Mock private SessionManager sessionManager;
   @Mock private Store store;
   @Mock private ThreadUtils threadUtils;
-
+  @Mock private Clock clock;
   @Mock private ActionMutation actionMutation;
   @Mock private Consumer<Result<List<StreamDataOperation>>> streamDataOperationsConsumer;
   @Captor private ArgumentCaptor<Integer> actionTypeCaptor;
@@ -141,7 +143,7 @@ public class FeedActionManagerImplTest {
   }
 
   private TaskQueue getTaskQueue() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }

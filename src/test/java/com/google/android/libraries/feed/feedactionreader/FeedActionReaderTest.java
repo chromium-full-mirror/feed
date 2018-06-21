@@ -41,7 +41,6 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,20 +52,19 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedActionReaderTest {
 
-  public static final ContentIdGenerators ID_GENERATOR = new ContentIdGenerators();
+  private static final ContentIdGenerators ID_GENERATOR = new ContentIdGenerators();
 
-  public static final ContentId CONTENT_ID = WireProtocolResponseBuilder.createFeatureContentId(1);
-  public static final String CONTENT_ID_STRING = ID_GENERATOR.createContentId(CONTENT_ID);
-  public static final ContentId CONTENT_ID_2 =
+  private static final ContentId CONTENT_ID = WireProtocolResponseBuilder.createFeatureContentId(1);
+  private static final String CONTENT_ID_STRING = ID_GENERATOR.createContentId(CONTENT_ID);
+  private static final ContentId CONTENT_ID_2 =
       WireProtocolResponseBuilder.createFeatureContentId(2);
-  public static final String CONTENT_ID_STRING_2 = ID_GENERATOR.createContentId(CONTENT_ID_2);
-  public static final long DEFAULT_TIME = TimeUnit.DAYS.toSeconds(42);
+  private static final String CONTENT_ID_STRING_2 = ID_GENERATOR.createContentId(CONTENT_ID_2);
+  private static final long DEFAULT_TIME = TimeUnit.DAYS.toSeconds(42);
 
   @Mock private Store store;
   @Mock private Clock clock;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private Configuration configuration;
-  private ExecutorService executor = MoreExecutors.newDirectExecutorService();
 
   private ActionReader actionReader;
 
@@ -284,7 +282,7 @@ public class FeedActionReaderTest {
   }
 
   private TaskQueue getTaskQueue() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService());
+    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }
