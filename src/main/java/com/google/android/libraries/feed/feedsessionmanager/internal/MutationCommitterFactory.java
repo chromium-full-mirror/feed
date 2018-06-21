@@ -163,16 +163,20 @@ public class MutationCommitterFactory implements Dumpable {
           session = sessionCache.get(sessionToken);
         }
         if (mutationContext.getContinuationToken() != null) {
-          Logger.e(
-              TAG, "Error found with a token request %s", mutationContext.getContinuationToken());
-          if (session != null) {
-            modelErrorObserver.onError(session, new ModelError(ErrorType.PAGINATION_ERROR));
+          StreamToken streamToken = mutationContext.getContinuationToken();
+          if (session != null && streamToken != null) {
+            Logger.e(TAG, "Error found with a token request %s", streamToken.getContentId());
+            modelErrorObserver.onError(
+                session,
+                new ModelError(ErrorType.PAGINATION_ERROR, streamToken.getNextPageToken()));
+          } else {
+            Logger.e(TAG, "Unable to process PAGINATION_ERROR");
           }
         } else {
           Logger.e(TAG, "Update error, the update is being ignored");
-          modelErrorObserver.onError(session, new ModelError(ErrorType.NO_CARDS_ERROR));
+          modelErrorObserver.onError(session, new ModelError(ErrorType.NO_CARDS_ERROR, null));
+          taskQueue.execute("MutationCommitter:requestFailure", TaskType.HEAD_RESET, () -> {});
         }
-        taskQueue.execute("MutationCommitter:requestFailure", TaskType.HEAD_RESET, () -> {});
         return;
       }
       dataOperations = updateResults.getValue();

@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 import android.support.annotation.IntDef;
+import com.google.protobuf.ByteString;
 
 /**
  * Class which contains information needed by the {@link
@@ -37,13 +38,21 @@ public class ModelError {
   }
 
   private final @ErrorType int errorType;
+  /*@Nullable*/ private final ByteString continuationToken;
 
-  public ModelError(@ErrorType int errorType) {
+  public ModelError(@ErrorType int errorType, /*@Nullable*/ ByteString continuationToken) {
     this.errorType = errorType;
+    this.continuationToken = continuationToken;
   }
 
   /** Returns the ErrorType assocated with the error. */
   public @ErrorType int getErrorType() {
     return errorType;
+  }
+
+  /** This should be non-null if the ErrorType is PAGINATION_ERROR. */
+  /*@Nullable*/
+  public ByteString getContinuationToken() {
+    return continuationToken;
   }
 }

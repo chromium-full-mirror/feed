@@ -371,8 +371,16 @@ public class FeedSessionManager
       // state.
       taskQueue.execute("clearNoCardsError", TaskType.USER_FACING, () -> noCardsError = null);
       return;
+    } else if (session != null && error.getErrorType() == ErrorType.PAGINATION_ERROR) {
+      Logger.e(TAG, "Pagination Error found");
+      ModelProvider modelProvider = session.getModelProvider();
+      if (modelProvider != null) {
+        modelProvider.raiseError(error);
+      } else {
+        Logger.e(TAG, "handling Pagination Error, didn't find Model Provider");
+      }
+      return;
     }
-    // TODO: Handle the PAGINATION_ERROR case
     Logger.e(
         TAG,
         "unhandled modelErrorObserver: session, %s, error %s",

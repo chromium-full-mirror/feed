@@ -301,7 +301,7 @@ public class ContinuationDriverTest {
   public void testOnError() {
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR));
+    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
 
     verify(continuationViewHolder).setShowSpinner(false);
     verify(snackbarApi).show(context.getString(R.string.ntp_suggestions_fetch_failed));
@@ -325,7 +325,7 @@ public class ContinuationDriverTest {
     verify(continuationViewHolder).bind(continuationDriver, true);
 
     continuationDriver.unbind();
-    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR));
+    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
     continuationDriver.bind(continuationViewHolder);
 
     verify(continuationViewHolder).bind(continuationDriver, false);

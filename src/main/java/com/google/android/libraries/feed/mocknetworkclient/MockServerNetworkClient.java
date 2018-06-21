@@ -14,8 +14,11 @@
 
 package com.google.android.libraries.feed.mocknetworkclient;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
+import android.provider.Settings.Global;
 import android.util.Base64;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -41,12 +44,14 @@ import java.util.List;
 public class MockServerNetworkClient implements NetworkClient {
   private static final String TAG = "MockServerNetworkClient";
 
+  private final Context context;
   private final Response initialResponse;
   private final List<ConditionalResponse> conditionalResponses;
   private final ExtensionRegistryLite extensionRegistry;
   private final long responseDelay;
 
-  public MockServerNetworkClient(MockServer mockServer, Configuration config) {
+  public MockServerNetworkClient(Context context, MockServer mockServer, Configuration config) {
+    this.context = context;
     initialResponse = mockServer.getInitialResponse();
     conditionalResponses = mockServer.getConditionalResponsesList();
 
@@ -58,6 +63,10 @@ public class MockServerNetworkClient implements NetworkClient {
   @Override
   public void send(HttpRequest httpRequest, Consumer<HttpResponse> responseConsumer) {
     try {
+      if (isAirplaneModeOn()) {
+        delayedAccept(new HttpResponse(400), responseConsumer);
+        return;
+      }
       Request request = getRequest(httpRequest);
       ByteString requestToken =
           (request.getExtension(FeedRequest.feedRequest).getFeedQuery().hasPageToken())
@@ -81,6 +90,10 @@ public class MockServerNetworkClient implements NetworkClient {
       Logger.e(TAG, e.getMessage());
       delayedAccept(new HttpResponse(400), responseConsumer);
     }
+  }
+
+  private boolean isAirplaneModeOn() {
+    return Settings.System.getInt(context.getContentResolver(), Global.AIRPLANE_MODE_ON, 0) != 0;
   }
 
   private void delayedAccept(HttpResponse httpResponse, Consumer<HttpResponse> responseConsumer) {

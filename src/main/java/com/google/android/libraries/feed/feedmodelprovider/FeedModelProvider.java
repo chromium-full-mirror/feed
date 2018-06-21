@@ -205,7 +205,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             TAG + " - onTokenChange",
             () -> {
               for (TokenCompletedObserver observer : token.getObserversToNotify()) {
-                observer.onError(new ModelError(ErrorType.PAGINATION_ERROR));
+                observer.onError(
+                    new ModelError(
+                        ErrorType.PAGINATION_ERROR,
+                        modelToken.getStreamToken().getNextPageToken()));
               }
             },
             PAGINATON_REQUEST_FAILURE_DELAY);
@@ -311,14 +314,34 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   public void raiseError(ModelError error) {
-    List<ModelProviderObserver> observers = getObserversToNotify();
-    mainThreadRunner.execute(
-        TAG + " - onError",
-        () -> {
-          for (ModelProviderObserver observer : observers) {
-            observer.onError(error);
-          }
-        });
+    if (error.getErrorType() == ErrorType.NO_CARDS_ERROR) {
+      List<ModelProviderObserver> observers = getObserversToNotify();
+      mainThreadRunner.execute(
+          TAG + " - onError",
+          () -> {
+            for (ModelProviderObserver observer : observers) {
+              observer.onError(error);
+            }
+          });
+    } else if (error.getErrorType() == ErrorType.PAGINATION_ERROR) {
+      Logger.i(TAG, "handling Pagination error");
+      TokenTracking token;
+      synchronized (lock) {
+        token = tokens.get(error.getContinuationToken());
+      }
+      if (token != null) {
+        List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
+        mainThreadRunner.execute(
+            TAG + " - onTokenChange",
+            () -> {
+              for (TokenCompletedObserver observer : observers) {
+                observer.onError(error);
+              }
+            });
+      } else {
+        Logger.e(TAG, "The Token Observer was not found during pagination error");
+      }
+    }
   }
 
   @Override

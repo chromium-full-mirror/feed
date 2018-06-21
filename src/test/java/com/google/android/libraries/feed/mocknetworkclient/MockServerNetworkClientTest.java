@@ -20,6 +20,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -55,6 +57,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link MockServerNetworkClient} class. */
@@ -71,6 +74,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   private final Configuration configuration = new Configuration.Builder().build();
   private final TimingUtils timingUtils = new TimingUtils();
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
+  private Context context;
 
   @Override
   protected Uri getValidUri(@HttpMethod String method) {
@@ -81,9 +85,11 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+    context = Robolectric.setupActivity(Activity.class);
 
     MockServer mockServer = MockServer.getDefaultInstance();
-    networkClient = new MockServerNetworkClient(mockServer, new Configuration.Builder().build());
+    networkClient =
+        new MockServerNetworkClient(context, mockServer, new Configuration.Builder().build());
 
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.emptyList()));
@@ -96,7 +102,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
     mockServerBuilder.setInitialResponse(initialResponse);
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
+        new MockServerNetworkClient(
+            context, mockServerBuilder.build(), new Configuration.Builder().build());
     Consumer<HttpResponse> responseConsumer =
         input -> {
           try {
@@ -118,7 +125,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
     mockServerBuilder.setInitialResponse(initialResponse);
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
+        new MockServerNetworkClient(
+            context, mockServerBuilder.build(), new Configuration.Builder().build());
     Consumer<HttpResponse> responseConsumer =
         input -> {
           try {
@@ -144,7 +152,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     conditionalResponseBuilder.setContinuationToken(token).setResponse(response);
     mockServerBuilder.addConditionalResponses(conditionalResponseBuilder.build());
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
+        new MockServerNetworkClient(
+            context, mockServerBuilder.build(), new Configuration.Builder().build());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
             configuration,
@@ -181,7 +190,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     conditionalResponseBuilder.setResponse(response);
     mockServerBuilder.addConditionalResponses(conditionalResponseBuilder.build());
     MockServerNetworkClient networkClient =
-        new MockServerNetworkClient(mockServerBuilder.build(), new Configuration.Builder().build());
+        new MockServerNetworkClient(
+            context, mockServerBuilder.build(), new Configuration.Builder().build());
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
             configuration,

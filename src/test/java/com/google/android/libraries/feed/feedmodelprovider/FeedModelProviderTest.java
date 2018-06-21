@@ -363,12 +363,29 @@ public class FeedModelProviderTest {
   }
 
   @Test
-  public void testRaiseError() {
+  public void testRaiseError_noCards() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
 
-    ModelError modelError = new ModelError(ErrorType.NO_CARDS_ERROR);
+    ModelError modelError = new ModelError(ErrorType.NO_CARDS_ERROR, null);
+    modelProvider.raiseError(modelError);
+    verify(observer).onError(modelError);
+  }
+
+  @Test
+  public void testRaiseError_pagination() {
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+
+    int featureCnt = 3;
+    StreamToken streamToken = initializeStreamWithToken(modelProvider, featureCnt);
+    ModelChild tokenChild = getContinuationToken(modelProvider.getRootFeature());
+    assertThat(tokenChild).isNotNull();
+
+    ModelError modelError =
+        new ModelError(ErrorType.PAGINATION_ERROR, streamToken.getNextPageToken());
+    TokenCompletedObserver observer = mock(TokenCompletedObserver.class);
+    tokenChild.getModelToken().registerObserver(observer);
     modelProvider.raiseError(modelError);
     verify(observer).onError(modelError);
   }
@@ -509,6 +526,19 @@ public class FeedModelProviderTest {
     lastChild = assertCursorSize(modelCursor, featureCnt);
     assertThat(lastChild.getType()).isEqualTo(Type.FEATURE);
     assertThat(modelProvider.getSyntheticTokensForTest().size()).isEqualTo(0);
+  }
+
+  private ModelChild getContinuationToken(ModelFeature rootFeature) {
+    ModelCursor modelCursor = rootFeature.getCursor();
+    ModelChild token = null;
+    ModelChild child;
+    while ((child = modelCursor.getNextItem()) != null) {
+      if (child.getType() == Type.TOKEN) {
+        token = child;
+      }
+    }
+    assertThat(token).isNotNull();
+    return token;
   }
 
   private ModelChild assertCursorSize(ModelCursor cursor, int size) {

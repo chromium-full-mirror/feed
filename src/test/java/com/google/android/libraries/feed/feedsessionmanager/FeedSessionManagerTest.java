@@ -224,7 +224,7 @@ public class FeedSessionManagerTest {
   @Test
   public void testNoCardsError() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
-    sessionManager.noCardsError = new ModelError(ErrorType.NO_CARDS_ERROR);
+    sessionManager.noCardsError = new ModelError(ErrorType.NO_CARDS_ERROR, null);
     int featureCnt = 2;
     populateSession(sessionManager, featureCnt, 1, true, null);
 
@@ -248,7 +248,7 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     // verify this runs.  Another method that can'be be verified on a single thread since
     // the noCardsError will be set and unset.
-    sessionManager.modelErrorObserver(null, new ModelError(ErrorType.NO_CARDS_ERROR));
+    sessionManager.modelErrorObserver(null, new ModelError(ErrorType.NO_CARDS_ERROR, null));
   }
 
   @Test
