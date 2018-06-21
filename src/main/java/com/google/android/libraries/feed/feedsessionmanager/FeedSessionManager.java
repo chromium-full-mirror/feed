@@ -168,6 +168,14 @@ public class FeedSessionManager
     store.registerObserver(this);
     lifecycleListenerObservable.registerObserver(this);
     taskQueue.initialize(this::initializationTask);
+    requestManager.setDefaultTriggerRefreshConsumerSupplier(
+        () ->
+            mutationCommitterFactory.create(
+                "triggerRefresh",
+                MutationContext.EMPTY_CONTEXT,
+                this::resetHead,
+                this::modelErrorObserver,
+                sharedStateCache));
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the

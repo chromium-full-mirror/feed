@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -146,6 +147,42 @@ public class FeedRequestManagerTest {
                 FeedRequest.newBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
             .build();
     LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+  }
+
+  @Test
+  public void testTriggerRefresh_defaultConsumer() throws Exception {
+    RequiredConsumer<Result<List<StreamDataOperation>>> consumer =
+        new RequiredConsumer<>(input -> {});
+    requestManager.setDefaultTriggerRefreshConsumerSupplier(() -> consumer);
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH);
+
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+
+    when(protocolAdapter.createModel(any(Response.class)))
+        .thenReturn(Result.success(new ArrayList<>()));
+
+    HttpRequest httpRequest = requestCaptor.getValue();
+    assertHttpRequestFormattedCorrectly(httpRequest);
+
+    Request request =
+        Request.parseFrom(
+            Base64.decode(
+                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
+                Base64.URL_SAFE),
+            registry);
+    Request expectedRequest =
+        Request.newBuilder()
+            .setRequestVersion(RequestVersion.FEED_QUERY)
+            .setExtension(
+                FeedRequest.feedRequest,
+                FeedRequest.newBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
+            .build();
+    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+
+    Response response = Response.getDefaultInstance();
+    responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
+
+    assertThat(consumer.isCalled()).isTrue();
   }
 
   @Test

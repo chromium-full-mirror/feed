@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -79,6 +80,10 @@ public class FeedRequestManager implements RequestManager {
   private final ThreadUtils threadUtils;
   private final MainThreadRunner mainThreadRunner;
   private final ActionReader actionReader;
+
+  /*@Nullable*/
+  private Supplier<Consumer<Result<List<StreamDataOperation>>>>
+      defaultTriggerRefreshConsumerSupplier;
 
   public FeedRequestManager(
       Configuration configuration,
@@ -134,6 +139,21 @@ public class FeedRequestManager implements RequestManager {
     } else {
       executeRequest(request, consumer);
     }
+  }
+
+  @Override
+  public void triggerRefresh(RequestReason reason) {
+    if (defaultTriggerRefreshConsumerSupplier == null) {
+      throw new IllegalStateException(
+          "Must set defaultTriggerRefreshConsumerSupplier before calling triggerRefresh(RequestReason).");
+    }
+    triggerRefresh(reason, defaultTriggerRefreshConsumerSupplier.get());
+  }
+
+  @Override
+  public void setDefaultTriggerRefreshConsumerSupplier(
+      Supplier<Consumer<Result<List<StreamDataOperation>>>> consumerSupplier) {
+    this.defaultTriggerRefreshConsumerSupplier = consumerSupplier;
   }
 
   private RequestBuilder newDefaultRequest() {

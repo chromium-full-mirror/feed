@@ -18,6 +18,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
@@ -34,6 +35,10 @@ import java.util.Queue;
 public class FakeRequestManager implements RequestManager {
   private final ProtocolAdapter protocolAdapter;
   private final Queue<Response> responses = new ArrayDeque<>();
+
+  /*@Nullable*/
+  private Supplier<Consumer<Result<List<StreamDataOperation>>>>
+      defaultTriggerRefreshConsumerSupplier;
 
   public FakeRequestManager(ProtocolAdapter protocolAdapter) {
     this.protocolAdapter = protocolAdapter;
@@ -70,5 +75,20 @@ public class FakeRequestManager implements RequestManager {
       contextResult = Result.failure();
     }
     consumer.accept(contextResult);
+  }
+
+  @Override
+  public void triggerRefresh(RequestReason reason) {
+    if (defaultTriggerRefreshConsumerSupplier == null) {
+      throw new IllegalStateException(
+          "Must set defaultTriggerRefreshConsumerSupplier before calling triggerRefresh(RequestReason).");
+    }
+    triggerRefresh(reason, defaultTriggerRefreshConsumerSupplier.get());
+  }
+
+  @Override
+  public void setDefaultTriggerRefreshConsumerSupplier(
+      Supplier<Consumer<Result<List<StreamDataOperation>>>> consumerSupplier) {
+    this.defaultTriggerRefreshConsumerSupplier = consumerSupplier;
   }
 }
