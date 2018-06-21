@@ -434,7 +434,9 @@ public class FeedSessionManager
 
   @Override
   public void invalidatedSession(String sessionToken) {
-    sessionCache.remove(sessionToken);
+    threadUtils.checkMainThread();
+    taskQueue.execute(
+        "modelInvalidatedSession", TaskType.USER_FACING, () -> sessionCache.remove(sessionToken));
   }
 
   @Override
