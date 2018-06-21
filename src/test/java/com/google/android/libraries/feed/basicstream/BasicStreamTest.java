@@ -39,6 +39,8 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
@@ -149,6 +151,28 @@ public class BasicStreamTest {
     verify(initialModelProvider).unregisterObserver(basicStream);
     verify(modelProviderFactory, times(2)).createNew(any(ViewDepthProvider.class));
     verify(modelProvider).registerObserver(basicStream);
+  }
+
+  @Test
+  public void testOnError_showsZeroState() {
+    basicStream.onShow();
+    reset(streamDriver);
+
+    basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
+
+    verify(scrollRestorer).abandonRestoringScroll();
+    verify(streamDriver).showZeroState(/* showSpinner= */ false);
+  }
+
+  @Test
+  public void testOnError_doesNotShowZeroState() {
+    basicStream.onShow();
+
+    assertThatRunnable(
+            () ->
+                basicStream.onError(
+                    new ModelError(ErrorType.PAGINATION_ERROR, /* continuationToken= */ null)))
+        .throwsAnExceptionOfType(RuntimeException.class);
   }
 
   @Test

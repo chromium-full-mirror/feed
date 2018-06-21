@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
+import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
@@ -429,7 +430,14 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public void onError(ModelError modelError) {
-    // TODO: Handle this?
+    if (modelError.getErrorType() != ErrorType.NO_CARDS_ERROR) {
+      Logger.wtf(TAG, "Not expecting non NO_CARDS_ERROR type.");
+    }
+
+    scrollRestorer.abandonRestoringScroll();
+    if (streamDriver != null) {
+      streamDriver.showZeroState(/* showSpinner= */ false);
+    }
   }
 
   @VisibleForTesting
