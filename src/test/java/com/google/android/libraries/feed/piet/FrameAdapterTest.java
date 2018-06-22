@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -57,6 +56,7 @@ import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
+import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -122,7 +122,6 @@ public class FrameAdapterTest {
     doReturn(templateAdapter)
         .when(templateBinder)
         .createAndBindTemplateAdapter(any(TemplateAdapterModel.class), eq(frameContext));
-    when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.reportError(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
@@ -131,6 +130,7 @@ public class FrameAdapterTest {
             });
     when(frameContext.getDebugLogger()).thenReturn(debugLogger);
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.VERBOSE);
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
 
     pietSharedStates = new ArrayList<>();
     frameAdapter =
@@ -245,7 +245,6 @@ public class FrameAdapterTest {
     FrameContext frameContext =
         FrameContext.createFrameContext(
             Frame.newBuilder().setStylesheet(Stylesheet.getDefaultInstance()).build(),
-            DEFAULT_STYLE,
             pietSharedStates,
             debugBehavior,
             new DebugLogger(),

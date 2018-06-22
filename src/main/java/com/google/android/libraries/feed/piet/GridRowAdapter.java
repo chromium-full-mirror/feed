@@ -134,7 +134,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
     int height = cellAdapter.getComputedHeightPx();
     params.height = height == ElementAdapter.DIMENSION_NOT_SET ? params.height : height;
 
-    cellAdapter.getElementStyle().setMargins(getContext(), params);
+    cellAdapter.getElementStyle().applyMargins(getContext(), params);
 
     // TODO: Switch this to use the ViewUtils method in the next CL.
     switch (cellAdapter.getVerticalGravity()) {

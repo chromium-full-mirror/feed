@@ -62,8 +62,6 @@ public class SpacerElementAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
-    when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
-    when(frameContext.getCurrentStyle()).thenReturn(mockStyleProvider);
     when(mockStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }
@@ -80,7 +78,7 @@ public class SpacerElementAdapterTest {
     adapter.createAdapter(spacerElement, frameContext);
     View v = adapter.getView();
     assertThat(v).isNotNull();
-    verify(mockStyleProvider).setElementStyles(context, assetProvider, v);
+    verify(mockStyleProvider).applyElementStyles(context, assetProvider, v);
   }
 
   @Test
@@ -96,7 +94,6 @@ public class SpacerElementAdapterTest {
             .build();
     StyleProvider styleProvider = new StyleProvider(style);
     when(frameContext.makeStyleFor(styleStack1)).thenReturn(styleProvider);
-    when(frameContext.bindNewStyle(styleStack1)).thenReturn(frameContext);
 
     adapter.createAdapter(spacerElement, frameContext);
 
@@ -124,7 +121,6 @@ public class SpacerElementAdapterTest {
             .build();
     StyleProvider styleProvider2 = new StyleProvider(style2);
     when(frameContext.makeStyleFor(styleStack2)).thenReturn(styleProvider2);
-    when(frameContext.bindNewStyle(styleStack2)).thenReturn(frameContext);
 
     adapter.bindModel(spacerElement2, frameContext);
 
@@ -157,9 +153,6 @@ public class SpacerElementAdapterTest {
     when(frameContext.makeStyleFor(styles1)).thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(styles2)).thenReturn(mockStyleProvider2);
     when(frameContext.makeStyleFor(styles3)).thenReturn(mockStyleProvider3);
-    when(frameContext.bindNewStyle(styles1)).thenReturn(frameContext);
-    when(frameContext.bindNewStyle(styles2)).thenReturn(frameContext);
-    when(frameContext.bindNewStyle(styles3)).thenReturn(frameContext);
     when(mockStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(mockStyleProvider2.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(mockStyleProvider3.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());

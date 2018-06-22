@@ -120,7 +120,7 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
 
     setChildWidthAndHeightOnParams(adapter, childParams);
 
-    adapter.getElementStyle().setMargins(getContext(), childParams);
+    adapter.getElementStyle().applyMargins(getContext(), childParams);
 
     childParams.gravity = ViewUtils.gravityHorizontalToGravity(adapter.getHorizontalGravity());
 

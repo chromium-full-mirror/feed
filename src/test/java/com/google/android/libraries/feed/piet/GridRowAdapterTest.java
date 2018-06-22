@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.android.libraries.feed.piet.ElementAdapter.DIMENSION_NOT_SET;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -101,8 +101,6 @@ public class GridRowAdapterTest {
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.makeStyleFor(GRID_STYLES)).thenReturn(styleProvider);
-    when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
-    when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
@@ -155,8 +153,8 @@ public class GridRowAdapterTest {
 
     adapter.createAdapter(gridRow, frameContext);
 
-    verify(frameContext).bindNewStyle(GRID_STYLES);
-    verify(styleProvider).setElementStyles(context, assetProvider, adapter.getBaseView());
+    verify(frameContext).makeStyleFor(GRID_STYLES);
+    verify(styleProvider).applyElementStyles(context, assetProvider, adapter.getBaseView());
   }
 
   @Test
@@ -224,6 +222,7 @@ public class GridRowAdapterTest {
 
   @Test
   public void testOnCreateAdapter_setsLayoutParamsOnCell_widthOfChildAdapter() {
+    StyleIdsStack childStyles = StyleIdsStack.newBuilder().addStyleIds("child").build();
     GridRow gridRow =
         GridRow.newBuilder()
             .addCells(
@@ -234,11 +233,14 @@ public class GridRowAdapterTest {
                                 Element.newBuilder()
                                     .setImageElement(
                                         ImageElement.newBuilder()
+                                            .setStyleReferences(childStyles)
                                             .setImage(Image.getDefaultInstance())))))
             .build();
 
-    when(styleProvider.hasWidth()).thenReturn(true);
-    when(styleProvider.getWidth()).thenReturn(456);
+    StyleProvider childStyleProvider = mock(StyleProvider.class);
+    when(childStyleProvider.hasWidth()).thenReturn(true);
+    when(childStyleProvider.getWidth()).thenReturn(456);
+    when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(gridRow, frameContext);
 
@@ -251,6 +253,7 @@ public class GridRowAdapterTest {
 
   @Test
   public void testOnCreateAdapter_setsLayoutParamsOnCell_heightOfChildAdapter() {
+    StyleIdsStack childStyles = StyleIdsStack.newBuilder().addStyleIds("child").build();
     GridRow gridRow =
         GridRow.newBuilder()
             .addCells(
@@ -261,11 +264,14 @@ public class GridRowAdapterTest {
                                 Element.newBuilder()
                                     .setImageElement(
                                         ImageElement.newBuilder()
+                                            .setStyleReferences(childStyles)
                                             .setImage(Image.getDefaultInstance())))))
             .build();
 
-    when(styleProvider.hasHeight()).thenReturn(true);
-    when(styleProvider.getHeight()).thenReturn(123);
+    StyleProvider childStyleProvider = mock(StyleProvider.class);
+    when(childStyleProvider.hasHeight()).thenReturn(true);
+    when(childStyleProvider.getHeight()).thenReturn(123);
+    when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(gridRow, frameContext);
 
@@ -278,6 +284,7 @@ public class GridRowAdapterTest {
 
   @Test
   public void testOnCreateAdapter_setsLayoutParamsOnCell_heightOfChildAdapterNotDefined() {
+    StyleIdsStack childStyles = StyleIdsStack.newBuilder().addStyleIds("child").build();
     GridRow gridRow =
         GridRow.newBuilder()
             .addCells(
@@ -291,8 +298,10 @@ public class GridRowAdapterTest {
                                             .setImage(Image.getDefaultInstance())))))
             .build();
 
-    when(styleProvider.hasHeight()).thenReturn(false);
-    when(styleProvider.getHeight()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+    StyleProvider childStyleProvider = mock(StyleProvider.class);
+    when(childStyleProvider.hasHeight()).thenReturn(false);
+    when(childStyleProvider.getHeight()).thenReturn(DIMENSION_NOT_SET);
+    when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(gridRow, frameContext);
 
@@ -305,13 +314,27 @@ public class GridRowAdapterTest {
 
   @Test
   public void testOnCreateAdapter_setsLayoutParamsOnCell_margins() {
+    StyleIdsStack childStyles = StyleIdsStack.newBuilder().addStyleIds("child").build();
     GridRow gridRow =
-        GridRow.newBuilder().addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT)).build();
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setContent(
+                        Content.newBuilder()
+                            .setElement(
+                                Element.newBuilder()
+                                    .setSpacerElement(
+                                        SpacerElement.newBuilder()
+                                            .setStyleReferences(childStyles)))))
+            .build();
+    StyleProvider childStyleProvider = mock(StyleProvider.class);
+    when(childStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(gridRow, frameContext);
 
-    verify(styleProvider)
-        .setMargins(
+    verify(childStyleProvider)
+        .applyMargins(
             context, (MarginLayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams());
   }
 
@@ -491,7 +514,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.createAdapter(gridRowWithStyle, frameContext);
-    verify(frameContext).bindNewStyle(GRID_STYLES);
+    verify(frameContext).makeStyleFor(GRID_STYLES);
 
     // When we bind a new model, the style does not change.
     StyleIdsStack otherStyles = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
@@ -502,7 +525,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.bindModel(gridRowWithOtherStyle, frameContext);
-    verify(frameContext, never()).bindNewStyle(otherStyles);
+    verify(frameContext, never()).makeStyleFor(otherStyles);
 
     // If we bind a model that has a style binding, then the style does get re-applied.
     StyleIdsStack styleWithBinding =
@@ -516,11 +539,10 @@ public class GridRowAdapterTest {
             .build();
     StyleProvider otherStyleProvider = mock(StyleProvider.class);
     when(frameContext.makeStyleFor(styleWithBinding)).thenReturn(otherStyleProvider);
-    when(frameContext.getCurrentStyle()).thenReturn(otherStyleProvider);
 
     adapter.bindModel(gridRowWithBoundStyle, frameContext);
-    verify(frameContext).bindNewStyle(styleWithBinding);
-    verify(otherStyleProvider).setElementStyles(context, assetProvider, adapter.getBaseView());
+    verify(frameContext).makeStyleFor(styleWithBinding);
+    verify(otherStyleProvider).applyElementStyles(context, assetProvider, adapter.getBaseView());
   }
 
   @Test

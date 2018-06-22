@@ -71,8 +71,6 @@ public class ParameterizedTextElementAdapterTest {
     adapterParameters =
         new AdapterParameters(
             null, null, new ParameterizedTextEvaluator(), null, null, hostProviders);
-    when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
-    when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
 
     adapter =
@@ -214,13 +212,12 @@ public class ParameterizedTextElementAdapterTest {
         TextElement.newBuilder().setStyleReferences(StyleIdsStack.getDefaultInstance()).build();
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
-    when(frameContext.getCurrentStyle()).thenReturn(mockStyleProvider);
 
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
 
     adapter.createAdapter(textElement, frameContext);
     assertThat(adapter.getView()).isNotNull();
-    verify(mockStyleProvider).setElementStyles(context, assetProvider, adapter.getView());
+    verify(mockStyleProvider).applyElementStyles(context, assetProvider, adapter.getView());
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
   }
@@ -228,7 +225,6 @@ public class ParameterizedTextElementAdapterTest {
   private TextElement getBindingTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.getCurrentStyle()).thenReturn(sp);
     return TextElement.newBuilder().setParameterizedTextBinding(DEFAULT_BINDING_REF).build();
   }
 
@@ -239,7 +235,6 @@ public class ParameterizedTextElementAdapterTest {
   private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.getCurrentStyle()).thenReturn(sp);
 
     TextElement.Builder textElement = TextElement.newBuilder();
     ParameterizedText text = ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT).build();

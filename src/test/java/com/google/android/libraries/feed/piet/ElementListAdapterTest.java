@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -89,11 +88,7 @@ public class ElementListAdapterTest {
 
   @Mock private ActionHandler actionHandler;
   @Mock private FrameContext frameContext;
-  @Mock private FrameContext childFrameContext;
-  @Mock private FrameContext listFrameContext;
   @Mock private StyleProvider styleProvider;
-  @Mock private StyleProvider childStyleProvider;
-  @Mock private StyleProvider listStyleProvider;
   @Mock private HostProviders hostProviders;
   @Mock private AssetProvider assetProvider;
 
@@ -110,19 +105,10 @@ public class ElementListAdapterTest {
     adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
-    when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance()))
-        .thenReturn(childFrameContext);
-    when(frameContext.bindNewStyle(LIST_STYLES)).thenReturn(listFrameContext);
-    when(listFrameContext.getCurrentStyle()).thenReturn(listStyleProvider);
-    when(childFrameContext.makeStyleFor(any(StyleIdsStack.class)))
-        .thenReturn(DEFAULT_STYLE_PROVIDER);
-    when(childFrameContext.getCurrentStyle()).thenReturn(childStyleProvider);
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(DEFAULT_STYLE_PROVIDER);
     when(frameContext.makeStyleFor(LIST_STYLES)).thenReturn(styleProvider);
-    when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
-    when(childStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
   }
@@ -153,7 +139,7 @@ public class ElementListAdapterTest {
 
     adapter.createAdapter(listWithStyles, frameContext);
 
-    verify(listStyleProvider).setElementStyles(context, assetProvider, adapter.getView());
+    verify(styleProvider).applyElementStyles(context, assetProvider, adapter.getView());
   }
 
   @Test
@@ -168,16 +154,14 @@ public class ElementListAdapterTest {
         ElementList.newBuilder()
             .addContents(Content.newBuilder().setElement(elementWithMargins))
             .build();
-    when(frameContext.makeStyleFor(marginsStyles)).thenReturn(DEFAULT_STYLE_PROVIDER);
-    when(frameContext.bindNewStyle(marginsStyles)).thenReturn(childFrameContext);
-    when(childFrameContext.getCurrentStyle()).thenReturn(childStyleProvider);
+    when(frameContext.makeStyleFor(marginsStyles)).thenReturn(styleProvider);
 
     adapter.createAdapter(listWithStyles, frameContext);
 
-    // Assert that setMargins is called on the child's layout params
+    // Assert that applyMargins is called on the child's layout params
     ArgumentCaptor<MarginLayoutParams> capturedLayoutParams =
         ArgumentCaptor.forClass(MarginLayoutParams.class);
-    verify(childStyleProvider).setMargins(eq(context), capturedLayoutParams.capture());
+    verify(styleProvider).applyMargins(eq(context), capturedLayoutParams.capture());
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
@@ -253,7 +237,7 @@ public class ElementListAdapterTest {
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
-    verify(frameContext).bindNewStyle(LIST_STYLES);
+    verify(frameContext).makeStyleFor(LIST_STYLES);
 
     // Binding an element with a different style will not apply the new style
     StyleIdsStack otherStyles = StyleIdsStack.newBuilder().addStyleIds("bobcat").build();
@@ -264,7 +248,7 @@ public class ElementListAdapterTest {
             .build();
 
     adapter.bindModel(otherListWithStyles, frameContext);
-    verify(frameContext, never()).bindNewStyle(otherStyles);
+    verify(frameContext, never()).makeStyleFor(otherStyles);
 
     // But binding an element with a style binding will re-apply the style
     StyleIdsStack otherStylesWithBinding =
@@ -277,11 +261,10 @@ public class ElementListAdapterTest {
             .setStyleReferences(otherStylesWithBinding)
             .addContents(DEFAULT_CONTENT)
             .build();
-    when(frameContext.bindNewStyle(otherStylesWithBinding)).thenReturn(frameContext);
     when(frameContext.makeStyleFor(otherStylesWithBinding)).thenReturn(styleProvider);
 
     adapter.bindModel(otherListWithStyleBindings, frameContext);
-    verify(frameContext).bindNewStyle(otherStylesWithBinding);
+    verify(frameContext).makeStyleFor(otherStylesWithBinding);
   }
 
   @Test
@@ -593,8 +576,6 @@ public class ElementListAdapterTest {
   @Test
   public void testSetLayoutParams_childWidthSet() {
     int childWidth = 5;
-    when(childStyleProvider.hasWidth()).thenReturn(true);
-    when(childStyleProvider.getWidth()).thenReturn(childWidth);
 
     ElementList listWithStyles =
         ElementList.newBuilder()
@@ -602,19 +583,27 @@ public class ElementListAdapterTest {
             .build();
 
     adapter.createAdapter(listWithStyles, frameContext);
+    StyleProvider childStyleProvider = mock(StyleProvider.class);
+    ImageElementAdapter mockChildAdapter = mock(ImageElementAdapter.class);
+    when(mockChildAdapter.getComputedWidthPx()).thenReturn(childWidth);
+    when(mockChildAdapter.getElementStyle()).thenReturn(childStyleProvider);
+    when(mockChildAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
+    adapter.childAdapters.set(0, mockChildAdapter);
 
     LinearLayout.LayoutParams params =
         new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     adapter.setLayoutParams(params);
 
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
-        .isInstanceOf(LinearLayout.LayoutParams.class);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
-        .isEqualTo(childWidth);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
-        .isEqualTo(childWidth);
+    ArgumentCaptor<LinearLayout.LayoutParams> childLayoutParamsCaptor =
+        ArgumentCaptor.forClass(LinearLayout.LayoutParams.class);
+    verify(mockChildAdapter).setLayoutParams(childLayoutParamsCaptor.capture());
+
+    LinearLayout.LayoutParams childLayoutParams = childLayoutParamsCaptor.getValue();
+    assertThat(childLayoutParams.width).isEqualTo(childWidth);
+    assertThat(childLayoutParams.gravity).isEqualTo(Gravity.CENTER_HORIZONTAL);
+
+    verify(childStyleProvider).applyMargins(context, childLayoutParams);
   }
 
   @Test

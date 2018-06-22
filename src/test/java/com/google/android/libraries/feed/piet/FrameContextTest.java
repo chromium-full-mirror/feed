@@ -149,7 +149,9 @@ public class FrameContextTest {
             .addBindingValues(BindingValue.newBuilder().setBindingId(BINDING_ID))
             .build();
     assertThatRunnable(
-            () -> frameContext.bindTemplate(DEFAULT_TEMPLATE, bindingContextWithDuplicateIds))
+            () ->
+                frameContext.createTemplateContext(
+                    DEFAULT_TEMPLATE, bindingContextWithDuplicateIds))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -166,8 +168,6 @@ public class FrameContextTest {
         new FrameContext(
             DEFAULT_FRAME,
             defaultStylesheet,
-            SAMPLE_STYLE,
-            styleProvider,
             pietSharedStates,
             new PietStylesHelper(pietSharedStates),
             DebugBehavior.VERBOSE,
@@ -176,7 +176,6 @@ public class FrameContextTest {
             hostBindingProvider);
 
     assertThat(frameContext.getFrame()).isEqualTo(DEFAULT_FRAME);
-    assertThat(frameContext.getCurrentStyle()).isEqualTo(styleProvider);
     assertThat(frameContext.getActionHandler()).isEqualTo(actionHandler);
 
     assertThat(frameContext.getTemplate(DEFAULT_TEMPLATE_ID)).isEqualTo(DEFAULT_TEMPLATE);
@@ -199,15 +198,12 @@ public class FrameContextTest {
   public void testBindTemplate_lotsOfStuff() {
     frameContext = defaultFrameContext();
 
-    // null binding context returns the same frame context.
-    assertThat(frameContext.bindTemplate(DEFAULT_TEMPLATE, null)).isEqualTo(frameContext);
-
-    // bindTemplate should add new BindingValues
+    // createTemplateContext should add new BindingValues
     ParameterizedText text = ParameterizedText.newBuilder().setText("Calico").build();
     BindingValue textBinding =
         BindingValue.newBuilder().setBindingId(BINDING_ID).setParameterizedText(text).build();
     FrameContext frameContextWithBindings =
-        frameContext.bindTemplate(
+        frameContext.createTemplateContext(
             DEFAULT_TEMPLATE, BindingContext.newBuilder().addBindingValues(textBinding).build());
     assertThat(
             frameContextWithBindings
@@ -217,7 +213,8 @@ public class FrameContextTest {
         .isEqualTo(text);
 
     // and clear out all the previous styles
-    assertThat(frameContextWithBindings.getCurrentStyle()).isEqualTo(DEFAULT_STYLE_PROVIDER);
+    assertThat(frameContextWithBindings.makeStyleFor(StyleIdsStack.getDefaultInstance()))
+        .isEqualTo(DEFAULT_STYLE_PROVIDER);
     assertThat(frameContextWithBindings.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
         .isEqualTo(DEFAULT_STYLE_PROVIDER.getColor());
 
@@ -238,13 +235,13 @@ public class FrameContextTest {
             .setChildDefaultStyleIds(StyleIdsStack.newBuilder().addStyleIds("templateDefault"))
             .build();
     FrameContext frameContextWithTemplate =
-        frameContext.bindTemplate(templateWithStyles, BindingContext.getDefaultInstance());
+        frameContext.createTemplateContext(templateWithStyles, BindingContext.getDefaultInstance());
     assertThat(
             frameContextWithTemplate
                 .makeStyleFor(StyleIdsStack.newBuilder().addStyleIds("templateStyle").build())
                 .getColor())
         .isEqualTo(templateStyleColor);
-    assertThat(frameContextWithTemplate.getCurrentStyle().getColor())
+    assertThat(frameContextWithTemplate.makeStyleFor(StyleIdsStack.getDefaultInstance()).getColor())
         .isEqualTo(templateDefaultColor);
 
     // Can't look up the SAMPLE_STYLE_ID anymore, so we return the default.
@@ -252,19 +249,36 @@ public class FrameContextTest {
         .isEqualTo(templateDefaultColor);
   }
 
+  /** Bind a template with a child default style that is defined by the Template. */
   @Test
-  public void testBindNewStyle() {
+  public void testBindTemplate_boundStyle() {
     frameContext = defaultFrameContext();
 
-    FrameContext noStyleFrameContext =
-        frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance());
-    assertThat(noStyleFrameContext).isNotSameAs(frameContext);
-    assertThat(noStyleFrameContext.getCurrentStyle().getColor()).isEqualTo(BASE_STYLE_COLOR);
+    String childStyleId = "childStyle";
+    Style childStyle = Style.newBuilder().setStyleId(childStyleId).setMaxLines(123).build();
 
-    FrameContext frameContextWithStyle = frameContext.bindNewStyle(SAMPLE_STYLE_IDS);
-    assertThat(frameContextWithStyle).isNotEqualTo(frameContext);
-    assertThat(frameContextWithStyle.getCurrentStyle().getColor()).isEqualTo(SAMPLE_STYLE_COLOR);
-    assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(SAMPLE_STYLE_COLOR);
+    String boundStyleId = "boundStyle";
+    BoundStyle boundStyle = BoundStyle.newBuilder().setColor(456).build();
+    StyleBindingRef boundStyleRef = StyleBindingRef.newBuilder().setBindingId(boundStyleId).build();
+    BindingValue boundStyleBindingValue =
+        BindingValue.newBuilder().setBindingId(boundStyleId).setBoundStyle(boundStyle).build();
+    BindingContext bindingContext =
+        BindingContext.newBuilder().addBindingValues(boundStyleBindingValue).build();
+
+    Template template =
+        Template.newBuilder()
+            .setTemplateId("badtemplate")
+            .setStylesheet(Stylesheet.newBuilder().addStyles(childStyle))
+            .setChildDefaultStyleIds(
+                StyleIdsStack.newBuilder().addStyleIds(childStyleId).setStyleBinding(boundStyleRef))
+            .build();
+
+    assertThatRunnable(() -> frameContext.createTemplateContext(template, bindingContext))
+        .throwsAnExceptionOfType(RuntimeException.class)
+        .that()
+        .hasMessageThat()
+        .contains(
+            "Style bindings not supported for template default style (template: badtemplate)");
   }
 
   @Test
@@ -273,7 +287,7 @@ public class FrameContextTest {
 
     // Returns base style provider if there are no styles defined
     StyleProvider noStyle = frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance());
-    assertThat(noStyle.getColor()).isEqualTo(BASE_STYLE_COLOR);
+    assertThat(noStyle).isEqualTo(DEFAULT_STYLE_PROVIDER);
 
     // Successful lookup results in a new style provider
     StyleProvider defaultStyle = frameContext.makeStyleFor(SAMPLE_STYLE_IDS);
@@ -283,7 +297,7 @@ public class FrameContextTest {
     StyleProvider notFoundStyle =
         frameContext.makeStyleFor(
             StyleIdsStack.newBuilder().addStyleIds(INVALID_BINDING_ID).build());
-    assertThat(notFoundStyle.getColor()).isEqualTo(BASE_STYLE_COLOR);
+    assertThat(notFoundStyle).isEqualTo(DEFAULT_STYLE_PROVIDER);
   }
 
   @Test
@@ -874,7 +888,8 @@ public class FrameContextTest {
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
     // The style is not currently bound, but available from the stylesheet.
-    assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()).getColor())
+        .isNotEqualTo(SAMPLE_STYLE_COLOR);
     assertThat(frameContext.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
         .isEqualTo(SAMPLE_STYLE_COLOR);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
@@ -888,7 +903,8 @@ public class FrameContextTest {
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
     // The style is not currently bound, but available from the stylesheet.
-    assertThat(frameContext.getCurrentStyle().getColor()).isNotEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()).getColor())
+        .isNotEqualTo(SAMPLE_STYLE_COLOR);
     assertThat(frameContext.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
         .isEqualTo(SAMPLE_STYLE_COLOR);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
@@ -904,7 +920,8 @@ public class FrameContextTest {
 
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
-    assertThat(frameContext.getCurrentStyle().getColor()).isEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
+        .isEqualTo(DEFAULT_STYLE_PROVIDER);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
@@ -915,7 +932,8 @@ public class FrameContextTest {
 
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
-    assertThat(frameContext.getCurrentStyle()).isSameAs(DEFAULT_STYLE_PROVIDER);
+    assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
+        .isEqualTo(DEFAULT_STYLE_PROVIDER);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
@@ -970,12 +988,10 @@ public class FrameContextTest {
                     .setLinearGradient(LinearGradient.newBuilder().setDirectionDeg(321)))
             .setStyleId(styleId2)
             .build();
+    StyleIdsStack twoStyles =
+        StyleIdsStack.newBuilder().addStyleIds(styleId1).addStyleIds(styleId2).build();
     Frame frame =
-        Frame.newBuilder()
-            .setStylesheetId(STYLESHEET_ID)
-            .setStyleReferences(
-                StyleIdsStack.newBuilder().addStyleIds(styleId1).addStyleIds(styleId2))
-            .build();
+        Frame.newBuilder().setStylesheetId(STYLESHEET_ID).setStyleReferences(twoStyles).build();
     pietSharedStates.add(
         PietSharedState.newBuilder()
             .addStylesheets(
@@ -988,12 +1004,13 @@ public class FrameContextTest {
 
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
-    assertThat(frameContext.getCurrentStyle().getColor()).isEqualTo(12345);
-    assertThat(frameContext.getCurrentStyle().getMaxLines()).isEqualTo(22222);
-    assertThat(frameContext.getCurrentStyle().getMinHeight()).isEqualTo(33333);
-    assertThat(frameContext.getCurrentStyle().getFont())
+    StyleProvider defaultFrameStyle = frameContext.makeStyleFor(twoStyles);
+    assertThat(defaultFrameStyle.getColor()).isEqualTo(12345);
+    assertThat(defaultFrameStyle.getMaxLines()).isEqualTo(22222);
+    assertThat(defaultFrameStyle.getMinHeight()).isEqualTo(33333);
+    assertThat(defaultFrameStyle.getFont())
         .isEqualTo(Font.newBuilder().setSize(13).setWeight(FontWeight.MEDIUM).build());
-    assertThat(frameContext.getCurrentStyle().getBackground())
+    assertThat(defaultFrameStyle.getBackground())
         .isEqualTo(
             Fill.newBuilder()
                 .setLinearGradient(
@@ -1002,15 +1019,10 @@ public class FrameContextTest {
                         .setDirectionDeg(321))
                 .build());
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
-  }
 
-  @Test
-  public void testError_bindingTemplate() {
-    FrameContext frameContext = makeFrameContextFromFrame(getWorkingFrame());
-    Template template = Template.getDefaultInstance();
-    FrameContext boundCardContext2 = frameContext.bindTemplate(template, null);
-    assertThat(boundCardContext2).isEqualTo(frameContext);
-    assertThat(frameContext.getDebugLogger().getMessages(MessageType.WARNING)).hasSize(1);
+    // Frame's styles don't affect the childrens' styles.
+    assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
+        .isEqualTo(DEFAULT_STYLE_PROVIDER);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
@@ -1022,8 +1034,6 @@ public class FrameContextTest {
     return new FrameContext(
         DEFAULT_FRAME,
         defaultStylesheet,
-        BASE_STYLE,
-        styleProvider,
         pietSharedStates,
         new PietStylesHelper(pietSharedStates),
         DebugBehavior.VERBOSE,
@@ -1040,7 +1050,6 @@ public class FrameContextTest {
         defaultStylesheet,
         bindingValueMap,
         BASE_STYLE,
-        styleProvider,
         pietSharedStates,
         pietStylesHelper,
         DebugBehavior.VERBOSE,
@@ -1058,7 +1067,6 @@ public class FrameContextTest {
         defaultStylesheet,
         bindingValueMap,
         BASE_STYLE,
-        styleProvider,
         pietSharedStates,
         pietStylesHelper,
         DebugBehavior.VERBOSE,
@@ -1071,7 +1079,6 @@ public class FrameContextTest {
   private FrameContext makeFrameContextFromFrame(Frame frame) {
     return FrameContext.createFrameContext(
         frame,
-        DEFAULT_STYLE,
         pietSharedStates,
         DebugBehavior.VERBOSE,
         debugLogger,

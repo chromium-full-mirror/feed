@@ -78,9 +78,7 @@ public class StackedElementAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
 
     when(frameContext.getElementBindingValue(ELEMENT_BINDING)).thenReturn(ELEMENT_BINDING_VALUE);
-    when(frameContext.getCurrentStyle()).thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(any())).thenReturn(mockStyleProvider);
-    when(frameContext.bindNewStyle(any())).thenReturn(frameContext);
     when(mockHostProviders.getAssetProvider()).thenReturn(assetProvider);
 
     adapterParameters = new AdapterParameters(context, Suppliers.of(null), mockHostProviders);
@@ -178,7 +176,7 @@ public class StackedElementAdapterTest {
     MarginLayoutParams childAdapterLayoutParams =
         (MarginLayoutParams) adapter.childAdapters.get(0).getView().getLayoutParams();
 
-    verify(mockStyleProvider).setMargins(context, childAdapterLayoutParams);
+    verify(mockStyleProvider).applyMargins(context, childAdapterLayoutParams);
   }
 
   @Test

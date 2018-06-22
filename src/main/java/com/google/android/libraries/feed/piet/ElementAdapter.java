@@ -29,7 +29,6 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
-import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -60,7 +59,7 @@ abstract class ElementAdapter<V extends View, M> {
   /*@Nullable*/ private M model;
   private Element baseElement = Element.getDefaultInstance();
   /*@Nullable*/ private RecyclerKey key;
-  private FrameContext frameContext;
+  private StyleProvider elementStyle = StyleProvider.DEFAULT_STYLE_PROVIDER;
 
   /*@Nullable*/ private FrameLayout overlayView = null;
   @VisibleForTesting final List<ElementAdapter<?, ?>> overlays = new ArrayList<>();
@@ -137,7 +136,7 @@ abstract class ElementAdapter<V extends View, M> {
   public void createAdapter(M model, Element baseElement, FrameContext frameContext) {
     this.model = model;
     this.baseElement = baseElement;
-    this.frameContext = frameContext.bindNewStyle(getElementStyleIdsStack());
+    elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
 
     onCreateAdapter(model, baseElement, frameContext);
 
@@ -145,9 +144,8 @@ abstract class ElementAdapter<V extends View, M> {
 
     initializeOverflow(baseElement);
 
-    this.frameContext
-        .getCurrentStyle()
-        .setElementStyles(getContext(), getParameters().hostProviders.getAssetProvider(), view);
+    elementStyle.applyElementStyles(
+        getContext(), getParameters().hostProviders.getAssetProvider(), view);
   }
 
   /** Performs child-class-specific adapter creation; to be overridden. */
@@ -175,7 +173,7 @@ abstract class ElementAdapter<V extends View, M> {
     this.model = model;
     this.baseElement = baseElement;
     if (getElementStyleIdsStack().hasStyleBinding()) {
-      this.frameContext = frameContext.bindNewStyle(getElementStyleIdsStack());
+      elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
     }
 
     onBindModel(model, baseElement, frameContext);
@@ -186,9 +184,8 @@ abstract class ElementAdapter<V extends View, M> {
 
     // Reapply styles if we have style bindings
     if (getElementStyleIdsStack().hasStyleBinding()) {
-      this.frameContext
-          .getCurrentStyle()
-          .setElementStyles(getContext(), getParameters().hostProviders.getAssetProvider(), view);
+      elementStyle.applyElementStyles(
+          getContext(), getParameters().hostProviders.getAssetProvider(), view);
     }
   }
 
@@ -272,8 +269,11 @@ abstract class ElementAdapter<V extends View, M> {
    * Gets the style of the Element's content (ex. TextElement). Only valid after model has been
    * bound.
    */
-  public StyleProvider getElementStyle() {
-    return frameContext.getCurrentStyle();
+  StyleProvider getElementStyle() {
+    if (model == null) {
+      Logger.wtf(TAG, "getElementStyle called when adapter is not bound");
+    }
+    return elementStyle;
   }
 
   /**
@@ -409,14 +409,6 @@ abstract class ElementAdapter<V extends View, M> {
   /*@Nullable*/
   M getRawModel() {
     return model;
-  }
-
-  Frame getFrame() {
-    return frameContext.getFrame();
-  }
-
-  FrameContext getFrameContext() {
-    return frameContext;
   }
 
   ParameterizedTextEvaluator getTemplatedStringEvaluator() {

@@ -50,19 +50,18 @@ class SpacerElementAdapter extends ElementAdapter<DividerView, SpacerElement> {
     StyleProvider styleProvider = getElementStyle();
     getBaseView()
         .initialize(styleProvider.getColor(), model.getHeight(), styleProvider.getPadding());
-    setSpacerStyles(frameContext);
+    setSpacerStyles();
   }
 
   @Override
   void onBindModel(SpacerElement model, Element baseElement, FrameContext frameContext) {
     if (model.getStyleReferences().hasStyleBinding()) {
-      setSpacerStyles(frameContext);
+      setSpacerStyles();
     }
   }
 
-  private void setSpacerStyles(FrameContext frameContext) {
-    StyleProvider spacerStyle = frameContext.makeStyleFor(getModel().getStyleReferences());
-    EdgeWidths padding = spacerStyle.getPadding();
+  private void setSpacerStyles() {
+    EdgeWidths padding = getElementStyle().getPadding();
 
     int height = padding.getTop() + padding.getBottom() + getModel().getHeight();
     heightPx = (int) ViewUtils.dpToPx(height, getContext());

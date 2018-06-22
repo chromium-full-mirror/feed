@@ -15,11 +15,9 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -76,7 +74,6 @@ public class ImageElementAdapterTest {
   @Mock private ElementAdapterFactory adapterFactory;
   @Mock private TemplateBinder templateBinder;
   @Mock private FrameContext frameContext;
-  @Mock private FrameContext frameContextWithStyle;
   @Mock private AssetProvider assetProvider;
   @Mock private StyleProvider styleProvider;
   @Mock private HostProviders hostProviders;
@@ -100,10 +97,8 @@ public class ImageElementAdapterTest {
     AdapterParameters parameters =
         new AdapterParameters(context, null, null, adapterFactory, templateBinder, hostProviders);
 
-    when(frameContext.bindNewStyle(any())).thenReturn(frameContextWithStyle);
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
-    when(frameContext.getCurrentStyle()).thenReturn(DEFAULT_STYLE_PROVIDER);
-    when(frameContextWithStyle.getCurrentStyle()).thenReturn(styleProvider);
     when(styleProvider.getPadding()).thenReturn(PADDING);
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
@@ -129,7 +124,7 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
     assertThat(adapter.getBaseView().getCropToPadding()).isTrue();
-    verify(styleProvider).setElementStyles(context, assetProvider, adapter.getView());
+    verify(styleProvider).applyElementStyles(context, assetProvider, adapter.getView());
   }
 
   @Test
@@ -401,7 +396,7 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    verify(styleProvider).setElementStyles(context, assetProvider, adapter.getView());
+    verify(styleProvider).applyElementStyles(context, assetProvider, adapter.getView());
 
     // Styles do not change when a different model is bound
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
@@ -410,12 +405,10 @@ public class ImageElementAdapterTest {
             .setStyleReferences(otherStyle)
             .setImage(Image.getDefaultInstance())
             .build();
-    FrameContext frameContextWithOtherStyle = mock(FrameContext.class);
-    when(frameContext.bindNewStyle(otherStyle)).thenReturn(frameContextWithOtherStyle);
     adapter.bindModel(imageWithOtherStyle, frameContext);
     adapter.unbindModel();
 
-    verify(frameContextWithOtherStyle, never()).getCurrentStyle();
+    verify(frameContext, never()).makeStyleFor(otherStyle);
 
     // Styles do change when a model with a style binding is bound
     StyleIdsStack boundStyle =
@@ -427,12 +420,11 @@ public class ImageElementAdapterTest {
             .setStyleReferences(boundStyle)
             .setImage(Image.getDefaultInstance())
             .build();
-    FrameContext frameContextWithBoundStyle = mock(FrameContext.class);
-    when(frameContext.bindNewStyle(boundStyle)).thenReturn(frameContextWithBoundStyle);
-    when(frameContextWithBoundStyle.getCurrentStyle()).thenReturn(styleProvider);
     adapter.bindModel(imageWithBoundStyle, frameContext);
 
-    verify(styleProvider, times(2)).setElementStyles(context, assetProvider, adapter.getView());
+    verify(frameContext).makeStyleFor(boundStyle);
+
+    verify(styleProvider, times(2)).applyElementStyles(context, assetProvider, adapter.getView());
   }
 
   @Test

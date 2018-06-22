@@ -139,11 +139,9 @@ public class ElementContainerAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
-    when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
-    when(frameContext.bindNewStyle(any())).thenReturn(frameContext);
-    when(frameContext.bindTemplate(eq(DEFAULT_TEMPLATE), any(BindingContext.class)))
+    when(frameContext.createTemplateContext(eq(DEFAULT_TEMPLATE), any(BindingContext.class)))
         .thenReturn(frameContext);
-    when(frameContext.bindTemplate(eq(DEFAULT_BOUND_TEMPLATE), any(BindingContext.class)))
+    when(frameContext.createTemplateContext(eq(DEFAULT_BOUND_TEMPLATE), any(BindingContext.class)))
         .thenReturn(frameContext);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
@@ -191,9 +189,9 @@ public class ElementContainerAdapterTest {
     assertThat(adapter.childAdapters.get(0)).isInstanceOf(TextElementAdapter.class);
     assertThat(adapter.childAdapters.get(1)).isInstanceOf(TextElementAdapter.class);
     verify(frameContext)
-        .bindTemplate(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0));
+        .createTemplateContext(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0));
     verify(frameContext)
-        .bindTemplate(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1));
+        .createTemplateContext(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1));
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
     assertThat(adapter.getBaseView().getChildAt(0))
@@ -363,10 +361,10 @@ public class ElementContainerAdapterTest {
 
     FrameContext templateContext1 = mock(FrameContext.class);
     FrameContext templateContext2 = mock(FrameContext.class);
-    when(frameContext.bindTemplate(
+    when(frameContext.createTemplateContext(
             DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0)))
         .thenReturn(templateContext1);
-    when(frameContext.bindTemplate(
+    when(frameContext.createTemplateContext(
             DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1)))
         .thenReturn(templateContext2);
 
@@ -536,19 +534,19 @@ public class ElementContainerAdapterTest {
 
     // Each of these occur 2 times; once for create and once for bind.
     verify(frameContext, times(2))
-        .bindTemplate(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0));
+        .createTemplateContext(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(0));
     verify(frameContext, times(2))
-        .bindTemplate(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1));
+        .createTemplateContext(DEFAULT_TEMPLATE, DEFAULT_TEMPLATE_INVOCATION.getBindingContexts(1));
 
     // These only occur once because we do create and bind at the same time.
     verify(frameContext)
-        .bindTemplate(
+        .createTemplateContext(
             DEFAULT_BOUND_TEMPLATE, DEFAULT_BOUND_TEMPLATE_INVOCATION.getBindingContexts(0));
     verify(frameContext)
-        .bindTemplate(
+        .createTemplateContext(
             DEFAULT_BOUND_TEMPLATE, DEFAULT_BOUND_TEMPLATE_INVOCATION.getBindingContexts(1));
     verify(frameContext)
-        .bindTemplate(
+        .createTemplateContext(
             DEFAULT_BOUND_TEMPLATE, DEFAULT_BOUND_TEMPLATE_INVOCATION.getBindingContexts(2));
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(6);

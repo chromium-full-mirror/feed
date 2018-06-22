@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -71,14 +70,12 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class TemplateBinderTest {
   private static final int FRAME_COLOR = 12345;
-  private static final int TEMPLATE_COLOR = 54321;
   private static final String FRAME_STYLESHEET_ID = "coolcat";
   private static final String TEXT_STYLE_ID = "catalog";
   private static final String TEMPLATE_ID = "duplicat";
   private static final String OTHER_TEMPLATE_ID = "alleycat";
   private static final String TEXT_BINDING_ID = "ofmiceandmen";
   private static final String TEXT_CONTENTS = "afewmilessouth";
-  private static final String TEXT_CONTENTS_2 = "gangaftagley";
 
   private static final Template MODEL_TEMPLATE =
       Template.newBuilder()
@@ -158,7 +155,7 @@ public class TemplateBinderTest {
 
     // Set frameContext to return a new frameContext when a template is bound
     FrameContext templateContext = mock(FrameContext.class);
-    when(frameContext.bindTemplate(template, bindingContext)).thenReturn(templateContext);
+    when(frameContext.createTemplateContext(template, bindingContext)).thenReturn(templateContext);
     doReturn(elementListAdapter)
         .when(adapterFactory)
         .createAdapterForElement(DEFAULT_TEMPLATE_ELEMENT, templateContext);
@@ -292,7 +289,6 @@ public class TemplateBinderTest {
     frameContext =
         FrameContext.createFrameContext(
             frame,
-            frameStyle,
             pietSharedStates,
             DebugBehavior.VERBOSE,
             new DebugLogger(),
@@ -345,7 +341,7 @@ public class TemplateBinderTest {
 
     // Set frameContext to return a new frameContext when a template is bound
     FrameContext templateContext = mock(FrameContext.class);
-    when(frameContext.bindTemplate(template, bindingContext)).thenReturn(templateContext);
+    when(frameContext.createTemplateContext(template, bindingContext)).thenReturn(templateContext);
     doReturn(elementListAdapter)
         .when(adapterFactory)
         .createAdapterForElement(DEFAULT_TEMPLATE_ELEMENT, templateContext);
@@ -427,8 +423,8 @@ public class TemplateBinderTest {
 
     // Set frameContext to return a new frameContext when a template is bound
     FrameContext templateContext = mock(FrameContext.class);
-    when(frameContext.bindTemplate(template1, bindingContext)).thenReturn(templateContext);
-    when(frameContext.bindTemplate(template2, bindingContext)).thenReturn(templateContext);
+    when(frameContext.createTemplateContext(template1, bindingContext)).thenReturn(templateContext);
+    when(frameContext.createTemplateContext(template2, bindingContext)).thenReturn(templateContext);
     doReturn(elementListAdapter)
         .when(adapterFactory)
         .createAdapterForElement(DEFAULT_TEMPLATE_ELEMENT, templateContext);
@@ -469,7 +465,7 @@ public class TemplateBinderTest {
 
     // Set frameContext to return a new frameContext when a template is bound
     FrameContext templateContext = mock(FrameContext.class);
-    when(frameContext.bindTemplate(template, bindingContext)).thenReturn(templateContext);
+    when(frameContext.createTemplateContext(template, bindingContext)).thenReturn(templateContext);
     doReturn(elementListAdapter)
         .when(adapterFactory)
         .createAdapterForElement(DEFAULT_TEMPLATE_ELEMENT, templateContext);
@@ -478,6 +474,7 @@ public class TemplateBinderTest {
     ElementAdapter<? extends View, ?> adapter =
         templateBinder.createAndBindTemplateAdapter(model, frameContext);
 
+    assertThat(adapter).isSameAs(elementListAdapter);
     verify(elementListAdapter).setKey(new TemplateKey(template, sharedStates));
 
     // Assert that adapter is bound with the template frameContext
@@ -505,7 +502,7 @@ public class TemplateBinderTest {
 
     // Set frameContext to return a new frameContext when a template is bound
     FrameContext templateContext = mock(FrameContext.class);
-    when(frameContext.bindTemplate(template, bindingContext)).thenReturn(templateContext);
+    when(frameContext.createTemplateContext(template, bindingContext)).thenReturn(templateContext);
     doReturn(elementListAdapter)
         .when(adapterFactory)
         .createAdapterForElement(DEFAULT_TEMPLATE_ELEMENT, templateContext);
@@ -608,15 +605,12 @@ public class TemplateBinderTest {
 
   @Test
   public void testTemplateAdapterModel_lookUpTemplate() {
-    AssetProvider assetProvider = mock(AssetProvider.class);
-    CustomElementProvider customElementProvider = mock(CustomElementProvider.class);
     ActionHandler actionHandler = mock(ActionHandler.class);
     List<PietSharedState> pietSharedStates = Collections.emptyList();
 
     FrameContext frameContext =
         FrameContext.createFrameContext(
             DEFAULT_FRAME, // This defines MODEL_TEMPLATE
-            DEFAULT_STYLE,
             pietSharedStates,
             DebugBehavior.VERBOSE,
             new DebugLogger(),

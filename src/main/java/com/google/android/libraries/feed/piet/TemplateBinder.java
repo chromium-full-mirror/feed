@@ -48,7 +48,7 @@ class TemplateBinder {
     // This is a modestly expensive operation, and calling createTemplateAdapter followed by
     // bindTemplateAdapter would do it twice.
     FrameContext templateContext =
-        frameContext.bindTemplate(model.getTemplate(), model.getBindingContext());
+        frameContext.createTemplateContext(model.getTemplate(), model.getBindingContext());
 
     TemplateKey templateKey =
         new TemplateKey(model.getTemplate(), frameContext.getPietSharedStates());
@@ -76,7 +76,7 @@ class TemplateBinder {
     if (adapter == null) {
       // Make new FrameContext here
       FrameContext templateContext =
-          frameContext.bindTemplate(model.getTemplate(), model.getBindingContext());
+          frameContext.createTemplateContext(model.getTemplate(), model.getBindingContext());
 
       // Create new adapter
       adapter =
@@ -102,7 +102,7 @@ class TemplateBinder {
     checkState(templateKey.equals(adapter.getKey()), "Template keys did not match");
 
     FrameContext templateContext =
-        frameContext.bindTemplate(model.getTemplate(), model.getBindingContext());
+        frameContext.createTemplateContext(model.getTemplate(), model.getBindingContext());
 
     adapter.bindModel(model.getTemplate().getElement(), templateContext);
   }

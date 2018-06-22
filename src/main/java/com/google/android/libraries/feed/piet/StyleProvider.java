@@ -126,9 +126,9 @@ class StyleProvider {
   }
 
   /** Sets the Padding and Background Color on the view. */
-  public void setElementStyles(Context context, AssetProvider assetProvider, View view) {
+  public void applyElementStyles(Context context, AssetProvider assetProvider, View view) {
     EdgeWidths padding = getPadding();
-    setPadding(context, view, padding);
+    applyPadding(context, view, padding);
 
     Drawable bg = createBackground(context, assetProvider);
     if (bg != null) {
@@ -144,7 +144,7 @@ class StyleProvider {
   }
 
   /** Set the padding on a view */
-  void setPadding(Context context, View view, EdgeWidths padding) {
+  void applyPadding(Context context, View view, EdgeWidths padding) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       view.setPaddingRelative(
           (int) ViewUtils.dpToPx(padding.getStart(), context),
@@ -161,7 +161,7 @@ class StyleProvider {
   }
 
   /** Sets appropriate margins on a {@link MarginLayoutParams} instance. */
-  public void setMargins(Context context, MarginLayoutParams marginLayoutParams) {
+  public void applyMargins(Context context, MarginLayoutParams marginLayoutParams) {
     EdgeWidths margins = getMargins();
     int startMargin = (int) ViewUtils.dpToPx(margins.getStart(), context);
     int endMargin = (int) ViewUtils.dpToPx(margins.getEnd(), context);
@@ -203,5 +203,24 @@ class StyleProvider {
       bgDrawable.setRadius(getRoundedCornerRadius(context, assetProvider));
     }
     return bgDrawable;
+  }
+
+  @Override
+  public boolean equals(/*@Nullable*/ Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    StyleProvider that = (StyleProvider) o;
+
+    return style.equals(that.style);
+  }
+
+  @Override
+  public int hashCode() {
+    return style.hashCode();
   }
 }

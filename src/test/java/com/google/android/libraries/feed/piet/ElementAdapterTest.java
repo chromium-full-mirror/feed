@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -82,9 +81,7 @@ public class ElementAdapterTest {
     initMocks(this);
     context = RuntimeEnvironment.application;
     parameters = new AdapterParameters(context, Suppliers.of((ViewGroup) null), hostProviders);
-    when(frameContext.bindNewStyle(any(StyleIdsStack.class))).thenReturn(frameContext);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(DEFAULT_STYLE_PROVIDER);
-    when(frameContext.getCurrentStyle()).thenReturn(styleProvider);
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     view = new View(context);
     adapter = new TestElementAdapter(context, parameters, view);
@@ -106,8 +103,6 @@ public class ElementAdapterTest {
     assertThat(adapter.getModel()).isSameAs(defaultElement);
     assertThat(adapter.getRawModel()).isSameAs(defaultElement);
     assertThat(adapter.getHorizontalGravity()).isEqualTo(GravityHorizontal.GRAVITY_CENTER);
-    assertThat(adapter.getFrame()).isEqualTo(frame);
-    assertThat(adapter.getFrameContext()).isSameAs(frameContext);
     assertThat(adapter.getParameters()).isSameAs(parameters);
     assertThat(adapter.getTemplatedStringEvaluator()).isSameAs(parameters.templatedStringEvaluator);
     assertThat(adapter.getElementStyle()).isSameAs(styleProvider);

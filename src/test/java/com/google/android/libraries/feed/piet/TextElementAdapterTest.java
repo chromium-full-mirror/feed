@@ -70,8 +70,6 @@ public class TextElementAdapterTest {
     adapterParameters =
         new AdapterParameters(
             null, null, new ParameterizedTextEvaluator(), null, null, mockHostProviders);
-    when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
-    when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
     when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
 
     adapter = new TestTextElementAdapter(context, adapterParameters);
@@ -88,7 +86,7 @@ public class TextElementAdapterTest {
 
     adapter.createAdapter(textElement, frameContext);
 
-    verify(mockStyleProvider).setElementStyles(context, mockAssetProvider, adapter.getBaseView());
+    verify(mockStyleProvider).applyElementStyles(context, mockAssetProvider, adapter.getBaseView());
     assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
     assertThat(adapter.getBaseView().getEllipsize()).isEqualTo(TruncateAt.END);
     assertThat(adapter.getBaseView().getCurrentTextColor()).isEqualTo(color);
@@ -141,7 +139,7 @@ public class TextElementAdapterTest {
     adapter.bindModel(textElement, frameContext);
 
     assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
-    verify(frameContext, never()).bindNewStyle(otherStyle);
+    verify(frameContext, never()).makeStyleFor(otherStyle);
 
     // Styles only change if new model has style bindings
     adapter.unbindModel();
@@ -151,10 +149,9 @@ public class TextElementAdapterTest {
             .build();
     textElement =
         getBaseTextElement().toBuilder().setStyleReferences(otherStyleWithBinding).build();
-    when(frameContext.bindNewStyle(otherStyleWithBinding)).thenReturn(frameContext);
     adapter.bindModel(textElement, frameContext);
 
-    verify(frameContext).bindNewStyle(otherStyleWithBinding);
+    verify(frameContext).makeStyleFor(otherStyleWithBinding);
   }
 
   @Test
@@ -180,7 +177,6 @@ public class TextElementAdapterTest {
   public void testGetStyles() {
     StyleIdsStack elementStyles = StyleIdsStack.newBuilder().addStyleIds("hair").build();
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
-    when(frameContext.bindNewStyle(elementStyles)).thenReturn(frameContext);
     TextElement textElement =
         getBaseTextElement(mockStyleProvider).toBuilder().setStyleReferences(elementStyles).build();
 
@@ -267,7 +263,6 @@ public class TextElementAdapterTest {
   private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.getCurrentStyle()).thenReturn(sp);
 
     TextElement.Builder textElement = TextElement.newBuilder();
     return textElement.build();

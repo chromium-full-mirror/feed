@@ -102,7 +102,7 @@ public class StyleProviderTest {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     View view = new View(context);
-    new StyleProvider(Style.getDefaultInstance()).setPadding(context, view, padding);
+    new StyleProvider(Style.getDefaultInstance()).applyPadding(context, view, padding);
     verifyPadding(view, padding);
   }
 
@@ -115,7 +115,7 @@ public class StyleProviderTest {
     MarginLayoutParams params =
         new MarginLayoutParams(MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.WRAP_CONTENT);
 
-    new StyleProvider(marginStyle).setMargins(context, params);
+    new StyleProvider(marginStyle).applyMargins(context, params);
     verifyMargins(params, margins);
   }
 
@@ -126,7 +126,7 @@ public class StyleProviderTest {
     Style paddingStyle = Style.newBuilder().setPadding(padding).build();
     View view = new View(context);
 
-    new StyleProvider(paddingStyle).setElementStyles(context, mockAssetProvider, view);
+    new StyleProvider(paddingStyle).applyElementStyles(context, mockAssetProvider, view);
     verifyPadding(view, padding);
   }
 
@@ -146,7 +146,7 @@ public class StyleProviderTest {
             .build();
 
     StyleProvider styleProvider = new StyleProvider(style);
-    styleProvider.setElementStyles(context, mockAssetProvider, view);
+    styleProvider.applyElementStyles(context, mockAssetProvider, view);
 
     Drawable drawable = styleProvider.createBackground(context, mockAssetProvider);
 
@@ -159,7 +159,7 @@ public class StyleProviderTest {
     view.setBackground(new ColorDrawable(0xffff0000));
 
     new StyleProvider(Style.getDefaultInstance())
-        .setElementStyles(context, mockAssetProvider, view);
+        .applyElementStyles(context, mockAssetProvider, view);
     assertThat(view.getBackground()).isNull();
   }
 
@@ -170,7 +170,7 @@ public class StyleProviderTest {
 
     Style style = Style.newBuilder().setBackground(Fill.getDefaultInstance()).build();
 
-    new StyleProvider(style).setElementStyles(context, mockAssetProvider, view);
+    new StyleProvider(style).applyElementStyles(context, mockAssetProvider, view);
 
     assertThat(view.getBackground()).isNull();
   }
@@ -181,7 +181,7 @@ public class StyleProviderTest {
     Style heightStyle = Style.newBuilder().setMinHeight(minHeight).build();
     View view = new View(context);
 
-    new StyleProvider(heightStyle).setElementStyles(context, mockAssetProvider, view);
+    new StyleProvider(heightStyle).applyElementStyles(context, mockAssetProvider, view);
 
     assertThat(view.getMinimumHeight()).isEqualTo(minHeight);
   }
@@ -192,7 +192,7 @@ public class StyleProviderTest {
     View view = new View(context);
     view.setMinimumHeight(12345);
 
-    new StyleProvider(noHeightStyle).setElementStyles(context, mockAssetProvider, view);
+    new StyleProvider(noHeightStyle).applyElementStyles(context, mockAssetProvider, view);
 
     assertThat(view.getMinimumHeight()).isEqualTo(0);
   }
@@ -226,6 +226,21 @@ public class StyleProviderTest {
     assertThat(background.getColor()).isEqualTo(color);
 
     // TODO: how to test rounded corners?
+  }
+
+  @Test
+  public void testEqualsAndHashCode() {
+    Style style = Style.newBuilder().setColor(123).build();
+    Style sameStyle = Style.newBuilder().setColor(123).build();
+    Style differentStyle = Style.newBuilder().setHeight(456).build();
+
+    StyleProvider styleProvider = new StyleProvider(style);
+    StyleProvider sameStyleProvider = new StyleProvider(sameStyle);
+    StyleProvider differentStyleProvider = new StyleProvider(differentStyle);
+
+    assertThat(styleProvider).isEqualTo(sameStyleProvider);
+    assertThat(styleProvider.hashCode()).isEqualTo(sameStyleProvider.hashCode());
+    assertThat(styleProvider).isNotEqualTo(differentStyleProvider);
   }
 
   private void verifyMargins(MarginLayoutParams params, EdgeWidths margins) {

@@ -15,8 +15,8 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
@@ -69,18 +69,14 @@ class FrameContext {
   // The in-scope bindings as a map from state_id to binding value
   private final Map<String, BindingValue> bindingValues;
 
-  // This is the current style provider
-  private final StyleProvider currentStyleProvider;
-
-  // The base / default style; inherited from the template or frame.
+  // The base / default style; set to DEFAULT_STYLE for Frame or childDefaultStyleId for Template.
   private final Style baseStyle;
 
   /** Initialize a FrameContext for the first time from a top-level Frame. */
+  @VisibleForTesting
   FrameContext(
       Frame frame,
       Map<String, Style> stylesheet,
-      Style baseStyle,
-      StyleProvider styleProvider,
       List<PietSharedState> pietSharedStates,
       PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
@@ -91,8 +87,7 @@ class FrameContext {
         frame,
         stylesheet,
         new ThrowingEmptyMap(),
-        baseStyle,
-        styleProvider,
+        DEFAULT_STYLE,
         pietSharedStates,
         pietStylesHelper,
         debugBehavior,
@@ -115,7 +110,6 @@ class FrameContext {
       Map<String, Style> stylesheet,
       Map<String, BindingValue> bindingValues,
       Style baseStyle,
-      StyleProvider styleProvider,
       List<PietSharedState> pietSharedStates,
       PietStylesHelper pietStylesHelper,
       DebugBehavior debugBehavior,
@@ -127,7 +121,6 @@ class FrameContext {
     this.stylesheet = stylesheet;
     this.bindingValues = bindingValues;
     this.baseStyle = baseStyle;
-    currentStyleProvider = styleProvider;
     this.stylesHelper = pietStylesHelper;
     this.pietSharedStates = pietSharedStates;
     this.debugBehavior = debugBehavior;
@@ -143,7 +136,6 @@ class FrameContext {
    */
   public static FrameContext createFrameContext(
       Frame frame,
-      Style baseStyle,
       List<PietSharedState> pietSharedStates,
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
@@ -157,17 +149,6 @@ class FrameContext {
       styleMap = PietStylesHelper.createMapFromStylesheet(frame.getStylesheet());
     }
 
-    Style frameStyle = null;
-    if (frame.hasStyleReferences()) {
-      if (styleMap != null) {
-        frameStyle =
-            PietStylesHelper.mergeStyleIdsStack(
-                DEFAULT_STYLE, frame.getStyleReferences(), styleMap, null);
-      }
-    }
-
-    StyleProvider styleProvider =
-        (frameStyle != null) ? new StyleProvider(frameStyle) : StyleProvider.DEFAULT_STYLE_PROVIDER;
     if (styleMap == null) {
       styleMap = new NoKeyOverwriteHashMap<>("Style");
     }
@@ -175,17 +156,69 @@ class FrameContext {
         new FrameContext(
             frame,
             styleMap,
-            baseStyle,
-            styleProvider,
             pietSharedStates,
             pietStylesHelper,
             debugBehavior,
             debugLogger,
             actionHandler,
             hostBindingProvider);
-    frameContext.computeErrors(frameStyle);
+    frameContext.computeErrors();
 
     return frameContext;
+  }
+
+  /**
+   * Creates a new FrameContext which is scoped properly for the Template. The Frame's stylesheet is
+   * discarded and replaced by the Template's stylesheet. In addition, a Template can define a root
+   * level style which applies to all child elements.
+   */
+  FrameContext createTemplateContext(Template template, BindingContext bindingContext) {
+    Map<String, BindingValue> bindingValues = createBindingValueMap(bindingContext);
+    Map<String, Style> localStylesheet;
+
+    switch (template.getTemplateStylesheetCase()) {
+      case STYLESHEET:
+        localStylesheet = PietStylesHelper.createMapFromStylesheet(template.getStylesheet());
+        break;
+      case STYLESHEET_ID:
+        localStylesheet = stylesHelper.getStylesheet(template.getStylesheetId());
+        break;
+      default:
+        localStylesheet = new HashMap<>();
+    }
+
+    Style templateBaseStyle;
+    if (template.hasChildDefaultStyleIds()) {
+      StyleIdsStack childDefaultStyleIds = template.getChildDefaultStyleIds();
+      if (template.getChildDefaultStyleIds().hasStyleBinding()) {
+        Logger.wtf(
+            TAG,
+            "Style bindings not supported for template default style (template: %s)",
+            template.getTemplateId());
+        childDefaultStyleIds = childDefaultStyleIds.toBuilder().clearStyleBinding().build();
+      }
+      templateBaseStyle =
+          PietStylesHelper.mergeStyleIdsStack(
+              DEFAULT_STYLE,
+              childDefaultStyleIds,
+              localStylesheet,
+              null // Null because the new FrameContext has not been set up yet
+              );
+    } else {
+      templateBaseStyle = DEFAULT_STYLE;
+    }
+    return new FrameContext(
+        currentFrame,
+        localStylesheet,
+        bindingValues,
+        templateBaseStyle,
+        pietSharedStates,
+        stylesHelper,
+        debugBehavior,
+        debugLogger,
+        actionHandler,
+        hostBindingProvider,
+        templates);
   }
 
   public DebugBehavior getDebugBehavior() {
@@ -215,83 +248,6 @@ class FrameContext {
 
   public List<PietSharedState> getPietSharedStates() {
     return pietSharedStates;
-  }
-
-  /**
-   * Creates a new FrameContext which is scoped properly for the Template. The Frame's stylesheet is
-   * discarded and replaced by the Template's stylesheet. In addition, a Template can define a root
-   * level style which applies to all child elements.
-   */
-  // TODO: Why do we allow bindingContext to be null if it's an error?
-  FrameContext bindTemplate(Template template, /*@Nullable*/ BindingContext bindingContext) {
-    if (bindingContext == null) {
-      Logger.w(TAG, reportError(MessageType.WARNING, "Template BindingContext was not provided"));
-      return this;
-    }
-    Map<String, BindingValue> binding = createBindingValueMap(bindingContext);
-    Map<String, Style> localStylesheet;
-
-    switch (template.getTemplateStylesheetCase()) {
-      case STYLESHEET:
-        localStylesheet = PietStylesHelper.createMapFromStylesheet(template.getStylesheet());
-        break;
-      case STYLESHEET_ID:
-        localStylesheet = stylesHelper.getStylesheet(template.getStylesheetId());
-        break;
-      default:
-        localStylesheet = new HashMap<>();
-    }
-
-    Style templateBaseStyle;
-    StyleProvider templateStyleProvider;
-    if (template.hasChildDefaultStyleIds()) {
-      templateBaseStyle =
-          PietStylesHelper.mergeStyleIdsStack(
-              DEFAULT_STYLE, template.getChildDefaultStyleIds(), localStylesheet, this);
-      templateStyleProvider = new StyleProvider(templateBaseStyle);
-    } else {
-      templateBaseStyle = DEFAULT_STYLE;
-      templateStyleProvider = DEFAULT_STYLE_PROVIDER;
-    }
-    return new FrameContext(
-        currentFrame,
-        localStylesheet,
-        binding,
-        templateBaseStyle,
-        templateStyleProvider,
-        pietSharedStates,
-        stylesHelper,
-        debugBehavior,
-        debugLogger,
-        actionHandler,
-        hostBindingProvider,
-        templates);
-  }
-
-  /**
-   * Creates a new FrameContext from the existing FrameContext using {@code styleId} to lookup the
-   * new Style.
-   */
-  FrameContext bindNewStyle(StyleIdsStack styles) {
-    StyleProvider styleProvider = makeStyleFor(styles);
-    return new FrameContext(
-        currentFrame,
-        stylesheet,
-        bindingValues,
-        baseStyle,
-        styleProvider,
-        pietSharedStates,
-        stylesHelper,
-        debugBehavior,
-        debugLogger,
-        actionHandler,
-        hostBindingProvider,
-        templates);
-  }
-
-  /** Return the current {@link StyleProvider}. */
-  public StyleProvider getCurrentStyle() {
-    return currentStyleProvider;
   }
 
   /** Return a {@link StyleProvider} for the style. */
@@ -338,6 +294,14 @@ class FrameContext {
    * default instance.
    */
   BoundStyle getStyleFromBinding(StyleBindingRef binding) {
+    return getStyleFromBinding(binding, bindingValues);
+  }
+
+  /**
+   * Return a {@link BoundStyle} for the binding if there is one defined; otherwise returns the
+   * default instance.
+   */
+  BoundStyle getStyleFromBinding(StyleBindingRef binding, Map<String, BindingValue> bindingValues) {
     BindingValue bindingValue = bindingValues.get(binding.getBindingId());
     if (bindingValue != null && bindingValue.hasHostBindingData()) {
       bindingValue = hostBindingProvider.getStyleBindingForValue(bindingValue);
@@ -485,7 +449,7 @@ class FrameContext {
     return e;
   }
 
-  private void computeErrors(/*@Nullable*/ Style frameStyle) {
+  private void computeErrors() {
     if (currentFrame.hasStylesheetId() && stylesheet.isEmpty()) {
       String error =
           String.format(
@@ -495,17 +459,9 @@ class FrameContext {
       String error = "Frame defined without any Stylesheet";
       Logger.w(TAG, reportError(MessageType.ERROR, error));
     }
-
-    if (currentFrame.hasStyleReferences() && frameStyle == null) {
-      String error =
-          String.format(
-              "Couldn't find frame styles [%s] in the Stylesheet",
-              currentFrame.getStyleReferences());
-      Logger.e(TAG, reportError(MessageType.ERROR, error));
-    }
   }
 
-  private Map<String, BindingValue> createBindingValueMap(BindingContext bindingContext) {
+  private static Map<String, BindingValue> createBindingValueMap(BindingContext bindingContext) {
     Map<String, BindingValue> bindingValueMap = new NoKeyOverwriteHashMap<>("BindingValue");
     if (bindingContext.getBindingValuesCount() == 0) {
       return bindingValueMap;

@@ -123,7 +123,6 @@ public class ParameterizedTextElementAdapterFactoryTest {
   private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    when(frameContext.getCurrentStyle()).thenReturn(sp);
 
     TextElement.Builder textElement = TextElement.newBuilder();
     ParameterizedText text = ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT).build();

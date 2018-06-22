@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -108,7 +107,7 @@ public class FrameAdapter {
         }
       }
 
-      StyleProvider style = localFrameContext.getCurrentStyle();
+      StyleProvider style = localFrameContext.makeStyleFor(frame.getStyleReferences());
       Drawable bg = style.createBackground(context, parameters.hostProviders.getAssetProvider());
       frameView.setBackground(bg);
     } catch (RuntimeException e) {
@@ -174,7 +173,6 @@ public class FrameAdapter {
   FrameContext createFrameContext(Frame frame, List<PietSharedState> pietSharedStates) {
     return FrameContext.createFrameContext(
         frame,
-        DEFAULT_STYLE,
         pietSharedStates,
         debugBehavior,
         new DebugLogger(),

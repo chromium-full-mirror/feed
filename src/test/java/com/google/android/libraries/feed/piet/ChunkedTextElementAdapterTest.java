@@ -157,12 +157,9 @@ public class ChunkedTextElementAdapterTest {
     when(mockTextEvaluator.evaluate(
             mockAssetProvider, ParameterizedText.newBuilder().setText(CHUNKY_TEXT).build()))
         .thenReturn(PROCESSED_TEXT);
-    when(frameContext.bindNewStyle(StyleIdsStack.getDefaultInstance())).thenReturn(frameContext);
-    when(frameContext.bindNewStyle(CHUNK_STYLE)).thenReturn(frameContext);
     when(frameContext.makeStyleFor(CHUNK_STYLE)).thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
-    when(frameContext.getCurrentStyle()).thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
     when(hostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getActionHandler()).thenReturn(mockActionHandler);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());

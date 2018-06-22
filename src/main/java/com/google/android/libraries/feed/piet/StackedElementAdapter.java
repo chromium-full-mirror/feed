@@ -66,7 +66,7 @@ class StackedElementAdapter extends ElementContainerAdapter<FrameLayout, List<Co
 
     setChildWidthAndHeightOnParams(adapter, childParams);
 
-    adapter.getElementStyle().setMargins(getContext(), childParams);
+    adapter.getElementStyle().applyMargins(getContext(), childParams);
 
     childParams.gravity =
         ViewUtils.pietGravityToGravity(
