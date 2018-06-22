@@ -14,18 +14,53 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<resources>
-  <string name="more_button_label">More</string>
-  <string name="no_content_line_1">That\'s all for now</string>
-  <string name="no_content_line_2">Your suggested articles appear here</string>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="more_button_label"
+          description="Generic label for a button to show more items or options. [CHAR LIMIT=20]">
+    More
+  </string>
+
+  <string name="no_suggestions"
+          description="Title text explaining there is no content.">
+    That’s all for now
+  </string>
+
+  <string name="suggestions_section_empty"
+          description="Text of a card explaining to the user that they can expect to see suggested
+                       articles in this area in the future.">
+    Your suggested articles appear here
+  </string>
 
   <!-- String resources for zero state -->
-  <string name="ntp_all_dismissed_body_text_morning">More articles will appear soon. Enjoy your morning!</string>
-  <string name="ntp_all_dismissed_body_text_afternoon">More articles will appear soon. Enjoy your afternoon!</string>
-  <string name="ntp_all_dismissed_body_text_evening">More articles will appear soon. Enjoy your evening!</string>
-  <string name="ntp_title_no_suggestions">That’s all for now</string>
+  <string name="zero_state_text_morning"
+          description="Body text shown in the morning on the New Tab Page when all suggested content
+                       has been dismissed.">
+    More articles will appear soon. Enjoy your morning!
+  </string>
+
+  <string name="zero_state_text_afternoon"
+          description="Body text shown in the afternoon on the New Tab Page when all suggested
+          content has been dismissed.">
+    More articles will appear soon. Enjoy your afternoon!
+  </string>
+
+  <string name="zero_state_text_evening"
+          description="Body text shown in the evening on the New Tab Page when all suggested content
+                       has been dismissed.">
+    More articles will appear soon. Enjoy your evening!
+  </string>
 
   <!-- String resources for snackbar pagination errors -->
-  <string name="ntp_suggestions_fetch_failed">Can\'t get suggestions</string>
-  <string name="ntp_suggestions_fetch_no_new_suggestions">No new suggestions</string>
+  <string name="snackbar_fetch_failed"
+          description="Snackbar text shown when the user presses the More button to get more
+                       suggestions, but this fails (eg, no internet connectivity).">
+    Can’t get suggestions
+  </string>
+
+
+  <string name="snackbar_fetch_no_new_suggestions"
+          description="Snackbar text shown when the user presses the More button to get more
+                       suggestions, the fetch succeeds but provides no new suggestions.">
+    No new suggestions
+  </string>
 </resources>

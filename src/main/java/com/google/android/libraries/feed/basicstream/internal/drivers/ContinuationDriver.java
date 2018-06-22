@@ -148,7 +148,7 @@ public class ContinuationDriver extends LeafFeatureDriver
     if (modelChildren.isEmpty()
         || (modelChildren.size() == 1 && modelChildren.get(0).getType() == Type.TOKEN)) {
       snackbarApi.show(
-          context.getResources().getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
+          context.getResources().getString(R.string.snackbar_fetch_no_new_suggestions));
     }
 
     // TODO: Handle continuation driver. This needs to handle synthetic tokens.
@@ -166,7 +166,7 @@ public class ContinuationDriver extends LeafFeatureDriver
       continuationViewHolder.setShowSpinner(false);
     }
 
-    snackbarApi.show(context.getString(R.string.ntp_suggestions_fetch_failed));
+    snackbarApi.show(context.getString(R.string.snackbar_fetch_failed));
   }
 
   private List<ModelChild> extractModelChildrenFromCursor(ModelCursor cursor) {

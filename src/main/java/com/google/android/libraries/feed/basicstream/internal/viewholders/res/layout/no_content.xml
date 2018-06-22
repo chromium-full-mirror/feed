@@ -27,11 +27,11 @@
       android:paddingBottom="@dimen/no_content_text_padding"
       android:textColor="@color/black_alpha_87"
       android:textSize="@dimen/no_content_text_size"
-      android:text="@string/no_content_line_1" />
+      android:text="@string/no_suggestions" />
   <TextView
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:textColor="@color/black_alpha_54"
       android:textSize="@dimen/no_content_text_size"
-      android:text="@string/no_content_line_2" />
+      android:text="@string/suggestions_section_empty" />
 </LinearLayout>

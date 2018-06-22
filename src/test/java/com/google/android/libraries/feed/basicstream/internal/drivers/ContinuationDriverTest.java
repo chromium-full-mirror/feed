@@ -284,7 +284,7 @@ public class ContinuationDriverTest {
   public void testOnTokenCompleted_createsSnackbar_whenCursorReturnsEmptyPage() {
     continuationDriver.onTokenCompleted(new TokenCompleted(new FakeModelCursor.Builder().build()));
 
-    verify(snackbarApi).show(context.getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
+    verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
     verify(cursorChangedListener).onNewChildren(modelChild, Collections.emptyList());
   }
 
@@ -293,7 +293,7 @@ public class ContinuationDriverTest {
     FakeModelCursor cursor = new FakeModelCursor.Builder().addToken().build();
     continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
 
-    verify(snackbarApi).show(context.getString(R.string.ntp_suggestions_fetch_no_new_suggestions));
+    verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
     verify(cursorChangedListener).onNewChildren(modelChild, cursor.getModelChildren());
   }
 
@@ -304,7 +304,7 @@ public class ContinuationDriverTest {
     continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
 
     verify(continuationViewHolder).setShowSpinner(false);
-    verify(snackbarApi).show(context.getString(R.string.ntp_suggestions_fetch_failed));
+    verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_failed));
   }
 
   @Test

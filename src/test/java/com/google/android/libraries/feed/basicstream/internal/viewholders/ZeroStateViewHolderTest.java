@@ -75,7 +75,7 @@ public class ZeroStateViewHolderTest {
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
-        .isEqualTo(context.getResources().getString(R.string.ntp_all_dismissed_body_text_morning));
+        .isEqualTo(context.getResources().getString(R.string.zero_state_text_morning));
   }
 
   @Test
@@ -84,7 +84,7 @@ public class ZeroStateViewHolderTest {
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
-        .isEqualTo(context.getResources().getString(R.string.ntp_all_dismissed_body_text_morning));
+        .isEqualTo(context.getResources().getString(R.string.zero_state_text_morning));
   }
 
   @Test
@@ -93,8 +93,7 @@ public class ZeroStateViewHolderTest {
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
-        .isEqualTo(
-            context.getResources().getString(R.string.ntp_all_dismissed_body_text_afternoon));
+        .isEqualTo(context.getResources().getString(R.string.zero_state_text_afternoon));
   }
 
   @Test
@@ -103,8 +102,7 @@ public class ZeroStateViewHolderTest {
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
-        .isEqualTo(
-            context.getResources().getString(R.string.ntp_all_dismissed_body_text_afternoon));
+        .isEqualTo(context.getResources().getString(R.string.zero_state_text_afternoon));
   }
 
   @Test
@@ -113,7 +111,7 @@ public class ZeroStateViewHolderTest {
 
     TextView bodyText = frameLayout.findViewById(R.id.body_text);
     assertThat(bodyText.getText())
-        .isEqualTo(context.getResources().getString(R.string.ntp_all_dismissed_body_text_evening));
+        .isEqualTo(context.getResources().getString(R.string.zero_state_text_evening));
   }
 
   @Test

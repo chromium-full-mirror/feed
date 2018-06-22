@@ -67,11 +67,11 @@ public class ZeroStateViewHolder extends FeedViewHolder {
   @StringRes
   private int getBodyText(int hour) {
     if (hour >= MORNING_HOUR_START && hour < AFTERNOON_HOUR_START) {
-      return R.string.ntp_all_dismissed_body_text_morning;
+      return R.string.zero_state_text_morning;
     } else if (hour >= AFTERNOON_HOUR_START && hour < EVENING_HOUR_START) {
-      return R.string.ntp_all_dismissed_body_text_afternoon;
+      return R.string.zero_state_text_afternoon;
     } else {
-      return R.string.ntp_all_dismissed_body_text_evening;
+      return R.string.zero_state_text_evening;
     }
   }
 }
