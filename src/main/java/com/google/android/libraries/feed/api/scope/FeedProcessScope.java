@@ -66,7 +66,8 @@ import java.util.concurrent.ExecutorService;
 public class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
-  FeedStreamScope.Builder createFeedStreamScopeBuilder(
+  // This is called by hosts so it must be public
+  public FeedStreamScope.Builder createFeedStreamScopeBuilder(
       Context context,
       ImageLoaderApi imageLoaderApi,
       ActionApi actionApi,
