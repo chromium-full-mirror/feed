@@ -34,6 +34,7 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
@@ -593,7 +594,11 @@ public class ElementAdapterTest {
     adapter.triggerViewActions(viewport, frameContext);
     verify(actionHandler)
         .handleAction(
-            same(fullViewActions.getOnViewActions(0).getAction()), eq(frame), eq(view), eq(null));
+            same(fullViewActions.getOnViewActions(0).getAction()),
+            eq(ActionType.VIEW),
+            eq(frame),
+            eq(view),
+            eq(null));
   }
 
   @Config(shadows = {ExtendedShadowView.class})
@@ -656,6 +661,7 @@ public class ElementAdapterTest {
     verify(actionHandler)
         .handleAction(
             same(partialViewActions.getOnViewActions(0).getAction()),
+            eq(ActionType.VIEW),
             eq(frame),
             eq(view),
             eq(null));
@@ -670,6 +676,7 @@ public class ElementAdapterTest {
     verify(actionHandler, times(2))
         .handleAction(
             same(partialViewActions.getOnViewActions(0).getAction()),
+            eq(ActionType.VIEW),
             eq(frame),
             eq(view),
             eq(null));

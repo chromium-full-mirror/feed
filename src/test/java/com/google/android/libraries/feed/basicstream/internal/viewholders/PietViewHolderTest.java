@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.viewholders;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -26,18 +27,23 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
+import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import java.util.ArrayList;
@@ -45,6 +51,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -54,20 +61,26 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link PietViewHolder}. */
 @RunWith(RobolectricTestRunner.class)
 public class PietViewHolderTest {
+  private static final Action ACTION = Action.getDefaultInstance();
   private static final int CARD_BOTTOM_PADDING = 42;
+  private static final Frame FRAME = Frame.newBuilder().build();
   private static final FeedActionPayload SWIPE_ACTION =
       FeedActionPayload.newBuilder()
           .setExtension(FeedAction.feedActionExtension, FeedAction.getDefaultInstance())
           .build();
+  private static final String VE_LOGGING_TOKEN = "token";
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private FrameAdapter frameAdapter;
   @Mock private ActionParser actionParser;
   @Mock private PietManager pietManager;
   @Mock private StreamActionApiImpl streamActionApi;
+  @Mock private BasicLoggingApi basicLoggingApi;
 
+  private ActionHandler actionHandler;
   private PietViewHolder pietViewHolder;
   private FrameLayout frameLayout;
+  private View view;
   private final List<PietSharedState> pietSharedStates = new ArrayList<>();
 
   @Before
@@ -75,6 +88,7 @@ public class PietViewHolderTest {
     initMocks(this);
     Context context = Robolectric.setupActivity(Activity.class);
     frameLayout = new FrameLayout(context);
+    view = new TextView(context);
     when(pietManager.createPietFrameAdapter(
             any(Supplier.class), any(ActionHandler.class), eq(context)))
         .thenReturn(frameAdapter);
@@ -82,7 +96,18 @@ public class PietViewHolderTest {
 
     pietViewHolder =
         new PietViewHolder(
-            cardConfiguration, frameLayout, pietManager, context, streamActionApi, actionParser);
+            cardConfiguration,
+            frameLayout,
+            pietManager,
+            context,
+            streamActionApi,
+            actionParser,
+            basicLoggingApi);
+
+    ArgumentCaptor<ActionHandler> captor = ArgumentCaptor.forClass(ActionHandler.class);
+    verify(pietManager)
+        .createPietFrameAdapter(any(Supplier.class), captor.capture(), any(Context.class));
+    actionHandler = captor.getValue();
   }
 
   @Test
@@ -182,5 +207,29 @@ public class PietViewHolderTest {
 
     verify(actionParser)
         .parseFeedActionPayload(SWIPE_ACTION, streamActionApi, pietViewHolder.itemView);
+  }
+
+  @Test
+  public void testActionHandler_logsClickOnClickAction() {
+    actionHandler.handleAction(ACTION, ActionType.CLICK, FRAME, view, VE_LOGGING_TOKEN);
+
+    verify(basicLoggingApi).onContentClicked();
+    verify(actionParser).parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN);
+  }
+
+  @Test
+  public void testActionHandler_doesNotLogClickOnLongClickAction() {
+    actionHandler.handleAction(ACTION, ActionType.LONG_CLICK, FRAME, view, VE_LOGGING_TOKEN);
+
+    verify(basicLoggingApi, never()).onContentClicked();
+    verify(actionParser).parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN);
+  }
+
+  @Test
+  public void testActionHandler_doesNotLogClickOnViewAction() {
+    actionHandler.handleAction(ACTION, ActionType.VIEW, FRAME, view, VE_LOGGING_TOKEN);
+
+    verify(basicLoggingApi, never()).onContentClicked();
+    verify(actionParser).parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN);
   }
 }

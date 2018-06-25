@@ -44,6 +44,7 @@ import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ActionsC
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ImageSpanDrawableCallback;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapterTest.ShadowTextViewWithHeight;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
@@ -457,7 +458,11 @@ public class ChunkedTextElementAdapterTest {
     adapter.getBaseView().dispatchTouchEvent(motionEvent);
     verify(mockActionHandler)
         .handleAction(
-            Action.getDefaultInstance(), Frame.getDefaultInstance(), adapter.getBaseView(), null);
+            Action.getDefaultInstance(),
+            ActionType.CLICK,
+            Frame.getDefaultInstance(),
+            adapter.getBaseView(),
+            null);
   }
 
   @Test
@@ -485,7 +490,11 @@ public class ChunkedTextElementAdapterTest {
     adapter.getBaseView().dispatchTouchEvent(motionEvent);
     verify(mockActionHandler)
         .handleAction(
-            Action.getDefaultInstance(), Frame.getDefaultInstance(), adapter.getBaseView(), null);
+            Action.getDefaultInstance(),
+            ActionType.CLICK,
+            Frame.getDefaultInstance(),
+            adapter.getBaseView(),
+            null);
   }
 
   @Test

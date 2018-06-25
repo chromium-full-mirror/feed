@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHo
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import java.util.ArrayList;
@@ -57,6 +58,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final ActionParser actionParser;
   private final ActionApi actionApi;
   private final ActionManager actionManager;
+  private final BasicLoggingApi basicLoggingApi;
   private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<View> headers;
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
@@ -75,13 +77,15 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       ActionParser actionParser,
       ActionApi actionApi,
       ActionManager actionManager,
-      DeepestContentTracker deepestContentTracker) {
+      DeepestContentTracker deepestContentTracker,
+      BasicLoggingApi basicLoggingApi) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
     this.actionParser = actionParser;
     this.actionApi = actionApi;
     this.actionManager = actionManager;
+    this.basicLoggingApi = basicLoggingApi;
     headers = new ArrayList<>();
     leafFeatureDrivers = new ArrayList<>();
     setHasStableIds(true);
@@ -108,7 +112,13 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     StreamActionApiImpl streamActionApi =
         new StreamActionApiImpl(context, actionApi, actionParser, actionManager);
     return new PietViewHolder(
-        cardConfiguration, frameLayout, pietManager, context, streamActionApi, actionParser);
+        cardConfiguration,
+        frameLayout,
+        pietManager,
+        context,
+        streamActionApi,
+        actionParser,
+        basicLoggingApi);
   }
 
   @Override

@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -315,7 +316,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     @Override
     public void onClick(View widget) {
       // TODO: Pass VE information with the action.
-      handler.handleAction(action, frame, widget, /* veLoggingToken= */ null);
+      handler.handleAction(action, ActionType.CLICK, frame, widget, /* veLoggingToken= */ null);
     }
 
     @Override

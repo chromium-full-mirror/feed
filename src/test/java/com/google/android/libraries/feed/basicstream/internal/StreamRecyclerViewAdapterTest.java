@@ -43,6 +43,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHo
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -79,6 +80,7 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
   @Mock private DeepestContentTracker deepestContentTracker;
+  @Mock private BasicLoggingApi basicLoggingApi;
 
   private Context context;
   private LinearLayout frameContainer;
@@ -116,7 +118,8 @@ public class StreamRecyclerViewAdapterTest {
             actionParser,
             actionApi,
             actionManager,
-            deepestContentTracker);
+            deepestContentTracker,
+            basicLoggingApi);
     streamRecyclerViewAdapter.setHeaders(headers);
 
     when(driver.getLeafFeatureDrivers()).thenReturn(Lists.newArrayList(initialFeatureDriver));

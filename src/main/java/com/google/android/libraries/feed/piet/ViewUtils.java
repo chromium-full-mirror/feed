@@ -22,6 +22,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
@@ -82,7 +83,11 @@ public class ViewUtils {
       view.setOnLongClickListener(
           v -> {
             handler.handleAction(
-                actions.getOnLongClickAction(), frameContext.getFrame(), view, null);
+                actions.getOnLongClickAction(),
+                ActionType.LONG_CLICK,
+                frameContext.getFrame(),
+                view,
+                null);
             return true;
           });
     } else {
@@ -91,7 +96,8 @@ public class ViewUtils {
     if (actions.hasOnClickAction()) {
       view.setOnClickListener(
           v -> {
-            handler.handleAction(actions.getOnClickAction(), frameContext.getFrame(), view, null);
+            handler.handleAction(
+                actions.getOnClickAction(), ActionType.CLICK, frameContext.getFrame(), view, null);
           });
     } else {
       clearOnClickActions(view);
@@ -142,7 +148,8 @@ public class ViewUtils {
       activeActions.removeAll(actions.getOnViewActionsList());
       for (VisibilityAction visibilityAction : actions.getOnHideActionsList()) {
         if (activeActions.add(visibilityAction)) {
-          actionHandler.handleAction(visibilityAction.getAction(), frame, view, null);
+          actionHandler.handleAction(
+              visibilityAction.getAction(), ActionType.VIEW, frame, view, null);
         }
       }
       return;
@@ -160,7 +167,8 @@ public class ViewUtils {
       for (VisibilityAction visibilityAction : actions.getOnViewActionsList()) {
         if (proportionVisible >= visibilityAction.getProportionVisible()) {
           if (activeActions.add(visibilityAction)) {
-            actionHandler.handleAction(visibilityAction.getAction(), frame, view, null);
+            actionHandler.handleAction(
+                visibilityAction.getAction(), ActionType.VIEW, frame, view, null);
           }
         } else {
           activeActions.remove(visibilityAction);
@@ -170,7 +178,8 @@ public class ViewUtils {
       for (VisibilityAction visibilityAction : actions.getOnHideActionsList()) {
         if (proportionVisible < visibilityAction.getProportionVisible()) {
           if (activeActions.add(visibilityAction)) {
-            actionHandler.handleAction(visibilityAction.getAction(), frame, view, null);
+            actionHandler.handleAction(
+                visibilityAction.getAction(), ActionType.VIEW, frame, view, null);
           }
         } else {
           activeActions.remove(visibilityAction);

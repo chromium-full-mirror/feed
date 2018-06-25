@@ -26,6 +26,7 @@ import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
@@ -156,7 +157,8 @@ public class ViewUtilsTest {
     assertThat(view.hasOnClickListeners()).isTrue();
 
     view.callOnClick();
-    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, view, null);
+    verify(mockActionHandler)
+        .handleAction(DEFAULT_ACTION, ActionType.CLICK, DEFAULT_FRAME, view, null);
   }
 
   @Test
@@ -164,7 +166,8 @@ public class ViewUtilsTest {
     ViewUtils.setOnClickActions(LONG_CLICK_ACTIONS, view, mockFrameContext);
 
     view.performLongClick();
-    verify(mockActionHandler).handleAction(DEFAULT_ACTION, DEFAULT_FRAME, view, null);
+    verify(mockActionHandler)
+        .handleAction(DEFAULT_ACTION, ActionType.LONG_CLICK, DEFAULT_FRAME, view, null);
   }
 
   @Test
@@ -243,7 +246,12 @@ public class ViewUtilsTest {
     ViewUtils.maybeTriggerViewActions(
         view, viewport, VIEW_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     verify(mockActionHandler)
-        .handleAction(same(PARTIAL_VIEW_ACTION), same(DEFAULT_FRAME), same(view), eq(null));
+        .handleAction(
+            same(PARTIAL_VIEW_ACTION),
+            eq(ActionType.VIEW),
+            same(DEFAULT_FRAME),
+            same(view),
+            eq(null));
   }
 
   @Test
@@ -252,9 +260,15 @@ public class ViewUtilsTest {
     ViewUtils.maybeTriggerViewActions(
         view, viewport, VIEW_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     verify(mockActionHandler)
-        .handleAction(same(FULL_VIEW_ACTION), same(DEFAULT_FRAME), same(view), eq(null));
+        .handleAction(
+            same(FULL_VIEW_ACTION), eq(ActionType.VIEW), same(DEFAULT_FRAME), same(view), eq(null));
     verify(mockActionHandler)
-        .handleAction(same(PARTIAL_VIEW_ACTION), same(DEFAULT_FRAME), same(view), eq(null));
+        .handleAction(
+            same(PARTIAL_VIEW_ACTION),
+            eq(ActionType.VIEW),
+            same(DEFAULT_FRAME),
+            same(view),
+            eq(null));
   }
 
   @Test
@@ -270,9 +284,15 @@ public class ViewUtilsTest {
     ViewUtils.maybeTriggerViewActions(
         view, viewport, VIEW_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     verify(mockActionHandler)
-        .handleAction(same(FULL_VIEW_ACTION), same(DEFAULT_FRAME), same(view), eq(null));
+        .handleAction(
+            same(FULL_VIEW_ACTION), eq(ActionType.VIEW), same(DEFAULT_FRAME), same(view), eq(null));
     verify(mockActionHandler)
-        .handleAction(same(PARTIAL_VIEW_ACTION), same(DEFAULT_FRAME), same(view), eq(null));
+        .handleAction(
+            same(PARTIAL_VIEW_ACTION),
+            eq(ActionType.VIEW),
+            same(DEFAULT_FRAME),
+            same(view),
+            eq(null));
   }
 
   @Test
@@ -291,7 +311,8 @@ public class ViewUtilsTest {
         DEFAULT_FRAME,
         activeActions);
     verify(mockActionHandler)
-        .handleAction(same(FULL_VIEW_ACTION), same(DEFAULT_FRAME), same(view), eq(null));
+        .handleAction(
+            same(FULL_VIEW_ACTION), eq(ActionType.VIEW), same(DEFAULT_FRAME), same(view), eq(null));
   }
 
   @Test
@@ -310,7 +331,12 @@ public class ViewUtilsTest {
         DEFAULT_FRAME,
         activeActions);
     verify(mockActionHandler)
-        .handleAction(same(PARTIAL_VIEW_ACTION), same(DEFAULT_FRAME), same(view), eq(null));
+        .handleAction(
+            same(PARTIAL_VIEW_ACTION),
+            eq(ActionType.VIEW),
+            same(DEFAULT_FRAME),
+            same(view),
+            eq(null));
   }
 
   @Test
@@ -347,7 +373,12 @@ public class ViewUtilsTest {
         DEFAULT_FRAME,
         activeActions);
     verify(mockActionHandler)
-        .handleAction(same(PARTIAL_VIEW_ACTION), same(DEFAULT_FRAME), same(view), eq(null));
+        .handleAction(
+            same(PARTIAL_VIEW_ACTION),
+            eq(ActionType.VIEW),
+            same(DEFAULT_FRAME),
+            same(view),
+            eq(null));
   }
 
   @Test

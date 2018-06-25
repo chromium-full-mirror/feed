@@ -59,6 +59,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -470,7 +471,8 @@ public class BasicStreamTest {
         new HostBindingProvider(),
         mock(ActionManager.class),
         configuration,
-        layoutManager);
+        layoutManager,
+        mock(BasicLoggingApi.class));
   }
 
   private class BasicStreamForTest extends BasicStream {
@@ -496,7 +498,8 @@ public class BasicStreamTest {
         /*@Nullable*/ HostBindingProvider hostBindingProvider,
         ActionManager actionManager,
         Configuration configuration,
-        LinearLayoutManager layoutManager) {
+        LinearLayoutManager layoutManager,
+        BasicLoggingApi basicLoggingApi) {
       super(
           context,
           streamConfiguration,
@@ -513,7 +516,8 @@ public class BasicStreamTest {
           hostBindingProvider,
           actionManager,
           configuration,
-          snackbarApi);
+          snackbarApi,
+          basicLoggingApi);
       this.layoutManager = layoutManager;
     }
 
@@ -556,7 +560,8 @@ public class BasicStreamTest {
         ActionParser actionParser,
         ActionApi actionApi,
         ActionManager actionManager,
-        DeepestContentTracker deepestContentTracker) {
+        DeepestContentTracker deepestContentTracker,
+        BasicLoggingApi basicLoggingApi) {
       return adapter;
     }
 

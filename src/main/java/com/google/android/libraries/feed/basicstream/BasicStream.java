@@ -52,6 +52,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -85,6 +86,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final SnackbarApi snackbarApi;
   private final StreamContentChangedListener streamContentChangedListener;
   private final DeepestContentTracker deepestContentTracker;
+  private final BasicLoggingApi basicLoggingApi;
 
   private RecyclerView recyclerView;
   private Context context;
@@ -115,7 +117,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       /*@Nullable*/ HostBindingProvider hostBindingProvider,
       ActionManager actionManager,
       Configuration configuration,
-      SnackbarApi snackbarApi) {
+      SnackbarApi snackbarApi,
+      BasicLoggingApi basicLoggingApi) {
     this.cardConfiguration = cardConfiguration;
     this.threadUtils = threadUtils;
     this.pietManager =
@@ -138,6 +141,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.snackbarApi = snackbarApi;
     this.streamContentChangedListener = createStreamContentChangedListener();
     this.deepestContentTracker = new DeepestContentTracker();
+    this.basicLoggingApi = basicLoggingApi;
   }
 
   @VisibleForTesting
@@ -169,7 +173,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             actionParser,
             actionApi,
             actionManager,
-            deepestContentTracker);
+            deepestContentTracker,
+            basicLoggingApi);
     adapter.setHeaders(headers);
 
     recyclerView = new RecyclerView(context);
@@ -467,7 +472,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ActionParser actionParser,
       ActionApi actionApi,
       ActionManager actionManager,
-      DeepestContentTracker deepestContentTracker) {
+      DeepestContentTracker deepestContentTracker,
+      BasicLoggingApi basicLoggingApi) {
     return new StreamRecyclerViewAdapter(
         context,
         cardConfiguration,
@@ -475,7 +481,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
         actionParser,
         actionApi,
         actionManager,
-        deepestContentTracker);
+        deepestContentTracker,
+        basicLoggingApi);
   }
 
   @VisibleForTesting

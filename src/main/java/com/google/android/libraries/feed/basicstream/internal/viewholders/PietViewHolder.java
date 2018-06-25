@@ -21,9 +21,11 @@ import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
+import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -51,7 +53,8 @@ public class PietViewHolder extends FeedViewHolder {
       PietManager pietManager,
       Context context,
       StreamActionApi streamActionApi,
-      ActionParser actionParser) {
+      ActionParser actionParser,
+      BasicLoggingApi basicLoggingApi) {
     super(cardView);
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;
@@ -60,8 +63,12 @@ public class PietViewHolder extends FeedViewHolder {
     this.frameAdapter =
         pietManager.createPietFrameAdapter(
             () -> cardView,
-            (action, frame, view, veLoggingToken) ->
-                actionParser.parseAction(action, streamActionApi, view, veLoggingToken),
+            (action, actionType, frame, view, veLoggingToken) -> {
+              if (actionType == ActionType.CLICK) {
+                basicLoggingApi.onContentClicked();
+              }
+              actionParser.parseAction(action, streamActionApi, view, veLoggingToken);
+            },
             context);
     cardView.addView(frameAdapter.getFrameContainer());
   }
