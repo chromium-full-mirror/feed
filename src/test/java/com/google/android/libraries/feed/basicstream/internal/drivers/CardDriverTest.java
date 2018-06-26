@@ -135,6 +135,14 @@ public class CardDriverTest {
     assertThat(cardDriver.swipeActionArg).isEqualTo(SWIPE_ACTION);
   }
 
+  @Test
+  public void testOnDestroy() {
+    cardDriver.getLeafFeatureDriver();
+    cardDriver.onDestroy();
+
+    verify(contentDriverChild).onDestroy();
+  }
+
   public class CardDriverForTest extends CardDriver {
 
     private final ContentDriver child;

@@ -226,6 +226,13 @@ public class ContinuationDriverTest {
   }
 
   @Test
+  public void testOnDestroy() {
+    continuationDriver.onDestroy();
+
+    verify(modelToken).unregisterObserver(continuationDriver);
+  }
+
+  @Test
   public void testOnClick() {
     continuationDriver.bind(continuationViewHolder);
     continuationDriver.onClick(/* v= */ null);

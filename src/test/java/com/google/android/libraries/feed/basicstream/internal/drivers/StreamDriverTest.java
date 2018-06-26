@@ -67,6 +67,7 @@ public class StreamDriverTest {
   @Mock private ModelFeature streamFeature;
   @Mock private ModelProvider modelProvider;
   @Mock private ContinuationDriver continuationDriver;
+  @Mock private NoContentDriver noContentDriver;
   @Mock private StreamContentListener contentListener;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private SnackbarApi snackbarApi;
@@ -104,6 +105,7 @@ public class StreamDriverTest {
     ThreadUtils threadUtils = new ThreadUtils();
 
     when(continuationDriver.getLeafFeatureDriver()).thenReturn(continuationDriver);
+    when(noContentDriver.getLeafFeatureDriver()).thenReturn(noContentDriver);
     when(modelProvider.getRootFeature()).thenReturn(streamFeature);
 
     streamDriver = new StreamDriverForTest(modelProvider, threadUtils);
@@ -304,7 +306,7 @@ public class StreamDriverTest {
   }
 
   @Test
-  public void testShowLoadingSpinner_createsZeroState() {
+  public void testShowZeroState_createsZeroState() {
     FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
@@ -319,7 +321,7 @@ public class StreamDriverTest {
   }
 
   @Test
-  public void testShowLoadingSpinner_notifiesContentsCleared() {
+  public void testShowZeroState_notifiesContentsCleared() {
     FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
@@ -327,6 +329,18 @@ public class StreamDriverTest {
     streamDriver.showZeroState(/* showSpinner= */ true);
 
     verify(contentListener).notifyContentsCleared();
+  }
+
+  @Test
+  public void testShowZeroState_destroysFeatureDrivers() {
+    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addToken().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.showZeroState(/* showSpinner= */ true);
+
+    verify(continuationDriver).onDestroy();
   }
 
   @Test
@@ -399,6 +413,7 @@ public class StreamDriverTest {
         new ChildChangeBuilder().addChildForRemoval(initialCursor.getChildAt(0)).build());
     streamDriver.onNewChildren(initialCursor.getChildAt(1), Collections.emptyList());
 
+    verify(noContentDriver).onDestroy();
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(ZeroStateDriver.class);
   }
@@ -469,6 +484,24 @@ public class StreamDriverTest {
         .isEqualTo(getLeafFeatureDriverFromCluster(2));
   }
 
+  @Test
+  public void testOnDestroy() {
+    FakeModelCursor cursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    when(streamFeature.getCursor()).thenReturn(cursor);
+
+    // Causes StreamDriver to build a list of children based on the children from the cursor.
+    streamDriver.getLeafFeatureDrivers();
+    streamDriver.onChange(
+        new ChildChangeBuilder().addChildForRemoval(cursor.getChildAt(0)).build());
+
+    assertThat(streamDriver.getLeafFeatureDrivers())
+        .containsExactly(noContentDriver, continuationDriver);
+    streamDriver.onDestroy();
+
+    verify(noContentDriver).onDestroy();
+    verify(continuationDriver).onDestroy();
+  }
+
   // TODO: Instead of just checking that the ModelFeature is of the correct type, check
   // that it is the one created by the FakeModelCursor.Builder.
   private LeafFeatureDriver getLeafFeatureDriverFromCard(int i) {
@@ -528,6 +561,11 @@ public class StreamDriverTest {
           new FakeFeatureDriver.Builder().setModelFeature(modelFeature).build();
       childrenCreated.add(featureDriver);
       return featureDriver;
+    }
+
+    @Override
+    NoContentDriver createNoContentDriver() {
+      return noContentDriver;
     }
   }
 

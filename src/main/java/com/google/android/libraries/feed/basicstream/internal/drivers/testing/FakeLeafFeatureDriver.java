@@ -45,6 +45,9 @@ public class FakeLeafFeatureDriver extends LeafFeatureDriver {
   }
 
   @Override
+  public void onDestroy() {}
+
+  @Override
   public LeafFeatureDriver getLeafFeatureDriver() {
     return this;
   }

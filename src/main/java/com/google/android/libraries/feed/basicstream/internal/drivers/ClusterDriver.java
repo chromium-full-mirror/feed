@@ -36,6 +36,13 @@ public class ClusterDriver implements FeatureDriver {
   }
 
   @Override
+  public void onDestroy() {
+    if (cardDriver != null) {
+      cardDriver.onDestroy();
+    }
+  }
+
+  @Override
   /*@Nullable*/
   public LeafFeatureDriver getLeafFeatureDriver() {
     if (cardDriver == null) {

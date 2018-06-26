@@ -58,6 +58,9 @@ public class ContentDriver extends LeafFeatureDriver {
   }
 
   @Override
+  public void onDestroy() {}
+
+  @Override
   public LeafFeatureDriver getLeafFeatureDriver() {
     return this;
   }

@@ -139,6 +139,7 @@ public class BasicStreamTest {
 
     basicStream.onSessionStart();
 
+    verify(streamDriver).onDestroy();
     verify(adapter).setDriver(streamDriver);
     assertThat(basicStream.streamDriverScrollRestorer).isSameAs(scrollRestorer);
   }

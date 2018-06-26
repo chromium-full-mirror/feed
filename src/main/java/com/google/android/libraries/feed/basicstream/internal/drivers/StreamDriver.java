@@ -252,6 +252,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
     notifyContentsAdded(continuationIndex, buildLeafFeatureDrivers(newChildren));
     if (shouldRemoveNoContentCardOrZeroState()) {
+      featureDrivers.get(0).onDestroy();
       featureDrivers.remove(0);
       notifyContentRemoved(0);
     }
@@ -260,6 +261,12 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         && featureDrivers.size() == 1
         && featureDrivers.get(0) instanceof NoContentDriver) {
       showZeroState(false);
+    }
+  }
+
+  public void onDestroy() {
+    for (FeatureDriver featureDriver : featureDrivers) {
+      featureDriver.onDestroy();
     }
   }
 
@@ -313,6 +320,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     for (int i = 0; i < featureDrivers.size(); i++) {
       if (featureDrivers.get(i) == featureDriver) {
         featureDrivers.remove(i);
+        featureDriver.onDestroy();
         modelChildFeatureDriverMap.remove(modelChild);
         notifyContentRemoved(i);
         return i;
@@ -344,6 +352,9 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   public void showZeroState(boolean showSpinner) {
     ZeroStateDriver zeroStateDriver = createZeroStateDriver(showSpinner);
     // TODO: Make sure to not notify listeners when driver is destroyed.
+    for (FeatureDriver featureDriver : featureDrivers) {
+      featureDriver.onDestroy();
+    }
     featureDrivers.clear();
     notifyContentsCleared();
     featureDrivers.add(zeroStateDriver);

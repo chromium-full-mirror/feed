@@ -92,4 +92,7 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
   int getHourOfDay() {
     return Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
   }
+
+  @Override
+  public void onDestroy() {}
 }

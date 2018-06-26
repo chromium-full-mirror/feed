@@ -31,6 +31,9 @@ public class FakeFeatureDriver implements FeatureDriver {
   }
 
   @Override
+  public void onDestroy() {}
+
+  @Override
   /*@Nullable*/
   public LeafFeatureDriver getLeafFeatureDriver() {
     return leafFeatureDriver;

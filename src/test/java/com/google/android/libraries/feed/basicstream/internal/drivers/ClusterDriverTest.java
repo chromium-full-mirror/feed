@@ -42,6 +42,7 @@ public class ClusterDriverTest {
   private static final StreamFeature CARD_STREAM_FEATURE =
       StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build();
 
+  @Mock private CardDriver cardDriver;
   @Mock private LeafFeatureDriver leafFeatureDriver;
   @Mock private ModelFeature clusterModelFeature;
   @Mock private ModelProvider modelProvider;
@@ -65,8 +66,6 @@ public class ClusterDriverTest {
     FakeModelCursor clusterCursor = new FakeModelCursor(Lists.newArrayList(cardChild));
     when(clusterModelFeature.getCursor()).thenReturn(clusterCursor);
 
-    // CardDriver created by ClusterDriverForTest
-    CardDriver cardDriver = mock(CardDriver.class);
     when(cardDriver.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
     clusterDriver = new ClusterDriverForTest(clusterModelFeature, modelProvider, cardDriver);
@@ -86,6 +85,14 @@ public class ClusterDriverTest {
     clusterDriver.getLeafFeatureDriver();
 
     verifyNoMoreInteractions(clusterModelFeature);
+  }
+
+  @Test
+  public void testOnDestroy() {
+    clusterDriver.getLeafFeatureDriver();
+    clusterDriver.onDestroy();
+
+    verify(cardDriver).onDestroy();
   }
 
   class ClusterDriverForTest extends ClusterDriver {

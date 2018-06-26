@@ -38,6 +38,13 @@ public class CardDriver implements FeatureDriver {
   }
 
   @Override
+  public void onDestroy() {
+    if (contentDriver != null) {
+      contentDriver.onDestroy();
+    }
+  }
+
+  @Override
   /*@Nullable*/
   public LeafFeatureDriver getLeafFeatureDriver() {
     if (contentDriver == null) {

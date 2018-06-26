@@ -57,4 +57,7 @@ public class NoContentDriver extends LeafFeatureDriver {
   boolean isBound() {
     return noContentViewHolder != null;
   }
+
+  @Override
+  public void onDestroy() {}
 }

@@ -395,6 +395,10 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   private void updateAdapter(ModelProvider modelProvider) {
+    if (streamDriver != null) {
+      streamDriver.onDestroy();
+    }
+
     streamDriver =
         createStreamDriver(
             modelProvider,

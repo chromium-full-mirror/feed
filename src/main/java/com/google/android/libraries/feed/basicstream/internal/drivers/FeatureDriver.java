@@ -22,6 +22,8 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
  */
 public interface FeatureDriver {
 
+  void onDestroy();
+
   /*@Nullable*/
   LeafFeatureDriver getLeafFeatureDriver();
 }
