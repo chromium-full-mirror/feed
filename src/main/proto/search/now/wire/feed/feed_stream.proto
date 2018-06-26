@@ -26,7 +26,6 @@ option java_outer_classname = "FeedStreamProto";
 
 // Representation of the entire stream of data in the feed
 message FeedStream {
-
   // Shared state for all Piet cards
   optional search.now.ui.piet.PietSharedState piet_shared_state = 1;
 

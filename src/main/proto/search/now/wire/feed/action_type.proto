@@ -21,7 +21,6 @@ option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.wire.feed";
 option java_outer_classname = "ActionTypeProto";
-
 // The specific action that was performed on an feature described by a ContentId
 // and SemanticProperties.
 enum ActionType {

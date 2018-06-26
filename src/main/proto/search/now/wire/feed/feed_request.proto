@@ -28,7 +28,6 @@ option java_outer_classname = "FeedRequestProto";
 
 // Request to fetch new data for the feed
 message FeedRequest {
-
   extend Request {
     optional FeedRequest feed_request = 1000;
   }

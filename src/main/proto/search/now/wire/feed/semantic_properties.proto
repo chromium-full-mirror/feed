@@ -26,7 +26,6 @@ option java_outer_classname = "SemanticPropertiesProto";
 // features for subsequent comparisons. For example, a feature might be
 // associated with a specific "mid".
 message SemanticProperties {
-
   // This is kept opaque to Feed - we want to keep it and send it alongside
   // content ids in requests
   optional bytes semantic_properties_data = 1;

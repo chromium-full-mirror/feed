@@ -24,7 +24,6 @@ option java_outer_classname = "ResponseProto";
 
 // Top level response message.
 message Response {
-
   // Supported versions of response messages are specified as extensions to
   // the top-level response message.  An enum is used to denote the expected
   // extensions for this response.

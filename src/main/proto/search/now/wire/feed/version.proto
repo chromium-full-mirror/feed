@@ -25,7 +25,6 @@ option java_outer_classname = "VersionProto";
 // Specification of an application or OS version.
 // A version string typically looks like: 'major.minor.build.revision'
 message Version {
-
   optional int32 major = 1;
   optional int32 minor = 2;
   optional int32 build = 3;
@@ -33,7 +32,6 @@ message Version {
 
   // The CPU architecture that the native libraries support
   enum Architecture {
-
     UNKNOWN_ACHITECTURE = 0;
     X86 = 1;
     ARM = 2;
@@ -43,7 +41,6 @@ message Version {
 
   // The release stage of the build
   enum BuildType {
-
     UNKNOWN_BUILD_TYPE = 0;
     DEV = 1;
     ALPHA = 2;

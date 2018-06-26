@@ -26,7 +26,6 @@ option java_outer_classname = "PayloadMetadataProto";
 
 // Metadata common to all payloads in a DataOperation.
 message PayloadMetadata {
-
   // The unique identifier of the payload.
   optional ContentId content_id = 1;
 

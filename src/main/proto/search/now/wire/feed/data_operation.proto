@@ -27,9 +27,7 @@ option java_outer_classname = "DataOperationProto";
 
 // An extensible operation to change the state of data on the client.
 message DataOperation {
-
   enum Operation {
-
     UNKNOWN_OPERATION = 0;
     // Remove all stored content of all types
     CLEAR_ALL = 1;

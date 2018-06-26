@@ -24,7 +24,6 @@ option java_outer_classname = "ContentIdProto";
 
 // Feed Wire Protocol version of the ContentId.
 message ContentId {
-
   // The "domain" to which this content belongs. A domain specifies the party
   // responsible for generating the content, and this owner promises to specify
   // IDs (below) that match the owner's expectations of uniqueness.  The domain

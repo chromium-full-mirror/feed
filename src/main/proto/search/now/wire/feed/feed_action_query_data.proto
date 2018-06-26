@@ -23,7 +23,6 @@ option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.wire.feed";
 option java_outer_classname = "FeedActionQueryDataProto";
-
 // The combination of FeedActionQueryData and FeedActionQueryDataItem provide a
 // transport format that can send each unique action, id, content domain, table,
 // and semantic properties exactly once. This de-duplication allows the maximum

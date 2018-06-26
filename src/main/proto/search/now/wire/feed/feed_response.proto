@@ -28,7 +28,6 @@ option java_outer_classname = "FeedResponseProto";
 // similar to database commands.  Individual data operations contain all the
 // necessary information to manipulate the client state.
 message FeedResponse {
-
   extend Response {
     optional FeedResponse feed_response = 1000;
   }

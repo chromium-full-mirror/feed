@@ -26,7 +26,6 @@ option java_outer_classname = "FeedCardProto";
 
 // Representation of a card within the feed
 message FeedCard {
-
   // Unique identifier for the card
   optional ContentId content_id = 1;
 

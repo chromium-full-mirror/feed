@@ -23,9 +23,7 @@ option java_package = "com.google.search.now.wire.feed";
 option java_outer_classname = "FeedQueryProto";
 
 message FeedQuery {
-
   enum RequestReason {
-
     UNKNOWN_REQUEST_REASON = 0;
     MANUAL_REFRESH = 1;
     SCHEDULED_REFRESH = 2;

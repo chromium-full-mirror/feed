@@ -31,7 +31,6 @@ option java_outer_classname = "PietSharedStateItemProto";
 
 // This is a metadata payload containing a Piet Shared State.
 message PietSharedStateItem {
-
   // ContentId identifying the shared state.
   optional ContentId content_id = 1;
 

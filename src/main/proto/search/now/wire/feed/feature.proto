@@ -25,14 +25,12 @@ option java_outer_classname = "FeatureProto";
 
 // Features define both the structure and content found in the Stream.
 message Feature {
-
   // The ContentId identifying the parent feature for this feature.
   optional ContentId parent_id = 1;
 
   // Enum denoting which extension containing the renderable data is associated
   // with this Feature.
   enum RenderableUnit {
-
     UNKNOWN_RENDERABLE_UNIT = 0;
     STREAM = 1;
     CARD = 2;

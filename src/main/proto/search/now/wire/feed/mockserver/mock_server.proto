@@ -24,7 +24,6 @@ option java_package = "com.google.search.now.wire.feed.mockserver";
 option java_outer_classname = "MockServerProto";
 
 message MockServer {
-
   // The initial response
   optional search.now.wire.feed.Response initial_response = 1;
 
@@ -47,7 +46,6 @@ message MockUpdate {
 
 // Conditional responses are served based upon a continuation token.
 message ConditionalResponse {
-
   // The continuation token in the request must match this value
   optional bytes continuation_token = 1;
 
