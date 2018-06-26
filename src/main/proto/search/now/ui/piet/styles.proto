@@ -165,9 +165,9 @@ message Font {
   optional int32 size = 1;
 
   // Line height, expressed as a multiple of size (hence the `_ratio` suffix).
-  // The default value of 1.0 is intended to work well for most scenarios
+  // The default value of 1.2 is intended to work well for most scenarios
   // without requiring feature authors to specify this explicitly.
-  optional float line_height_ratio = 2 [default = 1.0];
+  optional float line_height_ratio = 2 [default = 1.2];
 
   // Material Design specifies six weights for a font, in order from thinnest
   // stroke to thickest stroke. Orthogonal to weight, a font can be either
