@@ -55,7 +55,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
   @Test
   public void testClearHead() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false, null);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);

@@ -118,9 +118,7 @@ public class TimeoutSessionWithContentTest {
     requestManager.queueResponse(responseBuilder.build());
 
     // Wait for the request to complete (REQUEST_WITH_CONTENT).  This will trigger the request and
-    // wait
-    // for it to
-    // complete to populate the new session.
+    // wait for it to complete to populate the new session.
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.REQUEST_WITH_WAIT);
     ModelProvider modelProvider = modelProviderFactory.createNew(null);

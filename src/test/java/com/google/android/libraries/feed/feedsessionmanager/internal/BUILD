@@ -137,6 +137,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager/internal",
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager/internal/testing",
+        "//src/main/java/com/google/android/libraries/feed/testing/modelprovider:fake_model_cursor",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "@bazel_android//:robolectric",
         "@com_google_guava_guava//jar",

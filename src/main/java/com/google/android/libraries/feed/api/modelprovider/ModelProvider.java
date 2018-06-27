@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.api.modelprovider;
 import android.support.annotation.IntDef;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import java.util.List;
 
 /**
  * A ModelProvider provides access to the Stream Model for the UI layer. It is populated by the
@@ -103,6 +104,13 @@ public interface ModelProvider {
   /** A String which represents the session bound to the ModelProvider. */
   /*@Nullable*/
   String getSessionToken();
+
+  /**
+   * Returns a List of ModelChild for the root. These children may not be bound. This is not
+   * intended to be used by the Stream to access children directly. Instead the ModelCursor should
+   * be used.
+   */
+  List<ModelChild> getAllRootChildren();
 
   /**
    * Register a {@link ModelProviderObserver} for changes on this container. The types of changes

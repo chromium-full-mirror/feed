@@ -14,21 +14,34 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
+import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /** SessionImpl which implements the TimeoutScheduler specific behaviors need within the session. */
-// TODO: Should TimeoutSessionImpl and SessionImpl extend an abstract base class instead of
-// doing it this way?
 public class TimeoutSessionImpl extends SessionImpl {
   private static final String TAG = "TimeoutSessionImpl";
+
+  @VisibleForTesting boolean legacyHeadContent = false;
+
+  @VisibleForTesting /*@Nullable*/ ViewDepthProvider viewDepthProvider;
 
   TimeoutSessionImpl(
       Store store, TaskQueue taskQueue, TimingUtils timingUtils, ThreadUtils threadUtils) {
@@ -37,11 +50,61 @@ public class TimeoutSessionImpl extends SessionImpl {
   }
 
   @Override
+  public void populateModelProvider(
+      StreamSession streamSession,
+      List<StreamStructure> head,
+      boolean cachedBindings,
+      boolean legacyHeadContent,
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+    Logger.i(TAG, "TimeoutSession.populateModelProvider, legacyHeadContent %s", legacyHeadContent);
+    this.legacyHeadContent = legacyHeadContent;
+    this.viewDepthProvider = viewDepthProvider;
+    super.populateModelProvider(
+        streamSession, head, cachedBindings, legacyHeadContent, viewDepthProvider);
+  }
+
+  @Override
   public void updateSession(
       boolean clearHead,
       List<StreamStructure> streamStructures,
       /*@Nullable*/ StreamToken mutationSourceToken) {
-    Validators.checkNotNull(streamSession);
+    StreamSession ss = Validators.checkNotNull(streamSession);
+    Logger.i(
+        TAG,
+        "TimeoutSession.updateSession, clearHead %s, legacyHeadContent %s",
+        clearHead,
+        legacyHeadContent);
+    if (clearHead) {
+      if (!legacyHeadContent) {
+        // Without having legacy HEAD content, don't update the session,
+        Logger.i(TAG, "Session %s not updated due to clearHead", ss.getStreamToken());
+        return;
+      }
+
+      if (viewDepthProvider != null) {
+        // Append the new items to the existing copy of HEAD, removing the existing items which
+        // have not yet been seen by the user.
+        List<ModelChild> rootChildren = captureRootContent();
+        if (!rootChildren.isEmpty()) {
+
+          // Calculate the children to remove and append StreamStructure remove operations
+          String lowestChild = Validators.checkNotNull(viewDepthProvider).getChildViewDepth();
+          if (lowestChild != null) {
+            List<StreamStructure> removeOperations =
+                removeItems(lowestChild, rootChildren, streamStructures);
+            if (!removeOperations.isEmpty()) {
+              taskQueue.execute(
+                  "removeLegacyHead",
+                  TaskType.BACKGROUND,
+                  () -> updateStoreWithRemoves(removeOperations));
+            }
+          }
+        }
+      }
+      // Only do this once
+      legacyHeadContent = false;
+    }
+
     updateCount++;
     updateSessionInternal(streamStructures, mutationSourceToken);
   }
@@ -49,5 +112,58 @@ public class TimeoutSessionImpl extends SessionImpl {
   @Override
   public boolean invalidateOnResetHead() {
     return false;
+  }
+
+  private void updateStoreWithRemoves(List<StreamStructure> changes) {
+    SessionMutation sessionMutation = store.editSession(streamSession);
+    for (StreamStructure change : changes) {
+      sessionMutation.add(change);
+    }
+    sessionMutation.commit();
+  }
+
+  @VisibleForTesting
+  List<StreamStructure> removeItems(
+      String lowestChild, List<ModelChild> rootChildren, List<StreamStructure> streamStructures) {
+    boolean remove = false;
+    List<StreamStructure> removeOperations = new ArrayList<>();
+    for (ModelChild child : rootChildren) {
+      if (remove) {
+        Logger.i(TAG, "Remove child %s", child.getContentId());
+        StreamStructure removeOperation =
+            createRemoveFeature(child.getContentId(), child.getParentId());
+        streamStructures.add(removeOperation);
+        removeOperations.add(removeOperation);
+        continue;
+      } else if (child.getType() == Type.TOKEN) {
+        Logger.i(TAG, "Remove token %s", child.getContentId());
+        streamStructures.add(createRemoveFeature(child.getContentId(), child.getParentId()));
+        continue;
+      }
+      if (child.getContentId().equals(lowestChild)) {
+        remove = true;
+      }
+    }
+    return removeOperations;
+  }
+
+  @VisibleForTesting
+  List<ModelChild> captureRootContent() {
+    ModelProvider modelProvider = getModelProvider();
+    if (modelProvider == null) {
+      Logger.w(TAG, "ModelProvider was not found");
+      return Collections.emptyList();
+    }
+    return modelProvider.getAllRootChildren();
+  }
+
+  @VisibleForTesting
+  StreamStructure createRemoveFeature(String contentId, /*@Nullable*/ String parentId) {
+    StreamStructure.Builder builder =
+        StreamStructure.newBuilder().setOperation(Operation.REMOVE).setContentId(contentId);
+    if (parentId != null) {
+      builder.setParentContentId(parentId);
+    }
+    return builder.build();
   }
 }

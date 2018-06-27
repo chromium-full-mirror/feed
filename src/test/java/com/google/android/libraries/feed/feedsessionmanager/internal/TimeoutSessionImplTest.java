@@ -15,9 +15,13 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -55,7 +59,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   @Test
   public void testClearHead() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true, null);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -68,6 +72,86 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
     assertThat(session.contentInSession).hasSize(featureCnt);
     assertThat(session.contentInSession).contains(contentIdGenerators.createFeatureContentId(1));
+  }
+
+  @Test
+  public void testPopulateModelProviderState() {
+    TimeoutSessionImpl session = getSessionImpl();
+    assertThat(session.legacyHeadContent).isFalse();
+    assertThat(session.viewDepthProvider).isNull();
+
+    ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true, mockDepthProvider);
+    assertThat(session.legacyHeadContent).isTrue();
+    assertThat(session.viewDepthProvider).isEqualTo(mockDepthProvider);
+  }
+
+  @Test
+  public void testCreateRemoveFeature() {
+    TimeoutSessionImpl session = getSessionImpl();
+    String contentId = "contentId";
+    String parentContentId = "parentId";
+
+    StreamStructure streamStructure = session.createRemoveFeature(contentId, parentContentId);
+    assertThat(streamStructure.getContentId()).isEqualTo(contentId);
+    assertThat(streamStructure.getParentContentId()).isEqualTo(parentContentId);
+  }
+
+  @Test
+  public void testCreateRemoveFeature_nullParent() {
+    TimeoutSessionImpl session = getSessionImpl();
+    String contentId = "contentId";
+
+    StreamStructure streamStructure = session.createRemoveFeature(contentId, null);
+    assertThat(streamStructure.getContentId()).isEqualTo(contentId);
+    assertThat(streamStructure.getParentContentId()).isEmpty();
+  }
+
+  @Test
+  public void testCaptureRootContent() {
+    TimeoutSessionImpl session = getSessionImpl();
+    setupModelProviderRoot();
+
+    List<ModelChild> children = session.captureRootContent();
+    assertThat(children).isNotNull();
+    assertThat(children).hasSize(1);
+  }
+
+  @Test
+  public void testCaptureRootContent_nullRoot() {
+    TimeoutSessionImpl session = getSessionImpl();
+
+    List<ModelChild> children = session.captureRootContent();
+    assertThat(children).isEmpty();
+  }
+
+  @Test
+  public void testRemoveItems() {
+    TimeoutSessionImpl session = getSessionImpl();
+    int childCount = 10;
+    List<ModelChild> modelChildren = new ArrayList<>();
+    for (int i = 0; i < childCount; i++) {
+      modelChildren.add(createModelChild(i));
+    }
+    List<StreamStructure> streamStructures = new ArrayList<>();
+    String lowestChild = contentIdGenerators.createFeatureContentId(6);
+    List<StreamStructure> removedItems =
+        session.removeItems(lowestChild, modelChildren, streamStructures);
+
+    assertThat(removedItems).hasSize(3);
+    assertThat(streamStructures).hasSize(3);
+  }
+
+  private ModelChild createModelChild(long id) {
+    ModelChild child = mock(ModelChild.class);
+    when(child.getContentId()).thenReturn(contentIdGenerators.createFeatureContentId(id));
+    return child;
+  }
+
+  private void setupModelProviderRoot() {
+    List<ModelChild> cursorChildren = new ArrayList<>();
+    cursorChildren.add(mock(ModelChild.class));
+    when(modelProvider.getAllRootChildren()).thenReturn(cursorChildren);
   }
 
   @Override

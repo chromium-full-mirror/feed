@@ -223,19 +223,21 @@ public class FeedSessionManager
       taskQueue.execute(
           "postInitialization/populateSession",
           TaskType.POST_INIT,
-          () -> populateSessionWaitForHead(session));
+          () -> populateSessionWaitForHead(session, viewDepthProvider));
     } else {
-      populateSession(session, (result) -> {});
+      populateSession(session, viewDepthProvider, (result) -> {});
     }
   }
 
-  private void populateSessionWaitForHead(InitializableSession session) {
+  private void populateSessionWaitForHead(
+      InitializableSession session, /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
     threadUtils.checkNotMainThread();
 
     // Wait for the main thread call to complete.  This is done to ensure that the
     // background populateSession task is queued before the task running this finishes.
     SimpleSettableFuture<Boolean> sharedStatesFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(TAG, () -> populateSession(session, sharedStatesFuture::put));
+    mainThreadRunner.execute(
+        TAG, () -> populateSession(session, viewDepthProvider, sharedStatesFuture::put));
     try {
       sharedStatesFuture.get();
     } catch (InterruptedException | ExecutionException e) {
@@ -245,7 +247,10 @@ public class FeedSessionManager
 
   // This returns a result through a consumer allowing use to wait on this task.  It must
   // run on the main thread, but does most of it's work through the populateSession task.
-  private void populateSession(InitializableSession session, Consumer<Boolean> result) {
+  private void populateSession(
+      InitializableSession session,
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider,
+      Consumer<Boolean> result) {
     threadUtils.checkMainThread();
     HeadSessionImpl headSession = Validators.checkNotNull(sessionCache.getHead());
     SessionManagerState sessionManagerState =
@@ -257,8 +262,10 @@ public class FeedSessionManager
 
     Runnable timeoutTask = null;
     if (behavior == REQUEST_WITH_TIMEOUT || behavior == NO_REQUEST_WITH_TIMEOUT) {
-      timeoutTask = () -> populateSessionTask(session);
+      timeoutTask = () -> populateSessionTask(session, viewDepthProvider, true);
     }
+    boolean legacyHeadContent =
+        behavior == REQUEST_WITH_CONTENT || behavior == REQUEST_WITH_TIMEOUT;
     boolean makeRequest =
         (behavior == REQUEST_WITH_TIMEOUT
                 || behavior == REQUEST_WITH_WAIT
@@ -288,7 +295,7 @@ public class FeedSessionManager
     taskQueue.execute(
         "populateNewSession",
         TaskType.USER_FACING,
-        () -> populateSessionTask(session),
+        () -> populateSessionTask(session, viewDepthProvider, legacyHeadContent),
         timeoutTask,
         sessionPopulationTimeoutMs);
     if (makeRequest && behavior == REQUEST_WITH_CONTENT) {
@@ -297,7 +304,10 @@ public class FeedSessionManager
     result.accept(true);
   }
 
-  private void populateSessionTask(InitializableSession session) {
+  private void populateSessionTask(
+      InitializableSession session,
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider,
+      boolean legacyHeadContent) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
@@ -354,7 +364,11 @@ public class FeedSessionManager
     boolean cachedBindings;
     cachedBindings = contentCache.size() > 0;
     session.populateModelProvider(
-        recordedSession, streamStructuresResult.getValue(), cachedBindings);
+        recordedSession,
+        streamStructuresResult.getValue(),
+        cachedBindings,
+        legacyHeadContent,
+        viewDepthProvider);
     sessionCache.put(session.getStreamSession().getStreamToken(), session);
     newSessionCount++;
     Logger.i(
@@ -427,7 +441,8 @@ public class FeedSessionManager
           Result<List<StreamStructure>> streamStructuresResult =
               store.getStreamStructures(streamSession);
           if (streamStructuresResult.isSuccessful()) {
-            session.populateModelProvider(streamSession, streamStructuresResult.getValue(), false);
+            session.populateModelProvider(
+                streamSession, streamStructuresResult.getValue(), false, false, null);
             sessionCache.put(session.getStreamSession().getStreamToken(), session);
             existingSessionCount++;
           } else {

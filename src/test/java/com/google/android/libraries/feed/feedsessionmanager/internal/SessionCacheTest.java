@@ -363,7 +363,7 @@ public class SessionCacheTest {
               .setParentContentId(rootId)
               .build());
     }
-    session.populateModelProvider(streamSession, head, true);
+    session.populateModelProvider(streamSession, head, true, false, null);
     return session;
   }
 }

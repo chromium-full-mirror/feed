@@ -152,12 +152,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             ArrayList<UpdatableModelChild> children = containers.get(parentId);
             if (children == null) {
               Logger.i(TAG, "No children found for Cursor");
-              ModelCursorImpl cursor = new ModelCursorImpl(parentId, EMPTY_LIST, threadUtils);
+              ModelCursorImpl cursor = new ModelCursorImpl(parentId, EMPTY_LIST);
               cursors.add(new WeakReference<>(cursor));
               return cursor;
             }
-            ModelCursorImpl cursor =
-                new ModelCursorImpl(parentId, new ArrayList<>(children), threadUtils);
+            ModelCursorImpl cursor = new ModelCursorImpl(parentId, new ArrayList<>(children));
             cursors.add(new WeakReference<>(cursor));
             return cursor;
           }
@@ -272,6 +271,17 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
+  public List<ModelChild> getAllRootChildren() {
+    synchronized (lock) {
+      if (root == null) {
+        return Collections.emptyList();
+      }
+      List<UpdatableModelChild> rootChildren = containers.get(root.getContentId());
+      return (rootChildren != null) ? new ArrayList<>(rootChildren) : Collections.emptyList();
+    }
+  }
+
+  @Override
   public ModelMutation edit() {
     return new ModelMutationImpl(committer);
   }
@@ -342,6 +352,40 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         Logger.e(TAG, "The Token Observer was not found during pagination error");
       }
     }
+  }
+
+  /**
+   * This wraps the ViewDepthProvider provided by the UI. It does this so it can verify that the
+   * returned contentId is one with the Root as the parent.
+   */
+  /*@Nullable*/
+  ViewDepthProvider getViewDepthProvider(/*@Nullable*/ ViewDepthProvider delegate) {
+    if (delegate == null) {
+      return null;
+    }
+    return new ViewDepthProvider() {
+      @Override
+      public /*@Nullable*/ String getChildViewDepth() {
+        String cid = Validators.checkNotNull(delegate).getChildViewDepth();
+        synchronized (lock) {
+          if (cid == null || root == null) {
+            return null;
+          }
+          String rootId = root.getContentId();
+          UpdatableModelChild child = contents.get(cid);
+          while (child != null) {
+            if (child.getParentId() == null) {
+              return null;
+            }
+            if (rootId.equals(child.getParentId())) {
+              return child.getContentId();
+            }
+            child = contents.get(child.getParentId());
+          }
+        }
+        return null;
+      }
+    };
   }
 
   @Override
@@ -755,7 +799,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                 childrenToBind,
                 (bindingCount) -> {
                   ModelCursorImpl cursor =
-                      new ModelCursorImpl(streamToken.getParentId(), cursorSublist, threadUtils);
+                      new ModelCursorImpl(streamToken.getParentId(), cursorSublist);
 
                   TokenCompleted tokenCompleted = new TokenCompleted(cursor);
                   List<TokenCompletedObserver> observers = token.getObserversToNotify();
@@ -821,6 +865,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       }
       if (targetChild.getType() == Type.FEATURE) {
         Logger.i(TAG, "Removing a child");
+        mutationHandler.removeChild(parentKey, targetChild);
+      } else if (targetChild.getType() == Type.TOKEN) {
+        Logger.i(TAG, "Removing a TOKEN %s", targetChild.getContentId());
         mutationHandler.removeChild(parentKey, targetChild);
       }
 
@@ -912,9 +959,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       }
       ModelCursorImpl cursor =
           new ModelCursorImpl(
-              token.parentContentId,
-              token.location.subList(newCursorStart, token.location.size()),
-              threadUtils);
+              token.parentContentId, token.location.subList(newCursorStart, token.location.size()));
       TokenCompleted tokenCompleted = new TokenCompleted(cursor);
       List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
       mainThreadRunner.execute(

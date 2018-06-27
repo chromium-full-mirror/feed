@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange.ChildChanges;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -37,7 +36,6 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   private static final String TAG = "ModelCursorImpl";
 
   private final Object lock = new Object();
-  private final ThreadUtils threadUtils;
 
   private final String parentContentId;
 
@@ -58,12 +56,10 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
    * prevent {@link java.util.ConcurrentModificationException} for changes to the Model. The cursor
    * is informed of changes through the {@link #updateIterator(FeatureChange featureChang)}.
    */
-  public ModelCursorImpl(
-      String parentContentId, List<UpdatableModelChild> childList, ThreadUtils threadUtils) {
+  public ModelCursorImpl(String parentContentId, List<UpdatableModelChild> childList) {
     this.parentContentId = parentContentId;
     this.childList = childList;
     this.iterator = new CursorIterator();
-    this.threadUtils = threadUtils;
   }
 
   public String getParentContentId() {
@@ -128,8 +124,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   @Override
   /*@Nullable*/
   public ModelChild getNextItem() {
-    // This should only be called on the UI thread.
-    threadUtils.checkMainThread();
+    // The TimeoutSessionImpl may use the cursor to access the model structure
     ModelChild nextChild;
     synchronized (lock) {
       if (iterator == null || !iterator.hasNext()) {

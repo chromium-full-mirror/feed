@@ -18,6 +18,7 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Validators;
@@ -80,7 +81,11 @@ public class SessionImpl implements InitializableSession, Dumpable {
 
   @Override
   public void populateModelProvider(
-      StreamSession streamSession, List<StreamStructure> head, boolean cachedBindings) {
+      StreamSession streamSession,
+      List<StreamStructure> head,
+      boolean cachedBindings,
+      boolean legacyHeadContent,
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
     this.streamSession = streamSession;
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -125,12 +130,12 @@ public class SessionImpl implements InitializableSession, Dumpable {
       boolean clearHead,
       List<StreamStructure> streamStructures,
       /*@Nullable*/ StreamToken mutationSourceToken) {
-    Validators.checkNotNull(streamSession);
-    updateCount++;
+    StreamSession ss = Validators.checkNotNull(streamSession);
     if (clearHead) {
-      Logger.i(TAG, "Session %s not  updated due to clearHead");
+      Logger.i(TAG, "Session %s not updated due to clearHead", ss.getStreamToken());
       return;
     }
+    updateCount++;
     updateSessionInternal(streamStructures, mutationSourceToken);
   }
 

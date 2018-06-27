@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
@@ -526,6 +527,59 @@ public class FeedModelProviderTest {
     lastChild = assertCursorSize(modelCursor, featureCnt);
     assertThat(lastChild.getType()).isEqualTo(Type.FEATURE);
     assertThat(modelProvider.getSyntheticTokensForTest().size()).isEqualTo(0);
+  }
+
+  @Test
+  public void testViewDepthProvider_null() {
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    assertThat(modelProvider.getViewDepthProvider(null)).isNull();
+  }
+
+  @Test
+  public void testViewDepthProvider_delegatedNull() {
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    ViewDepthProvider mockProvider = mock(ViewDepthProvider.class);
+    when(mockProvider.getChildViewDepth()).thenReturn(null);
+    assertThat(modelProvider.getViewDepthProvider(null)).isNull();
+  }
+
+  @Test
+  public void testViewDepthProvider_delegated() {
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    ModelMutation mutator = getRootedModelMutator(modelProvider);
+
+    int featureCnt = 3;
+    for (int i = 0; i < featureCnt; i++) {
+      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
+    }
+    String featureParent = createFeatureContentId(2);
+    for (int i = 0; i < featureCnt; i++) {
+      mutator.addChild(
+          createStreamStructureAndBinding(createFeature(i + 1 + featureCnt, featureParent)));
+    }
+    String childFeatureContentId = createFeatureContentId(1 + featureCnt);
+    mutator.commit();
+
+    ViewDepthProvider mockProvider = mock(ViewDepthProvider.class);
+    when(mockProvider.getChildViewDepth()).thenReturn(childFeatureContentId);
+
+    ViewDepthProvider provider = modelProvider.getViewDepthProvider(mockProvider);
+    assertThat(provider.getChildViewDepth()).isEqualTo(featureParent);
+  }
+
+  @Test
+  public void testGetAllRootChildren() {
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    ModelMutation mutator = getRootedModelMutator(modelProvider);
+
+    int featureCnt = 3;
+    for (int i = 0; i < featureCnt; i++) {
+      mutator.addChild(createStreamStructureAndBinding(createFeature(i + 1, rootContentId)));
+    }
+    mutator.commit();
+
+    List<ModelChild> rootChildren = modelProvider.getAllRootChildren();
+    assertThat(rootChildren).hasSize(featureCnt);
   }
 
   private ModelChild getContinuationToken(ModelFeature rootFeature) {
