@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.NoContentViewHolder;
@@ -43,7 +44,6 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHo
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.action.ActionApi;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -80,7 +80,7 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
   @Mock private DeepestContentTracker deepestContentTracker;
-  @Mock private BasicLoggingApi basicLoggingApi;
+  @Mock private StreamBasicLoggingApi basicLoggingApi;
 
   private Context context;
   private LinearLayout frameContainer;

@@ -34,8 +34,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.common.functional.Supplier;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -75,7 +75,7 @@ public class PietViewHolderTest {
   @Mock private ActionParser actionParser;
   @Mock private PietManager pietManager;
   @Mock private StreamActionApiImpl streamActionApi;
-  @Mock private BasicLoggingApi basicLoggingApi;
+  @Mock private StreamBasicLoggingApi basicLoggingApi;
 
   private ActionHandler actionHandler;
   private PietViewHolder pietViewHolder;

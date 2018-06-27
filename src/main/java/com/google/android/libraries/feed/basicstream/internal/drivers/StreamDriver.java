@@ -80,6 +80,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   public List<LeafFeatureDriver> getLeafFeatureDrivers() {
     if (!rootFeatureConsumed) {
       ModelFeature rootFeature = modelProvider.getRootFeature();
+      // TODO: Log nocontent for null rootFeature once StreamDriver has more knowledge on
+      // sessions.
       if (rootFeature != null) {
         createAndInsertChildren(rootFeature, modelProvider);
         rootFeature.registerObserver(this);

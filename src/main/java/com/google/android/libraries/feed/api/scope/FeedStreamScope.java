@@ -33,7 +33,6 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
@@ -72,8 +71,7 @@ public class FeedStreamScope {
         CardConfiguration cardConfiguration,
         ActionManager actionManager,
         Configuration config,
-        SnackbarApi snackbarApi,
-        BasicLoggingApi basicLoggingApi) {
+        SnackbarApi snackbarApi) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
@@ -90,7 +88,6 @@ public class FeedStreamScope {
       this.actionManager = actionManager;
       this.config = config;
       this.snackbarApi = snackbarApi;
-      this.basicLoggingApi = basicLoggingApi;
     }
 
     public Builder setActionParser(ActionParser actionParser) {
@@ -145,8 +142,7 @@ public class FeedStreamScope {
                 hostBindingProvider,
                 actionManager,
                 config,
-                snackbarApi,
-                basicLoggingApi);
+                snackbarApi);
       }
       return new FeedStreamScope(
           actionApi,
@@ -176,7 +172,6 @@ public class FeedStreamScope {
     private final DebugBehavior debugBehavior;
     private final Configuration config;
     private final SnackbarApi snackbarApi;
-    private final BasicLoggingApi basicLoggingApi;
 
     // Optional internal components to override the default implementations.
     /*@MonotonicNonNull*/ private ActionParser actionParser;

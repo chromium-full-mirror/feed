@@ -52,6 +52,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamContentChang
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -59,7 +60,6 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -102,6 +102,7 @@ public class BasicStreamTest {
   @Mock private StreamScrollMonitor streamScrollMonitor;
   @Mock private ScrollRestorer nonRestoringScrollRestorer;
   @Mock private ScrollRestorer scrollRestorer;
+  @Mock private StreamBasicLoggingApi basicLoggingApi;
 
   private Configuration configuration = new Configuration.Builder().build();
   private LinearLayoutManagerWithFakePositioning layoutManager;
@@ -164,6 +165,7 @@ public class BasicStreamTest {
 
     verify(scrollRestorer).abandonRestoringScroll();
     verify(streamDriver).showZeroState(/* showSpinner= */ false);
+    verify(basicLoggingApi).onOpenedWithNoContent();
   }
 
   @Test
@@ -472,8 +474,7 @@ public class BasicStreamTest {
         new HostBindingProvider(),
         mock(ActionManager.class),
         configuration,
-        layoutManager,
-        mock(BasicLoggingApi.class));
+        layoutManager);
   }
 
   private class BasicStreamForTest extends BasicStream {
@@ -499,8 +500,7 @@ public class BasicStreamTest {
         /*@Nullable*/ HostBindingProvider hostBindingProvider,
         ActionManager actionManager,
         Configuration configuration,
-        LinearLayoutManager layoutManager,
-        BasicLoggingApi basicLoggingApi) {
+        LinearLayoutManager layoutManager) {
       super(
           context,
           streamConfiguration,
@@ -517,8 +517,7 @@ public class BasicStreamTest {
           hostBindingProvider,
           actionManager,
           configuration,
-          snackbarApi,
-          basicLoggingApi);
+          snackbarApi);
       this.layoutManager = layoutManager;
     }
 
@@ -562,7 +561,7 @@ public class BasicStreamTest {
         ActionApi actionApi,
         ActionManager actionManager,
         DeepestContentTracker deepestContentTracker,
-        BasicLoggingApi basicLoggingApi) {
+        StreamBasicLoggingApi basicLoggingApi) {
       return adapter;
     }
 
@@ -586,6 +585,11 @@ public class BasicStreamTest {
     @Override
     ScrollRestorer createNonRestoringScrollRestorer(RecyclerView recyclerView) {
       return nonRestoringScrollRestorer;
+    }
+
+    @Override
+    StreamBasicLoggingApi createBasicLoggingApi() {
+      return basicLoggingApi;
     }
   }
 

@@ -19,9 +19,9 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -54,7 +54,7 @@ public class PietViewHolder extends FeedViewHolder {
       Context context,
       StreamActionApi streamActionApi,
       ActionParser actionParser,
-      BasicLoggingApi basicLoggingApi) {
+      StreamBasicLoggingApi basicLoggingApi) {
     super(cardView);
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;

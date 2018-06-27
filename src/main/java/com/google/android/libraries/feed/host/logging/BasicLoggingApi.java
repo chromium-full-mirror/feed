@@ -15,8 +15,5 @@
 package com.google.android.libraries.feed.host.logging;
 
 // TODO: Update api to reflect host api dicussions.
-/** Stand in API to log UMA events. */
-public interface BasicLoggingApi {
-
-  void onContentClicked();
-}
+/** API to log basic events. */
+public interface BasicLoggingApi {}

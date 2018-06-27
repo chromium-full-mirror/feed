@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
@@ -40,7 +41,6 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHo
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final ActionParser actionParser;
   private final ActionApi actionApi;
   private final ActionManager actionManager;
-  private final BasicLoggingApi basicLoggingApi;
+  private final StreamBasicLoggingApi basicLoggingApi;
   private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<View> headers;
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
@@ -78,7 +78,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       ActionApi actionApi,
       ActionManager actionManager,
       DeepestContentTracker deepestContentTracker,
-      BasicLoggingApi basicLoggingApi) {
+      StreamBasicLoggingApi basicLoggingApi) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
