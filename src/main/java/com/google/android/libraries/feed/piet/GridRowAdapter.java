@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.GridCell;
@@ -105,12 +106,15 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
     return getModel().getStyleReferences();
   }
 
+  @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
   private void setLayoutParamsOnCell(
       ElementAdapter<? extends View, ?> cellAdapter, GridCell cell, FrameContext frameContext) {
     // TODO: Support full-cell backgrounds and horizontal/vertical gravity for all
     // types of ElementAdapter in GridCell.
 
-    LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+    // Default cell is weight = 1 and height = WRAP_CONTENT.
+    LayoutParams params = new LayoutParams(0, LayoutParams.WRAP_CONTENT);
+    params.weight = 1;
 
     GridCellWidth gridCellWidth = null;
     if (cell.hasWidth()) {
@@ -121,18 +125,44 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
 
     // If we have a requested width, use it; otherwise, WRAP_CONTENT.
     if (gridCellWidth != null) {
-      if (gridCellWidth.hasWeight()) {
-        params.weight = gridCellWidth.getWeight();
-        params.width = 0;
-      } else if (gridCellWidth.hasDp()) {
-        params.width = (int) ViewUtils.dpToPx(gridCellWidth.getDp(), getContext());
+      switch (gridCellWidth.getWidthSpecCase()) {
+        case CONTENT_WIDTH:
+          switch (gridCellWidth.getContentWidth()) {
+            case CONTENT_WIDTH:
+              if (cellAdapter.getComputedWidthPx() != DIMENSION_NOT_SET) {
+                params.width = cellAdapter.getComputedWidthPx();
+              } else {
+                params.width = LayoutParams.WRAP_CONTENT;
+              }
+              params.weight = 0;
+              break;
+            case INVALID_CONTENT_WIDTH:
+            default:
+              frameContext.reportError(
+                  MessageType.WARNING,
+                  String.format("Invalid content width: %s", gridCellWidth.getContentWidth()));
+          }
+          break;
+        case DP:
+          params.weight = 0;
+          params.width = (int) ViewUtils.dpToPx(gridCellWidth.getDp(), getContext());
+          break;
+        case WEIGHT:
+          params.weight = gridCellWidth.getWeight();
+          params.width = 0;
+          break;
+        case WIDTHSPEC_NOT_SET:
+        default:
+          frameContext.reportError(
+              MessageType.WARNING,
+              String.format("Invalid content width: %s", gridCellWidth.getContentWidth()));
       }
-    } else if (cellAdapter.getComputedWidthPx() != DIMENSION_NOT_SET) {
-      params.width = cellAdapter.getComputedWidthPx();
     }
 
     int height = cellAdapter.getComputedHeightPx();
-    params.height = height == ElementAdapter.DIMENSION_NOT_SET ? params.height : height;
+    if (height != ElementAdapter.DIMENSION_NOT_SET) {
+      params.height = height;
+    }
 
     cellAdapter.getElementStyle().applyMargins(getContext(), params);
 

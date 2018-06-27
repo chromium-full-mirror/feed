@@ -32,6 +32,7 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -47,6 +48,7 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridCell;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
+import com.google.search.now.ui.piet.ElementsProto.GridCellWidth.ContentWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
@@ -127,7 +129,7 @@ public class GridRowAdapterTest {
         .isSameAs(adapter.childAdapters.get(0).getView());
     LayoutParams cellLayoutParams =
         (LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
-    assertThat(cellLayoutParams.width).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(cellLayoutParams.weight).isEqualTo(1.0f);
     assertThat(cellLayoutParams.height)
         .isEqualTo(adapter.childAdapters.get(0).getComputedHeightPx());
   }
@@ -158,6 +160,23 @@ public class GridRowAdapterTest {
   }
 
   @Test
+  public void testOnCreateAdapter_setsLayoutParamsOnCell_widthDefaultsToWeight() {
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT).clearWidth())
+            .build();
+
+    adapter.createAdapter(gridRow, frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(LinearLayout.LayoutParams.class);
+    LayoutParams params =
+        (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
+    assertThat(params.width).isEqualTo(0);
+    assertThat(params.weight).isEqualTo(1.0f);
+  }
+
+  @Test
   public void testOnCreateAdapter_setsLayoutParamsOnCell_widthDp() {
     int widthDp = 123;
     GridRow gridRow =
@@ -175,6 +194,7 @@ public class GridRowAdapterTest {
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
     assertThat(params.width).isEqualTo((int) ViewUtils.dpToPx(widthDp, context));
+    assertThat(params.weight).isEqualTo(0.0f);
   }
 
   @Test
@@ -218,6 +238,29 @@ public class GridRowAdapterTest {
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
     assertThat(params.width).isEqualTo((int) ViewUtils.dpToPx(widthDp, context));
+    assertThat(params.weight).isEqualTo(0.0f);
+  }
+
+  @Test
+  public void testOnCreateAdapter_setsLayoutParamsOnCell_invalidContentWidth() {
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setContent(DEFAULT_CONTENT)
+                    .setWidth(
+                        GridCellWidth.newBuilder()
+                            .setContentWidth(ContentWidth.INVALID_CONTENT_WIDTH)))
+            .build();
+
+    adapter.createAdapter(gridRow, frameContext);
+
+    LayoutParams params =
+        (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
+    assertThat(params.width).isEqualTo(0);
+    assertThat(params.weight).isEqualTo(1.0f);
+    verify(frameContext)
+        .reportError(MessageType.WARNING, "Invalid content width: INVALID_CONTENT_WIDTH");
   }
 
   @Test
@@ -227,6 +270,8 @@ public class GridRowAdapterTest {
         GridRow.newBuilder()
             .addCells(
                 GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder().setContentWidth(ContentWidth.CONTENT_WIDTH))
                     .setContent(
                         Content.newBuilder()
                             .setElement(
@@ -249,6 +294,7 @@ public class GridRowAdapterTest {
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
     assertThat(params.width).isEqualTo((int) ViewUtils.dpToPx(456, context));
+    assertThat(params.weight).isEqualTo(0.0f);
   }
 
   @Test
