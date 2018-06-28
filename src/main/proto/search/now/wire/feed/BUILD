@@ -7,7 +7,10 @@ exports_files(["LICENSE"])
 proto_library(
     name = "feed_proto",
     srcs = glob(["*.proto"]),
-    deps = ["//src/main/proto/search/now/ui/piet:piet_proto"],
+    deps = [
+        "//src/main/proto/search/now/ui/piet:piet_proto",
+        "//third_party/android/nanoproto:nano_descriptor",
+    ],
 )
 
 java_proto_library(

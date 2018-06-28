@@ -10,6 +10,7 @@ proto_library(
     deps = [
         ":feed_action_payload_proto",
         "//src/main/proto/search/now/ui/piet:piet_proto",
+        "//third_party/android/nanoproto:nano_descriptor",
     ],
 )
 
@@ -29,6 +30,7 @@ proto_library(
     deps = [
         ":feed_action_payload_proto",
         "//src/main/proto/search/now/wire/feed:feed_proto",
+        "//third_party/android/nanoproto:nano_descriptor",
     ],
 )
 
@@ -45,6 +47,7 @@ java_lite_proto_library(
 proto_library(
     name = "feed_action_payload_proto",
     srcs = ["feed_action_payload.proto"],
+    deps = ["//third_party/android/nanoproto:nano_descriptor"],
 )
 
 java_proto_library(

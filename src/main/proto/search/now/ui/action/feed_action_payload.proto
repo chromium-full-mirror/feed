@@ -20,7 +20,6 @@ option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.ui.action";
 option java_outer_classname = "FeedActionPayloadProto";
-
 // Specification of an action to be taken within the feed. This is a place
 // holder for host specific actions.
 message FeedActionPayload {

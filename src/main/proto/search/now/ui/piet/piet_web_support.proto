@@ -28,7 +28,6 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "PietHtmlSupport";
 option cc_enable_arenas = true;
-
 // Define extensions and other supporting messages used by the HTML renderer
 // implementation of the Piet protocol.
 

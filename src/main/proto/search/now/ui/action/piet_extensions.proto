@@ -27,7 +27,6 @@ option java_outer_classname = "PietExtensionsProto";
 // This is an extension message which adds the FeedActionPayload as an extension
 // to the Piet Action.
 message PietFeedActionPayload {
-
   extend search.now.ui.piet.Action {
     optional PietFeedActionPayload piet_feed_action_payload_extension =
         182220593;

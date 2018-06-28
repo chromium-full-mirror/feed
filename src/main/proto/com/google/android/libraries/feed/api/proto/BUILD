@@ -8,6 +8,7 @@ proto_library(
     deps = [
         "//src/main/proto/search/now/ui/stream:stream_proto",
         "//src/main/proto/search/now/wire/feed:feed_proto",
+        "//third_party/android/nanoproto:nano_descriptor",
     ],
 )
 

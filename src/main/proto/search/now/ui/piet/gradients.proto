@@ -22,7 +22,6 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "GradientsProto";
 option cc_enable_arenas = true;
-
 // Represents a Fill to be used for a Piet element.
 message Fill {
   // A fill can be either a solid color or a gradient.

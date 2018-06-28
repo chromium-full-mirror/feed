@@ -5,7 +5,10 @@ licenses(["notice"])  # Apache 2
 proto_library(
     name = "mock_server_proto",
     srcs = glob(["*.proto"]),
-    deps = ["//src/main/proto/search/now/wire/feed:feed_proto"],
+    deps = [
+        "//src/main/proto/search/now/wire/feed:feed_proto",
+        "//third_party/android/nanoproto:nano_descriptor",
+    ],
 )
 
 java_proto_library(

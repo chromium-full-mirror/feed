@@ -12,12 +12,18 @@ proto_library(
         ["*.proto"],
         exclude = PIET_ERRORS_SRCS,
     ),
+    deps = [
+        "//third_party/android/nanoproto:nano_descriptor",
+    ],
 )
 
 proto_library(
     name = "piet_errors_proto",
     srcs = PIET_ERRORS_SRCS,
-    deps = ["@com_google_protobuf//:descriptor_proto"],
+    deps = [
+        "//third_party/android/nanoproto:nano_descriptor",
+        "@com_google_protobuf//:descriptor_proto",
+    ],
 )
 
 java_proto_library(

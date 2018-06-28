@@ -14,6 +14,7 @@
 
 syntax = "proto2";
 
+import "third_party/android/nanoproto/nano_descriptor.proto";
 import "src/main/proto/search/now/wire/feed/feature.proto";
 
 package search.now.wire.feed;

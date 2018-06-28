@@ -23,7 +23,6 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "FormFieldsProto";
 option cc_enable_arenas = true;
-
 // Form Fields can be used to solicit user input and act upon it. Multiple
 // visual types of form fields can be used in a Piet layout, all of which are
 // represented using the `FormField` proto message.

@@ -17,7 +17,6 @@ syntax = "proto2";
 import "src/main/proto/search/now/ui/piet/piet.proto";
 import "src/main/proto/search/now/wire/feed/content_id.proto";
 import "src/main/proto/search/now/wire/feed/feature.proto";
-
 package search.now.ui.stream;
 
 option optimize_for=LITE_RUNTIME;

@@ -26,7 +26,6 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "StylesProto";
 option cc_enable_arenas = true;
-
 // A Style is a reusable specification of visual layout that can be applied to
 // any Piet visual element.
 //

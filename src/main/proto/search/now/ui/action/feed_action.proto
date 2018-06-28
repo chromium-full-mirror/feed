@@ -22,7 +22,6 @@ import "src/main/proto/search/now/wire/feed/content_id.proto";
 import "src/main/proto/search/now/wire/feed/data_operation.proto";
 option java_package = "com.google.search.now.ui.action";
 option java_outer_classname = "FeedActionProto";
-
 // Specification of an action to be taken within the feed.
 message FeedAction {
   extend FeedActionPayload {
@@ -43,7 +42,6 @@ message FeedActionMetadata {
   // The type of action, used by the host to perform any custom logic needed for
   // a specific type of action.
   enum Type {
-
     UNKNOWN = 0;
     OPEN_URL = 1;
     OPEN_URL_INCOGNITO = 2;

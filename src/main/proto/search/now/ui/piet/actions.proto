@@ -22,7 +22,6 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "ActionsProto";
 option cc_enable_arenas = true;
-
 // Multiple actions can be associated with every UI element. To keep the set of
 // Actions consistent among multiple UI elements, they’re all defined in a
 // dedicated message.

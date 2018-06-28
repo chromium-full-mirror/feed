@@ -22,7 +22,6 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "ShadowsProto";
 option cc_enable_arenas = true;
-
 // Defines a shadow for a given element. This message has sub-messages that
 // correspond to different methods that define shadows. Each client might
 // support a subset of the methodologies, and will ignore the ones it does not

@@ -22,7 +22,6 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "BindingRefsProto";
 option cc_enable_arenas = true;
-
 // A BindingRef (binding reference) identifies a BindingValue of a specific type
 // in a Binding. This is used when defining Templates, to bind to content.
 //
