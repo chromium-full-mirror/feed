@@ -22,7 +22,7 @@
     android:id="@+id/more_button">
 
   <Button
-      style="@style/SuggestionCardAction"
+      style="@style/FeedSuggestionCardAction"
       android:id="@+id/action_button"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"

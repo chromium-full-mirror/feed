@@ -16,7 +16,7 @@
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Buttons -->
-  <style name="ButtonCompatBase">
+  <style name="FeedButtonCompatBase">
     <item name="android:minWidth">88dp</item>
     <item name="android:minHeight">36dp</item>
     <item name="android:textSize">14sp</item>
@@ -29,26 +29,26 @@
     <item name="android:clickable">true</item>
     <item name="android:gravity">center_vertical|center_horizontal</item>
   </style>
-  <style name="ButtonCompat" parent="ButtonCompatBase">
+  <style name="FeedButtonCompat" parent="FeedButtonCompatBase">
     <item name="android:background">@drawable/button_compat_shape</item>
     <item name="android:textStyle">bold</item>
   </style>
-  <style name="ButtonCompatBorderless" parent="ButtonCompat">
+  <style name="FeedButtonCompatBorderless" parent="FeedButtonCompat">
     <item name="android:background">?android:attr/selectableItemBackground</item>
   </style>
-  <style name="SuggestionCardAction" parent="ButtonCompatBorderless">
-    <item name="android:textAppearance">@style/BlueButtonText</item>
+  <style name="FeedSuggestionCardAction" parent="FeedButtonCompatBorderless">
+    <item name="android:textAppearance">@style/FeedBlueButtonText</item>
     <item name="android:minHeight">48dp</item>
   </style>
 
   <!-- Used by Content -->
-  <style name="RobotoMediumStyle">
+  <style name="FeedRobotoMediumStyle">
     <item name="android:fontFamily">sans-serif</item>
     <item name="android:textStyle">bold</item>
   </style>
 
   <!-- Blue Text Styles -->
-  <style name="BlueButtonText" parent="RobotoMediumStyle">
+  <style name="FeedBlueButtonText" parent="FeedRobotoMediumStyle">
     <item name="android:textColor">@color/google_blue_500</item>
     <item name="android:textSize">@dimen/text_size_medium</item>
   </style>
