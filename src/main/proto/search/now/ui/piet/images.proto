@@ -21,6 +21,7 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "ImagesProto";
 option cc_enable_arenas = true;
+
 // An image, photo, or icon asset. All three types are represented using the
 // same proto message, with properties specific to each type as optional fields.
 // Specific features like tinting might only be applicable to specific types

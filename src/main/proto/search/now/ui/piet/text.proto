@@ -26,6 +26,7 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "TextProto";
 option cc_enable_arenas = true;
+
 // ParameterizedText allows strings to be constructed on the client based on
 // rapidly-changing information for which a server round-trip is not
 // appropriate. Clients will build a string at runtime by combining the

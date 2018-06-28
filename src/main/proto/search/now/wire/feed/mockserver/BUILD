@@ -7,7 +7,6 @@ proto_library(
     srcs = glob(["*.proto"]),
     deps = [
         "//src/main/proto/search/now/wire/feed:feed_proto",
-        "//third_party/android/nanoproto:nano_descriptor",
     ],
 )
 

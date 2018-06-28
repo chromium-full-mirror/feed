@@ -23,6 +23,7 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "AccessibilityProto";
 option cc_enable_arenas = true;
+
 // Defines accessibility related attributes for Piet elements.
 message Accessibility {
   // A string that may be spoken by the system. (TalkBack on Android, VoiceOver

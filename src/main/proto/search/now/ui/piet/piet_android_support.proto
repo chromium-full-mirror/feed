@@ -22,6 +22,7 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "PietAndroidSupport";
 option cc_enable_arenas = true;
+
 // Define extensions and other supporting messages used by the Android
 // implementation of the Piet protocol.
 

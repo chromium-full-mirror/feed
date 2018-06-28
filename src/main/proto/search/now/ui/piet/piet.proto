@@ -25,6 +25,7 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "PietProto";
 option cc_enable_arenas = true;
+
 // Piet • [INTERNAL LINK] • [INTERNAL LINK]
 //
 // Piet is a declarative UI rendering spec with a set of cross-platform

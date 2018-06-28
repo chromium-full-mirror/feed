@@ -22,6 +22,7 @@ option optimize_for=LITE_RUNTIME;
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "RoundedCornersProto";
 option cc_enable_arenas = true;
+
 // Rounded corners for Views, expressed as a bit mask. If a container view has
 // rounded corners applied to it, then the contents of that view SHOULD also be
 // cropped to fit within the rounded rectangle bounding box established by the

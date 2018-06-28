@@ -9,7 +9,6 @@ proto_library(
     srcs = glob(["*.proto"]),
     deps = [
         "//src/main/proto/search/now/ui/piet:piet_proto",
-        "//third_party/android/nanoproto:nano_descriptor",
     ],
 )
 
