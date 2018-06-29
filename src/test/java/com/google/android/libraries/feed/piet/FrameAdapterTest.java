@@ -110,10 +110,10 @@ public class FrameAdapterTest {
         new AdapterParameters(
             null,
             Suppliers.of(new FrameLayout(context)),
+            hostProviders,
             new ParameterizedTextEvaluator(),
             adapterFactory,
-            templateBinder,
-            hostProviders);
+            templateBinder);
     when(elementAdapter.getView()).thenReturn(new LinearLayout(context));
     when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
     doReturn(elementAdapter)
@@ -249,7 +249,7 @@ public class FrameAdapterTest {
             debugBehavior,
             new DebugLogger(),
             actionHandler,
-            new HostBindingProvider());
+            new HostProviders(assetProvider, customElementProvider, new HostBindingProvider()));
 
     frameAdapter = new FrameAdapter(context, adapterParameters, actionHandler, debugBehavior);
 
@@ -360,7 +360,7 @@ public class FrameAdapterTest {
   public void testBackgroundColor() {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
-    styleProvider.createBackground(context, assetProvider);
+    styleProvider.createBackground(context);
   }
 
   @Test
@@ -368,14 +368,13 @@ public class FrameAdapterTest {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
 
     // Set background
-    when(styleProvider.createBackground(context, assetProvider))
-        .thenReturn(new RoundedCornerColorDrawable(12345));
+    when(styleProvider.createBackground(context)).thenReturn(new RoundedCornerColorDrawable(12345));
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNotNull();
     frameAdapter.unbindModel();
 
     // Re-bind and check that background is unset
-    when(styleProvider.createBackground(context, assetProvider)).thenReturn(null);
+    when(styleProvider.createBackground(context)).thenReturn(null);
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNull();
   }
@@ -385,14 +384,13 @@ public class FrameAdapterTest {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
 
     // Set background
-    when(styleProvider.createBackground(context, assetProvider))
-        .thenReturn(new RoundedCornerColorDrawable(12345));
+    when(styleProvider.createBackground(context)).thenReturn(new RoundedCornerColorDrawable(12345));
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNotNull();
     frameAdapter.unbindModel();
 
     // Re-bind and check that background is unset
-    when(styleProvider.createBackground(context, assetProvider)).thenReturn(null);
+    when(styleProvider.createBackground(context)).thenReturn(null);
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     assertThat(frameAdapter.getView().getBackground()).isNull();
   }

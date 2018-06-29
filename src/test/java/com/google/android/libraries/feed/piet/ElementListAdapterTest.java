@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -106,7 +105,7 @@ public class ElementListAdapterTest {
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .thenReturn(DEFAULT_STYLE_PROVIDER);
+        .thenReturn(adapterParameters.defaultStyleProvider);
     when(frameContext.makeStyleFor(LIST_STYLES)).thenReturn(styleProvider);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
@@ -139,7 +138,7 @@ public class ElementListAdapterTest {
 
     adapter.createAdapter(listWithStyles, frameContext);
 
-    verify(styleProvider).applyElementStyles(context, assetProvider, adapter.getView());
+    verify(styleProvider).applyElementStyles(context, adapter.getView());
   }
 
   @Test

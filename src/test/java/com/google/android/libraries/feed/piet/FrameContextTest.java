@@ -16,13 +16,15 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
@@ -96,21 +98,26 @@ public class FrameContextTest {
   }
 
   @Mock private ActionHandler actionHandler;
-  @Mock private StyleProvider styleProvider;
+  @Mock private AssetProvider assetProvider;
 
   private final Map<String, Style> defaultStylesheet = new HashMap<>();
   private final DebugLogger debugLogger = new DebugLogger();
 
   private HostBindingProvider hostBindingProvider;
+  private HostProviders hostProviders;
   private FrameContext frameContext;
   private List<PietSharedState> pietSharedStates;
   private PietStylesHelper pietStylesHelper;
+  private StyleProvider defaultStyleProvider;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
 
     hostBindingProvider = new HostBindingProvider();
+    hostProviders =
+        new HostProviders(assetProvider, mock(CustomElementProvider.class), hostBindingProvider);
+    defaultStyleProvider = new StyleProvider(DEFAULT_STYLE, assetProvider);
 
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);
     pietSharedStates = new ArrayList<>();
@@ -173,7 +180,7 @@ public class FrameContextTest {
             DebugBehavior.VERBOSE,
             debugLogger,
             actionHandler,
-            hostBindingProvider);
+            hostProviders);
 
     assertThat(frameContext.getFrame()).isEqualTo(DEFAULT_FRAME);
     assertThat(frameContext.getActionHandler()).isEqualTo(actionHandler);
@@ -214,9 +221,9 @@ public class FrameContextTest {
 
     // and clear out all the previous styles
     assertThat(frameContextWithBindings.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .isEqualTo(DEFAULT_STYLE_PROVIDER);
+        .isEqualTo(defaultStyleProvider);
     assertThat(frameContextWithBindings.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
-        .isEqualTo(DEFAULT_STYLE_PROVIDER.getColor());
+        .isEqualTo(defaultStyleProvider.getColor());
 
     // A local template stylesheet should override the previous styles.
     // Look up a style from a template's local stylesheet, and check the default style.
@@ -287,7 +294,7 @@ public class FrameContextTest {
 
     // Returns base style provider if there are no styles defined
     StyleProvider noStyle = frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance());
-    assertThat(noStyle).isEqualTo(DEFAULT_STYLE_PROVIDER);
+    assertThat(noStyle).isEqualTo(defaultStyleProvider);
 
     // Successful lookup results in a new style provider
     StyleProvider defaultStyle = frameContext.makeStyleFor(SAMPLE_STYLE_IDS);
@@ -297,7 +304,7 @@ public class FrameContextTest {
     StyleProvider notFoundStyle =
         frameContext.makeStyleFor(
             StyleIdsStack.newBuilder().addStyleIds(INVALID_BINDING_ID).build());
-    assertThat(notFoundStyle).isEqualTo(DEFAULT_STYLE_PROVIDER);
+    assertThat(notFoundStyle).isEqualTo(defaultStyleProvider);
   }
 
   @Test
@@ -921,7 +928,7 @@ public class FrameContextTest {
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
     assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .isEqualTo(DEFAULT_STYLE_PROVIDER);
+        .isEqualTo(defaultStyleProvider);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
@@ -933,7 +940,7 @@ public class FrameContextTest {
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
     assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .isEqualTo(DEFAULT_STYLE_PROVIDER);
+        .isEqualTo(defaultStyleProvider);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
@@ -1022,7 +1029,7 @@ public class FrameContextTest {
 
     // Frame's styles don't affect the childrens' styles.
     assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .isEqualTo(DEFAULT_STYLE_PROVIDER);
+        .isEqualTo(defaultStyleProvider);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
@@ -1039,7 +1046,7 @@ public class FrameContextTest {
         DebugBehavior.VERBOSE,
         debugLogger,
         actionHandler,
-        hostBindingProvider);
+        hostProviders);
   }
 
   private FrameContext makeFrameContextWithBinding(BindingValue bindingValue) {
@@ -1055,7 +1062,7 @@ public class FrameContextTest {
         DebugBehavior.VERBOSE,
         debugLogger,
         actionHandler,
-        hostBindingProvider,
+        hostProviders,
         DEFAULT_TEMPLATES);
   }
 
@@ -1072,18 +1079,13 @@ public class FrameContextTest {
         DebugBehavior.VERBOSE,
         debugLogger,
         actionHandler,
-        hostBindingProvider,
+        hostProviders,
         DEFAULT_TEMPLATES);
   }
 
   private FrameContext makeFrameContextFromFrame(Frame frame) {
     return FrameContext.createFrameContext(
-        frame,
-        pietSharedStates,
-        DebugBehavior.VERBOSE,
-        debugLogger,
-        actionHandler,
-        hostBindingProvider);
+        frame, pietSharedStates, DebugBehavior.VERBOSE, debugLogger, actionHandler, hostProviders);
   }
 
   private void setUpPietSharedStates() {

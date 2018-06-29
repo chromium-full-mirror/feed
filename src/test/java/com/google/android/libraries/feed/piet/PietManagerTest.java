@@ -104,7 +104,7 @@ public class PietManagerTest {
     HostProviders hostProviders = mock(HostProviders.class);
     pietManager.adapterParameters =
         new AdapterParameters(
-            context, cardViewSupplier, null, mockFactory, mockTemplateBinder, hostProviders);
+            context, cardViewSupplier, hostProviders, null, mockFactory, mockTemplateBinder);
     pietManager.purgeRecyclerPools();
     verify(mockFactory).purgeRecyclerPools();
   }

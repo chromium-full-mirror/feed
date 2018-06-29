@@ -108,7 +108,7 @@ public class FrameAdapter {
       }
 
       StyleProvider style = localFrameContext.makeStyleFor(frame.getStyleReferences());
-      Drawable bg = style.createBackground(context, parameters.hostProviders.getAssetProvider());
+      Drawable bg = style.createBackground(context);
       frameView.setBackground(bg);
     } catch (RuntimeException e) {
       // TODO: Remove this once error reporting is fully implemented.
@@ -177,7 +177,7 @@ public class FrameAdapter {
         debugBehavior,
         new DebugLogger(),
         actionHandler,
-        parameters.hostProviders.getHostBindingProvider());
+        parameters.hostProviders);
   }
 
   public void triggerViewActions(View viewport) {

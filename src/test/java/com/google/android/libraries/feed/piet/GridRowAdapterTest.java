@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.ElementAdapter.DIMENSION_NOT_SET;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -101,7 +100,7 @@ public class GridRowAdapterTest {
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .thenReturn(DEFAULT_STYLE_PROVIDER);
+        .thenReturn(adapterParameters.defaultStyleProvider);
     when(frameContext.makeStyleFor(GRID_STYLES)).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
@@ -156,7 +155,7 @@ public class GridRowAdapterTest {
     adapter.createAdapter(gridRow, frameContext);
 
     verify(frameContext).makeStyleFor(GRID_STYLES);
-    verify(styleProvider).applyElementStyles(context, assetProvider, adapter.getBaseView());
+    verify(styleProvider).applyElementStyles(context, adapter.getBaseView());
   }
 
   @Test
@@ -588,7 +587,7 @@ public class GridRowAdapterTest {
 
     adapter.bindModel(gridRowWithBoundStyle, frameContext);
     verify(frameContext).makeStyleFor(styleWithBinding);
-    verify(otherStyleProvider).applyElementStyles(context, assetProvider, adapter.getBaseView());
+    verify(otherStyleProvider).applyElementStyles(context, adapter.getBaseView());
   }
 
   @Test

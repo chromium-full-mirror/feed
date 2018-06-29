@@ -57,6 +57,7 @@ class FrameContext {
   private final DebugBehavior debugBehavior;
   private final DebugLogger debugLogger;
   private final ActionHandler actionHandler;
+  private final HostProviders hostProviders;
   private final HostBindingProvider hostBindingProvider;
   private final Map<String, Template> templates;
 
@@ -82,7 +83,7 @@ class FrameContext {
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       ActionHandler actionHandler,
-      HostBindingProvider hostBindingProvider) {
+      HostProviders hostProviders) {
     this(
         frame,
         stylesheet,
@@ -93,7 +94,7 @@ class FrameContext {
         debugBehavior,
         debugLogger,
         actionHandler,
-        hostBindingProvider,
+        hostProviders,
         new NoKeyOverwriteHashMap<>("Template"));
 
     stylesHelper.addSharedStateTemplatesToFrame(templates);
@@ -115,7 +116,7 @@ class FrameContext {
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       ActionHandler actionHandler,
-      HostBindingProvider hostBindingProvider,
+      HostProviders hostProviders,
       Map<String, Template> templates) {
     currentFrame = frame;
     this.stylesheet = stylesheet;
@@ -126,7 +127,8 @@ class FrameContext {
     this.debugBehavior = debugBehavior;
     this.debugLogger = debugLogger;
     this.actionHandler = actionHandler;
-    this.hostBindingProvider = hostBindingProvider;
+    this.hostProviders = hostProviders;
+    this.hostBindingProvider = hostProviders.getHostBindingProvider();
     this.templates = templates;
   }
 
@@ -140,7 +142,7 @@ class FrameContext {
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       ActionHandler actionHandler,
-      HostBindingProvider hostBindingProvider) {
+      HostProviders hostProviders) {
     PietStylesHelper pietStylesHelper = new PietStylesHelper(pietSharedStates);
     NoKeyOverwriteHashMap<String, Style> styleMap = null;
     if (frame.hasStylesheetId()) {
@@ -161,7 +163,7 @@ class FrameContext {
             debugBehavior,
             debugLogger,
             actionHandler,
-            hostBindingProvider);
+            hostProviders);
     frameContext.computeErrors();
 
     return frameContext;
@@ -217,7 +219,7 @@ class FrameContext {
         debugBehavior,
         debugLogger,
         actionHandler,
-        hostBindingProvider,
+        hostProviders,
         templates);
   }
 
@@ -253,7 +255,8 @@ class FrameContext {
   /** Return a {@link StyleProvider} for the style. */
   public StyleProvider makeStyleFor(StyleIdsStack styles) {
     return new StyleProvider(
-        PietStylesHelper.mergeStyleIdsStack(baseStyle, styles, stylesheet, this));
+        PietStylesHelper.mergeStyleIdsStack(baseStyle, styles, stylesheet, this),
+        hostProviders.getAssetProvider());
   }
 
   /**

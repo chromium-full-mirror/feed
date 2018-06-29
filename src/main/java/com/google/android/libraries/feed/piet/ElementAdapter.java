@@ -59,7 +59,7 @@ abstract class ElementAdapter<V extends View, M> {
   /*@Nullable*/ private M model;
   private Element baseElement = Element.getDefaultInstance();
   /*@Nullable*/ private RecyclerKey key;
-  private StyleProvider elementStyle = StyleProvider.DEFAULT_STYLE_PROVIDER;
+  private StyleProvider elementStyle;
 
   /*@Nullable*/ private FrameLayout overlayView = null;
   @VisibleForTesting final List<ElementAdapter<?, ?>> overlays = new ArrayList<>();
@@ -83,6 +83,7 @@ abstract class ElementAdapter<V extends View, M> {
     this.context = context;
     this.parameters = parameters;
     this.view = view;
+    elementStyle = parameters.defaultStyleProvider;
   }
 
   ElementAdapter(Context context, AdapterParameters parameters, V view, RecyclerKey key) {
@@ -144,8 +145,7 @@ abstract class ElementAdapter<V extends View, M> {
 
     initializeOverflow(baseElement);
 
-    elementStyle.applyElementStyles(
-        getContext(), getParameters().hostProviders.getAssetProvider(), view);
+    elementStyle.applyElementStyles(getContext(), view);
   }
 
   /** Performs child-class-specific adapter creation; to be overridden. */
@@ -184,8 +184,7 @@ abstract class ElementAdapter<V extends View, M> {
 
     // Reapply styles if we have style bindings
     if (getElementStyleIdsStack().hasStyleBinding()) {
-      elementStyle.applyElementStyles(
-          getContext(), getParameters().hostProviders.getAssetProvider(), view);
+      elementStyle.applyElementStyles(getContext(), view);
     }
   }
 

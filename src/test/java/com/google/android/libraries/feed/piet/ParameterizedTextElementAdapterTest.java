@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.GONE;
 import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.INVISIBLE;
@@ -70,7 +69,7 @@ public class ParameterizedTextElementAdapterTest {
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
         new AdapterParameters(
-            null, null, new ParameterizedTextEvaluator(), null, null, hostProviders);
+            null, null, hostProviders, new ParameterizedTextEvaluator(), null, null);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
 
     adapter =
@@ -217,13 +216,14 @@ public class ParameterizedTextElementAdapterTest {
 
     adapter.createAdapter(textElement, frameContext);
     assertThat(adapter.getView()).isNotNull();
-    verify(mockStyleProvider).applyElementStyles(context, assetProvider, adapter.getView());
+    verify(mockStyleProvider).applyElementStyles(context, adapter.getView());
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
   }
 
   private TextElement getBindingTextElement(/*@Nullable*/ StyleProvider styleProvider) {
-    StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
+    StyleProvider sp =
+        styleProvider != null ? styleProvider : adapterParameters.defaultStyleProvider;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
     return TextElement.newBuilder().setParameterizedTextBinding(DEFAULT_BINDING_REF).build();
   }
@@ -233,7 +233,8 @@ public class ParameterizedTextElementAdapterTest {
   }
 
   private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
-    StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
+    StyleProvider sp =
+        styleProvider != null ? styleProvider : adapterParameters.defaultStyleProvider;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
 
     TextElement.Builder textElement = TextElement.newBuilder();

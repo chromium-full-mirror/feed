@@ -78,7 +78,7 @@ public class SpacerElementAdapterTest {
     adapter.createAdapter(spacerElement, frameContext);
     View v = adapter.getView();
     assertThat(v).isNotNull();
-    verify(mockStyleProvider).applyElementStyles(context, assetProvider, v);
+    verify(mockStyleProvider).applyElementStyles(context, v);
   }
 
   @Test
@@ -92,7 +92,7 @@ public class SpacerElementAdapterTest {
         Style.newBuilder()
             .setPadding(EdgeWidths.newBuilder().setTop(padding).setBottom(padding).build())
             .build();
-    StyleProvider styleProvider = new StyleProvider(style);
+    StyleProvider styleProvider = new StyleProvider(style, assetProvider);
     when(frameContext.makeStyleFor(styleStack1)).thenReturn(styleProvider);
 
     adapter.createAdapter(spacerElement, frameContext);
@@ -119,7 +119,7 @@ public class SpacerElementAdapterTest {
         Style.newBuilder()
             .setPadding(EdgeWidths.newBuilder().setTop(padding2).setBottom(padding2).build())
             .build();
-    StyleProvider styleProvider2 = new StyleProvider(style2);
+    StyleProvider styleProvider2 = new StyleProvider(style2, assetProvider);
     when(frameContext.makeStyleFor(styleStack2)).thenReturn(styleProvider2);
 
     adapter.bindModel(spacerElement2, frameContext);

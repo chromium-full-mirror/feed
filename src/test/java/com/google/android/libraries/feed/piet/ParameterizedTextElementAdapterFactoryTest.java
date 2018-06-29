@@ -15,9 +15,9 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier.SINGLETON_KEY;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE_PROVIDER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.ParameterizedTextElementAdapter.Key;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -58,7 +59,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
-        new AdapterParameters(null, null, new ParameterizedTextEvaluator(), null, null, null);
+        new AdapterParameters(null, null, new HostProviders(mock(AssetProvider.class), null, null));
     when(keySupplier.getAdapter(context, adapterParameters))
         .thenReturn(adapter)
         .thenReturn(adapter2);
@@ -94,7 +95,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
   public void testReleaseAndRecycling() {
     textElementFactory = new AdapterFactory<>(context, adapterParameters, keySupplier);
     TextElement textElement = getBaseTextElement(null);
-    Key adapterKey = new Key(DEFAULT_STYLE_PROVIDER.getFont());
+    Key adapterKey = new Key(adapterParameters.defaultStyleProvider.getFont());
     when(adapter.getKey()).thenReturn(adapterKey);
     when(keySupplier.getKey(frameContext, textElement)).thenReturn(adapterKey);
 
@@ -121,7 +122,8 @@ public class ParameterizedTextElementAdapterFactoryTest {
   }
 
   private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
-    StyleProvider sp = styleProvider != null ? styleProvider : DEFAULT_STYLE_PROVIDER;
+    StyleProvider sp =
+        styleProvider != null ? styleProvider : adapterParameters.defaultStyleProvider;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
 
     TextElement.Builder textElement = TextElement.newBuilder();

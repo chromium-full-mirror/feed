@@ -95,15 +95,14 @@ public class ImageElementAdapterTest {
     heightPx = (int) ViewUtils.dpToPx(HEIGHT_DP, context);
     widthPx = (int) ViewUtils.dpToPx(WIDTH_DP, context);
     AdapterParameters parameters =
-        new AdapterParameters(context, null, null, adapterFactory, templateBinder, hostProviders);
+        new AdapterParameters(context, null, hostProviders, null, adapterFactory, templateBinder);
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(PADDING);
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
-    when(styleProvider.getRoundedCornerRadius(context, assetProvider))
-        .thenReturn(CORNERS.getRadius());
+    when(styleProvider.getRoundedCornerRadius(context)).thenReturn(CORNERS.getRadius());
 
     adapter = new KeySupplier().getAdapter(context, parameters);
   }
@@ -124,7 +123,7 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
     assertThat(adapter.getBaseView().getCropToPadding()).isTrue();
-    verify(styleProvider).applyElementStyles(context, assetProvider, adapter.getView());
+    verify(styleProvider).applyElementStyles(context, adapter.getView());
   }
 
   @Test
@@ -396,7 +395,7 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    verify(styleProvider).applyElementStyles(context, assetProvider, adapter.getView());
+    verify(styleProvider).applyElementStyles(context, adapter.getView());
 
     // Styles do not change when a different model is bound
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
@@ -424,7 +423,7 @@ public class ImageElementAdapterTest {
 
     verify(frameContext).makeStyleFor(boundStyle);
 
-    verify(styleProvider, times(2)).applyElementStyles(context, assetProvider, adapter.getView());
+    verify(styleProvider, times(2)).applyElementStyles(context, adapter.getView());
   }
 
   @Test

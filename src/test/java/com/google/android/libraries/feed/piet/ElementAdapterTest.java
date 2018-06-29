@@ -219,10 +219,10 @@ public class ElementAdapterTest {
         new AdapterParameters(
             context,
             Suppliers.of((ViewGroup) null),
+            hostProviders,
             new ParameterizedTextEvaluator(),
             mockFactory,
-            mock(TemplateBinder.class),
-            hostProviders);
+            mock(TemplateBinder.class));
     adapter = new TestElementAdapter(context, parameters, view);
 
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);

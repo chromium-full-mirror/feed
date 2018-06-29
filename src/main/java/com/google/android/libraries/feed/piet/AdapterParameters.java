@@ -31,15 +31,13 @@ class AdapterParameters {
   private static final int DEFAULT_TEMPLATE_POOL_SIZE = 100;
   private static final int DEFAULT_NUM_TEMPLATE_POOLS = 30;
 
-  final ParameterizedTextEvaluator templatedStringEvaluator;
-  final Supplier</*@Nullable*/ ViewGroup> parentViewSupplier;
-
   final Context context;
-
+  final Supplier</*@Nullable*/ ViewGroup> parentViewSupplier;
+  final HostProviders hostProviders;
+  final ParameterizedTextEvaluator templatedStringEvaluator;
   final ElementAdapterFactory elementAdapterFactory;
   final TemplateBinder templateBinder;
-
-  final HostProviders hostProviders;
+  final StyleProvider defaultStyleProvider;
 
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
@@ -58,6 +56,9 @@ class AdapterParameters {
         new KeyedRecyclerPool<>(DEFAULT_NUM_TEMPLATE_POOLS, DEFAULT_TEMPLATE_POOL_SIZE);
     elementAdapterFactory = new ElementAdapterFactory(context, this, templateRecyclerPool);
     templateBinder = new TemplateBinder(templateRecyclerPool, elementAdapterFactory);
+
+    this.defaultStyleProvider =
+        new StyleProvider(StyleProvider.DEFAULT_STYLE, hostProviders.getAssetProvider());
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -65,16 +66,18 @@ class AdapterParameters {
   AdapterParameters(
       Context context,
       Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
+      HostProviders hostProviders,
       ParameterizedTextEvaluator templatedStringEvaluator,
       ElementAdapterFactory elementAdapterFactory,
-      TemplateBinder templateBinder,
-      HostProviders hostProviders) {
+      TemplateBinder templateBinder) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
+    this.hostProviders = hostProviders;
 
     this.templatedStringEvaluator = templatedStringEvaluator;
     this.elementAdapterFactory = elementAdapterFactory;
     this.templateBinder = templateBinder;
-    this.hostProviders = hostProviders;
+    this.defaultStyleProvider =
+        new StyleProvider(StyleProvider.DEFAULT_STYLE, hostProviders.getAssetProvider());
   }
 }

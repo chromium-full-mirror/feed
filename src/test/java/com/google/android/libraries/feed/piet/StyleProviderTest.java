@@ -65,7 +65,7 @@ public class StyleProviderTest {
             .setWidth(8)
             .build();
 
-    StyleProvider styleProvider = new StyleProvider(style);
+    StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
 
     assertThat(styleProvider.getColor()).isEqualTo(style.getColor());
     assertThat(styleProvider.getBackground()).isEqualTo(style.getBackground());
@@ -83,7 +83,7 @@ public class StyleProviderTest {
   public void testGetters_withEmptyStyleDefined() {
     Style style = Style.getDefaultInstance();
 
-    StyleProvider styleProvider = new StyleProvider(style);
+    StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
 
     assertThat(styleProvider.getColor()).isEqualTo(style.getColor());
     assertThat(styleProvider.getBackground()).isEqualTo(style.getBackground());
@@ -102,7 +102,8 @@ public class StyleProviderTest {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     View view = new View(context);
-    new StyleProvider(Style.getDefaultInstance()).applyPadding(context, view, padding);
+    new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
+        .applyPadding(context, view, padding);
     verifyPadding(view, padding);
   }
 
@@ -115,7 +116,7 @@ public class StyleProviderTest {
     MarginLayoutParams params =
         new MarginLayoutParams(MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.WRAP_CONTENT);
 
-    new StyleProvider(marginStyle).applyMargins(context, params);
+    new StyleProvider(marginStyle, mockAssetProvider).applyMargins(context, params);
     verifyMargins(params, margins);
   }
 
@@ -126,7 +127,7 @@ public class StyleProviderTest {
     Style paddingStyle = Style.newBuilder().setPadding(padding).build();
     View view = new View(context);
 
-    new StyleProvider(paddingStyle).applyElementStyles(context, mockAssetProvider, view);
+    new StyleProvider(paddingStyle, mockAssetProvider).applyElementStyles(context, view);
     verifyPadding(view, padding);
   }
 
@@ -145,10 +146,10 @@ public class StyleProviderTest {
             .setRoundedCorners(corners)
             .build();
 
-    StyleProvider styleProvider = new StyleProvider(style);
-    styleProvider.applyElementStyles(context, mockAssetProvider, view);
+    StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
+    styleProvider.applyElementStyles(context, view);
 
-    Drawable drawable = styleProvider.createBackground(context, mockAssetProvider);
+    Drawable drawable = styleProvider.createBackground(context);
 
     assertThat(view.getBackground()).isEqualTo(drawable);
   }
@@ -158,8 +159,8 @@ public class StyleProviderTest {
     View view = new View(context);
     view.setBackground(new ColorDrawable(0xffff0000));
 
-    new StyleProvider(Style.getDefaultInstance())
-        .applyElementStyles(context, mockAssetProvider, view);
+    new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
+        .applyElementStyles(context, view);
     assertThat(view.getBackground()).isNull();
   }
 
@@ -170,7 +171,7 @@ public class StyleProviderTest {
 
     Style style = Style.newBuilder().setBackground(Fill.getDefaultInstance()).build();
 
-    new StyleProvider(style).applyElementStyles(context, mockAssetProvider, view);
+    new StyleProvider(style, mockAssetProvider).applyElementStyles(context, view);
 
     assertThat(view.getBackground()).isNull();
   }
@@ -181,7 +182,7 @@ public class StyleProviderTest {
     Style heightStyle = Style.newBuilder().setMinHeight(minHeight).build();
     View view = new View(context);
 
-    new StyleProvider(heightStyle).applyElementStyles(context, mockAssetProvider, view);
+    new StyleProvider(heightStyle, mockAssetProvider).applyElementStyles(context, view);
 
     assertThat(view.getMinimumHeight()).isEqualTo(minHeight);
   }
@@ -192,7 +193,7 @@ public class StyleProviderTest {
     View view = new View(context);
     view.setMinimumHeight(12345);
 
-    new StyleProvider(noHeightStyle).applyElementStyles(context, mockAssetProvider, view);
+    new StyleProvider(noHeightStyle, mockAssetProvider).applyElementStyles(context, view);
 
     assertThat(view.getMinimumHeight()).isEqualTo(0);
   }
@@ -213,13 +214,14 @@ public class StyleProviderTest {
     RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadius(4321).build();
     StyleProvider styleProvider;
 
-    styleProvider = new StyleProvider(Style.getDefaultInstance());
-    assertThat(styleProvider.createBackground(context, mockAssetProvider)).isNull();
+    styleProvider = new StyleProvider(Style.getDefaultInstance(), mockAssetProvider);
+    assertThat(styleProvider.createBackground(context)).isNull();
 
     styleProvider =
         new StyleProvider(
-            Style.newBuilder().setBackground(fill).setRoundedCorners(roundedCorners).build());
-    Drawable backgroundDrawable = styleProvider.createBackground(context, mockAssetProvider);
+            Style.newBuilder().setBackground(fill).setRoundedCorners(roundedCorners).build(),
+            mockAssetProvider);
+    Drawable backgroundDrawable = styleProvider.createBackground(context);
     assertThat(backgroundDrawable).isInstanceOf(RoundedCornerColorDrawable.class);
 
     RoundedCornerColorDrawable background = (RoundedCornerColorDrawable) backgroundDrawable;
@@ -234,9 +236,9 @@ public class StyleProviderTest {
     Style sameStyle = Style.newBuilder().setColor(123).build();
     Style differentStyle = Style.newBuilder().setHeight(456).build();
 
-    StyleProvider styleProvider = new StyleProvider(style);
-    StyleProvider sameStyleProvider = new StyleProvider(sameStyle);
-    StyleProvider differentStyleProvider = new StyleProvider(differentStyle);
+    StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
+    StyleProvider sameStyleProvider = new StyleProvider(sameStyle, mockAssetProvider);
+    StyleProvider differentStyleProvider = new StyleProvider(differentStyle, mockAssetProvider);
 
     assertThat(styleProvider).isEqualTo(sameStyleProvider);
     assertThat(styleProvider.hashCode()).isEqualTo(sameStyleProvider.hashCode());

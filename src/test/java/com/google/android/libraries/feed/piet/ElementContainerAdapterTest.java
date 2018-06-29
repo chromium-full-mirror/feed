@@ -139,13 +139,16 @@ public class ElementContainerAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    AdapterParameters adapterParameters =
+        new AdapterParameters(context, Suppliers.of(null), hostProviders);
+
     when(frameContext.createTemplateContext(eq(DEFAULT_TEMPLATE), any(BindingContext.class)))
         .thenReturn(frameContext);
     when(frameContext.createTemplateContext(eq(DEFAULT_BOUND_TEMPLATE), any(BindingContext.class)))
         .thenReturn(frameContext);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
-        .thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
-    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+        .thenReturn(adapterParameters.defaultStyleProvider);
 
     // Default no-errors behavior
     when(frameContext.getTemplateInvocationBindingValue(DEFAULT_TEMPLATE_BINDING))
@@ -156,8 +159,7 @@ public class ElementContainerAdapterTest {
         .thenReturn(DEFAULT_ELEMENT_BINDING_VALUE);
 
     LinearLayout view = new LinearLayout(context);
-    AdapterParameters adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders);
+
     adapter = new TestElementContainerAdapter(context, adapterParameters, view);
   }
 

@@ -78,9 +78,7 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     int cornerBitmask = 0;
     if (style.hasRoundedCorners()) {
       cornerBitmask = style.getRoundedCorners().getBitmask();
-      cornerRadius =
-          style.getRoundedCornerRadius(
-              getContext(), getParameters().hostProviders.getAssetProvider());
+      cornerRadius = style.getRoundedCornerRadius(getContext());
     }
     getBaseView().setRoundedCorners(cornerBitmask);
     getBaseView().setCornerRadius(cornerRadius);

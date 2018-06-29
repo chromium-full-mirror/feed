@@ -145,7 +145,7 @@ public class ChunkedTextElementAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
-        new AdapterParameters(null, null, mockTextEvaluator, null, null, hostProviders);
+        new AdapterParameters(null, null, hostProviders, mockTextEvaluator, null, null);
 
     drawable = new ColorDrawable(Color.GREEN);
     shadowDrawable = Shadows.shadowOf(drawable);
@@ -160,7 +160,7 @@ public class ChunkedTextElementAdapterTest {
         .thenReturn(PROCESSED_TEXT);
     when(frameContext.makeStyleFor(CHUNK_STYLE)).thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .thenReturn(StyleProvider.DEFAULT_STYLE_PROVIDER);
+        .thenReturn(adapterParameters.defaultStyleProvider);
     when(hostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getActionHandler()).thenReturn(mockActionHandler);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
@@ -553,7 +553,8 @@ public class ChunkedTextElementAdapterTest {
     adapter.setBounds(
         drawable,
         new StyleProvider(
-            Style.newBuilder().setHeight(STYLE_HEIGHT_DP).setWidth(STYLE_WIDTH_DP).build()),
+            Style.newBuilder().setHeight(STYLE_HEIGHT_DP).setWidth(STYLE_WIDTH_DP).build(),
+            mockAssetProvider),
         textView);
 
     int widthPx = (int) ViewUtils.dpToPx(STYLE_WIDTH_DP, context);
@@ -565,7 +566,7 @@ public class ChunkedTextElementAdapterTest {
   public void testSetBounds_heightOnly_aspectRatioScaled() {
     adapter.setBounds(
         drawable,
-        new StyleProvider(Style.newBuilder().setHeight(STYLE_HEIGHT_DP).build()),
+        new StyleProvider(Style.newBuilder().setHeight(STYLE_HEIGHT_DP).build(), mockAssetProvider),
         textView);
 
     int heightPx = (int) ViewUtils.dpToPx(STYLE_HEIGHT_DP, context);
@@ -576,7 +577,9 @@ public class ChunkedTextElementAdapterTest {
   @Test
   public void testSetBounds_widthOnly_aspectRatioScaled() {
     adapter.setBounds(
-        drawable, new StyleProvider(Style.newBuilder().setWidth(STYLE_WIDTH_DP).build()), textView);
+        drawable,
+        new StyleProvider(Style.newBuilder().setWidth(STYLE_WIDTH_DP).build(), mockAssetProvider),
+        textView);
 
     int widthPx = (int) ViewUtils.dpToPx(STYLE_WIDTH_DP, context);
     assertThat(drawable.getBounds())
@@ -585,7 +588,8 @@ public class ChunkedTextElementAdapterTest {
 
   @Test
   public void testSetBounds_noHeightOrWidth_defaultsToTextHeight() {
-    adapter.setBounds(drawable, new StyleProvider(Style.getDefaultInstance()), textView);
+    adapter.setBounds(
+        drawable, new StyleProvider(Style.getDefaultInstance(), mockAssetProvider), textView);
 
     assertThat(drawable.getBounds())
         .isEqualTo(new Rect(0, 0, TEXT_HEIGHT * IMAGE_ASPECT_RATIO, TEXT_HEIGHT));

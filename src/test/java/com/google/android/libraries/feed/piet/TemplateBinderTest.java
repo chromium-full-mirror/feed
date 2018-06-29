@@ -36,9 +36,6 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateKey;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
-import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -286,6 +283,7 @@ public class TemplateBinderTest {
     // Set up a "real" frameContext, adapterParameters, factory
     Context context = Robolectric.setupActivity(Activity.class);
     List<PietSharedState> pietSharedStates = Collections.singletonList(pietSharedState);
+    HostProviders mockHostProviders = mock(HostProviders.class);
     frameContext =
         FrameContext.createFrameContext(
             frame,
@@ -293,9 +291,9 @@ public class TemplateBinderTest {
             DebugBehavior.VERBOSE,
             new DebugLogger(),
             actionHandler,
-            new HostBindingProvider());
+            mockHostProviders);
     AdapterParameters adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), mock(HostProviders.class));
+        new AdapterParameters(context, Suppliers.of(null), mockHostProviders);
     TemplateBinder templateBinder = adapterParameters.templateBinder;
 
     // Create and bind adapter
@@ -615,7 +613,7 @@ public class TemplateBinderTest {
             DebugBehavior.VERBOSE,
             new DebugLogger(),
             actionHandler,
-            new HostBindingProvider());
+            mock(HostProviders.class));
 
     TemplateAdapterModel model =
         new TemplateAdapterModel(

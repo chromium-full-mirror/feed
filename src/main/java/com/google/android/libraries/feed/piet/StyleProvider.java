@@ -45,14 +45,12 @@ class StyleProvider {
           .setMaxLines(0)
           .build();
 
-  /** The default {@code StyleProvider}. */
-  @VisibleForTesting
-  static final StyleProvider DEFAULT_STYLE_PROVIDER = new StyleProvider(DEFAULT_STYLE);
-
   private final Style style;
+  private final AssetProvider assetProvider;
 
-  StyleProvider(Style style) {
+  StyleProvider(Style style, AssetProvider assetProvider) {
     this.style = style;
+    this.assetProvider = assetProvider;
   }
 
   /** Default font or foreground color */
@@ -126,11 +124,11 @@ class StyleProvider {
   }
 
   /** Sets the Padding and Background Color on the view. */
-  public void applyElementStyles(Context context, AssetProvider assetProvider, View view) {
+  public void applyElementStyles(Context context, View view) {
     EdgeWidths padding = getPadding();
     applyPadding(context, view, padding);
 
-    Drawable bg = createBackground(context, assetProvider);
+    Drawable bg = createBackground(context);
     if (bg != null) {
       view.setBackground(bg);
     } else {
@@ -176,7 +174,7 @@ class StyleProvider {
     }
   }
 
-  public int getRoundedCornerRadius(Context context, AssetProvider assetProvider) {
+  public int getRoundedCornerRadius(Context context) {
     RoundedCorners roundedCorners = getRoundedCorners();
     if (roundedCorners.hasRadius()) {
       return (int) ViewUtils.dpToPx(roundedCorners.getRadius(), context);
@@ -192,7 +190,7 @@ class StyleProvider {
    * @param context
    */
   /*@Nullable*/
-  Drawable createBackground(Context context, AssetProvider assetProvider) {
+  Drawable createBackground(Context context) {
     Fill background = getBackground();
     if (!background.hasColor()) {
       return null;
@@ -200,7 +198,7 @@ class StyleProvider {
     RoundedCornerColorDrawable bgDrawable = new RoundedCornerColorDrawable(background.getColor());
     if (hasRoundedCorners()) {
       bgDrawable.setRoundedCorners(getRoundedCorners().getBitmask());
-      bgDrawable.setRadius(getRoundedCornerRadius(context, assetProvider));
+      bgDrawable.setRadius(getRoundedCornerRadius(context));
     }
     return bgDrawable;
   }
@@ -216,7 +214,7 @@ class StyleProvider {
 
     StyleProvider that = (StyleProvider) o;
 
-    return style.equals(that.style);
+    return style.equals(that.style) && assetProvider.equals(that.assetProvider);
   }
 
   @Override
