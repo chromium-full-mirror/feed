@@ -678,6 +678,69 @@ message BindingValue {
     // An Element, to allow binding of generic chunks of layout.
     // May have a performance penalty on some platforms.
     Element element = 15;
+
+    // Use an already existing bound value in a transcluded template.
+    // This should be used to pass parameters between templates.
+    //
+    // For example:
+    // Let's assume we have a template that shows a text with styling:
+    //
+    // template {
+    //   id: "StyledText"
+    //   ...
+    //   element {
+    //     text_element {
+    //       parameterized_text_binding { binding_id: "StyledTextContent" }
+    //     }
+    //   }
+    //   ...
+    // }
+    //
+    // And we want to create a template that shows the styled text overlayed
+    // over an image:
+    //
+    // template {
+    //   id: "ImageWithText"
+    //   ...
+    //   element {
+    //     image_element {
+    //       image_binding {
+    //         binding_id: "TopLevelImage"
+    //       }
+    //     }
+    //     overlays {
+    //       template_invocation {
+    //         id: 'StyledText'
+    //         binding_contexts {
+    //           binding_values {
+    //             binding_id: "StyledTextContent"
+    //             binding_id_from_transcluding_template: "TopLevelText"
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   ...
+    // }
+    //
+    // The invocation of the template will then be:
+    //
+    // frame {
+    //   template_invocation {
+    //     id: "ImageWithText"
+    //     binding_contexts {
+    //       binding_values {
+    //         binding_id: "TopLevelText"
+    //         ...
+    //       }
+    //       binding_values {
+    //         binding_id: "TopLevelImage"
+    //         ...
+    //       }
+    //     }
+    //   }
+    // }
+    string binding_id_from_transcluding_template = 16;
   }
 
   // Controls the visibility of the UI element corresponding to this binding.
