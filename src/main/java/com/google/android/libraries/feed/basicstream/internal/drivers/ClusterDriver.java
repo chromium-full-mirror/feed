@@ -30,15 +30,18 @@ public class ClusterDriver implements FeatureDriver {
   private final StreamBasicLoggingApi basicLoggingApi;
   private final ModelFeature clusterModel;
   private final ModelProvider modelProvider;
+  private final int position;
   /*@Nullable*/ private CardDriver cardDriver;
 
   ClusterDriver(
       StreamBasicLoggingApi basicLoggingApi,
       ModelFeature clusterModel,
-      ModelProvider modelProvider) {
+      ModelProvider modelProvider,
+      int position) {
     this.basicLoggingApi = basicLoggingApi;
     this.clusterModel = clusterModel;
     this.modelProvider = modelProvider;
+    this.position = position;
   }
 
   @Override
@@ -93,6 +96,6 @@ public class ClusterDriver implements FeatureDriver {
 
   @VisibleForTesting
   CardDriver createCardDriver(ModelFeature content) {
-    return new CardDriver(basicLoggingApi, content, modelProvider);
+    return new CardDriver(basicLoggingApi, content, modelProvider, position);
   }
 }

@@ -71,7 +71,8 @@ public class ClusterDriverTest {
     when(cardDriver.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
     clusterDriver =
-        new ClusterDriverForTest(basicLoggingApi, clusterModelFeature, modelProvider, cardDriver);
+        new ClusterDriverForTest(
+            basicLoggingApi, clusterModelFeature, modelProvider, /* position= */ 0, cardDriver);
   }
 
   @Test
@@ -106,8 +107,9 @@ public class ClusterDriverTest {
         StreamBasicLoggingApi basicLoggingApi,
         ModelFeature clusterModel,
         ModelProvider modelProvider,
+        int position,
         CardDriver cardDriver) {
-      super(basicLoggingApi, clusterModel, modelProvider);
+      super(basicLoggingApi, clusterModel, modelProvider, position);
       this.cardDriver = cardDriver;
     }
 

@@ -25,6 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.common.collect.ImmutableList;
@@ -99,6 +100,9 @@ public class ContentDriverTest {
                   .setContentId(CONTENT_ID_2)
                   .setPietSharedState(PIET_SHARED_STATE_2))
           .build();
+  private static final int POSITION = 1;
+  private static final StreamContentLoggingData CONTENT_LOGGING_DATA =
+      new StreamContentLoggingData(POSITION);
 
   @Mock private StreamBasicLoggingApi basicLoggingApi;
   @Mock private ModelFeature modelFeature;
@@ -119,7 +123,11 @@ public class ContentDriverTest {
   public void testBind() {
     contentDriver =
         new ContentDriver(
-            basicLoggingApi, modelFeature, modelProvider, FeedActionPayload.getDefaultInstance());
+            basicLoggingApi,
+            modelFeature,
+            modelProvider,
+            POSITION,
+            FeedActionPayload.getDefaultInstance());
 
     contentDriver.bind(pietViewHolder);
 
@@ -127,6 +135,7 @@ public class ContentDriverTest {
         .bind(
             eq(PIET_CONTENT.getFrame()),
             eq(PIET_SHARED_STATES),
+            eq(CONTENT_LOGGING_DATA),
             eq(FeedActionPayload.getDefaultInstance()),
             any(VisibilityListener.class));
   }
@@ -135,17 +144,22 @@ public class ContentDriverTest {
   public void testBind_visibilityListenerLogsContentViewed() {
     contentDriver =
         new ContentDriver(
-            basicLoggingApi, modelFeature, modelProvider, FeedActionPayload.getDefaultInstance());
+            basicLoggingApi,
+            modelFeature,
+            modelProvider,
+            POSITION,
+            FeedActionPayload.getDefaultInstance());
 
     contentDriver.bind(pietViewHolder);
 
-    ArgumentCaptor<VisibilityListener> captor = ArgumentCaptor.forClass(VisibilityListener.class);
+    ArgumentCaptor<VisibilityListener> visibilityListenerCaptor =
+        ArgumentCaptor.forClass(VisibilityListener.class);
 
-    verify(pietViewHolder).bind(any(), any(), any(), captor.capture());
-    VisibilityListener listener = captor.getValue();
+    verify(pietViewHolder).bind(any(), any(), any(), any(), visibilityListenerCaptor.capture());
+    VisibilityListener listener = visibilityListenerCaptor.getValue();
     listener.onViewVisible();
 
-    verify(basicLoggingApi).onContentViewed();
+    verify(basicLoggingApi).onContentViewed(eq(CONTENT_LOGGING_DATA));
   }
 
   @Test
@@ -154,7 +168,11 @@ public class ContentDriverTest {
 
     contentDriver =
         new ContentDriver(
-            basicLoggingApi, modelFeature, modelProvider, FeedActionPayload.getDefaultInstance());
+            basicLoggingApi,
+            modelFeature,
+            modelProvider,
+            POSITION,
+            FeedActionPayload.getDefaultInstance());
 
     contentDriver.bind(pietViewHolder);
 
@@ -162,6 +180,7 @@ public class ContentDriverTest {
         .bind(
             eq(PIET_CONTENT.getFrame()),
             /* pietSharedStates= */ eq(new ArrayList<>()),
+            eq(CONTENT_LOGGING_DATA),
             eq(FeedActionPayload.getDefaultInstance()),
             any(VisibilityListener.class));
     verify(modelProvider).getSharedState(CONTENT_ID_1);
@@ -174,7 +193,8 @@ public class ContentDriverTest {
         FeedActionPayload.newBuilder()
             .setExtension(FeedAction.feedActionExtension, FeedAction.getDefaultInstance())
             .build();
-    contentDriver = new ContentDriver(basicLoggingApi, modelFeature, modelProvider, payload);
+    contentDriver =
+        new ContentDriver(basicLoggingApi, modelFeature, modelProvider, POSITION, payload);
 
     contentDriver.bind(pietViewHolder);
 
@@ -182,6 +202,7 @@ public class ContentDriverTest {
         .bind(
             eq(PIET_CONTENT.getFrame()),
             eq(PIET_SHARED_STATES),
+            eq(CONTENT_LOGGING_DATA),
             eq(payload),
             any(VisibilityListener.class));
   }
@@ -190,7 +211,11 @@ public class ContentDriverTest {
   public void testUnbind() {
     contentDriver =
         new ContentDriver(
-            basicLoggingApi, modelFeature, modelProvider, FeedActionPayload.getDefaultInstance());
+            basicLoggingApi,
+            modelFeature,
+            modelProvider,
+            POSITION,
+            FeedActionPayload.getDefaultInstance());
 
     contentDriver.bind(pietViewHolder);
 

@@ -35,6 +35,7 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -74,6 +75,7 @@ public class PietViewHolderTest {
   private static final String VE_LOGGING_TOKEN = "token";
 
   @Mock private CardConfiguration cardConfiguration;
+  @Mock private StreamContentLoggingData contentLoggingData;
   @Mock private FrameAdapter frameAdapter;
   @Mock private ActionParser actionParser;
   @Mock private PietManager pietManager;
@@ -130,6 +132,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -147,6 +150,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -160,6 +164,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -172,6 +177,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -184,6 +190,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -194,6 +201,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -205,6 +213,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -216,6 +225,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -234,6 +244,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -247,6 +258,7 @@ public class PietViewHolderTest {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
+        contentLoggingData,
         FeedActionPayload.getDefaultInstance(),
         visibilityListener);
 
@@ -256,7 +268,11 @@ public class PietViewHolderTest {
   @Test
   public void testSwipe_canSwipeWithNonDefaultInstance() {
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, SWIPE_ACTION, visibilityListener);
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        contentLoggingData,
+        SWIPE_ACTION,
+        visibilityListener);
 
     assertThat(pietViewHolder.canSwipe()).isTrue();
   }
@@ -264,7 +280,11 @@ public class PietViewHolderTest {
   @Test
   public void testSwipeToDismissPerformed() {
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, SWIPE_ACTION, visibilityListener);
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        contentLoggingData,
+        SWIPE_ACTION,
+        visibilityListener);
 
     pietViewHolder.swipeToDismissPerformed();
 
@@ -274,9 +294,16 @@ public class PietViewHolderTest {
 
   @Test
   public void testActionHandler_logsClickOnClickAction() {
+    pietViewHolder.bind(
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        contentLoggingData,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
+
     actionHandler.handleAction(ACTION, ActionType.CLICK, FRAME, view, VE_LOGGING_TOKEN);
 
-    verify(basicLoggingApi).onContentClicked();
+    verify(basicLoggingApi).onContentClicked(contentLoggingData);
     verify(actionParser).parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN);
   }
 
@@ -284,7 +311,7 @@ public class PietViewHolderTest {
   public void testActionHandler_doesNotLogClickOnLongClickAction() {
     actionHandler.handleAction(ACTION, ActionType.LONG_CLICK, FRAME, view, VE_LOGGING_TOKEN);
 
-    verify(basicLoggingApi, never()).onContentClicked();
+    verify(basicLoggingApi, never()).onContentClicked(any());
     verify(actionParser).parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN);
   }
 
@@ -292,7 +319,7 @@ public class PietViewHolderTest {
   public void testActionHandler_doesNotLogClickOnViewAction() {
     actionHandler.handleAction(ACTION, ActionType.VIEW, FRAME, view, VE_LOGGING_TOKEN);
 
-    verify(basicLoggingApi, never()).onContentClicked();
+    verify(basicLoggingApi, never()).onContentClicked(any());
     verify(actionParser).parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN);
   }
 }

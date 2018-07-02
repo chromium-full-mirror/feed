@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.logging.OneShotVisibilityListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
@@ -43,6 +44,7 @@ public class ContentDriver extends LeafFeatureDriver implements VisibilityListen
   private static final String TAG = "ContentDriver";
 
   private final StreamBasicLoggingApi basicLoggingApi;
+  private final StreamContentLoggingData contentLoggingData;
   private final List<PietSharedState> pietSharedStates;
   private final Frame frame;
   private final FeedActionPayload swipeAction;
@@ -55,12 +57,14 @@ public class ContentDriver extends LeafFeatureDriver implements VisibilityListen
       StreamBasicLoggingApi basicLoggingApi,
       ModelFeature contentFeatureModel,
       ModelProvider modelProvider,
+      int position,
       FeedActionPayload swipeAction) {
     PietContent pietContent = getPietContent(contentFeatureModel.getStreamFeature().getContent());
     this.basicLoggingApi = basicLoggingApi;
     frame = pietContent.getFrame();
     pietSharedStates = getPietSharedStates(pietContent, modelProvider);
     contentId = contentFeatureModel.getStreamFeature().getContentId();
+    contentLoggingData = new StreamContentLoggingData(position);
     this.swipeAction = swipeAction;
   }
 
@@ -127,7 +131,8 @@ public class ContentDriver extends LeafFeatureDriver implements VisibilityListen
 
     this.viewHolder = (PietViewHolder) viewHolder;
 
-    ((PietViewHolder) viewHolder).bind(frame, pietSharedStates, swipeAction, visibilityListener);
+    ((PietViewHolder) viewHolder)
+        .bind(frame, pietSharedStates, contentLoggingData, swipeAction, visibilityListener);
   }
 
   @Override
@@ -162,6 +167,6 @@ public class ContentDriver extends LeafFeatureDriver implements VisibilityListen
 
   @Override
   public void onViewVisible() {
-    basicLoggingApi.onContentViewed();
+    basicLoggingApi.onContentViewed(contentLoggingData);
   }
 }

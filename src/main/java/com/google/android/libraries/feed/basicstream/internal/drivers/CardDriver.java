@@ -32,13 +32,18 @@ public class CardDriver implements FeatureDriver {
   private final StreamBasicLoggingApi basicLoggingApi;
   private final ModelFeature cardModel;
   private final ModelProvider modelProvider;
+  private final int position;
   /*@Nullable*/ private ContentDriver contentDriver;
 
   CardDriver(
-      StreamBasicLoggingApi basicLoggingApi, ModelFeature cardModel, ModelProvider modelProvider) {
+      StreamBasicLoggingApi basicLoggingApi,
+      ModelFeature cardModel,
+      ModelProvider modelProvider,
+      int position) {
     this.basicLoggingApi = basicLoggingApi;
     this.cardModel = cardModel;
     this.modelProvider = modelProvider;
+    this.position = position;
   }
 
   @Override
@@ -84,6 +89,6 @@ public class CardDriver implements FeatureDriver {
 
   @VisibleForTesting
   ContentDriver createContentDriver(ModelFeature contentModel, FeedActionPayload swipeAction) {
-    return new ContentDriver(basicLoggingApi, contentModel, modelProvider, swipeAction);
+    return new ContentDriver(basicLoggingApi, contentModel, modelProvider, position, swipeAction);
   }
 }

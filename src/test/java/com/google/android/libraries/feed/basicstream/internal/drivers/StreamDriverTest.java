@@ -551,7 +551,7 @@ public class StreamDriverTest {
     }
 
     @Override
-    FeatureDriver createClusterDriver(ModelFeature modelFeature) {
+    FeatureDriver createClusterDriver(ModelFeature modelFeature, int position) {
       FeatureDriver featureDriver =
           new FakeFeatureDriver.Builder().setModelFeature(modelFeature).build();
       childrenCreated.add(featureDriver);
@@ -559,7 +559,7 @@ public class StreamDriverTest {
     }
 
     @Override
-    FeatureDriver createCardDriver(ModelFeature modelFeature) {
+    FeatureDriver createCardDriver(ModelFeature modelFeature, int position) {
       FeatureDriver featureDriver =
           new FakeFeatureDriver.Builder().setModelFeature(modelFeature).build();
       childrenCreated.add(featureDriver);

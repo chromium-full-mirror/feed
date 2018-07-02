@@ -67,6 +67,8 @@ public class CardDriverTest {
               SwipeActionExtension.newBuilder().setSwipeAction(SWIPE_ACTION).build())
           .build();
 
+  private static final int POSITION = 0;
+
   @Mock private StreamBasicLoggingApi basicLoggingApi;
   @Mock private ContentDriver contentDriverChild;
   @Mock private ModelFeature cardModelFeature;
@@ -97,7 +99,8 @@ public class CardDriverTest {
     when(contentDriverChild.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
     cardDriver =
-        new CardDriverForTest(basicLoggingApi, cardModelFeature, modelProvider, contentDriverChild);
+        new CardDriverForTest(
+            basicLoggingApi, cardModelFeature, modelProvider, POSITION, contentDriverChild);
   }
 
   @Test
@@ -155,8 +158,9 @@ public class CardDriverTest {
         StreamBasicLoggingApi basicLoggingApi,
         ModelFeature cardModel,
         ModelProvider modelProvider,
+        int position,
         ContentDriver childContentDriver) {
-      super(basicLoggingApi, cardModel, modelProvider);
+      super(basicLoggingApi, cardModel, modelProvider, position);
       this.child = childContentDriver;
     }
 

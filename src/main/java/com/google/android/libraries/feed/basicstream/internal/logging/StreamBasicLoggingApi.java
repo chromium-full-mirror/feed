@@ -22,12 +22,12 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 public class StreamBasicLoggingApi implements BasicLoggingApi {
   public static final String TAG = "StreamBasicLoggingApi";
 
-  public void onContentViewed() {
-    Logger.i(TAG, "onContentViewed");
+  public void onContentViewed(StreamContentLoggingData contentLoggingData) {
+    Logger.i(TAG, "onContentViewed. position: %d", contentLoggingData.getPositionInStream());
   }
 
-  public void onContentClicked() {
-    Logger.i(TAG, "onContentClicked");
+  public void onContentClicked(StreamContentLoggingData contentLoggingData) {
+    Logger.i(TAG, "onContentClicked. position: %d", contentLoggingData.getPositionInStream());
   }
 
   public void onOpenedWithNoContent() {

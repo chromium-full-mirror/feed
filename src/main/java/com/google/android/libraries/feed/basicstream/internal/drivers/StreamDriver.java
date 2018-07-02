@@ -158,7 +158,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   /*@Nullable*/
   private FeatureDriver createAndInsertChildAtIndex(
       int index, ModelChild modelChild, ModelProvider modelProvider) {
-    FeatureDriver featureDriver = createChild(modelChild, modelProvider);
+    FeatureDriver featureDriver = createChild(modelChild, modelProvider, index);
 
     if (featureDriver == null) {
       return null;
@@ -171,10 +171,10 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   }
 
   /*@Nullable*/
-  private FeatureDriver createChild(ModelChild child, ModelProvider modelProvider) {
+  private FeatureDriver createChild(ModelChild child, ModelProvider modelProvider, int position) {
     switch (child.getType()) {
       case Type.FEATURE:
-        return createFeatureChild(child.getModelFeature());
+        return createFeatureChild(child.getModelFeature(), position);
       case Type.TOKEN:
         ContinuationDriver continuationDriver =
             createContinuationDriver(
@@ -194,11 +194,11 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     }
   }
 
-  private /*@Nullable*/ FeatureDriver createFeatureChild(ModelFeature modelFeature) {
+  private /*@Nullable*/ FeatureDriver createFeatureChild(ModelFeature modelFeature, int position) {
     if (modelFeature.getStreamFeature().hasCard()) {
-      return createCardDriver(modelFeature);
+      return createCardDriver(modelFeature, position);
     } else if (modelFeature.getStreamFeature().hasCluster()) {
-      return createClusterDriver(modelFeature);
+      return createClusterDriver(modelFeature, position);
     }
 
     Logger.w(
@@ -368,13 +368,13 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   }
 
   @VisibleForTesting
-  FeatureDriver createClusterDriver(ModelFeature modelFeature) {
-    return new ClusterDriver(basicLoggingApi, modelFeature, modelProvider);
+  FeatureDriver createClusterDriver(ModelFeature modelFeature, int position) {
+    return new ClusterDriver(basicLoggingApi, modelFeature, modelProvider, position);
   }
 
   @VisibleForTesting
-  FeatureDriver createCardDriver(ModelFeature modelFeature) {
-    return new CardDriver(basicLoggingApi, modelFeature, modelProvider);
+  FeatureDriver createCardDriver(ModelFeature modelFeature, int position) {
+    return new CardDriver(basicLoggingApi, modelFeature, modelProvider, position);
   }
 
   @VisibleForTesting

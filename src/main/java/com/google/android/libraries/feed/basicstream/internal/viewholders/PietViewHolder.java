@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.ViewHolder;
@@ -22,6 +24,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -52,6 +55,7 @@ public class PietViewHolder extends FeedViewHolder {
   private final VisibilityMonitor visibilityMonitor;
   private boolean bound;
 
+  /*@Nullable*/ private StreamContentLoggingData contentLoggingData;
   /*@Nullable*/ private FeedActionPayload swipeAction;
 
   public PietViewHolder(
@@ -73,7 +77,7 @@ public class PietViewHolder extends FeedViewHolder {
             () -> cardView,
             (action, actionType, frame, view, veLoggingToken) -> {
               if (actionType == ActionType.CLICK) {
-                basicLoggingApi.onContentClicked();
+                basicLoggingApi.onContentClicked(getContentLoggingData());
               }
               actionParser.parseAction(action, streamActionApi, view, veLoggingToken);
             },
@@ -87,11 +91,13 @@ public class PietViewHolder extends FeedViewHolder {
   public void bind(
       Frame frame,
       List<PietSharedState> pietSharedStates,
+      StreamContentLoggingData contentLoggingData,
       FeedActionPayload swipeAction,
       VisibilityListener visibilityListener) {
     if (bound) {
       return;
     }
+    this.contentLoggingData = contentLoggingData;
     visibilityMonitor.setListener(visibilityListener);
     this.swipeAction = swipeAction;
 
@@ -115,6 +121,7 @@ public class PietViewHolder extends FeedViewHolder {
       return;
     }
 
+    contentLoggingData = null;
     swipeAction = null;
     visibilityMonitor.setListener(null);
     frameAdapter.unbindModel();
@@ -137,5 +144,11 @@ public class PietViewHolder extends FeedViewHolder {
   VisibilityMonitor createVisibilityMonitor(
       /*@UnderInitialization*/ PietViewHolder this, View view, double viewLogThreshold) {
     return new VisibilityMonitor(view, viewLogThreshold);
+  }
+
+  private StreamContentLoggingData getContentLoggingData(
+      /*@UnknownInitialization*/ PietViewHolder this) {
+    return checkNotNull(
+        contentLoggingData, "Logging data can only be retrieved once view holder has been bound.");
   }
 }
