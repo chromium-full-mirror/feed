@@ -1,10 +1,10 @@
 licenses(["notice"])  # Apache 2
 
 android_local_test(
-    name = "OneShotVisibilityListenerTest",
+    name = "OneShotVisibilityLoggingListenerTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["OneShotVisibilityListenerTest.java"],
+    srcs = ["OneShotVisibilityLoggingListenerTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

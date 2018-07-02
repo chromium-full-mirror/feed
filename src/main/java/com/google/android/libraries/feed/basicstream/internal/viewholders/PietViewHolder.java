@@ -23,9 +23,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
-import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
@@ -55,7 +53,7 @@ public class PietViewHolder extends FeedViewHolder {
   private final VisibilityMonitor visibilityMonitor;
   private boolean bound;
 
-  /*@Nullable*/ private StreamContentLoggingData contentLoggingData;
+  /*@Nullable*/ private LoggingListener loggingListener;
   /*@Nullable*/ private FeedActionPayload swipeAction;
 
   public PietViewHolder(
@@ -65,7 +63,6 @@ public class PietViewHolder extends FeedViewHolder {
       Context context,
       StreamActionApi streamActionApi,
       ActionParser actionParser,
-      StreamBasicLoggingApi basicLoggingApi,
       Configuration configuration) {
     super(cardView);
     this.actionParser = actionParser;
@@ -77,7 +74,7 @@ public class PietViewHolder extends FeedViewHolder {
             () -> cardView,
             (action, actionType, frame, view, veLoggingToken) -> {
               if (actionType == ActionType.CLICK) {
-                basicLoggingApi.onContentClicked(getContentLoggingData());
+                getLoggingListener().onContentClicked();
               }
               actionParser.parseAction(action, streamActionApi, view, veLoggingToken);
             },
@@ -91,14 +88,13 @@ public class PietViewHolder extends FeedViewHolder {
   public void bind(
       Frame frame,
       List<PietSharedState> pietSharedStates,
-      StreamContentLoggingData contentLoggingData,
       FeedActionPayload swipeAction,
-      VisibilityListener visibilityListener) {
+      LoggingListener loggingListener) {
     if (bound) {
       return;
     }
-    this.contentLoggingData = contentLoggingData;
-    visibilityMonitor.setListener(visibilityListener);
+    visibilityMonitor.setListener(loggingListener);
+    this.loggingListener = loggingListener;
     this.swipeAction = swipeAction;
 
     // Need to reset padding here.  Setting a background can affect padding so if we switch from
@@ -121,7 +117,7 @@ public class PietViewHolder extends FeedViewHolder {
       return;
     }
 
-    contentLoggingData = null;
+    loggingListener = null;
     swipeAction = null;
     visibilityMonitor.setListener(null);
     frameAdapter.unbindModel();
@@ -146,9 +142,8 @@ public class PietViewHolder extends FeedViewHolder {
     return new VisibilityMonitor(view, viewLogThreshold);
   }
 
-  private StreamContentLoggingData getContentLoggingData(
-      /*@UnknownInitialization*/ PietViewHolder this) {
+  private LoggingListener getLoggingListener(/*@UnknownInitialization*/ PietViewHolder this) {
     return checkNotNull(
-        contentLoggingData, "Logging data can only be retrieved once view holder has been bound.");
+        loggingListener, "Logging listener can only be retrieved once view holder has been bound.");
   }
 }

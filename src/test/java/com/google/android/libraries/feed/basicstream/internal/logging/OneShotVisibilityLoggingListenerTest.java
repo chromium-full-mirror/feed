@@ -25,34 +25,41 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link OneShotVisibilityListenerTest}. */
+/** Tests for {@link OneShotVisibilityLoggingListener}. */
 @RunWith(RobolectricTestRunner.class)
-public class OneShotVisibilityListenerTest {
+public class OneShotVisibilityLoggingListenerTest {
 
-  @Mock private VisibilityListener visibilityListener;
+  @Mock private LoggingListener loggingListener;
 
-  private OneShotVisibilityListener oneShotVisibilityListener;
+  private OneShotVisibilityLoggingListener oneShotVisibilityLoggingListener;
 
   @Before
   public void setUp() {
     initMocks(this);
-    oneShotVisibilityListener = new OneShotVisibilityListener(visibilityListener);
+    oneShotVisibilityLoggingListener = new OneShotVisibilityLoggingListener(loggingListener);
   }
 
   @Test
   public void testOnViewVisible() {
-    oneShotVisibilityListener.onViewVisible();
+    oneShotVisibilityLoggingListener.onViewVisible();
 
-    verify(visibilityListener).onViewVisible();
+    verify(loggingListener).onViewVisible();
   }
 
   @Test
   public void testOnViewVisible_onlyNotifiesListenerOnce() {
-    oneShotVisibilityListener.onViewVisible();
-    reset(visibilityListener);
+    oneShotVisibilityLoggingListener.onViewVisible();
+    reset(loggingListener);
 
-    oneShotVisibilityListener.onViewVisible();
+    oneShotVisibilityLoggingListener.onViewVisible();
 
-    verify(visibilityListener, never()).onViewVisible();
+    verify(loggingListener, never()).onViewVisible();
+  }
+
+  @Test
+  public void testOnContentClicked() {
+    oneShotVisibilityLoggingListener.onContentClicked();
+
+    verify(loggingListener).onContentClicked();
   }
 }

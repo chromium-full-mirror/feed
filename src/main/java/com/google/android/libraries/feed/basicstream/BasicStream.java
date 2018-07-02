@@ -174,7 +174,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
             actionApi,
             actionManager,
             deepestContentTracker,
-            basicLoggingApi,
             configuration);
     adapter.setHeaders(headers);
 
@@ -483,7 +482,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ActionApi actionApi,
       ActionManager actionManager,
       DeepestContentTracker deepestContentTracker,
-      StreamBasicLoggingApi basicLoggingApi,
       Configuration configuration) {
     return new StreamRecyclerViewAdapter(
         context,
@@ -493,7 +491,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
         actionApi,
         actionManager,
         deepestContentTracker,
-        basicLoggingApi,
         configuration);
   }
 

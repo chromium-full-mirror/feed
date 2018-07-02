@@ -15,24 +15,10 @@
 package com.google.android.libraries.feed.basicstream.internal.logging;
 
 /**
- * Implementation of a {@link VisibilityListener} that only notifies a listener of the first view.
+ * Interface that extends {@link VisibilityListener} and provides additional callbacks for logging
+ * events.
  */
-public class OneShotVisibilityListener implements VisibilityListener {
+public interface LoggingListener extends VisibilityListener {
 
-  private final VisibilityListener visibilityListener;
-  private boolean viewLogged;
-
-  public OneShotVisibilityListener(VisibilityListener visibilityListener) {
-    this.visibilityListener = visibilityListener;
-  }
-
-  @Override
-  public void onViewVisible() {
-    if (viewLogged) {
-      return;
-    }
-
-    visibilityListener.onViewVisible();
-    viewLogged = true;
-  }
+  void onContentClicked();
 }

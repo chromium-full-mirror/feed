@@ -562,7 +562,6 @@ public class BasicStreamTest {
         ActionApi actionApi,
         ActionManager actionManager,
         DeepestContentTracker deepestContentTracker,
-        StreamBasicLoggingApi basicLoggingApi,
         Configuration configuration) {
       return adapter;
     }

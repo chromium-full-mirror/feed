@@ -35,7 +35,6 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.NoContentViewHolder;
@@ -82,7 +81,6 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
   @Mock private DeepestContentTracker deepestContentTracker;
-  @Mock private StreamBasicLoggingApi basicLoggingApi;
 
   private Context context;
   private LinearLayout frameContainer;
@@ -121,7 +119,6 @@ public class StreamRecyclerViewAdapterTest {
             actionApi,
             actionManager,
             deepestContentTracker,
-            basicLoggingApi,
             CONFIGURATION);
     streamRecyclerViewAdapter.setHeaders(headers);
 

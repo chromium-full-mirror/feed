@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
@@ -59,7 +58,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final ActionParser actionParser;
   private final ActionApi actionApi;
   private final ActionManager actionManager;
-  private final StreamBasicLoggingApi basicLoggingApi;
   private final Configuration configuration;
   private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<View> headers;
@@ -80,7 +78,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       ActionApi actionApi,
       ActionManager actionManager,
       DeepestContentTracker deepestContentTracker,
-      StreamBasicLoggingApi basicLoggingApi,
       Configuration configuration) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
@@ -88,7 +85,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     this.actionParser = actionParser;
     this.actionApi = actionApi;
     this.actionManager = actionManager;
-    this.basicLoggingApi = basicLoggingApi;
     this.configuration = configuration;
     headers = new ArrayList<>();
     leafFeatureDrivers = new ArrayList<>();
@@ -122,7 +118,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
         context,
         streamActionApi,
         actionParser,
-        basicLoggingApi,
         configuration);
   }
 

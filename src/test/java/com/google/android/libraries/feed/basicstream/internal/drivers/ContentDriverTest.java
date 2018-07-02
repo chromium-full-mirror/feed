@@ -24,9 +24,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
-import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -135,9 +135,8 @@ public class ContentDriverTest {
         .bind(
             eq(PIET_CONTENT.getFrame()),
             eq(PIET_SHARED_STATES),
-            eq(CONTENT_LOGGING_DATA),
             eq(FeedActionPayload.getDefaultInstance()),
-            any(VisibilityListener.class));
+            any(LoggingListener.class));
   }
 
   @Test
@@ -152,11 +151,11 @@ public class ContentDriverTest {
 
     contentDriver.bind(pietViewHolder);
 
-    ArgumentCaptor<VisibilityListener> visibilityListenerCaptor =
-        ArgumentCaptor.forClass(VisibilityListener.class);
+    ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
+        ArgumentCaptor.forClass(LoggingListener.class);
 
-    verify(pietViewHolder).bind(any(), any(), any(), any(), visibilityListenerCaptor.capture());
-    VisibilityListener listener = visibilityListenerCaptor.getValue();
+    verify(pietViewHolder).bind(any(), any(), any(), visibilityListenerCaptor.capture());
+    LoggingListener listener = visibilityListenerCaptor.getValue();
     listener.onViewVisible();
 
     verify(basicLoggingApi).onContentViewed(eq(CONTENT_LOGGING_DATA));
@@ -180,9 +179,8 @@ public class ContentDriverTest {
         .bind(
             eq(PIET_CONTENT.getFrame()),
             /* pietSharedStates= */ eq(new ArrayList<>()),
-            eq(CONTENT_LOGGING_DATA),
             eq(FeedActionPayload.getDefaultInstance()),
-            any(VisibilityListener.class));
+            any(LoggingListener.class));
     verify(modelProvider).getSharedState(CONTENT_ID_1);
     verifyNoMoreInteractions(modelProvider);
   }
@@ -202,9 +200,8 @@ public class ContentDriverTest {
         .bind(
             eq(PIET_CONTENT.getFrame()),
             eq(PIET_SHARED_STATES),
-            eq(CONTENT_LOGGING_DATA),
             eq(payload),
-            any(VisibilityListener.class));
+            any(LoggingListener.class));
   }
 
   @Test
