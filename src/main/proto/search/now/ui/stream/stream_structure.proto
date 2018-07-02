@@ -56,6 +56,18 @@ message Card {
   extensions 10000 to max;
 }
 
+// Metadata object providing basic information for logging content.
+message BasicLoggingMetadata {
+  // Time when content was published
+  optional int32 published_time_seconds = 1;
+
+  // Time server filled out content
+  optional int32 availability_time_seconds = 2;
+
+  // Score given by NowStream
+  optional int32 score = 3;
+}
+
 // Feature which is able to show actual content in a stream. This could be
 // inside or outside a card. Actual data on what to display will be sent on an
 // extension.
@@ -69,6 +81,7 @@ message Content {
     PIET = 1;
   }
   optional Type type = 1;
+  optional BasicLoggingMetadata basicLoggingMetadata = 2;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
