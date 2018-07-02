@@ -14,3 +14,10 @@ package_group(
     ],
     packages = ["//..."],
 )
+
+filegroup(
+    name = "all_messages",
+    srcs = [
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders:translatable_messages",
+    ],
+)
