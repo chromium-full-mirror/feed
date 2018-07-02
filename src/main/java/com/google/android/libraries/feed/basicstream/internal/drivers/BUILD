@@ -9,6 +9,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/logging",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/scroll",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
         "//src/main/java/com/google/android/libraries/feed/common",

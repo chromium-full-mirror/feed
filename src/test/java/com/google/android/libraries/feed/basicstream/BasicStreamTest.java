@@ -541,7 +541,8 @@ public class BasicStreamTest {
         Context context,
         SnackbarApi snackbarApi,
         ContentChangedListener contentChangedListener,
-        ScrollRestorer scrollRestorer) {
+        ScrollRestorer scrollRestorer,
+        StreamBasicLoggingApi basicLoggingApi) {
       streamDriverScrollRestorer = scrollRestorer;
       return streamDriver;
     }
@@ -561,7 +562,8 @@ public class BasicStreamTest {
         ActionApi actionApi,
         ActionManager actionManager,
         DeepestContentTracker deepestContentTracker,
-        StreamBasicLoggingApi basicLoggingApi) {
+        StreamBasicLoggingApi basicLoggingApi,
+        Configuration configuration) {
       return adapter;
     }
 

@@ -1,0 +1,149 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.basicstream.internal.logging;
+
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import android.app.Activity;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+
+/** Tests for {@link VisibilityMonitor}. */
+@RunWith(RobolectricTestRunner.class)
+public class VisibilityMonitorTest {
+
+  private static final int VIEW_HEIGHT = 100;
+  private static final int VIEW_WIDTH = 50;
+  private static final double VIEW_LOG_THRESHOLD = .50;
+
+  @Mock private VisibilityListener visibilityListener;
+
+  private Activity context;
+  private ViewGroup parentView;
+  private View view;
+  private VisibilityMonitor visibilityMonitor;
+
+  @Before
+  public void setUp() {
+    initMocks(this);
+    context = Robolectric.setupActivity(Activity.class);
+
+    setUpViews(
+        ((child, r, offset) -> {
+          r.set(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+          return true;
+        }));
+  }
+
+  @Test
+  public void testPreDraw_notifiesListener() {
+    context.setContentView(parentView);
+
+    visibilityMonitor.onPreDraw();
+
+    verify(visibilityListener).onViewVisible();
+  }
+
+  @Test
+  public void testPreDraw_notifiesListenerIfVisibleViewHeightIsAtThreshold() {
+    setUpViews(
+        (child, r, offset) -> {
+          r.set(0, 0, VIEW_WIDTH, 50);
+          return true;
+        });
+    context.setContentView(parentView);
+
+    visibilityMonitor.onPreDraw();
+
+    verify(visibilityListener).onViewVisible();
+  }
+
+  @Test
+  public void testPreDraw_doesNotNotifyListenerIfAlreadyVisible() {
+    context.setContentView(parentView);
+    visibilityMonitor.onPreDraw();
+    reset(visibilityListener);
+
+    visibilityMonitor.onPreDraw();
+
+    verify(visibilityListener, never()).onViewVisible();
+  }
+
+  @Test
+  public void testPreDraw_doesNotNotifyListenerIfVisibleViewHeightIsBelowThreshold() {
+    setUpViews(
+        (child, r, offset) -> {
+          r.set(0, 0, VIEW_WIDTH, 49);
+          return true;
+        });
+    context.setContentView(parentView);
+
+    visibilityMonitor.onPreDraw();
+
+    verify(visibilityListener, never()).onViewVisible();
+  }
+
+  @Test
+  public void testPreDraw_doesNotNotifyListenerIfViewNotAttached() {
+    setUpViews((child, r, offset) -> false);
+
+    visibilityMonitor.onPreDraw();
+
+    verify(visibilityListener, never()).onViewVisible();
+  }
+
+  @Test
+  public void testPreDraw_doesNotNotifyListenerIfParentIsNull() {
+    visibilityMonitor = new VisibilityMonitor(new FrameLayout(context), VIEW_LOG_THRESHOLD);
+    visibilityMonitor.setListener(null);
+
+    visibilityMonitor.onPreDraw();
+
+    verify(visibilityListener, never()).onViewVisible();
+  }
+
+  private void setUpViews(ChildVisibleRectMock childVisibleRectMock) {
+    view = new FrameLayout(context);
+    view.setLayoutParams(new LayoutParams(VIEW_WIDTH, VIEW_HEIGHT));
+    parentView =
+        new FrameLayout(context) {
+          @Override
+          public boolean getChildVisibleRect(View child, Rect r, Point offset) {
+            return childVisibleRectMock.getChildVisibleRect(child, r, offset);
+          }
+        };
+
+    parentView.addView(view);
+    visibilityMonitor = new VisibilityMonitor(view, VIEW_LOG_THRESHOLD);
+    visibilityMonitor.setListener(visibilityListener);
+  }
+
+  interface ChildVisibleRectMock {
+    boolean getChildVisibleRect(View child, Rect r, Point offset);
+  }
+}

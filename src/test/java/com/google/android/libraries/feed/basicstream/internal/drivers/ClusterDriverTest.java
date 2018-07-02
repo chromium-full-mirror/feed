@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -42,6 +43,7 @@ public class ClusterDriverTest {
   private static final StreamFeature CARD_STREAM_FEATURE =
       StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build();
 
+  @Mock private StreamBasicLoggingApi basicLoggingApi;
   @Mock private CardDriver cardDriver;
   @Mock private LeafFeatureDriver leafFeatureDriver;
   @Mock private ModelFeature clusterModelFeature;
@@ -68,7 +70,8 @@ public class ClusterDriverTest {
 
     when(cardDriver.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
-    clusterDriver = new ClusterDriverForTest(clusterModelFeature, modelProvider, cardDriver);
+    clusterDriver =
+        new ClusterDriverForTest(basicLoggingApi, clusterModelFeature, modelProvider, cardDriver);
   }
 
   @Test
@@ -100,8 +103,11 @@ public class ClusterDriverTest {
     private final CardDriver cardDriver;
 
     ClusterDriverForTest(
-        ModelFeature clusterModel, ModelProvider modelProvider, CardDriver cardDriver) {
-      super(clusterModel, modelProvider);
+        StreamBasicLoggingApi basicLoggingApi,
+        ModelFeature clusterModel,
+        ModelProvider modelProvider,
+        CardDriver cardDriver) {
+      super(basicLoggingApi, clusterModel, modelProvider);
       this.cardDriver = cardDriver;
     }
 

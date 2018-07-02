@@ -22,6 +22,10 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 public class StreamBasicLoggingApi implements BasicLoggingApi {
   public static final String TAG = "StreamBasicLoggingApi";
 
+  public void onContentViewed() {
+    Logger.i(TAG, "onContentViewed");
+  }
+
   public void onContentClicked() {
     Logger.i(TAG, "onContentClicked");
   }

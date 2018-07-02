@@ -35,7 +35,10 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -76,8 +79,11 @@ public class PietViewHolderTest {
   @Mock private PietManager pietManager;
   @Mock private StreamActionApiImpl streamActionApi;
   @Mock private StreamBasicLoggingApi basicLoggingApi;
+  @Mock private VisibilityListener visibilityListener;
+  @Mock private VisibilityMonitor visibilityMonitor;
 
   private ActionHandler actionHandler;
+  private Configuration configuration;
   private PietViewHolder pietViewHolder;
   private FrameLayout frameLayout;
   private View view;
@@ -94,6 +100,7 @@ public class PietViewHolderTest {
         .thenReturn(frameAdapter);
     when(frameAdapter.getFrameContainer()).thenReturn(new LinearLayout(context));
 
+    configuration = new Configuration.Builder().build();
     pietViewHolder =
         new PietViewHolder(
             cardConfiguration,
@@ -102,7 +109,13 @@ public class PietViewHolderTest {
             context,
             streamActionApi,
             actionParser,
-            basicLoggingApi);
+            basicLoggingApi,
+            configuration) {
+          @Override
+          VisibilityMonitor createVisibilityMonitor(View view, double viewLogThreshold) {
+            return visibilityMonitor;
+          }
+        };
 
     ArgumentCaptor<ActionHandler> captor = ArgumentCaptor.forClass(ActionHandler.class);
     verify(pietManager)
@@ -115,7 +128,10 @@ public class PietViewHolderTest {
     frameLayout.setPadding(1, 2, 3, 4);
 
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, FeedActionPayload.getDefaultInstance());
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
 
     assertThat(frameLayout.getPaddingLeft()).isEqualTo(0);
     assertThat(frameLayout.getPaddingRight()).isEqualTo(0);
@@ -129,7 +145,10 @@ public class PietViewHolderTest {
     when(cardConfiguration.getCardBackground()).thenReturn(redBackground);
 
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, FeedActionPayload.getDefaultInstance());
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
 
     assertThat(frameLayout.getBackground()).isEqualTo(redBackground);
   }
@@ -139,7 +158,10 @@ public class PietViewHolderTest {
     when(cardConfiguration.getCardBottomMargin()).thenReturn(CARD_BOTTOM_PADDING);
 
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, FeedActionPayload.getDefaultInstance());
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
 
     assertThat(((MarginLayoutParams) pietViewHolder.itemView.getLayoutParams()).bottomMargin)
         .isEqualTo(CARD_BOTTOM_PADDING);
@@ -148,7 +170,10 @@ public class PietViewHolderTest {
   @Test
   public void testBind_bindsModel() {
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, FeedActionPayload.getDefaultInstance());
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
 
     verify(frameAdapter)
         .bindModel(Frame.getDefaultInstance(), /* shardingControl= */ null, pietSharedStates);
@@ -157,22 +182,42 @@ public class PietViewHolderTest {
   @Test
   public void testBind_onlyBindsOnce() {
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, FeedActionPayload.getDefaultInstance());
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
 
     verify(frameAdapter)
         .bindModel(Frame.getDefaultInstance(), /* shardingControl= */ null, pietSharedStates);
     verify(frameAdapter).getFrameContainer();
 
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, FeedActionPayload.getDefaultInstance());
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
 
     verifyNoMoreInteractions(frameAdapter);
   }
 
   @Test
+  public void testBind_setsListener() {
+    pietViewHolder.bind(
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
+
+    verify(visibilityMonitor).setListener(visibilityListener);
+  }
+
+  @Test
   public void testUnbind() {
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, FeedActionPayload.getDefaultInstance());
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
 
     pietViewHolder.unbind();
     InOrder inOrder = Mockito.inOrder(frameAdapter);
@@ -185,23 +230,41 @@ public class PietViewHolderTest {
   }
 
   @Test
+  public void testUnbind_setsListenerToNull() {
+    pietViewHolder.bind(
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
+
+    pietViewHolder.unbind();
+
+    verify(visibilityMonitor).setListener(null);
+  }
+
+  @Test
   public void testSwipe_cantSwipeWithDefaultInstance() {
     pietViewHolder.bind(
-        Frame.getDefaultInstance(), pietSharedStates, FeedActionPayload.getDefaultInstance());
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        FeedActionPayload.getDefaultInstance(),
+        visibilityListener);
 
     assertThat(pietViewHolder.canSwipe()).isFalse();
   }
 
   @Test
   public void testSwipe_canSwipeWithNonDefaultInstance() {
-    pietViewHolder.bind(Frame.getDefaultInstance(), pietSharedStates, SWIPE_ACTION);
+    pietViewHolder.bind(
+        Frame.getDefaultInstance(), pietSharedStates, SWIPE_ACTION, visibilityListener);
 
     assertThat(pietViewHolder.canSwipe()).isTrue();
   }
 
   @Test
   public void testSwipeToDismissPerformed() {
-    pietViewHolder.bind(Frame.getDefaultInstance(), pietSharedStates, SWIPE_ACTION);
+    pietViewHolder.bind(
+        Frame.getDefaultInstance(), pietSharedStates, SWIPE_ACTION, visibilityListener);
 
     pietViewHolder.swipeToDismissPerformed();
 

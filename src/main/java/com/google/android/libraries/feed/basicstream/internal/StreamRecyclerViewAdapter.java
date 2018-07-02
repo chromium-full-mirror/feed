@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHo
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final ActionApi actionApi;
   private final ActionManager actionManager;
   private final StreamBasicLoggingApi basicLoggingApi;
+  private final Configuration configuration;
   private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<View> headers;
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
@@ -78,7 +80,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       ActionApi actionApi,
       ActionManager actionManager,
       DeepestContentTracker deepestContentTracker,
-      StreamBasicLoggingApi basicLoggingApi) {
+      StreamBasicLoggingApi basicLoggingApi,
+      Configuration configuration) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
@@ -86,6 +89,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.basicLoggingApi = basicLoggingApi;
+    this.configuration = configuration;
     headers = new ArrayList<>();
     leafFeatureDrivers = new ArrayList<>();
     setHasStableIds(true);
@@ -118,7 +122,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
         context,
         streamActionApi,
         actionParser,
-        basicLoggingApi);
+        basicLoggingApi,
+        configuration);
   }
 
   @Override
@@ -261,7 +266,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   @Override
   public void notifyContentRemoved(int index) {
     int removalIndex = headers.size() + index;
-    
+
     leafFeatureDrivers.remove(index);
 
     if (streamContentVisible) {

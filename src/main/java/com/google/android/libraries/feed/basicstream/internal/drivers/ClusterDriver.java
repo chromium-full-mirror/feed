@@ -20,17 +20,23 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.common.logging.Logger;
 
 /** {@link FeatureDriver} for Clusters. */
 public class ClusterDriver implements FeatureDriver {
 
   private static final String TAG = "ClusterDriver";
+  private final StreamBasicLoggingApi basicLoggingApi;
   private final ModelFeature clusterModel;
   private final ModelProvider modelProvider;
   /*@Nullable*/ private CardDriver cardDriver;
 
-  ClusterDriver(ModelFeature clusterModel, ModelProvider modelProvider) {
+  ClusterDriver(
+      StreamBasicLoggingApi basicLoggingApi,
+      ModelFeature clusterModel,
+      ModelProvider modelProvider) {
+    this.basicLoggingApi = basicLoggingApi;
     this.clusterModel = clusterModel;
     this.modelProvider = modelProvider;
   }
@@ -87,6 +93,6 @@ public class ClusterDriver implements FeatureDriver {
 
   @VisibleForTesting
   CardDriver createCardDriver(ModelFeature content) {
-    return new CardDriver(content, modelProvider);
+    return new CardDriver(basicLoggingApi, content, modelProvider);
   }
 }

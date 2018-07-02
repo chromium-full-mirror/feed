@@ -25,6 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -66,6 +67,7 @@ public class CardDriverTest {
               SwipeActionExtension.newBuilder().setSwipeAction(SWIPE_ACTION).build())
           .build();
 
+  @Mock private StreamBasicLoggingApi basicLoggingApi;
   @Mock private ContentDriver contentDriverChild;
   @Mock private ModelFeature cardModelFeature;
   @Mock private ModelProvider modelProvider;
@@ -94,7 +96,8 @@ public class CardDriverTest {
         .thenReturn(StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build());
     when(contentDriverChild.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
-    cardDriver = new CardDriverForTest(cardModelFeature, modelProvider, contentDriverChild);
+    cardDriver =
+        new CardDriverForTest(basicLoggingApi, cardModelFeature, modelProvider, contentDriverChild);
   }
 
   @Test
@@ -149,8 +152,11 @@ public class CardDriverTest {
     private FeedActionPayload swipeActionArg;
 
     CardDriverForTest(
-        ModelFeature cardModel, ModelProvider modelProvider, ContentDriver childContentDriver) {
-      super(cardModel, modelProvider);
+        StreamBasicLoggingApi basicLoggingApi,
+        ModelFeature cardModel,
+        ModelProvider modelProvider,
+        ContentDriver childContentDriver) {
+      super(basicLoggingApi, cardModel, modelProvider);
       this.child = childContentDriver;
     }
 

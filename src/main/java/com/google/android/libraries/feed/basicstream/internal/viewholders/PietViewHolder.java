@@ -15,13 +15,19 @@
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
 import android.content.Context;
+import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -38,11 +44,12 @@ import java.util.List;
 public class PietViewHolder extends FeedViewHolder {
 
   private static final String TAG = "PietViewHolder";
+  private final ActionParser actionParser;
   private final CardConfiguration cardConfiguration;
   private final FrameLayout cardView;
   private final FrameAdapter frameAdapter;
-  private final ActionParser actionParser;
   private final StreamActionApi streamActionApi;
+  private final VisibilityMonitor visibilityMonitor;
   private boolean bound;
 
   /*@Nullable*/ private FeedActionPayload swipeAction;
@@ -54,11 +61,12 @@ public class PietViewHolder extends FeedViewHolder {
       Context context,
       StreamActionApi streamActionApi,
       ActionParser actionParser,
-      StreamBasicLoggingApi basicLoggingApi) {
+      StreamBasicLoggingApi basicLoggingApi,
+      Configuration configuration) {
     super(cardView);
+    this.actionParser = actionParser;
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;
-    this.actionParser = actionParser;
     this.streamActionApi = streamActionApi;
     this.frameAdapter =
         pietManager.createPietFrameAdapter(
@@ -70,15 +78,21 @@ public class PietViewHolder extends FeedViewHolder {
               actionParser.parseAction(action, streamActionApi, view, veLoggingToken);
             },
             context);
+    visibilityMonitor =
+        createVisibilityMonitor(
+            cardView, configuration.getValueOrDefault(ConfigKey.VIEW_LOG_THRESHOLD, .66));
     cardView.addView(frameAdapter.getFrameContainer());
   }
 
   public void bind(
-      Frame frame, List<PietSharedState> pietSharedStates, FeedActionPayload swipeAction) {
+      Frame frame,
+      List<PietSharedState> pietSharedStates,
+      FeedActionPayload swipeAction,
+      VisibilityListener visibilityListener) {
     if (bound) {
       return;
     }
-
+    visibilityMonitor.setListener(visibilityListener);
     this.swipeAction = swipeAction;
 
     // Need to reset padding here.  Setting a background can affect padding so if we switch from
@@ -102,6 +116,7 @@ public class PietViewHolder extends FeedViewHolder {
     }
 
     swipeAction = null;
+    visibilityMonitor.setListener(null);
     frameAdapter.unbindModel();
     bound = false;
   }
@@ -116,5 +131,11 @@ public class PietViewHolder extends FeedViewHolder {
       return;
     }
     actionParser.parseFeedActionPayload(swipeAction, streamActionApi, itemView);
+  }
+
+  @VisibleForTesting
+  VisibilityMonitor createVisibilityMonitor(
+      /*@UnderInitialization*/ PietViewHolder this, View view, double viewLogThreshold) {
+    return new VisibilityMonitor(view, viewLogThreshold);
   }
 }

@@ -44,6 +44,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHo
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -68,6 +69,7 @@ public class StreamRecyclerViewAdapterTest {
   private static final String INITIAL_CONTENT_ID = "INITIAL_CONTENT_ID";
   private static final String FEATURE_DRIVER_1_CONTENT_ID = "FEATURE_DRIVER_1_CONTENT_ID";
   private static final String FEATURE_DRIVER_2_CONTENT_ID = "FEATURE_DRIVER_2_CONTENT_ID";
+  private static final Configuration CONFIGURATION = new Configuration.Builder().build();
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private PietManager pietManager;
@@ -119,7 +121,8 @@ public class StreamRecyclerViewAdapterTest {
             actionApi,
             actionManager,
             deepestContentTracker,
-            basicLoggingApi);
+            basicLoggingApi,
+            CONFIGURATION);
     streamRecyclerViewAdapter.setHeaders(headers);
 
     when(driver.getLeafFeatureDrivers()).thenReturn(Lists.newArrayList(initialFeatureDriver));

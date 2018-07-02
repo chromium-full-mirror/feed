@@ -174,7 +174,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             actionApi,
             actionManager,
             deepestContentTracker,
-            basicLoggingApi);
+            basicLoggingApi,
+            configuration);
     adapter.setHeaders(headers);
 
     recyclerView = new RecyclerView(context);
@@ -248,7 +249,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
               context,
               snackbarApi,
               streamContentChangedListener,
-              initialScrollRestorer);
+              initialScrollRestorer,
+              basicLoggingApi);
       adapter.setDriver(streamDriver);
       streamDriver.showZeroState(/* showSpinner= */ true);
     }
@@ -407,7 +409,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             context,
             snackbarApi,
             streamContentChangedListener,
-            scrollRestorer);
+            scrollRestorer,
+            basicLoggingApi);
 
     adapter.setDriver(streamDriver);
 
@@ -458,7 +461,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       Context context,
       SnackbarApi snackbarApi,
       ContentChangedListener contentChangedListener,
-      ScrollRestorer scrollRestorer) {
+      ScrollRestorer scrollRestorer,
+      StreamBasicLoggingApi basicLoggingApi) {
     return new StreamDriver(
         modelProvider,
         threadUtils,
@@ -466,7 +470,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
         context,
         snackbarApi,
         contentChangedListener,
-        scrollRestorer);
+        scrollRestorer,
+        basicLoggingApi);
   }
 
   @VisibleForTesting
@@ -478,7 +483,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ActionApi actionApi,
       ActionManager actionManager,
       DeepestContentTracker deepestContentTracker,
-      StreamBasicLoggingApi basicLoggingApi) {
+      StreamBasicLoggingApi basicLoggingApi,
+      Configuration configuration) {
     return new StreamRecyclerViewAdapter(
         context,
         cardConfiguration,
@@ -487,7 +493,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
         actionApi,
         actionManager,
         deepestContentTracker,
-        basicLoggingApi);
+        basicLoggingApi,
+        configuration);
   }
 
   @VisibleForTesting

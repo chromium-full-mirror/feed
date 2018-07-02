@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
@@ -72,6 +73,7 @@ public class StreamDriverTest {
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private SnackbarApi snackbarApi;
   @Mock private ScrollRestorer scrollRestorer;
+  @Mock private StreamBasicLoggingApi basicLoggingApi;
 
   @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
 
@@ -531,7 +533,8 @@ public class StreamDriverTest {
           context,
           snackbarApi,
           contentChangedListener,
-          scrollRestorer);
+          scrollRestorer,
+          basicLoggingApi);
       childrenCreated = new ArrayList<>();
     }
 

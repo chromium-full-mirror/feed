@@ -43,7 +43,9 @@ public class Configuration {
     // TIme in ms for the length of the timeout
     ConfigKey.TIMEOUT_TIMEOUT_MS,
     ConfigKey.MINIMUM_VALID_ACTION_RATIO,
-    ConfigKey.FAIL_PAGINATION_REQUESTS
+    ConfigKey.FAIL_PAGINATION_REQUESTS,
+    // Percentage of the view that should be on screen to log a view
+    ConfigKey.VIEW_LOG_THRESHOLD
   })
   public @interface ConfigKey {
     String FEED_SERVER_HOST = "feed_server_host";
@@ -62,6 +64,7 @@ public class Configuration {
     String TIMEOUT_TIMEOUT_MS = "timeout_timeout_ms";
     String MINIMUM_VALID_ACTION_RATIO = "minimum_valid_action_ratio";
     String FAIL_PAGINATION_REQUESTS = "fail_pagination_requests";
+    String VIEW_LOG_THRESHOLD = "view_log_threshold";
   }
 
   private final HashMap<String, Object> values;

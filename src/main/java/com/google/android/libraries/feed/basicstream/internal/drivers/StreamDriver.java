@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -49,6 +50,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final SnackbarApi snackbarApi;
   private final ContentChangedListener contentChangedListener;
   private final ScrollRestorer scrollRestorer;
+  private final StreamBasicLoggingApi basicLoggingApi;
 
   private boolean rootFeatureConsumed;
 
@@ -61,7 +63,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       Context context,
       SnackbarApi snackbarApi,
       ContentChangedListener contentChangedListener,
-      ScrollRestorer scrollRestorer) {
+      ScrollRestorer scrollRestorer,
+      StreamBasicLoggingApi basicLoggingApi) {
     this.threadUtils = threadUtils;
     this.modelProvider = modelProvider;
     this.context = context;
@@ -71,6 +74,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     this.configuration = configuration;
     this.contentChangedListener = contentChangedListener;
     this.scrollRestorer = scrollRestorer;
+    this.basicLoggingApi = basicLoggingApi;
   }
 
   /**
@@ -365,12 +369,12 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
   @VisibleForTesting
   FeatureDriver createClusterDriver(ModelFeature modelFeature) {
-    return new ClusterDriver(modelFeature, modelProvider);
+    return new ClusterDriver(basicLoggingApi, modelFeature, modelProvider);
   }
 
   @VisibleForTesting
   FeatureDriver createCardDriver(ModelFeature modelFeature) {
-    return new CardDriver(modelFeature, modelProvider);
+    return new CardDriver(basicLoggingApi, modelFeature, modelProvider);
   }
 
   @VisibleForTesting

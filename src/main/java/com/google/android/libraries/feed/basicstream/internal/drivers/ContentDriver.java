@@ -19,6 +19,9 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.basicstream.internal.logging.OneShotVisibilityListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
@@ -35,22 +38,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** {@link FeatureDriver} for content. */
-public class ContentDriver extends LeafFeatureDriver {
+public class ContentDriver extends LeafFeatureDriver implements VisibilityListener {
 
   private static final String TAG = "ContentDriver";
 
+  private final StreamBasicLoggingApi basicLoggingApi;
   private final List<PietSharedState> pietSharedStates;
   private final Frame frame;
   private final FeedActionPayload swipeAction;
   private final String contentId;
 
+  /*@Nullable*/ private VisibilityListener visibilityListener;
   /*@Nullable*/ private PietViewHolder viewHolder;
 
   ContentDriver(
+      StreamBasicLoggingApi basicLoggingApi,
       ModelFeature contentFeatureModel,
       ModelProvider modelProvider,
       FeedActionPayload swipeAction) {
     PietContent pietContent = getPietContent(contentFeatureModel.getStreamFeature().getContent());
+    this.basicLoggingApi = basicLoggingApi;
     frame = pietContent.getFrame();
     pietSharedStates = getPietSharedStates(pietContent, modelProvider);
     contentId = contentFeatureModel.getStreamFeature().getContentId();
@@ -114,10 +121,13 @@ public class ContentDriver extends LeafFeatureDriver {
     if (!(viewHolder instanceof PietViewHolder)) {
       throw new AssertionError();
     }
+    if (visibilityListener == null) {
+      visibilityListener = new OneShotVisibilityListener(this);
+    }
 
     this.viewHolder = (PietViewHolder) viewHolder;
 
-    ((PietViewHolder) viewHolder).bind(frame, pietSharedStates, swipeAction);
+    ((PietViewHolder) viewHolder).bind(frame, pietSharedStates, swipeAction, visibilityListener);
   }
 
   @Override
@@ -148,5 +158,10 @@ public class ContentDriver extends LeafFeatureDriver {
   @Override
   public String getContentId() {
     return contentId;
+  }
+
+  @Override
+  public void onViewVisible() {
+    basicLoggingApi.onContentViewed();
   }
 }

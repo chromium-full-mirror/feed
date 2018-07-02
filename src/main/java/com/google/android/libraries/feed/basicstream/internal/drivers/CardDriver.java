@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.stream.StreamSwipeExtensionProto.SwipeActionExtension;
 
@@ -28,11 +29,14 @@ import com.google.search.now.ui.stream.StreamSwipeExtensionProto.SwipeActionExte
 public class CardDriver implements FeatureDriver {
   private static final String TAG = "CardDriver";
 
+  private final StreamBasicLoggingApi basicLoggingApi;
   private final ModelFeature cardModel;
   private final ModelProvider modelProvider;
   /*@Nullable*/ private ContentDriver contentDriver;
 
-  CardDriver(ModelFeature cardModel, ModelProvider modelProvider) {
+  CardDriver(
+      StreamBasicLoggingApi basicLoggingApi, ModelFeature cardModel, ModelProvider modelProvider) {
+    this.basicLoggingApi = basicLoggingApi;
     this.cardModel = cardModel;
     this.modelProvider = modelProvider;
   }
@@ -80,6 +84,6 @@ public class CardDriver implements FeatureDriver {
 
   @VisibleForTesting
   ContentDriver createContentDriver(ModelFeature contentModel, FeedActionPayload swipeAction) {
-    return new ContentDriver(contentModel, modelProvider, swipeAction);
+    return new ContentDriver(basicLoggingApi, contentModel, modelProvider, swipeAction);
   }
 }
