@@ -32,6 +32,7 @@ import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto;
+import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -64,7 +65,10 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
     frame = pietContent.getFrame();
     pietSharedStates = getPietSharedStates(pietContent, modelProvider);
     contentId = contentFeatureModel.getStreamFeature().getContentId();
-    contentLoggingData = new StreamContentLoggingData(position);
+    contentLoggingData =
+        createContentLoggingData(
+            contentFeatureModel.getStreamFeature().getContent().getBasicLoggingMetadata(),
+            position);
     this.swipeAction = swipeAction;
   }
 
@@ -172,5 +176,12 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   @Override
   public void onContentClicked() {
     basicLoggingApi.onContentClicked(contentLoggingData);
+  }
+
+  private StreamContentLoggingData createContentLoggingData(
+      /*@UnderInitialization*/ ContentDriver this,
+      BasicLoggingMetadata basicLoggingMetadata,
+      int position) {
+    return new StreamContentLoggingData(position, basicLoggingMetadata);
   }
 }

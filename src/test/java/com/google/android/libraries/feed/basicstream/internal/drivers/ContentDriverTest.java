@@ -36,6 +36,7 @@ import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
+import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
@@ -52,6 +53,16 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link ContentDriver}. */
 @RunWith(RobolectricTestRunner.class)
 public class ContentDriverTest {
+
+  private static final int POSITION = 1;
+  private static final BasicLoggingMetadata BASIC_LOGGING_METADATA =
+      BasicLoggingMetadata.newBuilder()
+          .setPublishedTimeSeconds(10)
+          .setAvailabilityTimeSeconds(20)
+          .setScore(40)
+          .build();
+  private static final StreamContentLoggingData CONTENT_LOGGING_DATA =
+      new StreamContentLoggingData(POSITION, BASIC_LOGGING_METADATA);
 
   private static final ContentId CONTENT_ID_1 =
       ContentId.newBuilder()
@@ -75,6 +86,7 @@ public class ContentDriverTest {
       StreamFeature.newBuilder()
           .setContent(
               Content.newBuilder()
+                  .setBasicLoggingMetadata(BASIC_LOGGING_METADATA)
                   .setType(Type.PIET)
                   .setExtension(PietContent.pietContentExtension, PIET_CONTENT))
           .build();
@@ -100,9 +112,6 @@ public class ContentDriverTest {
                   .setContentId(CONTENT_ID_2)
                   .setPietSharedState(PIET_SHARED_STATE_2))
           .build();
-  private static final int POSITION = 1;
-  private static final StreamContentLoggingData CONTENT_LOGGING_DATA =
-      new StreamContentLoggingData(POSITION);
 
   @Mock private StreamBasicLoggingApi basicLoggingApi;
   @Mock private ModelFeature modelFeature;

@@ -14,18 +14,37 @@
 
 package com.google.android.libraries.feed.basicstream.internal.logging;
 
+import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
 
 /** Stand-in class to capture content data when logging events. */
 public class StreamContentLoggingData {
 
   private final int positionInStream;
+  private final int publishedTimeSeconds;
+  private final int timeContentBecameAvailable;
+  private final int score;
 
-  public StreamContentLoggingData(int positionInStream) {
+  public StreamContentLoggingData(int positionInStream, BasicLoggingMetadata basicLoggingMetadata) {
     this.positionInStream = positionInStream;
+    this.publishedTimeSeconds = basicLoggingMetadata.getPublishedTimeSeconds();
+    this.timeContentBecameAvailable = basicLoggingMetadata.getAvailabilityTimeSeconds();
+    this.score = basicLoggingMetadata.getScore();
   }
 
   public int getPositionInStream() {
     return positionInStream;
+  }
+
+  public int getPublishedTimeSeconds() {
+    return publishedTimeSeconds;
+  }
+
+  public int getTimeContentBecameAvailable() {
+    return timeContentBecameAvailable;
+  }
+
+  public int getScore() {
+    return score;
   }
 
   @Override
@@ -36,12 +55,41 @@ public class StreamContentLoggingData {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
+
     StreamContentLoggingData that = (StreamContentLoggingData) o;
-    return positionInStream == that.positionInStream;
+
+    if (positionInStream != that.positionInStream) {
+      return false;
+    }
+    if (publishedTimeSeconds != that.publishedTimeSeconds) {
+      return false;
+    }
+    if (timeContentBecameAvailable != that.timeContentBecameAvailable) {
+      return false;
+    }
+    return score == that.score;
   }
 
   @Override
   public int hashCode() {
-    return positionInStream;
+    int result = positionInStream;
+    result = 31 * result + publishedTimeSeconds;
+    result = 31 * result + timeContentBecameAvailable;
+    result = 31 * result + score;
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "StreamContentLoggingData{"
+        + "positionInStream="
+        + positionInStream
+        + ", publishedTimeSeconds="
+        + publishedTimeSeconds
+        + ", timeContentBecameAvailable="
+        + timeContentBecameAvailable
+        + ", score="
+        + score
+        + '}';
   }
 }

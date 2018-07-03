@@ -23,11 +23,11 @@ public class StreamBasicLoggingApi implements BasicLoggingApi {
   public static final String TAG = "StreamBasicLoggingApi";
 
   public void onContentViewed(StreamContentLoggingData contentLoggingData) {
-    Logger.i(TAG, "onContentViewed. position: %d", contentLoggingData.getPositionInStream());
+    Logger.i(TAG, "onContentViewed. contentLoggingData: %s", contentLoggingData);
   }
 
   public void onContentClicked(StreamContentLoggingData contentLoggingData) {
-    Logger.i(TAG, "onContentClicked. position: %d", contentLoggingData.getPositionInStream());
+    Logger.i(TAG, "onContentClicked. contentLoggingData: %s", contentLoggingData);
   }
 
   public void onOpenedWithNoContent() {
