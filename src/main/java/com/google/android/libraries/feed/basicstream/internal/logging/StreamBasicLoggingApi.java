@@ -34,6 +34,14 @@ public class StreamBasicLoggingApi implements BasicLoggingApi {
     Logger.i(TAG, "onOpenedWithNoContent");
   }
 
+  public void onOpenedWithContent(int timeToPopulateMs, int contentCount) {
+    Logger.i(
+        TAG,
+        "onOpenedWithContent. timeToPopulateMs: %d, contentCount: %d",
+        timeToPopulateMs,
+        contentCount);
+  }
+
   public void onMoreButtonClicked(int position) {
     Logger.i(TAG, "onMoreButtonClicked. position: %d", position);
   }

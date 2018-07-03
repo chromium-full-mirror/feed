@@ -76,6 +76,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @VisibleForTesting static final String KEY_SCROLL_STATE = "scroll-state";
 
   private final CardConfiguration cardConfiguration;
+  private final Clock clock;
   private final ThreadUtils threadUtils;
   private final PietManager pietManager;
   private final ModelProviderFactory modelProviderFactory;
@@ -95,6 +96,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private StreamRecyclerViewAdapter adapter;
   private StreamScrollMonitor streamScrollMonitor;
   private ScrollRestorer scrollRestorer;
+  private boolean logOnContentShown = true;
+  private long sessionStartTimestamp;
 
   /*@MonotonicNonNull*/ private ModelProvider modelProvider;
   /*@MonotonicNonNull*/ private StreamDriver streamDriver;
@@ -119,6 +122,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
       Configuration configuration,
       SnackbarApi snackbarApi) {
     this.cardConfiguration = cardConfiguration;
+    this.clock = clock;
     this.threadUtils = threadUtils;
     this.pietManager =
         createPietManager(
@@ -225,6 +229,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
         // If a session is no longer valid then a ModelProvider will not have been created above.
         Logger.d(TAG, "Creating new session for showing.");
         localModelProvider = modelProviderFactory.createNew(deepestContentTracker);
+        sessionStartTimestamp = clock.currentTimeMillis();
       }
 
       modelProvider = localModelProvider;
@@ -422,6 +427,13 @@ public class BasicStream implements Stream, ModelProviderObserver {
     ModelProvider localModelProvider =
         checkNotNull(modelProvider, "Model Provider must be set if a session is active");
     updateAdapter(localModelProvider);
+    if (logOnContentShown) {
+      long timeToPopulateMs = clock.currentTimeMillis() - sessionStartTimestamp;
+      basicLoggingApi.onOpenedWithContent(
+          (int) timeToPopulateMs, checkNotNull(streamDriver).getLeafFeatureDrivers().size());
+      // onOpenedWithContent should only be logged the first time the Stream is opened up.
+      logOnContentShown = false;
+    }
   }
 
   @Override

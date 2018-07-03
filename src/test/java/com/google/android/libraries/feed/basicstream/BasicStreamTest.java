@@ -20,6 +20,7 @@ import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_SESS
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -68,6 +69,7 @@ import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,6 +109,7 @@ public class BasicStreamTest {
   private Configuration configuration = new Configuration.Builder().build();
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
+  private FakeClock clock;
   private BasicStreamForTest basicStream;
   private Bundle scrollRestoreBundle;
 
@@ -126,7 +129,10 @@ public class BasicStreamTest {
 
     when(scrollRestorer.getBundleForScrollRestore()).thenReturn(scrollRestoreBundle);
 
+    when(streamDriver.getLeafFeatureDrivers()).thenReturn(Collections.emptyList());
+
     context = Robolectric.setupActivity(Activity.class);
+    clock = new FakeClock();
     layoutManager = new LinearLayoutManagerWithFakePositioning(context);
 
     basicStream = createBasicStream(layoutManager);
@@ -143,6 +149,28 @@ public class BasicStreamTest {
     verify(streamDriver).onDestroy();
     verify(adapter).setDriver(streamDriver);
     assertThat(basicStream.streamDriverScrollRestorer).isSameAs(scrollRestorer);
+  }
+
+  @Test
+  public void testOnSessionStart_logsOnOpenedWithStreamContentAfterOnShow() {
+    clock = clock.set(10);
+    basicStream.onShow();
+
+    clock = clock.set(40);
+    basicStream.onSessionStart();
+
+    verify(basicLoggingApi).onOpenedWithContent(30, 0);
+  }
+
+  @Test
+  public void testOnSessionStart_doesNotLogOnOpenedWithStreamContentAfterInitialOnShow() {
+    basicStream.onShow();
+    basicStream.onSessionStart();
+    reset(basicLoggingApi);
+
+    basicStream.onSessionStart();
+
+    verify(basicLoggingApi, never()).onOpenedWithContent(anyInt(), anyInt());
   }
 
   @Test
@@ -469,7 +497,7 @@ public class BasicStreamTest {
         DebugBehavior.VERBOSE,
         new ThreadUtils(),
         /* headers= */ new ArrayList<>(),
-        new FakeClock(),
+        clock,
         modelProviderFactory,
         new HostBindingProvider(),
         mock(ActionManager.class),
