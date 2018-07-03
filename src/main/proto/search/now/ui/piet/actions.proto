@@ -51,6 +51,18 @@ message Actions {
   // become more than half visible (reset) and then becomes less than half
   // visible.
   repeated VisibilityAction on_hide_actions = 4;
+
+  // DEPRECATED
+
+  // Action to be executed when the UI element comes completely into view,
+  // meaning that the entire UI element's bounds are contained in the viewport.
+  // Note: if the content is too large to fit entirely in the viewport, then the
+  // on_full_view action will never trigger.
+  optional Action on_full_view = 1003 [deprecated = true];
+
+  // Action to be executed when the UI element comes partially into view,
+  // meaning that any pixel of the element's bounds are within the viewport.
+  optional Action on_partial_view = 1004 [deprecated = true];
 }
 
 // Defines an Action which can be raised when the user clicks a UI element. The
