@@ -84,10 +84,11 @@ public class ModelChildBinder {
                 if (payload.hasStreamFeature()) {
                   child.bindFeature(
                       new UpdatableModelFeature(payload.getStreamFeature(), cursorProvider));
-                }
-                if (payload.hasStreamToken()) {
+                } else if (payload.hasStreamToken()) {
                   child.bindToken(new UpdatableModelToken(payload.getStreamToken(), false));
                   continue;
+                } else {
+                  Logger.e(TAG, "Unsupported Payload Type");
                 }
                 child.updateFeature(childPayload.payload);
               } else {

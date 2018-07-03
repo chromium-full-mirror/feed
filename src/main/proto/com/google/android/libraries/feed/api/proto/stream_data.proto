@@ -52,6 +52,9 @@ message StreamFeature {
     // Cluster stream structure which defines a logical grouping of Content and
     // Cards.
     search.now.ui.stream.Cluster cluster = 7;
+
+    // Legacy content
+    StreamLegacyPayload legacy_content = 8;
   }
 }
 
@@ -138,6 +141,17 @@ message StreamPayload {
     // FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX) allowing prefix queries.
     bytes semantic_data = 7;
   }
+}
+
+// Allow the payload to contain Legacy Stream content.
+message StreamLegacyPayload {
+  // String identifying the type of the legacy content.  This values is
+  // opaque to the infrastructure.
+  optional string type = 1;
+
+  // The data making up the Legacy payload. This value is opaque to the
+  // infrastructure.
+  optional bytes data = 2;
 }
 
 // This message allows a Cursor to be serialized.
