@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
@@ -54,6 +55,9 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ContinuationDriverTest {
 
+  private static final int POSITION = 1;
+
+  @Mock private StreamBasicLoggingApi basicLoggingApi;
   @Mock private ModelChild modelChild;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelToken modelToken;
@@ -75,11 +79,13 @@ public class ContinuationDriverTest {
 
     continuationDriver =
         new ContinuationDriver(
+            basicLoggingApi,
             configuration,
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
+            POSITION,
             scrollRestorer,
             snackbarApi,
             threadUtils);
@@ -90,11 +96,13 @@ public class ContinuationDriverTest {
   public void testIsSynthetic() {
     continuationDriver =
         new ContinuationDriver(
+            basicLoggingApi,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
+            POSITION,
             scrollRestorer,
             snackbarApi,
             threadUtils);
@@ -104,11 +112,13 @@ public class ContinuationDriverTest {
     when(modelToken.isSynthetic()).thenReturn(true);
     continuationDriver =
         new ContinuationDriver(
+            basicLoggingApi,
             configuration,
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
+            POSITION,
             scrollRestorer,
             snackbarApi,
             threadUtils);
@@ -120,11 +130,13 @@ public class ContinuationDriverTest {
   public void testInitialize_nonSyntheticToken() {
     continuationDriver =
         new ContinuationDriver(
+            basicLoggingApi,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
+            POSITION,
             scrollRestorer,
             snackbarApi,
             threadUtils);
@@ -139,11 +151,13 @@ public class ContinuationDriverTest {
     when(modelToken.isSynthetic()).thenReturn(true);
     continuationDriver =
         new ContinuationDriver(
+            basicLoggingApi,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
+            POSITION,
             scrollRestorer,
             snackbarApi,
             threadUtils);
@@ -163,11 +177,13 @@ public class ContinuationDriverTest {
   public void testBind_immediatePaginationOn() {
     continuationDriver =
         new ContinuationDriver(
+            basicLoggingApi,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
+            POSITION,
             scrollRestorer,
             snackbarApi,
             threadUtils);
@@ -181,11 +197,13 @@ public class ContinuationDriverTest {
   public void testBind_immediatePaginationOff() {
     continuationDriver =
         new ContinuationDriver(
+            basicLoggingApi,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false).build(),
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
+            POSITION,
             scrollRestorer,
             snackbarApi,
             threadUtils);
@@ -199,11 +217,13 @@ public class ContinuationDriverTest {
   public void testBind_noInitialization() {
     continuationDriver =
         new ContinuationDriver(
+            basicLoggingApi,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false).build(),
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
+            POSITION,
             scrollRestorer,
             snackbarApi,
             threadUtils);
@@ -237,6 +257,7 @@ public class ContinuationDriverTest {
     continuationDriver.bind(continuationViewHolder);
     continuationDriver.onClick(/* v= */ null);
 
+    verify(basicLoggingApi).onMoreButtonClicked(POSITION);
     verify(continuationViewHolder).setShowSpinner(true);
     verify(modelProvider).handleToken(modelToken);
   }
@@ -318,11 +339,13 @@ public class ContinuationDriverTest {
   public void testOnError_hidesSpinnerAfterBeingBound() {
     continuationDriver =
         new ContinuationDriver(
+            basicLoggingApi,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
+            POSITION,
             scrollRestorer,
             snackbarApi,
             threadUtils);

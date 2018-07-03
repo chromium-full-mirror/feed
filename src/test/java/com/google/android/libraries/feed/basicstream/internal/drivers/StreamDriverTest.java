@@ -540,10 +540,12 @@ public class StreamDriverTest {
 
     @Override
     ContinuationDriver createContinuationDriver(
+        StreamBasicLoggingApi basicLoggingApi,
         Configuration configuration,
         Context context,
         ModelChild modelChild,
         ModelProvider modelProvider,
+        int position,
         ScrollRestorer scrollRestorer,
         SnackbarApi snackbarApi) {
       childrenCreated.add(continuationDriver);

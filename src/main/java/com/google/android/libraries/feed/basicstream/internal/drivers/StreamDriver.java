@@ -178,7 +178,14 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       case Type.TOKEN:
         ContinuationDriver continuationDriver =
             createContinuationDriver(
-                configuration, context, child, modelProvider, scrollRestorer, snackbarApi);
+                basicLoggingApi,
+                configuration,
+                context,
+                child,
+                modelProvider,
+                position,
+                scrollRestorer,
+                snackbarApi);
 
         // TODO: Look into moving initialize() into a more generic location. We don't
         // really want work to be done in the constructor so we call an initialize() method to
@@ -379,18 +386,22 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
   @VisibleForTesting
   ContinuationDriver createContinuationDriver(
+      StreamBasicLoggingApi basicLoggingApi,
       Configuration configuration,
       Context context,
       ModelChild modelChild,
       ModelProvider modelProvider,
+      int position,
       ScrollRestorer scrollRestorer,
       SnackbarApi snackbarApi) {
     return new ContinuationDriver(
+        basicLoggingApi,
         configuration,
         context,
         this,
         modelChild,
         modelProvider,
+        position,
         scrollRestorer,
         snackbarApi,
         threadUtils);

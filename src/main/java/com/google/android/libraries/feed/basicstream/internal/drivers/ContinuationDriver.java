@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
@@ -47,11 +48,13 @@ public class ContinuationDriver extends LeafFeatureDriver
     implements OnClickListener, TokenCompletedObserver {
 
   private static final String TAG = "ContinuationDriver";
+  private final StreamBasicLoggingApi basicLoggingApi;
   private final Context context;
   private final CursorChangedListener cursorChangedListener;
   private final ModelChild modelChild;
   private final ModelToken modelToken;
   private final ModelProvider modelProvider;
+  private final int position;
   private final ScrollRestorer scrollRestorer;
   private final SnackbarApi snackbarApi;
   private final ThreadUtils threadUtils;
@@ -60,19 +63,23 @@ public class ContinuationDriver extends LeafFeatureDriver
   /*@Nullable*/ private ContinuationViewHolder continuationViewHolder;
 
   ContinuationDriver(
+      StreamBasicLoggingApi basicLoggingApi,
       Configuration configuration,
       Context context,
       CursorChangedListener cursorChangedListener,
       ModelChild modelChild,
       ModelProvider modelProvider,
+      int position,
       ScrollRestorer scrollRestorer,
       SnackbarApi snackbarApi,
       ThreadUtils threadUtils) {
+    this.basicLoggingApi = basicLoggingApi;
     this.context = context;
     this.cursorChangedListener = cursorChangedListener;
     this.modelChild = modelChild;
     this.modelProvider = modelProvider;
     this.modelToken = modelChild.getModelToken();
+    this.position = position;
     this.scrollRestorer = scrollRestorer;
     this.snackbarApi = snackbarApi;
     this.threadUtils = threadUtils;
@@ -111,6 +118,7 @@ public class ContinuationDriver extends LeafFeatureDriver
       Logger.wtf(TAG, "Calling onClick before binding.");
       return;
     }
+    basicLoggingApi.onMoreButtonClicked(position);
     showSpinner = true;
     checkNotNull(continuationViewHolder).setShowSpinner(true);
     modelProvider.handleToken(modelToken);
