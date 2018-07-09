@@ -857,14 +857,6 @@ public class FrameContextTest {
   }
 
   @Test
-  public void testError_noStylesheet() {
-    Frame frame = Frame.getDefaultInstance();
-    FrameContext frameContext = makeFrameContextFromFrame(frame);
-    assertThat(frameContext).isNotNull();
-    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
-  }
-
-  @Test
   public void testError_stylesheetNotFound() {
     Frame frame = getBaseFrame();
     FrameContext frameContext = makeFrameContextFromFrame(frame);

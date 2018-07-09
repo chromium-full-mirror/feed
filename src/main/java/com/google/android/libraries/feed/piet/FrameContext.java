@@ -458,9 +458,6 @@ class FrameContext {
           String.format(
               "Stylesheet [%s] not found, no stylesheet used", currentFrame.getStylesheetId());
       Logger.w(TAG, reportError(MessageType.ERROR, error));
-    } else if (!currentFrame.hasStylesheetId() && !currentFrame.hasStylesheet()) {
-      String error = "Frame defined without any Stylesheet";
-      Logger.w(TAG, reportError(MessageType.ERROR, error));
     }
   }
 
