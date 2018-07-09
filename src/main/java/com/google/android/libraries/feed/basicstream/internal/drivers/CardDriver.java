@@ -16,12 +16,16 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
+import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.stream.StreamSwipeExtensionProto.SwipeActionExtension;
 
@@ -29,18 +33,30 @@ import com.google.search.now.ui.stream.StreamSwipeExtensionProto.SwipeActionExte
 public class CardDriver implements FeatureDriver {
   private static final String TAG = "CardDriver";
 
+  private final ActionApi actionApi;
+  private final ActionManager actionManager;
+  private final ActionParser actionParser;
   private final StreamBasicLoggingApi basicLoggingApi;
+  private final Context context;
   private final ModelFeature cardModel;
   private final ModelProvider modelProvider;
   private final int position;
   /*@Nullable*/ private ContentDriver contentDriver;
 
   CardDriver(
+      ActionApi actionApi,
+      ActionManager actionManager,
+      ActionParser actionParser,
       StreamBasicLoggingApi basicLoggingApi,
+      Context context,
       ModelFeature cardModel,
       ModelProvider modelProvider,
       int position) {
+    this.actionApi = actionApi;
+    this.actionManager = actionManager;
+    this.actionParser = actionParser;
     this.basicLoggingApi = basicLoggingApi;
+    this.context = context;
     this.cardModel = cardModel;
     this.modelProvider = modelProvider;
     this.position = position;
@@ -89,6 +105,15 @@ public class CardDriver implements FeatureDriver {
 
   @VisibleForTesting
   ContentDriver createContentDriver(ModelFeature contentModel, FeedActionPayload swipeAction) {
-    return new ContentDriver(basicLoggingApi, contentModel, modelProvider, position, swipeAction);
+    return new ContentDriver(
+        actionApi,
+        actionManager,
+        actionParser,
+        basicLoggingApi,
+        context,
+        contentModel,
+        modelProvider,
+        position,
+        swipeAction);
   }
 }

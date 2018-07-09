@@ -40,11 +40,10 @@ android_local_test(
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/actionparser",
-        "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/actions",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/logging",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
-        "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet",

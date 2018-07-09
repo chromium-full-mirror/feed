@@ -49,11 +49,11 @@ public class PietViewHolder extends FeedViewHolder {
   private final CardConfiguration cardConfiguration;
   private final FrameLayout cardView;
   private final FrameAdapter frameAdapter;
-  private final StreamActionApi streamActionApi;
   private final VisibilityMonitor visibilityMonitor;
   private boolean bound;
 
   /*@Nullable*/ private LoggingListener loggingListener;
+  /*@Nullable*/ private StreamActionApi streamActionApi;
   /*@Nullable*/ private FeedActionPayload swipeAction;
 
   public PietViewHolder(
@@ -61,14 +61,12 @@ public class PietViewHolder extends FeedViewHolder {
       FrameLayout cardView,
       PietManager pietManager,
       Context context,
-      StreamActionApi streamActionApi,
       ActionParser actionParser,
       Configuration configuration) {
     super(cardView);
     this.actionParser = actionParser;
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;
-    this.streamActionApi = streamActionApi;
     this.frameAdapter =
         pietManager.createPietFrameAdapter(
             () -> cardView,
@@ -76,7 +74,7 @@ public class PietViewHolder extends FeedViewHolder {
               if (actionType == ActionType.CLICK) {
                 getLoggingListener().onContentClicked();
               }
-              actionParser.parseAction(action, streamActionApi, view, veLoggingToken);
+              actionParser.parseAction(action, getStreamActionApi(), view, veLoggingToken);
             },
             context);
     visibilityMonitor =
@@ -88,6 +86,7 @@ public class PietViewHolder extends FeedViewHolder {
   public void bind(
       Frame frame,
       List<PietSharedState> pietSharedStates,
+      StreamActionApi streamActionApi,
       FeedActionPayload swipeAction,
       LoggingListener loggingListener) {
     if (bound) {
@@ -95,6 +94,7 @@ public class PietViewHolder extends FeedViewHolder {
     }
     visibilityMonitor.setListener(loggingListener);
     this.loggingListener = loggingListener;
+    this.streamActionApi = streamActionApi;
     this.swipeAction = swipeAction;
 
     // Need to reset padding here.  Setting a background can affect padding so if we switch from
@@ -118,6 +118,7 @@ public class PietViewHolder extends FeedViewHolder {
     }
 
     loggingListener = null;
+    streamActionApi = null;
     swipeAction = null;
     visibilityMonitor.setListener(null);
     frameAdapter.unbindModel();
@@ -133,7 +134,7 @@ public class PietViewHolder extends FeedViewHolder {
       Logger.wtf(TAG, "Swipe performed on unbound ViewHolder.");
       return;
     }
-    actionParser.parseFeedActionPayload(swipeAction, streamActionApi, itemView);
+    actionParser.parseFeedActionPayload(swipeAction, getStreamActionApi(), itemView);
   }
 
   @VisibleForTesting
@@ -145,5 +146,11 @@ public class PietViewHolder extends FeedViewHolder {
   private LoggingListener getLoggingListener(/*@UnknownInitialization*/ PietViewHolder this) {
     return checkNotNull(
         loggingListener, "Logging listener can only be retrieved once view holder has been bound.");
+  }
+
+  private StreamActionApi getStreamActionApi(/*@UnknownInitialization*/ PietViewHolder this) {
+    return checkNotNull(
+        streamActionApi,
+        "Stream action api can only be retrieved once view holder has been bound.");
   }
 }

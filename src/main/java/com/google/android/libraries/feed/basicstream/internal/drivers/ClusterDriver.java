@@ -14,7 +14,10 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
@@ -22,23 +25,36 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.host.action.ActionApi;
 
 /** {@link FeatureDriver} for Clusters. */
 public class ClusterDriver implements FeatureDriver {
 
   private static final String TAG = "ClusterDriver";
+  private final ActionApi actionApi;
+  private final ActionManager actionManager;
+  private final ActionParser actionParser;
   private final StreamBasicLoggingApi basicLoggingApi;
+  private final Context context;
   private final ModelFeature clusterModel;
   private final ModelProvider modelProvider;
   private final int position;
   /*@Nullable*/ private CardDriver cardDriver;
 
   ClusterDriver(
+      ActionApi actionApi,
+      ActionManager actionManager,
+      ActionParser actionParser,
       StreamBasicLoggingApi basicLoggingApi,
+      Context context,
       ModelFeature clusterModel,
       ModelProvider modelProvider,
       int position) {
+    this.actionApi = actionApi;
+    this.actionManager = actionManager;
+    this.actionParser = actionParser;
     this.basicLoggingApi = basicLoggingApi;
+    this.context = context;
     this.clusterModel = clusterModel;
     this.modelProvider = modelProvider;
     this.position = position;
@@ -96,6 +112,14 @@ public class ClusterDriver implements FeatureDriver {
 
   @VisibleForTesting
   CardDriver createCardDriver(ModelFeature content) {
-    return new CardDriver(basicLoggingApi, content, modelProvider, position);
+    return new CardDriver(
+        actionApi,
+        actionManager,
+        actionParser,
+        basicLoggingApi,
+        context,
+        content,
+        modelProvider,
+        position);
   }
 }

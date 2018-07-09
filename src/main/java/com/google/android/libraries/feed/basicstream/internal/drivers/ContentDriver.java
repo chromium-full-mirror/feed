@@ -16,9 +16,13 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
+import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.OneShotVisibilityLoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
@@ -27,6 +31,8 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedVi
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -48,6 +54,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   private final StreamContentLoggingData contentLoggingData;
   private final List<PietSharedState> pietSharedStates;
   private final Frame frame;
+  private final StreamActionApi streamActionApi;
   private final FeedActionPayload swipeAction;
   private final String contentId;
 
@@ -55,7 +62,11 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   /*@Nullable*/ private PietViewHolder viewHolder;
 
   ContentDriver(
+      ActionApi actionApi,
+      ActionManager actionManager,
+      ActionParser actionParser,
       StreamBasicLoggingApi basicLoggingApi,
+      Context context,
       ModelFeature contentFeatureModel,
       ModelProvider modelProvider,
       int position,
@@ -69,6 +80,9 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
         createContentLoggingData(
             contentFeatureModel.getStreamFeature().getContent().getBasicLoggingMetadata(),
             position);
+    streamActionApi =
+        createStreamActionApi(
+            context, actionApi, actionParser, actionManager, basicLoggingApi, contentLoggingData);
     this.swipeAction = swipeAction;
   }
 
@@ -135,7 +149,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
 
     this.viewHolder = (PietViewHolder) viewHolder;
 
-    ((PietViewHolder) viewHolder).bind(frame, pietSharedStates, swipeAction, loggingListener);
+    ((PietViewHolder) viewHolder)
+        .bind(frame, pietSharedStates, streamActionApi, swipeAction, loggingListener);
   }
 
   @Override
@@ -183,5 +198,18 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       BasicLoggingMetadata basicLoggingMetadata,
       int position) {
     return new StreamContentLoggingData(position, basicLoggingMetadata);
+  }
+
+  @VisibleForTesting
+  StreamActionApi createStreamActionApi(
+      /*@UnknownInitialization*/ ContentDriver this,
+      Context context,
+      ActionApi actionApi,
+      ActionParser actionParser,
+      ActionManager actionManager,
+      StreamBasicLoggingApi basicLoggingApi,
+      StreamContentLoggingData contentLoggingData) {
+    return new StreamActionApiImpl(
+        context, actionApi, actionParser, actionManager, basicLoggingApi, contentLoggingData);
   }
 }

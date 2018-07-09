@@ -563,6 +563,9 @@ public class BasicStreamTest {
 
     @Override
     StreamDriver createStreamDriver(
+        ActionApi actionApi,
+        ActionManager actionManager,
+        ActionParser actionParser,
         ModelProvider modelProvider,
         ThreadUtils threadUtils,
         Configuration configuration,
@@ -587,8 +590,6 @@ public class BasicStreamTest {
         CardConfiguration cardConfiguration,
         PietManager pietManager,
         ActionParser actionParser,
-        ActionApi actionApi,
-        ActionManager actionManager,
         DeepestContentTracker deepestContentTracker,
         Configuration configuration) {
       return adapter;

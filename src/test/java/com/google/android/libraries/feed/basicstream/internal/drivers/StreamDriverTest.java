@@ -25,6 +25,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -36,6 +38,7 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.testing.Fa
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
@@ -65,6 +68,9 @@ public class StreamDriverTest {
 
   private StreamDriverForTest streamDriver;
 
+  @Mock private ActionApi actionApi;
+  @Mock private ActionManager actionManager;
+  @Mock private ActionParser actionParser;
   @Mock private ModelFeature streamFeature;
   @Mock private ModelProvider modelProvider;
   @Mock private ContinuationDriver continuationDriver;
@@ -527,6 +533,9 @@ public class StreamDriverTest {
 
     StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils) {
       super(
+          actionApi,
+          actionManager,
+          actionParser,
           modelProvider,
           threadUtils,
           configuration,

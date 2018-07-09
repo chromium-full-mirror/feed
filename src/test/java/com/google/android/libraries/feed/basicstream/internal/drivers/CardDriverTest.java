@@ -22,10 +22,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -40,6 +45,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link CardDriver}. */
@@ -69,6 +75,9 @@ public class CardDriverTest {
 
   private static final int POSITION = 0;
 
+  @Mock private ActionApi actionApi;
+  @Mock private ActionManager actionManager;
+  @Mock private ActionParser actionParser;
   @Mock private StreamBasicLoggingApi basicLoggingApi;
   @Mock private ContentDriver contentDriverChild;
   @Mock private ModelFeature cardModelFeature;
@@ -98,9 +107,18 @@ public class CardDriverTest {
         .thenReturn(StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build());
     when(contentDriverChild.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
+    Context context = Robolectric.setupActivity(Activity.class);
     cardDriver =
         new CardDriverForTest(
-            basicLoggingApi, cardModelFeature, modelProvider, POSITION, contentDriverChild);
+            actionApi,
+            actionManager,
+            actionParser,
+            basicLoggingApi,
+            context,
+            cardModelFeature,
+            modelProvider,
+            POSITION,
+            contentDriverChild);
   }
 
   @Test
@@ -155,12 +173,24 @@ public class CardDriverTest {
     private FeedActionPayload swipeActionArg;
 
     CardDriverForTest(
+        ActionApi actionApi,
+        ActionManager actionManager,
+        ActionParser actionParser,
         StreamBasicLoggingApi basicLoggingApi,
+        Context context,
         ModelFeature cardModel,
         ModelProvider modelProvider,
         int position,
         ContentDriver childContentDriver) {
-      super(basicLoggingApi, cardModel, modelProvider, position);
+      super(
+          actionApi,
+          actionManager,
+          actionParser,
+          basicLoggingApi,
+          context,
+          cardModel,
+          modelProvider,
+          position);
       this.child = childContentDriver;
     }
 

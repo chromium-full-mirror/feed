@@ -30,7 +30,6 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
-import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
@@ -42,7 +41,6 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.PietVi
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.functional.Supplier;
-import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
@@ -78,8 +76,6 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private ContentDriver featureDriver1;
   @Mock private ContentDriver featureDriver2;
   @Mock private ActionParser actionParser;
-  @Mock private ActionApi actionApi;
-  @Mock private ActionManager actionManager;
   @Mock private DeepestContentTracker deepestContentTracker;
 
   private Context context;
@@ -116,8 +112,6 @@ public class StreamRecyclerViewAdapterTest {
             cardConfiguration,
             pietManager,
             actionParser,
-            actionApi,
-            actionManager,
             deepestContentTracker,
             CONFIGURATION);
     streamRecyclerViewAdapter.setHeaders(headers);

@@ -17,17 +17,24 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -48,6 +55,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link ContentDriver}. */
@@ -113,11 +121,16 @@ public class ContentDriverTest {
                   .setPietSharedState(PIET_SHARED_STATE_2))
           .build();
 
+  @Mock private ActionApi actionApi;
+  @Mock private ActionManager actionManager;
+  @Mock private ActionParser actionParser;
   @Mock private StreamBasicLoggingApi basicLoggingApi;
   @Mock private ModelFeature modelFeature;
   @Mock private ModelProvider modelProvider;
   @Mock private PietViewHolder pietViewHolder;
+  @Mock private StreamActionApi streamActionApi;
 
+  private Context context;
   private ContentDriver contentDriver;
 
   @Before
@@ -126,44 +139,54 @@ public class ContentDriverTest {
     when(modelFeature.getStreamFeature()).thenReturn(STREAM_FEATURE);
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(STREAM_SHARED_STATE_1);
     when(modelProvider.getSharedState(CONTENT_ID_2)).thenReturn(STREAM_SHARED_STATE_2);
+
+    contentDriver =
+        new ContentDriver(
+            actionApi,
+            actionManager,
+            actionParser,
+            basicLoggingApi,
+            context,
+            modelFeature,
+            modelProvider,
+            POSITION,
+            FeedActionPayload.getDefaultInstance()) {
+          @Override
+          StreamActionApi createStreamActionApi(
+              Context context,
+              ActionApi actionApi,
+              ActionParser actionParser,
+              ActionManager actionManager,
+              StreamBasicLoggingApi basicLoggingApi,
+              StreamContentLoggingData contentLoggingData) {
+            return streamActionApi;
+          }
+        };
+
+    context = Robolectric.setupActivity(Activity.class);
   }
 
   @Test
   public void testBind() {
-    contentDriver =
-        new ContentDriver(
-            basicLoggingApi,
-            modelFeature,
-            modelProvider,
-            POSITION,
-            FeedActionPayload.getDefaultInstance());
-
     contentDriver.bind(pietViewHolder);
 
     verify(pietViewHolder)
         .bind(
             eq(PIET_CONTENT.getFrame()),
             eq(PIET_SHARED_STATES),
+            eq(streamActionApi),
             eq(FeedActionPayload.getDefaultInstance()),
             any(LoggingListener.class));
   }
 
   @Test
   public void testBind_visibilityListenerLogsContentViewed() {
-    contentDriver =
-        new ContentDriver(
-            basicLoggingApi,
-            modelFeature,
-            modelProvider,
-            POSITION,
-            FeedActionPayload.getDefaultInstance());
-
     contentDriver.bind(pietViewHolder);
 
     ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
         ArgumentCaptor.forClass(LoggingListener.class);
 
-    verify(pietViewHolder).bind(any(), any(), any(), visibilityListenerCaptor.capture());
+    verify(pietViewHolder).bind(any(), any(), any(), any(), visibilityListenerCaptor.capture());
     LoggingListener listener = visibilityListenerCaptor.getValue();
     listener.onViewVisible();
 
@@ -172,11 +195,16 @@ public class ContentDriverTest {
 
   @Test
   public void testBind_nullSharedStates() {
+    reset(modelProvider);
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(null);
 
     contentDriver =
         new ContentDriver(
+            actionApi,
+            actionManager,
+            actionParser,
             basicLoggingApi,
+            context,
             modelFeature,
             modelProvider,
             POSITION,
@@ -188,6 +216,7 @@ public class ContentDriverTest {
         .bind(
             eq(PIET_CONTENT.getFrame()),
             /* pietSharedStates= */ eq(new ArrayList<>()),
+            any(StreamActionApi.class),
             eq(FeedActionPayload.getDefaultInstance()),
             any(LoggingListener.class));
     verify(modelProvider).getSharedState(CONTENT_ID_1);
@@ -201,7 +230,16 @@ public class ContentDriverTest {
             .setExtension(FeedAction.feedActionExtension, FeedAction.getDefaultInstance())
             .build();
     contentDriver =
-        new ContentDriver(basicLoggingApi, modelFeature, modelProvider, POSITION, payload);
+        new ContentDriver(
+            actionApi,
+            actionManager,
+            actionParser,
+            basicLoggingApi,
+            context,
+            modelFeature,
+            modelProvider,
+            POSITION,
+            payload);
 
     contentDriver.bind(pietViewHolder);
 
@@ -209,20 +247,13 @@ public class ContentDriverTest {
         .bind(
             eq(PIET_CONTENT.getFrame()),
             eq(PIET_SHARED_STATES),
+            any(StreamActionApi.class),
             eq(payload),
             any(LoggingListener.class));
   }
 
   @Test
   public void testUnbind() {
-    contentDriver =
-        new ContentDriver(
-            basicLoggingApi,
-            modelFeature,
-            modelProvider,
-            POSITION,
-            FeedActionPayload.getDefaultInstance());
-
     contentDriver.bind(pietViewHolder);
 
     contentDriver.unbind();

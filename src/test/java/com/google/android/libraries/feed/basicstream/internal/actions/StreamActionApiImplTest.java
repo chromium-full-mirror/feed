@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal;
+package com.google.android.libraries.feed.basicstream.internal.actions;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
@@ -27,6 +27,8 @@ import android.view.Menu;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -105,6 +107,8 @@ public class StreamActionApiImplTest {
   @Mock private ActionApi actionApi;
   @Mock private ActionParser actionParser;
   @Mock private ActionManager actionManager;
+  @Mock private StreamBasicLoggingApi basicLoggingApi;
+  @Mock private StreamContentLoggingData contentLoggingData;
   private StreamActionApiImpl streamActionApi;
   private View view;
 
@@ -114,7 +118,9 @@ public class StreamActionApiImplTest {
 
     Context context = Robolectric.setupActivity(Activity.class);
     view = new View(context);
-    streamActionApi = new StreamActionApiImpl(context, actionApi, actionParser, actionManager);
+    streamActionApi =
+        new StreamActionApiImpl(
+            context, actionApi, actionParser, actionManager, basicLoggingApi, contentLoggingData);
   }
 
   @Test

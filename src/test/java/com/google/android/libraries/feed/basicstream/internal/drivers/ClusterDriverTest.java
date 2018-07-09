@@ -21,11 +21,16 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -34,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link ClusterDriver}. */
@@ -43,6 +49,9 @@ public class ClusterDriverTest {
   private static final StreamFeature CARD_STREAM_FEATURE =
       StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build();
 
+  @Mock private ActionApi actionApi;
+  @Mock private ActionManager actionManager;
+  @Mock private ActionParser actionParser;
   @Mock private StreamBasicLoggingApi basicLoggingApi;
   @Mock private CardDriver cardDriver;
   @Mock private LeafFeatureDriver leafFeatureDriver;
@@ -70,9 +79,18 @@ public class ClusterDriverTest {
 
     when(cardDriver.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
+    Context context = Robolectric.setupActivity(Activity.class);
     clusterDriver =
         new ClusterDriverForTest(
-            basicLoggingApi, clusterModelFeature, modelProvider, /* position= */ 0, cardDriver);
+            actionApi,
+            actionManager,
+            actionParser,
+            basicLoggingApi,
+            context,
+            clusterModelFeature,
+            modelProvider,
+            /* position= */ 0,
+            cardDriver);
   }
 
   @Test
@@ -104,12 +122,24 @@ public class ClusterDriverTest {
     private final CardDriver cardDriver;
 
     ClusterDriverForTest(
+        ActionApi actionApi,
+        ActionManager actionManager,
+        ActionParser actionParser,
         StreamBasicLoggingApi basicLoggingApi,
+        Context context,
         ModelFeature clusterModel,
         ModelProvider modelProvider,
         int position,
         CardDriver cardDriver) {
-      super(basicLoggingApi, clusterModel, modelProvider, position);
+      super(
+          actionApi,
+          actionManager,
+          actionParser,
+          basicLoggingApi,
+          context,
+          clusterModel,
+          modelProvider,
+          position);
       this.cardDriver = cardDriver;
     }
 

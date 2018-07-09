@@ -26,7 +26,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
@@ -39,7 +38,6 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.PietVi
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -56,8 +54,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final CardConfiguration cardConfiguration;
   private final PietManager pietManager;
   private final ActionParser actionParser;
-  private final ActionApi actionApi;
-  private final ActionManager actionManager;
   private final Configuration configuration;
   private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<View> headers;
@@ -75,16 +71,12 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       CardConfiguration cardConfiguration,
       PietManager pietManager,
       ActionParser actionParser,
-      ActionApi actionApi,
-      ActionManager actionManager,
       DeepestContentTracker deepestContentTracker,
       Configuration configuration) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
     this.actionParser = actionParser;
-    this.actionApi = actionApi;
-    this.actionManager = actionManager;
     this.configuration = configuration;
     headers = new ArrayList<>();
     leafFeatureDrivers = new ArrayList<>();
@@ -109,14 +101,11 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       return new ZeroStateViewHolder(parent.getContext(), frameLayout);
     }
 
-    StreamActionApiImpl streamActionApi =
-        new StreamActionApiImpl(context, actionApi, actionParser, actionManager);
     return new PietViewHolder(
         cardConfiguration,
         frameLayout,
         pietManager,
         context,
-        streamActionApi,
         actionParser,
         configuration);
   }

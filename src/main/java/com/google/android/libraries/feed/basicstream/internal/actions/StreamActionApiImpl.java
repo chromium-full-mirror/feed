@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal;
+package com.google.android.libraries.feed.basicstream.internal.actions;
 
 import android.content.Context;
 import android.view.Menu;
@@ -20,6 +20,8 @@ import android.view.View;
 import android.widget.PopupMenu;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
+import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -37,16 +39,22 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final ActionApi actionApi;
   private final ActionParser actionParser;
   private final ActionManager actionManager;
+  private final StreamBasicLoggingApi basicLoggingApi;
+  private final StreamContentLoggingData contentLoggingData;
 
   public StreamActionApiImpl(
       Context context,
       ActionApi actionApi,
       ActionParser actionParser,
-      ActionManager actionManager) {
+      ActionManager actionManager,
+      StreamBasicLoggingApi basicLoggingApi,
+      StreamContentLoggingData contentLoggingData) {
     this.context = context;
     this.actionApi = actionApi;
     this.actionParser = actionParser;
     this.actionManager = actionManager;
+    this.basicLoggingApi = basicLoggingApi;
+    this.contentLoggingData = contentLoggingData;
   }
 
   @Override

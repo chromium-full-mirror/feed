@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.actionmanager.ActionManager;
+import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
@@ -29,6 +31,7 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.Continuati
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import java.util.ArrayList;
@@ -41,6 +44,9 @@ import java.util.Map;
 public class StreamDriver implements CursorChangedListener, FeatureChangeObserver {
 
   private static final String TAG = "StreamDriver";
+  private final ActionApi actionApi;
+  private final ActionManager actionManager;
+  private final ActionParser actionParser;
   private final ThreadUtils threadUtils;
   private final ModelProvider modelProvider;
   private final Map<ModelChild, FeatureDriver> modelChildFeatureDriverMap;
@@ -57,6 +63,9 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   /*@Nullable*/ private StreamContentListener contentListener;
 
   public StreamDriver(
+      ActionApi actionApi,
+      ActionManager actionManager,
+      ActionParser actionParser,
       ModelProvider modelProvider,
       ThreadUtils threadUtils,
       Configuration configuration,
@@ -65,6 +74,9 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       ContentChangedListener contentChangedListener,
       ScrollRestorer scrollRestorer,
       StreamBasicLoggingApi basicLoggingApi) {
+    this.actionApi = actionApi;
+    this.actionManager = actionManager;
+    this.actionParser = actionParser;
     this.threadUtils = threadUtils;
     this.modelProvider = modelProvider;
     this.context = context;
@@ -376,12 +388,28 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
   @VisibleForTesting
   FeatureDriver createClusterDriver(ModelFeature modelFeature, int position) {
-    return new ClusterDriver(basicLoggingApi, modelFeature, modelProvider, position);
+    return new ClusterDriver(
+        actionApi,
+        actionManager,
+        actionParser,
+        basicLoggingApi,
+        context,
+        modelFeature,
+        modelProvider,
+        position);
   }
 
   @VisibleForTesting
   FeatureDriver createCardDriver(ModelFeature modelFeature, int position) {
-    return new CardDriver(basicLoggingApi, modelFeature, modelProvider, position);
+    return new CardDriver(
+        actionApi,
+        actionManager,
+        actionParser,
+        basicLoggingApi,
+        context,
+        modelFeature,
+        modelProvider,
+        position);
   }
 
   @VisibleForTesting

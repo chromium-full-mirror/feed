@@ -175,8 +175,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
             cardConfiguration,
             pietManager,
             actionParser,
-            actionApi,
-            actionManager,
             deepestContentTracker,
             configuration);
     adapter.setHeaders(headers);
@@ -247,6 +245,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
       streamDriver =
           createStreamDriver(
+              actionApi,
+              actionManager,
+              actionParser,
               modelProvider,
               threadUtils,
               configuration,
@@ -407,6 +408,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
     streamDriver =
         createStreamDriver(
+            actionApi,
+            actionManager,
+            actionParser,
             modelProvider,
             threadUtils,
             configuration,
@@ -466,6 +470,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @VisibleForTesting
   StreamDriver createStreamDriver(
+      ActionApi actionApi,
+      ActionManager actionManager,
+      ActionParser actionParser,
       ModelProvider modelProvider,
       ThreadUtils threadUtils,
       Configuration configuration,
@@ -475,6 +482,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ScrollRestorer scrollRestorer,
       StreamBasicLoggingApi basicLoggingApi) {
     return new StreamDriver(
+        actionApi,
+        actionManager,
+        actionParser,
         modelProvider,
         threadUtils,
         configuration,
@@ -491,8 +501,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
       CardConfiguration cardConfiguration,
       PietManager pietManager,
       ActionParser actionParser,
-      ActionApi actionApi,
-      ActionManager actionManager,
       DeepestContentTracker deepestContentTracker,
       Configuration configuration) {
     return new StreamRecyclerViewAdapter(
@@ -500,8 +508,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
         cardConfiguration,
         pietManager,
         actionParser,
-        actionApi,
-        actionManager,
         deepestContentTracker,
         configuration);
   }
