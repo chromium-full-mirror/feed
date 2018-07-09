@@ -27,7 +27,8 @@ public interface FeedLifecycleListener {
     LifecycleEvent.ENTER_BACKGROUND,
     LifecycleEvent.OPT_IN,
     LifecycleEvent.OPT_OUT,
-    LifecycleEvent.CLEAR_ALL
+    LifecycleEvent.CLEAR_ALL,
+    LifecycleEvent.INITIALIZE
   })
   @interface LifecycleEvent {
     String ENTER_FOREGROUND = "foreground";
@@ -35,6 +36,7 @@ public interface FeedLifecycleListener {
     String OPT_IN = "optIn";
     String OPT_OUT = "optOut";
     String CLEAR_ALL = "clearAll";
+    String INITIALIZE = "initialize";
   }
 
   void onLifecycleEvent(@LifecycleEvent String event);

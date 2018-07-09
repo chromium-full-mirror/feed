@@ -68,4 +68,10 @@ public class FeedAppLifecycleListenerTest {
     appLifecycleListener.onClearAll();
     verify(lifecycleListener).onLifecycleEvent(LifecycleEvent.CLEAR_ALL);
   }
+
+  @Test
+  public void onInitialize() {
+    appLifecycleListener.onInitialize();
+    verify(lifecycleListener).onLifecycleEvent(LifecycleEvent.INITIALIZE);
+  }
 }

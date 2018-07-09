@@ -37,4 +37,11 @@ public interface AppLifecycleListener {
    * status.
    */
   void onClearAll();
+
+  /**
+   * Called when the host wants the Feed to perform any heavyweight initialization it might need to
+   * do. This is the only trigger for the initialization process; if it’s not called, the host
+   * should not expect the Feed to be able to render cards.
+   */
+  void onInitialize();
 }

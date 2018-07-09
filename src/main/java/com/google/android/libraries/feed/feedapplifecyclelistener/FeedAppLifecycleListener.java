@@ -66,6 +66,13 @@ public class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
     dispatchLifecycleEvent(LifecycleEvent.CLEAR_ALL);
   }
 
+  @Override
+  public void onInitialize() {
+    threadUtils.checkMainThread();
+    Logger.i(TAG, "checkMainThread called");
+    dispatchLifecycleEvent(LifecycleEvent.INITIALIZE);
+  }
+
   private void dispatchLifecycleEvent(@LifecycleEvent String event) {
     synchronized (mObservers) {
       for (FeedLifecycleListener listener : mObservers) {
