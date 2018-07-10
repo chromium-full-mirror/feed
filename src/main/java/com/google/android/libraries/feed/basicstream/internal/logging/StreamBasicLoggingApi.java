@@ -26,6 +26,10 @@ public class StreamBasicLoggingApi implements BasicLoggingApi {
     Logger.i(TAG, "onContentViewed. contentLoggingData: %s", contentLoggingData);
   }
 
+  public void onContentDismissed(StreamContentLoggingData contentLoggingData) {
+    Logger.i(TAG, "onContentDismissed. contentLoggingData: %s", contentLoggingData);
+  }
+
   public void onContentClicked(StreamContentLoggingData contentLoggingData) {
     Logger.i(TAG, "onContentClicked. contentLoggingData: %s", contentLoggingData);
   }

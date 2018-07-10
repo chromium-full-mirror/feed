@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
@@ -38,6 +39,7 @@ import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -126,6 +128,19 @@ public class StreamActionApiImplTest {
   @Test
   public void testCanDismiss() {
     assertThat(streamActionApi.canDismiss()).isTrue();
+  }
+
+  @Test
+  public void testDismiss() {
+    String contentId = "contentId";
+    List<StreamDataOperation> streamDataOperations =
+        Collections.singletonList(StreamDataOperation.getDefaultInstance());
+    streamActionApi.dismiss(contentId, streamDataOperations);
+
+    verify(actionManager)
+        .dismiss(
+            Collections.singletonList(contentId), streamDataOperations, /* sessionToken= */ null);
+    verify(basicLoggingApi).onContentDismissed(contentLoggingData);
   }
 
   @Test

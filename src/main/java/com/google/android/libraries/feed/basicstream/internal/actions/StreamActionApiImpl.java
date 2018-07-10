@@ -98,6 +98,7 @@ public class StreamActionApiImpl implements StreamActionApi {
     // TODO: Send sessionToken to actionManager
     actionManager.dismiss(
         Collections.singletonList(contentId), dataOperations, /* sessionToken= */ null);
+    basicLoggingApi.onContentDismissed(contentLoggingData);
   }
 
   @Override
