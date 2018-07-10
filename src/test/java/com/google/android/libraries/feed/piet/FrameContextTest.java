@@ -45,6 +45,7 @@ import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.HostBindingData;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
+import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
@@ -191,7 +192,7 @@ public class FrameContextTest {
 
   @Test
   public void testThrowsWithNoBindingContext() {
-    frameContext = makeFrameContextWithNoBindings();
+    frameContext = makeFrameContextForFrame();
 
     assertThatRunnable(
             () -> frameContext.getActionsFromBinding(ActionsBindingRef.getDefaultInstance()))
@@ -202,7 +203,7 @@ public class FrameContextTest {
   }
 
   @Test
-  public void testBindTemplate_lotsOfStuff() {
+  public void testCreateTemplateContext_lotsOfStuff() {
     frameContext = defaultFrameContext();
 
     // createTemplateContext should add new BindingValues
@@ -258,7 +259,7 @@ public class FrameContextTest {
 
   /** Bind a template with a child default style that is defined by the Template. */
   @Test
-  public void testBindTemplate_boundStyle() {
+  public void testCreateTemplateContext_boundStyle() {
     frameContext = defaultFrameContext();
 
     String childStyleId = "childStyle";
@@ -286,6 +287,76 @@ public class FrameContextTest {
         .hasMessageThat()
         .contains(
             "Style bindings not supported for template default style (template: badtemplate)");
+  }
+
+  @Test
+  public void testCreateTemplateContext_transcludingBinding() {
+    String parentBindingId = "PARENT";
+    String childBindingId = "CHILD";
+    ParameterizedText parentBoundText =
+        ParameterizedText.newBuilder().setText("parent_text").build();
+    BindingValue parentBindingValue =
+        BindingValue.newBuilder()
+            .setBindingId(parentBindingId)
+            .setParameterizedText(parentBoundText)
+            .build();
+    ParameterizedTextBindingRef childTextBindingRef =
+        ParameterizedTextBindingRef.newBuilder().setBindingId(childBindingId).build();
+    frameContext = makeFrameContextWithBinding(parentBindingValue);
+    FrameContext childContext =
+        frameContext.createTemplateContext(
+            Template.newBuilder()
+                .setElement(
+                    Element.newBuilder()
+                        .setTextElement(
+                            TextElement.newBuilder()
+                                .setParameterizedTextBinding(childTextBindingRef)))
+                .build(),
+            BindingContext.newBuilder()
+                .addBindingValues(
+                    BindingValue.newBuilder()
+                        .setBindingId(childBindingId)
+                        .setBindingIdFromTranscludingTemplate(parentBindingId))
+                .build());
+
+    assertThat(childContext.getParameterizedTextBindingValue(childTextBindingRef))
+        .isEqualTo(
+            BindingValue.newBuilder()
+                .setBindingId(childBindingId)
+                .setParameterizedText(parentBoundText)
+                .build());
+  }
+
+  @Test
+  public void testCreateTemplateContext_transcludingBindingNotFound() {
+    String invalidParentBindingId = "NOT_FOUND";
+    String childBindingId = "CHILD";
+    ParameterizedTextBindingRef childTextBindingRef =
+        ParameterizedTextBindingRef.newBuilder().setBindingId(childBindingId).build();
+    frameContext = makeFrameContextWithNoBindings();
+    FrameContext childContext =
+        frameContext.createTemplateContext(
+            Template.newBuilder()
+                .setElement(
+                    Element.newBuilder()
+                        .setTextElement(
+                            TextElement.newBuilder()
+                                .setParameterizedTextBinding(childTextBindingRef)))
+                .build(),
+            BindingContext.newBuilder()
+                .addBindingValues(
+                    BindingValue.newBuilder()
+                        .setBindingId(childBindingId)
+                        .setBindingIdFromTranscludingTemplate(invalidParentBindingId))
+                .build());
+
+    assertThat(debugLogger.getMessages(MessageType.ERROR))
+        .containsExactly("[] Parent binding value 'NOT_FOUND' not found");
+    assertThatRunnable(() -> childContext.getParameterizedTextBindingValue(childTextBindingRef))
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Parameterized text binding not found for CHILD");
   }
 
   @Test
@@ -334,8 +405,7 @@ public class FrameContextTest {
 
     // Binding has no content
     assertThatRunnable(
-            () ->
-                makeFrameContextWithEmptyBinding().getParameterizedTextBindingValue(textBindingRef))
+            () -> makeFrameContextWithNoBindings().getParameterizedTextBindingValue(textBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -357,7 +427,7 @@ public class FrameContextTest {
             .setIsOptional(true)
             .build();
     assertThat(
-            makeFrameContextWithEmptyBinding()
+            makeFrameContextWithNoBindings()
                 .getParameterizedTextBindingValue(textBindingRefInvalidOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
 
@@ -368,7 +438,7 @@ public class FrameContextTest {
             .setIsOptional(true)
             .build();
     assertThat(
-            makeFrameContextWithEmptyBinding()
+            makeFrameContextWithNoBindings()
                 .getParameterizedTextBindingValue(textBindingRefOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
   }
@@ -414,8 +484,7 @@ public class FrameContextTest {
         .contains("Image binding not found");
 
     // Binding has no content
-    assertThatRunnable(
-            () -> makeFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRef))
+    assertThatRunnable(() -> makeFrameContextWithNoBindings().getImageBindingValue(imageBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -434,13 +503,13 @@ public class FrameContextTest {
     ImageBindingRef imageBindingRefInvalidOptional =
         ImageBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).setIsOptional(true).build();
     assertThat(
-            makeFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRefInvalidOptional))
+            makeFrameContextWithNoBindings().getImageBindingValue(imageBindingRefInvalidOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
 
     // Binding has no content but is optional
     ImageBindingRef imageBindingRefOptional =
         ImageBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
-    assertThat(makeFrameContextWithEmptyBinding().getImageBindingValue(imageBindingRefOptional))
+    assertThat(makeFrameContextWithNoBindings().getImageBindingValue(imageBindingRefOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
   }
 
@@ -484,7 +553,7 @@ public class FrameContextTest {
 
     // Binding has no content
     assertThatRunnable(
-            () -> makeFrameContextWithEmptyBinding().getElementBindingValue(elementBindingRef))
+            () -> makeFrameContextWithNoBindings().getElementBindingValue(elementBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -503,14 +572,14 @@ public class FrameContextTest {
     ElementBindingRef elementBindingRefInvalidOptional =
         ElementBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).setIsOptional(true).build();
     assertThat(
-            makeFrameContextWithEmptyBinding()
+            makeFrameContextWithNoBindings()
                 .getElementBindingValue(elementBindingRefInvalidOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
 
     // Binding has no content but is optional
     ElementBindingRef elementBindingRefOptional =
         ElementBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
-    assertThat(makeFrameContextWithEmptyBinding().getElementBindingValue(elementBindingRefOptional))
+    assertThat(makeFrameContextWithNoBindings().getElementBindingValue(elementBindingRefOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
   }
 
@@ -547,7 +616,7 @@ public class FrameContextTest {
                 GridCellWidthBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .isNull();
 
-    frameContext = makeFrameContextWithEmptyBinding();
+    frameContext = makeFrameContextWithNoBindings();
     assertThat(
             frameContext.getGridCellWidthFromBinding(
                 GridCellWidthBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
@@ -582,7 +651,7 @@ public class FrameContextTest {
                 ActionsBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .isSameAs(Actions.getDefaultInstance());
 
-    frameContext = makeFrameContextWithEmptyBinding();
+    frameContext = makeFrameContextWithNoBindings();
     assertThat(
             frameContext.getActionsFromBinding(
                 ActionsBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
@@ -616,7 +685,7 @@ public class FrameContextTest {
                 StyleBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
         .isEqualTo(BoundStyle.getDefaultInstance());
 
-    frameContext = makeFrameContextWithEmptyBinding();
+    frameContext = makeFrameContextWithNoBindings();
     assertThat(
             frameContext.getStyleFromBinding(
                 StyleBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
@@ -665,7 +734,7 @@ public class FrameContextTest {
         .hasMessageThat()
         .contains("Template binding not found for NOT_A_REAL_BINDING_ID");
 
-    frameContext = makeFrameContextWithEmptyBinding();
+    frameContext = makeFrameContextWithNoBindings();
     assertThatRunnable(
             () ->
                 frameContext.getTemplateInvocationBindingValue(
@@ -714,7 +783,7 @@ public class FrameContextTest {
 
     // Binding has no content
     assertThatRunnable(
-            () -> makeFrameContextWithEmptyBinding().getCustomElementBindingValue(customBindingRef))
+            () -> makeFrameContextWithNoBindings().getCustomElementBindingValue(customBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -733,7 +802,7 @@ public class FrameContextTest {
     CustomBindingRef customBindingRefInvalidOptional =
         CustomBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).setIsOptional(true).build();
     assertThat(
-            makeFrameContextWithEmptyBinding()
+            makeFrameContextWithNoBindings()
                 .getCustomElementBindingValue(customBindingRefInvalidOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
 
@@ -741,8 +810,7 @@ public class FrameContextTest {
     CustomBindingRef customBindingRefOptional =
         CustomBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
     assertThat(
-            makeFrameContextWithEmptyBinding()
-                .getCustomElementBindingValue(customBindingRefOptional))
+            makeFrameContextWithNoBindings().getCustomElementBindingValue(customBindingRefOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
   }
 
@@ -797,7 +865,7 @@ public class FrameContextTest {
 
     // Binding has no content
     assertThatRunnable(
-            () -> makeFrameContextWithEmptyBinding().getChunkedTextBindingValue(textBindingRef))
+            () -> makeFrameContextWithNoBindings().getChunkedTextBindingValue(textBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
@@ -819,15 +887,14 @@ public class FrameContextTest {
             .setIsOptional(true)
             .build();
     assertThat(
-            makeFrameContextWithEmptyBinding()
+            makeFrameContextWithNoBindings()
                 .getChunkedTextBindingValue(textBindingRefInvalidOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
 
     // Binding has no content but is optional
     ChunkedTextBindingRef textBindingRefOptional =
         ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).setIsOptional(true).build();
-    assertThat(
-            makeFrameContextWithEmptyBinding().getChunkedTextBindingValue(textBindingRefOptional))
+    assertThat(makeFrameContextWithNoBindings().getChunkedTextBindingValue(textBindingRefOptional))
         .isEqualTo(BindingValue.getDefaultInstance());
   }
 
@@ -1026,10 +1093,10 @@ public class FrameContextTest {
   }
 
   private FrameContext defaultFrameContext() {
-    return makeFrameContextWithNoBindings();
+    return makeFrameContextForFrame();
   }
 
-  private FrameContext makeFrameContextWithNoBindings() {
+  private FrameContext makeFrameContextForFrame() {
     return new FrameContext(
         DEFAULT_FRAME,
         defaultStylesheet,
@@ -1043,7 +1110,7 @@ public class FrameContextTest {
 
   private FrameContext makeFrameContextWithBinding(BindingValue bindingValue) {
     Map<String, BindingValue> bindingValueMap = new HashMap<>();
-    bindingValueMap.put(BINDING_ID, bindingValue);
+    bindingValueMap.put(bindingValue.getBindingId(), bindingValue);
     return new FrameContext(
         DEFAULT_FRAME,
         defaultStylesheet,
@@ -1058,7 +1125,7 @@ public class FrameContextTest {
         DEFAULT_TEMPLATES);
   }
 
-  private FrameContext makeFrameContextWithEmptyBinding() {
+  private FrameContext makeFrameContextWithNoBindings() {
     Map<String, BindingValue> bindingValueMap = new HashMap<>();
     bindingValueMap.put(BINDING_ID, BindingValue.getDefaultInstance());
     return new FrameContext(

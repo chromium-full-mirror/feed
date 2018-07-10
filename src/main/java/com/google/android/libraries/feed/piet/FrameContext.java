@@ -461,13 +461,26 @@ class FrameContext {
     }
   }
 
-  private static Map<String, BindingValue> createBindingValueMap(BindingContext bindingContext) {
+  private Map<String, BindingValue> createBindingValueMap(BindingContext bindingContext) {
     Map<String, BindingValue> bindingValueMap = new NoKeyOverwriteHashMap<>("BindingValue");
-    if (bindingContext.getBindingValuesCount() == 0) {
-      return bindingValueMap;
-    }
     for (BindingValue bindingValue : bindingContext.getBindingValuesList()) {
-      bindingValueMap.put(bindingValue.getBindingId(), bindingValue);
+      if (bindingValue.hasBindingIdFromTranscludingTemplate()) {
+        BindingValue parentBindingValue =
+            bindingValues.get(bindingValue.getBindingIdFromTranscludingTemplate());
+        if (parentBindingValue == null) {
+          reportError(
+              MessageType.ERROR,
+              String.format(
+                  "Parent binding value '%s' not found",
+                  bindingValue.getBindingIdFromTranscludingTemplate()));
+        } else {
+          BindingValue bindingValueForChild =
+              parentBindingValue.toBuilder().setBindingId(bindingValue.getBindingId()).build();
+          bindingValueMap.put(bindingValue.getBindingId(), bindingValueForChild);
+        }
+      } else {
+        bindingValueMap.put(bindingValue.getBindingId(), bindingValue);
+      }
     }
     return bindingValueMap;
   }
