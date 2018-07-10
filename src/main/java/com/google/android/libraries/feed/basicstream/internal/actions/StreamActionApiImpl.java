@@ -42,19 +42,23 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final StreamBasicLoggingApi basicLoggingApi;
   private final StreamContentLoggingData contentLoggingData;
 
+  /*@Nullable*/ private final String sessionToken;
+
   public StreamActionApiImpl(
       Context context,
       ActionApi actionApi,
       ActionParser actionParser,
       ActionManager actionManager,
       StreamBasicLoggingApi basicLoggingApi,
-      StreamContentLoggingData contentLoggingData) {
+      StreamContentLoggingData contentLoggingData,
+      /*@Nullable*/ String sessionToken) {
     this.context = context;
     this.actionApi = actionApi;
     this.actionParser = actionParser;
     this.actionManager = actionManager;
     this.basicLoggingApi = basicLoggingApi;
     this.contentLoggingData = contentLoggingData;
+    this.sessionToken = sessionToken;
   }
 
   @Override
@@ -96,9 +100,7 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void dismiss(String contentId, List<StreamDataOperation> dataOperations) {
-    // TODO: Send sessionToken to actionManager
-    actionManager.dismiss(
-        Collections.singletonList(contentId), dataOperations, /* sessionToken= */ null);
+    actionManager.dismiss(Collections.singletonList(contentId), dataOperations, sessionToken);
     basicLoggingApi.onContentDismissed(contentLoggingData);
   }
 

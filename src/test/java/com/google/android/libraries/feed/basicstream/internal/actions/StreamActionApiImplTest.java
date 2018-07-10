@@ -105,6 +105,7 @@ public class StreamActionApiImplTest {
                                   .setOpenUrlData(OpenUrlData.newBuilder().setUrl(URL)))
                           .build()))
           .build();
+  private static final String SESSION_ID = "SESSION_ID";
 
   @Mock private ActionApi actionApi;
   @Mock private ActionParser actionParser;
@@ -122,7 +123,13 @@ public class StreamActionApiImplTest {
     view = new View(context);
     streamActionApi =
         new StreamActionApiImpl(
-            context, actionApi, actionParser, actionManager, basicLoggingApi, contentLoggingData);
+            context,
+            actionApi,
+            actionParser,
+            actionManager,
+            basicLoggingApi,
+            contentLoggingData,
+            SESSION_ID);
   }
 
   @Test
@@ -138,8 +145,7 @@ public class StreamActionApiImplTest {
     streamActionApi.dismiss(contentId, streamDataOperations);
 
     verify(actionManager)
-        .dismiss(
-            Collections.singletonList(contentId), streamDataOperations, /* sessionToken= */ null);
+        .dismiss(Collections.singletonList(contentId), streamDataOperations, SESSION_ID);
     verify(basicLoggingApi).onContentDismissed(contentLoggingData);
   }
 

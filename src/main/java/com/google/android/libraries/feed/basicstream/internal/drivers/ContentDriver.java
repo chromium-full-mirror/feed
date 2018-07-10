@@ -82,7 +82,13 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
             position);
     streamActionApi =
         createStreamActionApi(
-            context, actionApi, actionParser, actionManager, basicLoggingApi, contentLoggingData);
+            context,
+            actionApi,
+            actionParser,
+            actionManager,
+            basicLoggingApi,
+            contentLoggingData,
+            modelProvider.getSessionToken());
     this.swipeAction = swipeAction;
   }
 
@@ -208,8 +214,15 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ActionParser actionParser,
       ActionManager actionManager,
       StreamBasicLoggingApi basicLoggingApi,
-      StreamContentLoggingData contentLoggingData) {
+      StreamContentLoggingData contentLoggingData,
+      /*@Nullable*/ String sessionToken) {
     return new StreamActionApiImpl(
-        context, actionApi, actionParser, actionManager, basicLoggingApi, contentLoggingData);
+        context,
+        actionApi,
+        actionParser,
+        actionManager,
+        basicLoggingApi,
+        contentLoggingData,
+        sessionToken);
   }
 }

@@ -19,7 +19,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -158,7 +157,8 @@ public class ContentDriverTest {
               ActionParser actionParser,
               ActionManager actionManager,
               StreamBasicLoggingApi basicLoggingApi,
-              StreamContentLoggingData contentLoggingData) {
+              StreamContentLoggingData contentLoggingData,
+              String sessionToken) {
             return streamActionApi;
           }
         };
@@ -234,7 +234,6 @@ public class ContentDriverTest {
             eq(FeedActionPayload.getDefaultInstance()),
             any(LoggingListener.class));
     verify(modelProvider).getSharedState(CONTENT_ID_1);
-    verifyNoMoreInteractions(modelProvider);
   }
 
   @Test
