@@ -81,6 +81,7 @@ public class StreamActionApiImpl implements StreamActionApi {
         });
 
     popupMenu.show();
+    basicLoggingApi.onContentContextMenuOpened(contentLoggingData);
   }
 
   @Override

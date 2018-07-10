@@ -34,6 +34,10 @@ public class StreamBasicLoggingApi implements BasicLoggingApi {
     Logger.i(TAG, "onContentClicked. contentLoggingData: %s", contentLoggingData);
   }
 
+  public void onContentContextMenuOpened(StreamContentLoggingData contentLoggingData) {
+    Logger.i(TAG, "onContentContextMenuOpened. contentLoggingData: %s", contentLoggingData);
+  }
+
   public void onOpenedWithNoContent() {
     Logger.i(TAG, "onOpenedWithNoContent");
   }

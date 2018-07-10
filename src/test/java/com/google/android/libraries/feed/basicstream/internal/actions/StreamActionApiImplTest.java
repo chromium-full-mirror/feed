@@ -301,4 +301,22 @@ public class StreamActionApiImplTest {
     assertThat(menu.getItem(0).getTitle()).isEqualTo(OPEN_LABEL);
     assertThat(menu.getItem(1).getTitle()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
   }
+
+  @Test
+  public void openContextMenuTest_logsContentContextMenuOpened() {
+    when(actionParser.canPerformAction(any(FeedActionPayload.class), eq(streamActionApi)))
+        .thenReturn(true);
+
+    List<LabelledFeedActionData> labelledFeedActionDataList = new ArrayList<>();
+    labelledFeedActionDataList.add(NORMAL_OPEN_URL);
+    labelledFeedActionDataList.add(OPEN_IN_NEW_WINDOW);
+    labelledFeedActionDataList.add(OPEN_IN_INCOGNITO_MODE);
+
+    streamActionApi.openContextMenu(
+        OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
+        view);
+
+    assertThat(ShadowPopupMenu.getLatestPopupMenu().getMenu()).isNotNull();
+    verify(basicLoggingApi).onContentContextMenuOpened(contentLoggingData);
+  }
 }

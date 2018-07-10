@@ -194,6 +194,20 @@ public class ContentDriverTest {
   }
 
   @Test
+  public void testBind_visibilityListenerLogsContentClicked() {
+    contentDriver.bind(pietViewHolder);
+
+    ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
+        ArgumentCaptor.forClass(LoggingListener.class);
+
+    verify(pietViewHolder).bind(any(), any(), any(), any(), visibilityListenerCaptor.capture());
+    LoggingListener listener = visibilityListenerCaptor.getValue();
+    listener.onContentClicked();
+
+    verify(basicLoggingApi).onContentClicked(eq(CONTENT_LOGGING_DATA));
+  }
+
+  @Test
   public void testBind_nullSharedStates() {
     reset(modelProvider);
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(null);
