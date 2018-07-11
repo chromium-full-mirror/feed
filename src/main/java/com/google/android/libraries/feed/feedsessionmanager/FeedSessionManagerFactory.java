@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.feedsessionmanager;
 
 import android.database.Observable;
-import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -81,14 +80,6 @@ public class FeedSessionManagerFactory {
 
   /** Creates a new FeedSessionManager and initializes it */
   public FeedSessionManager create() {
-    FeedSessionManager feedSessionManager = createUninitialized();
-    feedSessionManager.initialize();
-    return feedSessionManager;
-  }
-
-  /** Creates an uninitialized FeedSessionManager. */
-  @VisibleForTesting
-  FeedSessionManager createUninitialized() {
     long lifetimeMs =
         configuration.getValueOrDefault(ConfigKey.SESSION_LIFETIME_MS, DEFAULT_LIFETIME_MS);
     SessionFactory sessionFactory =

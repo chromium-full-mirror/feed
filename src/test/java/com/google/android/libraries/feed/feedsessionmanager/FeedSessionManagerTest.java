@@ -178,6 +178,7 @@ public class FeedSessionManagerTest {
                 clock,
                 appLifecycleListener)
             .create();
+    sessionManager.initialize();
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
@@ -330,6 +331,7 @@ public class FeedSessionManagerTest {
                 clock,
                 appLifecycleListener)
             .create();
+    sessionManager.initialize();
 
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
     StreamDataOperation streamDataOperation =
@@ -562,7 +564,7 @@ public class FeedSessionManagerTest {
                 configuration,
                 clock,
                 appLifecycleListener)
-            .createUninitialized();
+            .create();
     fsm.initialize();
     return fsm;
   }
@@ -595,7 +597,7 @@ public class FeedSessionManagerTest {
                     configuration,
                     clock,
                     appLifecycleListener)
-                .createUninitialized());
+                .create());
     spySessionManager.initialize();
     return spySessionManager;
   }

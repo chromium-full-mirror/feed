@@ -77,6 +77,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
 public class FeedSessionManager
@@ -99,6 +100,8 @@ public class FeedSessionManager
   // synchronize access.
   private final ContentCache contentCache;
 
+  private final AtomicBoolean initialized = new AtomicBoolean(false);
+
   // This captures the NO_CARDS_ERROR when a request fails. The request fails in one task and this
   // is sent to the ModelProvider in the populateSessionTask.
   /*@Nullable*/ @VisibleForTesting ModelError noCardsError;
@@ -114,7 +117,6 @@ public class FeedSessionManager
   private final SchedulerApi schedulerApi;
   private final TaskQueue taskQueue;
   private final Clock clock;
-  private final Observable<FeedLifecycleListener> lifecycleListenerObservable;
   private final long sessionPopulationTimeoutMs;
 
   // operation counts for the dumper
@@ -122,6 +124,7 @@ public class FeedSessionManager
   private int existingSessionCount = 0;
   private int handleTokenCount = 0;
 
+  @SuppressWarnings("argument.type.incompatible") // ok call to registerObserver
   public FeedSessionManager(
       TaskQueue taskQueue,
       SessionFactory sessionFactory,
@@ -152,10 +155,10 @@ public class FeedSessionManager
     this.requestManager = requestManager;
     this.schedulerApi = schedulerApi;
     this.clock = clock;
-    this.lifecycleListenerObservable = lifecycleListenerObservable;
 
     sessionPopulationTimeoutMs =
         configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
+    lifecycleListenerObservable.registerObserver(this);
   }
 
   /**
@@ -165,8 +168,8 @@ public class FeedSessionManager
    * executor task.
    */
   public void initialize() {
+    initialized.set(true);
     store.registerObserver(this);
-    lifecycleListenerObservable.registerObserver(this);
     taskQueue.initialize(this::initializationTask);
     requestManager.setDefaultTriggerRefreshConsumerSupplier(
         () ->
@@ -215,6 +218,10 @@ public class FeedSessionManager
   public void getNewSession(
       ModelProvider modelProvider, /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
     threadUtils.checkMainThread();
+    if (!initialized.get()) {
+      Logger.i(TAG, "Lazy initialization triggered, getNewSession");
+      initialize();
+    }
     InitializableSession session = sessionFactory.getSession();
     session.bindModelProvider(modelProvider);
 
@@ -415,6 +422,10 @@ public class FeedSessionManager
   @Override
   public void getExistingSession(String sessionToken, ModelProvider modelProvider) {
     threadUtils.checkMainThread();
+    if (!initialized.get()) {
+      Logger.i(TAG, "Lazy initialization triggered, getExistingSession");
+      initialize();
+    }
     InitializableSession session = sessionFactory.getSession();
     session.bindModelProvider(modelProvider);
 
@@ -499,6 +510,10 @@ public class FeedSessionManager
   @Override
   public void triggerRefresh(/*@Nullable*/ StreamSession streamSession) {
     threadUtils.checkMainThread();
+    if (!initialized.get()) {
+      Logger.i(TAG, "Lazy initialization triggered, triggerRefresh");
+      initialize();
+    }
     taskQueue.execute(
         "triggerRefresh/Request/InvalidateSession",
         TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
@@ -581,6 +596,10 @@ public class FeedSessionManager
   @Override
   public Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(
       MutationContext mutationContext) {
+    if (!initialized.get()) {
+      Logger.i(TAG, "Lazy initialization triggered, triggerRefresh");
+      initialize();
+    }
     return mutationCommitterFactory.create(
         "updateConsumer",
         mutationContext,
@@ -700,6 +719,9 @@ public class FeedSessionManager
     switch (event) {
       case LifecycleEvent.CLEAR_ALL:
         taskQueue.execute("reset", TaskType.POST_INIT, this::reset);
+        break;
+      case LifecycleEvent.INITIALIZE:
+        initialize();
         break;
       default:
         // Do nothing

@@ -127,6 +127,7 @@ public class InfrastructureIntegrationScope {
                 clock,
                 appLifecycleListener)
             .create();
+    feedSessionManager.initialize();
     modelProviderFactory =
         new FeedModelProviderFactory(
             feedSessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
