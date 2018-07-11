@@ -14,6 +14,7 @@
 
 syntax = "proto2";
 
+import "src/main/proto/search/now/ui/piet/binding_refs.proto";
 import "src/main/proto/search/now/ui/piet/text.proto";
 
 package search.now.ui.piet;
@@ -26,9 +27,14 @@ option cc_enable_arenas = true;
 
 // Defines accessibility related attributes for Piet elements.
 message Accessibility {
-  // A string that may be spoken by the system. (TalkBack on Android, VoiceOver
-  // on iOS, browser on Web)
-  optional ParameterizedText description = 1;
+  oneof description_data {
+    // A string that may be spoken by the system. (TalkBack on Android,
+    // VoiceOver on iOS, browser on Web)
+    ParameterizedText description = 1;
+
+    // In case this is coming from a template.
+    ParameterizedTextBindingRef description_binding = 3;
+  }
 
   // Roles that this UI element plays in the UI. These annotations will be used
   // by the accessibility framework for applying role-specific treatments.
