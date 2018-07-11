@@ -74,14 +74,10 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
   /** Unbind the model and release child adapters. Be sure to call this in any overrides. */
   @Override
   void onUnbindModel() {
-    // TODO: Remove this logic and always unbindChildAdapters.
-    if (getRawModel() != null && !getContentsFromModel(getModel()).isEmpty()) {
+    if (getRawModel() != null) {
       unbindChildAdapters(getContentsFromModel(getModel()));
-    } else {
-      for (ElementAdapter<?, ?> childAdapter : childAdapters) {
-        childAdapter.unbindModel();
-      }
     }
+
     super.onUnbindModel();
   }
 
@@ -99,7 +95,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
   }
 
   /** Creates and adds adapters for all inline Content items. */
-  void createInlineChildAdapters(List<Content> contents, FrameContext frameContext) {
+  private void createInlineChildAdapters(List<Content> contents, FrameContext frameContext) {
     adaptersPerContent = new int[contents.size()];
 
     checkState(
@@ -187,7 +183,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
    * <p>There are a few inefficient O(N^2) mid-list inserts in this method, but since we're dealing
    * with views here, N should always be small (probably less than ~10).
    */
-  void bindChildAdapters(List<Content> contents, FrameContext frameContext) {
+  private void bindChildAdapters(List<Content> contents, FrameContext frameContext) {
     checkState(
         adaptersPerContent.length == contents.size(),
         "Internal error in adapters per content (%s != %s). Adapter has not been created?",
@@ -280,7 +276,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
   }
 
   /** Unbind all inline adapters, and destroy all bound adapters. */
-  void unbindChildAdapters(List<Content> contents) {
+  private void unbindChildAdapters(List<Content> contents) {
     int adapterIndex = 0;
     int viewIndex = firstAdapterViewOffset;
     for (int contentIndex = 0; contentIndex < contents.size(); contentIndex++) {
