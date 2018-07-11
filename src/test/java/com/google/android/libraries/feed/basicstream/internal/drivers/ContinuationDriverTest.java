@@ -18,7 +18,10 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -26,7 +29,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import android.view.View;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
@@ -35,6 +37,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
@@ -47,6 +50,7 @@ import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -170,7 +174,8 @@ public class ContinuationDriverTest {
     verify(modelProvider).handleToken(modelToken);
 
     continuationDriver.bind(continuationViewHolder);
-    verify(continuationViewHolder).bind(continuationDriver, true);
+    verify(continuationViewHolder)
+        .bind(eq(continuationDriver), any(LoggingListener.class), eq(true));
   }
 
   @Test
@@ -190,7 +195,8 @@ public class ContinuationDriverTest {
 
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
-    verify(continuationViewHolder).bind(continuationDriver, /* showSpinner= */ true);
+    verify(continuationViewHolder)
+        .bind(eq(continuationDriver), any(LoggingListener.class), /* showSpinner= */ eq(true));
   }
 
   @Test
@@ -210,7 +216,8 @@ public class ContinuationDriverTest {
 
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
-    verify(continuationViewHolder).bind(continuationDriver, /* showSpinner= */ false);
+    verify(continuationViewHolder)
+        .bind(eq(continuationDriver), any(LoggingListener.class), /* showSpinner= */ eq(false));
   }
 
   @Test
@@ -236,13 +243,14 @@ public class ContinuationDriverTest {
   public void testShowsSpinnerAfterClick() {
     continuationDriver.bind(continuationViewHolder);
 
-    continuationDriver.onClick(any(View.class));
+    continuationDriver.onClick(/* v= */ null);
 
     continuationDriver.unbind();
 
     continuationDriver.bind(continuationViewHolder);
 
-    verify(continuationViewHolder).bind(continuationDriver, /* showSpinner= */ true);
+    verify(continuationViewHolder)
+        .bind(eq(continuationDriver), any(LoggingListener.class), /* showSpinner= */ eq(true));
   }
 
   @Test
@@ -257,9 +265,67 @@ public class ContinuationDriverTest {
     continuationDriver.bind(continuationViewHolder);
     continuationDriver.onClick(/* v= */ null);
 
-    verify(basicLoggingApi).onMoreButtonClicked(POSITION);
     verify(continuationViewHolder).setShowSpinner(true);
     verify(modelProvider).handleToken(modelToken);
+  }
+
+  @Test
+  public void testBind_listenerLogsMoreButtonClicked() {
+    ArgumentCaptor<LoggingListener> captor = ArgumentCaptor.forClass(LoggingListener.class);
+    continuationDriver.bind(continuationViewHolder);
+
+    verify(continuationViewHolder).bind(eq(continuationDriver), captor.capture(), anyBoolean());
+    captor.getValue().onContentClicked();
+
+    verify(basicLoggingApi).onMoreButtonClicked(POSITION);
+  }
+
+  @Test
+  public void testBind_listenerLogsMoreButtonViewed() {
+    ArgumentCaptor<LoggingListener> captor = ArgumentCaptor.forClass(LoggingListener.class);
+    continuationDriver.bind(continuationViewHolder);
+
+    verify(continuationViewHolder).bind(eq(continuationDriver), captor.capture(), anyBoolean());
+    captor.getValue().onViewVisible();
+
+    verify(basicLoggingApi).onMoreButtonViewed(POSITION);
+  }
+
+  @Test
+  public void testBind_listenerDoesNotLogViewTwice() {
+    ArgumentCaptor<LoggingListener> captor = ArgumentCaptor.forClass(LoggingListener.class);
+    continuationDriver.bind(continuationViewHolder);
+
+    verify(continuationViewHolder).bind(eq(continuationDriver), captor.capture(), anyBoolean());
+    captor.getValue().onViewVisible();
+    reset(basicLoggingApi);
+    captor.getValue().onViewVisible();
+
+    verify(basicLoggingApi, never()).onMoreButtonViewed(anyInt());
+  }
+
+  @Test
+  public void testBind_listenerDoesNotLogViewIfSpinnerShown() {
+    ArgumentCaptor<LoggingListener> captor = ArgumentCaptor.forClass(LoggingListener.class);
+    continuationDriver =
+        new ContinuationDriver(
+            basicLoggingApi,
+            new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
+            context,
+            cursorChangedListener,
+            modelChild,
+            modelProvider,
+            POSITION,
+            scrollRestorer,
+            snackbarApi,
+            threadUtils);
+    continuationDriver.initialize();
+    continuationDriver.bind(continuationViewHolder);
+
+    verify(continuationViewHolder).bind(eq(continuationDriver), captor.capture(), anyBoolean());
+    captor.getValue().onViewVisible();
+
+    verify(basicLoggingApi, never()).onMoreButtonViewed(anyInt());
   }
 
   @Test
@@ -352,13 +418,15 @@ public class ContinuationDriverTest {
 
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
-    verify(continuationViewHolder).bind(continuationDriver, true);
+    verify(continuationViewHolder)
+        .bind(eq(continuationDriver), any(LoggingListener.class), eq(true));
 
     continuationDriver.unbind();
     continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
     continuationDriver.bind(continuationViewHolder);
 
-    verify(continuationViewHolder).bind(continuationDriver, false);
+    verify(continuationViewHolder)
+        .bind(eq(continuationDriver), any(LoggingListener.class), eq(false));
     verify(continuationViewHolder, never()).setShowSpinner(anyBoolean());
   }
 }

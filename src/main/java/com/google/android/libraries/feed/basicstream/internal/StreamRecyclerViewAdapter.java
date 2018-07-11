@@ -94,7 +94,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (viewType == TYPE_HEADER) {
       return new HeaderViewHolder(frameLayout);
     } else if (viewType == TYPE_CONTINUATION) {
-      return new ContinuationViewHolder(parent.getContext(), frameLayout);
+      return new ContinuationViewHolder(configuration, parent.getContext(), frameLayout);
     } else if (viewType == TYPE_NO_CONTENT) {
       return new NoContentViewHolder(cardConfiguration, parent.getContext(), frameLayout);
     } else if (viewType == TYPE_ZERO_STATE) {

@@ -53,4 +53,8 @@ public class StreamBasicLoggingApi implements BasicLoggingApi {
   public void onMoreButtonClicked(int position) {
     Logger.i(TAG, "onMoreButtonClicked. position: %d", position);
   }
+
+  public void onMoreButtonViewed(int position) {
+    Logger.i(TAG, "onMoreButtonViewed. position: %d", position);
+  }
 }

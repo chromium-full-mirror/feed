@@ -21,7 +21,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
+import com.google.android.libraries.feed.host.config.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,17 +36,28 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link ContinuationViewHolder}. */
 @RunWith(RobolectricTestRunner.class)
 public class ContinuationViewHolderTest {
+  private static final Configuration CONFIGURATION = new Configuration.Builder().build();
+
   private ContinuationViewHolder continuationViewHolder;
+  private Context context;
   private FrameLayout frameLayout;
 
-  @Mock private View.OnClickListener mockListener;
+  @Mock private OnClickListener onClickListener;
+  @Mock private LoggingListener loggingListener;
+  @Mock private VisibilityMonitor visibilityMonitor;
 
   @Before
   public void setup() {
     initMocks(this);
-    Context context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.setupActivity(Activity.class);
     frameLayout = new FrameLayout(context);
-    continuationViewHolder = new ContinuationViewHolder(context, frameLayout);
+    continuationViewHolder =
+        new ContinuationViewHolder(CONFIGURATION, context, frameLayout) {
+          @Override
+          VisibilityMonitor createVisibilityMonitor(View view, Configuration configuration) {
+            return visibilityMonitor;
+          }
+        };
   }
 
   @Test
@@ -52,17 +67,18 @@ public class ContinuationViewHolderTest {
 
   @Test
   public void testClick() {
-    continuationViewHolder.bind(mockListener, /* showSpinner= */ false);
+    continuationViewHolder.bind(onClickListener, loggingListener, /* showSpinner= */ false);
 
     View buttonView = frameLayout.findViewById(R.id.action_button);
     buttonView.performClick();
 
-    verify(mockListener).onClick(buttonView);
+    verify(onClickListener).onClick(buttonView);
+    verify(loggingListener).onContentClicked();
   }
 
   @Test
   public void testBind_spinnerOff() {
-    continuationViewHolder.bind(mockListener, /* showSpinner= */ false);
+    continuationViewHolder.bind(onClickListener, loggingListener, /* showSpinner= */ false);
     View buttonView = frameLayout.findViewById(R.id.action_button);
     View spinnerView = frameLayout.findViewById(R.id.loading_spinner);
 
@@ -74,7 +90,7 @@ public class ContinuationViewHolderTest {
 
   @Test
   public void testBind_spinnerOn() {
-    continuationViewHolder.bind(mockListener, /* showSpinner= */ true);
+    continuationViewHolder.bind(onClickListener, loggingListener, /* showSpinner= */ true);
     View buttonView = frameLayout.findViewById(R.id.action_button);
     View spinnerView = frameLayout.findViewById(R.id.loading_spinner);
 
@@ -83,10 +99,19 @@ public class ContinuationViewHolderTest {
   }
 
   @Test
+  public void testBind_setsListener() {
+    continuationViewHolder.bind(onClickListener, loggingListener, /* showSpinner= */ false);
+
+    verify(visibilityMonitor).setListener(loggingListener);
+  }
+
+  @Test
   public void testUnbind() {
-    continuationViewHolder.bind(mockListener, /* showSpinner= */ false);
+    continuationViewHolder.bind(onClickListener, loggingListener, /* showSpinner= */ false);
     continuationViewHolder.unbind();
+
     View view = frameLayout.findViewById(R.id.action_button);
     assertThat(view.isClickable()).isFalse();
+    verify(visibilityMonitor).setListener(null);
   }
 }

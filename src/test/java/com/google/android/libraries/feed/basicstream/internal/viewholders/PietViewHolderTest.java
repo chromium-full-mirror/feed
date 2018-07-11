@@ -101,14 +101,9 @@ public class PietViewHolderTest {
     configuration = new Configuration.Builder().build();
     pietViewHolder =
         new PietViewHolder(
-            cardConfiguration,
-            frameLayout,
-            pietManager,
-            context,
-            actionParser,
-            configuration) {
+            cardConfiguration, frameLayout, pietManager, context, actionParser, configuration) {
           @Override
-          VisibilityMonitor createVisibilityMonitor(View view, double viewLogThreshold) {
+          VisibilityMonitor createVisibilityMonitor(View view, Configuration configuration) {
             return visibilityMonitor;
           }
         };

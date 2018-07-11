@@ -26,6 +26,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,9 +39,10 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class VisibilityMonitorTest {
 
+  private static final Configuration CONFIGURATION =
+      new Configuration.Builder().put(ConfigKey.VIEW_LOG_THRESHOLD, .50).build();
   private static final int VIEW_HEIGHT = 100;
   private static final int VIEW_WIDTH = 50;
-  private static final double VIEW_LOG_THRESHOLD = .50;
 
   @Mock private VisibilityListener visibilityListener;
 
@@ -119,7 +122,7 @@ public class VisibilityMonitorTest {
 
   @Test
   public void testPreDraw_doesNotNotifyListenerIfParentIsNull() {
-    visibilityMonitor = new VisibilityMonitor(new FrameLayout(context), VIEW_LOG_THRESHOLD);
+    visibilityMonitor = new VisibilityMonitor(new FrameLayout(context), CONFIGURATION);
     visibilityMonitor.setListener(null);
 
     visibilityMonitor.onPreDraw();
@@ -139,7 +142,7 @@ public class VisibilityMonitorTest {
         };
 
     parentView.addView(view);
-    visibilityMonitor = new VisibilityMonitor(view, VIEW_LOG_THRESHOLD);
+    visibilityMonitor = new VisibilityMonitor(view, CONFIGURATION);
     visibilityMonitor.setListener(visibilityListener);
   }
 

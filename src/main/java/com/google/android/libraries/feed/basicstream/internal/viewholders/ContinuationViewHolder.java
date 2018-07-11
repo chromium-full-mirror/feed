@@ -17,27 +17,40 @@ package com.google.android.libraries.feed.basicstream.internal.viewholders;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
+import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
+import com.google.android.libraries.feed.host.config.Configuration;
 
 /** {@link ViewHolder} for the more button. */
 public class ContinuationViewHolder extends FeedViewHolder {
 
   private final View actionButton;
   private final View spinner;
+  private final VisibilityMonitor visibilityMonitor;
 
-  public ContinuationViewHolder(Context context, FrameLayout frameLayout) {
+  public ContinuationViewHolder(
+      Configuration configuration, Context context, FrameLayout frameLayout) {
     super(frameLayout);
-    LayoutInflater.from(context).inflate(R.layout.more_button, frameLayout);
+    View containerView = LayoutInflater.from(context).inflate(R.layout.more_button, frameLayout);
     actionButton = checkNotNull(frameLayout.findViewById(R.id.action_button));
     spinner = checkNotNull(frameLayout.findViewById(R.id.loading_spinner));
+    visibilityMonitor = createVisibilityMonitor(containerView, configuration);
   }
 
-  public void bind(OnClickListener onClickListener, boolean showSpinner) {
-    actionButton.setOnClickListener(onClickListener);
+  public void bind(
+      OnClickListener onClickListener, LoggingListener loggingListener, boolean showSpinner) {
+    actionButton.setOnClickListener(
+        v -> {
+          onClickListener.onClick(v);
+          loggingListener.onContentClicked();
+        });
+    visibilityMonitor.setListener(loggingListener);
     setButtonSpinnerVisibility(showSpinner);
   }
 
@@ -45,6 +58,7 @@ public class ContinuationViewHolder extends FeedViewHolder {
   public void unbind() {
     // Clear OnClickListener to null to allow for GC.
     actionButton.setOnClickListener(null);
+    visibilityMonitor.setListener(null);
 
     // Set clickable to false as setting OnClickListener to null sets clickable to true.
     actionButton.setClickable(false);
@@ -57,5 +71,11 @@ public class ContinuationViewHolder extends FeedViewHolder {
   private void setButtonSpinnerVisibility(boolean showSpinner) {
     actionButton.setVisibility(showSpinner ? View.GONE : View.VISIBLE);
     spinner.setVisibility(showSpinner ? View.VISIBLE : View.GONE);
+  }
+
+  @VisibleForTesting
+  VisibilityMonitor createVisibilityMonitor(
+      /*@UnderInitialization*/ ContinuationViewHolder this, View view, Configuration configuration) {
+    return new VisibilityMonitor(view, configuration);
   }
 }

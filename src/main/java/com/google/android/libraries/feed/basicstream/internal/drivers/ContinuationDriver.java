@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
+import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
@@ -45,7 +46,7 @@ import java.util.List;
 
 /** {@link FeatureDriver} for the more button. */
 public class ContinuationDriver extends LeafFeatureDriver
-    implements OnClickListener, TokenCompletedObserver {
+    implements OnClickListener, LoggingListener, TokenCompletedObserver {
 
   private static final String TAG = "ContinuationDriver";
   private final StreamBasicLoggingApi basicLoggingApi;
@@ -60,6 +61,7 @@ public class ContinuationDriver extends LeafFeatureDriver
   private final ThreadUtils threadUtils;
   private boolean showSpinner;
   private boolean initialized;
+  private boolean viewLogged;
   /*@Nullable*/ private ContinuationViewHolder continuationViewHolder;
 
   ContinuationDriver(
@@ -118,7 +120,6 @@ public class ContinuationDriver extends LeafFeatureDriver
       Logger.wtf(TAG, "Calling onClick before binding.");
       return;
     }
-    basicLoggingApi.onMoreButtonClicked(position);
     showSpinner = true;
     checkNotNull(continuationViewHolder).setShowSpinner(true);
     modelProvider.handleToken(modelToken);
@@ -132,8 +133,9 @@ public class ContinuationDriver extends LeafFeatureDriver
     }
     checkState(viewHolder instanceof ContinuationViewHolder);
 
-    ((ContinuationViewHolder) viewHolder).bind(this, showSpinner);
     continuationViewHolder = (ContinuationViewHolder) viewHolder;
+    continuationViewHolder.bind(
+        /* onClickListener= */ this, /* loggingListener= */ this, showSpinner);
   }
 
   @Override
@@ -180,6 +182,22 @@ public class ContinuationDriver extends LeafFeatureDriver
     }
 
     snackbarApi.show(context.getString(R.string.snackbar_fetch_failed));
+  }
+
+  @Override
+  public void onViewVisible() {
+    // Do not log a view if the spinner is being shown.
+    if (viewLogged || showSpinner) {
+      return;
+    }
+
+    basicLoggingApi.onMoreButtonViewed(position);
+    viewLogged = true;
+  }
+
+  @Override
+  public void onContentClicked() {
+    basicLoggingApi.onMoreButtonClicked(position);
   }
 
   private List<ModelChild> extractModelChildrenFromCursor(ModelCursor cursor) {

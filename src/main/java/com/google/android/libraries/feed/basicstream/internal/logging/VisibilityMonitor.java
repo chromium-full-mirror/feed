@@ -19,19 +19,24 @@ import android.support.v4.view.ViewCompat;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 
 /** Utility class to monitor the visibility of a view. */
 public class VisibilityMonitor
     implements ViewTreeObserver.OnPreDrawListener, View.OnAttachStateChangeListener {
+
+  private static final double DEFAULT_VIEW_LOG_THRESHOLD = .66;
 
   private final View view;
   private final double viewLogThreshold;
   private boolean visible;
   /*@Nullable*/ private VisibilityListener visibilityListener;
 
-  public VisibilityMonitor(View view, double viewLogThreshold) {
+  public VisibilityMonitor(View view, Configuration configuration) {
     this.view = view;
-    this.viewLogThreshold = viewLogThreshold;
+    this.viewLogThreshold =
+        configuration.getValueOrDefault(ConfigKey.VIEW_LOG_THRESHOLD, DEFAULT_VIEW_LOG_THRESHOLD);
   }
 
   @Override

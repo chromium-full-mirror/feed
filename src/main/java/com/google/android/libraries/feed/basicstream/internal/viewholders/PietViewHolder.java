@@ -28,7 +28,6 @@ import com.google.android.libraries.feed.basicstream.internal.logging.Visibility
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -77,9 +76,7 @@ public class PietViewHolder extends FeedViewHolder {
               actionParser.parseAction(action, getStreamActionApi(), view, veLoggingToken);
             },
             context);
-    visibilityMonitor =
-        createVisibilityMonitor(
-            cardView, configuration.getValueOrDefault(ConfigKey.VIEW_LOG_THRESHOLD, .66));
+    visibilityMonitor = createVisibilityMonitor(cardView, configuration);
     cardView.addView(frameAdapter.getFrameContainer());
   }
 
@@ -139,8 +136,8 @@ public class PietViewHolder extends FeedViewHolder {
 
   @VisibleForTesting
   VisibilityMonitor createVisibilityMonitor(
-      /*@UnderInitialization*/ PietViewHolder this, View view, double viewLogThreshold) {
-    return new VisibilityMonitor(view, viewLogThreshold);
+      /*@UnderInitialization*/ PietViewHolder this, View view, Configuration configuration) {
+    return new VisibilityMonitor(view, configuration);
   }
 
   private LoggingListener getLoggingListener(/*@UnknownInitialization*/ PietViewHolder this) {
