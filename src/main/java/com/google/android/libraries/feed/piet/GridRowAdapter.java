@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -166,20 +165,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
 
     cellAdapter.getElementStyle().applyMargins(getContext(), params);
 
-    // TODO: Switch this to use the ViewUtils method in the next CL.
-    switch (cellAdapter.getVerticalGravity()) {
-      case GRAVITY_BOTTOM:
-        params.gravity = Gravity.BOTTOM;
-        break;
-      case GRAVITY_MIDDLE:
-        params.gravity = Gravity.CENTER_VERTICAL;
-        break;
-      case GRAVITY_TOP:
-        params.gravity = Gravity.TOP;
-        break;
-      default:
-        params.gravity = Gravity.NO_GRAVITY;
-    }
+    params.gravity = ViewUtils.gravityVerticalToGravity(cellAdapter.getVerticalGravity());
 
     cellAdapter.setLayoutParams(params);
   }
