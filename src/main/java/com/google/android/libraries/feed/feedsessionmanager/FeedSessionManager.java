@@ -100,7 +100,7 @@ public class FeedSessionManager
   // synchronize access.
   private final ContentCache contentCache;
 
-  private final AtomicBoolean initialized = new AtomicBoolean(false);
+  @VisibleForTesting final AtomicBoolean initialized = new AtomicBoolean(false);
 
   // This captures the NO_CARDS_ERROR when a request fails. The request fails in one task and this
   // is sent to the ModelProvider in the populateSessionTask.
@@ -168,6 +168,10 @@ public class FeedSessionManager
    * executor task.
    */
   public void initialize() {
+    if (initialized.get()) {
+      Logger.i(TAG, "FeedSessionManager has previously been initialized");
+      return;
+    }
     initialized.set(true);
     store.registerObserver(this);
     taskQueue.initialize(this::initializationTask);
@@ -716,6 +720,7 @@ public class FeedSessionManager
 
   @Override
   public void onLifecycleEvent(@LifecycleEvent String event) {
+    Logger.i(TAG, "onLifecycleEvent %s", event);
     switch (event) {
       case LifecycleEvent.CLEAR_ALL:
         taskQueue.execute("reset", TaskType.POST_INIT, this::reset);

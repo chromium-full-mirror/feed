@@ -51,6 +51,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
@@ -178,7 +179,10 @@ public class FeedSessionManagerTest {
                 clock,
                 appLifecycleListener)
             .create();
+    assertThat(sessionManager.initialized.get()).isFalse();
     sessionManager.initialize();
+    assertThat(sessionManager.initialized.get()).isTrue();
+
     Map<String, StreamSharedState> sharedStateCache = sessionManager.getSharedStateCacheForTest();
     assertThat(sharedStateCache).hasSize(sharedStates.size());
 
@@ -189,6 +193,29 @@ public class FeedSessionManagerTest {
     Set<String> content = ((HeadSessionImpl) head).getContentInSessionForTest();
     assertThat(content).contains(itemKey);
     assertThat(content).hasSize(streamStructures.size());
+  }
+
+  @Test
+  public void testLifecycleInitialization() {
+    FeedSessionManager sessionManager =
+        new FeedSessionManagerFactory(
+                taskQueue,
+                store,
+                timingUtils,
+                threadUtils,
+                mainThreadRunner,
+                protocolAdapter,
+                requestManager,
+                schedulerApi,
+                configuration,
+                clock,
+                appLifecycleListener)
+            .create();
+    assertThat(sessionManager.initialized.get()).isFalse();
+    sessionManager.onLifecycleEvent(LifecycleEvent.INITIALIZE);
+    assertThat(sessionManager.initialized.get()).isTrue();
+    sessionManager.onLifecycleEvent(LifecycleEvent.INITIALIZE);
+    assertThat(sessionManager.initialized.get()).isTrue();
   }
 
   @Test
