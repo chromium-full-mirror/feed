@@ -132,9 +132,11 @@ public class FeedRequestManager implements RequestManager {
     RequestBuilder request = newDefaultRequest();
 
     if (threadUtils.isMainThread()) {
+      // This will make a new request, it should invalidate the existing head to delay everything
+      // until the response is obtained.
       taskQueue.execute(
-          "requestManagerTriggerRefresh",
-          TaskType.POST_INIT, // always run requests as soon as possible
+          "requestManager.TriggerRefresh",
+          TaskType.HEAD_INVALIDATE,
           () -> executeRequest(request, consumer));
     } else {
       executeRequest(request, consumer);
