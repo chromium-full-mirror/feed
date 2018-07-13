@@ -252,6 +252,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     int removalIndex = headers.size() + index;
 
     leafFeatureDrivers.remove(index);
+    deepestContentTracker.removeContentId(index);
 
     if (streamContentVisible) {
       notifyItemRemoved(removalIndex);

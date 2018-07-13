@@ -14,16 +14,12 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver;
-import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link DeepestContentTracker}. */
@@ -33,61 +29,86 @@ public class DeepestContentTrackerTest {
   private static final String CONTENT_ID_1 = "CONTENT_ID_1";
   private static final String CONTENT_ID_2 = "CONTENT_ID_2";
 
-  @Mock private ContentDriver firstContentDriver;
-  @Mock private ContentDriver secondContentDriver;
-
-  @Mock private FeedViewHolder firstViewHolder;
-  @Mock private FeedViewHolder secondViewHolder;
-
   private DeepestContentTracker deepestContentTracker;
 
   @Before
   public void setUp() {
-    initMocks(this);
-
-    when(firstContentDriver.getContentId()).thenReturn(CONTENT_ID_1);
-    when(firstViewHolder.getAdapterPosition()).thenReturn(0);
-
-    when(secondContentDriver.getContentId()).thenReturn(CONTENT_ID_2);
-    when(secondViewHolder.getAdapterPosition()).thenReturn(1);
-
     deepestContentTracker = new DeepestContentTracker();
   }
 
   @Test
   public void testUpdateDeepestContentTracker() {
-    deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_1);
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
 
     assertThat(deepestContentTracker.getChildViewDepth()).isEqualTo(CONTENT_ID_1);
   }
 
   @Test
   public void testUpdateDeepestContentTracker_updatesFromDeeperContent() {
-    deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_1);
-    deepestContentTracker.updateDeepestContentTracker(2, CONTENT_ID_2);
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
+    deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_2);
 
     assertThat(deepestContentTracker.getChildViewDepth()).isEqualTo(CONTENT_ID_2);
   }
 
   @Test
-  public void testUpdateDeepestContentTracker_doesntUpdatesFromShallowerContent() {
-    deepestContentTracker.updateDeepestContentTracker(2, CONTENT_ID_2);
+  public void testUpdateDeepestContentTracker_doesNotAddContentIdIfAlreadyTracked() {
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_2);
     deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_1);
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_2);
 
-    assertThat(deepestContentTracker.getChildViewDepth()).isEqualTo(CONTENT_ID_2);
+    assertThat(deepestContentTracker.getChildViewDepth()).isEqualTo(CONTENT_ID_1);
   }
 
   @Test
   public void testUpdateDeepestContentTracker_ignoresNullContentId() {
-    deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_1);
-    deepestContentTracker.updateDeepestContentTracker(10000, /* contentId= */ null);
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
+    deepestContentTracker.updateDeepestContentTracker(1, /* contentId= */ null);
+
+    assertThat(deepestContentTracker.getChildViewDepth()).isEqualTo(CONTENT_ID_1);
+  }
+
+  @Test
+  public void testUpdateDeepestContentTracker_throwsExceptionWhenUpdatingPreviousKnownPosition() {
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
+    deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_2);
+
+    assertThatRunnable(() -> deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_2))
+        .throwsAnExceptionOfType(RuntimeException.class);
+  }
+
+  @Test
+  public void testRemoveContentId() {
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
+    deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_2);
+
+    deepestContentTracker.removeContentId(1);
+
+    assertThat(deepestContentTracker.getChildViewDepth()).isEqualTo(CONTENT_ID_1);
+  }
+
+  @Test
+  public void testRemoveContentId_removingShallowerContentIdRetainsDeeperId() {
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
+    deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_2);
+
+    deepestContentTracker.removeContentId(0);
+
+    assertThat(deepestContentTracker.getChildViewDepth()).isEqualTo(CONTENT_ID_2);
+  }
+
+  @Test
+  public void testRemoveContentId_doesNotRemoveContentId() {
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
+
+    deepestContentTracker.removeContentId(1);
 
     assertThat(deepestContentTracker.getChildViewDepth()).isEqualTo(CONTENT_ID_1);
   }
 
   @Test
   public void testReset() {
-    deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_1);
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
 
     deepestContentTracker.reset();
 

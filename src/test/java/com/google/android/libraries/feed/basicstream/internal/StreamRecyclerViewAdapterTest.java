@@ -238,6 +238,7 @@ public class StreamRecyclerViewAdapterTest {
   public void testNotifyContentsRemoved() {
     streamRecyclerViewAdapter.notifyContentRemoved(0);
     assertThat(streamRecyclerViewAdapter.getLeafFeatureDrivers()).isEmpty();
+    verify(deepestContentTracker).removeContentId(0);
   }
 
   @Test

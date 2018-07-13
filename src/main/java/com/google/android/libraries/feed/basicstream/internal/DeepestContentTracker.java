@@ -15,40 +15,57 @@
 package com.google.android.libraries.feed.basicstream.internal;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
+import com.google.android.libraries.feed.common.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Tracks the {@code contentId} of the deepest viewed content. */
 public class DeepestContentTracker implements ViewDepthProvider {
 
   private static final String TAG = "DeepestContentTracker";
-  private static final int NO_CONTENT_VIEWED = -1;
 
-  /*@Nullable*/ private String deepestViewedContentId;
-
-  private int deepestViewedContentPosition = NO_CONTENT_VIEWED;
+  private final List</*@Nullable*/ String> contentIds = new ArrayList<>();
 
   void updateDeepestContentTracker(int contentPosition, /*@Nullable*/ String contentId) {
-    if (contentId == null) {
+    // Do not add contentId if already present.
+    if (contentPosition < contentIds.size()) {
+      if (contentId != null && !contentId.equals(contentIds.get(contentPosition))) {
+        Logger.wtf(
+            TAG,
+            "Adding contentId %s at %d when position is already being tracked.",
+            contentId,
+            contentPosition);
+      }
       return;
     }
 
-    // Explicitly updating the deepestViewedContentId in the case where we update with the same
-    // position. The reason for that is situation where the user sees the 5th card and then
-    // dismisses the 4th card, bringing what was the 6th card into view. However, that card is now
-    // at index 5.
-    if (contentPosition >= deepestViewedContentPosition) {
-      deepestViewedContentPosition = contentPosition;
-      deepestViewedContentId = contentId;
+    contentIds.add(contentId);
+  }
+
+  void removeContentId(int contentPosition) {
+    if (contentPosition >= contentIds.size()) {
+      return;
     }
+
+    contentIds.remove(contentPosition);
   }
 
   public void reset() {
-    deepestViewedContentId = null;
-    deepestViewedContentPosition = NO_CONTENT_VIEWED;
+    contentIds.clear();
   }
 
   @Override
   /*@Nullable*/
   public String getChildViewDepth() {
-    return deepestViewedContentId;
+    if (contentIds.isEmpty()) {
+      return null;
+    }
+
+    int i = contentIds.size() - 1;
+    while (contentIds.get(i) == null && i > 0) {
+      i--;
+    }
+
+    return contentIds.get(i);
   }
 }
