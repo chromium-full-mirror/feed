@@ -576,6 +576,7 @@ message GridCell {
   }
 
   // The width of this cell, either fixed width or relative width.
+  // If width is not specified, behaves as if weight = 1 by default.
   oneof cell_width {
     // Specified inline.
     GridCellWidth width = 4;
@@ -590,7 +591,8 @@ message GridCell {
 
 // The width of a GridCell.
 message GridCellWidth {
-  // The width specification.
+  // The width specification. One of these fields must be populated, otherwise
+  // ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS warning will be raised.
   oneof width_spec {
     // The width of the cell expressed as DP.
     int32 dp = 1;

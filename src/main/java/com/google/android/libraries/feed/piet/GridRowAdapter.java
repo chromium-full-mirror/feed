@@ -122,7 +122,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
       gridCellWidth = frameContext.getGridCellWidthFromBinding(cell.getWidthBinding());
     }
 
-    // If we have a requested width, use it; otherwise, WRAP_CONTENT.
+    // If a width is specified on the proto, we expect it to be populated so we can use it.
     if (gridCellWidth != null) {
       switch (gridCellWidth.getWidthSpecCase()) {
         case CONTENT_WIDTH:

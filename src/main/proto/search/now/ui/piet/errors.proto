@@ -312,6 +312,15 @@ enum ErrorCode {
     (client_error) = ERROR
   ];
 
+  // It does not make sense to have a GridCell where GridCellWidth is specified
+  // but nothing inside the GridCellWidth is populated. Looks like missing data.
+  ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS = 108 [
+    // Server should flag to feature authors when such data is given.
+    (server_error) = ERROR,
+    // Clients will use the default value but warn about missing data.
+    (client_error) = WARNING
+  ];
+
   // ---------------------------------------------------------------------------
   // Performance Related.
   // Fields start at ID 201.
