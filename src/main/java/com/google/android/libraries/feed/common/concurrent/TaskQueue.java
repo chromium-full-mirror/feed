@@ -57,10 +57,10 @@ public class TaskQueue implements Dumpable {
   private static final String TAG = "TaskQueue";
 
   /**
-   * Once we delay the queue, if we are not making any progress after the initial {@link
+   * Once we delay the queue, if we are not making any progress after the initial {@code
    * #STARVATION_TIMEOUT_MS}, we will start running tasks. {@link #STARVATION_CHECK_MS} is the
    * amount of time until we check for starvation. Checking for starvation is done on the main
-   * thread. Starvation checkin is started when we initially delay the queue an only runs while the
+   * thread. Starvation checks are started when we initially delay the queue and only runs while the
    * queue is delayed.
    */
   private static final long STARVATION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(15);
