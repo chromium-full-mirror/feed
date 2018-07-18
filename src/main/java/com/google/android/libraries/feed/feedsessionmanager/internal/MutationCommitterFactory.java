@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Class which implements factory to create the task which commits a mutation to the SessionManager
@@ -138,6 +139,7 @@ public class MutationCommitterFactory implements Dumpable {
 
     @VisibleForTesting boolean clearedHead = false;
     private List<StreamDataOperation> dataOperations;
+    private CountDownLatch mutationComplete;
 
     private MutationCommitter(
         String task,
@@ -251,12 +253,25 @@ public class MutationCommitterFactory implements Dumpable {
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
       contentCache.finishMutation();
-      taskQueue.execute("contentMutation", TaskType.BACKGROUND, contentMutation::commit);
-      // TODO: currently there is a small window in which an action could occur and the
-      // request be sent to the server before this is written, fix
+      mutationComplete = new CountDownLatch(2);
       taskQueue.execute(
-          "semanticPropertiesMutation", TaskType.BACKGROUND, semanticPropertiesMutation::commit);
+          "contentMutation", TaskType.BACKGROUND, () -> countDownTask(contentMutation::commit));
+      taskQueue.execute(
+          "semanticPropertiesMutation",
+          TaskType.BACKGROUND,
+          () -> countDownTask(semanticPropertiesMutation::commit));
       timeTracker.stop("", "contentUpdate", "items", dataOperations.size());
+    }
+
+    private void countDownTask(Runnable runnable) {
+      runnable.run();
+      mutationComplete.countDown();
+      if (mutationComplete.getCount() == 0) {
+        Consumer<Boolean> completionConsumer = mutationContext.getMutationCompleteConsumer();
+        if (completionConsumer != null) {
+          completionConsumer.accept(true);
+        }
+      }
     }
 
     private void commitSessionUpdates() {

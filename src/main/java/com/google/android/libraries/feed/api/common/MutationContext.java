@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.common;
 
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 
@@ -24,14 +25,18 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 public class MutationContext {
   /*@Nullable*/ private final StreamToken continuationToken;
   /*@Nullable*/ private final StreamSession requestingSession;
+  /*@Nullable*/ private final Consumer<Boolean> mutationCompleteConsumer;
 
   /** Static used to represent an empty Mutation Context */
-  public static final MutationContext EMPTY_CONTEXT = new MutationContext(null, null);
+  public static final MutationContext EMPTY_CONTEXT = new MutationContext(null, null, null);
 
   private MutationContext(
-      /*@Nullable*/ StreamToken continuationToken, /*@Nullable*/ StreamSession requestingSession) {
+      /*@Nullable*/ StreamToken continuationToken,
+      /*@Nullable*/ StreamSession requestingSession,
+      /*@Nullable*/ Consumer<Boolean> mutationCompleteConsumer) {
     this.continuationToken = continuationToken;
     this.requestingSession = requestingSession;
+    this.mutationCompleteConsumer = mutationCompleteConsumer;
   }
 
   /** Returns the continuation token used to make the request. */
@@ -46,10 +51,16 @@ public class MutationContext {
     return requestingSession;
   }
 
+  /*@Nullable*/
+  public Consumer<Boolean> getMutationCompleteConsumer() {
+    return mutationCompleteConsumer;
+  }
+
   /** Builder for creating a {@link com.google.android.libraries.feed.api.common.MutationContext */
   public static class Builder {
     /*@MonotonicNonNull*/ private StreamToken continuationToken;
     /*@MonotonicNonNull*/ private StreamSession requestingSession;
+    /*@MonotonicNonNull*/ private Consumer<Boolean> mutationCompleteConsumer;
 
     public Builder() {}
 
@@ -63,8 +74,13 @@ public class MutationContext {
       return this;
     }
 
+    public Builder setMutationCompleteConsumer(Consumer<Boolean> mutationCompleteConsumer) {
+      this.mutationCompleteConsumer = mutationCompleteConsumer;
+      return this;
+    }
+
     public MutationContext build() {
-      return new MutationContext(continuationToken, requestingSession);
+      return new MutationContext(continuationToken, requestingSession, mutationCompleteConsumer);
     }
   }
 }

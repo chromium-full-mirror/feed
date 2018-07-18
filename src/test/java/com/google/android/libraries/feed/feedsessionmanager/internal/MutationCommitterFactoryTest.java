@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.api.common.MutationContext.EMPTY
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -33,6 +34,7 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -159,6 +161,30 @@ public class MutationCommitterFactoryTest {
     mutationCommitter.accept(Result.success(dataOperations));
     assertThat(mutationCommitter.clearedHead).isTrue();
     assertThat(resetSession).isEqualTo(session.getStreamSession());
+  }
+
+  @Test
+  public void testCompletion() {
+    @SuppressWarnings("unchecked")
+    Consumer<Boolean> completion = mock(Consumer.class);
+    List<String> contentIds = getContentIds(3);
+    List<Pair<StreamStructure, StreamPayload>> features =
+        getFeatures(
+            contentIds,
+            () ->
+                StreamPayload.newBuilder()
+                    .setStreamFeature(StreamFeature.getDefaultInstance())
+                    .build());
+    List<StreamDataOperation> dataOperations = new ArrayList<>();
+    for (Pair<StreamStructure, StreamPayload> feature : features) {
+      dataOperations.add(getStreamDataOperation(feature.first, feature.second));
+    }
+
+    MutationCommitter mutationCommitter =
+        getMutationCommitter(
+            new MutationContext.Builder().setMutationCompleteConsumer(completion).build());
+    mutationCommitter.accept(Result.success(dataOperations));
+    verify(completion).accept(true);
   }
 
   @Test
