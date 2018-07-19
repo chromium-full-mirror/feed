@@ -187,16 +187,6 @@ enum ErrorCode {
     (client_error) = WARNING
   ];
 
-  // If a BindingValue is found for a BindingRef that doesn’t exist, this error
-  // is raised.
-  ERR_MISSING_BINDING_REF = 7 [
-    // Server should flag to feature authors when an expected BindingRef is
-    // missing.
-    (server_error) = ERROR,
-    // Clients prefer to avoid dropping Frames, so continue to render.
-    (client_error) = NOTICE
-  ];
-
   // If a BindingValue is missing for a BindingRef that is required (i.e. not
   // marked is_optional), this error is raised.
   ERR_MISSING_BINDING_VALUE = 8 [
