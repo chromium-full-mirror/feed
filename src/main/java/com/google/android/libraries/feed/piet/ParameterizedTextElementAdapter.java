@@ -16,9 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 
 import android.content.Context;
-import android.view.View;
 import android.widget.TextView;
-import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -47,18 +45,6 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
       case PARAMETERIZED_TEXT_BINDING:
         BindingValue bindingValue =
             frameContext.getParameterizedTextBindingValue(textLine.getParameterizedTextBinding());
-        if (bindingValue == null) {
-          // If no binding is specified, raise an error and hide the corresponding UI element.
-          Logger.e(
-              TAG,
-              frameContext.reportError(
-                  MessageType.ERROR,
-                  String.format(
-                      "TextElement Binding not found for %s",
-                      textLine.getParameterizedTextBinding())));
-          getBaseView().setVisibility(View.GONE);
-          return;
-        }
 
         setVisibility(bindingValue.getVisibility());
         if (!bindingValue.hasParameterizedText()
@@ -75,14 +61,16 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
         setTextOnView(getBaseView(), bindingValue.getParameterizedText());
         break;
       default:
-        throw new IllegalArgumentException(
+        frameContext.reportError(
+            MessageType.ERROR,
             String.format(
                 "TextElement missing ParameterizedText content; has %s",
                 textLine.getContentCase()));
+        setTextOnView(getBaseView(), ParameterizedText.getDefaultInstance());
     }
   }
 
-  void setTextOnView(TextView textView, ParameterizedText parameterizedText) {
+  private void setTextOnView(TextView textView, ParameterizedText parameterizedText) {
     if (!parameterizedText.hasText()) {
       textView.setText("");
       return;

@@ -43,6 +43,7 @@ import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplie
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ActionsClickableSpan;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ImageSpanDrawableCallback;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapterTest.ShadowTextViewWithHeight;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -50,6 +51,7 @@ import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
@@ -197,6 +199,79 @@ public class ChunkedTextElementAdapterTest {
 
     verify(frameContext).getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF);
     assertThat(adapter.getBaseView().getText().toString()).isEqualTo(PROCESSED_TEXT);
+  }
+
+  @Test
+  public void testBind_chunkedTextWithBoundText() {
+    ParameterizedTextBindingRef textBinding =
+        ParameterizedTextBindingRef.newBuilder().setBindingId("sometext").build();
+    TextElement chunkedTextElement =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(
+                        Chunk.newBuilder()
+                            .setTextChunk(
+                                StyledTextChunk.newBuilder()
+                                    .setParameterizedTextBinding(textBinding))))
+            .build();
+    when(frameContext.getParameterizedTextBindingValue(textBinding))
+        .thenReturn(
+            BindingValue.newBuilder().setParameterizedText(PARAMETERIZED_CHUNK_TEXT).build());
+
+    adapter.createAdapter(chunkedTextElement, frameContext);
+    adapter.bindModel(chunkedTextElement, frameContext);
+
+    assertThat(adapter.getBaseView().getText().toString()).isEqualTo(PROCESSED_TEXT);
+  }
+
+  @Test
+  public void testBind_chunkedTextWithBoundText_gone() {
+    ParameterizedTextBindingRef textBinding =
+        ParameterizedTextBindingRef.newBuilder().setBindingId("sometext").build();
+    TextElement chunkedTextElement =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(
+                        Chunk.newBuilder()
+                            .setTextChunk(
+                                StyledTextChunk.newBuilder()
+                                    .setParameterizedTextBinding(textBinding))))
+            .build();
+    when(frameContext.getParameterizedTextBindingValue(textBinding))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setParameterizedText(PARAMETERIZED_CHUNK_TEXT)
+                .setVisibility(Visibility.GONE)
+                .build());
+
+    adapter.createAdapter(chunkedTextElement, frameContext);
+    adapter.bindModel(chunkedTextElement, frameContext);
+
+    assertThat(adapter.getBaseView().getText().toString()).isEmpty();
+  }
+
+  @Test
+  public void testBind_chunkedTextWithNoContent() {
+    TextElement chunkedTextElement =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(
+                        Chunk.newBuilder().setTextChunk(StyledTextChunk.getDefaultInstance())))
+            .build();
+    when(mockTextEvaluator.evaluate(mockAssetProvider, ParameterizedText.getDefaultInstance()))
+        .thenReturn("");
+
+    adapter.createAdapter(chunkedTextElement, frameContext);
+    adapter.bindModel(chunkedTextElement, frameContext);
+
+    assertThat(adapter.getBaseView().getText().toString()).isEmpty();
+    verify(frameContext)
+        .reportError(
+            MessageType.ERROR,
+            "StyledTextChunk missing ParameterizedText content; has CONTENT_NOT_SET");
   }
 
   @Test

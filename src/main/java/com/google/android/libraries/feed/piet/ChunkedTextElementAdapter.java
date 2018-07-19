@@ -39,6 +39,7 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.piet.ActionsProto.Action;
@@ -51,6 +52,7 @@ import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.TextProto.Chunk;
 import com.google.search.now.ui.piet.TextProto.ChunkedText;
+import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import com.google.search.now.ui.piet.TextProto.StyledImageChunk;
 import java.util.HashSet;
 import java.util.Set;
@@ -179,12 +181,37 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
   @VisibleForTesting
   void addTextChunk(FrameContext frameContext, SpannableStringBuilder spannable, Chunk chunk) {
     int start = spannable.length();
+    ParameterizedText parameterizedText;
+    switch (chunk.getTextChunk().getContentCase()) {
+      case PARAMETERIZED_TEXT:
+        parameterizedText = chunk.getTextChunk().getParameterizedText();
+        break;
+      case PARAMETERIZED_TEXT_BINDING:
+        BindingValue textBindingValue =
+            frameContext.getParameterizedTextBindingValue(
+                chunk.getTextChunk().getParameterizedTextBinding());
+        if (textBindingValue.getVisibility() == Visibility.GONE) {
+          return;
+        } else if (textBindingValue.getVisibility() == Visibility.INVISIBLE) {
+          Logger.w(
+              TAG,
+              "Got unsupported INVISIBLE visibility on binding value '%s'",
+              textBindingValue.getBindingId());
+        }
+        parameterizedText = textBindingValue.getParameterizedText();
+        break;
+      default:
+        frameContext.reportError(
+            MessageType.ERROR,
+            String.format(
+                "StyledTextChunk missing ParameterizedText content; has %s",
+                chunk.getTextChunk().getContentCase()));
+        parameterizedText = ParameterizedText.getDefaultInstance();
+    }
     String evaluatedText =
         getParameters()
             .templatedStringEvaluator
-            .evaluate(
-                getParameters().hostProviders.getAssetProvider(),
-                chunk.getTextChunk().getParameterizedText());
+            .evaluate(getParameters().hostProviders.getAssetProvider(), parameterizedText);
     spannable.append(evaluatedText);
     StyleProvider chunkStyle = frameContext.makeStyleFor(chunk.getTextChunk().getStyleReferences());
     if (chunkStyle.hasColor()) {

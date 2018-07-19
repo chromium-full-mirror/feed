@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -96,12 +97,15 @@ public class ParameterizedTextElementAdapterTest {
   public void testBindModel_noContent() {
     adapter.createAdapter(getBaseTextElement(), frameContext);
     TextElement textElement = TextElement.getDefaultInstance();
+    adapter.bindModel(textElement, frameContext);
 
-    assertThatRunnable(() -> adapter.bindModel(textElement, frameContext))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
-        .that()
-        .hasMessageThat()
-        .contains("TextElement missing ParameterizedText content");
+    TextView textView = adapter.getBaseView();
+    assertThat(textView).isNotNull();
+    assertThat(textView.getText()).isEqualTo("");
+    verify(frameContext)
+        .reportError(
+            MessageType.ERROR,
+            "TextElement missing ParameterizedText content; has CONTENT_NOT_SET");
   }
 
   @Test
@@ -120,20 +124,6 @@ public class ParameterizedTextElementAdapterTest {
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
     assertThat(textView.getText()).isEqualTo(TEXT_LINE_CONTENT);
-  }
-
-  @Test
-  public void testBindModel_withBinding_noBinding() {
-    when(frameContext.getParameterizedTextBindingValue(DEFAULT_BINDING_REF)).thenReturn(null);
-
-    TextElement textElement = getBindingTextElement(null);
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getText()).isEqualTo("");
-    assertThat(textView.getVisibility()).isEqualTo(View.GONE);
   }
 
   @Test
