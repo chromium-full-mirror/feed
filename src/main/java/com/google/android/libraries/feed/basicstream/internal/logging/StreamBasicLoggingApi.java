@@ -15,11 +15,10 @@
 package com.google.android.libraries.feed.basicstream.internal.logging;
 
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 
 // TODO: Replace with host implementation once host api is finalized.
 /** Stand in API to log basic events. */
-public class StreamBasicLoggingApi implements BasicLoggingApi {
+public class StreamBasicLoggingApi {
   public static final String TAG = "StreamBasicLoggingApi";
 
   public void onContentViewed(StreamContentLoggingData contentLoggingData) {
