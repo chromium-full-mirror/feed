@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.model.ModelFilter;
 
 /**
  * Factory for creating instances of {@link ModelProviderFactory} using the {@link
@@ -32,6 +33,7 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final MainThreadRunner mainThreadRunner;
+  private final ModelFilter modelFilter;
   private final Configuration config;
 
   public FeedModelProviderFactory(
@@ -39,18 +41,21 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
       MainThreadRunner mainThreadRunner,
+      ModelFilter modelFilter,
       Configuration config) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.mainThreadRunner = mainThreadRunner;
+    this.modelFilter = modelFilter;
     this.config = config;
   }
 
   @Override
   public ModelProvider create(String sessionToken) {
     FeedModelProvider modelProvider =
-        new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
+        new FeedModelProvider(
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, modelFilter, config);
     sessionManager.getExistingSession(sessionToken, modelProvider);
     return modelProvider;
   }
@@ -58,7 +63,8 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   @Override
   public ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider) {
     FeedModelProvider modelProvider =
-        new FeedModelProvider(sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
+        new FeedModelProvider(
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, modelFilter, config);
     sessionManager.getNewSession(
         modelProvider, modelProvider.getViewDepthProvider(viewDepthProvider));
     return modelProvider;

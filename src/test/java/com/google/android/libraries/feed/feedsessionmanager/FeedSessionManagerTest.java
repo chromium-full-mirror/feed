@@ -57,6 +57,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSession
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.model.ModelFilter;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
@@ -112,6 +113,7 @@ public class FeedSessionManagerTest {
   @Mock private SchedulerApi schedulerApi;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelMutation modelMutation;
+  @Mock private ModelFilter modelFilter;
   @Mock private Store store;
   @Mock private Clock clock;
 
@@ -226,7 +228,7 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, modelFilter, configuration);
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getRootFeature()).isNotNull();
@@ -258,7 +260,7 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, modelFilter, configuration);
     // TODO: We can't verify that raiseError was called on ModelProvider since all of that
     // happens in the createNew() call due to the single threaded nature.  We may want to have a
     // test method on the factory to install the observer when creating the ModelProvider.
@@ -450,7 +452,12 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            spySessionManager,
+            threadUtils,
+            timingUtils,
+            mainThreadRunner,
+            modelFilter,
+            configuration);
     modelProviderFactory.createNew(null);
     verify(spySessionManager).switchToEphemeralMode(anyString());
   }
@@ -466,7 +473,12 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            spySessionManager,
+            threadUtils,
+            timingUtils,
+            mainThreadRunner,
+            modelFilter,
+            configuration);
     modelProviderFactory.createNew(null);
     verify(spySessionManager).switchToEphemeralMode(anyString());
   }

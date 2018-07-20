@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFa
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.model.ModelFilter;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
@@ -130,7 +131,12 @@ public class InfrastructureIntegrationScope {
     feedSessionManager.initialize();
     modelProviderFactory =
         new FeedModelProviderFactory(
-            feedSessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            feedSessionManager,
+            threadUtils,
+            timingUtils,
+            mainThreadRunner,
+            ModelFilter.NOOP_MODEL_FILTER,
+            configuration);
   }
 
   public ProtocolAdapter getProtocolAdapter() {

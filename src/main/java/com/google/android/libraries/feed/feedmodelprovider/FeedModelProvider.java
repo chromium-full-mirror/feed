@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -52,6 +53,7 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.model.ModelFilter;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -122,6 +124,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
 
+  /*@Nullable*/ private final Predicate<StreamStructure> dropStructurePredicate;
+
   private final int nonCacheInitialPageSize;
   private final int nonCachePageSize;
   private final int nonCacheMinPageSize;
@@ -134,6 +138,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
       MainThreadRunner mainThreadRunner,
+      ModelFilter modelFilter,
       Configuration config) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
@@ -145,6 +150,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     this.nonCacheMinPageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0);
     this.failPaginationRequests =
         config.getValueOrDefault(ConfigKey.FAIL_PAGINATION_REQUESTS, false);
+    dropStructurePredicate = modelFilter.getDropStructurePredicate();
 
     CursorProvider cursorProvider =
         parentId -> {
@@ -517,6 +523,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           List<StreamStructure> removedChildren = new ArrayList<>();
           List<UpdatableModelChild> childrenToBind = new ArrayList<>();
           for (StreamStructure structureChange : change.structureChanges) {
+            if (dropStructurePredicate != null && dropStructurePredicate.test(structureChange)) {
+              continue;
+            }
             if (structureChange.getOperation() == Operation.UPDATE_OR_APPEND) {
               UpdatableModelChild child =
                   new UpdatableModelChild(
