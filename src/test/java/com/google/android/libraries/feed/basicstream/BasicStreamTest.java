@@ -53,7 +53,6 @@ import com.google.android.libraries.feed.basicstream.internal.StreamContentChang
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -61,6 +60,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -104,7 +104,7 @@ public class BasicStreamTest {
   @Mock private StreamScrollMonitor streamScrollMonitor;
   @Mock private ScrollRestorer nonRestoringScrollRestorer;
   @Mock private ScrollRestorer scrollRestorer;
-  @Mock private StreamBasicLoggingApi basicLoggingApi;
+  @Mock private BasicLoggingApi basicLoggingApi;
 
   private Configuration configuration = new Configuration.Builder().build();
   private LinearLayoutManagerWithFakePositioning layoutManager;
@@ -545,7 +545,8 @@ public class BasicStreamTest {
           hostBindingProvider,
           actionManager,
           configuration,
-          snackbarApi);
+          snackbarApi,
+          basicLoggingApi);
       this.layoutManager = layoutManager;
     }
 
@@ -573,7 +574,7 @@ public class BasicStreamTest {
         SnackbarApi snackbarApi,
         ContentChangedListener contentChangedListener,
         ScrollRestorer scrollRestorer,
-        StreamBasicLoggingApi basicLoggingApi) {
+        BasicLoggingApi basicLoggingApi) {
       streamDriverScrollRestorer = scrollRestorer;
       return streamDriver;
     }
@@ -615,11 +616,6 @@ public class BasicStreamTest {
     @Override
     ScrollRestorer createNonRestoringScrollRestorer(RecyclerView recyclerView) {
       return nonRestoringScrollRestorer;
-    }
-
-    @Override
-    StreamBasicLoggingApi createBasicLoggingApi() {
-      return basicLoggingApi;
     }
   }
 

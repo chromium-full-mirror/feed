@@ -29,8 +29,8 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -78,7 +78,7 @@ public class CardDriverTest {
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
   @Mock private ActionParser actionParser;
-  @Mock private StreamBasicLoggingApi basicLoggingApi;
+  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentDriver contentDriverChild;
   @Mock private ModelFeature cardModelFeature;
   @Mock private ModelProvider modelProvider;
@@ -176,7 +176,7 @@ public class CardDriverTest {
         ActionApi actionApi,
         ActionManager actionManager,
         ActionParser actionParser,
-        StreamBasicLoggingApi basicLoggingApi,
+        BasicLoggingApi basicLoggingApi,
         Context context,
         ModelFeature cardModel,
         ModelProvider modelProvider,

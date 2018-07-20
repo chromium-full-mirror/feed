@@ -20,10 +20,10 @@ import android.view.View;
 import android.widget.PopupMenu;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
@@ -39,8 +39,8 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final ActionApi actionApi;
   private final ActionParser actionParser;
   private final ActionManager actionManager;
-  private final StreamBasicLoggingApi basicLoggingApi;
-  private final StreamContentLoggingData contentLoggingData;
+  private final BasicLoggingApi basicLoggingApi;
+  private final ContentLoggingData contentLoggingData;
 
   /*@Nullable*/ private final String sessionToken;
 
@@ -49,8 +49,8 @@ public class StreamActionApiImpl implements StreamActionApi {
       ActionApi actionApi,
       ActionParser actionParser,
       ActionManager actionManager,
-      StreamBasicLoggingApi basicLoggingApi,
-      StreamContentLoggingData contentLoggingData,
+      BasicLoggingApi basicLoggingApi,
+      ContentLoggingData contentLoggingData,
       /*@Nullable*/ String sessionToken) {
     this.context = context;
     this.actionApi = actionApi;

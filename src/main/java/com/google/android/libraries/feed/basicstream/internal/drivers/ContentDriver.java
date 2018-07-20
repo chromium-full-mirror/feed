@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.OneShotVisibilityLoggingListener;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
@@ -33,6 +32,8 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHo
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -41,6 +42,7 @@ import com.google.search.now.ui.stream.StreamStructureProto;
 import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
+import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +52,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
 
   private static final String TAG = "ContentDriver";
 
-  private final StreamBasicLoggingApi basicLoggingApi;
-  private final StreamContentLoggingData contentLoggingData;
+  private final BasicLoggingApi basicLoggingApi;
+  private final ContentLoggingData contentLoggingData;
   private final List<PietSharedState> pietSharedStates;
   private final Frame frame;
   private final StreamActionApi streamActionApi;
@@ -65,7 +67,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ActionApi actionApi,
       ActionManager actionManager,
       ActionParser actionParser,
-      StreamBasicLoggingApi basicLoggingApi,
+      BasicLoggingApi basicLoggingApi,
       Context context,
       ModelFeature contentFeatureModel,
       ModelProvider modelProvider,
@@ -79,6 +81,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
     contentLoggingData =
         createContentLoggingData(
             contentFeatureModel.getStreamFeature().getContent().getBasicLoggingMetadata(),
+            contentFeatureModel.getStreamFeature().getContent().getRepresentationData(),
             position);
     streamActionApi =
         createStreamActionApi(
@@ -199,11 +202,12 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
     basicLoggingApi.onContentClicked(contentLoggingData);
   }
 
-  private StreamContentLoggingData createContentLoggingData(
+  private ContentLoggingData createContentLoggingData(
       /*@UnderInitialization*/ ContentDriver this,
       BasicLoggingMetadata basicLoggingMetadata,
+      RepresentationData representationData,
       int position) {
-    return new StreamContentLoggingData(position, basicLoggingMetadata);
+    return new StreamContentLoggingData(position, basicLoggingMetadata, representationData);
   }
 
   @VisibleForTesting
@@ -213,8 +217,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ActionApi actionApi,
       ActionParser actionParser,
       ActionManager actionManager,
-      StreamBasicLoggingApi basicLoggingApi,
-      StreamContentLoggingData contentLoggingData,
+      BasicLoggingApi basicLoggingApi,
+      ContentLoggingData contentLoggingData,
       /*@Nullable*/ String sessionToken) {
     return new StreamActionApiImpl(
         context,

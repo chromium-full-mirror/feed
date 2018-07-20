@@ -45,7 +45,6 @@ import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCal
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -53,6 +52,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -87,7 +87,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final SnackbarApi snackbarApi;
   private final StreamContentChangedListener streamContentChangedListener;
   private final DeepestContentTracker deepestContentTracker;
-  private final StreamBasicLoggingApi basicLoggingApi;
+  private final BasicLoggingApi basicLoggingApi;
 
   private RecyclerView recyclerView;
   private Context context;
@@ -120,7 +120,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       /*@Nullable*/ HostBindingProvider hostBindingProvider,
       ActionManager actionManager,
       Configuration configuration,
-      SnackbarApi snackbarApi) {
+      SnackbarApi snackbarApi,
+      BasicLoggingApi basicLoggingApi) {
     this.cardConfiguration = cardConfiguration;
     this.clock = clock;
     this.threadUtils = threadUtils;
@@ -144,8 +145,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.snackbarApi = snackbarApi;
     this.streamContentChangedListener = createStreamContentChangedListener();
     this.deepestContentTracker = new DeepestContentTracker();
-    // TODO: Replace with host implementation once host api is finalized.
-    this.basicLoggingApi = createBasicLoggingApi();
+    this.basicLoggingApi = basicLoggingApi;
   }
 
   @VisibleForTesting
@@ -480,7 +480,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
       SnackbarApi snackbarApi,
       ContentChangedListener contentChangedListener,
       ScrollRestorer scrollRestorer,
-      StreamBasicLoggingApi basicLoggingApi) {
+      BasicLoggingApi basicLoggingApi) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -540,10 +540,5 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @VisibleForTesting
   ScrollRestorer createNonRestoringScrollRestorer(RecyclerView recyclerView) {
     return ScrollRestorer.nonRestoringRestorer(recyclerView);
-  }
-
-  @VisibleForTesting
-  StreamBasicLoggingApi createBasicLoggingApi(/*@UnderInitialization*/ BasicStream this) {
-    return new StreamBasicLoggingApi();
   }
 }

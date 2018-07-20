@@ -14,37 +14,53 @@
 
 package com.google.android.libraries.feed.basicstream.internal.logging;
 
+import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
+import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 
-/** Stand-in class to capture content data when logging events. */
-public class StreamContentLoggingData {
+/** Implementation of {@link ContentLoggingData} to capture content data when logging events. */
+public class StreamContentLoggingData implements ContentLoggingData {
 
   private final int positionInStream;
   private final int publishedTimeSeconds;
   private final int timeContentBecameAvailable;
   private final int score;
+  private final String representationUri;
 
-  public StreamContentLoggingData(int positionInStream, BasicLoggingMetadata basicLoggingMetadata) {
+  public StreamContentLoggingData(
+      int positionInStream,
+      BasicLoggingMetadata basicLoggingMetadata,
+      RepresentationData representationData) {
     this.positionInStream = positionInStream;
     this.publishedTimeSeconds = basicLoggingMetadata.getPublishedTimeSeconds();
     this.timeContentBecameAvailable = basicLoggingMetadata.getAvailabilityTimeSeconds();
     this.score = basicLoggingMetadata.getScore();
+    this.representationUri = representationData.getUri();
   }
 
+  @Override
   public int getPositionInStream() {
     return positionInStream;
   }
 
+  @Override
   public int getPublishedTimeSeconds() {
     return publishedTimeSeconds;
   }
 
+  @Override
   public int getTimeContentBecameAvailable() {
     return timeContentBecameAvailable;
   }
 
+  @Override
   public int getScore() {
     return score;
+  }
+
+  @Override
+  public String getRepresentationUri() {
+    return representationUri;
   }
 
   @Override
@@ -52,7 +68,7 @@ public class StreamContentLoggingData {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof StreamContentLoggingData)) {
       return false;
     }
 
@@ -67,7 +83,12 @@ public class StreamContentLoggingData {
     if (timeContentBecameAvailable != that.timeContentBecameAvailable) {
       return false;
     }
-    return score == that.score;
+    if (score != that.score) {
+      return false;
+    }
+    return representationUri != null
+        ? representationUri.equals(that.representationUri)
+        : that.representationUri == null;
   }
 
   @Override
@@ -76,6 +97,7 @@ public class StreamContentLoggingData {
     result = 31 * result + publishedTimeSeconds;
     result = 31 * result + timeContentBecameAvailable;
     result = 31 * result + score;
+    result = 31 * result + (representationUri != null ? representationUri.hashCode() : 0);
     return result;
   }
 
@@ -90,6 +112,9 @@ public class StreamContentLoggingData {
         + timeContentBecameAvailable
         + ", score="
         + score
+        + ", representationUri='"
+        + representationUri
+        + '\''
         + '}';
   }
 }

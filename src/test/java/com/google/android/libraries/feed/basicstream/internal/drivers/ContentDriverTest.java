@@ -29,11 +29,12 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -46,6 +47,7 @@ import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
+import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import java.util.ArrayList;
@@ -68,8 +70,10 @@ public class ContentDriverTest {
           .setAvailabilityTimeSeconds(20)
           .setScore(40)
           .build();
-  private static final StreamContentLoggingData CONTENT_LOGGING_DATA =
-      new StreamContentLoggingData(POSITION, BASIC_LOGGING_METADATA);
+  private static final RepresentationData REPRESENTATION_DATA =
+      RepresentationData.newBuilder().setUri("card.png").build();
+  private static final ContentLoggingData CONTENT_LOGGING_DATA =
+      new StreamContentLoggingData(POSITION, BASIC_LOGGING_METADATA, REPRESENTATION_DATA);
 
   private static final ContentId CONTENT_ID_1 =
       ContentId.newBuilder()
@@ -94,6 +98,7 @@ public class ContentDriverTest {
           .setContent(
               Content.newBuilder()
                   .setBasicLoggingMetadata(BASIC_LOGGING_METADATA)
+                  .setRepresentationData(REPRESENTATION_DATA)
                   .setType(Type.PIET)
                   .setExtension(PietContent.pietContentExtension, PIET_CONTENT))
           .build();
@@ -123,7 +128,7 @@ public class ContentDriverTest {
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
   @Mock private ActionParser actionParser;
-  @Mock private StreamBasicLoggingApi basicLoggingApi;
+  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ModelFeature modelFeature;
   @Mock private ModelProvider modelProvider;
   @Mock private PietViewHolder pietViewHolder;
@@ -156,8 +161,8 @@ public class ContentDriverTest {
               ActionApi actionApi,
               ActionParser actionParser,
               ActionManager actionManager,
-              StreamBasicLoggingApi basicLoggingApi,
-              StreamContentLoggingData contentLoggingData,
+              BasicLoggingApi basicLoggingApi,
+              ContentLoggingData contentLoggingData,
               String sessionToken) {
             return streamActionApi;
           }

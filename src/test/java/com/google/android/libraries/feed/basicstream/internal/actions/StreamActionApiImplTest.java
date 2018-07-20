@@ -27,9 +27,9 @@ import android.view.Menu;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -110,8 +110,8 @@ public class StreamActionApiImplTest {
   @Mock private ActionApi actionApi;
   @Mock private ActionParser actionParser;
   @Mock private ActionManager actionManager;
-  @Mock private StreamBasicLoggingApi basicLoggingApi;
-  @Mock private StreamContentLoggingData contentLoggingData;
+  @Mock private BasicLoggingApi basicLoggingApi;
+  @Mock private ContentLoggingData contentLoggingData;
   private StreamActionApiImpl streamActionApi;
   private View view;
 

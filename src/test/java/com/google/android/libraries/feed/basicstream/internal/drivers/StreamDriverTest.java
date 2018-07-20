@@ -36,17 +36,16 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
-import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,7 +78,7 @@ public class StreamDriverTest {
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private SnackbarApi snackbarApi;
   @Mock private ScrollRestorer scrollRestorer;
-  @Mock private StreamBasicLoggingApi basicLoggingApi;
+  @Mock private BasicLoggingApi basicLoggingApi;
 
   @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
 
@@ -92,16 +91,6 @@ public class StreamDriverTest {
             new FakeModelFeature.Builder()
                 .setStreamFeature(
                     StreamFeature.newBuilder().setCluster(Cluster.getDefaultInstance()).build())
-                .build())
-        .build();
-  }
-
-  private static FakeModelChild createFakeCardModelChild() {
-    return new FakeModelChild.Builder()
-        .setModelFeature(
-            new FakeModelFeature.Builder()
-                .setStreamFeature(
-                    StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
                 .build())
         .build();
   }
@@ -549,7 +538,7 @@ public class StreamDriverTest {
 
     @Override
     ContinuationDriver createContinuationDriver(
-        StreamBasicLoggingApi basicLoggingApi,
+        BasicLoggingApi basicLoggingApi,
         Configuration configuration,
         Context context,
         ModelChild modelChild,

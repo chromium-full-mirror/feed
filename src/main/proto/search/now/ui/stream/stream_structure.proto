@@ -68,6 +68,11 @@ message BasicLoggingMetadata {
   optional int32 score = 3;
 }
 
+message RepresentationData {
+  // URI (usually a URL) of what the content links to
+  optional string uri = 1;
+}
+
 // Feature which is able to show actual content in a stream. This could be
 // inside or outside a card. Actual data on what to display will be sent on an
 // extension.
@@ -82,6 +87,7 @@ message Content {
   }
   optional Type type = 1;
   optional BasicLoggingMetadata basicLoggingMetadata = 2;
+  optional RepresentationData representationData = 3;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;

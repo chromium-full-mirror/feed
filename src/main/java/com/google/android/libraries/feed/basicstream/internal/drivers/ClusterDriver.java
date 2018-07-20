@@ -23,9 +23,9 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 
 /** {@link FeatureDriver} for Clusters. */
 public class ClusterDriver implements FeatureDriver {
@@ -34,7 +34,7 @@ public class ClusterDriver implements FeatureDriver {
   private final ActionApi actionApi;
   private final ActionManager actionManager;
   private final ActionParser actionParser;
-  private final StreamBasicLoggingApi basicLoggingApi;
+  private final BasicLoggingApi basicLoggingApi;
   private final Context context;
   private final ModelFeature clusterModel;
   private final ModelProvider modelProvider;
@@ -45,7 +45,7 @@ public class ClusterDriver implements FeatureDriver {
       ActionApi actionApi,
       ActionManager actionManager,
       ActionParser actionParser,
-      StreamBasicLoggingApi basicLoggingApi,
+      BasicLoggingApi basicLoggingApi,
       Context context,
       ModelFeature clusterModel,
       ModelProvider modelProvider,

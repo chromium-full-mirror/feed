@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
@@ -40,6 +39,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHo
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +49,7 @@ public class ContinuationDriver extends LeafFeatureDriver
     implements OnClickListener, LoggingListener, TokenCompletedObserver {
 
   private static final String TAG = "ContinuationDriver";
-  private final StreamBasicLoggingApi basicLoggingApi;
+  private final BasicLoggingApi basicLoggingApi;
   private final Context context;
   private final CursorChangedListener cursorChangedListener;
   private final ModelChild modelChild;
@@ -65,7 +65,7 @@ public class ContinuationDriver extends LeafFeatureDriver
   /*@Nullable*/ private ContinuationViewHolder continuationViewHolder;
 
   ContinuationDriver(
-      StreamBasicLoggingApi basicLoggingApi,
+      BasicLoggingApi basicLoggingApi,
       Configuration configuration,
       Context context,
       CursorChangedListener cursorChangedListener,

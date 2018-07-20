@@ -38,12 +38,12 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import java.util.Collections;
@@ -61,7 +61,7 @@ public class ContinuationDriverTest {
 
   private static final int POSITION = 1;
 
-  @Mock private StreamBasicLoggingApi basicLoggingApi;
+  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ModelChild modelChild;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelToken modelToken;

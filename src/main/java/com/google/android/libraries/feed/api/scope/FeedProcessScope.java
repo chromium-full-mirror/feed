@@ -43,6 +43,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
@@ -73,7 +74,8 @@ public class FeedProcessScope implements Dumpable {
       ActionApi actionApi,
       StreamConfiguration streamConfiguration,
       CardConfiguration cardConfiguration,
-      SnackbarApi snackbarApi) {
+      SnackbarApi snackbarApi,
+      BasicLoggingApi basicLoggingApi) {
     return new FeedStreamScope.Builder(
         context,
         actionApi,
@@ -90,7 +92,8 @@ public class FeedProcessScope implements Dumpable {
         cardConfiguration,
         actionManager,
         configuration,
-        snackbarApi);
+        snackbarApi,
+        basicLoggingApi);
   }
 
   @Override

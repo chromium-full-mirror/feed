@@ -28,11 +28,11 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
-import com.google.android.libraries.feed.basicstream.internal.logging.StreamBasicLoggingApi;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +56,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final SnackbarApi snackbarApi;
   private final ContentChangedListener contentChangedListener;
   private final ScrollRestorer scrollRestorer;
-  private final StreamBasicLoggingApi basicLoggingApi;
+  private final BasicLoggingApi basicLoggingApi;
 
   private boolean rootFeatureConsumed;
 
@@ -73,7 +73,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       SnackbarApi snackbarApi,
       ContentChangedListener contentChangedListener,
       ScrollRestorer scrollRestorer,
-      StreamBasicLoggingApi basicLoggingApi) {
+      BasicLoggingApi basicLoggingApi) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParser = actionParser;
@@ -414,7 +414,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
   @VisibleForTesting
   ContinuationDriver createContinuationDriver(
-      StreamBasicLoggingApi basicLoggingApi,
+      BasicLoggingApi basicLoggingApi,
       Configuration configuration,
       Context context,
       ModelChild modelChild,
