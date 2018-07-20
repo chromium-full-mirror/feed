@@ -95,6 +95,8 @@ message StreamStructure {
   optional Operation operation = 1;
   optional string content_id = 2;
   optional string parent_content_id = 3;
+
+  extensions 10000 to max;
 }
 
 // The internal version of a DataOperation.
