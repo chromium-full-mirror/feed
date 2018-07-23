@@ -35,6 +35,18 @@ public interface Stream {
   void onCreate(/*@Nullable*/ Bundle savedInstanceState);
 
   /**
+   * Called when the Stream is being created. This method functions identically to {@link
+   * #onCreate(Bundle)} but allows a host to provide a String instead of a Bundle. This method
+   * should only be called once. If this method is used, {@link #onCreate(Bundle)} should not be
+   * used. {@code savedInstanceState} should be a previous string returned from {@link
+   * #getSavedInstanceStateString()}.
+   *
+   * @param savedInstanceState state to restore to.
+   * @throws IllegalStateException if method is called multiple times.
+   */
+  void onCreate(/*@Nullable*/ String savedInstanceState);
+
+  /**
    * Called when the Stream is visible on the screen, may be partially obscured or about to be
    * displayed. This maps similarly to {@link android.app.Activity#onStart()}.
    *
@@ -73,6 +85,13 @@ public interface Stream {
    * needs to be recreated.
    */
   Bundle getSavedInstanceState();
+
+  /**
+   * Call during {@link android.app.Activity#onSaveInstanceState(Bundle)}. The returned string
+   * should be passed to {@link #onCreate(String)} when the activity is recreated and the stream
+   * needs to be recreated.
+   */
+  String getSavedInstanceStateString();
 
   /**
    * Return the root view which holds all card stream views. The Feed library builds Views when this

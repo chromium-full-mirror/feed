@@ -17,11 +17,10 @@ package com.google.android.libraries.feed.basicstream.internal.scroll;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
-import android.os.Bundle;
-import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
 import com.google.android.libraries.feed.common.logging.Logger;
 
 /**
@@ -31,8 +30,6 @@ import com.google.android.libraries.feed.common.logging.Logger;
 public class ScrollRestorer {
 
   private static final String TAG = "ScrollRestorer";
-  @VisibleForTesting static final String KEY_SCROLL_POSITION = "key-scroll-position";
-  @VisibleForTesting static final String KEY_SCROLL_OFFSET = "key-scroll-offset";
 
   private final RecyclerView recyclerView;
   private final int scrollPosition;
@@ -40,13 +37,13 @@ public class ScrollRestorer {
 
   private boolean canRestore;
 
-  public ScrollRestorer(RecyclerView recyclerView, /*@Nullable*/ Bundle savedInstanceState) {
+  public ScrollRestorer(RecyclerView recyclerView, /*@Nullable*/ ScrollState scrollState) {
     this.recyclerView = recyclerView;
 
-    if (savedInstanceState != null) {
+    if (scrollState != null) {
       canRestore = true;
-      scrollPosition = savedInstanceState.getInt(KEY_SCROLL_POSITION);
-      scrollOffset = savedInstanceState.getInt(KEY_SCROLL_OFFSET);
+      scrollPosition = scrollState.getPosition();
+      scrollOffset = scrollState.getOffset();
     } else {
       this.scrollPosition = 0;
       this.scrollOffset = 0;
@@ -92,7 +89,7 @@ public class ScrollRestorer {
 
   /** Returns a bundle which can be used for restoring scroll state on an activity restart. */
   /*@Nullable*/
-  public Bundle getBundleForScrollRestore() {
+  public ScrollState getScrollStateForScrollRestore() {
     LinearLayoutManager layoutManager = getLayoutManager();
 
     int scrollPosition = layoutManager.findFirstVisibleItemPosition();
@@ -105,15 +102,7 @@ public class ScrollRestorer {
       return null;
     }
 
-    return getScrollBundle(scrollPosition, view.getTop());
-  }
-
-  @VisibleForTesting
-  static Bundle getScrollBundle(int position, int offset) {
-    Bundle bundle = new Bundle();
-    bundle.putInt(KEY_SCROLL_POSITION, position);
-    bundle.putInt(KEY_SCROLL_OFFSET, offset);
-    return bundle;
+    return ScrollState.newBuilder().setPosition(scrollPosition).setOffset(view.getTop()).build();
   }
 
   private LinearLayoutManager getLayoutManager() {

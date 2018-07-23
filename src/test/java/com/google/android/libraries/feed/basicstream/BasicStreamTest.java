@@ -15,10 +15,10 @@
 package com.google.android.libraries.feed.basicstream;
 
 import static com.google.android.libraries.feed.api.stream.Stream.POSITION_NOT_KNOWN;
-import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_SCROLL_STATE;
-import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_SESSION_TOKEN;
+import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_STREAM_STATE;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -35,6 +35,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.view.View;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
@@ -51,6 +52,8 @@ import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.basicstream.internal.DeepestContentTracker;
 import com.google.android.libraries.feed.basicstream.internal.StreamContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
+import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
+import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
@@ -68,6 +71,7 @@ import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
+import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -91,6 +95,13 @@ public class BasicStreamTest {
   private static final int BOTTOM_PADDING = 4;
 
   private static final String SESSION_TOKEN = "session-token";
+  private static final ScrollState SCROLL_STATE =
+      ScrollState.newBuilder().setOffset(10).setPosition(10).build();
+  private static final StreamSavedInstanceState SAVED_INSTANCE_STATE =
+      StreamSavedInstanceState.newBuilder()
+          .setSessionToken(SESSION_TOKEN)
+          .setScrollState(SCROLL_STATE)
+          .build();
 
   @Mock private StreamConfiguration streamConfiguration;
   @Mock private ModelProviderFactory modelProviderFactory;
@@ -111,7 +122,6 @@ public class BasicStreamTest {
   private Context context;
   private FakeClock clock;
   private BasicStreamForTest basicStream;
-  private Bundle scrollRestoreBundle;
 
   @Before
   public void setUp() {
@@ -127,7 +137,7 @@ public class BasicStreamTest {
 
     when(initialModelProvider.getSessionToken()).thenReturn(SESSION_TOKEN);
 
-    when(scrollRestorer.getBundleForScrollRestore()).thenReturn(scrollRestoreBundle);
+    when(scrollRestorer.getScrollStateForScrollRestore()).thenReturn(SCROLL_STATE);
 
     when(streamDriver.getLeafFeatureDrivers()).thenReturn(Collections.emptyList());
 
@@ -136,7 +146,7 @@ public class BasicStreamTest {
     layoutManager = new LinearLayoutManagerWithFakePositioning(context);
 
     basicStream = createBasicStream(layoutManager);
-    basicStream.onCreate(null);
+    basicStream.onCreate((Bundle) null);
   }
 
   @Test
@@ -208,9 +218,16 @@ public class BasicStreamTest {
   }
 
   @Test
-  public void testLifecycle_onCreateCalledOnlyOnce() {
+  public void testLifecycle_onCreateWithBundleCalledOnlyOnce() {
     // onCreate is called once in setup
-    assertThatRunnable(() -> basicStream.onCreate(null))
+    assertThatRunnable(() -> basicStream.onCreate(new Bundle()))
+        .throwsAnExceptionOfType(IllegalStateException.class);
+  }
+
+  @Test
+  public void testLifecycle_onCreateWithStringCalledOnlyOnce() {
+    // onCreate is called once in setup
+    assertThatRunnable(() -> basicStream.onCreate(""))
         .throwsAnExceptionOfType(IllegalStateException.class);
   }
 
@@ -237,39 +254,59 @@ public class BasicStreamTest {
   }
 
   @Test
-  public void testGetSavedInstanceState_beforeShow() {
+  public void testGetSavedInstanceState() {
+    basicStream.onShow();
+
     Bundle bundle = basicStream.getSavedInstanceState();
-    assertThat(bundle.getString(KEY_SESSION_TOKEN)).isNull();
-    assertThat(bundle.getBundle(KEY_SCROLL_STATE)).isSameAs(scrollRestoreBundle);
+    assertThat(bundle.getString(KEY_STREAM_STATE))
+        .isEqualTo(Base64.encodeToString(SAVED_INSTANCE_STATE.toByteArray(), Base64.DEFAULT));
   }
 
   @Test
-  public void testGetSavedInstanceState_afterOnShow_beforeSessionStart() {
+  public void testGetSavedInstanceStateString_beforeShow() throws InvalidProtocolBufferException {
+    StreamSavedInstanceState savedInstanceState =
+        StreamSavedInstanceState.parseFrom(
+            decodeSavedInstanceStateString(basicStream.getSavedInstanceStateString()));
+    assertThat(savedInstanceState.hasSessionToken()).isFalse();
+    assertThat(savedInstanceState.getScrollState()).isEqualTo(SCROLL_STATE);
+  }
+
+  @Test
+  public void testGetSavedInstanceStateString_afterOnShow_beforeSessionStart()
+      throws InvalidProtocolBufferException {
     when(initialModelProvider.getSessionToken()).thenReturn(null);
 
     basicStream.onShow();
 
-    Bundle bundle = basicStream.getSavedInstanceState();
-    assertThat(bundle.getString(KEY_SESSION_TOKEN)).isNull();
-    assertThat(bundle.getBundle(KEY_SCROLL_STATE)).isSameAs(scrollRestoreBundle);
+    StreamSavedInstanceState savedInstanceState =
+        StreamSavedInstanceState.parseFrom(
+            decodeSavedInstanceStateString(basicStream.getSavedInstanceStateString()));
+    assertThat(savedInstanceState.hasSessionToken()).isFalse();
+    assertThat(savedInstanceState.getScrollState()).isEqualTo(SCROLL_STATE);
   }
 
   @Test
-  public void testGetSavedInstanceState_afterOnShow_afterSessionStart() {
+  public void testGetSavedInstanceStateString_afterOnShow_afterSessionStart()
+      throws InvalidProtocolBufferException {
     basicStream.onShow();
 
-    Bundle bundle = basicStream.getSavedInstanceState();
-    assertThat(bundle.getString(KEY_SESSION_TOKEN)).isEqualTo(SESSION_TOKEN);
-    assertThat(bundle.getBundle(KEY_SCROLL_STATE)).isSameAs(scrollRestoreBundle);
+    StreamSavedInstanceState savedInstanceState =
+        StreamSavedInstanceState.parseFrom(
+            decodeSavedInstanceStateString(basicStream.getSavedInstanceStateString()));
+    assertThat(savedInstanceState.getSessionToken()).isEqualTo(SESSION_TOKEN);
+    assertThat(savedInstanceState.getScrollState()).isEqualTo(SCROLL_STATE);
   }
 
   @Test
-  public void testGetSavedInstanceState_noScrollRestoreBundle() {
+  public void testGetSavedInstanceStateString_noScrollRestoreBundle()
+      throws InvalidProtocolBufferException {
     basicStream.onShow();
 
-    when(scrollRestorer.getBundleForScrollRestore()).thenReturn(null);
-    Bundle bundle = basicStream.getSavedInstanceState();
-    assertThat(bundle.getBundle(KEY_SCROLL_STATE)).isNull();
+    when(scrollRestorer.getScrollStateForScrollRestore()).thenReturn(null);
+    StreamSavedInstanceState savedInstanceState =
+        StreamSavedInstanceState.parseFrom(
+            decodeSavedInstanceStateString(basicStream.getSavedInstanceStateString()));
+    assertThat(savedInstanceState.hasScrollState()).isFalse();
   }
 
   @Test
@@ -292,6 +329,25 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testRestore_withStringSavedState() {
+    basicStream.onShow();
+
+    String savedInstanceState = basicStream.getSavedInstanceStateString();
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
+    basicStream.onCreate(savedInstanceState);
+
+    basicStream.onShow();
+
+    verify(restoredModelProvider).registerObserver(basicStream);
+  }
+
+  @Test
   public void testRestore_invalidSession() {
     basicStream.onShow();
 
@@ -305,6 +361,37 @@ public class BasicStreamTest {
     basicStream.onShow();
 
     verify(modelProvider).registerObserver(basicStream);
+  }
+
+  @Test
+  public void testRestore_invalidBase64Encoding() {
+    basicStream.onShow();
+
+    Bundle bundle = new Bundle();
+    bundle.putString(KEY_STREAM_STATE, "=invalid");
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
+    assertThatRunnable(() -> basicStream.onCreate(bundle))
+        .throwsAnExceptionOfType(RuntimeException.class);
+  }
+
+  @Test
+  public void testRestore_invalidProtocolBuffer() {
+    basicStream.onShow();
+
+    Bundle bundle = new Bundle();
+    bundle.putString(
+        KEY_STREAM_STATE, Base64.encodeToString("invalid".getBytes(UTF_8), Base64.DEFAULT));
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
+    assertThatRunnable(() -> basicStream.onCreate(bundle))
+        .throwsAnExceptionOfType(RuntimeException.class);
   }
 
   @Test
@@ -480,6 +567,10 @@ public class BasicStreamTest {
     assertThat(basicStream.streamDriverScrollRestorer).isEqualTo(scrollRestorer);
   }
 
+  private byte[] decodeSavedInstanceStateString(String savedInstanceState) {
+    return Base64.decode(savedInstanceState, Base64.DEFAULT);
+  }
+
   private RecyclerView getStreamRecyclerView() {
     return (RecyclerView) basicStream.getView();
   }
@@ -609,7 +700,7 @@ public class BasicStreamTest {
 
     @Override
     ScrollRestorer createScrollRestorer(
-        RecyclerView recyclerView, /*@Nullable*/ Bundle savedInstanceState) {
+        RecyclerView recyclerView, /*@Nullable*/ ScrollState scrollState) {
       return scrollRestorer;
     }
 

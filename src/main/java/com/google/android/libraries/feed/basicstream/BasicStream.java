@@ -25,6 +25,7 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Base64;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
@@ -43,6 +44,8 @@ import com.google.android.libraries.feed.basicstream.internal.StreamContentChang
 import com.google.android.libraries.feed.basicstream.internal.StreamItemAnimator;
 import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCallbacks;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
+import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
+import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
@@ -62,6 +65,7 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvider;
+import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.List;
 
 /**
@@ -72,8 +76,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   private static final String TAG = "BasicStream";
 
-  @VisibleForTesting static final String KEY_SESSION_TOKEN = "session-id";
-  @VisibleForTesting static final String KEY_SCROLL_STATE = "scroll-state";
+  @VisibleForTesting static final String KEY_STREAM_STATE = "stream-state";
 
   private final CardConfiguration cardConfiguration;
   private final Clock clock;
@@ -167,48 +170,38 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @Override
   public void onCreate(/*@Nullable*/ Bundle savedInstanceState) {
-    checkState(recyclerView == null, "Can't call onCreate() multiple times.");
-    // TODO: Implement save/restore.
-    adapter =
-        createRecyclerViewAdapter(
-            context,
-            cardConfiguration,
-            pietManager,
-            actionParser,
-            deepestContentTracker,
-            configuration);
-    adapter.setHeaders(headers);
-
-    recyclerView = new RecyclerView(context);
-    recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
-
-    new ItemTouchHelper(new StreamItemTouchCallbacks()).attachToRecyclerView(recyclerView);
-
-    recyclerView.setAdapter(adapter);
-    recyclerView.setClipToPadding(false);
-    if (VERSION.SDK_INT > VERSION_CODES.JELLY_BEAN) {
-      recyclerView.setPaddingRelative(
-          streamConfiguration.getPaddingStart(),
-          streamConfiguration.getPaddingTop(),
-          streamConfiguration.getPaddingEnd(),
-          streamConfiguration.getPaddingBottom());
-    } else {
-      recyclerView.setPadding(
-          streamConfiguration.getPaddingStart(),
-          streamConfiguration.getPaddingTop(),
-          streamConfiguration.getPaddingEnd(),
-          streamConfiguration.getPaddingBottom());
+    if (savedInstanceState == null) {
+      onCreate((String) null);
+      return;
     }
 
-    recyclerView.setItemAnimator(new StreamItemAnimator(streamContentChangedListener));
+    onCreate(savedInstanceState.getString(KEY_STREAM_STATE));
+  }
 
+  @Override
+  public void onCreate(/*@Nullable*/ String savedInstanceState) {
+    checkState(recyclerView == null, "Can't call onCreate() multiple times.");
+    setupRecyclerView();
     streamScrollMonitor = createStreamScrollMonitor(recyclerView, streamContentChangedListener);
 
-    if (savedInstanceState != null) {
-      savedSessionToken = savedInstanceState.getString(KEY_SESSION_TOKEN);
+    if (savedInstanceState == null) {
+      scrollRestorer = createScrollRestorer(recyclerView, null);
+      return;
     }
 
-    scrollRestorer = createScrollRestorer(recyclerView, savedInstanceState);
+    try {
+      StreamSavedInstanceState streamSavedInstanceState =
+          StreamSavedInstanceState.parseFrom(Base64.decode(savedInstanceState, Base64.DEFAULT));
+
+      if (streamSavedInstanceState.hasSessionToken()) {
+        savedSessionToken = streamSavedInstanceState.getSessionToken();
+      }
+      scrollRestorer =
+          createScrollRestorer(recyclerView, streamSavedInstanceState.getScrollState());
+    } catch (IllegalArgumentException | InvalidProtocolBufferException e) {
+      Logger.wtf(TAG, "Could not parse saved instance state String.");
+      scrollRestorer = createScrollRestorer(recyclerView, null);
+    }
   }
 
   @Override
@@ -281,15 +274,23 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @Override
   public Bundle getSavedInstanceState() {
     Bundle bundle = new Bundle();
-    if (modelProvider != null) {
-      bundle.putString(KEY_SESSION_TOKEN, modelProvider.getSessionToken());
+    bundle.putString(KEY_STREAM_STATE, getSavedInstanceStateString());
+    return bundle;
+  }
+
+  @Override
+  public String getSavedInstanceStateString() {
+    StreamSavedInstanceState.Builder builder = StreamSavedInstanceState.newBuilder();
+    if (modelProvider != null && modelProvider.getSessionToken() != null) {
+      builder.setSessionToken(checkNotNull(modelProvider.getSessionToken()));
     }
 
-    Bundle scrollRestorerBundle = scrollRestorer.getBundleForScrollRestore();
-    if (scrollRestorerBundle != null) {
-      bundle.putBundle(KEY_SCROLL_STATE, scrollRestorerBundle);
+    ScrollState scrollState = scrollRestorer.getScrollStateForScrollRestore();
+    if (scrollState != null) {
+      builder.setScrollState(scrollState);
     }
-    return bundle;
+
+    return convertStreamSavedInstanceStateToString(builder.build());
   }
 
   @Override
@@ -401,6 +402,39 @@ public class BasicStream implements Stream, ModelProviderObserver {
     modelProvider.triggerRefresh();
   }
 
+  private void setupRecyclerView() {
+    adapter =
+        createRecyclerViewAdapter(
+            context,
+            cardConfiguration,
+            pietManager,
+            actionParser,
+            deepestContentTracker,
+            configuration);
+    adapter.setHeaders(headers);
+    recyclerView = new RecyclerView(context);
+    recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
+
+    new ItemTouchHelper(new StreamItemTouchCallbacks()).attachToRecyclerView(recyclerView);
+    recyclerView.setAdapter(adapter);
+    recyclerView.setClipToPadding(false);
+    if (VERSION.SDK_INT > VERSION_CODES.JELLY_BEAN) {
+      recyclerView.setPaddingRelative(
+          streamConfiguration.getPaddingStart(),
+          streamConfiguration.getPaddingTop(),
+          streamConfiguration.getPaddingEnd(),
+          streamConfiguration.getPaddingBottom());
+    } else {
+      recyclerView.setPadding(
+          streamConfiguration.getPaddingStart(),
+          streamConfiguration.getPaddingTop(),
+          streamConfiguration.getPaddingEnd(),
+          streamConfiguration.getPaddingBottom());
+    }
+
+    recyclerView.setItemAnimator(new StreamItemAnimator(streamContentChangedListener));
+  }
+
   private void updateAdapter(ModelProvider modelProvider) {
     if (streamDriver != null) {
       streamDriver.onDestroy();
@@ -468,6 +502,11 @@ public class BasicStream implements Stream, ModelProviderObserver {
     }
   }
 
+  private String convertStreamSavedInstanceStateToString(
+      StreamSavedInstanceState savedInstanceState) {
+    return Base64.encodeToString(savedInstanceState.toByteArray(), Base64.DEFAULT);
+  }
+
   @VisibleForTesting
   StreamDriver createStreamDriver(
       ActionApi actionApi,
@@ -531,10 +570,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @VisibleForTesting
   ScrollRestorer createScrollRestorer(
-      RecyclerView recyclerView, /*@Nullable*/ Bundle savedInstanceState) {
-    return new ScrollRestorer(
-        recyclerView,
-        savedInstanceState == null ? null : savedInstanceState.getBundle(KEY_SCROLL_STATE));
+      RecyclerView recyclerView, /*@Nullable*/ ScrollState scrollState) {
+    return new ScrollRestorer(recyclerView, scrollState);
   }
 
   @VisibleForTesting

@@ -14,18 +14,15 @@
 
 package com.google.android.libraries.feed.basicstream.internal.scroll;
 
-import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.KEY_SCROLL_OFFSET;
-import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.KEY_SCROLL_POSITION;
-import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.getScrollBundle;
 import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.nonRestoringRestorer;
 import static com.google.common.truth.Truth.assertThat;
 
 import android.app.Activity;
 import android.content.Context;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,9 +33,10 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ScrollRestorerTest {
 
-  private static int POSITION = 4;
-  private static int OFFSET = -10;
-
+  private static final int POSITION = 4;
+  private static final int OFFSET = -10;
+  private static final ScrollState SCROLL_STATE =
+      ScrollState.newBuilder().setPosition(POSITION).setOffset(OFFSET).build();
   private RecyclerView recyclerView;
   private LinearLayoutManagerForTest layoutManager;
 
@@ -52,8 +50,7 @@ public class ScrollRestorerTest {
 
   @Test
   public void testRestoreScroll() {
-    ScrollRestorer scrollRestorer =
-        new ScrollRestorer(recyclerView, getScrollBundle(POSITION, OFFSET));
+    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, SCROLL_STATE);
     scrollRestorer.maybeRestoreScroll();
 
     assertThat(layoutManager.scrolledPosition).isEqualTo(POSITION);
@@ -62,7 +59,7 @@ public class ScrollRestorerTest {
 
   @Test
   public void testRestoreScroll_repeatedCall() {
-    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, getScrollBundle(10, 20));
+    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, createScrollState(10, 20));
     scrollRestorer.maybeRestoreScroll();
 
     layoutManager.scrollToPositionWithOffset(POSITION, OFFSET);
@@ -76,7 +73,7 @@ public class ScrollRestorerTest {
   public void testAbandonRestoringScroll() {
     layoutManager.scrollToPositionWithOffset(POSITION, OFFSET);
 
-    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, getScrollBundle(10, 20));
+    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, createScrollState(10, 20));
     scrollRestorer.abandonRestoringScroll();
     scrollRestorer.maybeRestoreScroll();
 
@@ -85,20 +82,21 @@ public class ScrollRestorerTest {
   }
 
   @Test
-  public void testGetBundleForScrollPosition() {
+  public void testGetScrollStateForScrollPosition() {
     layoutManager.firstVisibleItemPosition = POSITION;
     layoutManager.firstVisibleViewOffset = OFFSET;
-    Bundle restorerBundle = nonRestoringRestorer(recyclerView).getBundleForScrollRestore();
-    Bundle expectedBundle = getScrollBundle(POSITION, OFFSET);
-    assertThat(restorerBundle.getInt(KEY_SCROLL_POSITION))
-        .isEqualTo(expectedBundle.getInt(KEY_SCROLL_POSITION));
-    assertThat(restorerBundle.getInt(KEY_SCROLL_OFFSET))
-        .isEqualTo(expectedBundle.getInt(KEY_SCROLL_OFFSET));
+    ScrollState restorerScrollState =
+        nonRestoringRestorer(recyclerView).getScrollStateForScrollRestore();
+    assertThat(restorerScrollState).isEqualTo(SCROLL_STATE);
   }
 
   @Test
   public void testGetBundleForScrollPosition_invalidPosition() {
-    assertThat(nonRestoringRestorer(recyclerView).getBundleForScrollRestore()).isNull();
+    assertThat(nonRestoringRestorer(recyclerView).getScrollStateForScrollRestore()).isNull();
+  }
+
+  private ScrollState createScrollState(int position, int offset) {
+    return ScrollState.newBuilder().setPosition(position).setOffset(offset).build();
   }
 
   private class LinearLayoutManagerForTest extends LinearLayoutManager {

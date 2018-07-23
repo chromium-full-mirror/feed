@@ -6,6 +6,7 @@ android_library(
     name = "scroll",
     srcs = glob(["*.java"]),
     deps = [
+        "//src/main/proto/com/google/android/libraries/feed/basicstream/internal/proto:stream_saved_instance_state_java_proto_lite",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
         "@androidsdk//com.android.support:support-annotations-25.3.1",
