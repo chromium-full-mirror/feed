@@ -59,13 +59,13 @@ message Card {
 // Metadata object providing basic information for logging content.
 message BasicLoggingMetadata {
   // Time when content was published
-  optional int32 published_time_seconds = 1;
+  optional int64 published_time_seconds = 1;
 
   // Time server filled out content
-  optional int32 availability_time_seconds = 2;
+  optional int64 availability_time_seconds = 2;
 
   // Score given by NowStream
-  optional int32 score = 3;
+  optional float score = 3;
 }
 
 message RepresentationData {

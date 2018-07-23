@@ -22,9 +22,9 @@ import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 public class StreamContentLoggingData implements ContentLoggingData {
 
   private final int positionInStream;
-  private final int publishedTimeSeconds;
-  private final int timeContentBecameAvailable;
-  private final int score;
+  private final long publishedTimeSeconds;
+  private final long timeContentBecameAvailable;
+  private final float score;
   private final String representationUri;
 
   public StreamContentLoggingData(
@@ -44,17 +44,17 @@ public class StreamContentLoggingData implements ContentLoggingData {
   }
 
   @Override
-  public int getPublishedTimeSeconds() {
+  public long getPublishedTimeSeconds() {
     return publishedTimeSeconds;
   }
 
   @Override
-  public int getTimeContentBecameAvailable() {
+  public long getTimeContentBecameAvailable() {
     return timeContentBecameAvailable;
   }
 
   @Override
-  public int getScore() {
+  public float getScore() {
     return score;
   }
 
@@ -83,7 +83,7 @@ public class StreamContentLoggingData implements ContentLoggingData {
     if (timeContentBecameAvailable != that.timeContentBecameAvailable) {
       return false;
     }
-    if (score != that.score) {
+    if (Float.compare(that.score, score) != 0) {
       return false;
     }
     return representationUri != null
@@ -94,9 +94,9 @@ public class StreamContentLoggingData implements ContentLoggingData {
   @Override
   public int hashCode() {
     int result = positionInStream;
-    result = 31 * result + publishedTimeSeconds;
-    result = 31 * result + timeContentBecameAvailable;
-    result = 31 * result + score;
+    result = 31 * result + (int) (publishedTimeSeconds ^ (publishedTimeSeconds >>> 32));
+    result = 31 * result + (int) (timeContentBecameAvailable ^ (timeContentBecameAvailable >>> 32));
+    result = 31 * result + (score != +0.0f ? Float.floatToIntBits(score) : 0);
     result = 31 * result + (representationUri != null ? representationUri.hashCode() : 0);
     return result;
   }

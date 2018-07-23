@@ -24,17 +24,17 @@ public interface ContentLoggingData {
   int getPositionInStream();
 
   /** Gets the time, in seconds from epoch, for when the content was published/made available. */
-  int getPublishedTimeSeconds();
+  long getPublishedTimeSeconds();
 
   /**
    * Gets the time, in seconds from epoch, for when this content was made available on the device.
    * This could be the time for when this content was retrieved from the server or the time the data
    * was pushed to the device.
    */
-  int getTimeContentBecameAvailable();
+  long getTimeContentBecameAvailable();
 
   /** Gets the score which was given to content from NowStream. */
-  int getScore();
+  float getScore();
 
   /**
    * Gets the URI which represents this content. This will normally be the URI which this content
