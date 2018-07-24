@@ -83,7 +83,7 @@ public class HeadSessionImpl implements Session, Dumpable {
 
     if (mutationSourceToken != null) {
       String contentId = mutationSourceToken.getContentId();
-      if (contentId != null && !contentInSession.contains(contentId)) {
+      if (mutationSourceToken.hasContentId() && !contentInSession.contains(contentId)) {
         // Make sure that mutationSourceToken is a token in this session, if not, we don't update
         // the session.
         timeTracker.stop(
