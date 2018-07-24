@@ -29,20 +29,6 @@ option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "ElementsProto";
 option cc_enable_arenas = true;
 
-// A slice is an abstract representation of a horizontal Element.
-message Slice {
-  option deprecated = true;
-
-  // The content within this Slice.
-  oneof slice_instance {
-    // The slice is an ElementList.
-    ElementList inline_slice = 1 [deprecated = true];
-
-    // The slice is defined by a Template.
-    TemplateInvocation template_slice = 2 [deprecated = true];
-  }
-}
-
 // Content is a placeholder which contains a layout Element, or something which
 // resolves to a layout Element.
 message Content {
@@ -124,34 +110,17 @@ message Content {
 
 // A vertically-oriented top-to-bottom list of Contents.
 message ElementList {
-  // The UI elements in the list.
-  repeated Element elements = 1 [deprecated = true];
-
   // The list items to be laid out vertically.
   repeated Content contents = 6;
-
-  // Vertical gravity of the elements in the list. All the elements in the list
-  // are aligned the same way, in regards to this ElementList. The
-  // ElementList spans over the whole vertical space of its parent.
-  optional GravityVertical gravity_vertical = 2 [deprecated = true];
 
   // Styles applied to this ElementList.
   optional StyleIdsStack style_references = 3;
 
-  // Defines Actions that may be associated with the content of the
-  // ElementList. The server is responsible for ensuring that the size of this
-  // content is large enough to present a clear click target for the user.
-  // Deprecated: use actions on Element instead
-  oneof actions_data {
-    // Inlined actions.
-    Actions actions = 4 [deprecated = true];
-
-    // Actions coming from a template.
-    ActionsBindingRef actions_binding = 5 [deprecated = true];
-  }
-
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
+
+  // Deprecated field IDs.
+  reserved 1, 2, 4, 5;
 }
 
 // A template can be used to instantiate a single instance, or a list of
@@ -225,72 +194,6 @@ message Element {
 
     // A list of Elements.
     ElementList element_list = 6;
-
-    // Allow a binding of a ElementList.
-    ElementListBindingRef element_list_binding = 7 [deprecated = true];
-
-    // Allow binding of a template instance. If the referenced template has
-    // several binding contexts, an Element instance will be created for each
-    // one.
-    //
-    // This may happen in one of two cases:
-    //
-    // The Element appears inside an ElementList, or repeated Element
-    // --------------------------------------------------------------
-    //
-    // For example:
-    // In case there's an ElementList with the following Elements:
-    //
-    //  +----------------------------+
-    //  |         Template_1         |
-    //  +----------------------------+
-    //  |   Template_2 with binding  |
-    //  |     values [ a , b , c ]   |
-    //  +----------------------------+
-    //  |         Template_3         |
-    //  +----------------------------+
-    //
-    // After the bindings are resolved, it will become:
-    //  +----------------------------+
-    //  |         Template_1         |
-    //  +----------------------------+
-    //  | Template_2 {with data "a"} |
-    //  +----------------------------+
-    //  | Template_2 {with data "b"} |
-    //  +----------------------------+
-    //  | Template_2 {with data "c"} |
-    //  +----------------------------+
-    //  |         Template_3         |
-    //  +----------------------------+
-    //
-    // The Element appears in a GridCell
-    // ---------------------------------
-    // A GridCell is created for each invocation of the template. The created
-    // GridCells will be added to the GridRow containing this GridCell. The
-    // width of the created GridCells is duplicated from the GridCell containing
-    // this Element.
-    //
-    // For example:
-    // In case there's a GridRow with the following GridCells:
-    //  +----------+------------------------+----------+
-    //  |   Cell   | Cell with Element with |   Cell   |
-    //  |          |  Template 2 with data  |          |
-    //  |     1    |    bindings {a,b,c }   |    3     |
-    //  +----------+------------------------+----------+
-    //
-    // After the bindings are resolved, it will become:
-    //  +----------+------------+------------+------------+---------+
-    //  |   Cell   | Template 2 | Template 2 | Template 2 |   Cell  |
-    //  |     1    | {data "a"} | {data "b"} | {data "c"} |     3   |
-    //  +----------+------------+------------+------------+---------+
-    //
-    //
-    // IMPORTANT:
-    // This feature may not be supported on all platforms; see [INTERNAL LINK].
-    TemplateBindingRef template_binding = 8 [deprecated = true];
-
-    // Similar to template_binding, but defined inline.
-    TemplateInvocation template_invocation = 19 [deprecated = true];
   }
 
   // The value of the VED token to be used by this Element.
@@ -312,20 +215,6 @@ message Element {
 
   // Vertical gravity of this element's content within the parent container
   optional GravityVertical gravity_vertical = 18;
-
-  // A set of ElementLists to be overlaid on top of this Element.
-  // This field is repeated to allow overlaying multiple sets of Elements with
-  // different gravity settings. The position of the ElementList inside the
-  // repeated field determines the order in which views will be laid out. Later
-  // ElementLists will appear above the earlier ones.
-  repeated ElementList overlay_elements = 13 [deprecated = true];
-
-  // A list of Elements to be overlaid on top of this Element.
-  // This field is repeated to allow overlaying multiple sets of Elements with
-  // different gravity settings. The index of the Element inside the repeated
-  // field determines the order in which views will be laid out. Later Elements
-  // will appear above the earlier ones.
-  repeated Element overlay_element = 20 [deprecated = true];
 
   // A list of Contents to be overlaid on top of this Element.
   // This field is repeated to allow multiple overlay layers with different
@@ -368,6 +257,9 @@ message Element {
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
+
+  // Deprecated field IDs.
+  reserved 7, 8, 13, 19, 20;
 }
 
 // Defines the behavior for elements that don't fit in the view
@@ -536,44 +428,8 @@ message GridRow {
 // The Content within each cell expands to fill the cell.
 // Next available ID: 8
 message GridCell {
-  // The cell content.
-  oneof cell_content {
-    // Allow a binding of an ElementList.
-    ElementListBindingRef element_list_binding = 1 [deprecated = true];
-
-    // Allow binding of an ElementList coming from a template.
-    // In case the referenced template has several bindings, a GridCell instance
-    // will be created for each one of them. The created GridCells will be
-    // added to the GridRow containing this GridCell. The width of the created
-    // GridCells is duplicated from this one.
-    //
-    // For example:
-    // In case there's a GridRow with the following GridCells:
-    //  +----------+----------------------+----------+
-    //  | Template | Template 2 with data | Template |
-    //  |     1    |  bindings {a,b,c }   |    3     |
-    //  +----------+----------------------+----------+
-    //
-    // After the bindings are resolved, it will become:
-    //  +----------+------------+------------+------------+----------+
-    //  | Template | Template 2 | Template 2 | Template 2 | Template |
-    //  |     1    | {data "a"} | {data "b"} | {data "c"} |     3    |
-    //  +----------+------------+------------+------------+----------+
-    //
-    // IMPORTANT: This feature is currently not supported in some of the
-    //   platforms. Please try to avoid non-slice templates, if possible.
-    TemplateBindingRef template_binding = 2 [deprecated = true];
-
-    // Define the cell content as a list of UI elements.
-    ElementList element_list = 3 [deprecated = true];
-
-    // The cell content.
-    Element content_old = 6 [deprecated = true];
-
-    // The cell content.
-    // TODO: remove the oneof and just keep this.
-    Content content = 7;
-  }
+  // The content of the GridCell.
+  optional Content content = 7;
 
   // The width of this cell, either fixed width or relative width.
   // If width is not specified, behaves as if weight = 1 by default.
@@ -587,6 +443,9 @@ message GridCell {
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
+
+  // Deprecated field IDs.
+  reserved 1, 2, 3, 6;
 }
 
 // The width of a GridCell.
@@ -655,9 +514,6 @@ message BindingValue {
 
     // Image to be used in an ImageElement.
     Image image = 5;
-
-    // Generic ElementList container binding.
-    ElementList element_list = 6 [deprecated = true];
 
     // A Base64-encoded serialized ClickTrackingCGI proto that identifies the
     // logged Visual Element corresponding to a bound Piet Template.
@@ -791,6 +647,9 @@ message BindingValue {
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
+
+  // Deprecated field IDs.
+  reserved 6;
 }
 
 // Data to be displayed in a CustomElement. Clients using Piet should add

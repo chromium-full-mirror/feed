@@ -14,7 +14,6 @@
 
 syntax = "proto2";
 
-
 package search.now.ui.piet;
 
 option optimize_for=LITE_RUNTIME;
@@ -71,7 +70,6 @@ message ChunkedTextBindingRef {
 }
 
 message ImageBindingRef {
-
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 
@@ -84,17 +82,6 @@ message ImageBindingRef {
 message GridCellWidthBindingRef {
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
-}
-
-// DEPRECATED: Use ElementBindingRef instead
-message ElementListBindingRef {
-  option deprecated = true;
-
-  // The unique ID for this binding. See comments at the top of the file.
-  optional string binding_id = 1;
-
-  // Indicates whether this binding reference is optional.
-  optional bool is_optional = 2;
 }
 
 message ElementBindingRef {
