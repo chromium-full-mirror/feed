@@ -35,7 +35,6 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
-import com.google.android.libraries.feed.host.model.ModelFilter;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -127,7 +126,6 @@ public class FeedStreamScope {
                 threadUtils,
                 timingUtils,
                 mainThreadRunner,
-                ModelFilter.NOOP_MODEL_FILTER,
                 config);
       }
       if (actionParser == null) {

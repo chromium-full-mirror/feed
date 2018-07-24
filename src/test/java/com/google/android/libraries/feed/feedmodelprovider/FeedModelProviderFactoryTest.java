@@ -24,7 +24,6 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import com.google.android.libraries.feed.host.model.ModelFilter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +38,6 @@ public class FeedModelProviderFactoryTest {
   @Mock private TimingUtils timingUtils;
   @Mock private MainThreadRunner mainThreadRunner;
   @Mock private SessionManager sessionManager;
-  @Mock private ModelFilter modelFilter;
   @Mock private Configuration config;
 
   @Before
@@ -55,7 +53,7 @@ public class FeedModelProviderFactoryTest {
   public void testModelProviderFactory() {
     FeedModelProviderFactory factory =
         new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, mainThreadRunner, modelFilter, config);
-    assertThat(factory.createNew(null)).isNotNull();
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, config);
+    assertThat(factory.createNew(null, null)).isNotNull();
   }
 }

@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
+import com.google.android.libraries.feed.common.functional.Predicate;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 
 /** Factory method for creating {@link ModelProvider} instances. */
 public interface ModelProviderFactory {
@@ -26,4 +28,8 @@ public interface ModelProviderFactory {
 
   /** Returns a new instance of a {@link ModelProvider} from $HEAD. */
   ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider);
+
+  ModelProvider createNew(
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider,
+      /*@Nullable*/ Predicate<StreamStructure> filterPredicate);
 }

@@ -24,7 +24,6 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager",
         "//src/main/java/com/google/android/libraries/feed/feedstore",
         "//src/main/java/com/google/android/libraries/feed/host/config",
-        "//src/main/java/com/google/android/libraries/feed/host/model",
         "//src/main/java/com/google/android/libraries/feed/host/proto",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/host/storage",

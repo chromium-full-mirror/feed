@@ -20,9 +20,10 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDep
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.model.ModelFilter;
+import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 
 /**
  * Factory for creating instances of {@link ModelProviderFactory} using the {@link
@@ -33,7 +34,6 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
   private final MainThreadRunner mainThreadRunner;
-  private final ModelFilter modelFilter;
   private final Configuration config;
 
   public FeedModelProviderFactory(
@@ -41,13 +41,11 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
       MainThreadRunner mainThreadRunner,
-      ModelFilter modelFilter,
       Configuration config) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
     this.mainThreadRunner = mainThreadRunner;
-    this.modelFilter = modelFilter;
     this.config = config;
   }
 
@@ -55,16 +53,23 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   public ModelProvider create(String sessionToken) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(
-            sessionManager, threadUtils, timingUtils, mainThreadRunner, modelFilter, config);
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, null, config);
     sessionManager.getExistingSession(sessionToken, modelProvider);
     return modelProvider;
   }
 
   @Override
   public ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+    return createNew(viewDepthProvider, null);
+  }
+
+  @Override
+  public ModelProvider createNew(
+      /*@Nullable*/ ViewDepthProvider viewDepthProvider,
+      /*@Nullable*/ Predicate<StreamStructure> filterPredicate) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(
-            sessionManager, threadUtils, timingUtils, mainThreadRunner, modelFilter, config);
+            sessionManager, threadUtils, timingUtils, mainThreadRunner, filterPredicate, config);
     sessionManager.getNewSession(
         modelProvider, modelProvider.getViewDepthProvider(viewDepthProvider));
     return modelProvider;

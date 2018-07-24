@@ -53,7 +53,6 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import com.google.android.libraries.feed.host.model.ModelFilter;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -124,7 +123,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
 
-  /*@Nullable*/ private final Predicate<StreamStructure> dropStructurePredicate;
+  /*@Nullable*/ private final Predicate<StreamStructure> filterPredicate;
 
   private final int nonCacheInitialPageSize;
   private final int nonCachePageSize;
@@ -138,7 +137,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
       MainThreadRunner mainThreadRunner,
-      ModelFilter modelFilter,
+      /*@Nullable*/ Predicate<StreamStructure> filterPredicate,
       Configuration config) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
@@ -150,7 +149,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     this.nonCacheMinPageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0);
     this.failPaginationRequests =
         config.getValueOrDefault(ConfigKey.FAIL_PAGINATION_REQUESTS, false);
-    dropStructurePredicate = modelFilter.getDropStructurePredicate();
+    this.filterPredicate = filterPredicate;
 
     CursorProvider cursorProvider =
         parentId -> {
@@ -523,7 +522,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           List<StreamStructure> removedChildren = new ArrayList<>();
           List<UpdatableModelChild> childrenToBind = new ArrayList<>();
           for (StreamStructure structureChange : change.structureChanges) {
-            if (dropStructurePredicate != null && dropStructurePredicate.test(structureChange)) {
+            if (filterPredicate != null && !filterPredicate.test(structureChange)) {
               continue;
             }
             if (structureChange.getOperation() == Operation.UPDATE_OR_APPEND) {
