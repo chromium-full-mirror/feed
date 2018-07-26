@@ -46,7 +46,6 @@ public class FeedModelProviderFactoryTest {
     when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
     when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
     when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(0);
-    when(config.getValueOrDefault(ConfigKey.FAIL_PAGINATION_REQUESTS, false)).thenReturn(false);
   }
 
   @Test

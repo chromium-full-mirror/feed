@@ -43,7 +43,6 @@ public class Configuration {
     // TIme in ms for the length of the timeout
     ConfigKey.TIMEOUT_TIMEOUT_MS,
     ConfigKey.MINIMUM_VALID_ACTION_RATIO,
-    ConfigKey.FAIL_PAGINATION_REQUESTS,
     // Percentage of the view that should be on screen to log a view
     ConfigKey.VIEW_LOG_THRESHOLD
   })
@@ -63,7 +62,6 @@ public class Configuration {
     String TIMEOUT_REQUEST_WITH_TIMEOUT_MS = "timeout_request_with_timeout_ms";
     String TIMEOUT_TIMEOUT_MS = "timeout_timeout_ms";
     String MINIMUM_VALID_ACTION_RATIO = "minimum_valid_action_ratio";
-    String FAIL_PAGINATION_REQUESTS = "fail_pagination_requests";
     String VIEW_LOG_THRESHOLD = "view_log_threshold";
   }
 

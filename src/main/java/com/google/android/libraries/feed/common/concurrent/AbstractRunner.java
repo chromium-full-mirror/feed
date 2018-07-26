@@ -20,7 +20,7 @@ import java.util.concurrent.Executor;
 /** Allows execution of a {@link Runnable} like an {@link Executor}. */
 abstract class AbstractRunner {
 
-  private static final String TAG = "Runner";
+  private static final String TAG = "AbstractRunner";
 
   private final Executor executor;
   private final String executorDescription;
@@ -32,7 +32,7 @@ abstract class AbstractRunner {
 
   /** Executes the {@code runnable} on the {@link Executor} used to initialize this class. */
   public void execute(String name, Runnable runnable) {
-    Logger.d(TAG, "Running task [%s] on [%s]", name, executorDescription);
+    Logger.i(TAG, "Running task [%s] on [%s]", name, executorDescription);
     executor.execute(runnable);
   }
 }

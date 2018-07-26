@@ -21,7 +21,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -66,7 +65,6 @@ import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.Before;
@@ -258,24 +256,6 @@ public class FeedModelProviderTest {
     modelProvider.streamSession = mockSession;
     modelProvider.handleToken(modelToken);
     verify(sessionManager).handleToken(mockSession, streamToken);
-  }
-
-  @Test
-  public void testHandleToken_whenFailPaginationRequestsTrue() {
-    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
-    when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(0);
-    when(config.getValueOrDefault(ConfigKey.FAIL_PAGINATION_REQUESTS, false)).thenReturn(true);
-
-    FeedModelProvider modelProvider = createFeedModelProvider();
-
-    TokenCompletedObserver tokenCompletedObserver = mock(TokenCompletedObserver.class);
-    UpdatableModelToken continuationToken = mock(UpdatableModelToken.class);
-    when(continuationToken.getObserversToNotify())
-        .thenReturn(Collections.singletonList(tokenCompletedObserver));
-
-    modelProvider.handleToken(continuationToken);
-    verifyNoMoreInteractions(sessionManager);
   }
 
   @Test
@@ -481,7 +461,6 @@ public class FeedModelProviderTest {
         .thenReturn(initialPageSize);
     when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(pageSize);
     when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(2);
-    when(config.getValueOrDefault(ConfigKey.FAIL_PAGINATION_REQUESTS, false)).thenReturn(false);
 
     doAnswer(
             invocation -> {
@@ -612,7 +591,6 @@ public class FeedModelProviderTest {
     when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
     when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
     when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(0);
-    when(config.getValueOrDefault(ConfigKey.FAIL_PAGINATION_REQUESTS, false)).thenReturn(false);
   }
 
   private StreamToken initializeStreamWithToken(FeedModelProvider modelProvider, int featureCnt) {
