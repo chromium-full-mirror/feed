@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerImageView;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -58,13 +59,13 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
       Context context = getContext();
 
       if (style.hasWidth()) {
-        widthPx = (int) ViewUtils.dpToPx(style.getWidth(), context);
+        widthPx = (int) LayoutUtils.dpToPx(style.getWidth(), context);
       } else {
         widthPx = DIMENSION_NOT_SET;
       }
 
       if (style.hasHeight()) {
-        heightPx = (int) ViewUtils.dpToPx(style.getHeight(), context);
+        heightPx = (int) LayoutUtils.dpToPx(style.getHeight(), context);
       } else {
         // Defaults to a square when only the width is defined.
         heightPx = style.hasWidth() ? widthPx : DIMENSION_NOT_SET;

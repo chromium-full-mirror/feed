@@ -25,8 +25,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.testing.host.stream.FakeCardConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +43,7 @@ public class ZeroStateViewHolderTest {
 
   @Mock private OnClickListener onClickListener;
 
+  private CardConfiguration cardConfiguration;
   private Context context;
   private FrameLayout frameLayout;
   private ZeroStateViewHolder zeroStateViewHolder;
@@ -47,9 +51,10 @@ public class ZeroStateViewHolderTest {
   @Before
   public void setup() {
     initMocks(this);
+    cardConfiguration = new FakeCardConfiguration();
     context = Robolectric.setupActivity(Activity.class);
     frameLayout = new FrameLayout(context);
-    zeroStateViewHolder = new ZeroStateViewHolder(context, frameLayout);
+    zeroStateViewHolder = new ZeroStateViewHolder(context, frameLayout, cardConfiguration);
   }
 
   @Test
@@ -138,6 +143,17 @@ public class ZeroStateViewHolderTest {
 
     assertThat(spinner.getVisibility()).isEqualTo(View.GONE);
     assertThat(zeroState.getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
+  public void testBind_setsMargins() {
+    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
+
+    MarginLayoutParams marginLayoutParams =
+        (MarginLayoutParams) zeroStateViewHolder.itemView.getLayoutParams();
+    assertThat(marginLayoutParams.bottomMargin).isEqualTo(cardConfiguration.getCardBottomMargin());
+    assertThat(marginLayoutParams.leftMargin).isEqualTo(cardConfiguration.getCardStartMargin());
+    assertThat(marginLayoutParams.rightMargin).isEqualTo(cardConfiguration.getCardEndMargin());
   }
 
   @Test

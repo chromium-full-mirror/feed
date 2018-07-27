@@ -31,6 +31,7 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -192,7 +193,7 @@ public class GridRowAdapterTest {
         .isInstanceOf(LinearLayout.LayoutParams.class);
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
-    assertThat(params.width).isEqualTo((int) ViewUtils.dpToPx(widthDp, context));
+    assertThat(params.width).isEqualTo((int) LayoutUtils.dpToPx(widthDp, context));
     assertThat(params.weight).isEqualTo(0.0f);
   }
 
@@ -236,7 +237,7 @@ public class GridRowAdapterTest {
         .isInstanceOf(LinearLayout.LayoutParams.class);
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
-    assertThat(params.width).isEqualTo((int) ViewUtils.dpToPx(widthDp, context));
+    assertThat(params.width).isEqualTo((int) LayoutUtils.dpToPx(widthDp, context));
     assertThat(params.weight).isEqualTo(0.0f);
   }
 
@@ -292,7 +293,7 @@ public class GridRowAdapterTest {
         .isInstanceOf(LinearLayout.LayoutParams.class);
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
-    assertThat(params.width).isEqualTo((int) ViewUtils.dpToPx(456, context));
+    assertThat(params.width).isEqualTo((int) LayoutUtils.dpToPx(456, context));
     assertThat(params.weight).isEqualTo(0.0f);
   }
 
@@ -324,7 +325,7 @@ public class GridRowAdapterTest {
         .isInstanceOf(LinearLayout.LayoutParams.class);
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
-    assertThat(params.height).isEqualTo((int) ViewUtils.dpToPx(123, context));
+    assertThat(params.height).isEqualTo((int) LayoutUtils.dpToPx(123, context));
   }
 
   @Test

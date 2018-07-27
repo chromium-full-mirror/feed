@@ -105,11 +105,6 @@ public class ViewUtilsTest {
   }
 
   @Test
-  public void testDpToPx() {
-    assertThat(ViewUtils.dpToPx(1000.0f, context)).isEqualTo(1000.0f);
-  }
-
-  @Test
   public void testGravity() {
     assertThat(
             ViewUtils.pietGravityToGravity(

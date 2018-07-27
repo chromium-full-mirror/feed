@@ -25,8 +25,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
@@ -43,6 +41,7 @@ import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
+import com.google.android.libraries.feed.testing.host.stream.FakeCardConfiguration;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
@@ -64,7 +63,6 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class PietViewHolderTest {
   private static final Action ACTION = Action.getDefaultInstance();
-  private static final int CARD_BOTTOM_PADDING = 42;
   private static final Frame FRAME = Frame.newBuilder().build();
   private static final FeedActionPayload SWIPE_ACTION =
       FeedActionPayload.newBuilder()
@@ -72,7 +70,7 @@ public class PietViewHolderTest {
           .build();
   private static final String VE_LOGGING_TOKEN = "token";
 
-  @Mock private CardConfiguration cardConfiguration;
+  private CardConfiguration cardConfiguration;
   @Mock private FrameAdapter frameAdapter;
   @Mock private ActionParser actionParser;
   @Mock private PietManager pietManager;
@@ -86,11 +84,13 @@ public class PietViewHolderTest {
   private FrameLayout frameLayout;
   private View view;
   private final List<PietSharedState> pietSharedStates = new ArrayList<>();
+  private Context context;
 
   @Before
   public void setUp() {
     initMocks(this);
-    Context context = Robolectric.setupActivity(Activity.class);
+    cardConfiguration = new FakeCardConfiguration();
+    context = Robolectric.setupActivity(Activity.class);
     frameLayout = new FrameLayout(context);
     view = new TextView(context);
     when(pietManager.createPietFrameAdapter(
@@ -133,9 +133,6 @@ public class PietViewHolderTest {
 
   @Test
   public void testBind_setsBackground() {
-    ColorDrawable redBackground = new ColorDrawable(Color.RED);
-    when(cardConfiguration.getCardBackground()).thenReturn(redBackground);
-
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
@@ -143,13 +140,11 @@ public class PietViewHolderTest {
         FeedActionPayload.getDefaultInstance(),
         loggingListener);
 
-    assertThat(frameLayout.getBackground()).isEqualTo(redBackground);
+    assertThat(frameLayout.getBackground()).isEqualTo(cardConfiguration.getCardBackground());
   }
 
   @Test
-  public void testBind_setsTheming() {
-    when(cardConfiguration.getCardBottomMargin()).thenReturn(CARD_BOTTOM_PADDING);
-
+  public void testBind_setsMargins() {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
         pietSharedStates,
@@ -157,8 +152,11 @@ public class PietViewHolderTest {
         FeedActionPayload.getDefaultInstance(),
         loggingListener);
 
-    assertThat(((MarginLayoutParams) pietViewHolder.itemView.getLayoutParams()).bottomMargin)
-        .isEqualTo(CARD_BOTTOM_PADDING);
+    MarginLayoutParams marginLayoutParams =
+        (MarginLayoutParams) pietViewHolder.itemView.getLayoutParams();
+    assertThat(marginLayoutParams.bottomMargin).isEqualTo(cardConfiguration.getCardBottomMargin());
+    assertThat(marginLayoutParams.leftMargin).isEqualTo(cardConfiguration.getCardStartMargin());
+    assertThat(marginLayoutParams.rightMargin).isEqualTo(cardConfiguration.getCardEndMargin());
   }
 
   @Test

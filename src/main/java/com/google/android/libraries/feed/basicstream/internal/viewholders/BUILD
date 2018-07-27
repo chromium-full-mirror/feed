@@ -12,6 +12,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/logging",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
+        "//src/main/java/com/google/android/libraries/feed/common/ui",
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/stream",

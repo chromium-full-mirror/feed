@@ -16,25 +16,32 @@ package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
 import android.content.Context;
 import android.support.annotation.StringRes;
+import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
+import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
 /** {@link ViewHolder} for zero state. */
 public class ZeroStateViewHolder extends FeedViewHolder {
-  public static final int MORNING_HOUR_START = 0;
-  public static final int AFTERNOON_HOUR_START = 12;
-  public static final int EVENING_HOUR_START = 17;
+  @VisibleForTesting static final int MORNING_HOUR_START = 0;
+  @VisibleForTesting static final int AFTERNOON_HOUR_START = 12;
+  @VisibleForTesting static final int EVENING_HOUR_START = 17;
 
   private final View zeroStateView;
   private final View loadingSpinner;
   private final View actionButton;
   private final TextView bodyText;
+  private final CardConfiguration cardConfiguration;
 
-  public ZeroStateViewHolder(Context context, FrameLayout frameLayout) {
+  public ZeroStateViewHolder(
+      Context context, FrameLayout frameLayout, CardConfiguration cardConfiguration) {
     super(frameLayout);
     View view = LayoutInflater.from(context).inflate(R.layout.zero_state, frameLayout);
 
@@ -42,9 +49,20 @@ public class ZeroStateViewHolder extends FeedViewHolder {
     zeroStateView = view.findViewById(R.id.zero_state);
     actionButton = view.findViewById(R.id.action_button);
     bodyText = view.findViewById(R.id.body_text);
+    this.cardConfiguration = cardConfiguration;
   }
 
   public void bind(OnClickListener onClickListener, int hour, boolean showSpinner) {
+    MarginLayoutParams marginLayoutParams =
+        new MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+    itemView.setLayoutParams(marginLayoutParams);
+    LayoutUtils.setMarginsRelative(
+        marginLayoutParams,
+        cardConfiguration.getCardStartMargin(),
+        0,
+        cardConfiguration.getCardEndMargin(),
+        cardConfiguration.getCardBottomMargin());
+
     bodyText.setText(getBodyText(hour));
     actionButton.setOnClickListener(onClickListener);
     showSpinner(showSpinner);

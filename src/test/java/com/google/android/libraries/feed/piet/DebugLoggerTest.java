@@ -22,6 +22,7 @@ import android.content.Context;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class DebugLoggerTest {
     assertThat(reportView.getChildAt(0).getLayoutParams().width)
         .isEqualTo(LayoutParams.MATCH_PARENT);
     assertThat(reportView.getChildAt(0).getLayoutParams().height)
-        .isEqualTo((int) ViewUtils.dpToPx(DebugLogger.ERROR_DIVIDER_WIDTH_DP, context));
+        .isEqualTo((int) LayoutUtils.dpToPx(DebugLogger.ERROR_DIVIDER_WIDTH_DP, context));
 
     // Check the error box
     assertThat(reportView.getChildAt(1)).isInstanceOf(TextView.class);

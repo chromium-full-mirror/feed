@@ -20,12 +20,14 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
+import android.widget.FrameLayout.LayoutParams;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -97,12 +99,18 @@ public class PietViewHolder extends FeedViewHolder {
     // Need to reset padding here.  Setting a background can affect padding so if we switch from
     // a background which has padding to one that does not, then the padding needs to be removed.
     cardView.setPadding(0, 0, 0, 0);
+
     cardView.setBackground(cardConfiguration.getCardBackground());
-    LinearLayout.LayoutParams lp =
-        new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-    lp.bottomMargin = cardConfiguration.getCardBottomMargin();
-    cardView.setLayoutParams(lp);
+
+    MarginLayoutParams marginLayoutParams =
+        new MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+    cardView.setLayoutParams(marginLayoutParams);
+    LayoutUtils.setMarginsRelative(
+        marginLayoutParams,
+        cardConfiguration.getCardStartMargin(),
+        0,
+        cardConfiguration.getCardEndMargin(),
+        cardConfiguration.getCardBottomMargin());
 
     frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
     bound = true;

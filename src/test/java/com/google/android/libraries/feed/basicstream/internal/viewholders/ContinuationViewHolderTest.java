@@ -22,10 +22,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.testing.host.stream.FakeCardConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +44,7 @@ public class ContinuationViewHolderTest {
   private ContinuationViewHolder continuationViewHolder;
   private Context context;
   private FrameLayout frameLayout;
+  private CardConfiguration cardConfiguration;
 
   @Mock private OnClickListener onClickListener;
   @Mock private LoggingListener loggingListener;
@@ -49,10 +53,11 @@ public class ContinuationViewHolderTest {
   @Before
   public void setup() {
     initMocks(this);
+    cardConfiguration = new FakeCardConfiguration();
     context = Robolectric.setupActivity(Activity.class);
     frameLayout = new FrameLayout(context);
     continuationViewHolder =
-        new ContinuationViewHolder(CONFIGURATION, context, frameLayout) {
+        new ContinuationViewHolder(CONFIGURATION, context, frameLayout, cardConfiguration) {
           @Override
           VisibilityMonitor createVisibilityMonitor(View view, Configuration configuration) {
             return visibilityMonitor;
@@ -103,6 +108,17 @@ public class ContinuationViewHolderTest {
     continuationViewHolder.bind(onClickListener, loggingListener, /* showSpinner= */ false);
 
     verify(visibilityMonitor).setListener(loggingListener);
+  }
+
+  @Test
+  public void testBind_setsMargins() {
+    continuationViewHolder.bind(onClickListener, loggingListener, /* showSpinner= */ false);
+
+    MarginLayoutParams marginLayoutParams =
+        (MarginLayoutParams) continuationViewHolder.itemView.getLayoutParams();
+    assertThat(marginLayoutParams.bottomMargin).isEqualTo(cardConfiguration.getCardBottomMargin());
+    assertThat(marginLayoutParams.leftMargin).isEqualTo(cardConfiguration.getCardStartMargin());
+    assertThat(marginLayoutParams.rightMargin).isEqualTo(cardConfiguration.getCardEndMargin());
   }
 
   @Test

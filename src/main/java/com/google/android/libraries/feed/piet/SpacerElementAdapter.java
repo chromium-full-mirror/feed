@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.SpacerElementAdapter.DividerView;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -64,7 +65,7 @@ class SpacerElementAdapter extends ElementAdapter<DividerView, SpacerElement> {
     EdgeWidths padding = getElementStyle().getPadding();
 
     int height = padding.getTop() + padding.getBottom() + getModel().getHeight();
-    heightPx = (int) ViewUtils.dpToPx(height, getContext());
+    heightPx = (int) LayoutUtils.dpToPx(height, getContext());
   }
 
   @Override
@@ -90,8 +91,8 @@ class SpacerElementAdapter extends ElementAdapter<DividerView, SpacerElement> {
 
     public void initialize(int color, int height, EdgeWidths padding) {
       spacerDrawable = new ColorDrawable(color);
-      heightInPx = (int) ViewUtils.dpToPx(height, context);
-      this.topPaddingInPx = (int) ViewUtils.dpToPx(padding.getTop(), context);
+      heightInPx = (int) LayoutUtils.dpToPx(height, context);
+      this.topPaddingInPx = (int) LayoutUtils.dpToPx(padding.getTop(), context);
     }
 
     @Override

@@ -23,6 +23,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.View;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import org.junit.Before;
@@ -40,6 +41,7 @@ public class NoContentViewHolderTest {
   private FrameLayout frameLayout;
 
   ColorDrawable RED_BACKGROUND = new ColorDrawable(Color.RED);
+
   @Mock private CardConfiguration cardConfiguration;
 
   @Before
@@ -63,5 +65,16 @@ public class NoContentViewHolderTest {
     noContentViewHolder.bind();
 
     assertThat(frameLayout.getBackground()).isEqualTo(RED_BACKGROUND);
+  }
+
+  @Test
+  public void testBind_setsMargins() {
+    noContentViewHolder.bind();
+
+    MarginLayoutParams marginLayoutParams =
+        (MarginLayoutParams) noContentViewHolder.itemView.getLayoutParams();
+    assertThat(marginLayoutParams.bottomMargin).isEqualTo(cardConfiguration.getCardBottomMargin());
+    assertThat(marginLayoutParams.leftMargin).isEqualTo(cardConfiguration.getCardStartMargin());
+    assertThat(marginLayoutParams.rightMargin).isEqualTo(cardConfiguration.getCardEndMargin());
   }
 }

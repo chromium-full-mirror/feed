@@ -39,6 +39,7 @@ import android.text.style.StyleSpan;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ActionsClickableSpan;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ImageSpanDrawableCallback;
@@ -451,7 +452,7 @@ public class ChunkedTextElementAdapterTest {
   public void testAddTextChunk_setsStyles() {
     int color = 314159;
     Font font = Font.newBuilder().setItalic(true).setWeight(FontWeight.BOLD).setSize(271).build();
-    int textSize = (int) ViewUtils.dpToPx(271, context);
+    int textSize = (int) LayoutUtils.dpToPx(271, context);
 
     when(mockStyleProvider.hasColor()).thenReturn(true);
     when(mockStyleProvider.getColor()).thenReturn(color);
@@ -502,8 +503,8 @@ public class ChunkedTextElementAdapterTest {
     // Assert that we set the image on the span
     assertThat(containerDrawable.getDrawable(0)).isSameAs(imageDrawable);
 
-    int widthPx = (int) ViewUtils.dpToPx(STYLE_WIDTH_DP, context);
-    int heightPx = (int) ViewUtils.dpToPx(STYLE_HEIGHT_DP, context);
+    int widthPx = (int) LayoutUtils.dpToPx(STYLE_WIDTH_DP, context);
+    int heightPx = (int) LayoutUtils.dpToPx(STYLE_HEIGHT_DP, context);
     assertThat(imageDrawable.getBounds()).isEqualTo(new Rect(0, 0, widthPx, heightPx));
   }
 
@@ -632,8 +633,8 @@ public class ChunkedTextElementAdapterTest {
             mockAssetProvider),
         textView);
 
-    int widthPx = (int) ViewUtils.dpToPx(STYLE_WIDTH_DP, context);
-    int heightPx = (int) ViewUtils.dpToPx(STYLE_HEIGHT_DP, context);
+    int widthPx = (int) LayoutUtils.dpToPx(STYLE_WIDTH_DP, context);
+    int heightPx = (int) LayoutUtils.dpToPx(STYLE_HEIGHT_DP, context);
     assertThat(drawable.getBounds()).isEqualTo(new Rect(0, 0, widthPx, heightPx));
   }
 
@@ -644,7 +645,7 @@ public class ChunkedTextElementAdapterTest {
         new StyleProvider(Style.newBuilder().setHeight(STYLE_HEIGHT_DP).build(), mockAssetProvider),
         textView);
 
-    int heightPx = (int) ViewUtils.dpToPx(STYLE_HEIGHT_DP, context);
+    int heightPx = (int) LayoutUtils.dpToPx(STYLE_HEIGHT_DP, context);
     assertThat(drawable.getBounds())
         .isEqualTo(new Rect(0, 0, heightPx * IMAGE_ASPECT_RATIO, heightPx));
   }
@@ -656,7 +657,7 @@ public class ChunkedTextElementAdapterTest {
         new StyleProvider(Style.newBuilder().setWidth(STYLE_WIDTH_DP).build(), mockAssetProvider),
         textView);
 
-    int widthPx = (int) ViewUtils.dpToPx(STYLE_WIDTH_DP, context);
+    int widthPx = (int) LayoutUtils.dpToPx(STYLE_WIDTH_DP, context);
     assertThat(drawable.getBounds())
         .isEqualTo(new Rect(0, 0, widthPx, widthPx / IMAGE_ASPECT_RATIO));
   }

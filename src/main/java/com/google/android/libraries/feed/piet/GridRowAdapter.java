@@ -21,6 +21,7 @@ import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
@@ -144,7 +145,7 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
           break;
         case DP:
           params.weight = 0;
-          params.width = (int) ViewUtils.dpToPx(gridCellWidth.getDp(), getContext());
+          params.width = (int) LayoutUtils.dpToPx(gridCellWidth.getDp(), getContext());
           break;
         case WEIGHT:
           params.weight = gridCellWidth.getWeight();

@@ -23,6 +23,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -199,12 +200,12 @@ public class StyleProviderTest {
   }
 
   private void verifyPadding(View view, EdgeWidths padding) {
-    assertThat(view.getPaddingTop()).isEqualTo((int) ViewUtils.dpToPx(padding.getTop(), context));
+    assertThat(view.getPaddingTop()).isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context));
     assertThat(view.getPaddingBottom())
-        .isEqualTo((int) ViewUtils.dpToPx(padding.getBottom(), context));
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context));
     assertThat(view.getPaddingStart())
-        .isEqualTo((int) ViewUtils.dpToPx(padding.getStart(), context));
-    assertThat(view.getPaddingEnd()).isEqualTo((int) ViewUtils.dpToPx(padding.getEnd(), context));
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getStart(), context));
+    assertThat(view.getPaddingEnd()).isEqualTo((int) LayoutUtils.dpToPx(padding.getEnd(), context));
   }
 
   @Test
@@ -247,11 +248,13 @@ public class StyleProviderTest {
 
   private void verifyMargins(MarginLayoutParams params, EdgeWidths margins) {
     assertThat(params.getMarginStart())
-        .isEqualTo((int) ViewUtils.dpToPx(margins.getStart(), context));
-    assertThat(params.getMarginEnd()).isEqualTo((int) ViewUtils.dpToPx(margins.getEnd(), context));
-    assertThat(params.topMargin).isEqualTo((int) ViewUtils.dpToPx(margins.getTop(), context));
-    assertThat(params.bottomMargin).isEqualTo((int) ViewUtils.dpToPx(margins.getBottom(), context));
-    assertThat(params.leftMargin).isEqualTo((int) ViewUtils.dpToPx(margins.getStart(), context));
-    assertThat(params.rightMargin).isEqualTo((int) ViewUtils.dpToPx(margins.getEnd(), context));
+        .isEqualTo((int) LayoutUtils.dpToPx(margins.getStart(), context));
+    assertThat(params.getMarginEnd())
+        .isEqualTo((int) LayoutUtils.dpToPx(margins.getEnd(), context));
+    assertThat(params.topMargin).isEqualTo((int) LayoutUtils.dpToPx(margins.getTop(), context));
+    assertThat(params.bottomMargin)
+        .isEqualTo((int) LayoutUtils.dpToPx(margins.getBottom(), context));
+    assertThat(params.leftMargin).isEqualTo((int) LayoutUtils.dpToPx(margins.getStart(), context));
+    assertThat(params.rightMargin).isEqualTo((int) LayoutUtils.dpToPx(margins.getEnd(), context));
   }
 }

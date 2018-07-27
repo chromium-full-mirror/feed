@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,7 +93,7 @@ class DebugLogger {
     View v = new View(context);
     LayoutParams layoutParams =
         new LinearLayout.LayoutParams(
-            LayoutParams.MATCH_PARENT, (int) ViewUtils.dpToPx(ERROR_DIVIDER_WIDTH_DP, context));
+            LayoutParams.MATCH_PARENT, (int) LayoutUtils.dpToPx(ERROR_DIVIDER_WIDTH_DP, context));
     v.setLayoutParams(layoutParams);
     v.setBackgroundColor(DIVIDER_COLOR);
     return v;
@@ -102,10 +103,10 @@ class DebugLogger {
     TextView textView = new TextView(context);
     TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
     textView.setPadding(
-        (int) ViewUtils.dpToPx(SIDE_PADDING, context),
-        (int) ViewUtils.dpToPx(PADDING, context),
-        (int) ViewUtils.dpToPx(SIDE_PADDING, context),
-        (int) ViewUtils.dpToPx(PADDING, context));
+        (int) LayoutUtils.dpToPx(SIDE_PADDING, context),
+        (int) LayoutUtils.dpToPx(PADDING, context),
+        (int) LayoutUtils.dpToPx(SIDE_PADDING, context),
+        (int) LayoutUtils.dpToPx(PADDING, context));
     textView.setText(message);
     return textView;
   }

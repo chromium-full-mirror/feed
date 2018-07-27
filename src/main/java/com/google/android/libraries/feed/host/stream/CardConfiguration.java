@@ -26,4 +26,10 @@ public interface CardConfiguration {
 
   /** Returns the amount of margin (in px) at the end of a card in the Stream */
   int getCardBottomMargin();
+
+  /** Returns the amount of margin (in px) to the left (in LTR locales) of cards. */
+  int getCardStartMargin();
+
+  /** Returns the amount of margin (in px) to the right (in LTR locales) of cards. */
+  int getCardEndMargin();
 }

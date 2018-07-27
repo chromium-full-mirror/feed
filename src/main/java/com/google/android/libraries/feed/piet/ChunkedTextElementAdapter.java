@@ -38,6 +38,7 @@ import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -238,7 +239,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     if (chunkStyle.getFont().hasSize()) {
       spannable.setSpan(
           new AbsoluteSizeSpan(
-              (int) ViewUtils.dpToPx(chunkStyle.getFont().getSize(), getContext())),
+              (int) LayoutUtils.dpToPx(chunkStyle.getFont().getSize(), getContext())),
           start,
           spannable.length(),
           Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -301,8 +302,8 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
   void setBounds(Drawable imageDrawable, StyleProvider imageStyle, TextView textView) {
     int lineHeight = textView.getLineHeight();
 
-    int styleHeight = (int) ViewUtils.dpToPx(imageStyle.getHeight(), getContext());
-    int styleWidth = (int) ViewUtils.dpToPx(imageStyle.getWidth(), getContext());
+    int styleHeight = (int) LayoutUtils.dpToPx(imageStyle.getHeight(), getContext());
+    int styleWidth = (int) LayoutUtils.dpToPx(imageStyle.getWidth(), getContext());
 
     int height;
     int width;

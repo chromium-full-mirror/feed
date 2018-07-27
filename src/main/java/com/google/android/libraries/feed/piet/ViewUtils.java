@@ -14,11 +14,8 @@
 
 package com.google.android.libraries.feed.piet;
 
-import android.content.Context;
 import android.graphics.Rect;
 import android.support.v4.view.ViewCompat;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -33,12 +30,6 @@ import java.util.Set;
 /** Utility class, providing useful methods to interact with Views. */
 public class ViewUtils {
   private static final String TAG = "ViewUtils";
-
-  /** Convert DP to PX */
-  public static float dpToPx(float dp, Context context) {
-    DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, metrics);
-  }
 
   static int pietGravityToGravity(
       GravityHorizontal gravityHorizontal, GravityVertical gravityVertical) {

@@ -22,10 +22,14 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
 /** {@link ViewHolder} for the more button. */
 public class ContinuationViewHolder extends FeedViewHolder {
@@ -33,18 +37,34 @@ public class ContinuationViewHolder extends FeedViewHolder {
   private final View actionButton;
   private final View spinner;
   private final VisibilityMonitor visibilityMonitor;
+  private final CardConfiguration cardConfiguration;
 
   public ContinuationViewHolder(
-      Configuration configuration, Context context, FrameLayout frameLayout) {
+      Configuration configuration,
+      Context context,
+      FrameLayout frameLayout,
+      CardConfiguration cardConfiguration) {
     super(frameLayout);
     View containerView = LayoutInflater.from(context).inflate(R.layout.more_button, frameLayout);
     actionButton = checkNotNull(frameLayout.findViewById(R.id.action_button));
     spinner = checkNotNull(frameLayout.findViewById(R.id.loading_spinner));
     visibilityMonitor = createVisibilityMonitor(containerView, configuration);
+    this.cardConfiguration = cardConfiguration;
   }
 
   public void bind(
       OnClickListener onClickListener, LoggingListener loggingListener, boolean showSpinner) {
+    MarginLayoutParams marginLayoutParams =
+        new MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+
+    itemView.setLayoutParams(marginLayoutParams);
+    LayoutUtils.setMarginsRelative(
+        marginLayoutParams,
+        cardConfiguration.getCardStartMargin(),
+        0,
+        cardConfiguration.getCardEndMargin(),
+        cardConfiguration.getCardBottomMargin());
+
     actionButton.setOnClickListener(
         v -> {
           onClickListener.onClick(v);

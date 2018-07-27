@@ -20,6 +20,7 @@ import android.os.Build;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -135,7 +136,7 @@ class StyleProvider {
       view.setBackground(null);
     }
     if (getMinHeight() > 0) {
-      view.setMinimumHeight((int) ViewUtils.dpToPx(getMinHeight(), context));
+      view.setMinimumHeight((int) LayoutUtils.dpToPx(getMinHeight(), context));
     } else {
       view.setMinimumHeight(0);
     }
@@ -145,29 +146,29 @@ class StyleProvider {
   void applyPadding(Context context, View view, EdgeWidths padding) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       view.setPaddingRelative(
-          (int) ViewUtils.dpToPx(padding.getStart(), context),
-          (int) ViewUtils.dpToPx(padding.getTop(), context),
-          (int) ViewUtils.dpToPx(padding.getEnd(), context),
-          (int) ViewUtils.dpToPx(padding.getBottom(), context));
+          (int) LayoutUtils.dpToPx(padding.getStart(), context),
+          (int) LayoutUtils.dpToPx(padding.getTop(), context),
+          (int) LayoutUtils.dpToPx(padding.getEnd(), context),
+          (int) LayoutUtils.dpToPx(padding.getBottom(), context));
     } else {
       view.setPadding(
-          (int) ViewUtils.dpToPx(padding.getStart(), context),
-          (int) ViewUtils.dpToPx(padding.getTop(), context),
-          (int) ViewUtils.dpToPx(padding.getEnd(), context),
-          (int) ViewUtils.dpToPx(padding.getBottom(), context));
+          (int) LayoutUtils.dpToPx(padding.getStart(), context),
+          (int) LayoutUtils.dpToPx(padding.getTop(), context),
+          (int) LayoutUtils.dpToPx(padding.getEnd(), context),
+          (int) LayoutUtils.dpToPx(padding.getBottom(), context));
     }
   }
 
   /** Sets appropriate margins on a {@link MarginLayoutParams} instance. */
   public void applyMargins(Context context, MarginLayoutParams marginLayoutParams) {
     EdgeWidths margins = getMargins();
-    int startMargin = (int) ViewUtils.dpToPx(margins.getStart(), context);
-    int endMargin = (int) ViewUtils.dpToPx(margins.getEnd(), context);
+    int startMargin = (int) LayoutUtils.dpToPx(margins.getStart(), context);
+    int endMargin = (int) LayoutUtils.dpToPx(margins.getEnd(), context);
     marginLayoutParams.setMargins(
         startMargin,
-        (int) ViewUtils.dpToPx(margins.getTop(), context),
+        (int) LayoutUtils.dpToPx(margins.getTop(), context),
         endMargin,
-        (int) ViewUtils.dpToPx(margins.getBottom(), context));
+        (int) LayoutUtils.dpToPx(margins.getBottom(), context));
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       marginLayoutParams.setMarginStart(startMargin);
       marginLayoutParams.setMarginEnd(endMargin);
@@ -177,7 +178,7 @@ class StyleProvider {
   public int getRoundedCornerRadius(Context context) {
     RoundedCorners roundedCorners = getRoundedCorners();
     if (roundedCorners.hasRadius()) {
-      return (int) ViewUtils.dpToPx(roundedCorners.getRadius(), context);
+      return (int) LayoutUtils.dpToPx(roundedCorners.getRadius(), context);
     } else {
       return assetProvider.getDefaultCornerRadius();
     }

@@ -33,6 +33,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
@@ -92,8 +93,8 @@ public class ImageElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    heightPx = (int) ViewUtils.dpToPx(HEIGHT_DP, context);
-    widthPx = (int) ViewUtils.dpToPx(WIDTH_DP, context);
+    heightPx = (int) LayoutUtils.dpToPx(HEIGHT_DP, context);
+    widthPx = (int) LayoutUtils.dpToPx(WIDTH_DP, context);
     AdapterParameters parameters =
         new AdapterParameters(context, null, hostProviders, null, adapterFactory, templateBinder);
 
