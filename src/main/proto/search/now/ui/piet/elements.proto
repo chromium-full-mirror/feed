@@ -108,43 +108,6 @@ message Content {
   }
 }
 
-// A vertically-oriented top-to-bottom list of Contents.
-message ElementList {
-  // The list items to be laid out vertically.
-  repeated Content contents = 6;
-
-  // Styles applied to this ElementList.
-  optional StyleIdsStack style_references = 3;
-
-  // Please use CL numbers you own for extension numbers.
-  extensions 10000 to max;
-
-  // Deprecated field IDs.
-  reserved 1, 2, 4, 5;
-}
-
-// A template can be used to instantiate a single instance, or a list of
-// instances at once: each of these is termed a TemplateInvocation. One instance
-// is created for each `binding_context` provided.
-//
-// The types of objects instantiated by the template are determined by the
-// element that holds the invocation. For example, an invocation from an
-// ElementList will create one or more cells in that list. Invocation from a
-// GridCell will create one or more GridCells.
-message TemplateInvocation {
-  // The Template to be used.
-  optional string template_id = 1;
-
-  // To isolate Templates, we define the BindingContext used by the template
-  // within the invocation. When a TemplateInvocation is processed, we will
-  // create a template instance for each BindingContext defined (if none is
-  // defined, none will be created).
-  repeated BindingContext binding_contexts = 2;
-
-  // Please use CL numbers you own for extension numbers.
-  extensions 10000 to max;
-}
-
 // Element is the "superclass" of all container and content types, holding all
 // shared parameters (styles, actions, etc).
 //
@@ -155,6 +118,31 @@ message TemplateInvocation {
 message Element {
   // The specific content represented by this Element.
   oneof elements {
+    /*** CONTENT ELEMENTS ***/
+
+    // An image container
+    ImageElement image_element = 3;
+
+    // Add a spacer line which can be defined as a divider.
+    SpacerElement spacer_element = 4;
+
+    // A simple text line
+    TextElement text_element = 2;
+
+    /*** END CONTENT ELEMENTS ***/
+
+    /*** CONTAINER ELEMENTS ***/
+
+    // A GridRow contains a set of Cells.
+    GridRow grid_row = 5;
+
+    // A list of Elements.
+    ElementList element_list = 6;
+
+    /*** END CONTAINER ELEMENTS ***/
+
+    /*** NON-NATIVE ELEMENTS ***/
+
     // A custom view that Piet knows nothing about. Servers can use this message
     // to populate a custom proto extension, which Piet passes along to the Host
     // for rendering. The Host is expected to be able to interpret and render
@@ -180,48 +168,11 @@ message Element {
     // ModuleElements are rendered by secondary Piet Modules.
     ModuleElement module_element = 21;
 
-    // A simple text line
-    TextElement text_element = 2;
-
-    // An image container
-    ImageElement image_element = 3;
-
-    // Add a spacer line which can be defined as a divider.
-    SpacerElement spacer_element = 4;
-
-    // A GridRow contains a set of Cells.
-    GridRow grid_row = 5;
-
-    // A list of Elements.
-    ElementList element_list = 6;
-  }
-
-  // The value of the VED token to be used by this Element.
-  oneof ved_value {
-    // A base64 encoded serialized ClickTrackingCGI proto that identifies the
-    // logged Visual Element corresponding to this piet Element.
-    string ved = 9;
-
-    // A VedBindingRef to the VED that this Element will be bound to.
-    // This is only meant to be used for Elements defined by a Template.
-    VedBindingRef ved_binding = 10;
+    /*** END NON-NATIVE ELEMENTS ***/
   }
 
   // Every UI element can have accessibility-related fields.
   optional Accessibility accessibility = 11;
-
-  // Horizontal gravity of this element's content within the parent container
-  optional GravityHorizontal gravity_horizontal = 12;
-
-  // Vertical gravity of this element's content within the parent container
-  optional GravityVertical gravity_vertical = 18;
-
-  // A list of Contents to be overlaid on top of this Element.
-  // This field is repeated to allow multiple overlay layers with different
-  // gravity settings. The index of the item inside the repeated field
-  // determines the order in which views will be laid out. Later items will
-  // appear above the earlier ones.
-  repeated Content overlays = 22;
 
   // Defines Actions that may be associated with the content of the Element.
   // The server is responsible for ensuring that the size of this content is
@@ -233,6 +184,19 @@ message Element {
     // Actions coming from a template.
     ActionsBindingRef actions_binding = 15;
   }
+
+  // A list of Contents to be overlaid on top of this Element.
+  // This field is repeated to allow multiple overlay layers with different
+  // gravity settings. The index of the item inside the repeated field
+  // determines the order in which views will be laid out. Later items will
+  // appear above the earlier ones.
+  repeated Content overlays = 22;
+
+  // Horizontal gravity of this element's content within the parent container
+  optional GravityHorizontal gravity_horizontal = 12;
+
+  // Vertical gravity of this element's content within the parent container
+  optional GravityVertical gravity_vertical = 18;
 
   // Defines the overflow behavior for contents that are wider than this
   // Element.
@@ -251,6 +215,17 @@ message Element {
   optional OverflowBehavior horizontal_overflow = 16
       [default = OVERFLOW_HIDDEN];
 
+  // The value of the VED token to be used by this Element.
+  oneof ved_value {
+    // A base64 encoded serialized ClickTrackingCGI proto that identifies the
+    // logged Visual Element corresponding to this piet Element.
+    string ved = 9;
+
+    // A VedBindingRef to the VED that this Element will be bound to.
+    // This is only meant to be used for Elements defined by a Template.
+    VedBindingRef ved_binding = 10;
+  }
+
   // Styles to apply to this Element. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 17;
@@ -262,136 +237,24 @@ message Element {
   reserved 7, 8, 13, 19, 20;
 }
 
-// Defines the behavior for elements that don't fit in the view
-enum OverflowBehavior {
-  // Unspecified value, will default to OVERFLOW_HIDDEN.
-  OVERFLOW_UNSPECIFIED = 0;
-
-  // All elements outside the boundaries of the view are hidden.
-  OVERFLOW_HIDDEN = 1;
-
-  // A scroll behavior is added to show elements that are outside of the view.
-  OVERFLOW_SCROLL = 2;
-}
-
-// Specifies gravity on the horizontal axis.
-enum GravityHorizontal {
-  GRAVITY_HORIZONTAL_UNSPECIFIED = 0;
-
-  // Align with the start side (left in LTR layouts)
-  GRAVITY_START = 1;
-
-  // Align with the end side (right in LTR layouts)
-  GRAVITY_END = 2;
-
-  // Align centered
-  GRAVITY_CENTER = 3;
-}
-
-// Specifies gravity on the vertical axis.
-enum GravityVertical {
-  GRAVITY_VERTICAL_UNSPECIFIED = 0;
-
-  // Align with the top side
-  GRAVITY_TOP = 1;
-
-  // Align vertically centered
-  GRAVITY_MIDDLE = 2;
-
-  // Align with the bottom side
-  GRAVITY_BOTTOM = 3;
-}
-
-// A custom view that Piet knows nothing about. Servers can use this message to
-// populate a custom proto extension, which Piet passes along to the Host for
-// rendering. The Host is expected to be able to interpret and render this view
-// and return to Piet, which then simply places it within the current view
-// hierarchy at the proper position. If no renderer for this CustomElement can
-// be found at runtime, ERR_CUSTOM_ELEMENT_RENDERER_MISSING is raised.
-message CustomElement {
-  // Styles applied to this CustomElement. If any style_ids cannot be found,
-  // ERR_MISSING_STYLES is raised.
-  optional StyleIdsStack style_references = 1;
-
-  // Content for this CustomElement.
-  oneof content {
-    // The binding to the BindingValue for a CustomElement.
-    CustomBindingRef custom_binding = 2;
-
-    // The data to be displayed.
-    CustomElementData custom_element_data = 3;
-  }
-
-  // Please use CL numbers you own for extension numbers.
-  extensions 10000 to max;
-}
-
-// A view that is implemented by a secondary (non-Core) Piet Module. Not all
-// Piet Elements are useful to all clients/servers, so only the basic ones are
-// included in Piet Core. Common shareable elements can be implemented in
-// secondary Piet Modules, which are optional modules that can be included in or
-// excluded from Piet-based apps on an as-needed basis.
-// ModuleElements work similar to CustomElements, with the only difference being
-// that CustomElements are rendered by non-Piet code, while ModuleElements are
-// rendered by secondary Piet Modules.
-message ModuleElement {
-  // Content for this ModuleElement.
-  oneof content {
-    // The binding to the BindingValue for a ModuleElement.
-    ModuleBindingRef module_binding = 2;
-
-    // The data to be displayed.
-    ModuleElementData module_element_data = 3;
-  }
-
-  // Please use CL numbers you own for extension numbers.
-  extensions 10000 to max;
-}
-
-// A simple text line (Android TextView, iOS UILabel, or HTML <div>).
-message TextElement {
-  // Styles applied to this TextElement. If any style_ids cannot be found,
-  // ERR_MISSING_STYLES is raised.
-  optional StyleIdsStack style_references = 1;
-
-  // Content for this TextElement.
-  oneof content {
-    // The binding to the BindingValue for a ParameterizedText. It is an error
-    // if the BindingValue doesn't define a ParameterizedText.
-    ParameterizedTextBindingRef parameterized_text_binding = 2;
-
-    // The text to display.
-    ParameterizedText parameterized_text = 3;
-
-    // The binding to the BindingValue for a ChunkedText. It is an error if the
-    // BindingValue doesn't define a ChunkedText. Styles referenced inside the
-    // ChunkedText should override the style references in this TextElement.
-    ChunkedTextBindingRef chunked_text_binding = 4;
-
-    // ChunkedText to be displayed. Styles referenced inside the text chunks
-    // should override the style references in this TextElement.
-    ChunkedText chunked_text = 5;
-  }
-
-  // Please use CL numbers you own for extension numbers.
-  extensions 10000 to max;
-}
-
+/*
+ *** CONTENT ELEMENTS ***
+ */
 // An Image which is displayed as a horizontal slice within a parent container.
 message ImageElement {
-  // Styles applied to this ImageElement. If any style_ids cannot be found,
-  // ERR_MISSING_STYLES is raised.
-  optional StyleIdsStack style_references = 1;
-
   // Content for this ImageElement.
   oneof content {
+    // The image to be displayed.
+    Image image = 3;
+
     // The binding to the BindingValue for an Image. It is an error if the
     // BindingValue doesn't define an Image.
     ImageBindingRef image_binding = 2;
-
-    // The image to be displayed.
-    Image image = 3;
   }
+
+  // Styles applied to this ImageElement. If any style_ids cannot be found,
+  // ERR_MISSING_STYLES is raised.
+  optional StyleIdsStack style_references = 1;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -401,24 +264,59 @@ message ImageElement {
 // within a card. Styles can be set on a spacer, e.g. background_color, but
 // no bindings are supported since it is always empty.
 message SpacerElement {
+  // Height in DP of this spacer.
+  optional int32 height = 2;
+
   // Styles applied to this SpacerElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 1;
-
-  // Height in DP of this spacer.
-  optional int32 height = 2;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 }
 
-// A GridRow is a grid structure forming a horizontal slice.
-message GridRow {
-  // Styles applied to this GridRow.
+// A simple text line (Android TextView, iOS UILabel, or HTML <div>).
+message TextElement {
+  // Content for this TextElement.
+  oneof content {
+    // ChunkedText to be displayed. Styles referenced inside the text chunks
+    // should override the style references in this TextElement.
+    ChunkedText chunked_text = 5;
+
+    // The binding to the BindingValue for a ChunkedText. It is an error if the
+    // BindingValue doesn't define a ChunkedText. Styles referenced inside the
+    // ChunkedText should override the style references in this TextElement.
+    ChunkedTextBindingRef chunked_text_binding = 4;
+
+    // The text to display.
+    ParameterizedText parameterized_text = 3;
+
+    // The binding to the BindingValue for a ParameterizedText. It is an error
+    // if the BindingValue doesn't define a ParameterizedText.
+    ParameterizedTextBindingRef parameterized_text_binding = 2;
+  }
+
+  // Styles applied to this TextElement. If any style_ids cannot be found,
+  // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 1;
 
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+/*
+ *** END CONTENT ELEMENTS ***
+ */
+
+/*
+ *** CONTAINER ELEMENTS ***
+ */
+// A GridRow is a grid structure forming a horizontal slice.
+message GridRow {
   // A list of cells defining the content of the grid.
   repeated GridCell cells = 2;
+
+  // Styles applied to this GridRow.
+  optional StyleIdsStack style_references = 1;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -450,23 +348,6 @@ message GridCell {
 
 // The width of a GridCell.
 message GridCellWidth {
-  // The width specification. One of these fields must be populated, otherwise
-  // ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS warning will be raised.
-  oneof width_spec {
-    // The width of the cell expressed as DP.
-    int32 dp = 1;
-
-    // The width of the content, limited to Content of TextElement or
-    // ImageElement. In case a different content is given to the cell,
-    // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT is raised.
-    ContentWidth content_width = 3;
-
-    // The width of the cell expressed as a weight. This weight is relative to
-    // the remaining width, after DP and Content were allocated.
-    // For more information, see [INTERNAL LINK]/concepts/basics.
-    int32 weight = 2;
-  }
-
   // An enum that indicates the width of the GridCell, in reference to its
   // content. The option of setting a GridCell width to be its content width
   // is supported only for GridCells with TextElement or ImageElement as their
@@ -482,6 +363,133 @@ message GridCellWidth {
     // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT will be raised.
     CONTENT_WIDTH = 1;
   }
+
+  // The width specification. One of these fields must be populated, otherwise
+  // ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS warning will be raised.
+  oneof width_spec {
+    // The width of the cell expressed as DP.
+    int32 dp = 1;
+
+    // The width of the cell expressed as a weight. This weight is relative to
+    // the remaining width, after DP and Content were allocated.
+    // For more information, see [INTERNAL LINK]/concepts/basics.
+    int32 weight = 2;
+
+    // The width of the content, limited to Content of TextElement or
+    // ImageElement. In case a different content is given to the cell,
+    // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT is raised.
+    ContentWidth content_width = 3;
+  }
+}
+
+// A vertically-oriented top-to-bottom list of Contents.
+message ElementList {
+  // The list items to be laid out vertically.
+  repeated Content contents = 6;
+
+  // Styles applied to this ElementList.
+  optional StyleIdsStack style_references = 3;
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+
+  // Deprecated field IDs.
+  reserved 1, 2, 4, 5;
+}
+/*
+ *** END CONTAINER ELEMENTS ***
+ */
+
+/*
+*** NON-NATIVE ELEMENTS
+*/
+// A custom view that Piet knows nothing about. Servers can use this message to
+// populate a custom proto extension, which Piet passes along to the Host for
+// rendering. The Host is expected to be able to interpret and render this view
+// and return to Piet, which then simply places it within the current view
+// hierarchy at the proper position. If no renderer for this CustomElement can
+// be found at runtime, ERR_CUSTOM_ELEMENT_RENDERER_MISSING is raised.
+message CustomElement {
+  // Content for this CustomElement.
+  oneof content {
+    // The data to be displayed.
+    CustomElementData custom_element_data = 3;
+
+    // The binding to the BindingValue for a CustomElement.
+    CustomBindingRef custom_binding = 2;
+  }
+
+  // Styles applied to this CustomElement. If any style_ids cannot be found,
+  // ERR_MISSING_STYLES is raised.
+  optional StyleIdsStack style_references = 1;
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+
+// Data to be displayed in a CustomElement. Clients using Piet should add
+// extensions to this proto to pass their custom data to CustomElements.
+message CustomElementData {
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+
+// A view that is implemented by a secondary (non-Core) Piet Module. Not all
+// Piet Elements are useful to all clients/servers, so only the basic ones are
+// included in Piet Core. Common shareable elements can be implemented in
+// secondary Piet Modules, which are optional modules that can be included in or
+// excluded from Piet-based apps on an as-needed basis.
+// ModuleElements work similar to CustomElements, with the only difference being
+// that CustomElements are rendered by non-Piet code, while ModuleElements are
+// rendered by secondary Piet Modules.
+message ModuleElement {
+  // Content for this ModuleElement.
+  oneof content {
+    // The data to be displayed.
+    ModuleElementData module_element_data = 3;
+
+    // The binding to the BindingValue for a ModuleElement.
+    ModuleBindingRef module_binding = 2;
+  }
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+
+// Data to be displayed in a ModuleElement. Piet Modules should add extensions
+// to this proto to pass their custom data to ModuleElements.
+message ModuleElementData {
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+/*
+ *** END NON-NATIVE ELEMENTS ***
+ */
+
+/*
+ *** TEMPLATES AND BINDINGS ***
+ */
+
+// A template can be used to instantiate a single instance, or a list of
+// instances at once: each of these is termed a TemplateInvocation. One instance
+// is created for each `binding_context` provided.
+//
+// The types of objects instantiated by the template are determined by the
+// element that holds the invocation. For example, an invocation from an
+// ElementList will create one or more cells in that list. Invocation from a
+// GridCell will create one or more GridCells.
+message TemplateInvocation {
+  // The Template to be used.
+  optional string template_id = 1;
+
+  // To isolate Templates, we define the BindingContext used by the template
+  // within the invocation. When a TemplateInvocation is processed, we will
+  // create a template instance for each BindingContext defined (if none is
+  // defined, none will be created).
+  repeated BindingContext binding_contexts = 2;
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
 }
 
 // A single binding context, such as a whole Frame, or a single row in a grid.
@@ -502,40 +510,8 @@ message BindingValue {
 
   // The possible values for the BindingValue.
   oneof values {
-    // Data to be displayed in a CustomElement. Clients using Piet should add
-    // extensions to this proto to pass their custom data.
-    CustomElementData custom_element_data = 2;
-
-    // ParameterizedText to be used in a TextElement.
-    ParameterizedText parameterized_text = 3;
-
-    // ChunkedText to be used in a TextElement.
-    ChunkedText chunked_text = 4;
-
-    // Image to be used in an ImageElement.
-    Image image = 5;
-
-    // A Base64-encoded serialized ClickTrackingCGI proto that identifies the
-    // logged Visual Element corresponding to a bound Piet Template.
-    string ved = 7;
-
-    // Binding value for a TemplateInvocation.
-    TemplateInvocation template_invocation = 8;
-
-    // Width of a cell.
-    GridCellWidth cell_width = 9;
-
     // Actions that may be bound at runtime.
     Actions actions = 10;
-
-    // Style that is bound to an element, and overrides the styles defined by
-    // the element. The Style attributes that can be bound are only a subset
-    // of all possible Styles.
-    BoundStyle bound_style = 11;
-
-    // An Element, to allow binding of generic chunks of layout.
-    // May have a performance penalty on some platforms.
-    Element element = 15;
 
     // Use an already existing bound value in a transcluded template.
     // This should be used to pass parameters between templates.
@@ -599,29 +575,39 @@ message BindingValue {
     //   }
     // }
     string binding_id_from_transcluding_template = 16;
+
+    // Style that is bound to an element, and overrides the styles defined by
+    // the element. The Style attributes that can be bound are only a subset
+    // of all possible Styles.
+    BoundStyle bound_style = 11;
+
+    // Width of a cell.
+    GridCellWidth cell_width = 9;
+
+    // ChunkedText to be used in a TextElement.
+    ChunkedText chunked_text = 4;
+
+    // Data to be displayed in a CustomElement. Clients using Piet should add
+    // extensions to this proto to pass their custom data.
+    CustomElementData custom_element_data = 2;
+
+    // An Element, to allow binding of generic chunks of layout.
+    // May have a performance penalty on some platforms.
+    Element element = 15;
+
+    // Image to be used in an ImageElement.
+    Image image = 5;
+
+    // ParameterizedText to be used in a TextElement.
+    ParameterizedText parameterized_text = 3;
+
+    // Binding value for a TemplateInvocation.
+    TemplateInvocation template_invocation = 8;
+
+    // A Base64-encoded serialized ClickTrackingCGI proto that identifies the
+    // logged Visual Element corresponding to a bound Piet Template.
+    string ved = 7;
   }
-
-  // Controls the visibility of the UI element corresponding to this binding.
-  enum Visibility {
-    VISIBILITY_UNSPECIFIED = 0;
-
-    // By default, every element is visible. If set to VISIBLE, at least one of
-    // the elements in the `values` oneof MUST be present, otherwise an error is
-    // raised.
-    VISIBLE = 1;
-
-    // The UI element corresponding to this binding is included in
-    // layout computation, but its visible UI is hidden.
-    INVISIBLE = 2;
-
-    // The UI element corresponding to this binding is completely
-    // removed from the view hierarchy. It is not used to compute layout. This
-    // is the equivalent of Android’s visibility:GONE.
-    GONE = 3;
-  }
-
-  // Sets the visibility of the UI element corresponding to this binding.
-  optional Visibility visibility = 13 [default = VISIBLE];
 
   // Data to provide a host in order for host to fulfill a binding for Piet.
   // When Piet binds a value it will first look to see if there is a
@@ -645,25 +631,33 @@ message BindingValue {
   // shown.
   optional HostBindingData host_binding_data = 14;
 
+  // Sets the visibility of the UI element corresponding to this binding.
+  optional Visibility visibility = 13 [default = VISIBLE];
+
+  // Controls the visibility of the UI element corresponding to this binding.
+  enum Visibility {
+    VISIBILITY_UNSPECIFIED = 0;
+
+    // By default, every element is visible. If set to VISIBLE, at least one of
+    // the elements in the `values` oneof MUST be present, otherwise an error is
+    // raised.
+    VISIBLE = 1;
+
+    // The UI element corresponding to this binding is included in
+    // layout computation, but its visible UI is hidden.
+    INVISIBLE = 2;
+
+    // The UI element corresponding to this binding is completely
+    // removed from the view hierarchy. It is not used to compute layout. This
+    // is the equivalent of Android’s visibility:GONE.
+    GONE = 3;
+  }
+
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 
   // Deprecated field IDs.
   reserved 6;
-}
-
-// Data to be displayed in a CustomElement. Clients using Piet should add
-// extensions to this proto to pass their custom data to CustomElements.
-message CustomElementData {
-  // Please use CL numbers you own for extension numbers.
-  extensions 10000 to max;
-}
-
-// Data to be displayed in a ModuleElement. Piet Modules should add extensions
-// to this proto to pass their custom data to ModuleElements.
-message ModuleElementData {
-  // Please use CL numbers you own for extension numbers.
-  extensions 10000 to max;
 }
 
 // Data which is accompanied with BindingValue in order for a host to determine
@@ -674,3 +668,53 @@ message HostBindingData {
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 }
+
+/*
+ *** END TEMPLATES AND BINDINGS ***
+ */
+
+/*
+ *** ENUMS ***
+ */
+// Specifies gravity on the horizontal axis.
+enum GravityHorizontal {
+  GRAVITY_HORIZONTAL_UNSPECIFIED = 0;
+
+  // Align with the start side (left in LTR layouts)
+  GRAVITY_START = 1;
+
+  // Align with the end side (right in LTR layouts)
+  GRAVITY_END = 2;
+
+  // Align centered
+  GRAVITY_CENTER = 3;
+}
+
+// Specifies gravity on the vertical axis.
+enum GravityVertical {
+  GRAVITY_VERTICAL_UNSPECIFIED = 0;
+
+  // Align with the top side
+  GRAVITY_TOP = 1;
+
+  // Align vertically centered
+  GRAVITY_MIDDLE = 2;
+
+  // Align with the bottom side
+  GRAVITY_BOTTOM = 3;
+}
+
+// Defines the behavior for elements that don't fit in the view
+enum OverflowBehavior {
+  // Unspecified value, will default to OVERFLOW_HIDDEN.
+  OVERFLOW_UNSPECIFIED = 0;
+
+  // All elements outside the boundaries of the view are hidden.
+  OVERFLOW_HIDDEN = 1;
+
+  // A scroll behavior is added to show elements that are outside of the view.
+  OVERFLOW_SCROLL = 2;
+}
+/*
+ *** END ENUMS ***
+ */
