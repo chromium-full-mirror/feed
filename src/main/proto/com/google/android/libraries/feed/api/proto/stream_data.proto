@@ -191,3 +191,15 @@ message StreamAction {
   // When the action was recorded
   optional int64 timestamp_seconds = 3;
 }
+
+// An extension to the BasicLoggingMetadata which is used to hide the notion of
+// the client needing this data in other places.
+message ClientBasicLoggingMetadata {
+  extend search.now.ui.stream.BasicLoggingMetadata {
+    optional ClientBasicLoggingMetadata client_basic_logging_metadata =
+        206218502;
+  }
+
+  // Time server filled out content.
+  optional int64 availability_time_seconds = 1;
+}

@@ -67,7 +67,6 @@ public class ContentDriverTest {
   private static final BasicLoggingMetadata BASIC_LOGGING_METADATA =
       BasicLoggingMetadata.newBuilder()
           .setPublishedTimeSeconds(10)
-          .setAvailabilityTimeSeconds(20)
           .setScore(40)
           .build();
   private static final RepresentationData REPRESENTATION_DATA =

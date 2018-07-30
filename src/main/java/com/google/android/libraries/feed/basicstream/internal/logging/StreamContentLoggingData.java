@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream.internal.logging;
 
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.search.now.feed.client.StreamDataProto.ClientBasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 
@@ -33,7 +34,10 @@ public class StreamContentLoggingData implements ContentLoggingData {
       RepresentationData representationData) {
     this.positionInStream = positionInStream;
     this.publishedTimeSeconds = basicLoggingMetadata.getPublishedTimeSeconds();
-    this.timeContentBecameAvailable = basicLoggingMetadata.getAvailabilityTimeSeconds();
+    this.timeContentBecameAvailable =
+        basicLoggingMetadata
+            .getExtension(ClientBasicLoggingMetadata.clientBasicLoggingMetadata)
+            .getAvailabilityTimeSeconds();
     this.score = basicLoggingMetadata.getScore();
     this.representationUri = representationData.getUri();
   }
