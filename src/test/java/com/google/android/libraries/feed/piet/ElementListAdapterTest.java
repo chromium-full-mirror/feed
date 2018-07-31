@@ -39,7 +39,6 @@ import com.google.android.libraries.feed.testing.shadows.ExtendedShadowLinearLay
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -48,6 +47,7 @@ import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
+import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -392,27 +392,6 @@ public class ElementListAdapterTest {
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
     assertThat(adapter.childAdapters).isEmpty();
-  }
-
-  @Test
-  public void testOnBindModel_bindingSetsVisibility() {
-    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setBindingId(ELEMENT_BINDING_REF.getBindingId())
-                .setElement(DEFAULT_ELEMENT)
-                .build());
-    adapter.createAdapter(LIST_WITH_BOUND_LIST, frameContext);
-    when(frameContext.getElementBindingValue(ELEMENT_BINDING_REF))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setBindingId(ELEMENT_BINDING_REF.getBindingId())
-                .setVisibility(Visibility.INVISIBLE)
-                .setElement(DEFAULT_ELEMENT)
-                .build());
-
-    adapter.bindModel(LIST_WITH_BOUND_LIST, frameContext);
-    assertThat(adapter.getBaseView().getChildAt(0).getVisibility()).isEqualTo(View.INVISIBLE);
   }
 
   @Test

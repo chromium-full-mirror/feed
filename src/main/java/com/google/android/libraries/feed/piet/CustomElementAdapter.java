@@ -21,10 +21,10 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
+import com.google.search.now.ui.piet.ElementsProto.Visibility;
 
 /** Adapter that manages a custom view created by the host. */
 class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {

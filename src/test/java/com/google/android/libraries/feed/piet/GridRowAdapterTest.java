@@ -26,7 +26,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -40,7 +39,6 @@ import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -52,6 +50,7 @@ import com.google.search.now.ui.piet.ElementsProto.GridCellWidth.ContentWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
+import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -511,24 +510,6 @@ public class GridRowAdapterTest {
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
     assertThat(adapter.childAdapters).isEmpty();
-  }
-
-  @Test
-  public void testOnBindModel_setsVisibility() {
-    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
-        .thenReturn(
-            BindingValue.newBuilder().setBindingId(BINDING_ID).setElement(DEFAULT_ELEMENT).build());
-    adapter.createAdapter(GRID_ROW_WITH_BOUND_CELL, frameContext);
-    when(frameContext.getElementBindingValue(ELEMENT_BINDING))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setBindingId(BINDING_ID)
-                .setVisibility(Visibility.INVISIBLE)
-                .setElement(DEFAULT_ELEMENT)
-                .build());
-
-    adapter.bindModel(GRID_ROW_WITH_BOUND_CELL, frameContext);
-    assertThat(adapter.getBaseView().getChildAt(0).getVisibility()).isEqualTo(View.INVISIBLE);
   }
 
   @Test

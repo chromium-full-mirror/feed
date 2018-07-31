@@ -54,8 +54,8 @@ import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -376,45 +376,6 @@ public class ChunkedTextElementAdapterTest {
     adapter.setTextOnView(frameContext, chunkedTextBindingElementOptional);
     assertThat(adapter.getBaseView().getText().toString()).isEmpty();
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
-  }
-
-  @Test
-  public void testSetTextOnView_setsVisibility() {
-    TextElement chunkedTextBindingElement =
-        TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();
-    adapter.createAdapter(
-        TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build(), frameContext);
-
-    // Sets visibility on bound value with content
-    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setChunkedText(CHUNKED_TEXT_TEXT)
-                .setVisibility(Visibility.INVISIBLE)
-                .build());
-    adapter.setTextOnView(frameContext, chunkedTextBindingElement);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
-
-    // Sets visibility for inline content
-    adapter.setTextOnView(
-        frameContext, TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build());
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
-
-    // Sets visibility on GONE binding with no content
-    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
-        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
-    adapter.setTextOnView(frameContext, chunkedTextBindingElement);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
-
-    // Sets visibility with VISIBLE binding
-    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setChunkedText(CHUNKED_TEXT_TEXT)
-                .setVisibility(Visibility.VISIBLE)
-                .build());
-    adapter.setTextOnView(frameContext, chunkedTextBindingElement);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
   }
 
   @Test

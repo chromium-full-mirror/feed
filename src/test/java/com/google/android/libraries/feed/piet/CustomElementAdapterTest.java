@@ -30,11 +30,11 @@ import com.google.android.libraries.feed.piet.CustomElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
 import org.junit.Test;
@@ -154,56 +154,6 @@ public class CustomElementAdapterTest {
     // This should not fail.
     adapter.bindModel(model, frameContext);
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
-  }
-
-  @Test
-  public void testBindModel_setsVisibility() {
-    CustomBindingRef customBindingRef =
-        CustomBindingRef.newBuilder().setBindingId("CUSTOM").build();
-    CustomElement customElement =
-        CustomElement.newBuilder().setCustomBinding(customBindingRef).build();
-    adapter.createAdapter(
-        CustomElement.newBuilder()
-            .setCustomElementData(CustomElementData.getDefaultInstance())
-            .build(),
-        frameContext);
-
-    // Sets visibility on bound value with content
-    when(frameContext.getCustomElementBindingValue(customBindingRef))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setCustomElementData(CustomElementData.getDefaultInstance())
-                .setVisibility(Visibility.INVISIBLE)
-                .build());
-    adapter.bindModel(customElement, frameContext);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
-    adapter.unbindModel();
-
-    // Sets visibility for inline content
-    adapter.bindModel(
-        CustomElement.newBuilder()
-            .setCustomElementData(CustomElementData.getDefaultInstance())
-            .build(),
-        frameContext);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
-    adapter.unbindModel();
-
-    // Sets visibility on GONE binding with no content
-    when(frameContext.getCustomElementBindingValue(customBindingRef))
-        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
-    adapter.bindModel(customElement, frameContext);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
-    adapter.unbindModel();
-
-    // Sets visibility with VISIBLE binding
-    when(frameContext.getCustomElementBindingValue(customBindingRef))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setCustomElementData(CustomElementData.getDefaultInstance())
-                .setVisibility(Visibility.VISIBLE)
-                .build());
-    adapter.bindModel(customElement, frameContext);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
   }
 
   @Test

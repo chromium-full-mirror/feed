@@ -39,10 +39,10 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
+import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
@@ -281,50 +281,6 @@ public class ImageElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Image binding foto had no content");
-  }
-
-  @Test
-  public void testBindModel_setsVisibility() {
-    String bindingRef = "foto";
-    ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(bindingRef).build();
-    ImageElement imageBindingElement =
-        ImageElement.newBuilder().setImageBinding(imageBindingRef).build();
-    adapter.createAdapter(
-        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
-
-    // Sets visibility on bound value with content
-    when(frameContext.getImageBindingValue(imageBindingRef))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setImage(Image.getDefaultInstance())
-                .setVisibility(Visibility.INVISIBLE)
-                .build());
-    adapter.bindModel(imageBindingElement, frameContext);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
-    adapter.unbindModel();
-
-    // Sets visibility for inline content
-    adapter.bindModel(
-        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
-    adapter.unbindModel();
-
-    // Sets visibility on GONE binding with no content
-    when(frameContext.getImageBindingValue(imageBindingRef))
-        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
-    adapter.bindModel(imageBindingElement, frameContext);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
-    adapter.unbindModel();
-
-    // Sets visibility with VISIBLE binding
-    when(frameContext.getImageBindingValue(imageBindingRef))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setImage(Image.getDefaultInstance())
-                .setVisibility(Visibility.VISIBLE)
-                .build());
-    adapter.bindModel(imageBindingElement, frameContext);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
   }
 
   @Test

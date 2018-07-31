@@ -117,3 +117,9 @@ message StyleBindingRef {
   // The unique ID for this binding. See comments at the top of the file.
   optional string binding_id = 1;
 }
+
+// Visibility bindings are always optional.
+message VisibilityBindingRef {
+  // The unique ID for this binding. See comments at the top of the file.
+  optional string binding_id = 1;
+}

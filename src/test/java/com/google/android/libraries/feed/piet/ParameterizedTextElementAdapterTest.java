@@ -16,8 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.GONE;
-import static com.google.search.now.ui.piet.ElementsProto.BindingValue.Visibility.INVISIBLE;
+import static com.google.search.now.ui.piet.ElementsProto.Visibility.GONE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -174,25 +173,6 @@ public class ParameterizedTextElementAdapterTest {
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
     assertThat(textView.getVisibility()).isEqualTo(View.GONE);
-  }
-
-  @Test
-  public void testBindModel_withBinding_visibilityInvisible() {
-    BindingValue bindingValue =
-        BindingValue.newBuilder()
-            .setVisibility(INVISIBLE)
-            .setParameterizedText(ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT))
-            .build();
-    when(frameContext.getParameterizedTextBindingValue(DEFAULT_BINDING_REF))
-        .thenReturn(bindingValue);
-
-    TextElement textElement = getBindingTextElement(null /* StyleProvider*/);
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getVisibility()).isEqualTo(View.INVISIBLE);
   }
 
   @Test

@@ -108,13 +108,25 @@ message Content {
   }
 }
 
+// Indicates element's visibility, and the option to bind visibility state that
+// overrides the default value.
+// This message should be used to bind external values for controlling display
+// of parts of the UI.
+message VisibilityState {
+  // Binding of values.
+  optional VisibilityBindingRef overriding_bound_visibility = 1;
+
+  // The default visibility.
+  optional Visibility default_visibility = 2 [default = VISIBLE];
+}
+
 // Element is the "superclass" of all container and content types, holding all
 // shared parameters (styles, actions, etc).
 //
 // Element size expands to fill its container, unless the content is taller than
 // the container, and the container height is not specified explicitly. In that
 // case, the Element and the container both get the height of the content.
-// Next available ID: 23
+// Next available ID: 24
 message Element {
   // The specific content represented by this Element.
   oneof elements {
@@ -229,6 +241,9 @@ message Element {
   // Styles to apply to this Element. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   optional StyleIdsStack style_references = 17;
+
+  // Visibility state that can be controlled with binding.
+  optional VisibilityState visibility_state = 23;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -503,6 +518,7 @@ message BindingContext {
 
 // A BindingValue is a name/value pair which provides a value to be substituted
 // wherever the specified `binding_id` is defined in the Template.
+// Next available ID: 17
 message BindingValue {
   // The name of the binding within the Template where this BindingValue should
   // be substituted. Must be unique within a binding context.
@@ -512,6 +528,15 @@ message BindingValue {
   oneof values {
     // Actions that may be bound at runtime.
     Actions actions = 10;
+
+    // Binding value for visibility, which changes the VisibilityState of an
+    // Element. This value can override the default visibility value set on an
+    // Element.
+    //
+    // IMPORTANT (2018-07-27): Currently Piet renderers are not to spec.  They
+    //     treat this as visibility of a binding. This behavior is not to spec
+    //     and is in the process of changing.
+    Visibility visibility = 13 [default = VISIBLE];
 
     // Use an already existing bound value in a transcluded template.
     // This should be used to pass parameters between templates.
@@ -631,28 +656,6 @@ message BindingValue {
   // shown.
   optional HostBindingData host_binding_data = 14;
 
-  // Sets the visibility of the UI element corresponding to this binding.
-  optional Visibility visibility = 13 [default = VISIBLE];
-
-  // Controls the visibility of the UI element corresponding to this binding.
-  enum Visibility {
-    VISIBILITY_UNSPECIFIED = 0;
-
-    // By default, every element is visible. If set to VISIBLE, at least one of
-    // the elements in the `values` oneof MUST be present, otherwise an error is
-    // raised.
-    VISIBLE = 1;
-
-    // The UI element corresponding to this binding is included in
-    // layout computation, but its visible UI is hidden.
-    INVISIBLE = 2;
-
-    // The UI element corresponding to this binding is completely
-    // removed from the view hierarchy. It is not used to compute layout. This
-    // is the equivalent of Android’s visibility:GONE.
-    GONE = 3;
-  }
-
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 
@@ -676,6 +679,25 @@ message HostBindingData {
 /*
  *** ENUMS ***
  */
+// Controls the visibility of a UI element.
+enum Visibility {
+  VISIBILITY_UNSPECIFIED = 0;
+
+  // By default, every element is visible. If set to VISIBLE, at least one of
+  // the elements in the `values` oneof MUST be present, otherwise an error is
+  // raised.
+  VISIBLE = 1;
+
+  // The UI element corresponding to this binding is included in
+  // layout computation, but its visible UI is hidden.
+  INVISIBLE = 2;
+
+  // The UI element corresponding to this binding is completely
+  // removed from the view hierarchy. It is not used to compute layout. This
+  // is the equivalent of Android’s visibility:GONE.
+  GONE = 3;
+}
+
 // Specifies gravity on the horizontal axis.
 enum GravityHorizontal {
   GRAVITY_HORIZONTAL_UNSPECIFIED = 0;
