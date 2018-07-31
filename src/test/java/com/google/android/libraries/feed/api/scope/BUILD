@@ -52,6 +52,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/network",
+        "//src/main/java/com/google/android/libraries/feed/host/offlineindicator",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet/host",

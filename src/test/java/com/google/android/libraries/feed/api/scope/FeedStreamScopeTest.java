@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
+import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -71,6 +72,7 @@ public class FeedStreamScopeTest {
   @Mock private Configuration config;
   @Mock private SnackbarApi snackbarApi;
   @Mock private BasicLoggingApi basicLoggingApi;
+  @Mock private OfflineIndicatorApi offlineIndicatorApi;
 
   private Context context;
   private MainThreadRunner mainThreadRunner;
@@ -108,7 +110,8 @@ public class FeedStreamScopeTest {
                 actionManager,
                 config,
                 snackbarApi,
-                basicLoggingApi)
+                basicLoggingApi,
+                offlineIndicatorApi)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -134,7 +137,8 @@ public class FeedStreamScopeTest {
                 actionManager,
                 config,
                 snackbarApi,
-                basicLoggingApi)
+                basicLoggingApi,
+                offlineIndicatorApi)
             .setActionParser(actionParser)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)

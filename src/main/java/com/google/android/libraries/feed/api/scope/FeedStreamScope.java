@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
+import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -73,7 +74,8 @@ public class FeedStreamScope {
         ActionManager actionManager,
         Configuration config,
         SnackbarApi snackbarApi,
-        BasicLoggingApi basicLoggingApi) {
+        BasicLoggingApi basicLoggingApi,
+        OfflineIndicatorApi offlineIndicatorApi) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
@@ -91,6 +93,7 @@ public class FeedStreamScope {
       this.config = config;
       this.snackbarApi = snackbarApi;
       this.basicLoggingApi = basicLoggingApi;
+      this.offlineIndicatorApi = offlineIndicatorApi;
     }
 
     public Builder setActionParser(ActionParser actionParser) {
@@ -181,6 +184,7 @@ public class FeedStreamScope {
     private final Configuration config;
     private final SnackbarApi snackbarApi;
     private final BasicLoggingApi basicLoggingApi;
+    private final OfflineIndicatorApi offlineIndicatorApi;
 
     // Optional internal components to override the default implementations.
     /*@MonotonicNonNull*/ private ActionParser actionParser;
