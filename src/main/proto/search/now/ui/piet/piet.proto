@@ -111,8 +111,10 @@ message Frame {
   //
   // NOTE: Styles from this Stylesheet are not available to Templates; they can
   // only be used by Elements defined directly in this Frame itself, such as
-  // non-template slices, or ElementLists bound to Templates. This limitation
-  // is a performance optimization that makes view recycling efficient.
+  // non-template Content, or ElementLists bound to Templates. This limitation
+  // is a performance optimization that makes view recycling efficient. This
+  // applies to both the inlined Stylesheet and stylesheet_id's referencing a
+  // PietSharedState Stylesheet.
   oneof frame_style_scope {
     // If this is defined the Stylesheet for the Frame is found by a lookup
     // in PietSharedState.Stylesheets. If the stylesheet_id cannot be found,
@@ -183,8 +185,9 @@ message Template {
   optional string template_id = 1;
 
   // The Stylesheet used within this Template's scope.
-  // - Styles from the Frame CANNOT be referenced from within a template.
-  // - Styles from the PietSharedState CAN be referenced.
+  // - Styles from the Frame CANNOT be referenced from within a Template.
+  // - Styles from the PietSharedState CAN be referenced, only if the
+  //   stylesheet_id is defined by the Template.
   oneof template_stylesheet {
     // If defined, the Stylesheet for this Template is looked up in
     // PietSharedState.Stylesheets. If the stylesheet_id cannot be found,
