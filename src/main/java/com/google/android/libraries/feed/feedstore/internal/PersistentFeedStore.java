@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTrac
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation.Builder;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.protobuf.ByteString;
@@ -51,6 +52,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +72,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
 
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
-  private final ContentStorage contentStorage;
+  private final ContentStorageDirect contentStorageDirect;
   private final JournalStorage journalStorage;
   private final ThreadUtils threadUtils;
   private final MainThreadRunner mainThreadRunner;
@@ -80,7 +82,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
   public PersistentFeedStore(
       TimingUtils timingUtils,
       FeedExtensionRegistry extensionRegistry,
-      ContentStorage contentStorage,
+      ContentStorageDirect contentStorageDirect,
       JournalStorage journalStorage,
       ThreadUtils threadUtils,
       MainThreadRunner mainThreadRunner,
@@ -88,7 +90,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
       FeedStoreHelper storeHelper) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
-    this.contentStorage = contentStorage;
+    this.contentStorageDirect = contentStorageDirect;
     this.journalStorage = journalStorage;
     this.threadUtils = threadUtils;
     this.mainThreadRunner = mainThreadRunner;
@@ -101,32 +103,21 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<PayloadWithId> payloads = new ArrayList<>(contentIds.size());
-    try {
-      SimpleSettableFuture<Result<Map<String, byte[]>>> contentFuture =
-          new SimpleSettableFuture<>();
-
-      mainThreadRunner.execute(TAG, () -> contentStorage.get(contentIds, contentFuture::put));
-
-      Result<Map<String, byte[]>> contentResult = contentFuture.get();
-      if (!contentResult.isSuccessful()) {
-        Logger.e(TAG, "Unsuccessful fetching payloads for content ids %s", contentIds);
-        tracker.stop("getPayloads failed", "items", contentIds);
-        return Result.failure();
-      }
-
-      for (Map.Entry<String, byte[]> entry : contentResult.getValue().entrySet()) {
-        try {
-          StreamPayload streamPayload =
-              StreamPayload.parseFrom(entry.getValue(), extensionRegistry.getExtensionRegistry());
-          payloads.add(new PayloadWithId(entry.getKey(), streamPayload));
-        } catch (InvalidProtocolBufferException e) {
-          Logger.e(TAG, "Couldn't parse content proto for id %s", entry.getKey());
-        }
-      }
-    } catch (ExecutionException | InterruptedException e) {
-      Logger.e(TAG, e, "Exception getting payload for ids: %s", contentIds);
+    Result<Map<String, byte[]>> contentResult = contentStorageDirect.get(contentIds);
+    if (!contentResult.isSuccessful()) {
+      Logger.e(TAG, "Unsuccessful fetching payloads for content ids %s", contentIds);
       tracker.stop("getPayloads failed", "items", contentIds);
       return Result.failure();
+    }
+
+    for (Map.Entry<String, byte[]> entry : contentResult.getValue().entrySet()) {
+      try {
+        StreamPayload streamPayload =
+            StreamPayload.parseFrom(entry.getValue(), extensionRegistry.getExtensionRegistry());
+        payloads.add(new PayloadWithId(entry.getKey(), streamPayload));
+      } catch (InvalidProtocolBufferException e) {
+        Logger.e(TAG, "Couldn't parse content proto for id %s", entry.getKey());
+      }
     }
     tracker.stop("", "getPayloads", "items", contentIds.size());
     return Result.success(payloads);
@@ -136,44 +127,24 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
   public Result<List<StreamSharedState>> getSharedStates() {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    SimpleSettableFuture<Result<List<byte[]>>> sharedStatesFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(
-        TAG,
-        () ->
-            contentStorage.getAll(
-                SHARED_STATE_PREFIX,
-                result -> {
-                  if (result.isSuccessful()) {
-                    Map<String, byte[]> input = result.getValue();
-                    sharedStatesFuture.put(Result.success(new ArrayList<>(input.values())));
-                  } else {
-                    sharedStatesFuture.put(Result.failure());
-                  }
-                }));
-    try {
-      Result<List<byte[]>> bytesResult = sharedStatesFuture.get();
-      if (!bytesResult.isSuccessful()) {
-        Logger.e(TAG, "Error fetching shared states");
-        tracker.stop("getSharedStates", "failed");
-        return Result.failure();
-      }
-      List<byte[]> result = bytesResult.getValue();
-      List<StreamSharedState> sharedStates = new ArrayList<>(result.size());
-      for (byte[] byteArray : result) {
-        try {
-          sharedStates.add(StreamSharedState.parseFrom(byteArray));
-        } catch (InvalidProtocolBufferException e) {
-          tracker.stop("getSharedStates", "failed");
-          Logger.e(TAG, e, "Error parsing protocol buffer from bytes %s", byteArray);
-        }
-      }
-      tracker.stop("", "getSharedStates", "items", sharedStates.size());
-      return Result.success(sharedStates);
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "Error occurred getting shared states");
+    Result<Map<String, byte[]>> bytesResult = contentStorageDirect.getAll(SHARED_STATE_PREFIX);
+    if (!bytesResult.isSuccessful()) {
+      Logger.e(TAG, "Error fetching shared states");
       tracker.stop("getSharedStates", "failed");
       return Result.failure();
     }
+    Collection<byte[]> result = bytesResult.getValue().values();
+    List<StreamSharedState> sharedStates = new ArrayList<>(result.size());
+    for (byte[] byteArray : result) {
+      try {
+        sharedStates.add(StreamSharedState.parseFrom(byteArray));
+      } catch (InvalidProtocolBufferException e) {
+        tracker.stop("getSharedStates", "failed");
+        Logger.e(TAG, e, "Error parsing protocol buffer from bytes %s", byteArray);
+      }
+    }
+    tracker.stop("", "getSharedStates", "items", sharedStates.size());
+    return Result.success(sharedStates);
   }
 
   @Override
@@ -260,17 +231,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     for (String contentId : contentIds) {
       contentIdKeys.add(SEMANTIC_PROPERTIES_PREFIX + contentId);
     }
-    SimpleSettableFuture<Result<Map<String, byte[]>>> mapResultFuture =
-        new SimpleSettableFuture<>();
-    mainThreadRunner.execute(TAG, () -> contentStorage.get(contentIdKeys, mapResultFuture::put));
-    Result<Map<String, byte[]>> mapResult;
-    try {
-      mapResult = mapResultFuture.get();
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "Error getting semantic properties for content ids %s", contentIds);
-      tracker.stop("getSemanticProperties failed", contentIds);
-      return Result.failure();
-    }
+    Result<Map<String, byte[]>> mapResult = contentStorageDirect.get(contentIdKeys);
 
     if (mapResult.isSuccessful()) {
       for (Map.Entry<String, byte[]> entry : mapResult.getValue().entrySet()) {
@@ -448,8 +409,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
             accessibleContent,
             reservedContentIds,
             dismissActionSupplier,
-            contentStorage,
-            mainThreadRunner,
+            contentStorageDirect,
             timingUtils)
         ::gc;
   }
@@ -497,21 +457,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
       mutationBuilder.upsert(
           SEMANTIC_PROPERTIES_PREFIX + entry.getKey(), entry.getValue().toByteArray());
     }
-    SimpleSettableFuture<CommitResult> resultFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(
-        TAG,
-        () -> {
-          // TODO: handle errors
-          contentStorage.commit(mutationBuilder.build(), resultFuture::put);
-        });
-    CommitResult commitResult;
-    try {
-      commitResult = resultFuture.get();
-    } catch (InterruptedException | ExecutionException e) {
-      tracker.stop("", "commitSemanticPropertiesMutation failed");
-      Logger.e(TAG, e, "Error committing semantic properties");
-      return CommitResult.FAILURE;
-    }
+    CommitResult commitResult = contentStorageDirect.commit(mutationBuilder.build());
     tracker.stop("", "commitSemanticPropertiesMutation", "mutations", semanticPropertiesMap.size());
     return commitResult;
   }
@@ -555,7 +501,6 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
   private CommitResult commitContentMutation(List<PayloadWithId> mutations) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    CommitResult commitResult = CommitResult.FAILURE;
     Builder contentMutationBuilder = new Builder();
     for (PayloadWithId mutation : mutations) {
       String payloadId = mutation.contentId;
@@ -571,16 +516,8 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     }
 
     // Block waiting for the response from storage, to make this method synchronous.
-    SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
     // TODO: handle errors
-    mainThreadRunner.execute(
-        TAG, () -> contentStorage.commit(contentMutationBuilder.build(), commitResultFuture::put));
-    try {
-      commitResult = commitResultFuture.get();
-    } catch (ExecutionException | InterruptedException e) {
-      Logger.e(TAG, e, "Exception committing content mutation");
-    }
-
+    CommitResult commitResult = contentStorageDirect.commit(contentMutationBuilder.build());
     tracker.stop("task", "commitContentMutation", "mutations", mutations.size());
     return commitResult;
   }
@@ -631,10 +568,10 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    if (contentStorage instanceof Dumpable) {
-      dumper.dump((Dumpable) contentStorage);
+    if (contentStorageDirect instanceof Dumpable) {
+      dumper.dump((Dumpable) contentStorageDirect);
     } else {
-      dumper.forKey("contentStorage").value("not dumpable");
+      dumper.forKey("contentStorageDirect").value("not dumpable");
     }
     if (journalStorage instanceof Dumpable) {
       dumper.dump((Dumpable) journalStorage);
@@ -701,11 +638,9 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
    *
    * @return whether the clear succeeded
    */
-  private boolean clearContentStorage() throws InterruptedException, ExecutionException {
-    SimpleSettableFuture<Result<Map<String, byte[]>>> contentFuture = new SimpleSettableFuture<>();
+  private boolean clearContentStorage() {
     // TODO: replace with getAllKeys call
-    mainThreadRunner.execute(TAG, () -> contentStorage.getAll("", contentFuture::put));
-    Result<Map<String, byte[]>> allContentMapResult = contentFuture.get();
+    Result<Map<String, byte[]>> allContentMapResult = contentStorageDirect.getAll("");
     if (!allContentMapResult.isSuccessful()) {
       Logger.e(TAG, "Error clearing all contents. Could not fetch all content.");
       return false;
@@ -717,10 +652,8 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
       }
       contentMutationBuilder.delete(key);
     }
-    SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(
-        TAG, () -> contentStorage.commit(contentMutationBuilder.build(), commitResultFuture::put));
-    if (commitResultFuture.get() != CommitResult.SUCCESS) {
+    CommitResult result = contentStorageDirect.commit(contentMutationBuilder.build());
+    if (result != CommitResult.SUCCESS) {
       Logger.e(TAG, "Error clearing all contents. Could not commit content deletions.");
       return false;
     }
@@ -734,30 +667,24 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
 
     boolean success = true;
     // Run clear on both content and journal
-    SimpleSettableFuture<CommitResult> contentCommitResult = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(
-        TAG,
-        () -> contentStorage.commit(new Builder().deleteAll().build(), contentCommitResult::put));
+    CommitResult result = contentStorageDirect.commit(new Builder().deleteAll().build());
+
     SimpleSettableFuture<CommitResult> journalCommitResult = new SimpleSettableFuture<>();
     mainThreadRunner.execute(TAG, () -> journalStorage.deleteAll(journalCommitResult::put));
 
     // Confirm results were successful
-    try {
-      if (contentCommitResult.get() != CommitResult.SUCCESS) {
-        Logger.e(TAG, "Error clearing all. Could not delete all content from content storage.");
-        success = false;
-      }
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "Error clearing all. Could not delete all content from content storage.");
+    if (result != CommitResult.SUCCESS) {
+      Logger.e(TAG, "Error clearing all. Could not delete all content from content storage.");
       success = false;
     }
+
     try {
-      if (contentCommitResult.get() != CommitResult.SUCCESS) {
+      if (journalCommitResult.get() != CommitResult.SUCCESS) {
         Logger.e(TAG, "Error clearing all. Could not delete all journals from journal storage.");
         success = false;
       }
     } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "Error clearing all. Could not delete all content from content storage.");
+      Logger.e(TAG, e, "Error clearing all. Could not delete all journals from content storage.");
       success = false;
     }
 

@@ -63,6 +63,7 @@ public class Configuration {
     String TIMEOUT_TIMEOUT_MS = "timeout_timeout_ms";
     String MINIMUM_VALID_ACTION_RATIO = "minimum_valid_action_ratio";
     String VIEW_LOG_THRESHOLD = "view_log_threshold";
+    String USE_DIRECT_STORAGE = "use_direct_storage";
   }
 
   private final HashMap<String, Object> values;

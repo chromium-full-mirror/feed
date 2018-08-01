@@ -450,11 +450,7 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            spySessionManager,
-            threadUtils,
-            timingUtils,
-            mainThreadRunner,
-            configuration);
+            spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
     modelProviderFactory.createNew(null);
     verify(spySessionManager).switchToEphemeralMode(anyString());
   }
@@ -470,11 +466,7 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            spySessionManager,
-            threadUtils,
-            timingUtils,
-            mainThreadRunner,
-            configuration);
+            spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
     modelProviderFactory.createNew(null);
     verify(spySessionManager).switchToEphemeralMode(anyString());
   }
@@ -585,7 +577,8 @@ public class FeedSessionManagerTest {
             threadUtils,
             mainThreadRunner,
             taskQueue,
-            clock);
+            clock,
+            configuration);
     FeedSessionManager fsm =
         new FeedSessionManagerFactory(
                 taskQueue,
@@ -614,7 +607,8 @@ public class FeedSessionManagerTest {
             threadUtils,
             mainThreadRunner,
             taskQueue,
-            clock));
+            clock,
+            configuration));
   }
 
   private FeedSessionManager getInitializedSpySessionManager(Store feedStore) {

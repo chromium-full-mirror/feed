@@ -36,11 +36,15 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.feedstore.internal.ClearableStore;
+import com.google.android.libraries.feed.feedstore.internal.ContentStorageDirectImpl;
 import com.google.android.libraries.feed.feedstore.internal.EphemeralFeedStore;
 import com.google.android.libraries.feed.feedstore.internal.FeedStoreHelper;
 import com.google.android.libraries.feed.feedstore.internal.PersistentFeedStore;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
@@ -87,16 +91,27 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
       ThreadUtils threadUtils,
       MainThreadRunner mainThreadRunner,
       TaskQueue taskQueue,
-      Clock clock) {
+      Clock clock,
+      Configuration configuration) {
     this.taskQueue = taskQueue;
     this.clock = clock;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+
+    boolean useDirect = configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
+    // TODO: How should we specify the ContentStorageDirect?  Should we do this in the
+    // stream scope?
+    ContentStorageDirect contentStorageDirect;
+    if (useDirect && contentStorage instanceof ContentStorageDirect) {
+      contentStorageDirect = (ContentStorageDirect) contentStorage;
+    } else {
+      contentStorageDirect = new ContentStorageDirectImpl(contentStorage, mainThreadRunner);
+    }
     this.persistentStore =
         new PersistentFeedStore(
             this.timingUtils,
             extensionRegistry,
-            contentStorage,
+            contentStorageDirect,
             journalStorage,
             threadUtils,
             mainThreadRunner,

@@ -337,7 +337,8 @@ public class SessionCacheTest {
             threadUtils,
             mainThreadRunner,
             taskQueue,
-            clock);
+            clock,
+            configuration);
     storeSpy = spy(store);
     sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);

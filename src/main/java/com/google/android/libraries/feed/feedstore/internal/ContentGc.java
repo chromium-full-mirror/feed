@@ -18,21 +18,18 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
 
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 /** Storage Content Garbage Collector. */
 public class ContentGc {
@@ -41,22 +38,19 @@ public class ContentGc {
   private final Supplier<Set<String>> accessibleContentSupplier;
   private final Set<String> reservedContentIds;
   private final Supplier<Set<StreamAction>> actionsSupplier;
-  private final ContentStorage contentStorage;
-  private final MainThreadRunner mainThreadRunner;
+  private final ContentStorageDirect contentStorageDirect;
   private final TimingUtils timingUtils;
 
   public ContentGc(
       Supplier<Set<String>> accessibleContentSupplier,
       Set<String> reservedContentIds,
       Supplier<Set<StreamAction>> actionsSupplier,
-      ContentStorage contentStorage,
-      MainThreadRunner mainThreadRunner,
+      ContentStorageDirect contentStorageDirect,
       TimingUtils timingUtils) {
     this.accessibleContentSupplier = accessibleContentSupplier;
     this.reservedContentIds = reservedContentIds;
     this.actionsSupplier = actionsSupplier;
-    this.contentStorage = contentStorage;
-    this.mainThreadRunner = mainThreadRunner;
+    this.contentStorageDirect = contentStorageDirect;
     this.timingUtils = timingUtils;
   }
 
@@ -83,20 +77,12 @@ public class ContentGc {
     for (String key : unAccessible) {
       mutationBuilder.delete(key);
     }
-    SimpleSettableFuture<CommitResult> contentFuture = new SimpleSettableFuture<>();
-    try {
-      mainThreadRunner.execute(
-          TAG, () -> contentStorage.commit(mutationBuilder.build(), contentFuture::put));
-      CommitResult result = contentFuture.get();
-      if (result == CommitResult.FAILURE) {
-        // TODO: How do we handle the errors?
-        Logger.e(TAG, "Content Modification Failed");
-      }
-      tracker.stop("", "removeUnAccessible", "mutations", unAccessible.size());
-    } catch (InterruptedException | ExecutionException e) {
-      // TODO: ???
-      throw new IllegalStateException("Couldn't read stream structures", e);
+    CommitResult result = contentStorageDirect.commit(mutationBuilder.build());
+    if (result == CommitResult.FAILURE) {
+      // TODO: How do we handle the errors?
+      Logger.e(TAG, "Content Modification Failed");
     }
+    tracker.stop("", "removeUnAccessible", "mutations", unAccessible.size());
   }
 
   private void filterPrefixed(Set<String> population) {
@@ -129,21 +115,15 @@ public class ContentGc {
   private Set<String> getPopulation() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Set<String> population = new HashSet<>();
-    SimpleSettableFuture<Result<Map<String, byte[]>>> contentFuture = new SimpleSettableFuture<>();
-    try {
-      mainThreadRunner.execute(TAG, () -> contentStorage.getAll("", contentFuture::put));
-      Result<Map<String, byte[]>> result = contentFuture.get();
-      if (result.isSuccessful()) {
-        population.addAll(result.getValue().keySet());
-      } else {
-        Logger.e(TAG, "Unable to get all content, getAll failed");
-      }
-      tracker.stop("", "getPopulation", "contentPopulation", population.size());
-      return population;
-    } catch (InterruptedException | ExecutionException e) {
-      // TODO: ???
-      throw new IllegalStateException("Couldn't read stream structures", e);
+    // TODO: getAllKeys?
+    Result<Map<String, byte[]>> result = contentStorageDirect.getAll("");
+    if (result.isSuccessful()) {
+      population.addAll(result.getValue().keySet());
+    } else {
+      Logger.e(TAG, "Unable to get all content, getAll failed");
     }
+    tracker.stop("", "getPopulation", "contentPopulation", population.size());
+    return population;
   }
 
   private Set<String> getAccessibleSemanticProperties(Set<String> accessibleContent) {

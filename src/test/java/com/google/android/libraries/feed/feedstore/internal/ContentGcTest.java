@@ -18,20 +18,18 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentMutation.Builder;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,7 +48,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ContentGcTest {
 
-  @Mock private ContentStorage contentStorage;
+  @Mock private ContentStorageDirect contentStorage;
 
   private static final String CONTENT_ID_1 = "contentId1";
   private static final String CONTENT_ID_2 = "contentId2";
@@ -58,7 +56,6 @@ public class ContentGcTest {
   private static final String SEMANTIC_PROPERTIES_2 = SEMANTIC_PROPERTIES_PREFIX + CONTENT_ID_2;
   private static final byte[] BYTES = new byte[] {42, 17, 98, 4};
 
-  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
   private final TimingUtils timingUtils = new TimingUtils();
 
   @Before
@@ -81,12 +78,11 @@ public class ContentGcTest {
             reservedContentIds,
             () -> dismissActions,
             contentStorage,
-            mainThreadRunner,
             timingUtils);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorage).commit(contentMutationCaptor.capture(), any(Consumer.class));
+    verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(CONTENT_ID_1).delete(CONTENT_ID_2).build().getOperations();
     List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
@@ -108,12 +104,11 @@ public class ContentGcTest {
             reservedContentIds,
             () -> dismissActions,
             contentStorage,
-            mainThreadRunner,
             timingUtils);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorage).commit(contentMutationCaptor.capture(), any(Consumer.class));
+    verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(CONTENT_ID_2).build().getOperations();
     List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
@@ -135,12 +130,11 @@ public class ContentGcTest {
             reservedContentIds,
             () -> dismissActions,
             contentStorage,
-            mainThreadRunner,
             timingUtils);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorage).commit(contentMutationCaptor.capture(), any(Consumer.class));
+    verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(CONTENT_ID_2).build().getOperations();
     List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
@@ -162,12 +156,11 @@ public class ContentGcTest {
             reservedContentIds,
             () -> dismissActions,
             contentStorage,
-            mainThreadRunner,
             timingUtils);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorage).commit(contentMutationCaptor.capture(), any(Consumer.class));
+    verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder()
             .delete(SEMANTIC_PROPERTIES_1)
@@ -199,12 +192,11 @@ public class ContentGcTest {
             reservedContentIds,
             () -> dismissActions,
             contentStorage,
-            mainThreadRunner,
             timingUtils);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorage).commit(contentMutationCaptor.capture(), any(Consumer.class));
+    verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(SEMANTIC_PROPERTIES_2).build().getOperations();
     List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
@@ -227,12 +219,11 @@ public class ContentGcTest {
             reservedContentIds,
             () -> dismissActions,
             contentStorage,
-            mainThreadRunner,
             timingUtils);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorage).commit(contentMutationCaptor.capture(), any(Consumer.class));
+    verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(SEMANTIC_PROPERTIES_2).build().getOperations();
     List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
@@ -254,12 +245,11 @@ public class ContentGcTest {
             reservedContentIds,
             () -> dismissActions,
             contentStorage,
-            mainThreadRunner,
             timingUtils);
     contentGc.gc();
     ArgumentCaptor<ContentMutation> contentMutationCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorage).commit(contentMutationCaptor.capture(), any(Consumer.class));
+    verify(contentStorage).commit(contentMutationCaptor.capture());
     List<ContentOperation> expectedOperations =
         new Builder().delete(CONTENT_ID_2).build().getOperations();
     List<ContentOperation> resultOperations = contentMutationCaptor.getValue().getOperations();
@@ -267,23 +257,8 @@ public class ContentGcTest {
   }
 
   private void mockContentStorageWithContents(Map<String, byte[]> contentStorageMap) {
-    doAnswer(
-            ans -> {
-              Consumer<Result<Map<String, byte[]>>> consumer =
-                  (Consumer<Result<Map<String, byte[]>>>) ans.getArguments()[1];
-              consumer.accept(Result.success(contentStorageMap));
-              return null;
-            })
-        .when(contentStorage)
-        .getAll(eq(""), any(Consumer.class));
-    doAnswer(
-            ans -> {
-              Consumer<CommitResult> consumer = (Consumer<CommitResult>) ans.getArguments()[1];
-              consumer.accept(CommitResult.SUCCESS);
-              return null;
-            })
-        .when(contentStorage)
-        .commit(any(ContentMutation.class), any(Consumer.class));
+    when(contentStorage.getAll(eq(""))).thenReturn(Result.success(contentStorageMap));
+    when(contentStorage.commit(any(ContentMutation.class))).thenReturn(CommitResult.SUCCESS);
   }
 
   private void assertListsContainSameElements(

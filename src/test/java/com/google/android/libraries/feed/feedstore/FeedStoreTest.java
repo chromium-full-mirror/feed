@@ -22,6 +22,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -35,6 +36,8 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
@@ -81,6 +84,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   @Mock private StoreListener listener;
   // Used only in the task queue to prevent conflicts with the one defined in AbstractFeedStoreTest
   @Mock private Clock taskQueueClock;
+  @Mock private Configuration configuration;
 
   private TaskQueue taskQueue;
 
@@ -91,6 +95,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+    when(configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false)).thenReturn(false);
     taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), taskQueueClock, false);
     taskQueue.initialize(() -> {});
   }
@@ -105,7 +110,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         threadUtils,
         mainThreadRunner,
         taskQueue,
-        clock);
+        clock,
+        configuration);
   }
 
   @Test
@@ -141,7 +147,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             threadUtils,
             mainThreadRunner,
             taskQueue,
-            clock);
+            clock,
+            configuration);
     store.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
     verifyZeroInteractions(journalStorageSpy, contentStorageSpy);
   }
@@ -159,7 +166,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             threadUtils,
             mainThreadRunner,
             taskQueue,
-            clock);
+            clock,
+            configuration);
     store.switchToEphemeralMode();
     reset(journalStorageSpy, contentStorageSpy);
 

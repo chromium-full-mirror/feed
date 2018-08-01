@@ -110,7 +110,8 @@ public class InfrastructureIntegrationScope {
             threadUtils,
             mainThreadRunner,
             taskQueue,
-            clock);
+            clock,
+            configuration);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter);
     feedSessionManager =
@@ -130,11 +131,7 @@ public class InfrastructureIntegrationScope {
     feedSessionManager.initialize();
     modelProviderFactory =
         new FeedModelProviderFactory(
-            feedSessionManager,
-            threadUtils,
-            timingUtils,
-            mainThreadRunner,
-            configuration);
+            feedSessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
   }
 
   public ProtocolAdapter getProtocolAdapter() {

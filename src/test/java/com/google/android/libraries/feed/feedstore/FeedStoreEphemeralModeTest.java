@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedstore;
 
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -22,6 +23,8 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
@@ -37,6 +40,7 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
 
   @Mock private ThreadUtils threadUtils;
+  @Mock private Configuration configuration;
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorage contentStorage = new InMemoryContentStorage();
@@ -45,6 +49,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+    when(configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false)).thenReturn(false);
   }
 
   @Override
@@ -60,7 +65,8 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
             threadUtils,
             mainThreadRunner,
             taskQueue,
-            clock);
+            clock,
+            configuration);
     feedStore.switchToEphemeralMode();
     return feedStore;
   }

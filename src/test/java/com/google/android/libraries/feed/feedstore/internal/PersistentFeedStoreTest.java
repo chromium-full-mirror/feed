@@ -33,7 +33,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
@@ -62,8 +62,9 @@ import org.robolectric.RobolectricTestRunner;
 public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
-  private final ContentStorage contentStorage = new InMemoryContentStorage();
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
+  private final ContentStorageDirect contentStorage =
+      new ContentStorageDirectImpl(new InMemoryContentStorage(), mainThreadRunner);
   @Mock private ThreadUtils threadUtils;
 
   @Before
@@ -86,7 +87,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void clearStorage_contentStorage_failure_getAllContent() {
-    ContentStorage contentStorageSpy = spy(contentStorage);
+    ContentStorageDirect contentStorageSpy = spy(contentStorage);
     PersistentFeedStore store =
         new PersistentFeedStore(
             timingUtils,
@@ -97,15 +98,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             mainThreadRunner,
             clock,
             new FeedStoreHelper());
-    doAnswer(
-            ans -> {
-              Consumer<Result<Map<String, byte[]>>> consumer =
-                  (Consumer<Result<Map<String, byte[]>>>) ans.getArguments()[1];
-              consumer.accept(Result.failure());
-              return null;
-            })
-        .when(contentStorageSpy)
-        .getAll(eq(""), any(Consumer.class));
+    doAnswer(ans -> Result.failure()).when(contentStorageSpy).getAll(eq(""));
 
     boolean clearSuccess = store.clearNonActionContent();
     assertThat(clearSuccess).isFalse();
@@ -113,7 +106,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void clearStorage_contentStorage_failure_commit() {
-    ContentStorage contentStorageSpy = spy(contentStorage);
+    ContentStorageDirect contentStorageSpy = spy(contentStorage);
     PersistentFeedStore store =
         new PersistentFeedStore(
             timingUtils,
@@ -134,15 +127,9 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     assertThat(payloadsResult.getValue()).hasSize(1);
     assertThat(payloadsResult.getValue().get(0).contentId).isEqualTo(CONTENT_ID);
     assertThat(payloadsResult.getValue().get(0).payload).isEqualTo(STREAM_PAYLOAD);
-
-    doAnswer(
-            ans -> {
-              Consumer<CommitResult> consumer = (Consumer<CommitResult>) ans.getArguments()[1];
-              consumer.accept(CommitResult.FAILURE);
-              return null;
-            })
+    doAnswer(ans -> CommitResult.FAILURE)
         .when(contentStorageSpy)
-        .commit(any(ContentMutation.class), any(Consumer.class));
+        .commit(any(ContentMutation.class));
 
     boolean clearSuccess = store.clearNonActionContent();
     assertThat(clearSuccess).isFalse();
