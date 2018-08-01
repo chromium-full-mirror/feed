@@ -169,6 +169,7 @@ public class FeedRequestManager implements RequestManager {
         actionReader.getDismissActionsWithSemanticProperties();
     if (dismissActionsResult.isSuccessful()) {
       requestBuilder.setActions(dismissActionsResult.getValue());
+      Logger.i(TAG, "Dismiss actions in request: %s", dismissActionsResult.getValue());
     } else {
       Logger.e(TAG, "Error fetching dismiss actions");
     }

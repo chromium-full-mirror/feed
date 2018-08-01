@@ -22,6 +22,8 @@ import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
@@ -235,5 +237,38 @@ public abstract class JournalStorageConformanceTest {
         new RequiredConsumer<>(isJournal1AndJournal2);
     journalStorage.getAllJournals(getAllJournalsConsumer);
     assertThat(getAllJournalsConsumer.isCalled()).isTrue();
+  }
+
+  @Test
+  public void streamAction_roundTrip() throws Exception {
+    // Write a Stream action with known breaking data ([INTERNAL LINK])
+    StreamAction action =
+        StreamAction.newBuilder()
+            .setTimestampSeconds(1532979950)
+            .setAction(1)
+            .setFeatureContentId("FEATURE::stories.f::5726498306727238903")
+            .build();
+    RequiredConsumer<CommitResult> commitConsumer = new RequiredConsumer<>(isSuccess);
+    journalStorage.commit(
+        new JournalMutation.Builder(JOURNAL_NAME).append(action.toByteArray()).build(),
+        commitConsumer);
+    assertThat(commitConsumer.isCalled()).isTrue();
+
+    // Ensure that it can be parsed back correctly
+    RequiredConsumer<Result<List<byte[]>>> readConsumer =
+        new RequiredConsumer<>(
+            result -> {
+              List<byte[]> bytes = result.getValue();
+              assertThat(bytes).hasSize(1);
+              StreamAction parsedAction = null;
+              try {
+                parsedAction = StreamAction.parseFrom(bytes.get(0));
+              } catch (InvalidProtocolBufferException e) {
+                throw new AssertionError("Should be able to parse StreamAction bytes correctly", e);
+              }
+              assertThat(parsedAction).isEqualTo(action);
+            });
+    journalStorage.read(JOURNAL_NAME, readConsumer);
+    assertThat(readConsumer.isCalled()).isTrue();
   }
 }

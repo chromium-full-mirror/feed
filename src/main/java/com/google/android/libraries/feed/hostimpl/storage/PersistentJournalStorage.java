@@ -30,43 +30,65 @@ import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Copy;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 
-/** Implementation of {@link JournalStorage} that persists data to disk. */
+/**
+ * Implementation of {@link JournalStorage} that persists data to disk.
+ *
+ * <p>Data is stored in files, with each append consisting of first the size of the bytes to write,
+ * followed by the bytes themselves. For example, for a byte array of size 4, a total of 8 bytes
+ * will be written: the 4 bytes representing the integer 4 (size), followed by the 4 bytes for the
+ * append.
+ */
 public class PersistentJournalStorage implements JournalStorage {
 
   private static final String TAG = "PersistentJournal";
+  /** The schema version currently in use. */
+  private static final int SCHEMA_VERSION = 1;
+
+  private static final String SHARED_PREFERENCES = "JOURNAL_SP";
+  private static final String SCHEMA_KEY = "JOURNAL_SCHEMA";
+
   private static final String JOURNAL_DIR = "journal";
-  public static final String ENCODING = "UTF-8";
-  public static final Charset CHARSET = Charset.forName(ENCODING);
-  public static final String ASTERISK = "_ATK_";
+  private static final String ENCODING = "UTF-8";
+  private static final int INTEGER_BYTE_SIZE = 4;
+  private static final String ASTERISK = "_ATK_";
+  private static final int MAX_BYTE_SIZE = 1000000;
 
   private final Context context;
   private final ThreadUtils threadUtils;
   private final ExecutorService executor;
   private File journalDir;
 
+  /**
+   * The schema of existing content. If this does not match {@code SCHEMA_VERSION}, all existing
+   * content will be wiped so there are no version mismatches where data cannot be read / written
+   * correctly.
+   */
+  private int existingSchema;
+
   public PersistentJournalStorage(
       Context context, ExecutorService executorService, ThreadUtils threadUtils) {
     this.context = context;
     this.executor = executorService;
     this.threadUtils = threadUtils;
+    this.existingSchema =
+        context
+            .getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE)
+            .getInt(SCHEMA_KEY, 0);
   }
 
   @Override
@@ -95,11 +117,20 @@ public class PersistentJournalStorage implements JournalStorage {
 
     List<byte[]> journalContents = new ArrayList<>();
     if (journal.exists()) {
-      try (BufferedReader reader = new BufferedReader(new FileReader(journal))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-          byte[] bytes = line.getBytes(CHARSET);
-          journalContents.add(bytes);
+      // Read byte size & bytes for each entry in the journal. See class comment for more info on
+      // format.
+      try (FileInputStream inputStream = new FileInputStream(journal)) {
+        byte[] lengthBytes = new byte[INTEGER_BYTE_SIZE];
+        while (inputStream.available() > 0) {
+          readBytes(inputStream, lengthBytes, INTEGER_BYTE_SIZE);
+          int size = ByteBuffer.wrap(lengthBytes).getInt();
+          if (size > MAX_BYTE_SIZE || size < 0) {
+            throw new IOException(String.format(Locale.US, "Unexpected byte size %d", size));
+          }
+
+          byte[] contentBytes = new byte[size];
+          readBytes(inputStream, contentBytes, size);
+          journalContents.add(contentBytes);
         }
       } catch (IOException e) {
         Logger.e(TAG, "Error reading file", e);
@@ -107,6 +138,15 @@ public class PersistentJournalStorage implements JournalStorage {
       }
     }
     return journalContents;
+  }
+
+  private void readBytes(FileInputStream inputStream, byte[] dest, int size) throws IOException {
+    int bytesRead = inputStream.read(dest, 0, size);
+    if (bytesRead != size) {
+      throw new IOException(
+          String.format(
+              Locale.US, "Expected to read %d bytes, but read %d bytes", size, bytesRead));
+    }
   }
 
   @Override
@@ -155,29 +195,30 @@ public class PersistentJournalStorage implements JournalStorage {
     executor.execute(
         () -> {
           initializeJournalDir();
-
-          boolean success = true;
-
-          File[] files = journalDir.listFiles();
-          if (files != null) {
-            // Delete all files in the journal directory
-            for (File file : files) {
-              if (!file.delete()) {
-                Logger.e(
-                    TAG,
-                    "Error deleting file when deleting all journals for file %s",
-                    file.getName());
-                success = false;
-              }
-            }
-          }
-          success &= journalDir.delete();
-          if (success) {
-            consumer.accept(CommitResult.SUCCESS);
-          } else {
-            consumer.accept(CommitResult.FAILURE);
-          }
+          deleteAllInitialized(consumer);
         });
+  }
+
+  private void deleteAllInitialized(Consumer<CommitResult> consumer) {
+    boolean success = true;
+
+    File[] files = journalDir.listFiles();
+    if (files != null) {
+      // Delete all files in the journal directory
+      for (File file : files) {
+        if (!file.delete()) {
+          Logger.e(
+              TAG, "Error deleting file when deleting all journals for file %s", file.getName());
+          success = false;
+        }
+      }
+    }
+    success &= journalDir.delete();
+    if (success) {
+      consumer.accept(CommitResult.SUCCESS);
+    } else {
+      consumer.accept(CommitResult.FAILURE);
+    }
   }
 
   private boolean delete(File journal) {
@@ -249,13 +290,24 @@ public class PersistentJournalStorage implements JournalStorage {
       }
     }
 
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(journal, /* append= */ true))) {
-      writer.write(new String(operation.getValue(), CHARSET));
-      writer.newLine();
+    byte[] journalBytes = operation.getValue();
+    byte[] sizeBytes = ByteBuffer.allocate(INTEGER_BYTE_SIZE).putInt(journalBytes.length).array();
+    return writeBytes(journal, sizeBytes, journalBytes);
+  }
+
+  /** Write byte size & bytes into the journal. See class comment for more info on format. */
+  private boolean writeBytes(File journal, byte[] sizeBytes, byte[] journalBytes) {
+    try (FileOutputStream out = new FileOutputStream(journal, /* append= */ true)) {
+      out.write(sizeBytes);
+      out.write(journalBytes);
       return true;
     } catch (IOException e) {
       Logger.e(
-          TAG, "Error appending byte[] %s for journal %s", operation.getValue(), journal.getName());
+          TAG,
+          "Error appending byte[] %s (size byte[] %s) for journal %s",
+          journalBytes,
+          sizeBytes,
+          journal.getName());
       return false;
     }
   }
@@ -304,6 +356,20 @@ public class PersistentJournalStorage implements JournalStorage {
 
     if (journalDir == null) {
       journalDir = context.getDir(JOURNAL_DIR, Context.MODE_PRIVATE);
+    }
+    if (existingSchema != SCHEMA_VERSION) {
+      // For schema mismatch, delete everything.
+      deleteAllInitialized(
+          result -> {
+            if (result == CommitResult.SUCCESS
+                && context
+                    .getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt(SCHEMA_KEY, SCHEMA_VERSION)
+                    .commit()) {
+              existingSchema = SCHEMA_VERSION;
+            }
+          });
     }
     if (!journalDir.exists()) {
       journalDir.mkdir();
