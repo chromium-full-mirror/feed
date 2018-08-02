@@ -150,9 +150,8 @@ public class StyleProviderTest {
     StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
     styleProvider.applyElementStyles(context, view);
 
-    Drawable drawable = styleProvider.createBackground(context);
-
-    assertThat(view.getBackground()).isEqualTo(drawable);
+    ColorDrawable colorDrawable = (ColorDrawable) view.getBackground();
+    assertThat(colorDrawable.getColor()).isEqualTo(color);
   }
 
   @Test
