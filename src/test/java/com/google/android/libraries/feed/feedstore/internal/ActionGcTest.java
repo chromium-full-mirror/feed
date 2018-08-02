@@ -14,19 +14,16 @@
 package com.google.android.libraries.feed.feedstore.internal;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Type;
-import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,8 +44,7 @@ public class ActionGcTest {
   private static final String CONTENT_ID_1 = "contentId1";
   private static final String CONTENT_ID_2 = "contentId2";
 
-  @Mock private JournalStorage journalStorage;
-  private MainThreadRunner mainThreadRunner = new MainThreadRunner();
+  @Mock private JournalStorageDirect journalStorage;
   private TimingUtils timingUtils = new TimingUtils();
 
   @Before
@@ -67,15 +63,10 @@ public class ActionGcTest {
 
     ActionGc actionGc =
         new ActionGc(
-            allActions,
-            validContentIds,
-            journalStorage,
-            mainThreadRunner,
-            timingUtils,
-            DISMISS_JOURNAL_NAME);
+            allActions, validContentIds, journalStorage, timingUtils, DISMISS_JOURNAL_NAME);
     actionGc.gc();
 
-    verify(journalStorage).commit(journalMutationCaptor.capture(), any(Consumer.class));
+    verify(journalStorage).commit(journalMutationCaptor.capture());
 
     JournalMutation journalMutation = journalMutationCaptor.getValue();
     assertThat(journalMutation.getJournalName()).isEqualTo(DISMISS_JOURNAL_NAME);
@@ -106,15 +97,10 @@ public class ActionGcTest {
 
     ActionGc actionGc =
         new ActionGc(
-            allActions,
-            validContentIds,
-            journalStorage,
-            mainThreadRunner,
-            timingUtils,
-            DISMISS_JOURNAL_NAME);
+            allActions, validContentIds, journalStorage, timingUtils, DISMISS_JOURNAL_NAME);
     actionGc.gc();
 
-    verify(journalStorage).commit(journalMutationCaptor.capture(), any(Consumer.class));
+    verify(journalStorage).commit(journalMutationCaptor.capture());
 
     JournalMutation journalMutation = journalMutationCaptor.getValue();
     assertThat(journalMutation.getJournalName()).isEqualTo(DISMISS_JOURNAL_NAME);
@@ -149,15 +135,10 @@ public class ActionGcTest {
 
     ActionGc actionGc =
         new ActionGc(
-            allActions,
-            validContentIds,
-            journalStorage,
-            mainThreadRunner,
-            timingUtils,
-            DISMISS_JOURNAL_NAME);
+            allActions, validContentIds, journalStorage, timingUtils, DISMISS_JOURNAL_NAME);
     actionGc.gc();
 
-    verify(journalStorage).commit(journalMutationCaptor.capture(), any(Consumer.class));
+    verify(journalStorage).commit(journalMutationCaptor.capture());
 
     JournalMutation journalMutation = journalMutationCaptor.getValue();
     assertThat(journalMutation.getJournalName()).isEqualTo(DISMISS_JOURNAL_NAME);
@@ -188,15 +169,10 @@ public class ActionGcTest {
 
     ActionGc actionGc =
         new ActionGc(
-            allActions,
-            validContentIds,
-            journalStorage,
-            mainThreadRunner,
-            timingUtils,
-            DISMISS_JOURNAL_NAME);
+            allActions, validContentIds, journalStorage, timingUtils, DISMISS_JOURNAL_NAME);
     actionGc.gc();
 
-    verify(journalStorage).commit(journalMutationCaptor.capture(), any(Consumer.class));
+    verify(journalStorage).commit(journalMutationCaptor.capture());
 
     JournalMutation journalMutation = journalMutationCaptor.getValue();
     assertThat(journalMutation.getJournalName()).isEqualTo(DISMISS_JOURNAL_NAME);

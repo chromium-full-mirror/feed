@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.feedstore.internal.ClearableStore;
 import com.google.android.libraries.feed.feedstore.internal.ContentStorageDirectImpl;
 import com.google.android.libraries.feed.feedstore.internal.EphemeralFeedStore;
 import com.google.android.libraries.feed.feedstore.internal.FeedStoreHelper;
+import com.google.android.libraries.feed.feedstore.internal.JournalStorageDirectImpl;
 import com.google.android.libraries.feed.feedstore.internal.PersistentFeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -46,6 +47,7 @@ import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -107,14 +109,19 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
     } else {
       contentStorageDirect = new ContentStorageDirectImpl(contentStorage, mainThreadRunner);
     }
+    JournalStorageDirect journalStorageDirect;
+    if (useDirect && journalStorage instanceof JournalStorageDirect) {
+      journalStorageDirect = (JournalStorageDirect) journalStorage;
+    } else {
+      journalStorageDirect = new JournalStorageDirectImpl(journalStorage, mainThreadRunner);
+    }
     this.persistentStore =
         new PersistentFeedStore(
             this.timingUtils,
             extensionRegistry,
             contentStorageDirect,
-            journalStorage,
+            journalStorageDirect,
             threadUtils,
-            mainThreadRunner,
             this.clock,
             this.storeHelper);
     delegate = persistentStore;

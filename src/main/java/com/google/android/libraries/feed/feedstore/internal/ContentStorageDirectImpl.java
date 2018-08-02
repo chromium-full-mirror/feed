@@ -15,17 +15,14 @@
 package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadCaller;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
-import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * An implementation of {@link ContentStorageDirect} which converts {@link ContentStorage} to a
@@ -33,57 +30,34 @@ import java.util.concurrent.ExecutionException;
  * consumer calling on the main thread and waiting on a Future to complete to return the consumer
  * results.
  */
-public class ContentStorageDirectImpl implements ContentStorageDirect {
-  private static final String TAG = "ContentStorageDirectImpl";
-  private final MainThreadRunner mainThreadRunner;
+public class ContentStorageDirectImpl extends MainThreadCaller implements ContentStorageDirect {
   private final ContentStorage contentStorage;
 
   public ContentStorageDirectImpl(
       ContentStorage contentStorage, MainThreadRunner mainThreadRunner) {
+    super(mainThreadRunner);
     this.contentStorage = contentStorage;
-    this.mainThreadRunner = mainThreadRunner;
-  }
-
-  /** Execute a task with a {@link Consumer}. */
-  interface ConsumerTask<T> {
-    void execute(Consumer<T> consumer);
-  }
-
-  /** Run a {@link ConsumerTask} on the main thread, providing a Consumer to receive the results. */
-  private <T> T mainThreadCaller(ConsumerTask<T> task, T failure) {
-    SimpleSettableFuture<T> sharedStatesFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(TAG, () -> task.execute(sharedStatesFuture::put));
-    try {
-      return sharedStatesFuture.get();
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, null);
-      return failure;
-    }
   }
 
   @Override
   public Result<Map<String, byte[]>> get(List<String> keys) {
-    Logger.i(TAG, "DirectCall - get");
     return mainThreadCaller((consumer) -> contentStorage.get(keys, consumer), Result.failure());
   }
 
   @Override
   public Result<Map<String, byte[]>> getAll(String prefix) {
-    Logger.i(TAG, "DirectCall - getAll");
     return mainThreadCaller(
         (consumer) -> contentStorage.getAll(prefix, consumer), Result.failure());
   }
 
   @Override
   public CommitResult commit(ContentMutation mutation) {
-    Logger.i(TAG, "DirectCall - commit");
     return mainThreadCaller(
         (consumer) -> contentStorage.commit(mutation, consumer), CommitResult.FAILURE);
   }
 
   @Override
   public Result<List<String>> getAllKeys() {
-    Logger.i(TAG, "DirectCall - getAllKeys");
     return mainThreadCaller(contentStorage::getAllKeys, Result.failure());
   }
 }

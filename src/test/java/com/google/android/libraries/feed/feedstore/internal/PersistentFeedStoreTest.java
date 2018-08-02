@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -28,14 +29,13 @@ import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
-import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.protobuf.ByteString;
@@ -47,11 +47,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /**
@@ -61,11 +59,13 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
+  private ThreadUtils threadUtils = mock(ThreadUtils.class);
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
   private final ContentStorageDirect contentStorage =
       new ContentStorageDirectImpl(new InMemoryContentStorage(), mainThreadRunner);
-  @Mock private ThreadUtils threadUtils;
+  private final JournalStorageDirect journalStorage =
+      new JournalStorageDirectImpl(new InMemoryJournalStorage(threadUtils), mainThreadRunner);
 
   @Before
   public void setUp() throws Exception {
@@ -78,9 +78,8 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
         timingUtils,
         extensionRegistry,
         contentStorage,
-        new InMemoryJournalStorage(threadUtils),
+        journalStorage,
         threadUtils,
-        mainThreadRunner,
         clock,
         new FeedStoreHelper());
   }
@@ -93,9 +92,8 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             timingUtils,
             extensionRegistry,
             contentStorageSpy,
-            new InMemoryJournalStorage(threadUtils),
+            journalStorage,
             threadUtils,
-            mainThreadRunner,
             clock,
             new FeedStoreHelper());
     doAnswer(ans -> Result.failure()).when(contentStorageSpy).getAll(eq(""));
@@ -112,9 +110,8 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             timingUtils,
             extensionRegistry,
             contentStorageSpy,
-            new InMemoryJournalStorage(threadUtils),
+            journalStorage,
             threadUtils,
-            mainThreadRunner,
             clock,
             new FeedStoreHelper());
 
@@ -137,7 +134,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void clearStorage_journalStorage_failure_getAllJournals() {
-    JournalStorage journalStorageSpy = spy(new InMemoryJournalStorage(threadUtils));
+    JournalStorageDirect journalStorageSpy = spy(journalStorage);
     PersistentFeedStore store =
         new PersistentFeedStore(
             timingUtils,
@@ -145,7 +142,6 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             contentStorage,
             journalStorageSpy,
             threadUtils,
-            mainThreadRunner,
             clock,
             new FeedStoreHelper());
 
@@ -161,14 +157,9 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     assertThat(sessionsResult.getValue()).hasSize(1);
     assertThat(sessionsResult.getValue().get(0)).isEqualTo(STREAM_SESSION);
 
-    doAnswer(
-            ans -> {
-              Consumer<CommitResult> consumer = (Consumer<CommitResult>) ans.getArguments()[1];
-              consumer.accept(CommitResult.FAILURE);
-              return null;
-            })
+    doAnswer(ans -> CommitResult.FAILURE)
         .when(journalStorageSpy)
-        .commit(any(JournalMutation.class), any(Consumer.class));
+        .commit(any(JournalMutation.class));
 
     boolean clearSuccess = store.clearNonActionContent();
     assertThat(clearSuccess).isFalse();
@@ -176,7 +167,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void clearStorage_journalStorage_failure_deleteJournal() {
-    JournalStorage journalStorageSpy = spy(new InMemoryJournalStorage(threadUtils));
+    JournalStorageDirect journalStorageSpy = spy(journalStorage);
     PersistentFeedStore store =
         new PersistentFeedStore(
             timingUtils,
@@ -184,18 +175,9 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             contentStorage,
             journalStorageSpy,
             threadUtils,
-            mainThreadRunner,
             clock,
             new FeedStoreHelper());
-    doAnswer(
-            ans -> {
-              Consumer<Result<Map<String, byte[]>>> consumer =
-                  (Consumer<Result<Map<String, byte[]>>>) ans.getArguments()[0];
-              consumer.accept(Result.failure());
-              return null;
-            })
-        .when(journalStorageSpy)
-        .getAllJournals(any(Consumer.class));
+    doAnswer(ans -> Result.failure()).when(journalStorageSpy).getAllJournals();
 
     boolean clearSuccess = store.clearNonActionContent();
     assertThat(clearSuccess).isFalse();

@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Copy;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -53,7 +54,7 @@ import java.util.concurrent.ExecutorService;
  * will be written: the 4 bytes representing the integer 4 (size), followed by the 4 bytes for the
  * append.
  */
-public class PersistentJournalStorage implements JournalStorage {
+public class PersistentJournalStorage implements JournalStorage, JournalStorageDirect {
 
   private static final String TAG = "PersistentJournal";
   /** The schema version currently in use. */
@@ -94,22 +95,24 @@ public class PersistentJournalStorage implements JournalStorage {
   @Override
   public void read(String journalName, Consumer<Result<List<byte[]>>> consumer) {
     threadUtils.checkMainThread();
+    executor.execute(() -> consumer.accept(read(journalName)));
+  }
 
-    executor.execute(
-        () -> {
-          initializeJournalDir();
+  @Override
+  public Result<List<byte[]>> read(String journalName) {
+    initializeJournalDir();
 
-          String sanitizedJournalName = sanitize(journalName);
-          if (!sanitizedJournalName.isEmpty()) {
-            File journal = new File(journalDir, sanitizedJournalName);
-            try {
-              consumer.accept(Result.success(getJournalContents(journal)));
-            } catch (IOException e) {
-              Logger.e(TAG, "Error occured reading journal %s", journalName);
-              consumer.accept(Result.failure());
-            }
-          }
-        });
+    String sanitizedJournalName = sanitize(journalName);
+    if (!sanitizedJournalName.isEmpty()) {
+      File journal = new File(journalDir, sanitizedJournalName);
+      try {
+        return Result.success(getJournalContents(journal));
+      } catch (IOException e) {
+        Logger.e(TAG, "Error occured reading journal %s", journalName);
+        return Result.failure();
+      }
+    }
+    return Result.failure();
   }
 
   private List<byte[]> getJournalContents(File journal) throws IOException {
@@ -152,54 +155,54 @@ public class PersistentJournalStorage implements JournalStorage {
   @Override
   public void commit(JournalMutation mutation, Consumer<CommitResult> consumer) {
     threadUtils.checkMainThread();
+    executor.execute(() -> consumer.accept(commit(mutation)));
+  }
 
-    executor.execute(
-        () -> {
-          initializeJournalDir();
+  @Override
+  public CommitResult commit(JournalMutation mutation) {
+    initializeJournalDir();
 
-          String sanitizedJournalName = sanitize(mutation.getJournalName());
-          if (!sanitizedJournalName.isEmpty()) {
-            File journal = new File(journalDir, sanitizedJournalName);
+    String sanitizedJournalName = sanitize(mutation.getJournalName());
+    if (!sanitizedJournalName.isEmpty()) {
+      File journal = new File(journalDir, sanitizedJournalName);
 
-            for (JournalOperation operation : mutation.getOperations()) {
-              if (operation.getType() == APPEND) {
-                if (!append((Append) operation, journal)) {
-                  consumer.accept(CommitResult.FAILURE);
-                  return;
-                }
-              } else if (operation.getType() == COPY) {
-                if (!copy((Copy) operation, journal)) {
-                  consumer.accept(CommitResult.FAILURE);
-                  return;
-                }
-              } else if (operation.getType() == DELETE) {
-                if (!delete(journal)) {
-                  consumer.accept(CommitResult.FAILURE);
-                  return;
-                }
-              } else {
-                Logger.e(TAG, "Unrecognized journal operation type %s", operation.getType());
-              }
-            }
-
-            consumer.accept(CommitResult.SUCCESS);
+      for (JournalOperation operation : mutation.getOperations()) {
+        if (operation.getType() == APPEND) {
+          if (!append((Append) operation, journal)) {
+            return CommitResult.FAILURE;
           }
-          // TODO: error handling
-        });
+        } else if (operation.getType() == COPY) {
+          if (!copy((Copy) operation, journal)) {
+            return CommitResult.FAILURE;
+          }
+        } else if (operation.getType() == DELETE) {
+          if (!delete(journal)) {
+            return CommitResult.FAILURE;
+          }
+        } else {
+          Logger.e(TAG, "Unrecognized journal operation type %s", operation.getType());
+        }
+      }
+
+      return CommitResult.SUCCESS;
+    }
+    return CommitResult.FAILURE;
   }
 
   @Override
   public void deleteAll(Consumer<CommitResult> consumer) {
     threadUtils.checkMainThread();
 
-    executor.execute(
-        () -> {
-          initializeJournalDir();
-          deleteAllInitialized(consumer);
-        });
+    executor.execute(() -> consumer.accept(deleteAllInitialized()));
   }
 
-  private void deleteAllInitialized(Consumer<CommitResult> consumer) {
+  @Override
+  public CommitResult deleteAll() {
+    initializeJournalDir();
+    return deleteAllInitialized();
+  }
+
+  private CommitResult deleteAllInitialized() {
     boolean success = true;
 
     File[] files = journalDir.listFiles();
@@ -214,11 +217,7 @@ public class PersistentJournalStorage implements JournalStorage {
       }
     }
     success &= journalDir.delete();
-    if (success) {
-      consumer.accept(CommitResult.SUCCESS);
-    } else {
-      consumer.accept(CommitResult.FAILURE);
-    }
+    return success ? CommitResult.SUCCESS : CommitResult.FAILURE;
   }
 
   private boolean delete(File journal) {
@@ -244,7 +243,6 @@ public class PersistentJournalStorage implements JournalStorage {
         copyFile(journal, sanitizedDestJournalName);
         return true;
       }
-      // TODO: error handling
     } catch (IOException e) {
       Logger.e(
           TAG,
@@ -315,40 +313,42 @@ public class PersistentJournalStorage implements JournalStorage {
   @Override
   public void exists(String journalName, Consumer<Result<Boolean>> consumer) {
     threadUtils.checkMainThread();
+    executor.execute(() -> consumer.accept(exists(journalName)));
+  }
 
-    executor.execute(
-        () -> {
-          initializeJournalDir();
+  @Override
+  public Result<Boolean> exists(String journalName) {
+    initializeJournalDir();
 
-          String sanitizedJournalName = sanitize(journalName);
-          if (!sanitizedJournalName.isEmpty()) {
-            File journal = new File(journalDir, sanitizedJournalName);
-            consumer.accept(Result.success(journal.exists()));
-          }
-          // TODO: error handling
-        });
+    String sanitizedJournalName = sanitize(journalName);
+    if (!sanitizedJournalName.isEmpty()) {
+      File journal = new File(journalDir, sanitizedJournalName);
+      return Result.success(journal.exists());
+    }
+    return Result.failure();
   }
 
   @Override
   public void getAllJournals(Consumer<Result<List<String>>> consumer) {
     threadUtils.checkMainThread();
+    executor.execute(() -> consumer.accept(getAllJournals()));
+  }
 
-    executor.execute(
-        () -> {
-          initializeJournalDir();
+  @Override
+  public Result<List<String>> getAllJournals() {
+    initializeJournalDir();
 
-          File[] files = journalDir.listFiles();
-          List<String> journals = new ArrayList<>();
-          if (files != null) {
-            for (File file : files) {
-              String desanitizedFileName = desanitize(file.getName());
-              if (!desanitizedFileName.isEmpty()) {
-                journals.add(desanitizedFileName);
-              }
-            }
-          }
-          consumer.accept(Result.success(journals));
-        });
+    File[] files = journalDir.listFiles();
+    List<String> journals = new ArrayList<>();
+    if (files != null) {
+      for (File file : files) {
+        String desanitizedFileName = desanitize(file.getName());
+        if (!desanitizedFileName.isEmpty()) {
+          journals.add(desanitizedFileName);
+        }
+      }
+    }
+    return Result.success(journals);
   }
 
   private void initializeJournalDir() {
@@ -359,17 +359,15 @@ public class PersistentJournalStorage implements JournalStorage {
     }
     if (existingSchema != SCHEMA_VERSION) {
       // For schema mismatch, delete everything.
-      deleteAllInitialized(
-          result -> {
-            if (result == CommitResult.SUCCESS
-                && context
-                    .getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE)
-                    .edit()
-                    .putInt(SCHEMA_KEY, SCHEMA_VERSION)
-                    .commit()) {
-              existingSchema = SCHEMA_VERSION;
-            }
-          });
+      CommitResult result = deleteAllInitialized();
+      if (result == CommitResult.SUCCESS
+          && context
+              .getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE)
+              .edit()
+              .putInt(SCHEMA_KEY, SCHEMA_VERSION)
+              .commit()) {
+        existingSchema = SCHEMA_VERSION;
+      }
     }
     if (!journalDir.exists()) {
       journalDir.mkdir();

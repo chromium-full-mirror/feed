@@ -14,12 +14,11 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation.Builder;
-import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,23 +30,20 @@ public class ActionGc {
 
   private final List<StreamAction> actions;
   private final List<String> validContentIds;
-  private final JournalStorage journalStorage;
-  private final MainThreadRunner mainThreadRunner;
+  private final JournalStorageDirect journalStorageDirect;
   private final TimingUtils timingUtils;
   private final String journalName;
 
-  public ActionGc(
+  ActionGc(
       List<StreamAction> actions,
       List<String> validContentIds,
-      JournalStorage journalStorage,
-      MainThreadRunner mainThreadRunner,
+      JournalStorageDirect journalStorageDirect,
       TimingUtils timingUtils,
       String journalName) {
 
     this.actions = actions;
     this.validContentIds = validContentIds;
-    this.journalStorage = journalStorage;
-    this.mainThreadRunner = mainThreadRunner;
+    this.journalStorageDirect = journalStorageDirect;
     this.timingUtils = timingUtils;
     this.journalName = journalName;
   }
@@ -56,7 +52,7 @@ public class ActionGc {
    * Cleans up the store based on {@link #actions} and {@link #validContentIds}. Any valid actions
    * will be copied over to a new copy of the action journal.
    */
-  public void gc() {
+  void gc() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamAction> validActions = new ArrayList<>(validContentIds.size());
 
@@ -72,21 +68,11 @@ public class ActionGc {
     for (StreamAction action : validActions) {
       mutationBuilder.append(action.toByteArray());
     }
-
-    mainThreadRunner.execute(
-        TAG,
-        () -> {
-          ElapsedTimeTracker mutationTracker = timingUtils.getElapsedTimeTracker(TAG);
-          journalStorage.commit(
-              mutationBuilder.build(),
-              result -> {
-                if (result == CommitResult.SUCCESS) {
-                  mutationTracker.stop("gcMutation", actions.size() - validActions.size());
-                } else {
-                  mutationTracker.stop("gcMutation failed");
-                }
-              });
-        });
-    tracker.stop("gc failed");
+    CommitResult result = journalStorageDirect.commit(mutationBuilder.build());
+    if (result == CommitResult.SUCCESS) {
+      tracker.stop("gcMutation", actions.size() - validActions.size());
+    } else {
+      tracker.stop("gcMutation failed");
+    }
   }
 }

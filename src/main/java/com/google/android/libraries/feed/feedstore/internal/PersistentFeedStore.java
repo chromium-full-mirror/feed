@@ -28,8 +28,6 @@ import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
@@ -44,6 +42,7 @@ import com.google.android.libraries.feed.host.storage.ContentStorage;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
@@ -58,7 +57,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -73,9 +71,8 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
   private final TimingUtils timingUtils;
   private final FeedExtensionRegistry extensionRegistry;
   private final ContentStorageDirect contentStorageDirect;
-  private final JournalStorage journalStorage;
+  private final JournalStorageDirect journalStorageDirect;
   private final ThreadUtils threadUtils;
-  private final MainThreadRunner mainThreadRunner;
   private final Clock clock;
   private final FeedStoreHelper storeHelper;
 
@@ -83,17 +80,15 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
       TimingUtils timingUtils,
       FeedExtensionRegistry extensionRegistry,
       ContentStorageDirect contentStorageDirect,
-      JournalStorage journalStorage,
+      JournalStorageDirect journalStorageDirect,
       ThreadUtils threadUtils,
-      MainThreadRunner mainThreadRunner,
       Clock clock,
       FeedStoreHelper storeHelper) {
     this.timingUtils = timingUtils;
     this.extensionRegistry = extensionRegistry;
     this.contentStorageDirect = contentStorageDirect;
-    this.journalStorage = journalStorage;
+    this.journalStorageDirect = journalStorageDirect;
     this.threadUtils = threadUtils;
-    this.mainThreadRunner = mainThreadRunner;
     this.clock = clock;
     this.storeHelper = storeHelper;
   }
@@ -152,32 +147,23 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamStructure> streamStructures;
-    try {
-      SimpleSettableFuture<Result<List<byte[]>>> operationsFuture = new SimpleSettableFuture<>();
-      mainThreadRunner.execute(
-          TAG, () -> journalStorage.read(session.getStreamToken(), operationsFuture::put));
-      Result<List<byte[]>> operationsResult = operationsFuture.get();
-      if (!operationsResult.isSuccessful()) {
-        Logger.e(TAG, "Error fetching stream structures for stream session %s", session);
-        tracker.stop("getStreamStructures failed", "session", session);
-        return Result.failure();
-      }
-      List<byte[]> results = operationsResult.getValue();
-      streamStructures = new ArrayList<>(results.size());
-      for (byte[] bytes : results) {
-        if (bytes.length == 0) {
-          continue;
-        }
-        try {
-          streamStructures.add(StreamStructure.parseFrom(bytes));
-        } catch (InvalidProtocolBufferException e) {
-          Logger.e(TAG, e, "Error parsing stream structure.");
-        }
-      }
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "Couldn't read stream structures");
+    Result<List<byte[]>> operationsResult = journalStorageDirect.read(session.getStreamToken());
+    if (!operationsResult.isSuccessful()) {
+      Logger.e(TAG, "Error fetching stream structures for stream session %s", session);
       tracker.stop("getStreamStructures failed", "session", session);
       return Result.failure();
+    }
+    List<byte[]> results = operationsResult.getValue();
+    streamStructures = new ArrayList<>(results.size());
+    for (byte[] bytes : results) {
+      if (bytes.length == 0) {
+        continue;
+      }
+      try {
+        streamStructures.add(StreamStructure.parseFrom(bytes));
+      } catch (InvalidProtocolBufferException e) {
+        Logger.e(TAG, e, "Error parsing stream structure.");
+      }
     }
     tracker.stop("", "getStreamStructures", "items", streamStructures.size());
     return Result.success(streamStructures);
@@ -189,34 +175,25 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamSession> sessions;
 
-    try {
-      SimpleSettableFuture<Result<List<String>>> contentFuture = new SimpleSettableFuture<>();
-      mainThreadRunner.execute(TAG, () -> journalStorage.getAllJournals(contentFuture::put));
-
-      Result<List<String>> namesResult = contentFuture.get();
-      if (!namesResult.isSuccessful()) {
-        Logger.e(TAG, "Error fetching all journals");
-        tracker.stop("getAllSessions failed");
-        return Result.failure();
-      }
-
-      List<String> result = namesResult.getValue();
-      sessions = new ArrayList<>(result.size());
-      for (String name : result) {
-        if (HEAD.getStreamToken().equals(name)) {
-          // Don't add $HEAD to the sessions list
-          continue;
-        }
-        if (DISMISS_ACTION_JOURNAL.equals(name)) {
-          // Don't add Dismiss Actions journal to sessions list
-          continue;
-        }
-        sessions.add(StreamSession.newBuilder().setStreamToken(name).build());
-      }
-    } catch (ExecutionException | InterruptedException e) {
-      Logger.e(TAG, e, "Exception getting stream sessions");
+    Result<List<String>> namesResult = journalStorageDirect.getAllJournals();
+    if (!namesResult.isSuccessful()) {
+      Logger.e(TAG, "Error fetching all journals");
       tracker.stop("getAllSessions failed");
       return Result.failure();
+    }
+
+    List<String> result = namesResult.getValue();
+    sessions = new ArrayList<>(result.size());
+    for (String name : result) {
+      if (HEAD.getStreamToken().equals(name)) {
+        // Don't add $HEAD to the sessions list
+        continue;
+      }
+      if (DISMISS_ACTION_JOURNAL.equals(name)) {
+        // Don't add Dismiss Actions journal to sessions list
+        continue;
+      }
+      sessions.add(StreamSession.newBuilder().setStreamToken(name).build());
     }
     tracker.stop("", "getAllSessions", "items", sessions.size());
     return Result.success(sessions);
@@ -254,17 +231,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
-    SimpleSettableFuture<Result<List<byte[]>>> actionsJournalFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(
-        TAG, () -> journalStorage.read(DISMISS_ACTION_JOURNAL, actionsJournalFuture::put));
-    Result<List<byte[]>> listResult;
-    try {
-      listResult = actionsJournalFuture.get();
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "Error fetching dismiss journal");
-      tracker.stop("getAllDismissActions failed");
-      return Result.failure();
-    }
+    Result<List<byte[]>> listResult = journalStorageDirect.read(DISMISS_ACTION_JOURNAL);
     if (!listResult.isSuccessful()) {
       Logger.e(TAG, "Error retrieving dismiss journal");
       tracker.stop("getAllDismissActions failed");
@@ -292,22 +259,10 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
 
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     StreamSession streamSession = storeHelper.getNewStreamSession();
-
-    // While journal storage is async, we want PersistentFeedStore calls to be synchronous (for now)
-    CountDownLatch latch = new CountDownLatch(1);
-    mainThreadRunner.execute(
-        TAG,
-        () ->
-            journalStorage.commit(
-                new JournalMutation.Builder(HEAD.getStreamToken())
-                    .copy(streamSession.getStreamToken())
-                    .build(),
-                ignored -> latch.countDown()));
-    try {
-      latch.await();
-    } catch (InterruptedException e) {
-      Logger.e(TAG, "Error creating new session due to interrupt", e);
-    }
+    journalStorageDirect.commit(
+        new JournalMutation.Builder(HEAD.getStreamToken())
+            .copy(streamSession.getStreamToken())
+            .build());
     tracker.stop("createNewSession", streamSession.getStreamToken());
     return Result.success(streamSession);
   }
@@ -325,19 +280,8 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
       // TODO: What type of exception should this throw?
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
-    // While journal storage is async, we want PersistentFeedStore calls to be synchronous (for now)
-    CountDownLatch latch = new CountDownLatch(1);
-    mainThreadRunner.execute(
-        TAG,
-        () ->
-            journalStorage.commit(
-                new JournalMutation.Builder(session.getStreamToken()).delete().build(),
-                ignored -> latch.countDown()));
-    try {
-      latch.await();
-    } catch (InterruptedException e) {
-      Logger.e(TAG, "Error removing session due to interrupt", e);
-    }
+    journalStorageDirect.commit(
+        new JournalMutation.Builder(session.getStreamToken()).delete().build());
     tracker.stop("removeSession", session.getStreamToken());
   }
 
@@ -345,23 +289,8 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
   public void clearHead() {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-
-    // While journal storage is async, we want PersistentFeedStore calls to be synchronous (for now)
-    CountDownLatch latch = new CountDownLatch(1);
-    mainThreadRunner.execute(
-        TAG,
-        () ->
-            journalStorage.commit(
-                new JournalMutation.Builder(HEAD.getStreamToken())
-                    .delete()
-                    .append(new byte[0])
-                    .build(),
-                ignored -> latch.countDown()));
-    try {
-      latch.await();
-    } catch (InterruptedException e) {
-      Logger.e(TAG, "Error clearing head due to interrupt", e);
-    }
+    journalStorageDirect.commit(
+        new JournalMutation.Builder(HEAD.getStreamToken()).delete().append(new byte[0]).build());
     tracker.stop("", "clearHead");
   }
 
@@ -417,12 +346,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
   @Override
   public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
     return new ActionGc(
-            actions,
-            validContentIds,
-            journalStorage,
-            mainThreadRunner,
-            timingUtils,
-            DISMISS_ACTION_JOURNAL)
+            actions, validContentIds, journalStorageDirect, timingUtils, DISMISS_ACTION_JOURNAL)
         ::gc;
   }
 
@@ -474,20 +398,8 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     for (StreamStructure streamStructure : streamStructures) {
       mutation.append(streamStructure.toByteArray());
     }
-    SimpleSettableFuture<CommitResult> resultFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(
-        TAG,
-        () -> {
-          // TOOD(rbonick): handle errors
-          journalStorage.commit(mutation.build(), resultFuture::put);
-        });
-    boolean result;
-    try {
-      result = CommitResult.SUCCESS.equals(resultFuture.get());
-    } catch (InterruptedException | ExecutionException e) {
-      tracker.stop("", "commitSessionMutationFailure");
-      throw new IllegalStateException("Unable to mutate session", e);
-    }
+    CommitResult mutationResult = journalStorageDirect.commit(mutation.build());
+    boolean result = CommitResult.SUCCESS.equals(mutationResult);
     tracker.stop("", "commitSessionMutation", "mutations", streamStructures.size());
     Logger.i(
         TAG,
@@ -545,19 +457,10 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
                 .build();
         builder.append(action.toByteArray());
       }
-      SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
-      mainThreadRunner.execute(
-          TAG, () -> journalStorage.commit(builder.build(), commitResultFuture::put));
-      try {
-        commitResult = commitResultFuture.get();
-        if (commitResult == CommitResult.FAILURE) {
-          Logger.e(TAG, "Error committing action for type %s", actionType);
-          break;
-        }
-      } catch (InterruptedException | ExecutionException e) {
-        Logger.e(TAG, e, "Error committing action");
-        tracker.stop("commitActionMutation failed");
-        return CommitResult.FAILURE;
+      commitResult = journalStorageDirect.commit(builder.build());
+      if (commitResult == CommitResult.FAILURE) {
+        Logger.e(TAG, "Error committing action for type %s", actionType);
+        break;
       }
     }
 
@@ -573,8 +476,8 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     } else {
       dumper.forKey("contentStorageDirect").value("not dumpable");
     }
-    if (journalStorage instanceof Dumpable) {
-      dumper.dump((Dumpable) journalStorage);
+    if (journalStorageDirect instanceof Dumpable) {
+      dumper.dump((Dumpable) journalStorageDirect);
     } else {
       dumper.forKey("journalStorage").value("not dumpable");
     }
@@ -607,9 +510,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
    * @return whether the clear succeeded
    */
   private boolean clearJournalStorage() throws InterruptedException, ExecutionException {
-    SimpleSettableFuture<Result<List<String>>> journalFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(TAG, () -> journalStorage.getAllJournals(journalFuture::put));
-    Result<List<String>> allJournalsResult = journalFuture.get();
+    Result<List<String>> allJournalsResult = journalStorageDirect.getAllJournals();
     if (!allJournalsResult.isSuccessful()) {
       Logger.e(TAG, "Error clearing all contents. Could not fetch all journals.");
       return false;
@@ -619,13 +520,9 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
       if (DISMISS_ACTION_JOURNAL.equals(journal)) {
         continue;
       }
-      SimpleSettableFuture<CommitResult> commitResultFuture = new SimpleSettableFuture<>();
-      mainThreadRunner.execute(
-          TAG,
-          () ->
-              journalStorage.commit(
-                  new JournalMutation.Builder(journal).delete().build(), commitResultFuture::put));
-      if (commitResultFuture.get() != CommitResult.SUCCESS) {
+      CommitResult result =
+          journalStorageDirect.commit(new JournalMutation.Builder(journal).delete().build());
+      if (result != CommitResult.SUCCESS) {
         Logger.e(TAG, "Error clearing all contents. Could not delete journal %s", journal);
         return false;
       }
@@ -668,9 +565,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     boolean success = true;
     // Run clear on both content and journal
     CommitResult result = contentStorageDirect.commit(new Builder().deleteAll().build());
-
-    SimpleSettableFuture<CommitResult> journalCommitResult = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(TAG, () -> journalStorage.deleteAll(journalCommitResult::put));
+    CommitResult journalResult = journalStorageDirect.deleteAll();
 
     // Confirm results were successful
     if (result != CommitResult.SUCCESS) {
@@ -678,13 +573,8 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
       success = false;
     }
 
-    try {
-      if (journalCommitResult.get() != CommitResult.SUCCESS) {
-        Logger.e(TAG, "Error clearing all. Could not delete all journals from journal storage.");
-        success = false;
-      }
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "Error clearing all. Could not delete all journals from content storage.");
+    if (journalResult != CommitResult.SUCCESS) {
+      Logger.e(TAG, "Error clearing all. Could not delete all journals from journal storage.");
       success = false;
     }
 
