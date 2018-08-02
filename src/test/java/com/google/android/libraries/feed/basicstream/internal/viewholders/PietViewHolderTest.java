@@ -25,6 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
@@ -140,7 +141,8 @@ public class PietViewHolderTest {
         FeedActionPayload.getDefaultInstance(),
         loggingListener);
 
-    assertThat(frameLayout.getBackground()).isEqualTo(cardConfiguration.getCardBackground());
+    assertThat(((ColorDrawable) frameLayout.getBackground()).getColor())
+        .isEqualTo(((ColorDrawable) cardConfiguration.getCardBackground()).getColor());
   }
 
   @Test
