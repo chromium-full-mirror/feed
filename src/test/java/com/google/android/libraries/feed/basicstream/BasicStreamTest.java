@@ -61,6 +61,7 @@ import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -93,6 +94,7 @@ public class BasicStreamTest {
   private static final int END_PADDING = 2;
   private static final int TOP_PADDING = 3;
   private static final int BOTTOM_PADDING = 4;
+  private static final long LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = 1000;
 
   private static final String SESSION_TOKEN = "session-token";
   private static final ScrollState SCROLL_STATE =
@@ -101,6 +103,12 @@ public class BasicStreamTest {
       StreamSavedInstanceState.newBuilder()
           .setSessionToken(SESSION_TOKEN)
           .setScrollState(SCROLL_STATE)
+          .build();
+  private static final Configuration CONFIGURATION =
+      new Configuration.Builder()
+          .put(
+              ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
+              LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS)
           .build();
 
   @Mock private StreamConfiguration streamConfiguration;
@@ -117,7 +125,6 @@ public class BasicStreamTest {
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
 
-  private Configuration configuration = new Configuration.Builder().build();
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
   private FakeClock clock;
@@ -203,7 +210,42 @@ public class BasicStreamTest {
 
     verify(scrollRestorer).abandonRestoringScroll();
     verify(streamDriver).showZeroState(/* showSpinner= */ false);
+  }
+
+  @Test
+  public void testOnError_logsOnOpenedWithNoContent() {
+    when(streamDriver.hasContent()).thenReturn(false);
+    clock = clock.set(10);
+    basicStream.onShow();
+
+    clock = clock.set(10 + LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
+    basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
+
     verify(basicLoggingApi).onOpenedWithNoContent();
+  }
+
+  @Test
+  public void testOnError_logsOnOpenedWithNoImmediateContent() {
+    clock = clock.set(10);
+    basicStream.onShow();
+    reset(streamDriver);
+    when(streamDriver.hasContent()).thenReturn(false);
+
+    clock = clock.set(11 + LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
+    basicStream.onSessionStart();
+
+    verify(basicLoggingApi).onOpenedWithNoImmediateContent();
+  }
+
+  @Test
+  public void testOnSessionStart_doesNotLogOnOpenedWithNoImmediateContentAfterInitialOnShow() {
+    basicStream.onShow();
+    basicStream.onSessionStart();
+    reset(basicLoggingApi);
+
+    basicStream.onSessionStart();
+
+    verify(basicLoggingApi, never()).onOpenedWithNoImmediateContent();
   }
 
   @Test
@@ -592,7 +634,7 @@ public class BasicStreamTest {
         modelProviderFactory,
         new HostBindingProvider(),
         mock(ActionManager.class),
-        configuration,
+        CONFIGURATION,
         layoutManager);
   }
 

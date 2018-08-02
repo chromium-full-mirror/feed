@@ -40,9 +40,11 @@ public class Configuration {
     ConfigKey.TIMEOUT_STORIES_ARE_CURRENT,
     // Time in ms where the stores are current, but we start a refresh
     ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH,
-    // TIme in ms for the length of the timeout
+    // Time in ms for the length of the timeout
     ConfigKey.TIMEOUT_TIMEOUT_MS,
     ConfigKey.MINIMUM_VALID_ACTION_RATIO,
+    // Time in ms that content should be rendered in order to be considered an immediate open
+    ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
     // Percentage of the view that should be on screen to log a view
     ConfigKey.VIEW_LOG_THRESHOLD
   })
@@ -62,6 +64,7 @@ public class Configuration {
     String TIMEOUT_REQUEST_WITH_TIMEOUT_MS = "timeout_request_with_timeout_ms";
     String TIMEOUT_TIMEOUT_MS = "timeout_timeout_ms";
     String MINIMUM_VALID_ACTION_RATIO = "minimum_valid_action_ratio";
+    String LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = "logging_immediate_content_threshold_ms";
     String VIEW_LOG_THRESHOLD = "view_log_threshold";
     String USE_DIRECT_STORAGE = "use_direct_storage";
   }

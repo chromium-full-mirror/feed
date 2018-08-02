@@ -53,6 +53,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -77,6 +78,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private static final String TAG = "BasicStream";
 
   @VisibleForTesting static final String KEY_STREAM_STATE = "stream-state";
+  @VisibleForTesting static final long DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = 1000;
 
   private final CardConfiguration cardConfiguration;
   private final Clock clock;
@@ -91,6 +93,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final StreamContentChangedListener streamContentChangedListener;
   private final DeepestContentTracker deepestContentTracker;
   private final BasicLoggingApi basicLoggingApi;
+  private final long immediateContentThreshold;
 
   private RecyclerView recyclerView;
   private Context context;
@@ -149,6 +152,10 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.streamContentChangedListener = createStreamContentChangedListener();
     this.deepestContentTracker = new DeepestContentTracker();
     this.basicLoggingApi = basicLoggingApi;
+    this.immediateContentThreshold =
+        configuration.getValueOrDefault(
+            ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
+            DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
   }
 
   @VisibleForTesting
@@ -466,6 +473,11 @@ public class BasicStream implements Stream, ModelProviderObserver {
         checkNotNull(modelProvider, "Model Provider must be set if a session is active");
     updateAdapter(localModelProvider);
     if (logOnContentShown) {
+      if (!checkNotNull(streamDriver).hasContent()
+          && clock.currentTimeMillis() - sessionStartTimestamp > immediateContentThreshold) {
+        basicLoggingApi.onOpenedWithNoImmediateContent();
+      }
+
       long timeToPopulateMs = clock.currentTimeMillis() - sessionStartTimestamp;
       basicLoggingApi.onOpenedWithContent(
           (int) timeToPopulateMs, checkNotNull(streamDriver).getLeafFeatureDrivers().size());

@@ -499,6 +499,36 @@ public class StreamDriverTest {
     verify(continuationDriver).onDestroy();
   }
 
+  @Test
+  public void testHasContent_returnsTrue() {
+    FakeModelCursor cursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    when(streamFeature.getCursor()).thenReturn(cursor);
+    streamDriver.getLeafFeatureDrivers();
+
+    assertThat(streamDriver.hasContent()).isTrue();
+  }
+
+  @Test
+  public void testHasContent_returnsFalse_withNoContentCard() {
+    FakeModelCursor cursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    when(streamFeature.getCursor()).thenReturn(cursor);
+    streamDriver.getLeafFeatureDrivers();
+    // Remove card to trigger no content card.
+    streamDriver.onChange(
+        new ChildChangeBuilder().addChildForRemoval(cursor.getChildAt(0)).build());
+
+    assertThat(streamDriver.hasContent()).isFalse();
+  }
+
+  @Test
+  public void testHasContent_returnsFalse_withZeroState() {
+    FakeModelCursor cursor = new FakeModelCursor.Builder().build();
+    when(streamFeature.getCursor()).thenReturn(cursor);
+    streamDriver.getLeafFeatureDrivers();
+
+    assertThat(streamDriver.hasContent()).isFalse();
+  }
+
   // TODO: Instead of just checking that the ModelFeature is of the correct type, check
   // that it is the one created by the FakeModelCursor.Builder.
   private LeafFeatureDriver getLeafFeatureDriverFromCard(int i) {
