@@ -52,18 +52,6 @@ public class FeedAppLifecycleListenerTest {
   }
 
   @Test
-  public void onOptIn() {
-    appLifecycleListener.onOptIn();
-    verify(lifecycleListener).onLifecycleEvent(LifecycleEvent.OPT_IN);
-  }
-
-  @Test
-  public void onOptOut() {
-    appLifecycleListener.onOptOut();
-    verify(lifecycleListener).onLifecycleEvent(LifecycleEvent.OPT_OUT);
-  }
-
-  @Test
   public void onClearAll() {
     appLifecycleListener.onClearAll();
     verify(lifecycleListener).onLifecycleEvent(LifecycleEvent.CLEAR_ALL);

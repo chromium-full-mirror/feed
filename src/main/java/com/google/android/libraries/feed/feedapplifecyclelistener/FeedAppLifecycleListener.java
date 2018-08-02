@@ -46,20 +46,6 @@ public class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
   }
 
   @Override
-  public void onOptOut() {
-    threadUtils.checkMainThread();
-    Logger.i(TAG, "onOptOut called");
-    dispatchLifecycleEvent(LifecycleEvent.OPT_OUT);
-  }
-
-  @Override
-  public void onOptIn() {
-    threadUtils.checkMainThread();
-    Logger.i(TAG, "onOptIn called");
-    dispatchLifecycleEvent(LifecycleEvent.OPT_IN);
-  }
-
-  @Override
   public void onClearAll() {
     threadUtils.checkMainThread();
     Logger.i(TAG, "onClearAll called");

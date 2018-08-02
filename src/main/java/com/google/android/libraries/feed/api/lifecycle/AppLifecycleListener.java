@@ -26,12 +26,6 @@ public interface AppLifecycleListener {
   /** Called when the app is backgrounded, will perform clean up. */
   void onEnterBackground();
 
-  /** Called when user opts out of Feed. Will shutdown service and remove notifications. */
-  void onOptOut();
-
-  /** Called when user opts into Feed. Will reenable feed and notifications. */
-  void onOptIn();
-
   /**
    * Called when host wants to clear all data. Will delete content without changing opt-in / opt-out
    * status.
