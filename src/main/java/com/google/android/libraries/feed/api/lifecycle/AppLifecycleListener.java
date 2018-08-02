@@ -43,5 +43,5 @@ public interface AppLifecycleListener {
    * do. This is the only trigger for the initialization process; if it’s not called, the host
    * should not expect the Feed to be able to render cards.
    */
-  void onInitialize();
+  void initialize();
 }

@@ -71,7 +71,7 @@ public class FeedAppLifecycleListenerTest {
 
   @Test
   public void onInitialize() {
-    appLifecycleListener.onInitialize();
+    appLifecycleListener.initialize();
     verify(lifecycleListener).onLifecycleEvent(LifecycleEvent.INITIALIZE);
   }
 }

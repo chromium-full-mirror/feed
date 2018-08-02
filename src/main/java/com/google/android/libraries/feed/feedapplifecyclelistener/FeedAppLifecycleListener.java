@@ -67,7 +67,7 @@ public class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
   }
 
   @Override
-  public void onInitialize() {
+  public void initialize() {
     threadUtils.checkMainThread();
     Logger.i(TAG, "checkMainThread called");
     dispatchLifecycleEvent(LifecycleEvent.INITIALIZE);
