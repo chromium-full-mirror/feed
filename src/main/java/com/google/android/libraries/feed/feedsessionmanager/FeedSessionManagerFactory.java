@@ -94,6 +94,7 @@ public class FeedSessionManagerFactory {
             sessionCache,
             contentCache,
             taskQueue,
+            mainThreadRunner,
             schedulerApi,
             threadUtils,
             timingUtils,

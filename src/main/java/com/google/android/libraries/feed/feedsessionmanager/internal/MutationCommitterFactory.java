@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -65,6 +66,7 @@ public class MutationCommitterFactory implements Dumpable {
   private final SessionCache sessionCache;
   private final ContentCache contentCache;
   private final TaskQueue taskQueue;
+  private final MainThreadRunner mainThreadRunner;
   private final SchedulerApi schedulerApi;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
@@ -85,6 +87,7 @@ public class MutationCommitterFactory implements Dumpable {
       SessionCache sessionCache,
       ContentCache contentCache,
       TaskQueue taskQueue,
+      MainThreadRunner mainThreadRunner,
       SchedulerApi schedulerApi,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
@@ -93,6 +96,7 @@ public class MutationCommitterFactory implements Dumpable {
     this.sessionCache = sessionCache;
     this.contentCache = contentCache;
     this.taskQueue = taskQueue;
+    this.mainThreadRunner = mainThreadRunner;
     this.schedulerApi = schedulerApi;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
@@ -298,7 +302,7 @@ public class MutationCommitterFactory implements Dumpable {
           session.updateSession(clearedHead, streamStructures, mutationSourceToken);
           long updateTime = clock.currentTimeMillis();
           head.updateAccessTime(updateTime);
-          schedulerApi.onReceiveNewContent(updateTime);
+          mainThreadRunner.execute(TAG, () -> schedulerApi.onReceiveNewContent(updateTime));
           Logger.i(
               TAG,
               "Cleared Head, new creation time %s",

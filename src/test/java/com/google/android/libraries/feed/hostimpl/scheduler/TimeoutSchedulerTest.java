@@ -57,7 +57,7 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
                 TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
             .build();
     lifecycleListenerObservable = new FeedAppLifecycleListener(threadUtils);
-    scheduler = new TimeoutScheduler(clock, config, lifecycleListenerObservable);
+    scheduler = new TimeoutScheduler(threadUtils, clock, config, lifecycleListenerObservable);
   }
 
   @Test
@@ -140,6 +140,6 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
                 ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH,
                 TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
             .build();
-    return new TimeoutScheduler(clock, config, lifecycleListenerObservable);
+    return new TimeoutScheduler(threadUtils, clock, config, lifecycleListenerObservable);
   }
 }

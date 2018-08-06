@@ -185,7 +185,7 @@ public class FeedRequestManager implements RequestManager {
 
     HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), HttpMethod.GET);
     mainThreadRunner.execute(
-        TAG + "-executeRequest",
+        TAG,
         () -> {
           Logger.i(TAG, "Making Request: %s", httpRequest.getUri());
           networkClient.send(
@@ -200,7 +200,8 @@ public class FeedRequestManager implements RequestManager {
                   }
                   Logger.e(TAG, "errorCode: %d", input.getResponseCode());
                   Logger.e(TAG, "errorResponse: %s", errorBody);
-                  scheduler.onRequestError(input.getResponseCode());
+                  mainThreadRunner.execute(
+                      TAG, () -> scheduler.onRequestError(input.getResponseCode()));
                   consumer.accept(Result.failure());
                   return;
                 }
