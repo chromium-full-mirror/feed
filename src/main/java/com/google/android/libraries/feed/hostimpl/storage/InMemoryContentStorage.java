@@ -18,9 +18,7 @@ import static com.google.android.libraries.feed.host.storage.ContentOperation.Ty
 import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.DELETE_BY_PREFIX;
 import static com.google.android.libraries.feed.host.storage.ContentOperation.Type.UPSERT;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -32,6 +30,7 @@ import com.google.android.libraries.feed.host.storage.ContentOperation.DeleteByP
 import com.google.android.libraries.feed.host.storage.ContentOperation.Type;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,11 +38,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /** A {@link ContentStorage} that holds data in memory. */
-public class InMemoryContentStorage implements ContentStorage, Dumpable {
+public class InMemoryContentStorage implements ContentStorageDirect, Dumpable {
 
   private static final String TAG = "InMemoryContentStorage";
 
-  private final ThreadUtils threadUtils = new ThreadUtils();
   private final Map<String, byte[]> store = new HashMap<>();
 
   private int getCount = 0;
@@ -52,9 +50,7 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
   private int updateCount = 0;
 
   @Override
-  public void get(List<String> keys, Consumer<Result<Map<String, byte[]>>> consumer) {
-    threadUtils.checkMainThread();
-
+  public Result<Map<String, byte[]>> get(List<String> keys) {
     getCount++;
 
     Map<String, byte[]> valueMap = new HashMap<>(keys.size());
@@ -66,13 +62,11 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
         valueMap.put(key, value);
       }
     }
-    consumer.accept(Result.success(valueMap));
+    return Result.success(valueMap);
   }
 
   @Override
-  public void getAll(String prefix, Consumer<Result<Map<String, byte[]>>> consumer) {
-    threadUtils.checkMainThread();
-
+  public Result<Map<String, byte[]>> getAll(String prefix) {
     getAllCount++;
     Map<String, byte[]> results = new HashMap<>();
     for (Entry<String, byte[]> entry : store.entrySet()) {
@@ -80,48 +74,40 @@ public class InMemoryContentStorage implements ContentStorage, Dumpable {
         results.put(entry.getKey(), entry.getValue());
       }
     }
-    consumer.accept(Result.success(results));
+    return Result.success(results);
   }
 
   @Override
-  public void commit(ContentMutation mutation, Consumer<CommitResult> consumer) {
-    threadUtils.checkMainThread();
-
+  public CommitResult commit(ContentMutation mutation) {
     for (ContentOperation operation : mutation.getOperations()) {
       if (operation.getType() == UPSERT) {
         if (!upsert((Upsert) operation)) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
+          return CommitResult.FAILURE;
         }
       } else if (operation.getType() == DELETE) {
         if (!delete((Delete) operation)) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
+          return CommitResult.FAILURE;
         }
       } else if (operation.getType() == DELETE_BY_PREFIX) {
         if (!deleteByPrefix((DeleteByPrefix) operation)) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
+          return CommitResult.FAILURE;
         }
       } else if (operation.getType() == Type.DELETE_ALL) {
         if (!deleteAll()) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
+          return CommitResult.FAILURE;
         }
       } else {
         Logger.e(TAG, "Invalid ContentMutation: unexpected operation: %s", operation.getType());
-        consumer.accept(CommitResult.FAILURE);
-        return;
+        return CommitResult.FAILURE;
       }
     }
 
-    consumer.accept(CommitResult.SUCCESS);
+    return CommitResult.SUCCESS;
   }
 
   @Override
-  public void getAllKeys(Consumer<Result<List<String>>> consumer) {
-    threadUtils.checkMainThread();
-    consumer.accept(Result.success(new ArrayList<>(store.keySet())));
+  public Result<List<String>> getAllKeys() {
+    return Result.success(new ArrayList<>(store.keySet()));
   }
 
   private boolean deleteAll() {

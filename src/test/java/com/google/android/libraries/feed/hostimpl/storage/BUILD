@@ -9,6 +9,9 @@ android_local_test(
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
+        "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/functional",
+        "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
         "@bazel_android//:robolectric",
@@ -25,7 +28,10 @@ android_local_test(
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent",
+        "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/feedstore",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",

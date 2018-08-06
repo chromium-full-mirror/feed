@@ -38,9 +38,12 @@ import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecyc
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
+import com.google.android.libraries.feed.feedstore.ContentStorageDirectImpl;
 import com.google.android.libraries.feed.feedstore.FeedStore;
+import com.google.android.libraries.feed.feedstore.JournalStorageDirectImpl;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -50,7 +53,9 @@ import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorA
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
@@ -164,11 +169,35 @@ public class FeedProcessScope implements Dumpable {
     }
 
     public Builder setContentStorage(ContentStorage contentStorage) {
+      ContentStorageDirect contentStorageDirect;
+      boolean useDirect = configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
+      if (useDirect && contentStorage instanceof ContentStorageDirect) {
+        contentStorageDirect = (ContentStorageDirect) contentStorage;
+      } else {
+        contentStorageDirect = new ContentStorageDirectImpl(contentStorage, mainThreadRunner);
+      }
+      this.contentStorage = contentStorageDirect;
+      return this;
+    }
+
+    public Builder setContentStorageDirect(ContentStorageDirect contentStorage) {
       this.contentStorage = contentStorage;
       return this;
     }
 
     public Builder setJournalStorage(JournalStorage journalStorage) {
+      JournalStorageDirect journalStorageDirect;
+      boolean useDirect = configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
+      if (useDirect && journalStorage instanceof JournalStorageDirect) {
+        journalStorageDirect = (JournalStorageDirect) journalStorage;
+      } else {
+        journalStorageDirect = new JournalStorageDirectImpl(journalStorage, mainThreadRunner);
+      }
+      this.journalStorage = journalStorageDirect;
+      return this;
+    }
+
+    public Builder setJournalStorageDirect(JournalStorageDirect journalStorage) {
       this.journalStorage = journalStorage;
       return this;
     }
@@ -195,13 +224,12 @@ public class FeedProcessScope implements Dumpable {
         contentStorage = new InMemoryContentStorage();
       }
       if (journalStorage == null) {
-        journalStorage = new InMemoryJournalStorage(threadUtils);
+        journalStorage = new InMemoryJournalStorage();
       }
       if (clock == null) {
         clock = new SystemClockImpl();
       }
       TimingUtils timingUtils = new TimingUtils();
-      MainThreadRunner mainThreadRunner = new MainThreadRunner();
       TaskQueue taskQueue = new TaskQueue(singleThreadExecutor, clock, true);
       FeedStore store =
           new FeedStore(
@@ -210,10 +238,8 @@ public class FeedProcessScope implements Dumpable {
               contentStorage,
               journalStorage,
               threadUtils,
-              mainThreadRunner,
               taskQueue,
-              clock,
-              configuration);
+              clock);
 
       lifecycleListener.registerObserver(store);
 
@@ -281,14 +307,15 @@ public class FeedProcessScope implements Dumpable {
     private final SchedulerApi schedulerApi;
     private final FeedAppLifecycleListener lifecycleListener;
     private final DebugBehavior debugBehavior;
+    private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
     // Optional fields - if they are not provided, we will use default implementations.
     /*@MonotonicNonNull*/ private RequestManager requestManager = null;
     /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
     /*@MonotonicNonNull*/ private FeedProtocolAdapter protocolAdapter = null;
     /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
-    /*@MonotonicNonNull*/ private ContentStorage contentStorage = null;
-    /*@MonotonicNonNull*/ private JournalStorage journalStorage = null;
+    /*@MonotonicNonNull*/ private ContentStorageDirect contentStorage = null;
+    /*@MonotonicNonNull*/ private JournalStorageDirect journalStorage = null;
     /*@MonotonicNonNull*/ private Clock clock;
 
     // This will be overridden in tests.

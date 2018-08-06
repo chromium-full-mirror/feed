@@ -18,9 +18,7 @@ import static com.google.android.libraries.feed.host.storage.JournalOperation.Ty
 import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.COPY;
 import static com.google.android.libraries.feed.host.storage.JournalOperation.Type.DELETE;
 
-import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -30,6 +28,7 @@ import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Copy;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /** A {@link JournalStorage} implementation that holds the data in memory. */
-public class InMemoryJournalStorage implements JournalStorage, Dumpable {
+public class InMemoryJournalStorage implements JournalStorageDirect, Dumpable {
   private static final String TAG = "InMemoryJournalStorage";
 
   private final Map<String, List<byte[]>> journals;
@@ -45,73 +44,60 @@ public class InMemoryJournalStorage implements JournalStorage, Dumpable {
   private int appendCount = 0;
   private int copyCount = 0;
   private int deleteCount = 0;
-  private final ThreadUtils threadUtils;
 
-  public InMemoryJournalStorage(ThreadUtils threadUtils) {
-    this.threadUtils = threadUtils;
+  public InMemoryJournalStorage() {
     journals = new HashMap<>();
   }
 
   @Override
-  public void read(String journalName, Consumer<Result<List<byte[]>>> consumer) {
-    threadUtils.checkMainThread();
-
+  public Result<List<byte[]>> read(String journalName) {
     readCount++;
     List<byte[]> journal = journals.get(journalName);
     if (journal == null) {
       journal = new ArrayList<>();
     }
-    consumer.accept(Result.success(journal));
+    return Result.success(journal);
   }
 
   @Override
-  public void commit(JournalMutation mutation, Consumer<CommitResult> consumer) {
-    threadUtils.checkMainThread();
-
+  public CommitResult commit(JournalMutation mutation) {
     String journalName = mutation.getJournalName();
 
     for (JournalOperation operation : mutation.getOperations()) {
       if (operation.getType() == APPEND) {
         if (!append(((Append) operation).getValue(), journalName)) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
+          return CommitResult.FAILURE;
         }
       } else if (operation.getType() == COPY) {
         if (!copy(journalName, ((Copy) operation).getToJournalName())) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
+          return CommitResult.FAILURE;
         }
       } else if (operation.getType() == DELETE) {
         if (!delete(journalName)) {
-          consumer.accept(CommitResult.FAILURE);
-          return;
+          return CommitResult.FAILURE;
         }
       } else {
         Logger.w(TAG, "Unexpected JournalOperation type: %s", operation.getType());
-        consumer.accept(CommitResult.FAILURE);
-        return;
+        return CommitResult.FAILURE;
       }
     }
-    consumer.accept(CommitResult.SUCCESS);
+    return CommitResult.SUCCESS;
   }
 
   @Override
-  public void exists(String journalName, Consumer<Result<Boolean>> consumer) {
-    threadUtils.checkMainThread();
-    consumer.accept(Result.success(journals.containsKey(journalName)));
+  public Result<Boolean> exists(String journalName) {
+    return Result.success(journals.containsKey(journalName));
   }
 
   @Override
-  public void getAllJournals(Consumer<Result<List<String>>> consumer) {
-    threadUtils.checkMainThread();
-    consumer.accept(Result.success(new ArrayList<>(journals.keySet())));
+  public Result<List<String>> getAllJournals() {
+    return Result.success(new ArrayList<>(journals.keySet()));
   }
 
   @Override
-  public void deleteAll(Consumer<CommitResult> consumer) {
-    threadUtils.checkMainThread();
+  public CommitResult deleteAll() {
     journals.clear();
-    consumer.accept(CommitResult.SUCCESS);
+    return CommitResult.SUCCESS;
   }
 
   private boolean append(byte[] value, String journalName) {

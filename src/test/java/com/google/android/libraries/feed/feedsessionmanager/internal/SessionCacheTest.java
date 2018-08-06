@@ -28,14 +28,13 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -68,8 +67,7 @@ public class SessionCacheTest {
   private final Configuration configuration = new Configuration.Builder().build();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
-  private final ContentStorage contentStorage = new InMemoryContentStorage();
-  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
+  private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
 
   @Before
   public void setUp() {
@@ -333,12 +331,10 @@ public class SessionCacheTest {
             timingUtils,
             extensionRegistry,
             contentStorage,
-            new InMemoryJournalStorage(threadUtils),
+            new InMemoryJournalStorage(),
             threadUtils,
-            mainThreadRunner,
             taskQueue,
-            clock,
-            configuration);
+            clock);
     storeSpy = spy(store);
     sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);

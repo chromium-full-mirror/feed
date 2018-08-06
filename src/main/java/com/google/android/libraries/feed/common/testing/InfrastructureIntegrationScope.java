@@ -34,8 +34,8 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
-import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
@@ -87,7 +87,7 @@ public class InfrastructureIntegrationScope {
   private final FakeRequestManager fakeRequestManager;
   private final FeedStore store;
 
-  InfrastructureIntegrationScope(
+  private InfrastructureIntegrationScope(
       ThreadUtils threadUtils,
       ExecutorService executorService,
       SchedulerApi schedulerApi,
@@ -98,8 +98,8 @@ public class InfrastructureIntegrationScope {
     FeedAppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
-    ContentStorage contentStorage = new InMemoryContentStorage();
-    JournalStorage journalStorage = new InMemoryJournalStorage(threadUtils);
+    ContentStorageDirect contentStorage = new InMemoryContentStorage();
+    JournalStorageDirect journalStorage = new InMemoryJournalStorage();
     TaskQueue taskQueue = new TaskQueue(executorService, clock, false);
     store =
         new FeedStore(
@@ -108,10 +108,8 @@ public class InfrastructureIntegrationScope {
             contentStorage,
             journalStorage,
             threadUtils,
-            mainThreadRunner,
             taskQueue,
-            clock,
-            configuration);
+            clock);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter);
     feedSessionManager =
@@ -167,6 +165,7 @@ public class InfrastructureIntegrationScope {
         .put(ConfigKey.TIMEOUT_STORIES_ARE_CURRENT, TIMEOUT_STORIES_ARE_CURRENT)
         .put(ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH, TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
         .put(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS)
+        .put(ConfigKey.USE_DIRECT_STORAGE, Boolean.FALSE)
         .build();
   }
 

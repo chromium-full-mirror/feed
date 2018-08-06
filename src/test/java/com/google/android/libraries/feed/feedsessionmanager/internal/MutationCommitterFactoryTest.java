@@ -43,7 +43,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCom
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -80,7 +80,7 @@ public class MutationCommitterFactoryTest {
 
   private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
-  private final ContentStorage contentStorage = new InMemoryContentStorage();
+  private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final TimingUtils timingUtils = new TimingUtils();
   private final Configuration configuration = new Configuration.Builder().build();
   private final Map<String, StreamSharedState> sharedStateCache = new HashMap<>();
@@ -109,12 +109,10 @@ public class MutationCommitterFactoryTest {
             timingUtils,
             extensionRegistry,
             contentStorage,
-            new InMemoryJournalStorage(threadUtils),
+            new InMemoryJournalStorage(),
             threadUtils,
-            mainThreadRunner,
             taskQueue,
-            clock,
-            configuration);
+            clock);
     storeSpy = spy(store);
     SessionFactory sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);

@@ -28,7 +28,6 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import com.google.android.libraries.feed.host.storage.CommitResult;
@@ -61,11 +60,8 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   private ThreadUtils threadUtils = mock(ThreadUtils.class);
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
-  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
-  private final ContentStorageDirect contentStorage =
-      new ContentStorageDirectImpl(new InMemoryContentStorage(), mainThreadRunner);
-  private final JournalStorageDirect journalStorage =
-      new JournalStorageDirectImpl(new InMemoryJournalStorage(threadUtils), mainThreadRunner);
+  private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
+  private final JournalStorageDirect journalStorage = new InMemoryJournalStorage();
 
   @Before
   public void setUp() throws Exception {

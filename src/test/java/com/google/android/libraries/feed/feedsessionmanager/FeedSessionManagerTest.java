@@ -573,12 +573,10 @@ public class FeedSessionManagerTest {
             timingUtils,
             extensionRegistry,
             new InMemoryContentStorage(),
-            new InMemoryJournalStorage(threadUtils),
+            new InMemoryJournalStorage(),
             threadUtils,
-            mainThreadRunner,
             taskQueue,
-            clock,
-            configuration);
+            clock);
     FeedSessionManager fsm =
         new FeedSessionManagerFactory(
                 taskQueue,
@@ -603,12 +601,10 @@ public class FeedSessionManagerTest {
             timingUtils,
             extensionRegistry,
             new InMemoryContentStorage(),
-            new InMemoryJournalStorage(threadUtils),
+            new InMemoryJournalStorage(),
             threadUtils,
-            mainThreadRunner,
             taskQueue,
-            clock,
-            configuration));
+            clock));
   }
 
   private FeedSessionManager getInitializedSpySessionManager(Store feedStore) {

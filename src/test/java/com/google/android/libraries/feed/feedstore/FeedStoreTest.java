@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.feedstore;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.DISMISS_ACTION_JOURNAL;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -29,9 +28,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
@@ -41,11 +38,11 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
-import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -89,8 +86,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   private TaskQueue taskQueue;
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
-  private final ContentStorage contentStorage = new InMemoryContentStorage();
-  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
+  private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
 
   @Before
   public void setUp() throws Exception {
@@ -106,12 +102,10 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         timingUtils,
         extensionRegistry,
         contentStorage,
-        new InMemoryJournalStorage(threadUtils),
+        new InMemoryJournalStorage(),
         threadUtils,
-        mainThreadRunner,
         taskQueue,
-        clock,
-        configuration);
+        clock);
   }
 
   @Test
@@ -136,8 +130,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
 
   @Test
   public void testDumpEphemeralActions_notEphemeralMode() {
-    JournalStorage journalStorageSpy = spy(new InMemoryJournalStorage(threadUtils));
-    ContentStorage contentStorageSpy = spy(this.contentStorage);
+    JournalStorageDirect journalStorageSpy = spy(new InMemoryJournalStorage());
+    ContentStorageDirect contentStorageSpy = spy(this.contentStorage);
     FeedStore store =
         new FeedStore(
             timingUtils,
@@ -145,18 +139,16 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             contentStorageSpy,
             journalStorageSpy,
             threadUtils,
-            mainThreadRunner,
             taskQueue,
-            clock,
-            configuration);
+            clock);
     store.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
     verifyZeroInteractions(journalStorageSpy, contentStorageSpy);
   }
 
   @Test
   public void testDumpEphemeralActions_ephemeralMode() throws InvalidProtocolBufferException {
-    JournalStorage journalStorageSpy = spy(new InMemoryJournalStorage(threadUtils));
-    ContentStorage contentStorageSpy = spy(this.contentStorage);
+    JournalStorageDirect journalStorageSpy = spy(new InMemoryJournalStorage());
+    ContentStorageDirect contentStorageSpy = spy(this.contentStorage);
     FeedStore store =
         new FeedStore(
             timingUtils,
@@ -164,10 +156,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             contentStorageSpy,
             journalStorageSpy,
             threadUtils,
-            mainThreadRunner,
             taskQueue,
-            clock,
-            configuration);
+            clock);
     store.switchToEphemeralMode();
     reset(journalStorageSpy, contentStorageSpy);
 
@@ -185,7 +175,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
     // Verify content is written for semantic properties and actions only
     ArgumentCaptor<JournalMutation> journalMutationArgumentCaptor =
         ArgumentCaptor.forClass(JournalMutation.class);
-    verify(journalStorageSpy).commit(journalMutationArgumentCaptor.capture(), any(Consumer.class));
+    verify(journalStorageSpy).commit(journalMutationArgumentCaptor.capture());
 
     JournalMutation journalMutation = journalMutationArgumentCaptor.getValue();
     assertThat(journalMutation.getJournalName()).isEqualTo(DISMISS_ACTION_JOURNAL);
@@ -199,7 +189,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
 
     ArgumentCaptor<ContentMutation> contentMutationArgumentCaptor =
         ArgumentCaptor.forClass(ContentMutation.class);
-    verify(contentStorageSpy).commit(contentMutationArgumentCaptor.capture(), any(Consumer.class));
+    verify(contentStorageSpy).commit(contentMutationArgumentCaptor.capture());
 
     ContentMutation contentMutation = contentMutationArgumentCaptor.getValue();
     assertThat(contentMutation.getOperations()).hasSize(1);

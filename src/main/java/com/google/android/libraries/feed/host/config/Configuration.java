@@ -46,7 +46,9 @@ public class Configuration {
     // Time in ms that content should be rendered in order to be considered an immediate open
     ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
     // Percentage of the view that should be on screen to log a view
-    ConfigKey.VIEW_LOG_THRESHOLD
+    ConfigKey.VIEW_LOG_THRESHOLD,
+    // Use direct storage
+    ConfigKey.USE_DIRECT_STORAGE
   })
   public @interface ConfigKey {
     String FEED_SERVER_HOST = "feed_server_host";
