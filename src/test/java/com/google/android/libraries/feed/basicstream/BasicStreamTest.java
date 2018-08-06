@@ -292,7 +292,7 @@ public class BasicStreamTest {
     basicStream.onShow();
     basicStream.onHide();
     basicStream.onDestroy();
-    verify(initialModelProvider).invalidate();
+    verify(initialModelProvider, never()).invalidate();
   }
 
   @Test

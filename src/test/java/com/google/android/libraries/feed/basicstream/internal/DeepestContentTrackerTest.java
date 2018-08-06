@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
-import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.Before;
@@ -28,6 +27,7 @@ public class DeepestContentTrackerTest {
 
   private static final String CONTENT_ID_1 = "CONTENT_ID_1";
   private static final String CONTENT_ID_2 = "CONTENT_ID_2";
+  private static final String CONTENT_ID_3 = "CONTENT_ID_3";
 
   private DeepestContentTracker deepestContentTracker;
 
@@ -69,12 +69,23 @@ public class DeepestContentTrackerTest {
   }
 
   @Test
-  public void testUpdateDeepestContentTracker_throwsExceptionWhenUpdatingPreviousKnownPosition() {
+  public void testUpdateDeepestContentTracker_updatingPreviousKnownPosition() {
     deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
     deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_2);
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_3);
 
-    assertThatRunnable(() -> deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_2))
-        .throwsAnExceptionOfType(RuntimeException.class);
+    assertThat(deepestContentTracker.getContentItAtPosition(0)).isEqualTo(CONTENT_ID_3);
+  }
+
+  @Test
+  public void testUpdateDeepestContentTracker_sparsePopulate() {
+    deepestContentTracker.updateDeepestContentTracker(1, CONTENT_ID_2);
+
+    assertThat(deepestContentTracker.getContentItAtPosition(0)).isNull();
+    assertThat(deepestContentTracker.getContentItAtPosition(1)).isEqualTo(CONTENT_ID_2);
+
+    deepestContentTracker.updateDeepestContentTracker(0, CONTENT_ID_1);
+    assertThat(deepestContentTracker.getContentItAtPosition(0)).isEqualTo(CONTENT_ID_1);
   }
 
   @Test

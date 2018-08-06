@@ -14,8 +14,8 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
-import com.google.android.libraries.feed.common.logging.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,19 +27,16 @@ public class DeepestContentTracker implements ViewDepthProvider {
   private final List</*@Nullable*/ String> contentIds = new ArrayList<>();
 
   void updateDeepestContentTracker(int contentPosition, /*@Nullable*/ String contentId) {
-    // Do not add contentId if already present.
-    if (contentPosition < contentIds.size()) {
-      if (contentId != null && !contentId.equals(contentIds.get(contentPosition))) {
-        Logger.wtf(
-            TAG,
-            "Adding contentId %s at %d when position is already being tracked.",
-            contentId,
-            contentPosition);
-      }
-      return;
+
+    // Fill content ids to size of content position. This is needed in-case we programmatically set
+    // scroll position of the recycler view.
+    // Add one to contentPosition size in order to more easily perform a set below.
+    while (contentIds.size() < contentPosition + 1) {
+      contentIds.add(null);
     }
 
-    contentIds.add(contentId);
+    // Just update the content id of the item in the list.
+    contentIds.set(contentPosition, contentId);
   }
 
   void removeContentId(int contentPosition) {
@@ -48,6 +45,16 @@ public class DeepestContentTracker implements ViewDepthProvider {
     }
 
     contentIds.remove(contentPosition);
+  }
+
+  @VisibleForTesting
+  /*@Nullable*/
+  String getContentItAtPosition(int position) {
+    if (position >= contentIds.size() || position < 0) {
+      return null;
+    }
+
+    return contentIds.get(position);
   }
 
   public void reset() {
