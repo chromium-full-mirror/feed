@@ -1,6 +1,23 @@
 licenses(["notice"])  # Apache 2
 
 android_local_test(
+    name = "SchedulerApiWrapperTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["SchedulerApiWrapperTest.java"],
+    manifest = "AndroidManifest.xml",
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/api/common",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent",
+        "//src/main/java/com/google/android/libraries/feed/host/scheduler",
+        "//src/main/java/com/google/android/libraries/feed/hostimpl/scheduler",
+        "@bazel_android//:robolectric",
+        "@org_mockito_mockito_all//jar",
+    ],
+)
+
+android_local_test(
     name = "TimeoutSchedulerTest",
     size = "small",
     timeout = "moderate",

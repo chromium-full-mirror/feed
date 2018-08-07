@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Validators;
+import com.google.android.libraries.feed.common.concurrent.DirectHostSupported;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -59,6 +60,7 @@ import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
+import com.google.android.libraries.feed.hostimpl.scheduler.SchedulerApiWrapper;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import java.util.ArrayList;
@@ -143,9 +145,15 @@ public class FeedProcessScope implements Dumpable {
       this.singleThreadExecutor = singleThreadExecutor;
       this.loggingApi = loggingApi;
       this.networkClient = networkClient;
-      this.schedulerApi = schedulerApi;
       this.lifecycleListener = lifecycleListener;
       this.debugBehavior = debugBehavior;
+
+      if (schedulerApi instanceof DirectHostSupported
+          && configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false)) {
+        this.schedulerApi = schedulerApi;
+      } else {
+        this.schedulerApi = new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
+      }
     }
 
     public Builder setProtocolAdapter(FeedProtocolAdapter protocolAdapter) {
