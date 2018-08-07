@@ -34,14 +34,16 @@ import java.util.Queue;
  */
 public class FakeRequestManager implements RequestManager {
   private final ProtocolAdapter protocolAdapter;
+  private final long requestDelayMs;
   private final Queue<Response> responses = new ArrayDeque<>();
 
   /*@Nullable*/
   private Supplier<Consumer<Result<List<StreamDataOperation>>>>
       defaultTriggerRefreshConsumerSupplier;
 
-  public FakeRequestManager(ProtocolAdapter protocolAdapter) {
+  public FakeRequestManager(ProtocolAdapter protocolAdapter, long requestDelayMs) {
     this.protocolAdapter = protocolAdapter;
+    this.requestDelayMs = requestDelayMs;
   }
 
   /** Adds a Response to the Queue. */
@@ -73,6 +75,14 @@ public class FakeRequestManager implements RequestManager {
       contextResult = Result.success(result.getValue());
     } else {
       contextResult = Result.failure();
+    }
+    if (requestDelayMs > 0) {
+      try {
+        // slightly delay the results.
+        Thread.sleep(requestDelayMs);
+      } catch (InterruptedException e) {
+        throw new IllegalStateException(e);
+      }
     }
     consumer.accept(contextResult);
   }

@@ -92,7 +92,8 @@ public class InfrastructureIntegrationScope {
       ExecutorService executorService,
       SchedulerApi schedulerApi,
       Clock clock,
-      Configuration configuration) {
+      Configuration configuration,
+      long requestDelayMs) {
     TimingUtils timingUtils = new TimingUtils();
     MainThreadRunner mainThreadRunner = new MainThreadRunner();
     FeedAppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
@@ -111,7 +112,7 @@ public class InfrastructureIntegrationScope {
             taskQueue,
             clock);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
-    fakeRequestManager = new FakeRequestManager(feedProtocolAdapter);
+    fakeRequestManager = new FakeRequestManager(feedProtocolAdapter, requestDelayMs);
     feedSessionManager =
         new FeedSessionManagerFactory(
                 taskQueue,
@@ -177,6 +178,7 @@ public class InfrastructureIntegrationScope {
     private SchedulerApi schedulerApi = DISABLED_EMPTY_HEAD_REQUEST;
     private Configuration configuration = new Configuration.Builder().build();
     private Clock clock = new SystemClockImpl();
+    private long requestDelayMs = 0;
 
     public Builder(ThreadUtils mockThreadUtils, ExecutorService executorService) {
       this.mockThreadUtils = mockThreadUtils;
@@ -198,9 +200,14 @@ public class InfrastructureIntegrationScope {
       return this;
     }
 
+    public Builder setRequestDelayMs(long requestDelayMs) {
+      this.requestDelayMs = requestDelayMs;
+      return this;
+    }
+
     public InfrastructureIntegrationScope build() {
       return new InfrastructureIntegrationScope(
-          mockThreadUtils, executorService, schedulerApi, clock, configuration);
+          mockThreadUtils, executorService, schedulerApi, clock, configuration, requestDelayMs);
     }
   }
 }

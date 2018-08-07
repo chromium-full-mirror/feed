@@ -88,6 +88,7 @@ public class TimeoutSessionWithContentTest {
         new InfrastructureIntegrationScope.Builder(threadUtils, Executors.newSingleThreadExecutor())
             .setConfiguration(configuration)
             .setSchedulerApi(schedulerApi)
+            .setRequestDelayMs(100)
             .build();
     requestManager = scope.getRequestManager();
     modelProviderFactory = scope.getModelProviderFactory();
