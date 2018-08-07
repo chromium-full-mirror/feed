@@ -248,7 +248,8 @@ public class FeedSessionManager
     // background populateSession task is queued before the task running this finishes.
     SimpleSettableFuture<Boolean> sharedStatesFuture = new SimpleSettableFuture<>();
     mainThreadRunner.execute(
-        TAG, () -> populateSession(session, viewDepthProvider, sharedStatesFuture::put));
+        TAG + "-populateSessionWaitForHead",
+        () -> populateSession(session, viewDepthProvider, sharedStatesFuture::put));
     try {
       sharedStatesFuture.get();
     } catch (InterruptedException | ExecutionException e) {
