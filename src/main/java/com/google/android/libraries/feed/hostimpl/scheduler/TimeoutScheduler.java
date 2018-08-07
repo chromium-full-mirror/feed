@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.hostimpl.scheduler;
 
 import android.database.Observable;
 import android.support.annotation.VisibleForTesting;
-import com.google.android.libraries.feed.common.concurrent.DirectHostSupported;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -31,12 +31,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Concrete impl of {@link SchedulerApi}. The implementation will timeout session creation when a
  * request is running too long and will show existing content.
  */
-public class TimeoutScheduler implements SchedulerApi, DirectHostSupported {
+public class TimeoutScheduler implements SchedulerApi {
   private static final String TAG = "TimeoutScheduler";
 
   private static final long TIMEOUT_STORIES_ARE_CURRENT = TimeUnit.HOURS.toMillis(1);
   private static final long TIMEOUT_STORIES_CURRENT_WITH_REFRESH = TimeUnit.HOURS.toMillis(12);
 
+  private final ThreadUtils threadUtils;
   private final Clock clock;
   private final boolean useTimeScheduler;
   private final long storiesAreCurrentMs;
@@ -45,9 +46,11 @@ public class TimeoutScheduler implements SchedulerApi, DirectHostSupported {
   @VisibleForTesting final AtomicBoolean clearAllTriggered = new AtomicBoolean(false);
 
   public TimeoutScheduler(
+      ThreadUtils threadUtils,
       Clock clock,
       Configuration configuration,
       Observable<FeedLifecycleListener> lifecycleListenerObservable) {
+    this.threadUtils = threadUtils;
     this.clock = clock;
     useTimeScheduler = configuration.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, false);
     storiesAreCurrentMs =
@@ -72,6 +75,7 @@ public class TimeoutScheduler implements SchedulerApi, DirectHostSupported {
   @Override
   @RequestBehavior
   public int shouldSessionRequestData(SessionManagerState sessionManagerState) {
+    threadUtils.checkMainThread();
     if (!useTimeScheduler) {
       Logger.i(TAG, "TimeoutScheduler is Disabled: NO_REQUEST_WITH_CONTENT");
       return RequestBehavior.NO_REQUEST_WITH_WAIT;
@@ -116,6 +120,7 @@ public class TimeoutScheduler implements SchedulerApi, DirectHostSupported {
 
   @Override
   public void onReceiveNewContent(long contentCreationDateTimeMs) {
+    threadUtils.checkMainThread();
     Logger.i(
         TAG,
         "onReceiveNewContent %s",
@@ -124,6 +129,7 @@ public class TimeoutScheduler implements SchedulerApi, DirectHostSupported {
 
   @Override
   public void onRequestError(int networkResponseCode) {
+    threadUtils.checkMainThread();
     // Do nothing
   }
 }
