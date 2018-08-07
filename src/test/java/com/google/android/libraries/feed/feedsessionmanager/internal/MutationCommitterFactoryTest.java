@@ -32,7 +32,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -78,7 +77,6 @@ public class MutationCommitterFactoryTest {
   @Mock private SchedulerApi schedulerApi;
   @Mock private Clock clock;
 
-  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final TimingUtils timingUtils = new TimingUtils();
@@ -277,7 +275,6 @@ public class MutationCommitterFactoryTest {
             sessionCache,
             contentCache,
             taskQueue,
-            mainThreadRunner,
             schedulerApi,
             threadUtils,
             timingUtils,
