@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.SwipeableViewHolder;
 
 /** {@link ItemTouchHelper.Callback} to allow dismissing cards via swiping. */
 public final class StreamItemTouchCallbacks extends ItemTouchHelper.Callback {
@@ -25,7 +25,8 @@ public final class StreamItemTouchCallbacks extends ItemTouchHelper.Callback {
   @Override
   public int getMovementFlags(RecyclerView recyclerView, ViewHolder viewHolder) {
     int swipeFlags = 0;
-    if (viewHolder instanceof PietViewHolder && ((PietViewHolder) viewHolder).canSwipe()) {
+    if (viewHolder instanceof SwipeableViewHolder
+        && ((SwipeableViewHolder) viewHolder).canSwipe()) {
       swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
     }
     return makeMovementFlags(/* dragFlags= */ 0, swipeFlags);
@@ -41,6 +42,6 @@ public final class StreamItemTouchCallbacks extends ItemTouchHelper.Callback {
   public void onSwiped(ViewHolder viewHolder, int i) {
     // Only PietViewHolders support swipe to dismiss. If new ViewHolders support swipe to dismiss,
     // this should instead use an interface.
-    ((PietViewHolder) viewHolder).swipeToDismissPerformed();
+    ((SwipeableViewHolder) viewHolder).onSwiped();
   }
 }

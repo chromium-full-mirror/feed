@@ -16,19 +16,18 @@ package com.google.android.libraries.feed.basicstream.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import android.view.View;
+import android.widget.FrameLayout;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.SwipeableViewHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -37,20 +36,23 @@ import org.robolectric.RobolectricTestRunner;
 public final class StreamItemTouchCallbacksTest {
   private final int NO_MOVEMENT_FLAG = 0;
 
-  @Mock private PietViewHolder pietViewHolder;
+  private DismissibleViewHolder dismissibleViewHolder;
 
   private StreamItemTouchCallbacks callbacks;
+  private FrameLayout frameLayout;
   private RecyclerView recyclerView;
 
   @Before
   public void setUp() {
-    initMocks(this);
     callbacks = new StreamItemTouchCallbacks();
-    recyclerView = new RecyclerView(Robolectric.setupActivity(Activity.class));
+    Context context = Robolectric.setupActivity(Activity.class);
+    recyclerView = new RecyclerView(context);
+    frameLayout = new FrameLayout(context);
+    dismissibleViewHolder = new DismissibleViewHolder(frameLayout, /* isDismissible= */ false);
   }
 
   @Test
-  public void testGetMovementFlags_nonPietType() {
+  public void testGetMovementFlags_nonSwipeableViewHolderType() {
     ViewHolder nonPietViewHolder = mock(ViewHolder.class);
 
     int movementFlags = callbacks.getMovementFlags(recyclerView, nonPietViewHolder);
@@ -59,19 +61,19 @@ public final class StreamItemTouchCallbacksTest {
   }
 
   @Test
-  public void testGetMovementFlags_nonSwipeablePiet() {
-    when(pietViewHolder.canSwipe()).thenReturn(false);
+  public void testGetMovementFlags_notDismissibleSwipeableViewholder() {
+    dismissibleViewHolder = new DismissibleViewHolder(frameLayout, /* isDismissible= */ false);
 
-    int movementFlags = callbacks.getMovementFlags(recyclerView, pietViewHolder);
+    int movementFlags = callbacks.getMovementFlags(recyclerView, dismissibleViewHolder);
 
     assertThat(movementFlags).isEqualTo(NO_MOVEMENT_FLAG);
   }
 
   @Test
   public void testGetMovementFlags_swipeablePiet() {
-    when(pietViewHolder.canSwipe()).thenReturn(true);
+    dismissibleViewHolder = new DismissibleViewHolder(frameLayout, /* isDismissible= */ true);
 
-    int movementFlags = callbacks.getMovementFlags(recyclerView, pietViewHolder);
+    int movementFlags = callbacks.getMovementFlags(recyclerView, dismissibleViewHolder);
 
     assertThat(movementFlags)
         .isEqualTo(
@@ -81,8 +83,36 @@ public final class StreamItemTouchCallbacksTest {
 
   @Test
   public void testOnSwiped() {
-    callbacks.onSwiped(pietViewHolder, 0);
+    dismissibleViewHolder = new DismissibleViewHolder(frameLayout, /* isDismissible= */ true);
+    assertThat(dismissibleViewHolder.isOnSwipedCalled()).isFalse();
 
-    verify(pietViewHolder).swipeToDismissPerformed();
+    callbacks.onSwiped(dismissibleViewHolder, 0);
+
+    assertThat(dismissibleViewHolder.isOnSwipedCalled()).isTrue();
+  }
+
+  private static class DismissibleViewHolder extends ViewHolder implements SwipeableViewHolder {
+
+    private final boolean isDismissible;
+    private boolean onSwipedCalled;
+
+    DismissibleViewHolder(View view, boolean isDismissible) {
+      super(view);
+      this.isDismissible = isDismissible;
+    }
+
+    @Override
+    public boolean canSwipe() {
+      return isDismissible;
+    }
+
+    @Override
+    public void onSwiped() {
+      onSwipedCalled = true;
+    }
+
+    boolean isOnSwipedCalled() {
+      return onSwipedCalled;
+    }
   }
 }

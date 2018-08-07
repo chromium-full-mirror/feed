@@ -275,7 +275,7 @@ public class PietViewHolderTest {
         SWIPE_ACTION,
         loggingListener);
 
-    pietViewHolder.swipeToDismissPerformed();
+    pietViewHolder.onSwiped();
 
     verify(actionParser)
         .parseFeedActionPayload(SWIPE_ACTION, streamActionApi, pietViewHolder.itemView);

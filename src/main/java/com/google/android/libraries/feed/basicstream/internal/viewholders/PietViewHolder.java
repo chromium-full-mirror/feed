@@ -43,7 +43,7 @@ import java.util.List;
 /**
  * {@link ViewHolder} for {@link com.google.search.now.ui.stream.StreamStructureProto.PietContent}.
  */
-public class PietViewHolder extends FeedViewHolder {
+public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolder {
 
   private static final String TAG = "PietViewHolder";
   private final ActionParser actionParser;
@@ -134,7 +134,8 @@ public class PietViewHolder extends FeedViewHolder {
     return swipeAction != null && !swipeAction.equals(FeedActionPayload.getDefaultInstance());
   }
 
-  public void swipeToDismissPerformed() {
+  @Override
+  public void onSwiped() {
     if (swipeAction == null) {
       Logger.wtf(TAG, "Swipe performed on unbound ViewHolder.");
       return;
