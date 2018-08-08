@@ -30,6 +30,7 @@ import java.util.List;
  * results.
  */
 public class JournalStorageDirectImpl extends MainThreadCaller implements JournalStorageDirect {
+  private static final String LOCATION = "JournalStorage.";
   private final JournalStorage journalStorage;
 
   public JournalStorageDirectImpl(
@@ -41,28 +42,36 @@ public class JournalStorageDirectImpl extends MainThreadCaller implements Journa
   @Override
   public Result<List<byte[]>> read(String journalName) {
     return mainThreadCaller(
-        (consumer) -> journalStorage.read(journalName, consumer), Result.failure());
+        LOCATION + "read",
+        (consumer) -> journalStorage.read(journalName, consumer),
+        Result.failure());
   }
 
   @Override
   public CommitResult commit(JournalMutation mutation) {
     return mainThreadCaller(
-        (consumer) -> journalStorage.commit(mutation, consumer), CommitResult.FAILURE);
+        LOCATION + "commit",
+        (consumer) -> journalStorage.commit(mutation, consumer),
+        CommitResult.FAILURE);
   }
 
   @Override
   public Result<Boolean> exists(String journalName) {
     return mainThreadCaller(
-        (consumer) -> journalStorage.exists(journalName, consumer), Result.failure());
+        LOCATION + "exists",
+        (consumer) -> journalStorage.exists(journalName, consumer),
+        Result.failure());
   }
 
   @Override
   public Result<List<String>> getAllJournals() {
-    return mainThreadCaller(journalStorage::getAllJournals, Result.failure());
+    return mainThreadCaller(
+        LOCATION + "getAllJournals", journalStorage::getAllJournals, Result.failure());
   }
 
   @Override
   public CommitResult deleteAll() {
-    return mainThreadCaller(journalStorage::deleteAll, CommitResult.FAILURE);
+    return mainThreadCaller(
+        LOCATION + "deleteAll", journalStorage::deleteAll, CommitResult.FAILURE);
   }
 }

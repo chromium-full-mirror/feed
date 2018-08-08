@@ -33,9 +33,9 @@ public abstract class MainThreadCaller {
   }
 
   /** Run a {@link ConsumerTask} on the main thread, providing a Consumer to receive the results. */
-  protected <T> T mainThreadCaller(ConsumerTask<T> task, T failure) {
+  protected <T> T mainThreadCaller(String location, ConsumerTask<T> task, T failure) {
     SimpleSettableFuture<T> sharedStatesFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(TAG, () -> task.execute(sharedStatesFuture::put));
+    mainThreadRunner.execute(TAG + "-" + location, () -> task.execute(sharedStatesFuture::put));
     try {
       return sharedStatesFuture.get();
     } catch (InterruptedException | ExecutionException e) {

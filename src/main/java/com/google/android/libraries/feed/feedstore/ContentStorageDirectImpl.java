@@ -31,6 +31,7 @@ import java.util.Map;
  * results.
  */
 public class ContentStorageDirectImpl extends MainThreadCaller implements ContentStorageDirect {
+  private static final String LOCATION = "ContentStorage.";
   private final ContentStorage contentStorage;
 
   public ContentStorageDirectImpl(
@@ -41,23 +42,28 @@ public class ContentStorageDirectImpl extends MainThreadCaller implements Conten
 
   @Override
   public Result<Map<String, byte[]>> get(List<String> keys) {
-    return mainThreadCaller((consumer) -> contentStorage.get(keys, consumer), Result.failure());
+    return mainThreadCaller(
+        LOCATION + "get", (consumer) -> contentStorage.get(keys, consumer), Result.failure());
   }
 
   @Override
   public Result<Map<String, byte[]>> getAll(String prefix) {
     return mainThreadCaller(
-        (consumer) -> contentStorage.getAll(prefix, consumer), Result.failure());
+        LOCATION + "getAll",
+        (consumer) -> contentStorage.getAll(prefix, consumer),
+        Result.failure());
   }
 
   @Override
   public CommitResult commit(ContentMutation mutation) {
     return mainThreadCaller(
-        (consumer) -> contentStorage.commit(mutation, consumer), CommitResult.FAILURE);
+        LOCATION + "commit",
+        (consumer) -> contentStorage.commit(mutation, consumer),
+        CommitResult.FAILURE);
   }
 
   @Override
   public Result<List<String>> getAllKeys() {
-    return mainThreadCaller(contentStorage::getAllKeys, Result.failure());
+    return mainThreadCaller(LOCATION + "getAllKeys", contentStorage::getAllKeys, Result.failure());
   }
 }
