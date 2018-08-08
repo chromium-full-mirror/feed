@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -75,7 +74,6 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final Configuration configuration = new Configuration.Builder().build();
   private final TimingUtils timingUtils = new TimingUtils();
-  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
   private Context context;
 
   @Override
@@ -98,7 +96,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   }
 
   @Test
-  public void testSend() throws IOException {
+  public void testSend() {
     MockServer.Builder mockServerBuilder = MockServer.newBuilder();
     Response initialResponse =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
@@ -121,7 +119,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   }
 
   @Test
-  public void testSend_oneTimeResponse() throws IOException {
+  public void testSend_oneTimeResponse() {
     MockServer.Builder mockServerBuilder = MockServer.newBuilder();
     Response initialResponse =
         Response.newBuilder().setResponseVersion(ResponseVersion.FEED_RESPONSE).build();
@@ -166,7 +164,6 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             getTaskQueue(),
             timingUtils,
             threadUtils,
-            mainThreadRunner,
             actionReader);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
@@ -204,7 +201,6 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             getTaskQueue(),
             timingUtils,
             threadUtils,
-            mainThreadRunner,
             actionReader);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));

@@ -23,7 +23,6 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -78,7 +77,6 @@ public class FeedRequestManager implements RequestManager {
   private final TaskQueue taskQueue;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
-  private final MainThreadRunner mainThreadRunner;
   private final ActionReader actionReader;
 
   /*@Nullable*/
@@ -94,7 +92,6 @@ public class FeedRequestManager implements RequestManager {
       TaskQueue taskQueue,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      MainThreadRunner mainThreadRunner,
       ActionReader actionReader) {
     this.configuration = configuration;
     this.networkClient = networkClient;
@@ -104,7 +101,6 @@ public class FeedRequestManager implements RequestManager {
     this.taskQueue = taskQueue;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    this.mainThreadRunner = mainThreadRunner;
     this.actionReader = actionReader;
   }
 
@@ -147,7 +143,8 @@ public class FeedRequestManager implements RequestManager {
   public void triggerRefresh(RequestReason reason) {
     if (defaultTriggerRefreshConsumerSupplier == null) {
       throw new IllegalStateException(
-          "Must set defaultTriggerRefreshConsumerSupplier before calling triggerRefresh(RequestReason).");
+          "Must set defaultTriggerRefreshConsumerSupplier before calling "
+              + "triggerRefresh(RequestReason).");
     }
     triggerRefresh(reason, defaultTriggerRefreshConsumerSupplier.get());
   }
@@ -184,29 +181,25 @@ public class FeedRequestManager implements RequestManager {
     uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
 
     HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), HttpMethod.GET);
-    mainThreadRunner.execute(
-        TAG + "-executeRequest",
-        () -> {
-          Logger.i(TAG, "Making Request: %s", httpRequest.getUri());
-          networkClient.send(
-              httpRequest,
-              input -> {
-                if (input.getResponseCode() != 200) {
-                  String errorBody = null;
-                  try {
-                    errorBody = new String(input.getResponseBody(), "UTF-8");
-                  } catch (UnsupportedEncodingException e) {
-                    Logger.e(TAG, "Error handling http error logging", e);
-                  }
-                  Logger.e(TAG, "errorCode: %d", input.getResponseCode());
-                  Logger.e(TAG, "errorResponse: %s", errorBody);
-                  scheduler.onRequestError(input.getResponseCode());
-                  consumer.accept(Result.failure());
-                  return;
-                }
+    Logger.i(TAG, "Making Request: %s", httpRequest.getUri());
+    networkClient.send(
+        httpRequest,
+        input -> {
+          if (input.getResponseCode() != 200) {
+            String errorBody = null;
+            try {
+              errorBody = new String(input.getResponseBody(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+              Logger.e(TAG, "Error handling http error logging", e);
+            }
+            Logger.e(TAG, "errorCode: %d", input.getResponseCode());
+            Logger.e(TAG, "errorResponse: %s", errorBody);
+            scheduler.onRequestError(input.getResponseCode());
+            consumer.accept(Result.failure());
+            return;
+          }
 
-                handleResponseBytes(input.getResponseBody(), consumer);
-              });
+          handleResponseBytes(input.getResponseBody(), consumer);
         });
   }
 

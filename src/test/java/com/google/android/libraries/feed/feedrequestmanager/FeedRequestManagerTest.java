@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.common.DismissActionWithSemanticPro
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -97,7 +96,6 @@ public class FeedRequestManagerTest {
   private ExtensionRegistryLite registry;
   private FeedRequestManager requestManager;
   private final TimingUtils timingUtils = new TimingUtils();
-  private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
   private final Configuration configuration = new Configuration.Builder().build();
 
@@ -117,7 +115,6 @@ public class FeedRequestManagerTest {
             getTaskQueue(),
             timingUtils,
             threadUtils,
-            mainThreadRunner,
             actionReader);
 
     when(actionReader.getDismissActionsWithSemanticProperties())

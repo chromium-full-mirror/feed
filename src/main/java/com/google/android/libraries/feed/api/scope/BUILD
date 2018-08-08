@@ -41,6 +41,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
+        "//src/main/java/com/google/android/libraries/feed/hostimpl/network",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/scheduler",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/java/com/google/android/libraries/feed/piet/host",

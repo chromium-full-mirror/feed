@@ -60,6 +60,7 @@ import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
+import com.google.android.libraries.feed.hostimpl.network.NetworkClientWrapper;
 import com.google.android.libraries.feed.hostimpl.scheduler.SchedulerApiWrapper;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
@@ -144,12 +145,17 @@ public class FeedProcessScope implements Dumpable {
       this.configuration = configuration;
       this.singleThreadExecutor = singleThreadExecutor;
       this.loggingApi = loggingApi;
-      this.networkClient = networkClient;
       this.lifecycleListener = lifecycleListener;
       this.debugBehavior = debugBehavior;
 
-      if (schedulerApi instanceof DirectHostSupported
-          && configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false)) {
+      boolean directHostCallEnabled =
+          configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
+      if (networkClient instanceof DirectHostSupported && directHostCallEnabled) {
+        this.networkClient = networkClient;
+      } else {
+        this.networkClient = new NetworkClientWrapper(networkClient, threadUtils, mainThreadRunner);
+      }
+      if (schedulerApi instanceof DirectHostSupported && directHostCallEnabled) {
         this.schedulerApi = schedulerApi;
       } else {
         this.schedulerApi = new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
@@ -267,7 +273,6 @@ public class FeedProcessScope implements Dumpable {
                 taskQueue,
                 timingUtils,
                 threadUtils,
-                mainThreadRunner,
                 actionReader);
       }
       if (sessionManager == null) {
