@@ -282,7 +282,6 @@ public class FeedProcessScope implements Dumpable {
                 store,
                 timingUtils,
                 threadUtils,
-                mainThreadRunner,
                 protocolAdapter,
                 requestManager,
                 schedulerApi,

@@ -119,7 +119,6 @@ public class InfrastructureIntegrationScope {
                 store,
                 timingUtils,
                 threadUtils,
-                mainThreadRunner,
                 feedProtocolAdapter,
                 fakeRequestManager,
                 schedulerApi,

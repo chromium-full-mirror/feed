@@ -19,7 +19,6 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -45,7 +44,6 @@ public class FeedSessionManagerFactory {
   private final Store store;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
-  private final MainThreadRunner mainThreadRunner;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
   private final SchedulerApi schedulerApi;
@@ -58,7 +56,6 @@ public class FeedSessionManagerFactory {
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      MainThreadRunner mainThreadRunner,
       ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
       SchedulerApi schedulerApi,
@@ -69,7 +66,6 @@ public class FeedSessionManagerFactory {
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    this.mainThreadRunner = mainThreadRunner;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
     this.schedulerApi = schedulerApi;
@@ -108,7 +104,6 @@ public class FeedSessionManagerFactory {
         store,
         timingUtils,
         threadUtils,
-        mainThreadRunner,
         protocolAdapter,
         requestManager,
         schedulerApi,

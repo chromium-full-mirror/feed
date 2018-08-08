@@ -37,8 +37,6 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
-import com.google.android.libraries.feed.common.concurrent.SimpleSettableFuture;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -75,7 +73,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -111,7 +108,6 @@ public class FeedSessionManager
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
-  private final MainThreadRunner mainThreadRunner;
   private final ProtocolAdapter protocolAdapter;
   private final RequestManager requestManager;
   private final SchedulerApi schedulerApi;
@@ -134,7 +130,6 @@ public class FeedSessionManager
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      MainThreadRunner mainThreadRunner,
       ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
       SchedulerApi schedulerApi,
@@ -150,7 +145,6 @@ public class FeedSessionManager
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
-    this.mainThreadRunner = mainThreadRunner;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
     this.schedulerApi = schedulerApi;
@@ -234,36 +228,17 @@ public class FeedSessionManager
       taskQueue.execute(
           "postInitialization/populateSession",
           TaskType.POST_INIT,
-          () -> populateSessionWaitForHead(session, viewDepthProvider));
+          () -> populateSession(session, viewDepthProvider));
     } else {
-      populateSession(session, viewDepthProvider, (result) -> {});
+      populateSession(session, viewDepthProvider);
     }
   }
 
-  private void populateSessionWaitForHead(
-      InitializableSession session, /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
-    threadUtils.checkNotMainThread();
-
-    // Wait for the main thread call to complete.  This is done to ensure that the
-    // background populateSession task is queued before the task running this finishes.
-    SimpleSettableFuture<Boolean> sharedStatesFuture = new SimpleSettableFuture<>();
-    mainThreadRunner.execute(
-        TAG + "-populateSessionWaitForHead",
-        () -> populateSession(session, viewDepthProvider, sharedStatesFuture::put));
-    try {
-      sharedStatesFuture.get();
-    } catch (InterruptedException | ExecutionException e) {
-      Logger.e(TAG, e, "populateSession main thread portion failed");
-    }
-  }
-
-  // This returns a result through a consumer allowing use to wait on this task.  It must
-  // run on the main thread, but does most of it's work through the populateSession task.
+  // This method can be run either on the main thread or on the background thread. It calls the
+  // SchedulerApi to determine how the session is created. It creates a new task to populate the
+  // new session.
   private void populateSession(
-      InitializableSession session,
-      /*@Nullable*/ ViewDepthProvider viewDepthProvider,
-      Consumer<Boolean> result) {
-    threadUtils.checkMainThread();
+      InitializableSession session, /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
     HeadSessionImpl headSession = Validators.checkNotNull(sessionCache.getHead());
     SessionManagerState sessionManagerState =
         new SessionManagerState(
@@ -313,7 +288,6 @@ public class FeedSessionManager
     if (makeRequest && behavior == REQUEST_WITH_CONTENT) {
       triggerRefresh(null);
     }
-    result.accept(true);
   }
 
   private void populateSessionTask(
