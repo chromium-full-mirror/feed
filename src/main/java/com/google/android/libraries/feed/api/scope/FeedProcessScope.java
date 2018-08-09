@@ -141,12 +141,14 @@ public class FeedProcessScope implements Dumpable {
         NetworkClient networkClient,
         SchedulerApi schedulerApi,
         FeedAppLifecycleListener lifecycleListener,
-        DebugBehavior debugBehavior) {
+        DebugBehavior debugBehavior,
+        Context context) {
       this.configuration = configuration;
       this.singleThreadExecutor = singleThreadExecutor;
       this.loggingApi = loggingApi;
       this.lifecycleListener = lifecycleListener;
       this.debugBehavior = debugBehavior;
+      this.context = context;
 
       boolean directHostCallEnabled =
           configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
@@ -273,7 +275,8 @@ public class FeedProcessScope implements Dumpable {
                 taskQueue,
                 timingUtils,
                 threadUtils,
-                actionReader);
+                actionReader,
+                context);
       }
       if (sessionManager == null) {
         FeedSessionManagerFactory fsmFactory =
@@ -319,6 +322,7 @@ public class FeedProcessScope implements Dumpable {
     private final SchedulerApi schedulerApi;
     private final FeedAppLifecycleListener lifecycleListener;
     private final DebugBehavior debugBehavior;
+    private final Context context;
     private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
 
     // Optional fields - if they are not provided, we will use default implementations.

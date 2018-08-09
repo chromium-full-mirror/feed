@@ -14,7 +14,9 @@
 
 package com.google.android.libraries.feed.feedrequestmanager;
 
+import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
@@ -59,6 +61,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /** Default implementation of RequestManager. */
@@ -66,6 +69,7 @@ public class FeedRequestManager implements RequestManager {
   private static final String TAG = "FeedRequestManager";
 
   public static final String MOTHERSHIP_PARAM_PAYLOAD = "reqpld";
+  public static final String LOCALE_PARAM = "hl";
   private static final String MOTHERSHIP_PARAM_FORMAT = "fmt";
   private static final String MOTHERSHIP_VALUE_BINARY = "bin";
 
@@ -78,6 +82,7 @@ public class FeedRequestManager implements RequestManager {
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
   private final ActionReader actionReader;
+  private final Context context;
 
   /*@Nullable*/
   private Supplier<Consumer<Result<List<StreamDataOperation>>>>
@@ -92,7 +97,8 @@ public class FeedRequestManager implements RequestManager {
       TaskQueue taskQueue,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
-      ActionReader actionReader) {
+      ActionReader actionReader,
+      Context context) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -102,6 +108,7 @@ public class FeedRequestManager implements RequestManager {
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.actionReader = actionReader;
+    this.context = context;
   }
 
   @Override
@@ -179,6 +186,7 @@ public class FeedRequestManager implements RequestManager {
         Base64.encodeToString(
             requestBuilder.build().toByteArray(), Base64.URL_SAFE | Base64.NO_WRAP));
     uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
+    uriBuilder.appendQueryParameter(LOCALE_PARAM, getLocale().toString());
 
     HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), HttpMethod.GET);
     Logger.i(TAG, "Making Request: %s", httpRequest.getUri());
@@ -201,6 +209,12 @@ public class FeedRequestManager implements RequestManager {
 
           handleResponseBytes(input.getResponseBody(), consumer);
         });
+  }
+
+  private Locale getLocale() {
+    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+        ? context.getResources().getConfiguration().getLocales().get(0)
+        : context.getResources().getConfiguration().locale;
   }
 
   private void handleResponseBytes(

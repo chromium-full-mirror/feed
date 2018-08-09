@@ -17,6 +17,8 @@ package com.google.android.libraries.feed.api.scope;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
@@ -36,6 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link FeedProcessScope}. */
@@ -56,10 +59,12 @@ public class FeedProcessScopeTest {
 
   private final ProtoExtensionProvider protoExtensionProvider = ArrayList::new;
   private final Configuration configuration = new Configuration.Builder().build();
+  private Context context;
 
   @Before
   public void setUp() {
     initMocks(this);
+    context = Robolectric.setupActivity(Activity.class);
   }
 
   @Test
@@ -73,7 +78,8 @@ public class FeedProcessScopeTest {
                 networkClient,
                 schedulerApi,
                 appLifecycleListener,
-                DebugBehavior.VERBOSE)
+                DebugBehavior.VERBOSE,
+                context)
             .setThreadUtils(threadUtils)
             .build();
 
@@ -95,7 +101,8 @@ public class FeedProcessScopeTest {
                 networkClient,
                 schedulerApi,
                 appLifecycleListener,
-                DebugBehavior.VERBOSE)
+                DebugBehavior.VERBOSE,
+                context)
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)

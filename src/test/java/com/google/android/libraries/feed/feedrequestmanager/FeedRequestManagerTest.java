@@ -21,6 +21,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
@@ -63,12 +65,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Test of the {@link FeedRequestManager} class. */
@@ -89,6 +93,7 @@ public class FeedRequestManagerTest {
   @Mock private ActionReader actionReader;
   @Mock private Consumer<Result<List<StreamDataOperation>>> consumer;
   @Mock private Clock clock;
+  private Context context;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
   @Captor private ArgumentCaptor<Response> responseCaptor;
@@ -102,6 +107,8 @@ public class FeedRequestManagerTest {
   @Before
   public void setUp() {
     initMocks(this);
+    context = Robolectric.setupActivity(Activity.class);
+    context.getResources().getConfiguration().locale = Locale.US;
     FeedExtensionRegistry feedExtensionRegistry = new FeedExtensionRegistry(ArrayList::new);
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
@@ -115,7 +122,8 @@ public class FeedRequestManagerTest {
             getTaskQueue(),
             timingUtils,
             threadUtils,
-            actionReader);
+            actionReader,
+            context);
 
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.emptyList()));
@@ -668,6 +676,8 @@ public class FeedRequestManagerTest {
     assertThat(httpRequest.getUri().getQueryParameter("fmt")).isEqualTo("bin");
     assertThat(httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD))
         .isNotNull();
+    assertThat(httpRequest.getUri().getQueryParameter(FeedRequestManager.LOCALE_PARAM))
+        .isEqualTo("en_US");
   }
 
   private HttpResponse createHttpResponse(int responseCode, Response response) throws IOException {

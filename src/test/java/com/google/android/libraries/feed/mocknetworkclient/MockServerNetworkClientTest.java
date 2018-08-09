@@ -164,7 +164,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             getTaskQueue(),
             timingUtils,
             threadUtils,
-            actionReader);
+            actionReader,
+            context);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -201,7 +202,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             getTaskQueue(),
             timingUtils,
             threadUtils,
-            actionReader);
+            actionReader,
+            context);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
