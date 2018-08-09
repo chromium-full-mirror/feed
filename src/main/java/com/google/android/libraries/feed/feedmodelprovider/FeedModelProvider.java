@@ -1063,6 +1063,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           Logger.e(TAG, "Didn't find '%s' in content", contentIdKey);
           return null;
         }
+        if (modelChild.getType() == Type.UNBOUND) {
+          Logger.e(TAG, "Looking for unbound child %s, ignore child", modelChild.getContentId());
+          return null;
+        }
         change = new FeatureChangeImpl(modelChild.getModelFeature());
         changes.put(contentIdKey, change);
       }
