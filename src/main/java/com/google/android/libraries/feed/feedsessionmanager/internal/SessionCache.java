@@ -146,7 +146,7 @@ public class SessionCache implements Dumpable {
 
   /** Returns {@code true} if HEAD has been initialize, which happens in {@link #initialize()}. */
   public boolean isHeadInitialized() {
-    return head != null;
+    return head != null && !head.isHeadEmpty();
   }
 
   /**

@@ -26,6 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -77,6 +78,7 @@ public class SessionCacheTest {
   @Test
   public void testInitialization() {
     SessionCache sessionCache = getSessionCache();
+    populateHead();
     Map<String, Session> sessions = sessionCache.getSessionsMapForTest();
     assertThat(sessions).isEmpty();
     assertThat(sessionCache.isHeadInitialized()).isFalse();
@@ -362,5 +364,17 @@ public class SessionCacheTest {
     }
     session.populateModelProvider(streamSession, head, true, false, null);
     return session;
+  }
+
+  private void populateHead() {
+    StreamSession head = storeSpy.getHeadSession();
+    SessionMutation sessionMutation = storeSpy.editSession(head);
+    String rootId = idGenerators.createRootContentId(1);
+    sessionMutation.add(
+        StreamStructure.newBuilder()
+            .setOperation(Operation.UPDATE_OR_APPEND)
+            .setContentId(rootId)
+            .build());
+    sessionMutation.commit();
   }
 }
