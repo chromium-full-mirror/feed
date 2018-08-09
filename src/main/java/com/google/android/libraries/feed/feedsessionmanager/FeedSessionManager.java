@@ -488,7 +488,6 @@ public class FeedSessionManager
 
   @Override
   public void triggerRefresh(/*@Nullable*/ StreamSession streamSession) {
-    threadUtils.checkMainThread();
     if (!initialized.get()) {
       Logger.i(TAG, "Lazy initialization triggered, triggerRefresh");
       initialize();
