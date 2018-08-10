@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.basicstream.internal.drivers.HeaderDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
@@ -56,7 +57,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final ActionParser actionParser;
   private final Configuration configuration;
   private final List<LeafFeatureDriver> leafFeatureDrivers;
-  private final List<View> headers;
+  private final List<HeaderDriver> headers;
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
   private final DeepestContentTracker deepestContentTracker;
 
@@ -114,7 +115,9 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   @Override
   public void onBindViewHolder(FeedViewHolder viewHolder, int index) {
     if (isHeader(index)) {
-      injectHeader((HeaderViewHolder) viewHolder, index);
+      HeaderDriver headerDriver = headers.get(index);
+      headerDriver.bind(viewHolder);
+      boundViewHolderToLeafFeatureDriverMap.put(viewHolder, headerDriver);
       return;
     }
     Logger.d(TAG, "onBindViewHolder %s", index);
@@ -127,20 +130,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     boundViewHolderToLeafFeatureDriverMap.put(viewHolder, leafFeatureDriver);
   }
 
-  private void injectHeader(HeaderViewHolder headerViewHolder, int position) {
-    View header = headers.get(position);
-    if (header.getParent() == null) {
-      headerViewHolder.bind(header);
-    }
-  }
-
   @Override
   public void onViewRecycled(FeedViewHolder viewHolder) {
-    if (viewHolder instanceof HeaderViewHolder) {
-      viewHolder.unbind();
-      return;
-    }
-
     LeafFeatureDriver leafFeatureDriver = boundViewHolderToLeafFeatureDriverMap.get(viewHolder);
 
     if (leafFeatureDriver == null) {
@@ -192,8 +183,16 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
   public void setHeaders(List<View> newHeaders) {
     notifyItemRangeRemoved(0, headers.size());
+    for (HeaderDriver headerDriver : headers) {
+      headerDriver.onDestroy();
+    }
     headers.clear();
-    headers.addAll(newHeaders);
+
+    for (View header : newHeaders) {
+      // TODO: Move header orchestration into separate class once header orchestration logic
+      // is complex enough.
+      headers.add(createHeaderDriver(header));
+    }
 
     notifyItemRangeInserted(0, headers.size());
   }
@@ -221,6 +220,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       streamDriver.setStreamContentListener(null);
     }
 
+    notifyItemRangeRemoved(headers.size(), leafFeatureDrivers.size());
     leafFeatureDrivers.clear();
 
     newStreamDriver.setStreamContentListener(this);
@@ -228,7 +228,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
     streamDriver = newStreamDriver;
     if (streamContentVisible) {
-      notifyDataSetChanged();
+      notifyItemRangeInserted(headers.size(), leafFeatureDrivers.size());
     }
 
     newStreamDriver.maybeRestoreScroll();
@@ -269,5 +269,10 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (streamContentVisible) {
       notifyItemRangeRemoved(headers.size(), itemCount);
     }
+  }
+
+  @VisibleForTesting
+  HeaderDriver createHeaderDriver(View header) {
+    return new HeaderDriver(header);
   }
 }

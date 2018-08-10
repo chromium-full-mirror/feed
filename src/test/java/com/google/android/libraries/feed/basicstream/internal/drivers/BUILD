@@ -107,6 +107,23 @@ android_local_test(
 )
 
 android_local_test(
+    name = "HeaderDriverTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["HeaderDriverTest.java"],
+    manifest = "AndroidManifest.xml",
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/api/stream",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
+        "@bazel_android//:robolectric",
+        "@com_google_truth_truth//jar",
+        "@org_mockito_mockito_all//jar",
+    ],
+)
+
+android_local_test(
     name = "NoContentDriverTest",
     size = "small",
     timeout = "moderate",

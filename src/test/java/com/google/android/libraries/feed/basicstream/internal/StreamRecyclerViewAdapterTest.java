@@ -32,6 +32,7 @@ import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver;
+import com.google.android.libraries.feed.basicstream.internal.drivers.HeaderDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
@@ -48,6 +49,7 @@ import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,6 +77,8 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private ContentDriver initialFeatureDriver;
   @Mock private ContentDriver featureDriver1;
   @Mock private ContentDriver featureDriver2;
+  @Mock private HeaderDriver headerDriver1;
+  @Mock private HeaderDriver headerDriver2;
   @Mock private ActionParser actionParser;
   @Mock private DeepestContentTracker deepestContentTracker;
 
@@ -292,6 +296,32 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.notifyContentsCleared();
     assertThat(streamAdapterObserver.removedStart).isEqualTo(0);
     assertThat(streamAdapterObserver.removedCount).isEqualTo(0);
+  }
+
+  @Test
+  public void testSetHeaders_destroysPreviousHeaderDrivers() {
+    streamRecyclerViewAdapter =
+        new StreamRecyclerViewAdapter(
+            context,
+            cardConfiguration,
+            pietManager,
+            actionParser,
+            deepestContentTracker,
+            CONFIGURATION) {
+          @Override
+          HeaderDriver createHeaderDriver(View header) {
+            if (header == headers.get(0)) {
+              return headerDriver1;
+            }
+            return headerDriver2;
+          }
+        };
+    streamRecyclerViewAdapter.setHeaders(headers);
+
+    streamRecyclerViewAdapter.setHeaders(Collections.emptyList());
+
+    verify(headerDriver1).onDestroy();
+    verify(headerDriver2).onDestroy();
   }
 
   @Test
