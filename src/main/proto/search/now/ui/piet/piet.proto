@@ -75,27 +75,6 @@ option cc_enable_arenas = true;
 //
 // -----------------------------------------------------------------------------
 
-// A single Piet response consists of multiple Frames and multiple
-// PietSharedStates. Clients are not required to use this specific Piet proto as
-// the top-level container, they can also use their own response formats and
-// include the relevant sub-messages inline. Piet sample apps and internal tools
-// should use this as the standardized container format for conformance testing.
-message Piet {
-  // A string tag for this response, currently used for debugging purposes, e.g.
-  // to specify what features are being tested/included in this sample response.
-  // Need not be unique.
-  optional string tag = 1;
-
-  // A list of Frames that will be laid out in a single linear list.
-  // Template-based Frames and inline Frames can both be interspersed within
-  // this list.
-  repeated Frame frames = 2;
-
-  // Templates and Stylesheets can be looked up from any among many
-  // PietSharedStates.
-  repeated PietSharedState shared_states = 3;
-}
-
 // A Frame is the top-level UI construct in Piet. Every layout is contained
 // within a Frame. Each frame defines the contents displayed to the user as a
 // single view, which may contain a complex set of child views.
