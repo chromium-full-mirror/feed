@@ -191,10 +191,11 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   }
 
   public void setHeaders(List<View> newHeaders) {
+    notifyItemRangeRemoved(0, headers.size());
     headers.clear();
     headers.addAll(newHeaders);
 
-    notifyDataSetChanged();
+    notifyItemRangeInserted(0, headers.size());
   }
 
   public void setStreamContentVisible(boolean streamContentVisible) {
