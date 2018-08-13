@@ -66,12 +66,14 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.ArrayList;
@@ -636,7 +638,8 @@ public class BasicStreamTest {
         new HostBindingProvider(),
         mock(ActionManager.class),
         CONFIGURATION,
-        layoutManager);
+        layoutManager,
+        mock(OfflineIndicatorApi.class));
   }
 
   private class BasicStreamForTest extends BasicStream {
@@ -662,7 +665,8 @@ public class BasicStreamTest {
         /*@Nullable*/ HostBindingProvider hostBindingProvider,
         ActionManager actionManager,
         Configuration configuration,
-        LinearLayoutManager layoutManager) {
+        LinearLayoutManager layoutManager,
+        OfflineIndicatorApi offlineIndicatorApi) {
       super(
           context,
           streamConfiguration,
@@ -680,7 +684,8 @@ public class BasicStreamTest {
           actionManager,
           configuration,
           snackbarApi,
-          basicLoggingApi);
+          basicLoggingApi,
+          offlineIndicatorApi);
       this.layoutManager = layoutManager;
     }
 
@@ -708,7 +713,8 @@ public class BasicStreamTest {
         SnackbarApi snackbarApi,
         ContentChangedListener contentChangedListener,
         ScrollRestorer scrollRestorer,
-        BasicLoggingApi basicLoggingApi) {
+        BasicLoggingApi basicLoggingApi,
+        StreamOfflineMonitor streamOfflineMonitor) {
       streamDriverScrollRestorer = scrollRestorer;
       return streamDriver;
     }

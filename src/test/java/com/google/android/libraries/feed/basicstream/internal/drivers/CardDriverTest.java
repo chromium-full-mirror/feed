@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -75,13 +76,8 @@ public class CardDriverTest {
 
   private static final int POSITION = 0;
 
-  @Mock private ActionApi actionApi;
-  @Mock private ActionManager actionManager;
-  @Mock private ActionParser actionParser;
-  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentDriver contentDriverChild;
   @Mock private ModelFeature cardModelFeature;
-  @Mock private ModelProvider modelProvider;
   @Mock private LeafFeatureDriver leafFeatureDriver;
 
   private CardDriverForTest cardDriver;
@@ -110,15 +106,16 @@ public class CardDriverTest {
     Context context = Robolectric.setupActivity(Activity.class);
     cardDriver =
         new CardDriverForTest(
-            actionApi,
-            actionManager,
-            actionParser,
-            basicLoggingApi,
+            mock(ActionApi.class),
+            mock(ActionManager.class),
+            mock(ActionParser.class),
+            mock(BasicLoggingApi.class),
             context,
             cardModelFeature,
-            modelProvider,
+            mock(ModelProvider.class),
             POSITION,
-            contentDriverChild);
+            contentDriverChild,
+            mock(StreamOfflineMonitor.class));
   }
 
   @Test
@@ -181,7 +178,8 @@ public class CardDriverTest {
         ModelFeature cardModel,
         ModelProvider modelProvider,
         int position,
-        ContentDriver childContentDriver) {
+        ContentDriver childContentDriver,
+        StreamOfflineMonitor streamOfflineMonitor) {
       super(
           actionApi,
           actionManager,
@@ -190,7 +188,8 @@ public class CardDriverTest {
           context,
           cardModel,
           modelProvider,
-          position);
+          position,
+          streamOfflineMonitor);
       this.child = childContentDriver;
     }
 

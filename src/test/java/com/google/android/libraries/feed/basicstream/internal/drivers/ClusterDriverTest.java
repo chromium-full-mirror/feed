@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -49,14 +50,9 @@ public class ClusterDriverTest {
   private static final StreamFeature CARD_STREAM_FEATURE =
       StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build();
 
-  @Mock private ActionApi actionApi;
-  @Mock private ActionManager actionManager;
-  @Mock private ActionParser actionParser;
-  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private CardDriver cardDriver;
   @Mock private LeafFeatureDriver leafFeatureDriver;
   @Mock private ModelFeature clusterModelFeature;
-  @Mock private ModelProvider modelProvider;
 
   private ClusterDriverForTest clusterDriver;
 
@@ -82,15 +78,16 @@ public class ClusterDriverTest {
     Context context = Robolectric.setupActivity(Activity.class);
     clusterDriver =
         new ClusterDriverForTest(
-            actionApi,
-            actionManager,
-            actionParser,
-            basicLoggingApi,
+            mock(ActionApi.class),
+            mock(ActionManager.class),
+            mock(ActionParser.class),
+            mock(BasicLoggingApi.class),
             context,
             clusterModelFeature,
-            modelProvider,
+            mock(ModelProvider.class),
             /* position= */ 0,
-            cardDriver);
+            cardDriver,
+            mock(StreamOfflineMonitor.class));
   }
 
   @Test
@@ -130,7 +127,8 @@ public class ClusterDriverTest {
         ModelFeature clusterModel,
         ModelProvider modelProvider,
         int position,
-        CardDriver cardDriver) {
+        CardDriver cardDriver,
+        StreamOfflineMonitor streamOfflineMonitor) {
       super(
           actionApi,
           actionManager,
@@ -139,7 +137,8 @@ public class ClusterDriverTest {
           context,
           clusterModel,
           modelProvider,
-          position);
+          position,
+          streamOfflineMonitor);
       this.cardDriver = cardDriver;
     }
 

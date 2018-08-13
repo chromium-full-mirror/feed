@@ -58,12 +58,14 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvider;
@@ -95,6 +97,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final DeepestContentTracker deepestContentTracker;
   private final BasicLoggingApi basicLoggingApi;
   private final long immediateContentThreshold;
+  private final StreamOfflineMonitor streamOfflineMonitor;
 
   private RecyclerView recyclerView;
   private Context context;
@@ -128,7 +131,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ActionManager actionManager,
       Configuration configuration,
       SnackbarApi snackbarApi,
-      BasicLoggingApi basicLoggingApi) {
+      BasicLoggingApi basicLoggingApi,
+      OfflineIndicatorApi offlineIndicatorApi) {
     this.cardConfiguration = cardConfiguration;
     this.clock = clock;
     this.threadUtils = threadUtils;
@@ -157,6 +161,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
         configuration.getValueOrDefault(
             ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
             DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
+    this.streamOfflineMonitor = new StreamOfflineMonitor(offlineIndicatorApi);
   }
 
   @VisibleForTesting
@@ -256,7 +261,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
               snackbarApi,
               streamContentChangedListener,
               initialScrollRestorer,
-              basicLoggingApi);
+              basicLoggingApi,
+              streamOfflineMonitor);
       adapter.setDriver(streamDriver);
       streamDriver.showZeroState(/* showSpinner= */ true);
     }
@@ -460,7 +466,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             snackbarApi,
             streamContentChangedListener,
             scrollRestorer,
-            basicLoggingApi);
+            basicLoggingApi,
+            streamOfflineMonitor);
 
     adapter.setDriver(streamDriver);
 
@@ -532,7 +539,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       SnackbarApi snackbarApi,
       ContentChangedListener contentChangedListener,
       ScrollRestorer scrollRestorer,
-      BasicLoggingApi basicLoggingApi) {
+      BasicLoggingApi basicLoggingApi,
+      StreamOfflineMonitor streamOfflineMonitor) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -544,7 +552,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
         snackbarApi,
         contentChangedListener,
         scrollRestorer,
-        basicLoggingApi);
+        basicLoggingApi,
+        streamOfflineMonitor);
   }
 
   @VisibleForTesting

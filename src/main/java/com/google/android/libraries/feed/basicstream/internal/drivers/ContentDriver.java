@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -59,6 +60,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   private final StreamActionApi streamActionApi;
   private final FeedActionPayload swipeAction;
   private final String contentId;
+  private final StreamOfflineMonitor streamOfflineMonitor;
 
   /*@Nullable*/ private LoggingListener loggingListener;
   /*@Nullable*/ private PietViewHolder viewHolder;
@@ -72,7 +74,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ModelFeature contentFeatureModel,
       ModelProvider modelProvider,
       int position,
-      FeedActionPayload swipeAction) {
+      FeedActionPayload swipeAction,
+      StreamOfflineMonitor streamOfflineMonitor) {
     PietContent pietContent = getPietContent(contentFeatureModel.getStreamFeature().getContent());
     this.basicLoggingApi = basicLoggingApi;
     frame = pietContent.getFrame();
@@ -93,6 +96,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
             contentLoggingData,
             modelProvider.getSessionToken());
     this.swipeAction = swipeAction;
+    this.streamOfflineMonitor = streamOfflineMonitor;
   }
 
   @Override

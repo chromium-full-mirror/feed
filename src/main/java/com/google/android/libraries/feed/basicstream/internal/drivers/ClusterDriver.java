@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 
 /** {@link FeatureDriver} for Clusters. */
 public class ClusterDriver implements FeatureDriver {
@@ -39,6 +40,7 @@ public class ClusterDriver implements FeatureDriver {
   private final ModelFeature clusterModel;
   private final ModelProvider modelProvider;
   private final int position;
+  private final StreamOfflineMonitor streamOfflineMonitor;
   /*@Nullable*/ private CardDriver cardDriver;
 
   ClusterDriver(
@@ -49,7 +51,8 @@ public class ClusterDriver implements FeatureDriver {
       Context context,
       ModelFeature clusterModel,
       ModelProvider modelProvider,
-      int position) {
+      int position,
+      StreamOfflineMonitor streamOfflineMonitor) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParser = actionParser;
@@ -58,6 +61,7 @@ public class ClusterDriver implements FeatureDriver {
     this.clusterModel = clusterModel;
     this.modelProvider = modelProvider;
     this.position = position;
+    this.streamOfflineMonitor = streamOfflineMonitor;
   }
 
   @Override
@@ -120,6 +124,7 @@ public class ClusterDriver implements FeatureDriver {
         context,
         content,
         modelProvider,
-        position);
+        position,
+        streamOfflineMonitor);
   }
 }

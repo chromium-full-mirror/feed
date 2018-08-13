@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,6 +58,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final ContentChangedListener contentChangedListener;
   private final ScrollRestorer scrollRestorer;
   private final BasicLoggingApi basicLoggingApi;
+  private final StreamOfflineMonitor streamOfflineMonitor;
 
   private boolean rootFeatureConsumed;
 
@@ -73,7 +75,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       SnackbarApi snackbarApi,
       ContentChangedListener contentChangedListener,
       ScrollRestorer scrollRestorer,
-      BasicLoggingApi basicLoggingApi) {
+      BasicLoggingApi basicLoggingApi,
+      StreamOfflineMonitor streamOfflineMonitor) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParser = actionParser;
@@ -87,6 +90,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     this.contentChangedListener = contentChangedListener;
     this.scrollRestorer = scrollRestorer;
     this.basicLoggingApi = basicLoggingApi;
+    this.streamOfflineMonitor = streamOfflineMonitor;
   }
 
   /**
@@ -404,7 +408,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         context,
         modelFeature,
         modelProvider,
-        position);
+        position,
+        streamOfflineMonitor);
   }
 
   @VisibleForTesting
@@ -417,7 +422,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         context,
         modelFeature,
         modelProvider,
-        position);
+        position,
+        streamOfflineMonitor);
   }
 
   @VisibleForTesting

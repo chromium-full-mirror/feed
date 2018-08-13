@@ -153,7 +153,8 @@ public class FeedStreamScope {
                 actionManager,
                 config,
                 snackbarApi,
-                basicLoggingApi);
+                basicLoggingApi,
+                offlineIndicatorApi);
       }
       return new FeedStreamScope(
           actionApi,

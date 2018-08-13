@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -132,6 +133,7 @@ public class ContentDriverTest {
   @Mock private ModelProvider modelProvider;
   @Mock private PietViewHolder pietViewHolder;
   @Mock private StreamActionApi streamActionApi;
+  @Mock private StreamOfflineMonitor streamOfflineMonitor;
 
   private Context context;
   private ContentDriver contentDriver;
@@ -153,7 +155,8 @@ public class ContentDriverTest {
             modelFeature,
             modelProvider,
             POSITION,
-            FeedActionPayload.getDefaultInstance()) {
+            FeedActionPayload.getDefaultInstance(),
+            streamOfflineMonitor) {
           @Override
           StreamActionApi createStreamActionApi(
               Context context,
@@ -226,7 +229,8 @@ public class ContentDriverTest {
             modelFeature,
             modelProvider,
             POSITION,
-            FeedActionPayload.getDefaultInstance());
+            FeedActionPayload.getDefaultInstance(),
+            streamOfflineMonitor);
 
     contentDriver.bind(pietViewHolder);
 
@@ -256,7 +260,8 @@ public class ContentDriverTest {
             modelFeature,
             modelProvider,
             POSITION,
-            payload);
+            payload,
+            streamOfflineMonitor);
 
     contentDriver.bind(pietViewHolder);
 

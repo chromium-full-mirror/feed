@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.stream.StreamSwipeExtensionProto.SwipeActionExtension;
 
@@ -41,6 +42,7 @@ public class CardDriver implements FeatureDriver {
   private final ModelFeature cardModel;
   private final ModelProvider modelProvider;
   private final int position;
+  private final StreamOfflineMonitor streamOfflineMonitor;
   /*@Nullable*/ private ContentDriver contentDriver;
 
   CardDriver(
@@ -51,7 +53,8 @@ public class CardDriver implements FeatureDriver {
       Context context,
       ModelFeature cardModel,
       ModelProvider modelProvider,
-      int position) {
+      int position,
+      StreamOfflineMonitor streamOfflineMonitor) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParser = actionParser;
@@ -60,6 +63,7 @@ public class CardDriver implements FeatureDriver {
     this.cardModel = cardModel;
     this.modelProvider = modelProvider;
     this.position = position;
+    this.streamOfflineMonitor = streamOfflineMonitor;
   }
 
   @Override
@@ -114,6 +118,7 @@ public class CardDriver implements FeatureDriver {
         contentModel,
         modelProvider,
         position,
-        swipeAction);
+        swipeAction,
+        streamOfflineMonitor);
   }
 }
