@@ -26,11 +26,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
-import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.HeaderDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
@@ -47,8 +47,8 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
@@ -81,11 +81,13 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private HeaderDriver headerDriver2;
   @Mock private ActionParser actionParser;
   @Mock private DeepestContentTracker deepestContentTracker;
+  @Mock private Header header1;
+  @Mock private Header header2;
 
   private Context context;
   private LinearLayout frameContainer;
   private StreamRecyclerViewAdapter streamRecyclerViewAdapter;
-  private List<View> headers;
+  private List<Header> headers;
   private StreamAdapterObserver streamAdapterObserver;
 
   @SuppressWarnings("unchecked") // Needed for templated captures.
@@ -105,7 +107,7 @@ public class StreamRecyclerViewAdapterTest {
     when(featureDriver2.itemId()).thenReturn(FEATURE_DRIVER_2_ID);
     when(initialFeatureDriver.getContentId()).thenReturn(INITIAL_CONTENT_ID);
 
-    headers = createHeaders(HEADER_COUNT);
+    headers = ImmutableList.of(header1, header2);
 
     when(featureDriver1.getContentId()).thenReturn(FEATURE_DRIVER_1_CONTENT_ID);
     when(featureDriver2.getContentId()).thenReturn(FEATURE_DRIVER_2_CONTENT_ID);
@@ -309,7 +311,7 @@ public class StreamRecyclerViewAdapterTest {
             deepestContentTracker,
             CONFIGURATION) {
           @Override
-          HeaderDriver createHeaderDriver(View header) {
+          HeaderDriver createHeaderDriver(Header header) {
             if (header == headers.get(0)) {
               return headerDriver1;
             }
@@ -386,14 +388,6 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getContentBindingIndex(0));
 
     verify(deepestContentTracker).updateDeepestContentTracker(0, INITIAL_CONTENT_ID);
-  }
-
-  private List<View> createHeaders(int numHeaders) {
-    List<View> headerViews = new ArrayList<>(numHeaders);
-    for (int i = 0; i < numHeaders; i++) {
-      headerViews.add(new View(context));
-    }
-    return headerViews;
   }
 
   private FrameLayout getCardView(ViewHolder viewHolder) {

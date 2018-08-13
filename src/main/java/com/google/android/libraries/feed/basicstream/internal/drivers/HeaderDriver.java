@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.support.annotation.VisibleForTesting;
-import android.view.View;
+import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
@@ -28,10 +28,10 @@ public class HeaderDriver extends LeafFeatureDriver {
 
   private static final String TAG = "HeaderDriver";
 
-  private final View header;
+  private final Header header;
   /*@Nullable*/ private HeaderViewHolder headerViewHolder;
 
-  public HeaderDriver(View header) {
+  public HeaderDriver(Header header) {
     this.header = header;
   }
 

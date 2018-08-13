@@ -22,11 +22,11 @@ import static com.google.android.libraries.feed.basicstream.internal.viewholders
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.drivers.HeaderDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
@@ -181,14 +181,14 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     return position - headers.size();
   }
 
-  public void setHeaders(List<View> newHeaders) {
+  public void setHeaders(List<Header> newHeaders) {
     notifyItemRangeRemoved(0, headers.size());
     for (HeaderDriver headerDriver : headers) {
       headerDriver.onDestroy();
     }
     headers.clear();
 
-    for (View header : newHeaders) {
+    for (Header header : newHeaders) {
       // TODO: Move header orchestration into separate class once header orchestration logic
       // is complex enough.
       headers.add(createHeaderDriver(header));
@@ -272,7 +272,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   }
 
   @VisibleForTesting
-  HeaderDriver createHeaderDriver(View header) {
+  HeaderDriver createHeaderDriver(Header header) {
     return new HeaderDriver(header);
   }
 }

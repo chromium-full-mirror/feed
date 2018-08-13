@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.internal.DeepestContentTracker;
@@ -97,7 +98,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   private RecyclerView recyclerView;
   private Context context;
-  private List<View> headers;
+  private List<Header> headers;
   private StreamConfiguration streamConfiguration;
   private StreamRecyclerViewAdapter adapter;
   private StreamScrollMonitor streamScrollMonitor;
@@ -120,7 +121,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
       /*@Nullable*/ CustomElementProvider customElementProvider,
       DebugBehavior debugBehavior,
       ThreadUtils threadUtils,
-      List<View> headers,
+      List<Header> headers,
       Clock clock,
       ModelProviderFactory modelProviderFactory,
       /*@Nullable*/ HostBindingProvider hostBindingProvider,
@@ -311,7 +312,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
   }
 
   @Override
-  public void setHeaderViews(List<View> headers) {
+  public void setHeaderViews(List<Header> headers) {
+    this.headers = headers;
     adapter.setHeaders(headers);
   }
 

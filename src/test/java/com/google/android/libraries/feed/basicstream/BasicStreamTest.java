@@ -48,6 +48,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.basicstream.internal.DeepestContentTracker;
 import com.google.android.libraries.feed.basicstream.internal.StreamContentChangedListener;
@@ -655,7 +656,7 @@ public class BasicStreamTest {
         /*@Nullable*/ CustomElementProvider customElementProvider,
         DebugBehavior debugBehavior,
         ThreadUtils threadUtils,
-        List<View> headers,
+        List<Header> headers,
         Clock clock,
         ModelProviderFactory modelProviderFactory,
         /*@Nullable*/ HostBindingProvider hostBindingProvider,

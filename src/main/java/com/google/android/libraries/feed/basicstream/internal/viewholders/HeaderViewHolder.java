@@ -14,27 +14,32 @@
 
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
-import android.view.View;
+
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.api.stream.Header;
 
 /** {@link FeedViewHolder} for headers. */
 public class HeaderViewHolder extends FeedViewHolder {
 
   private final FrameLayout frameLayout;
 
+  /*@Nullable*/ private Header header;
+
   public HeaderViewHolder(FrameLayout itemView) {
     super(itemView);
     this.frameLayout = itemView;
   }
 
+  public void bind(Header header) {
+    this.header = header;
+    if (header.getView().getParent() == null) {
+      frameLayout.addView(header.getView());
+    }
+  }
+
   @Override
   public void unbind() {
     frameLayout.removeAllViews();
-  }
-
-  public void bind(View header) {
-    if (header.getParent() == null) {
-      frameLayout.addView(header);
-    }
+    this.header = null;
   }
 }

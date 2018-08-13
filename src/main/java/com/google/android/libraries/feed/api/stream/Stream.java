@@ -107,7 +107,7 @@ public interface Stream {
    * in the list. The headers are not sticky and will scroll with content. Headers can be cleared by
    * passing in an empty list.
    */
-  void setHeaderViews(List<View> headers);
+  void setHeaderViews(List<Header> headers);
 
   /**
    * Sets whether or not the Stream should show Feed content. Header views will still be shown if

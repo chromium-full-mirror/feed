@@ -19,32 +19,26 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import android.app.Activity;
-import android.content.Context;
-import android.view.View;
-import android.widget.FrameLayout;
+import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link HeaderDriver}. */
 @RunWith(RobolectricTestRunner.class)
 public class HeaderDriverTest {
 
+  @Mock private Header header;
   @Mock private HeaderViewHolder headerViewHolder;
 
-  private View header;
   private HeaderDriver headerDriver;
 
   @Before
   public void setup() {
     initMocks(this);
-    Context context = Robolectric.setupActivity(Activity.class);
-    header = new FrameLayout(context);
     headerDriver = new HeaderDriver(header);
   }
 
