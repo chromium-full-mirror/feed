@@ -14,6 +14,8 @@
 
 syntax = "proto2";
 
+import "src/main/proto/search/now/ui/piet/media_queries.proto";
+
 package search.now.ui.piet;
 
 option optimize_for=LITE_RUNTIME;
@@ -87,6 +89,12 @@ message ImageSource {
   // Asset URLs must be specified in an implementation-agnostic manner.
   // If missing, ERR_IMAGE_URL_EMPTY is raised.
   optional string url = 1;
+
+  // This ImageSource is only eligible to be used if *all* the conditions
+  // enumerated below are met. If even one condition is unsatisfied, this
+  // ImageSource is skipped, and Piet will pick another image. It is recommended
+  // to include at least one ImageSource that is loaded unconditionally.
+  repeated MediaQueryCondition conditions = 2;
 
   // The intrinsic width of this image, expressed in raw pixels. This may be
   // different from the width of the container in which this image should be

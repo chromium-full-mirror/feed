@@ -311,6 +311,15 @@ enum ErrorCode {
     (client_error) = WARNING
   ];
 
+  // If a MediaQueryCondition is specified with any parameter unchanged from its
+  // default value, this error is raised.
+  ERR_INVALID_MEDIA_QUERY_CONDITION = 109 [
+    // Server should flag to feature authors when such data is given.
+    (server_error) = ERROR,
+    // Clients will ignore the MediaQueryCondition and continue rendering.
+    (client_error) = NOTICE
+  ];
+
   // ---------------------------------------------------------------------------
   // Performance Related.
   // Fields start at ID 201.
