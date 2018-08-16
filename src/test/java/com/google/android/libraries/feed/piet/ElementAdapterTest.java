@@ -289,7 +289,9 @@ public class ElementAdapterTest {
     adapter.overlays.set(0, mockOverlayAdapter);
 
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-    verify(mockOverlayAdapter).bindModel(elementWithOverlays.getOverlaysList(), frameContext);
+    verify(mockOverlayAdapter)
+        .bindModel(
+            elementWithOverlays.getOverlaysList(), Element.getDefaultInstance(), frameContext);
   }
 
   @Test

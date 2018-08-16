@@ -48,8 +48,8 @@ import org.robolectric.RobolectricTestRunner;
 public class CustomElementAdapterTest {
 
   private static final CustomElementData DUMMY_DATA = CustomElementData.getDefaultInstance();
-  private static final CustomElement DEFAULT_MODEL =
-      CustomElement.newBuilder().setCustomElementData(DUMMY_DATA).build();
+  private static final Element DEFAULT_MODEL =
+      asElement(CustomElement.newBuilder().setCustomElementData(DUMMY_DATA).build());
 
   @Mock private FrameContext frameContext;
   @Mock private CustomElementProvider customElementProvider;
@@ -112,7 +112,7 @@ public class CustomElementAdapterTest {
     when(frameContext.getCustomElementBindingValue(bindingRef))
         .thenReturn(BindingValue.newBuilder().setCustomElementData(DUMMY_DATA).build());
 
-    CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
+    Element model = asElement(CustomElement.newBuilder().setCustomBinding(bindingRef).build());
 
     adapter.createAdapter(model, frameContext);
     adapter.bindModel(model, frameContext);
@@ -123,7 +123,7 @@ public class CustomElementAdapterTest {
   @Test
   public void testBindModel_noContent() {
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
-    adapter.bindModel(CustomElement.getDefaultInstance(), frameContext);
+    adapter.bindModel(asElement(CustomElement.getDefaultInstance()), frameContext);
 
     verifyZeroInteractions(customElementProvider);
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
@@ -134,7 +134,7 @@ public class CustomElementAdapterTest {
     CustomBindingRef bindingRef = CustomBindingRef.newBuilder().setBindingId("CUSTOM!").build();
     when(frameContext.getCustomElementBindingValue(bindingRef))
         .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
-    CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
+    Element model = asElement(CustomElement.newBuilder().setCustomBinding(bindingRef).build());
     adapter.createAdapter(model, frameContext);
 
     adapter.bindModel(model, frameContext);
@@ -148,7 +148,7 @@ public class CustomElementAdapterTest {
         CustomBindingRef.newBuilder().setBindingId("CUSTOM!").setIsOptional(true).build();
     when(frameContext.getCustomElementBindingValue(bindingRef))
         .thenReturn(BindingValue.getDefaultInstance());
-    CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
+    Element model = asElement(CustomElement.newBuilder().setCustomBinding(bindingRef).build());
     adapter.createAdapter(model, frameContext);
 
     // This should not fail.
@@ -161,7 +161,7 @@ public class CustomElementAdapterTest {
     CustomBindingRef bindingRef = CustomBindingRef.newBuilder().setBindingId("CUSTOM").build();
     when(frameContext.getCustomElementBindingValue(bindingRef))
         .thenReturn(BindingValue.newBuilder().setBindingId("CUSTOM").build());
-    CustomElement model = CustomElement.newBuilder().setCustomBinding(bindingRef).build();
+    Element model = asElement(CustomElement.newBuilder().setCustomBinding(bindingRef).build());
     adapter.createAdapter(model, frameContext);
 
     assertThatRunnable(() -> adapter.bindModel(model, frameContext))
@@ -234,5 +234,9 @@ public class CustomElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Missing CustomElement");
+  }
+
+  private static Element asElement(CustomElement customElement) {
+    return Element.newBuilder().setCustomElement(customElement).build();
   }
 }

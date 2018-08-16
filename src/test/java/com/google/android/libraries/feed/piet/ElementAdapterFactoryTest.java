@@ -313,14 +313,6 @@ public class ElementAdapterFactoryTest {
   }
 
   @Test
-  public void testCreateElementListAdapter() {
-    ElementList list = ElementList.getDefaultInstance();
-    ElementListAdapter adapter = adapterFactory.createElementListAdapter(list, frameContext);
-    verify(elementListFactory).get(list, frameContext);
-    assertThat(adapter).isSameAs(elementListAdapter);
-  }
-
-  @Test
   public void testCreateOverlayAdapter() {
     List<Content> overlays = Collections.emptyList();
     StackedElementAdapter adapter =

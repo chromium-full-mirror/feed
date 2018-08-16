@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -83,9 +84,9 @@ public class ParameterizedTextElementAdapterTest {
 
   @Test
   public void testBindModel_basic() {
-    TextElement textElement = getBaseTextElement();
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
+    Element model = getBaseTextElement();
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
@@ -95,8 +96,8 @@ public class ParameterizedTextElementAdapterTest {
   @Test
   public void testBindModel_noContent() {
     adapter.createAdapter(getBaseTextElement(), frameContext);
-    TextElement textElement = TextElement.getDefaultInstance();
-    adapter.bindModel(textElement, frameContext);
+    Element model = asElement(TextElement.getDefaultInstance());
+    adapter.bindModel(model, frameContext);
 
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
@@ -116,9 +117,9 @@ public class ParameterizedTextElementAdapterTest {
     when(frameContext.getParameterizedTextBindingValue(DEFAULT_BINDING_REF))
         .thenReturn(bindingValue);
 
-    TextElement textElement = getBindingTextElement(null);
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
+    Element model = getBindingTextElement(null);
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
@@ -130,10 +131,10 @@ public class ParameterizedTextElementAdapterTest {
     when(frameContext.getParameterizedTextBindingValue(DEFAULT_BINDING_REF))
         .thenReturn(BindingValue.newBuilder().setBindingId(BINDING).build());
 
-    TextElement textElement = getBindingTextElement(null);
-    adapter.createAdapter(textElement, frameContext);
+    Element model = getBindingTextElement(null);
+    adapter.createAdapter(model, frameContext);
 
-    assertThatRunnable(() -> adapter.bindModel(textElement, frameContext))
+    assertThatRunnable(() -> adapter.bindModel(model, frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -142,17 +143,18 @@ public class ParameterizedTextElementAdapterTest {
 
   @Test
   public void testBindModel_withBinding_optionalAbsent() {
-    TextElement textElement = getBindingTextElement(null /* StyleProvider*/);
-    adapter.createAdapter(textElement, frameContext);
-    TextElement textElementOptionalBinding =
-        TextElement.newBuilder()
-            .setParameterizedTextBinding(DEFAULT_BINDING_REF.toBuilder().setIsOptional(true))
-            .build();
+    Element model = getBindingTextElement(null /* StyleProvider*/);
+    adapter.createAdapter(model, frameContext);
+    Element modelOptionalBinding =
+        asElement(
+            TextElement.newBuilder()
+                .setParameterizedTextBinding(DEFAULT_BINDING_REF.toBuilder().setIsOptional(true))
+                .build());
     when(frameContext.getParameterizedTextBindingValue(
-            textElementOptionalBinding.getParameterizedTextBinding()))
+            modelOptionalBinding.getTextElement().getParameterizedTextBinding()))
         .thenReturn(BindingValue.getDefaultInstance());
 
-    adapter.bindModel(textElementOptionalBinding, frameContext);
+    adapter.bindModel(modelOptionalBinding, frameContext);
 
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
@@ -166,9 +168,9 @@ public class ParameterizedTextElementAdapterTest {
     when(frameContext.getParameterizedTextBindingValue(DEFAULT_BINDING_REF))
         .thenReturn(bindingValue);
 
-    TextElement textElement = getBindingTextElement(null /* StyleProvider*/);
-    adapter.createAdapter(textElement, frameContext);
-    adapter.bindModel(textElement, frameContext);
+    Element model = getBindingTextElement(null /* StyleProvider*/);
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
@@ -177,39 +179,47 @@ public class ParameterizedTextElementAdapterTest {
 
   @Test
   public void testStyles_padding() {
-    TextElement textElement =
-        TextElement.newBuilder().setStyleReferences(StyleIdsStack.getDefaultInstance()).build();
+    Element model =
+        asElement(
+            TextElement.newBuilder()
+                .setStyleReferences(StyleIdsStack.getDefaultInstance())
+                .build());
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
 
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
 
-    adapter.createAdapter(textElement, frameContext);
+    adapter.createAdapter(model, frameContext);
     assertThat(adapter.getView()).isNotNull();
     verify(mockStyleProvider).applyElementStyles(context, adapter.getView());
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
   }
 
-  private TextElement getBindingTextElement(/*@Nullable*/ StyleProvider styleProvider) {
+  private Element getBindingTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp =
         styleProvider != null ? styleProvider : adapterParameters.defaultStyleProvider;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
-    return TextElement.newBuilder().setParameterizedTextBinding(DEFAULT_BINDING_REF).build();
+    return asElement(
+        TextElement.newBuilder().setParameterizedTextBinding(DEFAULT_BINDING_REF).build());
   }
 
-  private TextElement getBaseTextElement() {
+  private Element getBaseTextElement() {
     return getBaseTextElement(null);
   }
 
-  private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
+  private Element getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp =
         styleProvider != null ? styleProvider : adapterParameters.defaultStyleProvider;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
 
-    TextElement.Builder textElement = TextElement.newBuilder();
-    ParameterizedText text = ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT).build();
-    textElement.setParameterizedText(text);
-    return textElement.build();
+    return asElement(
+        TextElement.newBuilder()
+            .setParameterizedText(ParameterizedText.newBuilder().setText(TEXT_LINE_CONTENT))
+            .build());
+  }
+
+  private static Element asElement(TextElement textElement) {
+    return Element.newBuilder().setTextElement(textElement).build();
   }
 }

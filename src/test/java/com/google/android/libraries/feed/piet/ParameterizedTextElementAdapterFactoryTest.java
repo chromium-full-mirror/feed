@@ -102,7 +102,8 @@ public class ParameterizedTextElementAdapterFactoryTest {
     ParameterizedTextElementAdapter textElementAdapter =
         textElementFactory.get(textElement, frameContext);
     assertThat(textElementAdapter).isSameAs(adapter);
-    textElementAdapter.createAdapter(textElement, frameContext);
+    textElementAdapter.createAdapter(
+        Element.newBuilder().setTextElement(textElement).build(), frameContext);
 
     // Ensure that releasing in the factory releases the adapter.
     textElementFactory.release(textElementAdapter);

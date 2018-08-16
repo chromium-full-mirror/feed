@@ -77,7 +77,7 @@ public class TextElementAdapterTest {
 
   @Test
   public void testCreateAdapter_setsStyles() {
-    TextElement textElement = getBaseTextElement(mockStyleProvider);
+    Element textElement = getBaseTextElement(mockStyleProvider);
     int color = Color.RED;
     int maxLines = 72;
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
@@ -127,7 +127,7 @@ public class TextElementAdapterTest {
     int maxLines = 2;
     Style style = Style.newBuilder().setMaxLines(maxLines).build();
     StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
-    TextElement textElement = getBaseTextElement(styleProvider);
+    Element textElement = getBaseTextElement(styleProvider);
     adapter.createAdapter(textElement, frameContext);
     adapter.bindModel(textElement, frameContext);
     assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
@@ -135,7 +135,11 @@ public class TextElementAdapterTest {
     // Styles should not change on a re-bind
     adapter.unbindModel();
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
-    textElement = getBaseTextElement().toBuilder().setStyleReferences(otherStyle).build();
+    textElement =
+        getBaseTextElement()
+            .toBuilder()
+            .setTextElement(TextElement.newBuilder().setStyleReferences(otherStyle))
+            .build();
     adapter.bindModel(textElement, frameContext);
 
     assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
@@ -148,7 +152,10 @@ public class TextElementAdapterTest {
             .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("prionailurus"))
             .build();
     textElement =
-        getBaseTextElement().toBuilder().setStyleReferences(otherStyleWithBinding).build();
+        getBaseTextElement()
+            .toBuilder()
+            .setTextElement(TextElement.newBuilder().setStyleReferences(otherStyleWithBinding))
+            .build();
     adapter.bindModel(textElement, frameContext);
 
     verify(frameContext).makeStyleFor(otherStyleWithBinding);
@@ -156,7 +163,7 @@ public class TextElementAdapterTest {
 
   @Test
   public void testUnbind() {
-    TextElement textElement = getBaseTextElement(null);
+    Element textElement = getBaseTextElement(null);
     adapter.createAdapter(textElement, frameContext);
     adapter.bindModel(textElement, frameContext);
 
@@ -177,8 +184,11 @@ public class TextElementAdapterTest {
   public void testGetStyles() {
     StyleIdsStack elementStyles = StyleIdsStack.newBuilder().addStyleIds("hair").build();
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
-    TextElement textElement =
-        getBaseTextElement(mockStyleProvider).toBuilder().setStyleReferences(elementStyles).build();
+    Element textElement =
+        getBaseTextElement(mockStyleProvider)
+            .toBuilder()
+            .setTextElement(TextElement.newBuilder().setStyleReferences(elementStyles))
+            .build();
 
     adapter.createAdapter(textElement, frameContext);
 
@@ -214,9 +224,9 @@ public class TextElementAdapterTest {
   @Test
   public void testHorizontalAlignment_start() {
     Element startElement =
-        Element.newBuilder()
+        getBaseTextElement()
+            .toBuilder()
             .setGravityHorizontal(GravityHorizontal.GRAVITY_START)
-            .setTextElement(getBaseTextElement())
             .build();
     adapter.createAdapter(startElement, frameContext);
     assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.START);
@@ -225,9 +235,9 @@ public class TextElementAdapterTest {
   @Test
   public void testHorizontalAlignment_center() {
     Element startElement =
-        Element.newBuilder()
+        getBaseTextElement()
+            .toBuilder()
             .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)
-            .setTextElement(getBaseTextElement())
             .build();
     adapter.createAdapter(startElement, frameContext);
     assertThat(adapter.getBaseView().getGravity())
@@ -237,9 +247,9 @@ public class TextElementAdapterTest {
   @Test
   public void testHorizontalAlignment_end() {
     Element startElement =
-        Element.newBuilder()
+        getBaseTextElement()
+            .toBuilder()
             .setGravityHorizontal(GravityHorizontal.GRAVITY_END)
-            .setTextElement(getBaseTextElement())
             .build();
     adapter.createAdapter(startElement, frameContext);
     assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.END);
@@ -248,25 +258,24 @@ public class TextElementAdapterTest {
   @Test
   public void testHorizontalAlignment_unspecified() {
     Element startElement =
-        Element.newBuilder()
+        getBaseTextElement()
+            .toBuilder()
             .setGravityHorizontal(GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED)
-            .setTextElement(getBaseTextElement())
             .build();
     adapter.createAdapter(startElement, frameContext);
     assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.START);
   }
 
-  private TextElement getBaseTextElement() {
+  private Element getBaseTextElement() {
     return getBaseTextElement(null);
   }
 
-  private TextElement getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
+  private Element getBaseTextElement(/*@Nullable*/ StyleProvider styleProvider) {
     StyleProvider sp =
         styleProvider != null ? styleProvider : adapterParameters.defaultStyleProvider;
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(sp);
 
-    TextElement.Builder textElement = TextElement.newBuilder();
-    return textElement.build();
+    return Element.newBuilder().setTextElement(TextElement.getDefaultInstance()).build();
   }
 
   private static class TestTextElementAdapter extends TextElementAdapter {

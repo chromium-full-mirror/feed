@@ -69,8 +69,8 @@ public class ImageElementAdapterTest {
       RoundedCorners.newBuilder().setBitmask(Corners.BOTTOM_LEFT_VALUE).setRadius(34).build();
   private static final Image DEFAULT_IMAGE =
       Image.newBuilder().addSources(ImageSource.newBuilder().setUrl("icanhas.chz")).build();
-  private static final ImageElement DEFAULT_MODEL =
-      ImageElement.newBuilder().setImage(DEFAULT_IMAGE).build();
+  private static final Element DEFAULT_MODEL =
+      asElement(ImageElement.newBuilder().setImage(DEFAULT_IMAGE).build());
 
   @Mock private ElementAdapterFactory adapterFactory;
   @Mock private TemplateBinder templateBinder;
@@ -117,7 +117,7 @@ public class ImageElementAdapterTest {
   public void testCreateAdapter() {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
-    assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL);
+    assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL.getImageElement());
 
     assertThat(adapter.getView()).isNotNull();
 
@@ -147,7 +147,7 @@ public class ImageElementAdapterTest {
     setStyle(null, null);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL);
+    assertThat(adapter.getModel()).isSameAs(DEFAULT_MODEL.getImageElement());
 
     assertThat(adapter.getView()).isNotNull();
 
@@ -161,7 +161,7 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, null);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    assertThat(adapter.getModel()).isEqualTo(DEFAULT_MODEL);
+    assertThat(adapter.getModel()).isEqualTo(DEFAULT_MODEL.getImageElement());
 
     assertThat(adapter.getView()).isNotNull();
 
@@ -175,7 +175,7 @@ public class ImageElementAdapterTest {
     setStyle(null, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    assertThat(adapter.getModel()).isEqualTo(DEFAULT_MODEL);
+    assertThat(adapter.getModel()).isEqualTo(DEFAULT_MODEL.getImageElement());
 
     assertThat(adapter.getView()).isNotNull();
 
@@ -186,7 +186,7 @@ public class ImageElementAdapterTest {
 
   @Test
   public void testCreateAdapter_noContent() {
-    ImageElement model = ImageElement.getDefaultInstance();
+    Element model = asElement(ImageElement.getDefaultInstance());
 
     adapter.createAdapter(model, frameContext);
 
@@ -200,8 +200,9 @@ public class ImageElementAdapterTest {
   @Test
   public void testBindModel_image() {
     StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
-    ImageElement model =
-        ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build();
+    Element model =
+        asElement(
+            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
 
     adapter.createAdapter(model, frameContext);
     adapter.bindModel(model, frameContext);
@@ -209,14 +210,14 @@ public class ImageElementAdapterTest {
     imageView = adapter.getBaseView();
     assertDrawableSet(imageView);
 
-    assertThat(adapter.getModel()).isSameAs(model);
+    assertThat(adapter.getModel()).isSameAs(model.getImageElement());
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(styles);
   }
 
   @Test
   public void testBindModel_imageBinding() {
     ImageBindingRef imageBinding = ImageBindingRef.newBuilder().setBindingId("feline").build();
-    ImageElement model = ImageElement.newBuilder().setImageBinding(imageBinding).build();
+    Element model = asElement(ImageElement.newBuilder().setImageBinding(imageBinding).build());
     when(frameContext.getImageBindingValue(imageBinding))
         .thenReturn(BindingValue.newBuilder().setImage(DEFAULT_IMAGE).build());
 
@@ -224,17 +225,20 @@ public class ImageElementAdapterTest {
     adapter.bindModel(model, frameContext);
 
     assertDrawableSet(adapter.getBaseView());
-    assertThat(adapter.getModel()).isSameAs(model);
+    assertThat(adapter.getModel()).isSameAs(model.getImageElement());
   }
 
   @Test
   public void testBindModel_visibilityGone() {
     String bindingRef = "foto";
     ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(bindingRef).build();
-    ImageElement imageBindingElement =
-        ImageElement.newBuilder().setImageBinding(imageBindingRef).build();
+    Element imageBindingElement =
+        asElement(ImageElement.newBuilder().setImageBinding(imageBindingRef).build());
     adapter.createAdapter(
-        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
+        Element.newBuilder()
+            .setImageElement(ImageElement.newBuilder().setImage(Image.getDefaultInstance()))
+            .build(),
+        frameContext);
     when(frameContext.getImageBindingValue(imageBindingRef))
         .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
 
@@ -248,10 +252,11 @@ public class ImageElementAdapterTest {
     String bindingRef = "foto";
     ImageBindingRef imageBindingRef =
         ImageBindingRef.newBuilder().setBindingId(bindingRef).setIsOptional(true).build();
-    ImageElement imageBindingElement =
-        ImageElement.newBuilder().setImageBinding(imageBindingRef).build();
+    Element imageBindingElement =
+        asElement(ImageElement.newBuilder().setImageBinding(imageBindingRef).build());
     adapter.createAdapter(
-        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
+        asElement(ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build()),
+        frameContext);
     when(frameContext.getImageBindingValue(imageBindingRef))
         .thenReturn(BindingValue.getDefaultInstance());
 
@@ -264,10 +269,11 @@ public class ImageElementAdapterTest {
   public void testBindModel_noContentInBindingValue() {
     String bindingRef = "foto";
     ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(bindingRef).build();
-    ImageElement imageBindingElement =
-        ImageElement.newBuilder().setImageBinding(imageBindingRef).build();
+    Element imageBindingElement =
+        asElement(ImageElement.newBuilder().setImageBinding(imageBindingRef).build());
     adapter.createAdapter(
-        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build(), frameContext);
+        asElement(ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build()),
+        frameContext);
     when(frameContext.getImageBindingValue(imageBindingRef))
         .thenReturn(
             BindingValue.newBuilder()
@@ -288,8 +294,12 @@ public class ImageElementAdapterTest {
     StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
     Image imageWithScaleType =
         DEFAULT_IMAGE.toBuilder().setScaleType(Image.ScaleType.CENTER_CROP).build();
-    ImageElement model =
-        ImageElement.newBuilder().setImage(imageWithScaleType).setStyleReferences(styles).build();
+    Element model =
+        asElement(
+            ImageElement.newBuilder()
+                .setImage(imageWithScaleType)
+                .setStyleReferences(styles)
+                .build());
 
     adapter.createAdapter(model, frameContext);
     adapter.bindModel(model, frameContext);
@@ -313,14 +323,15 @@ public class ImageElementAdapterTest {
     adapter.unbindModel();
 
     // Bind a different model
-    ImageElement model2 = ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build();
+    Element model2 =
+        asElement(ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build());
     adapter.bindModel(model2, frameContext);
     verify(assetProvider)
         .getImage(eq(Image.getDefaultInstance()), consumerArgumentCaptor.capture());
 
     RecyclerKey key2 = adapter.getKey();
     assertThat(key1).isSameAs(key2);
-    assertThat(adapter.getModel()).isSameAs(model2);
+    assertThat(adapter.getModel()).isSameAs(model2.getImageElement());
     assertThat(adapter.getView()).isNotNull();
 
     Drawable drawable2 = new ColorDrawable(Color.RED);
@@ -356,11 +367,12 @@ public class ImageElementAdapterTest {
 
     // Styles do not change when a different model is bound
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
-    ImageElement imageWithOtherStyle =
-        ImageElement.newBuilder()
-            .setStyleReferences(otherStyle)
-            .setImage(Image.getDefaultInstance())
-            .build();
+    Element imageWithOtherStyle =
+        asElement(
+            ImageElement.newBuilder()
+                .setStyleReferences(otherStyle)
+                .setImage(Image.getDefaultInstance())
+                .build());
     adapter.bindModel(imageWithOtherStyle, frameContext);
     adapter.unbindModel();
 
@@ -371,11 +383,12 @@ public class ImageElementAdapterTest {
         StyleIdsStack.newBuilder()
             .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("tuna"))
             .build();
-    ImageElement imageWithBoundStyle =
-        ImageElement.newBuilder()
-            .setStyleReferences(boundStyle)
-            .setImage(Image.getDefaultInstance())
-            .build();
+    Element imageWithBoundStyle =
+        asElement(
+            ImageElement.newBuilder()
+                .setStyleReferences(boundStyle)
+                .setImage(Image.getDefaultInstance())
+                .build());
     adapter.bindModel(imageWithBoundStyle, frameContext);
 
     verify(frameContext).makeStyleFor(boundStyle);
@@ -425,7 +438,7 @@ public class ImageElementAdapterTest {
 
     // Bind a new model before the callback has completed
     Image model2 = Image.newBuilder().setTintColor(5).build();
-    adapter.bindModel(ImageElement.newBuilder().setImage(model2).build(), frameContext);
+    adapter.bindModel(asElement(ImageElement.newBuilder().setImage(model2).build()), frameContext);
 
     // Callback now completes
     consumerArgumentCaptor.getValue().accept(defaultDrawable);
@@ -506,5 +519,9 @@ public class ImageElementAdapterTest {
     consumerArgumentCaptor.getValue().accept(defaultDrawable);
     assertThat(imageView.getDrawable()).isEqualTo(defaultDrawable);
     assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_INSIDE);
+  }
+
+  private static Element asElement(ImageElement imageElement) {
+    return Element.newBuilder().setImageElement(imageElement).build();
   }
 }

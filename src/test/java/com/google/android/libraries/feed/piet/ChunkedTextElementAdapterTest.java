@@ -54,6 +54,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
+import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ImagesProto.Image;
@@ -79,7 +80,6 @@ import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
-import org.robolectric.shadows.ShadowDrawable;
 import org.robolectric.shadows.ShadowTextView;
 
 /** Tests of the {@link ChunkedTextElementAdapter}. */
@@ -133,7 +133,6 @@ public class ChunkedTextElementAdapterTest {
   @Mock private HostProviders hostProviders;
 
   private Drawable drawable;
-  private ShadowDrawable shadowDrawable;
   private SpannableStringBuilder spannable;
 
   private Context context;
@@ -151,9 +150,8 @@ public class ChunkedTextElementAdapterTest {
         new AdapterParameters(null, null, hostProviders, mockTextEvaluator, null, null);
 
     drawable = new ColorDrawable(Color.GREEN);
-    shadowDrawable = Shadows.shadowOf(drawable);
-    shadowDrawable.setIntrinsicHeight(IMAGE_HEIGHT_PX);
-    shadowDrawable.setIntrinsicWidth(IMAGE_WIDTH_PX);
+    Shadows.shadowOf(drawable).setIntrinsicHeight(IMAGE_HEIGHT_PX);
+    Shadows.shadowOf(drawable).setIntrinsicWidth(IMAGE_WIDTH_PX);
     spannable = new SpannableStringBuilder();
 
     textView = new TextView(context);
@@ -181,8 +179,8 @@ public class ChunkedTextElementAdapterTest {
     TextElement chunkedTextElement =
         TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build();
 
-    adapter.createAdapter(chunkedTextElement, frameContext);
-    adapter.bindModel(chunkedTextElement, frameContext);
+    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextElement), frameContext);
 
     assertThat(adapter.getBaseView().getText().toString()).isEqualTo(PROCESSED_TEXT);
   }
@@ -195,8 +193,8 @@ public class ChunkedTextElementAdapterTest {
     when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
         .thenReturn(BindingValue.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build());
 
-    adapter.createAdapter(chunkedTextBindingElement, frameContext);
-    adapter.bindModel(chunkedTextBindingElement, frameContext);
+    adapter.createAdapter(asElement(chunkedTextBindingElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextBindingElement), frameContext);
 
     verify(frameContext).getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF);
     assertThat(adapter.getBaseView().getText().toString()).isEqualTo(PROCESSED_TEXT);
@@ -220,8 +218,8 @@ public class ChunkedTextElementAdapterTest {
         .thenReturn(
             BindingValue.newBuilder().setParameterizedText(PARAMETERIZED_CHUNK_TEXT).build());
 
-    adapter.createAdapter(chunkedTextElement, frameContext);
-    adapter.bindModel(chunkedTextElement, frameContext);
+    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextElement), frameContext);
 
     assertThat(adapter.getBaseView().getText().toString()).isEqualTo(PROCESSED_TEXT);
   }
@@ -247,8 +245,8 @@ public class ChunkedTextElementAdapterTest {
                 .setVisibility(Visibility.GONE)
                 .build());
 
-    adapter.createAdapter(chunkedTextElement, frameContext);
-    adapter.bindModel(chunkedTextElement, frameContext);
+    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextElement), frameContext);
 
     assertThat(adapter.getBaseView().getText().toString()).isEmpty();
   }
@@ -265,8 +263,8 @@ public class ChunkedTextElementAdapterTest {
     when(mockTextEvaluator.evaluate(mockAssetProvider, ParameterizedText.getDefaultInstance()))
         .thenReturn("");
 
-    adapter.createAdapter(chunkedTextElement, frameContext);
-    adapter.bindModel(chunkedTextElement, frameContext);
+    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextElement), frameContext);
 
     assertThat(adapter.getBaseView().getText().toString()).isEmpty();
     verify(frameContext)
@@ -282,9 +280,9 @@ public class ChunkedTextElementAdapterTest {
             .setParameterizedText(ParameterizedText.getDefaultInstance())
             .build();
 
-    adapter.createAdapter(elementWithWrongContent, frameContext);
+    adapter.createAdapter(asElement(elementWithWrongContent), frameContext);
 
-    assertThatRunnable(() -> adapter.bindModel(elementWithWrongContent, frameContext))
+    assertThatRunnable(() -> adapter.bindModel(asElement(elementWithWrongContent), frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -295,7 +293,7 @@ public class ChunkedTextElementAdapterTest {
   public void testBind_missingContent_fails() {
     TextElement emptyElement = TextElement.getDefaultInstance();
 
-    assertThatRunnable(() -> adapter.bindModel(emptyElement, frameContext))
+    assertThatRunnable(() -> adapter.bindModel(asElement(emptyElement), frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -307,8 +305,8 @@ public class ChunkedTextElementAdapterTest {
     TextElement chunkedTextElement =
         TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build();
 
-    adapter.createAdapter(chunkedTextElement, frameContext);
-    adapter.bindModel(chunkedTextElement, frameContext);
+    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextElement), frameContext);
 
     assertThat(adapter.getBaseView().getText().toString()).isEqualTo(PROCESSED_TEXT);
   }
@@ -320,8 +318,8 @@ public class ChunkedTextElementAdapterTest {
             .setChunkedText(ChunkedText.newBuilder().addChunks(IMAGE_CHUNK))
             .build();
 
-    adapter.createAdapter(chunkedImageElement, frameContext);
-    adapter.bindModel(chunkedImageElement, frameContext);
+    adapter.createAdapter(asElement(chunkedImageElement), frameContext);
+    adapter.bindModel(asElement(chunkedImageElement), frameContext);
 
     assertThat(adapter.getBaseView().getText().toString()).isEqualTo(" ");
     assertThat(((SpannedString) adapter.getBaseView().getText()).getSpans(0, 1, ImageSpan.class))
@@ -335,9 +333,9 @@ public class ChunkedTextElementAdapterTest {
             .setChunkedText(ChunkedText.newBuilder().addChunks(Chunk.getDefaultInstance()))
             .build();
 
-    adapter.createAdapter(elementWithEmptyChunk, frameContext);
+    adapter.createAdapter(asElement(elementWithEmptyChunk), frameContext);
 
-    assertThatRunnable(() -> adapter.bindModel(elementWithEmptyChunk, frameContext))
+    assertThatRunnable(() -> adapter.bindModel(asElement(elementWithEmptyChunk), frameContext))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -352,7 +350,7 @@ public class ChunkedTextElementAdapterTest {
     when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
         .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
 
-    adapter.createAdapter(chunkedTextBindingElement, frameContext);
+    adapter.createAdapter(asElement(chunkedTextBindingElement), frameContext);
 
     adapter.setTextOnView(frameContext, chunkedTextBindingElement);
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
@@ -364,7 +362,7 @@ public class ChunkedTextElementAdapterTest {
         TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();
     when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
         .thenReturn(BindingValue.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build());
-    adapter.createAdapter(chunkedTextBindingElement, frameContext);
+    adapter.createAdapter(asElement(chunkedTextBindingElement), frameContext);
 
     ChunkedTextBindingRef optionalBindingRef =
         CHUNKED_TEXT_BINDING_REF.toBuilder().setIsOptional(true).build();
@@ -383,7 +381,8 @@ public class ChunkedTextElementAdapterTest {
     TextElement chunkedTextBindingElement =
         TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();
     adapter.createAdapter(
-        TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build(), frameContext);
+        asElement(TextElement.newBuilder().setChunkedText(CHUNKED_TEXT_TEXT).build()),
+        frameContext);
 
     when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
         .thenReturn(
@@ -444,7 +443,7 @@ public class ChunkedTextElementAdapterTest {
     when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
 
     // Required to set up the local frameContext member var.
-    adapter.createAdapter(TextElement.getDefaultInstance(), frameContext);
+    adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
 
     adapter.addImageChunk(frameContext, textView, spannable, IMAGE_CHUNK);
 
@@ -484,8 +483,8 @@ public class ChunkedTextElementAdapterTest {
             .build();
     when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
 
-    adapter.createAdapter(imageChunkWithActions, frameContext);
-    adapter.bindModel(imageChunkWithActions, frameContext);
+    adapter.createAdapter(asElement(imageChunkWithActions), frameContext);
+    adapter.bindModel(asElement(imageChunkWithActions), frameContext);
 
     assertThat(
             ((SpannedString) adapter.getBaseView().getText())
@@ -516,8 +515,8 @@ public class ChunkedTextElementAdapterTest {
         .thenReturn(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build());
     when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
 
-    adapter.createAdapter(imageChunkWithActions, frameContext);
-    adapter.bindModel(imageChunkWithActions, frameContext);
+    adapter.createAdapter(asElement(imageChunkWithActions), frameContext);
+    adapter.bindModel(asElement(imageChunkWithActions), frameContext);
 
     assertThat(
             ((SpannedString) adapter.getBaseView().getText())
@@ -547,8 +546,8 @@ public class ChunkedTextElementAdapterTest {
     when(frameContext.getActionsFromBinding(binding)).thenReturn(Actions.getDefaultInstance());
     when(frameContext.getFrame()).thenReturn(Frame.getDefaultInstance());
 
-    adapter.createAdapter(imageChunkWithActions, frameContext);
-    adapter.bindModel(imageChunkWithActions, frameContext);
+    adapter.createAdapter(asElement(imageChunkWithActions), frameContext);
+    adapter.bindModel(asElement(imageChunkWithActions), frameContext);
 
     // Completes successfully, but doesn't add the clickable span.
     assertThat(
@@ -559,7 +558,7 @@ public class ChunkedTextElementAdapterTest {
 
   @Test
   public void testUnbind_cancelsCallbacks() {
-    adapter.createAdapter(TextElement.getDefaultInstance(), frameContext);
+    adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
     adapter.addImageChunk(frameContext, textView, spannable, IMAGE_CHUNK);
 
     ImageSpan[] imageSpans = spannable.getSpans(0, 1, ImageSpan.class);
@@ -638,5 +637,9 @@ public class ChunkedTextElementAdapterTest {
     public int getLineHeight() {
       return TEXT_HEIGHT;
     }
+  }
+
+  private static Element asElement(TextElement textElement) {
+    return Element.newBuilder().setTextElement(textElement).build();
   }
 }

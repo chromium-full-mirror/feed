@@ -113,16 +113,6 @@ abstract class ElementAdapter<V extends View, M> {
    * Adapter; call {@link #releaseAdapter()} first. Do not override; override {@link
    * #onCreateAdapter} instead.
    */
-  public void createAdapter(M model, FrameContext frameContext) {
-    createAdapter(model, Element.getDefaultInstance(), frameContext);
-  }
-
-  /**
-   * Sets up an adapter, but does not bind data. After this, the {@link #getView()} and {@link
-   * #getKey()} can be called. This method must not be called if a Model is currently bound to the
-   * Adapter; call {@link #releaseAdapter()} first. Do not override; override {@link
-   * #onCreateAdapter} instead.
-   */
   public void createAdapter(Element baseElement, FrameContext frameContext) {
     M model = getModelFromElement(baseElement);
     createAdapter(model, baseElement, frameContext);
@@ -150,14 +140,6 @@ abstract class ElementAdapter<V extends View, M> {
 
   /** Performs child-class-specific adapter creation; to be overridden. */
   void onCreateAdapter(M model, Element baseElement, FrameContext frameContext) {}
-
-  /**
-   * Binds data from a Model to the Adapter, without changing child views or styles. Do not
-   * override; override {@link #onBindModel} instead.
-   */
-  public void bindModel(M model, FrameContext frameContext) {
-    bindModel(model, Element.getDefaultInstance(), frameContext);
-  }
 
   /**
    * Binds data from a Model to the Adapter, without changing child views or styles. Do not
@@ -222,8 +204,9 @@ abstract class ElementAdapter<V extends View, M> {
           overlays.get(0) instanceof StackedElementAdapter,
           "Unexpected overlay adapter type; was %s",
           overlays.get(0).getClass());
+      // Overlays have no base Element, so we pass the default instance as a dummy here.
       ((StackedElementAdapter) overlays.get(0))
-          .bindModel(baseElement.getOverlaysList(), frameContext);
+          .bindModel(baseElement.getOverlaysList(), Element.getDefaultInstance(), frameContext);
     }
   }
 

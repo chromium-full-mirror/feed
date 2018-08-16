@@ -69,7 +69,7 @@ public class SpacerElementAdapterTest {
   @Test
   public void testCreate() {
     int paddingWidth = 2;
-    SpacerElement spacerElement = SpacerElement.newBuilder().setHeight(1).build();
+    Element spacerElement = asElement(SpacerElement.newBuilder().setHeight(1).build());
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(paddingWidth).setBottom(paddingWidth).build();
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
@@ -86,8 +86,8 @@ public class SpacerElementAdapterTest {
     // Bind adapter and check height
     int padding = 2;
     StyleIdsStack styleStack1 = StyleIdsStack.newBuilder().addStyleIds("1").build();
-    SpacerElement spacerElement =
-        SpacerElement.newBuilder().setHeight(1).setStyleReferences(styleStack1).build();
+    Element spacerElement =
+        asElement(SpacerElement.newBuilder().setHeight(1).setStyleReferences(styleStack1).build());
     Style style =
         Style.newBuilder()
             .setPadding(EdgeWidths.newBuilder().setTop(padding).setBottom(padding).build())
@@ -113,8 +113,8 @@ public class SpacerElementAdapterTest {
             .addStyleIds("2")
             .setStyleBinding(StyleBindingRef.getDefaultInstance())
             .build();
-    SpacerElement spacerElement2 =
-        SpacerElement.newBuilder().setHeight(2).setStyleReferences(styleStack2).build();
+    Element spacerElement2 =
+        asElement(SpacerElement.newBuilder().setHeight(2).setStyleReferences(styleStack2).build());
     Style style2 =
         Style.newBuilder()
             .setPadding(EdgeWidths.newBuilder().setTop(padding2).setBottom(padding2).build())
@@ -133,13 +133,13 @@ public class SpacerElementAdapterTest {
   @Test
   public void testBindOnlyChangesOnStyleBindings() {
     StyleIdsStack styles1 = StyleIdsStack.newBuilder().addStyleIds("style1").build();
-    SpacerElement defaultElement =
-        SpacerElement.newBuilder().setStyleReferences(styles1).setHeight(1).build();
+    Element defaultElement =
+        asElement(SpacerElement.newBuilder().setStyleReferences(styles1).setHeight(1).build());
 
     StyleIdsStack styles2 = StyleIdsStack.newBuilder().addStyleIds("style2").build();
     StyleProvider mockStyleProvider2 = mock(StyleProvider.class);
-    SpacerElement otherElementWithStyleRefs =
-        SpacerElement.newBuilder().setStyleReferences(styles2).setHeight(2).build();
+    Element otherElementWithStyleRefs =
+        asElement(SpacerElement.newBuilder().setStyleReferences(styles2).setHeight(2).build());
 
     StyleIdsStack styles3 =
         StyleIdsStack.newBuilder()
@@ -147,8 +147,8 @@ public class SpacerElementAdapterTest {
             .setStyleBinding(StyleBindingRef.newBuilder().setBindingId("styleBinding"))
             .build();
     StyleProvider mockStyleProvider3 = mock(StyleProvider.class);
-    SpacerElement otherElementWithStyleBindings =
-        SpacerElement.newBuilder().setStyleReferences(styles3).setHeight(3).build();
+    Element otherElementWithStyleBindings =
+        asElement(SpacerElement.newBuilder().setStyleReferences(styles3).setHeight(3).build());
 
     when(frameContext.makeStyleFor(styles1)).thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(styles2)).thenReturn(mockStyleProvider2);
@@ -199,5 +199,9 @@ public class SpacerElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Missing SpacerElement");
+  }
+
+  private static Element asElement(SpacerElement spacerElement) {
+    return Element.newBuilder().setSpacerElement(spacerElement).build();
   }
 }

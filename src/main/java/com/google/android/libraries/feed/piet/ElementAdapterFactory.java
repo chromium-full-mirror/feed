@@ -141,16 +141,11 @@ class ElementAdapterFactory {
     return returnAdapter;
   }
 
-  ElementListAdapter createElementListAdapter(ElementList elementList, FrameContext frameContext) {
-    ElementListAdapter returnAdapter = elementListFactory.get(elementList, frameContext);
-    returnAdapter.createAdapter(elementList, frameContext);
-    return returnAdapter;
-  }
-
   StackedElementAdapter createStackedElementAdapter(
       List<Content> overlays, FrameContext frameContext) {
     StackedElementAdapter returnAdapter = stackedElementFactory.get(overlays, frameContext);
-    returnAdapter.createAdapter(overlays, frameContext);
+    // Overlays have no base Element, so we pass the default instance as a dummy here.
+    returnAdapter.createAdapter(overlays, Element.getDefaultInstance(), frameContext);
     return returnAdapter;
   }
 
