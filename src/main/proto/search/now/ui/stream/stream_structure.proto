@@ -73,6 +73,24 @@ message RepresentationData {
   optional string uri = 1;
 }
 
+message OfflineMetadata {
+  // Title of the content.
+  optional string title = 1;
+
+  // Url for image for the content.
+  optional string image_url = 2;
+
+  // Attribution of the content. Typically includes source and time since
+  // publishing.
+  optional string attribution = 3;
+
+  // Url for the favicon for the content.
+  optional string favicon_url = 4;
+
+  // Short string from the content, typically the start of an article.
+  optional string snippet = 5;
+}
+
 // Feature which is able to show actual content in a stream. This could be
 // inside or outside a card. Actual data on what to display will be sent on an
 // extension.
@@ -88,6 +106,7 @@ message Content {
   optional Type type = 1;
   optional BasicLoggingMetadata basicLoggingMetadata = 2;
   optional RepresentationData representationData = 3;
+  optional OfflineMetadata offline_metadata = 4;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
