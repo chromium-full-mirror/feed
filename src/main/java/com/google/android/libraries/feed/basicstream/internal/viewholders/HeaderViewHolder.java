@@ -14,26 +14,38 @@
 
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
+import android.view.ViewParent;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.stream.Header;
+import com.google.android.libraries.feed.common.logging.Logger;
 
 /** {@link FeedViewHolder} for headers. */
-public class HeaderViewHolder extends FeedViewHolder {
+public class HeaderViewHolder extends FeedViewHolder implements SwipeableViewHolder {
 
+  private static final String TAG = "HeaderViewHolder";
   private final FrameLayout frameLayout;
 
   /*@Nullable*/ private Header header;
+  /*@Nullable*/ private SwipeNotifier swipeNotifier;
 
   public HeaderViewHolder(FrameLayout itemView) {
     super(itemView);
     this.frameLayout = itemView;
   }
 
-  public void bind(Header header) {
+  public void bind(Header header, SwipeNotifier swipeNotifier) {
     this.header = header;
-    if (header.getView().getParent() == null) {
+    this.swipeNotifier = swipeNotifier;
+    ViewParent parent = header.getView().getParent();
+    if (parent == null) {
       frameLayout.addView(header.getView());
+    } else if (parent != frameLayout) {
+      Logger.wtf(
+          TAG,
+          "Header already has a parent which is not the view holder's FrameLayout. "
+              + "This should not happen.");
     }
   }
 
@@ -41,5 +53,17 @@ public class HeaderViewHolder extends FeedViewHolder {
   public void unbind() {
     frameLayout.removeAllViews();
     this.header = null;
+    this.swipeNotifier = null;
+  }
+
+  @Override
+  public boolean canSwipe() {
+    return checkNotNull(header, "canSwipe cannot be called before viewholder is bound.")
+        .isDismissible();
+  }
+
+  @Override
+  public void onSwiped() {
+    checkNotNull(swipeNotifier, "canSwipe cannot be called before viewholder is bound.").onSwiped();
   }
 }

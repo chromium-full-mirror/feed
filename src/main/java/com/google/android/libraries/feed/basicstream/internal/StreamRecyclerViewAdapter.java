@@ -272,7 +272,25 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   }
 
   @VisibleForTesting
+  void dismissHeader(Header header) {
+    int indexToRemove = -1;
+    for (int i = 0; i < headers.size(); i++) {
+      if (headers.get(i).getHeader() == header) {
+        indexToRemove = i;
+      }
+    }
+    header.onDismissed();
+    if (indexToRemove == -1) {
+      Logger.w(TAG, "Header has already been removed.");
+      return;
+    }
+
+    headers.remove(indexToRemove);
+    notifyItemRemoved(indexToRemove);
+  }
+
+  @VisibleForTesting
   HeaderDriver createHeaderDriver(Header header) {
-    return new HeaderDriver(header);
+    return new HeaderDriver(header, () -> dismissHeader(header));
   }
 }

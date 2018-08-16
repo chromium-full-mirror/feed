@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -388,6 +389,28 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getContentBindingIndex(0));
 
     verify(deepestContentTracker).updateDeepestContentTracker(0, INITIAL_CONTENT_ID);
+  }
+
+  @Test
+  public void testDismissHeader() {
+    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(3);
+
+    streamRecyclerViewAdapter.dismissHeader(header1);
+
+    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(2);
+    verify(header1).onDismissed();
+  }
+
+  @Test
+  public void testDismissHeader_whenNoHeaders() {
+    streamRecyclerViewAdapter.setHeaders(Collections.emptyList());
+    reset(header1);
+    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(1);
+
+    streamRecyclerViewAdapter.dismissHeader(header1);
+
+    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(1);
+    verify(header1).onDismissed();
   }
 
   private FrameLayout getCardView(ViewHolder viewHolder) {

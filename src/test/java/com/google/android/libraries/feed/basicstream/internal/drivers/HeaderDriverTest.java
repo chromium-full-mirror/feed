@@ -21,6 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.SwipeNotifier;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,13 +34,14 @@ public class HeaderDriverTest {
 
   @Mock private Header header;
   @Mock private HeaderViewHolder headerViewHolder;
+  @Mock private SwipeNotifier swipeNotifier;
 
   private HeaderDriver headerDriver;
 
   @Before
   public void setup() {
     initMocks(this);
-    headerDriver = new HeaderDriver(header);
+    headerDriver = new HeaderDriver(header, swipeNotifier);
   }
 
   @Test
@@ -49,7 +51,7 @@ public class HeaderDriverTest {
     headerDriver.bind(headerViewHolder);
 
     assertThat(headerDriver.isBound()).isTrue();
-    verify(headerViewHolder).bind(header);
+    verify(headerViewHolder).bind(header, swipeNotifier);
   }
 
   @Test
