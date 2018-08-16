@@ -104,8 +104,8 @@ message Content {
     PIET = 1;
   }
   optional Type type = 1;
-  optional BasicLoggingMetadata basicLoggingMetadata = 2;
-  optional RepresentationData representationData = 3;
+  optional BasicLoggingMetadata basic_logging_metadata = 2;
+  optional RepresentationData representation_data = 3;
   optional OfflineMetadata offline_metadata = 4;
 
   // Please use CL numbers you own for extension numbers.
