@@ -405,7 +405,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         modelFeature,
         modelProvider,
         position,
-        streamOfflineMonitor);
+        streamOfflineMonitor,
+        contentChangedListener);
   }
 
   @VisibleForTesting
@@ -419,7 +420,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         modelFeature,
         modelProvider,
         position,
-        streamOfflineMonitor);
+        streamOfflineMonitor,
+        contentChangedListener);
   }
 
   @VisibleForTesting

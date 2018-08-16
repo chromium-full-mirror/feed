@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.OneShotVisibilityLoggingListener;
@@ -29,6 +30,7 @@ import com.google.android.libraries.feed.basicstream.internal.logging.StreamCont
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
@@ -61,7 +63,11 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   private final FeedActionPayload swipeAction;
   private final String contentId;
   private final StreamOfflineMonitor streamOfflineMonitor;
+  private final OfflineStatusConsumer offlineStatusConsumer;
+  private final String contentUrl;
+  private final ContentChangedListener contentChangedListener;
 
+  private boolean availableOffline;
   /*@Nullable*/ private LoggingListener loggingListener;
   /*@Nullable*/ private PietViewHolder viewHolder;
 
@@ -75,16 +81,19 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ModelProvider modelProvider,
       int position,
       FeedActionPayload swipeAction,
-      StreamOfflineMonitor streamOfflineMonitor) {
+      StreamOfflineMonitor streamOfflineMonitor,
+      ContentChangedListener contentChangedListener) {
     PietContent pietContent = getPietContent(contentFeatureModel.getStreamFeature().getContent());
     this.basicLoggingApi = basicLoggingApi;
     frame = pietContent.getFrame();
     pietSharedStates = getPietSharedStates(pietContent, modelProvider);
     contentId = contentFeatureModel.getStreamFeature().getContentId();
+    RepresentationData representationData =
+        contentFeatureModel.getStreamFeature().getContent().getRepresentationData();
     contentLoggingData =
         createContentLoggingData(
             contentFeatureModel.getStreamFeature().getContent().getBasicLoggingMetadata(),
-            contentFeatureModel.getStreamFeature().getContent().getRepresentationData(),
+            representationData,
             position);
     streamActionApi =
         createStreamActionApi(
@@ -97,10 +106,17 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
             modelProvider.getSessionToken());
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
+    contentUrl = representationData.getUri();
+    availableOffline = streamOfflineMonitor.isAvailableOffline(contentUrl);
+    offlineStatusConsumer = new OfflineStatusConsumer();
+    streamOfflineMonitor.addOfflineStatusConsumer(contentUrl, offlineStatusConsumer);
+    this.contentChangedListener = contentChangedListener;
   }
 
   @Override
-  public void onDestroy() {}
+  public void onDestroy() {
+    streamOfflineMonitor.removeOfflineStatusConsumer(contentUrl, offlineStatusConsumer);
+  }
 
   @Override
   public LeafFeatureDriver getLeafFeatureDriver() {
@@ -176,6 +192,21 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
     viewHolder = null;
   }
 
+  private void maybeRebind() {
+    if (viewHolder == null) {
+      return;
+    }
+
+    // Unbinding clears the viewHolder, so storing to rebind.
+    PietViewHolder localViewHolder = viewHolder;
+
+    unbind();
+
+    bind(localViewHolder);
+
+    contentChangedListener.onContentChanged();
+  }
+
   @Override
   public int getItemViewType() {
     return ViewHolderType.TYPE_CARD;
@@ -232,5 +263,18 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
         basicLoggingApi,
         contentLoggingData,
         sessionToken);
+  }
+
+  private class OfflineStatusConsumer implements Consumer<Boolean> {
+
+    @Override
+    public void accept(Boolean offlineStatus) {
+      if (offlineStatus.equals(availableOffline)) {
+        return;
+      }
+
+      availableOffline = offlineStatus;
+      maybeRebind();
+    }
   }
 }

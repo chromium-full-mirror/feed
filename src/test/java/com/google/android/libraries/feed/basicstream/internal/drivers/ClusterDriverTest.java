@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
@@ -53,6 +54,7 @@ public class ClusterDriverTest {
   @Mock private CardDriver cardDriver;
   @Mock private LeafFeatureDriver leafFeatureDriver;
   @Mock private ModelFeature clusterModelFeature;
+  @Mock private ContentChangedListener contentChangedListener;
 
   private ClusterDriverForTest clusterDriver;
 
@@ -138,7 +140,8 @@ public class ClusterDriverTest {
           clusterModel,
           modelProvider,
           position,
-          streamOfflineMonitor);
+          streamOfflineMonitor,
+          contentChangedListener);
       this.cardDriver = cardDriver;
     }
 

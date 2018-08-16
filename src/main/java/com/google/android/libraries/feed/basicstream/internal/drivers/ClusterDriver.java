@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -41,6 +42,7 @@ public class ClusterDriver implements FeatureDriver {
   private final ModelProvider modelProvider;
   private final int position;
   private final StreamOfflineMonitor streamOfflineMonitor;
+  private final ContentChangedListener contentChangedListener;
   /*@Nullable*/ private CardDriver cardDriver;
 
   ClusterDriver(
@@ -52,7 +54,8 @@ public class ClusterDriver implements FeatureDriver {
       ModelFeature clusterModel,
       ModelProvider modelProvider,
       int position,
-      StreamOfflineMonitor streamOfflineMonitor) {
+      StreamOfflineMonitor streamOfflineMonitor,
+      ContentChangedListener contentChangedListener) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParser = actionParser;
@@ -62,6 +65,7 @@ public class ClusterDriver implements FeatureDriver {
     this.modelProvider = modelProvider;
     this.position = position;
     this.streamOfflineMonitor = streamOfflineMonitor;
+    this.contentChangedListener = contentChangedListener;
   }
 
   @Override
@@ -125,6 +129,7 @@ public class ClusterDriver implements FeatureDriver {
         content,
         modelProvider,
         position,
-        streamOfflineMonitor);
+        streamOfflineMonitor,
+        contentChangedListener);
   }
 }

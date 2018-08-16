@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
@@ -79,6 +80,7 @@ public class CardDriverTest {
   @Mock private ContentDriver contentDriverChild;
   @Mock private ModelFeature cardModelFeature;
   @Mock private LeafFeatureDriver leafFeatureDriver;
+  @Mock private ContentChangedListener contentChangedListener;
 
   private CardDriverForTest cardDriver;
 
@@ -189,7 +191,8 @@ public class CardDriverTest {
           cardModel,
           modelProvider,
           position,
-          streamOfflineMonitor);
+          streamOfflineMonitor,
+          contentChangedListener);
       this.child = childContentDriver;
     }
 

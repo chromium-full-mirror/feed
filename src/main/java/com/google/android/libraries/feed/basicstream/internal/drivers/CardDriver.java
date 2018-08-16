@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
@@ -43,6 +44,7 @@ public class CardDriver implements FeatureDriver {
   private final ModelProvider modelProvider;
   private final int position;
   private final StreamOfflineMonitor streamOfflineMonitor;
+  private final ContentChangedListener contentChangedListener;
   /*@Nullable*/ private ContentDriver contentDriver;
 
   CardDriver(
@@ -54,7 +56,8 @@ public class CardDriver implements FeatureDriver {
       ModelFeature cardModel,
       ModelProvider modelProvider,
       int position,
-      StreamOfflineMonitor streamOfflineMonitor) {
+      StreamOfflineMonitor streamOfflineMonitor,
+      ContentChangedListener contentChangedListener) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParser = actionParser;
@@ -64,6 +67,7 @@ public class CardDriver implements FeatureDriver {
     this.modelProvider = modelProvider;
     this.position = position;
     this.streamOfflineMonitor = streamOfflineMonitor;
+    this.contentChangedListener = contentChangedListener;
   }
 
   @Override
@@ -119,6 +123,7 @@ public class CardDriver implements FeatureDriver {
         modelProvider,
         position,
         swipeAction,
-        streamOfflineMonitor);
+        streamOfflineMonitor,
+        contentChangedListener);
   }
 }

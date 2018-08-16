@@ -19,6 +19,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -28,9 +29,11 @@ import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -56,7 +59,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -65,13 +71,14 @@ import org.robolectric.RobolectricTestRunner;
 public class ContentDriverTest {
 
   private static final int POSITION = 1;
+  private static final String CONTENT_URL = "google.com";
   private static final BasicLoggingMetadata BASIC_LOGGING_METADATA =
       BasicLoggingMetadata.newBuilder()
           .setPublishedTimeSeconds(10)
           .setScore(40)
           .build();
   private static final RepresentationData REPRESENTATION_DATA =
-      RepresentationData.newBuilder().setUri("card.png").build();
+      RepresentationData.newBuilder().setUri(CONTENT_URL).build();
   private static final ContentLoggingData CONTENT_LOGGING_DATA =
       new StreamContentLoggingData(POSITION, BASIC_LOGGING_METADATA, REPRESENTATION_DATA);
 
@@ -134,6 +141,9 @@ public class ContentDriverTest {
   @Mock private PietViewHolder pietViewHolder;
   @Mock private StreamActionApi streamActionApi;
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
+  @Mock private ContentChangedListener contentChangedListener;
+
+  @Captor private ArgumentCaptor<Consumer<Boolean>> offlineConsumerCaptor;
 
   private Context context;
   private ContentDriver contentDriver;
@@ -156,7 +166,8 @@ public class ContentDriverTest {
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
-            streamOfflineMonitor) {
+            streamOfflineMonitor,
+            contentChangedListener) {
           @Override
           StreamActionApi createStreamActionApi(
               Context context,
@@ -230,7 +241,8 @@ public class ContentDriverTest {
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
-            streamOfflineMonitor);
+            streamOfflineMonitor,
+            contentChangedListener);
 
     contentDriver.bind(pietViewHolder);
 
@@ -261,7 +273,8 @@ public class ContentDriverTest {
             modelProvider,
             POSITION,
             payload,
-            streamOfflineMonitor);
+            streamOfflineMonitor,
+            contentChangedListener);
 
     contentDriver.bind(pietViewHolder);
 
@@ -272,6 +285,78 @@ public class ContentDriverTest {
             any(StreamActionApi.class),
             eq(payload),
             any(LoggingListener.class));
+  }
+
+  @Test
+  public void testOfflineStatusChange() {
+    reset(streamOfflineMonitor);
+
+    when(streamOfflineMonitor.isAvailableOffline(CONTENT_URL)).thenReturn(false);
+    contentDriver =
+        new ContentDriver(
+            actionApi,
+            actionManager,
+            actionParser,
+            basicLoggingApi,
+            context,
+            modelFeature,
+            modelProvider,
+            POSITION,
+            FeedActionPayload.getDefaultInstance(),
+            streamOfflineMonitor,
+            contentChangedListener);
+
+    contentDriver.bind(pietViewHolder);
+
+    verify(streamOfflineMonitor)
+        .addOfflineStatusConsumer(eq(CONTENT_URL), offlineConsumerCaptor.capture());
+
+    reset(pietViewHolder);
+
+    offlineConsumerCaptor.getValue().accept(true);
+
+    verify(contentChangedListener).onContentChanged();
+    InOrder inOrder = Mockito.inOrder(pietViewHolder);
+    inOrder.verify(pietViewHolder).unbind();
+    inOrder
+        .verify(pietViewHolder)
+        .bind(
+            eq(PIET_CONTENT.getFrame()),
+            eq(PIET_SHARED_STATES),
+            any(StreamActionApi.class),
+            eq(FeedActionPayload.getDefaultInstance()),
+            any(LoggingListener.class));
+  }
+
+  @Test
+  public void testOfflineStatusChange_noOpWithoutUpdate() {
+    reset(streamOfflineMonitor);
+
+    when(streamOfflineMonitor.isAvailableOffline(CONTENT_URL)).thenReturn(true);
+    contentDriver =
+        new ContentDriver(
+            actionApi,
+            actionManager,
+            actionParser,
+            basicLoggingApi,
+            context,
+            modelFeature,
+            modelProvider,
+            POSITION,
+            FeedActionPayload.getDefaultInstance(),
+            streamOfflineMonitor,
+            contentChangedListener);
+
+    contentDriver.bind(pietViewHolder);
+
+    verify(streamOfflineMonitor)
+        .addOfflineStatusConsumer(eq(CONTENT_URL), offlineConsumerCaptor.capture());
+
+    reset(pietViewHolder);
+
+    offlineConsumerCaptor.getValue().accept(true);
+
+    verifyNoMoreInteractions(pietViewHolder, contentChangedListener);
   }
 
   @Test
