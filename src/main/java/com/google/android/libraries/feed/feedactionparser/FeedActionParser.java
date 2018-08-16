@@ -25,7 +25,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPaylaodRetriever;
+import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
@@ -44,21 +44,21 @@ public class FeedActionParser implements ActionParser {
 
   private static final String TAG = "FeedActionParser";
 
-  private final PietFeedActionPaylaodRetriever pietFeedActionPaylaodRetriever;
+  private final PietFeedActionPayloadRetriever pietFeedActionPayloadRetriever;
   private final ProtocolAdapter protocolAdapter;
 
   public FeedActionParser(ProtocolAdapter protocolAdapter) {
     this.protocolAdapter = protocolAdapter;
-    this.pietFeedActionPaylaodRetriever = new PietFeedActionPaylaodRetriever();
+    this.pietFeedActionPayloadRetriever = new PietFeedActionPayloadRetriever();
   }
 
   @Override
   public void parseAction(
       Action action, StreamActionApi streamActionApi, View view, /*@Nullable*/ String veLoggingToken) {
     FeedActionPayload feedActionPayload =
-        pietFeedActionPaylaodRetriever.getFeedActionPayload(action);
+        pietFeedActionPayloadRetriever.getFeedActionPayload(action);
     if (feedActionPayload == null) {
-      Logger.w(TAG, "Unable to get FeedActionPayload from PietFeedActionPaylaodRetriever");
+      Logger.w(TAG, "Unable to get FeedActionPayload from PietFeedActionPayloadRetriever");
       return;
     }
     parseFeedActionPayload(feedActionPayload, streamActionApi, view);

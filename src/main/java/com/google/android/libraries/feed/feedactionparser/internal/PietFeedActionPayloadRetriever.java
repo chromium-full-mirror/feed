@@ -20,7 +20,7 @@ import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload
 import com.google.search.now.ui.piet.ActionsProto.Action;
 
 /** Class which is able to retrieve FeedActions from Piet actions */
-public class PietFeedActionPaylaodRetriever {
+public class PietFeedActionPayloadRetriever {
 
   private static final String TAG = "PietFAPRetriever";
 
