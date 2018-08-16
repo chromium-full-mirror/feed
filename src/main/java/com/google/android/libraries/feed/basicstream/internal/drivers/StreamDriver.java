@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
@@ -38,6 +40,7 @@ import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOffli
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -142,48 +145,41 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
   private List<FeatureDriver> createAndInsertChildrenAtIndex(
       ModelCursor streamCursor, ModelProvider modelProvider, int insertionIndex) {
-    List<FeatureDriver> newChildren = new ArrayList<>();
-    ModelChild child;
-    while ((child = streamCursor.getNextItem()) != null) {
-      FeatureDriver featureDriverChild =
-          createAndInsertChildAtIndex(insertionIndex, child, modelProvider);
-      if (featureDriverChild != null) {
-        insertionIndex++;
-        newChildren.add(featureDriverChild);
-      }
-    }
-    return newChildren;
+
+    Iterable<ModelChild> cursorIterable =
+        () ->
+            new Iterator<ModelChild>() {
+              /*@Nullable*/ private ModelChild next;
+
+              @Override
+              public boolean hasNext() {
+                next = streamCursor.getNextItem();
+                return next != null;
+              }
+
+              @Override
+              public ModelChild next() {
+                return checkNotNull(next);
+              }
+            };
+    return createAndInsertChildrenAtIndex(cursorIterable, modelProvider, insertionIndex);
   }
 
   private List<FeatureDriver> createAndInsertChildrenAtIndex(
-      List<ModelChild> modelChildren, ModelProvider modelProvider, int insertionIndex) {
+      Iterable<ModelChild> modelChildren, ModelProvider modelProvider, int insertionIndex) {
     List<FeatureDriver> newChildren = new ArrayList<>();
 
     for (ModelChild child : modelChildren) {
-      FeatureDriver featureDriverChild =
-          createAndInsertChildAtIndex(insertionIndex, child, modelProvider);
+      FeatureDriver featureDriverChild = createChild(child, modelProvider, insertionIndex);
       if (featureDriverChild != null) {
-        insertionIndex++;
         newChildren.add(featureDriverChild);
+        featureDrivers.add(insertionIndex, featureDriverChild);
+        modelChildFeatureDriverMap.put(child, featureDriverChild);
+        insertionIndex++;
       }
     }
 
     return newChildren;
-  }
-
-  /*@Nullable*/
-  private FeatureDriver createAndInsertChildAtIndex(
-      int index, ModelChild modelChild, ModelProvider modelProvider) {
-    FeatureDriver featureDriver = createChild(modelChild, modelProvider, index);
-
-    if (featureDriver == null) {
-      return null;
-    }
-
-    featureDrivers.add(index, featureDriver);
-    modelChildFeatureDriverMap.put(modelChild, featureDriver);
-
-    return featureDriver;
   }
 
   /*@Nullable*/
