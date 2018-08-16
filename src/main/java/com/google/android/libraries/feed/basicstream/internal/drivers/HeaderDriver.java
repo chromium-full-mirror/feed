@@ -20,7 +20,6 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.HeaderViewHolder;
-import com.google.android.libraries.feed.basicstream.internal.viewholders.SwipeNotifier;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.logging.Logger;
 
@@ -30,12 +29,10 @@ public class HeaderDriver extends LeafFeatureDriver {
   private static final String TAG = "HeaderDriver";
 
   private final Header header;
-  private final SwipeNotifier swipeNotifier;
   /*@Nullable*/ private HeaderViewHolder headerViewHolder;
 
-  public HeaderDriver(Header header, SwipeNotifier swipeNotifier) {
+  public HeaderDriver(Header header) {
     this.header = header;
-    this.swipeNotifier = swipeNotifier;
   }
 
   @Override
@@ -47,7 +44,7 @@ public class HeaderDriver extends LeafFeatureDriver {
 
     checkState(viewHolder instanceof HeaderViewHolder);
     headerViewHolder = (HeaderViewHolder) viewHolder;
-    headerViewHolder.bind(header, swipeNotifier);
+    headerViewHolder.bind(header);
   }
 
   @Override
@@ -67,10 +64,6 @@ public class HeaderDriver extends LeafFeatureDriver {
 
   @Override
   public void onDestroy() {}
-
-  public Header getHeader() {
-    return header;
-  }
 
   @VisibleForTesting
   boolean isBound() {
