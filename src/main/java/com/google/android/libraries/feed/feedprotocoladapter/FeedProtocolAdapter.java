@@ -22,6 +22,9 @@ import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.feedprotocoladapter.internal.transformers.ContentDataOperationTransformer;
+import com.google.android.libraries.feed.feedprotocoladapter.internal.transformers.DataOperationTransformer;
+import com.google.android.libraries.feed.feedprotocoladapter.internal.transformers.FeatureDataOperationTransformer;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -30,16 +33,13 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import com.google.search.now.ui.stream.StreamStructureProto.Card;
-import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
-import com.google.search.now.ui.stream.StreamStructureProto.Content;
-import com.google.search.now.ui.stream.StreamStructureProto.Stream;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId.Builder;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import com.google.search.now.wire.feed.FeatureProto.Feature;
 import com.google.search.now.wire.feed.FeatureProto.Feature.RenderableUnit;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
+import com.google.search.now.wire.feed.FeedResponseProto.FeedResponseMetadata;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.TokenProto.Token;
@@ -52,6 +52,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   private static final String TAG = "FeedProtocolAdapter";
   static final String CONTENT_ID_DELIMITER = "::";
 
+  private final List<DataOperationTransformer> dataOperationTransformers;
   private final TimingUtils timingUtils;
 
   // Operation counts for #dump(Dumpable)
@@ -60,6 +61,9 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   public FeedProtocolAdapter(TimingUtils timingUtils) {
     this.timingUtils = timingUtils;
+    dataOperationTransformers = new ArrayList<>(2);
+    dataOperationTransformers.add(new FeatureDataOperationTransformer());
+    dataOperationTransformers.add(new ContentDataOperationTransformer());
   }
 
   @Override
@@ -99,8 +103,10 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   public Result<List<StreamDataOperation>> createModel(Response response) {
     responseHandlingCount++;
 
+    FeedResponse feedResponse = response.getExtension(FeedResponse.feedResponse);
     Result<List<StreamDataOperation>> result =
-        createOperations(response.getExtension(FeedResponse.feedResponse).getDataOperationList());
+        createOperations(
+            feedResponse.getDataOperationList(), feedResponse.getFeedResponseMetadata());
     if (!result.isSuccessful()) {
       return Result.failure();
     }
@@ -110,6 +116,11 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   @Override
   public Result<List<StreamDataOperation>> createOperations(List<DataOperation> dataOperations) {
+    return createOperations(dataOperations, FeedResponseMetadata.getDefaultInstance());
+  }
+
+  private Result<List<StreamDataOperation>> createOperations(
+      List<DataOperation> dataOperations, FeedResponseMetadata responseMetadata) {
     ElapsedTimeTracker totalTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
     List<StreamDataOperation> streamDataOperations = new ArrayList<>();
     for (DataOperation operation : dataOperations) {
@@ -143,7 +154,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       }
 
       if (operation.hasFeature()) {
-        handleFeatureOperation(operation, contentId, streamDataOperations);
+        handleFeatureOperation(operation, responseMetadata, contentId, streamDataOperations);
       } else if (operation.hasPietSharedState()) {
         PietSharedStateItem item =
             PietSharedStateItem.newBuilder()
@@ -171,14 +182,14 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
   }
 
   private void handleFeatureOperation(
-      DataOperation operation, String contentId, List<StreamDataOperation> streamDataOperations) {
+      DataOperation operation,
+      FeedResponseMetadata feedResponseMetadata,
+      String contentId,
+      List<StreamDataOperation> streamDataOperations) {
     Operation streamOperation = Operation.forNumber(operation.getOperation().getNumber());
-    StreamFeature.Builder streamFeature = StreamFeature.newBuilder();
-    streamFeature.setContentId(contentId);
     String parentId = null;
     if (operation.getFeature().hasParentId()) {
       parentId = createContentId(operation.getFeature().getParentId());
-      streamFeature.setParentId(parentId);
     }
     if (operation.getFeature().getRenderableUnit() == RenderableUnit.TOKEN) {
       Feature feature = operation.getFeature();
@@ -194,31 +205,38 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
         Logger.e(TAG, "Extension not found for TOKEN");
       }
     } else {
-      // Create a StreamFeature operation
-      switch (operation.getFeature().getRenderableUnit()) {
-        case STREAM:
-          streamFeature.setStream(operation.getFeature().getExtension(Stream.streamExtension));
-          break;
-        case CARD:
-          streamFeature.setCard(operation.getFeature().getExtension(Card.cardExtension));
-          break;
-        case CONTENT:
-          streamFeature.setContent(operation.getFeature().getExtension(Content.contentExtension));
-          break;
-        case CLUSTER:
-          streamFeature.setCluster(operation.getFeature().getExtension(Cluster.clusterExtension));
-          break;
-        case TOKEN:
-          // handled above...
-        default:
-          // TODO: This should be handled and we should return a result.
-          Logger.e(TAG, "Unknown Feature payload %s", operation.getFeature().getRenderableUnit());
-          throw new RuntimeException("Unknown feature payload");
-      }
-      streamDataOperations.add(
-          createFeatureDataOperation(streamOperation, contentId, parentId, streamFeature.build())
-              .build());
+      StreamFeature.Builder streamFeatureBuilder = createStreamFeature(contentId, parentId);
+      StreamDataOperation.Builder streamDataOperation =
+          StreamDataOperation.newBuilder()
+              .setStreamPayload(StreamPayload.newBuilder().setStreamFeature(streamFeatureBuilder));
+      streamDataOperation =
+          transformOperation(operation, streamDataOperation, feedResponseMetadata);
+      streamDataOperation =
+          createDataOperation(streamDataOperation, streamOperation, contentId, parentId);
+      streamDataOperations.add(streamDataOperation.build());
     }
+  }
+
+  private StreamDataOperation.Builder transformOperation(
+      DataOperation operation,
+      StreamDataOperation.Builder streamDataOperation,
+      FeedResponseMetadata feedResponseMetadata) {
+    for (DataOperationTransformer transformer : dataOperationTransformers) {
+      streamDataOperation =
+          transformer.transform(operation, streamDataOperation, feedResponseMetadata);
+    }
+
+    return streamDataOperation;
+  }
+
+  private StreamFeature.Builder createStreamFeature(String contentId, /*@Nullable*/ String parentId) {
+    StreamFeature.Builder builder = StreamFeature.newBuilder();
+    builder.setContentId(contentId);
+
+    if (parentId != null) {
+      builder.setParentId(parentId);
+    }
+    return builder;
   }
 
   /*@Nullable*/
@@ -234,16 +252,6 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     tokenBuilder.setContentId(tokenId);
     tokenBuilder.setNextPageToken(continuationToken);
     return tokenBuilder.build();
-  }
-
-  private StreamDataOperation.Builder createFeatureDataOperation(
-      Operation operation,
-      /*@Nullable*/ String contentId,
-      /*@Nullable*/ String parentId,
-      StreamFeature streamFeature) {
-    StreamDataOperation.Builder dataOperation = createDataOperation(operation, contentId, parentId);
-    dataOperation.setStreamPayload(StreamPayload.newBuilder().setStreamFeature(streamFeature));
-    return dataOperation;
   }
 
   private StreamDataOperation.Builder createSharedStateDataOperation(
@@ -263,7 +271,14 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   private StreamDataOperation.Builder createDataOperation(
       Operation operation, /*@Nullable*/ String contentId, /*@Nullable*/ String parentId) {
-    StreamDataOperation.Builder streamDataOperation = StreamDataOperation.newBuilder();
+    return createDataOperation(StreamDataOperation.newBuilder(), operation, contentId, parentId);
+  }
+
+  private StreamDataOperation.Builder createDataOperation(
+      StreamDataOperation.Builder streamDataOperation,
+      Operation operation,
+      /*@Nullable*/ String contentId,
+      /*@Nullable*/ String parentId) {
     StreamStructure.Builder streamStructure = StreamStructure.newBuilder();
     streamStructure.setOperation(operation);
     if (contentId != null) {
