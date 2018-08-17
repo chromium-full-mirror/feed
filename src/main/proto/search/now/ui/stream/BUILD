@@ -22,6 +22,22 @@ java_lite_proto_library(
 )
 
 proto_library(
+    name = "stream_offline_extension_proto",
+    srcs = ["stream_offline_extension.proto"],
+    deps = ["//src/main/proto/search/now/ui/piet:piet_proto"],
+)
+
+java_lite_proto_library(
+    name = "stream_offline_extension_java_proto_lite",
+    deps = [":stream_offline_extension_proto"],
+)
+
+java_proto_library(
+    name = "stream_offline_extension_java_proto",
+    deps = [":stream_offline_extension_proto"],
+)
+
+proto_library(
     name = "stream_swipe_extension",
     srcs = ["stream_swipe_extension.proto"],
     deps = [
