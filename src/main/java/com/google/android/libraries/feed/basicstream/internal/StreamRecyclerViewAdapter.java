@@ -25,7 +25,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.drivers.HeaderDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
@@ -54,7 +53,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final Context context;
   private final CardConfiguration cardConfiguration;
   private final PietManager pietManager;
-  private final ActionParser actionParser;
   private final Configuration configuration;
   private final List<LeafFeatureDriver> leafFeatureDrivers;
   private final List<HeaderDriver> headers;
@@ -71,13 +69,11 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       Context context,
       CardConfiguration cardConfiguration,
       PietManager pietManager,
-      ActionParser actionParser,
       DeepestContentTracker deepestContentTracker,
       Configuration configuration) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
-    this.actionParser = actionParser;
     this.configuration = configuration;
     headers = new ArrayList<>();
     leafFeatureDrivers = new ArrayList<>();
@@ -108,7 +104,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
         frameLayout,
         pietManager,
         context,
-        actionParser,
         configuration);
   }
 

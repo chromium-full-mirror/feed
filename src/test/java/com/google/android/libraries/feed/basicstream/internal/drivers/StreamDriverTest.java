@@ -27,7 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -71,7 +71,7 @@ public class StreamDriverTest {
 
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
-  @Mock private ActionParser actionParser;
+  @Mock private ActionParserFactory actionParserFactory;
   @Mock private ModelFeature streamFeature;
   @Mock private ModelProvider modelProvider;
   @Mock private ContinuationDriver continuationDriver;
@@ -556,7 +556,7 @@ public class StreamDriverTest {
       super(
           actionApi,
           actionManager,
-          actionParser,
+          actionParserFactory,
           modelProvider,
           threadUtils,
           configuration,

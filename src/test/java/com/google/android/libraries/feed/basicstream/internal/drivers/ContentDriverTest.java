@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
@@ -134,7 +135,7 @@ public class ContentDriverTest {
 
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
-  @Mock private ActionParser actionParser;
+  @Mock private ActionParserFactory actionParserFactory;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ModelFeature modelFeature;
   @Mock private ModelProvider modelProvider;
@@ -142,7 +143,7 @@ public class ContentDriverTest {
   @Mock private StreamActionApi streamActionApi;
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
   @Mock private ContentChangedListener contentChangedListener;
-
+  @Mock private ActionParser actionParser;
   @Captor private ArgumentCaptor<Consumer<Boolean>> offlineConsumerCaptor;
 
   private Context context;
@@ -154,12 +155,12 @@ public class ContentDriverTest {
     when(modelFeature.getStreamFeature()).thenReturn(STREAM_FEATURE);
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(STREAM_SHARED_STATE_1);
     when(modelProvider.getSharedState(CONTENT_ID_2)).thenReturn(STREAM_SHARED_STATE_2);
-
+    when(actionParserFactory.build()).thenReturn(actionParser);
     contentDriver =
         new ContentDriver(
             actionApi,
             actionManager,
-            actionParser,
+            actionParserFactory,
             basicLoggingApi,
             context,
             modelFeature,
@@ -194,7 +195,8 @@ public class ContentDriverTest {
             eq(PIET_SHARED_STATES),
             eq(streamActionApi),
             eq(FeedActionPayload.getDefaultInstance()),
-            any(LoggingListener.class));
+            any(LoggingListener.class),
+            eq(actionParser));
   }
 
   @Test
@@ -204,7 +206,14 @@ public class ContentDriverTest {
     ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
         ArgumentCaptor.forClass(LoggingListener.class);
 
-    verify(pietViewHolder).bind(any(), any(), any(), any(), visibilityListenerCaptor.capture());
+    verify(pietViewHolder)
+        .bind(
+            any(),
+            any(),
+            any(),
+            any(),
+            visibilityListenerCaptor.capture(),
+            any(ActionParser.class));
     LoggingListener listener = visibilityListenerCaptor.getValue();
     listener.onViewVisible();
 
@@ -218,7 +227,14 @@ public class ContentDriverTest {
     ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
         ArgumentCaptor.forClass(LoggingListener.class);
 
-    verify(pietViewHolder).bind(any(), any(), any(), any(), visibilityListenerCaptor.capture());
+    verify(pietViewHolder)
+        .bind(
+            any(),
+            any(),
+            any(),
+            any(),
+            visibilityListenerCaptor.capture(),
+            any(ActionParser.class));
     LoggingListener listener = visibilityListenerCaptor.getValue();
     listener.onContentClicked();
 
@@ -234,7 +250,7 @@ public class ContentDriverTest {
         new ContentDriver(
             actionApi,
             actionManager,
-            actionParser,
+            actionParserFactory,
             basicLoggingApi,
             context,
             modelFeature,
@@ -252,7 +268,8 @@ public class ContentDriverTest {
             /* pietSharedStates= */ eq(new ArrayList<>()),
             any(StreamActionApi.class),
             eq(FeedActionPayload.getDefaultInstance()),
-            any(LoggingListener.class));
+            any(LoggingListener.class),
+            any(ActionParser.class));
     verify(modelProvider).getSharedState(CONTENT_ID_1);
   }
 
@@ -266,7 +283,7 @@ public class ContentDriverTest {
         new ContentDriver(
             actionApi,
             actionManager,
-            actionParser,
+            actionParserFactory,
             basicLoggingApi,
             context,
             modelFeature,
@@ -284,7 +301,8 @@ public class ContentDriverTest {
             eq(PIET_SHARED_STATES),
             any(StreamActionApi.class),
             eq(payload),
-            any(LoggingListener.class));
+            any(LoggingListener.class),
+            any(ActionParser.class));
   }
 
   @Test
@@ -296,7 +314,7 @@ public class ContentDriverTest {
         new ContentDriver(
             actionApi,
             actionManager,
-            actionParser,
+            actionParserFactory,
             basicLoggingApi,
             context,
             modelFeature,
@@ -325,7 +343,8 @@ public class ContentDriverTest {
             eq(PIET_SHARED_STATES),
             any(StreamActionApi.class),
             eq(FeedActionPayload.getDefaultInstance()),
-            any(LoggingListener.class));
+            any(LoggingListener.class),
+            any(ActionParser.class));
   }
 
   @Test
@@ -337,7 +356,7 @@ public class ContentDriverTest {
         new ContentDriver(
             actionApi,
             actionManager,
-            actionParser,
+            actionParserFactory,
             basicLoggingApi,
             context,
             modelFeature,

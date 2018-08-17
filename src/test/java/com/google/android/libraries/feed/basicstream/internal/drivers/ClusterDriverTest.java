@@ -24,7 +24,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
@@ -82,7 +82,7 @@ public class ClusterDriverTest {
         new ClusterDriverForTest(
             mock(ActionApi.class),
             mock(ActionManager.class),
-            mock(ActionParser.class),
+            mock(ActionParserFactory.class),
             mock(BasicLoggingApi.class),
             context,
             clusterModelFeature,
@@ -123,7 +123,7 @@ public class ClusterDriverTest {
     ClusterDriverForTest(
         ActionApi actionApi,
         ActionManager actionManager,
-        ActionParser actionParser,
+        ActionParserFactory actionParserFactory,
         BasicLoggingApi basicLoggingApi,
         Context context,
         ModelFeature clusterModel,
@@ -134,7 +134,7 @@ public class ClusterDriverTest {
       super(
           actionApi,
           actionManager,
-          actionParser,
+          actionParserFactory,
           basicLoggingApi,
           context,
           clusterModel,

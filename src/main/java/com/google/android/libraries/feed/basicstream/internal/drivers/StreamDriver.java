@@ -19,7 +19,7 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
@@ -50,7 +50,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private static final String TAG = "StreamDriver";
   private final ActionApi actionApi;
   private final ActionManager actionManager;
-  private final ActionParser actionParser;
+  private final ActionParserFactory actionParserFactory;
   private final ThreadUtils threadUtils;
   private final ModelProvider modelProvider;
   private final Map<ModelChild, FeatureDriver> modelChildFeatureDriverMap;
@@ -70,7 +70,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   public StreamDriver(
       ActionApi actionApi,
       ActionManager actionManager,
-      ActionParser actionParser,
+      ActionParserFactory actionParserFactory,
       ModelProvider modelProvider,
       ThreadUtils threadUtils,
       Configuration configuration,
@@ -82,7 +82,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       StreamOfflineMonitor streamOfflineMonitor) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
-    this.actionParser = actionParser;
+    this.actionParserFactory = actionParserFactory;
     this.threadUtils = threadUtils;
     this.modelProvider = modelProvider;
     this.context = context;
@@ -399,7 +399,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     return new ClusterDriver(
         actionApi,
         actionManager,
-        actionParser,
+        actionParserFactory,
         basicLoggingApi,
         context,
         modelFeature,
@@ -414,7 +414,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     return new CardDriver(
         actionApi,
         actionManager,
-        actionParser,
+        actionParserFactory,
         basicLoggingApi,
         context,
         modelFeature,

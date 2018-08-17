@@ -101,8 +101,7 @@ public class PietViewHolderTest {
 
     configuration = new Configuration.Builder().build();
     pietViewHolder =
-        new PietViewHolder(
-            cardConfiguration, frameLayout, pietManager, context, actionParser, configuration) {
+        new PietViewHolder(cardConfiguration, frameLayout, pietManager, context, configuration) {
           @Override
           VisibilityMonitor createVisibilityMonitor(View view, Configuration configuration) {
             return visibilityMonitor;
@@ -124,7 +123,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     assertThat(frameLayout.getPaddingLeft()).isEqualTo(0);
     assertThat(frameLayout.getPaddingRight()).isEqualTo(0);
@@ -139,7 +139,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     assertThat(((ColorDrawable) frameLayout.getBackground()).getColor())
         .isEqualTo(((ColorDrawable) cardConfiguration.getCardBackground()).getColor());
@@ -152,7 +153,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     MarginLayoutParams marginLayoutParams =
         (MarginLayoutParams) pietViewHolder.itemView.getLayoutParams();
@@ -168,7 +170,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     verify(frameAdapter)
         .bindModel(Frame.getDefaultInstance(), /* shardingControl= */ null, pietSharedStates);
@@ -181,7 +184,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     verify(frameAdapter)
         .bindModel(Frame.getDefaultInstance(), /* shardingControl= */ null, pietSharedStates);
@@ -192,7 +196,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     verifyNoMoreInteractions(frameAdapter);
   }
@@ -204,7 +209,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     verify(visibilityMonitor).setListener(loggingListener);
   }
@@ -216,7 +222,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     pietViewHolder.unbind();
     InOrder inOrder = Mockito.inOrder(frameAdapter);
@@ -235,7 +242,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     pietViewHolder.unbind();
 
@@ -249,7 +257,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     assertThat(pietViewHolder.canSwipe()).isFalse();
   }
@@ -261,7 +270,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         SWIPE_ACTION,
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     assertThat(pietViewHolder.canSwipe()).isTrue();
   }
@@ -273,7 +283,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         SWIPE_ACTION,
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     pietViewHolder.onSwiped();
 
@@ -288,7 +299,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     actionHandler.handleAction(ACTION, ActionType.CLICK, FRAME, view, VE_LOGGING_TOKEN);
 
@@ -303,7 +315,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     actionHandler.handleAction(ACTION, ActionType.LONG_CLICK, FRAME, view, VE_LOGGING_TOKEN);
 
@@ -318,7 +331,8 @@ public class PietViewHolderTest {
         pietSharedStates,
         streamActionApi,
         FeedActionPayload.getDefaultInstance(),
-        loggingListener);
+        loggingListener,
+        actionParser);
 
     actionHandler.handleAction(ACTION, ActionType.VIEW, FRAME, view, VE_LOGGING_TOKEN);
 

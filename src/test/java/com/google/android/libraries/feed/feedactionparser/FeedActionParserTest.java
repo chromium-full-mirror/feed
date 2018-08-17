@@ -29,6 +29,7 @@ import android.content.Context;
 import android.view.View;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -241,7 +242,7 @@ public class FeedActionParserTest {
     initMocks(this);
     when(protocolAdapter.getStreamContentId(DISMISS_CONTENT_ID))
         .thenReturn(DISMISS_CONTENT_ID_STRING);
-    feedActionParser = new FeedActionParser(protocolAdapter);
+    feedActionParser = new FeedActionParser(protocolAdapter, new PietFeedActionPayloadRetriever());
   }
 
   @Test

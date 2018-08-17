@@ -23,7 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
@@ -66,7 +66,7 @@ public class FeedStreamScopeTest {
   // Mocks for optional fields
   @Mock private FeedProtocolAdapter protocolAdapter;
   @Mock private SessionManager sessionManager;
-  @Mock private ActionParser actionParser;
+  @Mock private ActionParserFactory actionParserFactory;
   @Mock private Stream stream;
   @Mock private StreamConfiguration streamConfiguration;
   @Mock private CardConfiguration cardConfiguration;
@@ -145,7 +145,7 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi)
-            .setActionParser(actionParser)
+            .setActionParserFactory(actionParserFactory)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)
             .setCustomElementProvider(customElementProvider)

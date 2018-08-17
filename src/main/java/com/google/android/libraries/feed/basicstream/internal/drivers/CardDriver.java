@@ -19,7 +19,7 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
@@ -37,7 +37,7 @@ public class CardDriver implements FeatureDriver {
 
   private final ActionApi actionApi;
   private final ActionManager actionManager;
-  private final ActionParser actionParser;
+  private final ActionParserFactory actionParserFactory;
   private final BasicLoggingApi basicLoggingApi;
   private final Context context;
   private final ModelFeature cardModel;
@@ -50,7 +50,7 @@ public class CardDriver implements FeatureDriver {
   CardDriver(
       ActionApi actionApi,
       ActionManager actionManager,
-      ActionParser actionParser,
+      ActionParserFactory actionParserFactory,
       BasicLoggingApi basicLoggingApi,
       Context context,
       ModelFeature cardModel,
@@ -60,7 +60,7 @@ public class CardDriver implements FeatureDriver {
       ContentChangedListener contentChangedListener) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
-    this.actionParser = actionParser;
+    this.actionParserFactory = actionParserFactory;
     this.basicLoggingApi = basicLoggingApi;
     this.context = context;
     this.cardModel = cardModel;
@@ -116,7 +116,7 @@ public class CardDriver implements FeatureDriver {
     return new ContentDriver(
         actionApi,
         actionManager,
-        actionParser,
+        actionParserFactory,
         basicLoggingApi,
         context,
         contentModel,

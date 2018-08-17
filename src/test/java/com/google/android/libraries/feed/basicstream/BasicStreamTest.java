@@ -39,7 +39,7 @@ import android.util.Base64;
 import android.view.View;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
@@ -627,7 +627,7 @@ public class BasicStreamTest {
         streamConfiguration,
         mock(CardConfiguration.class),
         mock(ImageLoaderApi.class),
-        mock(ActionParser.class),
+        mock(ActionParserFactory.class),
         mock(ActionApi.class),
         mock(CustomElementProvider.class),
         DebugBehavior.VERBOSE,
@@ -654,7 +654,7 @@ public class BasicStreamTest {
         StreamConfiguration streamConfiguration,
         CardConfiguration cardConfiguration,
         ImageLoaderApi imageLoaderApi,
-        ActionParser actionParser,
+        ActionParserFactory actionParserFactory,
         ActionApi actionApi,
         /*@Nullable*/ CustomElementProvider customElementProvider,
         DebugBehavior debugBehavior,
@@ -672,7 +672,7 @@ public class BasicStreamTest {
           streamConfiguration,
           cardConfiguration,
           imageLoaderApi,
-          actionParser,
+          actionParserFactory,
           actionApi,
           customElementProvider,
           debugBehavior,
@@ -705,7 +705,7 @@ public class BasicStreamTest {
     StreamDriver createStreamDriver(
         ActionApi actionApi,
         ActionManager actionManager,
-        ActionParser actionParser,
+        ActionParserFactory actionParserFactory,
         ModelProvider modelProvider,
         ThreadUtils threadUtils,
         Configuration configuration,
@@ -730,7 +730,6 @@ public class BasicStreamTest {
         Context context,
         CardConfiguration cardConfiguration,
         PietManager pietManager,
-        ActionParser actionParser,
         DeepestContentTracker deepestContentTracker,
         Configuration configuration) {
       return adapter;

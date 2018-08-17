@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
@@ -27,7 +27,7 @@ import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.feedactionparser.FeedActionParser;
+import com.google.android.libraries.feed.feedactionparser.FeedActionParserFactory;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -96,8 +96,8 @@ public class FeedStreamScope {
       this.offlineIndicatorApi = offlineIndicatorApi;
     }
 
-    public Builder setActionParser(ActionParser actionParser) {
-      this.actionParser = actionParser;
+    public Builder setActionParserFactory(ActionParserFactory actionParserFactory) {
+      this.actionParserFactory = actionParserFactory;
       return this;
     }
 
@@ -131,8 +131,8 @@ public class FeedStreamScope {
                 mainThreadRunner,
                 config);
       }
-      if (actionParser == null) {
-        actionParser = new FeedActionParser(protocolAdapter);
+      if (actionParserFactory == null) {
+        actionParserFactory = new FeedActionParserFactory(protocolAdapter);
       }
       if (stream == null) {
         stream =
@@ -141,7 +141,7 @@ public class FeedStreamScope {
                 streamConfiguration,
                 cardConfiguration,
                 imageLoaderApi,
-                Validators.checkNotNull(actionParser),
+                Validators.checkNotNull(actionParserFactory),
                 actionApi,
                 customElementProvider,
                 debugBehavior,
@@ -158,7 +158,7 @@ public class FeedStreamScope {
       }
       return new FeedStreamScope(
           actionApi,
-          Validators.checkNotNull(actionParser),
+          Validators.checkNotNull(actionParserFactory),
           protocolAdapter,
           imageLoaderApi,
           loggingApi,
@@ -188,7 +188,7 @@ public class FeedStreamScope {
     private final OfflineIndicatorApi offlineIndicatorApi;
 
     // Optional internal components to override the default implementations.
-    /*@MonotonicNonNull*/ private ActionParser actionParser;
+    /*@MonotonicNonNull*/ private ActionParserFactory actionParserFactory;
     /*@MonotonicNonNull*/ private ModelProviderFactory modelProviderFactory;
     /*@MonotonicNonNull*/ private Stream stream;
     /*@MonotonicNonNull*/ private CustomElementProvider customElementProvider;
@@ -197,14 +197,14 @@ public class FeedStreamScope {
 
   private FeedStreamScope(
       ActionApi actionApi,
-      ActionParser actionParser,
+      ActionParserFactory actionParserFactory,
       ProtocolAdapter protocolAdapter,
       ImageLoaderApi imageLoaderApi,
       LoggingApi loggingApi,
       SessionManager sessionManager,
       Stream stream,
       ModelProviderFactory modelProviderFactory) {
-    this.actionParser = actionParser;
+    this.actionParserFactory = actionParserFactory;
     this.actionApi = actionApi;
     this.protocolAdapter = protocolAdapter;
     this.imageLoaderApi = imageLoaderApi;
@@ -217,7 +217,7 @@ public class FeedStreamScope {
   private final ActionApi actionApi;
   private final ImageLoaderApi imageLoaderApi;
   private final LoggingApi loggingApi;
-  private final ActionParser actionParser;
+  private final ActionParserFactory actionParserFactory;
   private final ProtocolAdapter protocolAdapter;
   private final SessionManager sessionManager;
   private final Stream stream;

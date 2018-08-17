@@ -47,9 +47,11 @@ public class FeedActionParser implements ActionParser {
   private final PietFeedActionPayloadRetriever pietFeedActionPayloadRetriever;
   private final ProtocolAdapter protocolAdapter;
 
-  public FeedActionParser(ProtocolAdapter protocolAdapter) {
+  public FeedActionParser(
+      ProtocolAdapter protocolAdapter,
+      PietFeedActionPayloadRetriever pietFeedActionPayloadRetriever) {
     this.protocolAdapter = protocolAdapter;
-    this.pietFeedActionPayloadRetriever = new PietFeedActionPayloadRetriever();
+    this.pietFeedActionPayloadRetriever = pietFeedActionPayloadRetriever;
   }
 
   @Override

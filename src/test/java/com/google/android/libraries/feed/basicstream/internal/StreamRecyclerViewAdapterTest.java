@@ -30,7 +30,6 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.HeaderDriver;
@@ -80,7 +79,6 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private ContentDriver featureDriver2;
   @Mock private HeaderDriver headerDriver1;
   @Mock private HeaderDriver headerDriver2;
-  @Mock private ActionParser actionParser;
   @Mock private DeepestContentTracker deepestContentTracker;
   @Mock private Header header1;
   @Mock private Header header2;
@@ -118,7 +116,6 @@ public class StreamRecyclerViewAdapterTest {
             context,
             cardConfiguration,
             pietManager,
-            actionParser,
             deepestContentTracker,
             CONFIGURATION);
     streamRecyclerViewAdapter.setHeaders(headers);
@@ -308,7 +305,6 @@ public class StreamRecyclerViewAdapterTest {
             context,
             cardConfiguration,
             pietManager,
-            actionParser,
             deepestContentTracker,
             CONFIGURATION) {
           @Override

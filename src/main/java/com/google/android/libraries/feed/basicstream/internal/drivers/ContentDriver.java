@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
@@ -66,6 +67,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   private final OfflineStatusConsumer offlineStatusConsumer;
   private final String contentUrl;
   private final ContentChangedListener contentChangedListener;
+  private final ActionParser actionParser;
 
   private boolean availableOffline;
   /*@Nullable*/ private LoggingListener loggingListener;
@@ -74,7 +76,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   ContentDriver(
       ActionApi actionApi,
       ActionManager actionManager,
-      ActionParser actionParser,
+      ActionParserFactory actionParserFactory,
       BasicLoggingApi basicLoggingApi,
       Context context,
       ModelFeature contentFeatureModel,
@@ -95,6 +97,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
             contentFeatureModel.getStreamFeature().getContent().getBasicLoggingMetadata(),
             representationData,
             position);
+    actionParser = actionParserFactory.build();
     streamActionApi =
         createStreamActionApi(
             context,
@@ -179,7 +182,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
     this.viewHolder = (PietViewHolder) viewHolder;
 
     ((PietViewHolder) viewHolder)
-        .bind(frame, pietSharedStates, streamActionApi, swipeAction, loggingListener);
+        .bind(frame, pietSharedStates, streamActionApi, swipeAction, loggingListener, actionParser);
   }
 
   @Override

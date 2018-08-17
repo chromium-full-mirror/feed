@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
@@ -35,7 +35,7 @@ public class ClusterDriver implements FeatureDriver {
   private static final String TAG = "ClusterDriver";
   private final ActionApi actionApi;
   private final ActionManager actionManager;
-  private final ActionParser actionParser;
+  private final ActionParserFactory actionParserFactory;
   private final BasicLoggingApi basicLoggingApi;
   private final Context context;
   private final ModelFeature clusterModel;
@@ -48,7 +48,7 @@ public class ClusterDriver implements FeatureDriver {
   ClusterDriver(
       ActionApi actionApi,
       ActionManager actionManager,
-      ActionParser actionParser,
+      ActionParserFactory actionParserFactory,
       BasicLoggingApi basicLoggingApi,
       Context context,
       ModelFeature clusterModel,
@@ -58,7 +58,7 @@ public class ClusterDriver implements FeatureDriver {
       ContentChangedListener contentChangedListener) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
-    this.actionParser = actionParser;
+    this.actionParserFactory = actionParserFactory;
     this.basicLoggingApi = basicLoggingApi;
     this.context = context;
     this.clusterModel = clusterModel;
@@ -123,7 +123,7 @@ public class ClusterDriver implements FeatureDriver {
     return new CardDriver(
         actionApi,
         actionManager,
-        actionParser,
+        actionParserFactory,
         basicLoggingApi,
         context,
         content,

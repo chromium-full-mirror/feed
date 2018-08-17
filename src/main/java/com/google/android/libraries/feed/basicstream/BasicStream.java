@@ -28,7 +28,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Base64;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
-import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
@@ -88,7 +88,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final ThreadUtils threadUtils;
   private final PietManager pietManager;
   private final ModelProviderFactory modelProviderFactory;
-  private final ActionParser actionParser;
+  private final ActionParserFactory actionParserFactory;
   private final ActionApi actionApi;
   private final ActionManager actionManager;
   private final Configuration configuration;
@@ -119,7 +119,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
       StreamConfiguration streamConfiguration,
       CardConfiguration cardConfiguration,
       ImageLoaderApi imageLoaderApi,
-      ActionParser actionParser,
+      ActionParserFactory actionParserFactory,
       ActionApi actionApi,
       /*@Nullable*/ CustomElementProvider customElementProvider,
       DebugBehavior debugBehavior,
@@ -149,7 +149,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.headers = headers;
     this.modelProviderFactory = modelProviderFactory;
     this.streamConfiguration = streamConfiguration;
-    this.actionParser = actionParser;
+    this.actionParserFactory = actionParserFactory;
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.configuration = configuration;
@@ -253,7 +253,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
           createStreamDriver(
               actionApi,
               actionManager,
-              actionParser,
+              actionParserFactory,
               modelProvider,
               threadUtils,
               configuration,
@@ -422,7 +422,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
             context,
             cardConfiguration,
             pietManager,
-            actionParser,
             deepestContentTracker,
             configuration);
     adapter.setHeaders(headers);
@@ -458,7 +457,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
         createStreamDriver(
             actionApi,
             actionManager,
-            actionParser,
+            actionParserFactory,
             modelProvider,
             threadUtils,
             configuration,
@@ -531,7 +530,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   StreamDriver createStreamDriver(
       ActionApi actionApi,
       ActionManager actionManager,
-      ActionParser actionParser,
+      ActionParserFactory actionParserFactory,
       ModelProvider modelProvider,
       ThreadUtils threadUtils,
       Configuration configuration,
@@ -544,7 +543,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     return new StreamDriver(
         actionApi,
         actionManager,
-        actionParser,
+        actionParserFactory,
         modelProvider,
         threadUtils,
         configuration,
@@ -561,14 +560,12 @@ public class BasicStream implements Stream, ModelProviderObserver {
       Context context,
       CardConfiguration cardConfiguration,
       PietManager pietManager,
-      ActionParser actionParser,
       DeepestContentTracker deepestContentTracker,
       Configuration configuration) {
     return new StreamRecyclerViewAdapter(
         context,
         cardConfiguration,
         pietManager,
-        actionParser,
         deepestContentTracker,
         configuration);
   }
