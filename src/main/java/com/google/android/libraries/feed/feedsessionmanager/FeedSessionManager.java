@@ -40,6 +40,8 @@ import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.functional.Function;
+import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -584,6 +586,14 @@ public class FeedSessionManager
         this::resetHead,
         this::modelErrorObserver,
         sharedStateCache);
+  }
+
+  @Override
+  public <T> void getStreamFeaturesFromHead(
+      Function<StreamPayload, /*@Nullable*/ T> transformer,
+      Predicate<T> filter,
+      Consumer<Result<List<T>>> consumer) {
+    // TODO: Implement this...
   }
 
   @Override
