@@ -193,9 +193,7 @@ public class ElementAdapterTest {
 
     assertThat(adapter.getView()).isNotEqualTo(adapter.getBaseView());
     assertThat(adapter.getView()).isInstanceOf(FrameLayout.class);
-    assertThat(adapter.overlays).hasSize(1);
-    assertThat(adapter.overlays.get(0)).isInstanceOf(StackedElementAdapter.class);
-    assertThat(((StackedElementAdapter) adapter.overlays.get(0)).childAdapters).isNotEmpty();
+    assertThat(adapter.overlayAdapter.childAdapters).isNotEmpty();
   }
 
   @Test
@@ -248,9 +246,7 @@ public class ElementAdapterTest {
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
 
     // No overlays have been created yet, but adapter exists
-    assertThat(adapter.overlays).hasSize(1);
-    assertThat(adapter.overlays.get(0)).isInstanceOf(StackedElementAdapter.class);
-    assertThat(((StackedElementAdapter) adapter.overlays.get(0)).childAdapters).isEmpty();
+    assertThat(adapter.overlayAdapter.childAdapters).isEmpty();
   }
 
   @Test
@@ -283,10 +279,10 @@ public class ElementAdapterTest {
     Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
 
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlays.get(0)).isInstanceOf(StackedElementAdapter.class);
+    assertThat(adapter.overlayAdapter).isNotNull();
 
     StackedElementAdapter mockOverlayAdapter = mock(StackedElementAdapter.class);
-    adapter.overlays.set(0, mockOverlayAdapter);
+    adapter.overlayAdapter = mockOverlayAdapter;
 
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
     verify(mockOverlayAdapter)
@@ -308,9 +304,7 @@ public class ElementAdapterTest {
 
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
 
-    assertThat(((StackedElementAdapter) adapter.overlays.get(0)).childAdapters).hasSize(1);
-    assertThat(((StackedElementAdapter) adapter.overlays.get(0)).childAdapters.get(0))
-        .isInstanceOf(ElementListAdapter.class);
+    assertThat(adapter.overlayAdapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
   }
 
   @Test
@@ -437,11 +431,10 @@ public class ElementAdapterTest {
     Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlays.get(0)).isInstanceOf(StackedElementAdapter.class);
-    assertThat(adapter.overlays.get(0).getRawModel()).isNotNull();
+    assertThat(adapter.overlayAdapter.getRawModel()).isNotNull();
 
     adapter.unbindModel();
-    assertThat(adapter.overlays.get(0).getRawModel()).isNull();
+    assertThat(adapter.overlayAdapter.getRawModel()).isNull();
   }
 
   @Test
@@ -460,18 +453,18 @@ public class ElementAdapterTest {
     Content overlayContent = Content.newBuilder().setBoundElement(overlayBindingRef).build();
     Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlays).hasSize(1);
+    assertThat(adapter.overlayAdapter).isNotNull();
 
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
-    assertThat(adapter.overlays).hasSize(1);
-    StackedElementAdapter overlayAdapter = (StackedElementAdapter) adapter.overlays.get(0);
+    assertThat(adapter.overlayAdapter).isNotNull();
+    StackedElementAdapter overlayAdapter = adapter.overlayAdapter;
     assertThat(overlayAdapter.childAdapters).hasSize(1);
     assertThat(overlayAdapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
     ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
     overlayAdapter.childAdapters.set(0, mockOverlayAdapter);
 
     adapter.unbindModel();
-    assertThat(adapter.overlays).hasSize(1);
+    assertThat(adapter.overlayAdapter).isNotNull();
     assertThat(overlayAdapter.childAdapters).isEmpty();
     verify(mockOverlayAdapter).releaseAdapter();
   }
@@ -502,9 +495,9 @@ public class ElementAdapterTest {
     View adapterView = adapter.getBaseView();
     FrameLayout overlayView = (FrameLayout) adapter.getView();
 
-    ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
+    StackedElementAdapter mockOverlayAdapter = mock(StackedElementAdapter.class);
     when(mockOverlayAdapter.getKey()).thenReturn(SingletonKeySupplier.SINGLETON_KEY);
-    adapter.overlays.set(0, mockOverlayAdapter);
+    adapter.overlayAdapter = mockOverlayAdapter;
 
     adapter.releaseAdapter();
 
@@ -512,6 +505,7 @@ public class ElementAdapterTest {
     assertThat(adapter.getView()).isSameAs(adapter.getBaseView());
     assertThat(overlayView.getChildCount()).isEqualTo(0);
     verify(mockOverlayAdapter).releaseAdapter();
+    assertThat(adapter.overlayAdapter).isNull();
   }
 
   @Test

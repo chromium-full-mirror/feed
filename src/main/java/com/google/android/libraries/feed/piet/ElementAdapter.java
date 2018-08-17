@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
-import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -30,9 +29,7 @@ import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -61,8 +58,8 @@ abstract class ElementAdapter<V extends View, M> {
   /*@Nullable*/ private RecyclerKey key;
   private StyleProvider elementStyle;
 
-  /*@Nullable*/ private FrameLayout overlayView = null;
-  @VisibleForTesting final List<ElementAdapter<?, ?>> overlays = new ArrayList<>();
+  /*@Nullable*/ private FrameLayout wrapperView = null;
+  @VisibleForTesting /*@Nullable*/ StackedElementAdapter overlayAdapter = null;
 
   Actions actions = Actions.getDefaultInstance();
   /** Set of actions that are currently active / triggered so they only get called once. */
@@ -96,7 +93,7 @@ abstract class ElementAdapter<V extends View, M> {
    * not a valid call until the first Model has been bound to the Adapter.
    */
   public View getView() {
-    return overlayView != null ? overlayView : view;
+    return wrapperView != null ? wrapperView : view;
   }
 
   /**
@@ -178,34 +175,19 @@ abstract class ElementAdapter<V extends View, M> {
 
   private void initializeOverlays(FrameContext frameContext) {
     if (baseElement.getOverlaysCount() > 0) {
-      FrameLayout overlayWrapper = new FrameLayout(getContext());
-      overlayWrapper.addView(getBaseView());
-
-      StackedElementAdapter overlayAdapter =
+      overlayAdapter =
           getParameters()
               .elementAdapterFactory
               .createStackedElementAdapter(baseElement.getOverlaysList(), frameContext);
       overlayAdapter.setLayoutParams(
           new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-      overlays.add(overlayAdapter);
-      overlayWrapper.addView(overlayAdapter.getView());
-
-      overlayView = overlayWrapper;
+      addWrapperView(overlayAdapter.getView());
     }
   }
 
   private void bindOverlays(FrameContext frameContext) {
     if (baseElement.getOverlaysCount() > 0) {
-      checkState(
-          overlays.size() == 1,
-          "Unexpected number of overlay adapters; wanted 1, got %s",
-          overlays.size());
-      checkState(
-          overlays.get(0) instanceof StackedElementAdapter,
-          "Unexpected overlay adapter type; was %s",
-          overlays.get(0).getClass());
-      // Overlays have no base Element, so we pass the default instance as a dummy here.
-      ((StackedElementAdapter) overlays.get(0))
+      checkNotNull(overlayAdapter, "Overlays not initialized")
           .bindModel(baseElement.getOverlaysList(), Element.getDefaultInstance(), frameContext);
     }
   }
@@ -283,7 +265,7 @@ abstract class ElementAdapter<V extends View, M> {
       ViewUtils.clearOnClickActions(getBaseView());
     }
 
-    for (ElementAdapter<?, ?> overlayAdapter : overlays) {
+    if (overlayAdapter != null) {
       overlayAdapter.unbindModel();
     }
   }
@@ -299,20 +281,36 @@ abstract class ElementAdapter<V extends View, M> {
     onReleaseAdapter();
 
     // Destroy overlays
-    if (overlayView != null) {
-      overlayView.removeAllViews();
-      overlayView = null;
+    if (wrapperView != null) {
+      wrapperView.removeAllViews();
+      wrapperView = null;
     }
-    for (ElementAdapter<?, ?> overlayAdapter : overlays) {
-      getParameters().elementAdapterFactory.releaseAdapter(overlayAdapter);
+    ElementAdapterFactory factory = getParameters().elementAdapterFactory;
+    if (overlayAdapter != null) {
+      factory.releaseAdapter(overlayAdapter);
+      overlayAdapter = null;
     }
-    overlays.clear();
 
     setVisibility(Visibility.VISIBLE);
   }
 
   /** Performs child-adapter-specific release logic; to be overridden. */
   void onReleaseAdapter() {}
+
+  /*@EnsuresNonNull("wrapperView")*/
+  private void initializeWrapperView() {
+    if (wrapperView != null) {
+      return;
+    }
+    FrameLayout wrapper = new FrameLayout(getContext());
+    wrapper.addView(getBaseView());
+    wrapperView = wrapper;
+  }
+
+  private void addWrapperView(View view) {
+    initializeWrapperView();
+    wrapperView.addView(view);
+  }
 
   /**
    * Subclasses will call this method when they are first bound to a Model to set the Key based upon
