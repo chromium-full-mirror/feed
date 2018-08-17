@@ -122,6 +122,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     // TODO: Implement typefaces
     TextView textView = getBaseView();
     textView.setTextSize(font.getSize());
+    textView.setLineSpacing(/* add= */ 0, font.getLineHeightRatio());
     boolean bold = false;
     switch (font.getWeight()) {
       case REGULAR:

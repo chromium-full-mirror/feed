@@ -94,13 +94,9 @@ public class TextElementAdapterTest {
 
   @Test
   public void testSetFont_boldFont() {
-    Font.Builder font = Font.newBuilder();
-    font.setWeight(FontWeight.BOLD);
+    Font font = Font.newBuilder().setWeight(FontWeight.BOLD).build();
 
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
-    when(mockStyleProvider.getFont()).thenReturn(font.build());
-
-    adapter.setFont(font.build());
+    adapter.setFont(font);
     Typeface typeface = adapter.getBaseView().getTypeface();
     // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
     assertThat(typeface.getStyle() & Typeface.BOLD).isGreaterThan(0);
@@ -109,17 +105,23 @@ public class TextElementAdapterTest {
 
   @Test
   public void testSetFont_italics() {
-    Font.Builder font = Font.newBuilder();
-    font.setItalic(true);
+    Font font = Font.newBuilder().setItalic(true).build();
 
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(mockStyleProvider);
-    when(mockStyleProvider.getFont()).thenReturn(font.build());
-
-    adapter.setFont(font.build());
+    adapter.setFont(font);
     Typeface typeface = adapter.getBaseView().getTypeface();
     // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
     assertThat(typeface.getStyle() & Typeface.BOLD).isEqualTo(0);
     assertThat(typeface.getStyle() & Typeface.ITALIC).isGreaterThan(0);
+  }
+
+  @Test
+  public void testSetFont_lineHeightRatio() {
+    float ratioToSet = 4.5f;
+    Font font = Font.newBuilder().setLineHeightRatio(ratioToSet).build();
+
+    adapter.setFont(font);
+    Float lineHeightRatio = adapter.getBaseView().getLineSpacingMultiplier();
+    assertThat(lineHeightRatio).isEqualTo(ratioToSet);
   }
 
   @Test
