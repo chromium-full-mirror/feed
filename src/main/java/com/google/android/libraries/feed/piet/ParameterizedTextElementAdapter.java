@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
-import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
@@ -40,24 +39,18 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
       case PARAMETERIZED_TEXT:
         // No bindings found, so use the inlined value (or empty if not set)
         setTextOnView(getBaseView(), textLine.getParameterizedText());
-        setVisibility(Visibility.VISIBLE);
         break;
       case PARAMETERIZED_TEXT_BINDING:
         BindingValue bindingValue =
             frameContext.getParameterizedTextBindingValue(textLine.getParameterizedTextBinding());
 
-        setVisibility(bindingValue.getVisibility());
         if (!bindingValue.hasParameterizedText()
-            && !textLine.getParameterizedTextBinding().getIsOptional()
-            && bindingValue.getVisibility() != Visibility.GONE) {
+            && !textLine.getParameterizedTextBinding().getIsOptional()) {
           throw new IllegalArgumentException(
               String.format(
                   "Parameterized text binding %s had no content", bindingValue.getBindingId()));
         }
 
-        // Always set text even if visibility is set to GONE or INVISIBLE,
-        // in case a later optimistic update operation changes the visibility but wants to retain
-        // the previously-set text.
         setTextOnView(getBaseView(), bindingValue.getParameterizedText());
         break;
       default:

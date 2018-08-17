@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -91,14 +90,11 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     switch (model.getContentCase()) {
       case IMAGE:
         image = model.getImage();
-        getBaseView().setVisibility(View.VISIBLE);
         break;
       case IMAGE_BINDING:
         BindingValue binding = frameContext.getImageBindingValue(model.getImageBinding());
-        setVisibility(binding.getVisibility());
         if (!binding.hasImage()) {
-          if (binding.getVisibility() == Visibility.GONE
-              || model.getImageBinding().getIsOptional()) {
+          if (model.getImageBinding().getIsOptional()) {
             setVisibility(Visibility.GONE);
             return;
           } else {

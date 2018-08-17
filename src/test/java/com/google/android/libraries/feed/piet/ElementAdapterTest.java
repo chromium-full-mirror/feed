@@ -41,6 +41,7 @@ import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.VisibilityBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -48,6 +49,7 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
+import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
@@ -250,6 +252,57 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testCreateAdapter_appliesVisibility() {
+    Element defaultElement =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder().setDefaultVisibility(Visibility.INVISIBLE))
+            .build();
+
+    adapter.createAdapter(defaultElement, frameContext);
+
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.INVISIBLE);
+  }
+
+  @Test
+  public void testCreateAdapter_doesNothingWithVisibilityGone() {
+    Element defaultElement =
+        Element.newBuilder()
+            .setVisibilityState(VisibilityState.newBuilder().setDefaultVisibility(Visibility.GONE))
+            .build();
+
+    adapter.createAdapter(defaultElement, frameContext);
+
+    assertThat(adapter.created).isFalse();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
+  public void testCreateAdapter_ignoresBoundVisibility() {
+    String visibilityBindingId = "invisible";
+    VisibilityBindingRef visibilityBinding =
+        VisibilityBindingRef.newBuilder().setBindingId(visibilityBindingId).build();
+    Element defaultElement =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder()
+                    .setDefaultVisibility(Visibility.VISIBLE)
+                    .setOverridingBoundVisibility(visibilityBinding))
+            .build();
+    when(frameContext.getVisibilityBindingValue(visibilityBinding))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setBindingId(visibilityBindingId)
+                .setVisibility(Visibility.GONE)
+                .build());
+
+    adapter.createAdapter(defaultElement, frameContext);
+
+    assertThat(adapter.created).isTrue();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
   public void testBindModel_callsOnBindModel() {
     Element defaultElement = Element.getDefaultInstance();
 
@@ -367,6 +420,100 @@ public class ElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Internal error in adapters per content");
+  }
+
+  @Test
+  public void testBindModel_setsVisibility() {
+    Element visibleElement =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder().setDefaultVisibility(Visibility.VISIBLE))
+            .build();
+    adapter.createAdapter(visibleElement, frameContext);
+    Element invisibleElement =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder().setDefaultVisibility(Visibility.INVISIBLE))
+            .build();
+
+    adapter.bindModel(invisibleElement, frameContext);
+
+    assertThat(adapter.bound).isTrue();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.INVISIBLE);
+  }
+
+  @Test
+  public void testBindModel_doesNothingWhenVisibilityIsGone() {
+    Element visibleElement =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder().setDefaultVisibility(Visibility.VISIBLE))
+            .build();
+    adapter.createAdapter(visibleElement, frameContext);
+    Element goneElement =
+        Element.newBuilder()
+            .setVisibilityState(VisibilityState.newBuilder().setDefaultVisibility(Visibility.GONE))
+            .build();
+
+    adapter.bindModel(goneElement, frameContext);
+
+    assertThat(adapter.bound).isFalse();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
+  }
+
+  @Test
+  public void testBindModel_recreatesWhenVisibilityWasGone() {
+    Element goneElement =
+        Element.newBuilder()
+            .setVisibilityState(VisibilityState.newBuilder().setDefaultVisibility(Visibility.GONE))
+            .build();
+    adapter.createAdapter(goneElement, frameContext);
+    Element invisibleElement =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder().setDefaultVisibility(Visibility.INVISIBLE))
+            .build();
+
+    adapter.bindModel(invisibleElement, frameContext);
+
+    assertThat(adapter.created).isTrue();
+    assertThat(adapter.bound).isTrue();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.INVISIBLE);
+  }
+
+  @Test
+  public void testBindModel_doesntRecreateWhenWasCreatedButVisibilityGone() {
+    // Create a real adapter for a visible element.
+    Element visibileElement =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder().setDefaultVisibility(Visibility.VISIBLE))
+            .build();
+    adapter.createAdapter(visibileElement, frameContext);
+
+    // Bind a gone element, and unbind it so the visibility is GONE.
+    Element goneElement =
+        Element.newBuilder()
+            .setVisibilityState(VisibilityState.newBuilder().setDefaultVisibility(Visibility.GONE))
+            .build();
+    adapter.bindModel(goneElement, frameContext);
+    adapter.unbindModel();
+
+    assertThat(adapter.created).isTrue();
+    adapter.created = false; // set this so we can test that it doesn't get recreated
+
+    // Bind a real element, and ensure that the adapter is not recreated.
+    Element invisibleElement =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder().setDefaultVisibility(Visibility.INVISIBLE))
+            .build();
+
+    adapter.bindModel(invisibleElement, frameContext);
+
+    assertThat(adapter.created).isFalse();
+    assertThat(adapter.bound).isTrue();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.INVISIBLE);
   }
 
   @Test

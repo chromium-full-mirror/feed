@@ -32,6 +32,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.VisibilityBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
@@ -325,9 +326,6 @@ class FrameContext {
     if (bindingValue.hasHostBindingData()) {
       bindingValue = hostBindingProvider.getTemplateBindingForValue(bindingValue);
     }
-    if (bindingValue.hasVisibility()) {
-      Logger.e(TAG, "Visibility not supported for templates; got %s", bindingValue.getVisibility());
-    }
     if (!bindingValue.hasTemplateInvocation() && !binding.getIsOptional()) {
       throw new IllegalStateException(
           reportError(
@@ -429,6 +427,25 @@ class FrameContext {
           reportError(
               MessageType.ERROR,
               String.format("Element binding not found for %s", binding.getBindingId())));
+    } else {
+      return bindingValue;
+    }
+  }
+
+  /**
+   * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
+   * does not point to an Element.
+   */
+  BindingValue getVisibilityBindingValue(VisibilityBindingRef binding) {
+    BindingValue bindingValue = getBindingValue(binding.getBindingId());
+    if (bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getVisibilityBindingForValue(bindingValue);
+    }
+    if (!bindingValue.hasVisibility()) {
+      throw new IllegalStateException(
+          reportError(
+              MessageType.ERROR,
+              String.format("Visibility binding not found for %s", binding.getBindingId())));
     } else {
       return bindingValue;
     }

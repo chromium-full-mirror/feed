@@ -77,15 +77,12 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     switch (textLine.getContentCase()) {
       case CHUNKED_TEXT:
         chunkedText = textLine.getChunkedText();
-        setVisibility(Visibility.VISIBLE);
         break;
       case CHUNKED_TEXT_BINDING:
         BindingValue binding =
             frameContext.getChunkedTextBindingValue(textLine.getChunkedTextBinding());
-        setVisibility(binding.getVisibility());
         if (!binding.hasChunkedText()) {
-          if (binding.getVisibility() == Visibility.GONE
-              || textLine.getChunkedTextBinding().getIsOptional()) {
+          if (textLine.getChunkedTextBinding().getIsOptional()) {
             setVisibility(Visibility.GONE);
             return;
           } else {
@@ -191,14 +188,6 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
         BindingValue textBindingValue =
             frameContext.getParameterizedTextBindingValue(
                 chunk.getTextChunk().getParameterizedTextBinding());
-        if (textBindingValue.getVisibility() == Visibility.GONE) {
-          return;
-        } else if (textBindingValue.getVisibility() == Visibility.INVISIBLE) {
-          Logger.w(
-              TAG,
-              "Got unsupported INVISIBLE visibility on binding value '%s'",
-              textBindingValue.getBindingId());
-        }
         parameterizedText = textBindingValue.getParameterizedText();
         break;
       default:

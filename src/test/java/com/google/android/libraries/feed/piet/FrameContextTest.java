@@ -36,6 +36,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.VisibilityBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
@@ -411,15 +412,6 @@ public class FrameContextTest {
         .hasMessageThat()
         .contains("Parameterized text binding not found");
 
-    // Binding has no content but is GONE
-    textBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
-    frameContext = makeFrameContextWithBinding(textBindingValue);
-    assertThatRunnable(() -> frameContext.getParameterizedTextBindingValue(textBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Parameterized text binding not found");
-
     // Binding is invalid but is optional
     ParameterizedTextBindingRef textBindingRefInvalidOptional =
         ParameterizedTextBindingRef.newBuilder()
@@ -490,15 +482,6 @@ public class FrameContextTest {
         .hasMessageThat()
         .contains("Image binding not found");
 
-    // Binding has no content but is GONE
-    imageBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
-    frameContext = makeFrameContextWithBinding(imageBindingValue);
-    assertThatRunnable(() -> frameContext.getImageBindingValue(imageBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Image binding not found");
-
     // Binding is invalid but is optional
     ImageBindingRef imageBindingRefInvalidOptional =
         ImageBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).setIsOptional(true).build();
@@ -559,16 +542,7 @@ public class FrameContextTest {
         .hasMessageThat()
         .contains("Element binding not found");
 
-    // Binding has no content but is GONE
-    elementBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
-    frameContext = makeFrameContextWithBinding(elementBindingValue);
-    assertThatRunnable(() -> frameContext.getElementBindingValue(elementBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Element binding not found");
-
-    // Binding is missine but is optional
+    // Binding is missing but is optional
     ElementBindingRef elementBindingRefInvalidOptional =
         ElementBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).setIsOptional(true).build();
     assertThat(
@@ -600,6 +574,57 @@ public class FrameContextTest {
 
     // Succeed in looking up binding
     assertThat(frameContext.getElementBindingValue(elementBindingRef))
+        .isEqualTo(elementBindingValue);
+  }
+
+  @Test
+  public void testGetVisibility() {
+    Visibility visibility = Visibility.INVISIBLE;
+    BindingValue visibilityBindingValue = defaultBinding().setVisibility(visibility).build();
+    VisibilityBindingRef visibilityBindingRef =
+        VisibilityBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(visibilityBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getVisibilityBindingValue(visibilityBindingRef))
+        .isEqualTo(visibilityBindingValue);
+
+    // Can't look up binding
+    assertThatRunnable(
+            () ->
+                frameContext.getVisibilityBindingValue(
+                    VisibilityBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Visibility binding not found");
+
+    // Binding has no content
+    assertThatRunnable(
+            () -> makeFrameContextWithNoBindings().getVisibilityBindingValue(visibilityBindingRef))
+        .throwsAnExceptionOfType(IllegalStateException.class)
+        .that()
+        .hasMessageThat()
+        .contains("Visibility binding not found");
+  }
+
+  @Test
+  public void testGetVisibility_hostBinding() {
+    Visibility visibility = Visibility.INVISIBLE;
+    BindingValue elementBindingValue = defaultBinding().setVisibility(visibility).build();
+    BindingValue hostListBindingValue =
+        defaultBinding()
+            .setHostBindingData(HostBindingData.newBuilder())
+            .setVisibility(visibility)
+            .build();
+    VisibilityBindingRef visibilityBindingRef =
+        VisibilityBindingRef.newBuilder().setBindingId(BINDING_ID).build();
+
+    frameContext = makeFrameContextWithBinding(hostListBindingValue);
+
+    // Succeed in looking up binding
+    assertThat(frameContext.getVisibilityBindingValue(visibilityBindingRef))
         .isEqualTo(elementBindingValue);
   }
 
@@ -789,15 +814,6 @@ public class FrameContextTest {
         .hasMessageThat()
         .contains("Custom element binding not found");
 
-    // Binding has no content but is GONE
-    customElementBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
-    frameContext = makeFrameContextWithBinding(customElementBindingValue);
-    assertThatRunnable(() -> frameContext.getCustomElementBindingValue(customBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Custom element binding not found");
-
     // Binding is missing but is optional
     CustomBindingRef customBindingRefInvalidOptional =
         CustomBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).setIsOptional(true).build();
@@ -866,15 +882,6 @@ public class FrameContextTest {
     // Binding has no content
     assertThatRunnable(
             () -> makeFrameContextWithNoBindings().getChunkedTextBindingValue(textBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Chunked text binding not found");
-
-    // Binding has no content but is GONE
-    textBindingValue = defaultBinding().setVisibility(Visibility.GONE).build();
-    frameContext = makeFrameContextWithBinding(textBindingValue);
-    assertThatRunnable(() -> frameContext.getChunkedTextBindingValue(textBindingRef))
         .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()

@@ -49,15 +49,12 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
     switch (customElement.getContentCase()) {
       case CUSTOM_ELEMENT_DATA:
         customElementData = customElement.getCustomElementData();
-        setVisibility(Visibility.VISIBLE);
         break;
       case CUSTOM_BINDING:
         BindingValue binding =
             frameContext.getCustomElementBindingValue(customElement.getCustomBinding());
-        setVisibility(binding.getVisibility());
         if (!binding.hasCustomElementData()) {
-          if (binding.getVisibility() == Visibility.GONE
-              || customElement.getCustomBinding().getIsOptional()) {
+          if (customElement.getCustomBinding().getIsOptional()) {
             setVisibility(Visibility.GONE);
             return;
           } else {

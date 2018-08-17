@@ -225,33 +225,6 @@ public class ChunkedTextElementAdapterTest {
   }
 
   @Test
-  public void testBind_chunkedTextWithBoundText_gone() {
-    ParameterizedTextBindingRef textBinding =
-        ParameterizedTextBindingRef.newBuilder().setBindingId("sometext").build();
-    TextElement chunkedTextElement =
-        TextElement.newBuilder()
-            .setChunkedText(
-                ChunkedText.newBuilder()
-                    .addChunks(
-                        Chunk.newBuilder()
-                            .setTextChunk(
-                                StyledTextChunk.newBuilder()
-                                    .setParameterizedTextBinding(textBinding))))
-            .build();
-    when(frameContext.getParameterizedTextBindingValue(textBinding))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setParameterizedText(PARAMETERIZED_CHUNK_TEXT)
-                .setVisibility(Visibility.GONE)
-                .build());
-
-    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
-    adapter.bindModel(asElement(chunkedTextElement), frameContext);
-
-    assertThat(adapter.getBaseView().getText().toString()).isEmpty();
-  }
-
-  @Test
   public void testBind_chunkedTextWithNoContent() {
     TextElement chunkedTextElement =
         TextElement.newBuilder()
@@ -340,20 +313,6 @@ public class ChunkedTextElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Unhandled type of ChunkedText Chunk");
-  }
-
-  @Test
-  public void testSetTextOnView_visibilityGone() {
-    TextElement chunkedTextBindingElement =
-        TextElement.newBuilder().setChunkedTextBinding(CHUNKED_TEXT_BINDING_REF).build();
-
-    when(frameContext.getChunkedTextBindingValue(CHUNKED_TEXT_BINDING_REF))
-        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
-
-    adapter.createAdapter(asElement(chunkedTextBindingElement), frameContext);
-
-    adapter.setTextOnView(frameContext, chunkedTextBindingElement);
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
   }
 
   @Test

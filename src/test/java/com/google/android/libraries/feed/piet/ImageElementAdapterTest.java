@@ -229,25 +229,6 @@ public class ImageElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_visibilityGone() {
-    String bindingRef = "foto";
-    ImageBindingRef imageBindingRef = ImageBindingRef.newBuilder().setBindingId(bindingRef).build();
-    Element imageBindingElement =
-        asElement(ImageElement.newBuilder().setImageBinding(imageBindingRef).build());
-    adapter.createAdapter(
-        Element.newBuilder()
-            .setImageElement(ImageElement.newBuilder().setImage(Image.getDefaultInstance()))
-            .build(),
-        frameContext);
-    when(frameContext.getImageBindingValue(imageBindingRef))
-        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
-
-    adapter.bindModel(imageBindingElement, frameContext);
-
-    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
-  }
-
-  @Test
   public void testBindModel_optionalAbsent() {
     String bindingRef = "foto";
     ImageBindingRef imageBindingRef =

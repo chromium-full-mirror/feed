@@ -111,7 +111,6 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       textView.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
     }
-    textView.setVisibility(View.VISIBLE);
     textView.setText("");
   }
 

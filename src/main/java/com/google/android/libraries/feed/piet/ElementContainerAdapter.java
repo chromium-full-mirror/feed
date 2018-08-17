@@ -26,7 +26,6 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
-import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.PietProto.Template;
 import java.util.ArrayList;
 import java.util.List;
@@ -226,7 +225,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           // Look up the binding, then create, bind, and add a single adapter.
           BindingValue elementBinding =
               frameContext.getElementBindingValue(content.getBoundElement());
-          if (!elementBinding.hasElement() || elementBinding.getVisibility() == Visibility.GONE) {
+          if (!elementBinding.hasElement()) {
             continue;
           }
           Element element = elementBinding.getElement();
@@ -234,7 +233,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
               factory.createAdapterForElement(element, frameContext);
           adapter.bindModel(element, frameContext);
           childAdapters.add(adapterIndex++, adapter);
-          adapter.setVisibility(elementBinding.getVisibility());
           getBaseView().addView(adapter.getView(), viewIndex++);
           adaptersPerContent[contentIndex] = 1;
           break;
@@ -242,8 +240,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           // Look up the binding, then create, bind, and add template adapters.
           BindingValue templateBindingValue =
               frameContext.getTemplateInvocationBindingValue(content.getTemplateBinding());
-          if (!templateBindingValue.hasTemplateInvocation()
-              || templateBindingValue.getVisibility() == Visibility.GONE) {
+          if (!templateBindingValue.hasTemplateInvocation()) {
             continue;
           }
           TemplateInvocation boundTemplateInvocation = templateBindingValue.getTemplateInvocation();
@@ -264,7 +261,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
                     .templateBinder
                     .createAndBindTemplateAdapter(templateModel, frameContext);
             childAdapters.add(adapterIndex++, boundTemplateAdapter);
-            boundTemplateAdapter.setVisibility(templateBindingValue.getVisibility());
             getBaseView().addView(boundTemplateAdapter.getView(), viewIndex++);
           }
           break;

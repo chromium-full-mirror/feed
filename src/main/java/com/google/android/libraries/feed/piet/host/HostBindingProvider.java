@@ -24,6 +24,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRe
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.TemplateBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.VedBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.VisibilityBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.HostBindingData;
 
@@ -123,6 +124,14 @@ public class HostBindingProvider {
    * specified a BindingValue which includes {@link HostBindingData} set.
    */
   public BindingValue getStyleBindingForValue(BindingValue bindingValue) {
+    return clearHostBindingData(bindingValue);
+  }
+
+  /**
+   * Called by Piet during the binding process for a {@link VisibilityBindingRef} if the server has
+   * specified a BindingValue which includes {@link HostBindingData} set.
+   */
+  public BindingValue getVisibilityBindingForValue(BindingValue bindingValue) {
     return clearHostBindingData(bindingValue);
   }
 

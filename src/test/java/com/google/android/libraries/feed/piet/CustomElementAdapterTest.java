@@ -34,7 +34,6 @@ import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
-import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
 import org.junit.Test;
@@ -127,19 +126,6 @@ public class CustomElementAdapterTest {
 
     verifyZeroInteractions(customElementProvider);
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
-  }
-
-  @Test
-  public void testBindModel_visibilityGone() {
-    CustomBindingRef bindingRef = CustomBindingRef.newBuilder().setBindingId("CUSTOM!").build();
-    when(frameContext.getCustomElementBindingValue(bindingRef))
-        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
-    Element model = asElement(CustomElement.newBuilder().setCustomBinding(bindingRef).build());
-    adapter.createAdapter(model, frameContext);
-
-    adapter.bindModel(model, frameContext);
-
-    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
   }
 
   @Test

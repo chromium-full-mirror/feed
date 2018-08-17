@@ -24,10 +24,12 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
+import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.HashSet;
 import java.util.Set;
@@ -57,6 +59,7 @@ abstract class ElementAdapter<V extends View, M> {
   private Element baseElement = Element.getDefaultInstance();
   /*@Nullable*/ private RecyclerKey key;
   private StyleProvider elementStyle;
+  private boolean created = false;
 
   /*@Nullable*/ private FrameLayout wrapperView = null;
   @VisibleForTesting /*@Nullable*/ StackedElementAdapter overlayAdapter = null;
@@ -124,6 +127,13 @@ abstract class ElementAdapter<V extends View, M> {
   public void createAdapter(M model, Element baseElement, FrameContext frameContext) {
     this.model = model;
     this.baseElement = baseElement;
+
+    Visibility visibility = baseElement.getVisibilityState().getDefaultVisibility();
+    setVisibility(visibility);
+    if (visibility == Visibility.GONE) {
+      return;
+    }
+
     elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
 
     onCreateAdapter(model, baseElement, frameContext);
@@ -133,6 +143,8 @@ abstract class ElementAdapter<V extends View, M> {
     initializeOverflow(baseElement);
 
     elementStyle.applyElementStyles(getContext(), view);
+
+    created = true;
   }
 
   /** Performs child-class-specific adapter creation; to be overridden. */
@@ -153,6 +165,18 @@ abstract class ElementAdapter<V extends View, M> {
     this.baseElement = baseElement;
     if (getElementStyleIdsStack().hasStyleBinding()) {
       elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
+    }
+
+    Visibility visibility = getVisibilityWithBinding(frameContext);
+    if (visibility == Visibility.GONE) {
+      setVisibility(visibility);
+      return;
+    } else if (view.getVisibility() == View.GONE && !created) {
+      // If this used to be GONE, we need to initialize it.
+      // createAdapter will handle setting visibility.
+      createAdapter(model, baseElement, frameContext);
+    } else {
+      setVisibility(visibility);
     }
 
     onBindModel(model, baseElement, frameContext);
@@ -278,6 +302,10 @@ abstract class ElementAdapter<V extends View, M> {
    * #onReleaseAdapter} instead.
    */
   public void releaseAdapter() {
+    if (!created) {
+      return;
+    }
+
     onReleaseAdapter();
 
     // Destroy overlays
@@ -292,6 +320,8 @@ abstract class ElementAdapter<V extends View, M> {
     }
 
     setVisibility(Visibility.VISIBLE);
+
+    created = false;
   }
 
   /** Performs child-adapter-specific release logic; to be overridden. */
@@ -395,11 +425,19 @@ abstract class ElementAdapter<V extends View, M> {
     return parameters.templatedStringEvaluator;
   }
 
+  private Visibility getVisibilityWithBinding(FrameContext frameContext) {
+    VisibilityState visibilityState = baseElement.getVisibilityState();
+    Visibility visibility = visibilityState.getDefaultVisibility();
+    if (visibilityState.hasOverridingBoundVisibility()) {
+      BindingValue visibilityBinding =
+          frameContext.getVisibilityBindingValue(visibilityState.getOverridingBoundVisibility());
+      visibility = visibilityBinding.getVisibility();
+    }
+    return visibility;
+  }
+
   protected void setVisibility(Visibility visibility) {
     View view = getView();
-    if (view == null) {
-      return;
-    }
     switch (visibility) {
       case INVISIBLE:
         view.setVisibility(View.INVISIBLE);

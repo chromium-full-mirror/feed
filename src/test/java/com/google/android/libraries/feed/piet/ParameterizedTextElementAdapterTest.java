@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.search.now.ui.piet.ElementsProto.Visibility.GONE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,7 +23,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -160,21 +158,6 @@ public class ParameterizedTextElementAdapterTest {
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
     assertThat(textView.getText().toString()).isEmpty();
-  }
-
-  @Test
-  public void testBindModel_withBinding_visibilityGone() {
-    BindingValue bindingValue = BindingValue.newBuilder().setVisibility(GONE).build();
-    when(frameContext.getParameterizedTextBindingValue(DEFAULT_BINDING_REF))
-        .thenReturn(bindingValue);
-
-    Element model = getBindingTextElement(null /* StyleProvider*/);
-    adapter.createAdapter(model, frameContext);
-    adapter.bindModel(model, frameContext);
-    assertThat(adapter.getView()).isNotNull();
-    TextView textView = adapter.getBaseView();
-    assertThat(textView).isNotNull();
-    assertThat(textView.getVisibility()).isEqualTo(View.GONE);
   }
 
   @Test

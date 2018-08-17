@@ -169,14 +169,12 @@ public class TextElementAdapterTest {
 
     TextView adapterView = adapter.getBaseView();
     adapterView.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
-    adapterView.setVisibility(View.GONE);
     adapterView.setText("OLD TEXT");
 
     adapter.unbindModel();
 
     assertThat(adapter.getBaseView()).isSameAs(adapterView);
     assertThat(adapterView.getTextAlignment()).isEqualTo(View.TEXT_ALIGNMENT_GRAVITY);
-    assertThat(adapterView.getVisibility()).isEqualTo(View.VISIBLE);
     assertThat(adapterView.getText().toString()).isEmpty();
   }
 
