@@ -17,7 +17,10 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.SINGLE_LAYER_ID;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -52,6 +55,7 @@ import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ChunkedTextBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -225,7 +229,46 @@ public class ChunkedTextElementAdapterTest {
   }
 
   @Test
-  public void testBind_chunkedTextWithNoContent() {
+  public void testBind_chunkedTextWithBoundImage() {
+    ImageBindingRef imageBinding =
+        ImageBindingRef.newBuilder().setBindingId("image-binding-id").build();
+    TextElement chunkedTextElement =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(
+                        Chunk.newBuilder()
+                            .setImageChunk(
+                                StyledImageChunk.newBuilder().setImageBinding(imageBinding))))
+            .build();
+    when(frameContext.getImageBindingValue(imageBinding))
+        .thenReturn(BindingValue.newBuilder().setImage(IMAGE_CHUNK_IMAGE).build());
+
+    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextElement), frameContext);
+
+    assertThat(adapter.getBaseView().getText().toString()).isEqualTo(" ");
+    ImageSpan[] imageSpans =
+        ((SpannedString) adapter.getBaseView().getText()).getSpans(0, 1, ImageSpan.class);
+    assertThat(imageSpans).hasLength(1);
+
+    LayerDrawable containerDrawable = (LayerDrawable) imageSpans[0].getDrawable();
+
+    ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
+        ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
+
+    verify(mockAssetProvider).getImage(eq(IMAGE_CHUNK_IMAGE), imageCallbackCaptor.capture());
+
+    // Activate the image loading callback
+    Drawable imageDrawable = new ColorDrawable(123);
+    imageCallbackCaptor.getValue().accept(imageDrawable);
+
+    // Assert that we set the image on the span
+    assertThat(containerDrawable.getDrawable(SINGLE_LAYER_ID)).isSameAs(imageDrawable);
+  }
+
+  @Test
+  public void testBind_styledTextChunkWithNoContent() {
     TextElement chunkedTextElement =
         TextElement.newBuilder()
             .setChunkedText(
@@ -244,6 +287,81 @@ public class ChunkedTextElementAdapterTest {
         .reportError(
             MessageType.ERROR,
             "StyledTextChunk missing ParameterizedText content; has CONTENT_NOT_SET");
+  }
+
+  @Test
+  public void testBind_chunkedTextWithOptionalBindingNoImage() {
+    ImageBindingRef imageBinding =
+        ImageBindingRef.newBuilder().setBindingId("image-binding-id").setIsOptional(true).build();
+    TextElement chunkedTextElement =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(
+                        Chunk.newBuilder()
+                            .setImageChunk(
+                                StyledImageChunk.newBuilder().setImageBinding(imageBinding))))
+            .build();
+    when(frameContext.getImageBindingValue(imageBinding))
+        .thenReturn(BindingValue.getDefaultInstance());
+
+    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextElement), frameContext);
+
+    assertThat(adapter.getBaseView().getText().toString()).isEmpty();
+    ImageSpan[] imageSpans =
+        ((SpannedString) adapter.getBaseView().getText()).getSpans(0, 1, ImageSpan.class);
+    assertThat(imageSpans).hasLength(0);
+    verify(frameContext, never()).reportError(anyInt(), anyString());
+  }
+
+  @Test
+  public void testBind_chunkedTextWithNoImage() {
+    ImageBindingRef imageBinding =
+        ImageBindingRef.newBuilder().setBindingId("image-binding-id").build();
+    TextElement chunkedTextElement =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(
+                        Chunk.newBuilder()
+                            .setImageChunk(
+                                StyledImageChunk.newBuilder().setImageBinding(imageBinding))))
+            .build();
+    when(frameContext.getImageBindingValue(imageBinding))
+        .thenReturn(BindingValue.getDefaultInstance());
+
+    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextElement), frameContext);
+
+    assertThat(adapter.getBaseView().getText().toString()).isEmpty();
+    verify(frameContext)
+        .reportError(MessageType.ERROR, "No image found for binding id: image-binding-id");
+  }
+
+  @Test
+  public void testBind_styledImageChunkWithNoContent() {
+    TextElement chunkedTextElement =
+        TextElement.newBuilder()
+            .setChunkedText(
+                ChunkedText.newBuilder()
+                    .addChunks(
+                        Chunk.newBuilder().setImageChunk(StyledImageChunk.getDefaultInstance())))
+            .build();
+    when(mockTextEvaluator.evaluate(mockAssetProvider, ParameterizedText.getDefaultInstance()))
+        .thenReturn("");
+
+    adapter.createAdapter(asElement(chunkedTextElement), frameContext);
+    adapter.bindModel(asElement(chunkedTextElement), frameContext);
+
+    assertThat(adapter.getBaseView().getText().toString()).isEmpty();
+    ImageSpan[] imageSpans =
+        ((SpannedString) adapter.getBaseView().getText()).getSpans(0, 1, ImageSpan.class);
+    assertThat(imageSpans).hasLength(0);
+
+    verify(frameContext)
+        .reportError(
+            MessageType.ERROR, "StyledImageChunk missing Image content; has CONTENT_NOT_SET");
   }
 
   @Test

@@ -45,9 +45,11 @@ import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
+import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
+import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
@@ -245,6 +247,32 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
   void addImageChunk(
       FrameContext frameContext, TextView textView, SpannableStringBuilder spannable, Chunk chunk) {
     StyledImageChunk imageChunk = chunk.getImageChunk();
+    Image image;
+    switch (imageChunk.getContentCase()) {
+      case IMAGE:
+        image = imageChunk.getImage();
+        break;
+      case IMAGE_BINDING:
+        ImageBindingRef imageBinding = imageChunk.getImageBinding();
+        BindingValue imageBindingValue = frameContext.getImageBindingValue(imageBinding);
+        if (!imageBindingValue.hasImage()) {
+          if (!imageBinding.getIsOptional()) {
+            frameContext.reportError(
+                MessageType.ERROR,
+                String.format("No image found for binding id: %s", imageBinding.getBindingId()));
+          }
+          return;
+        }
+        image = imageBindingValue.getImage();
+        break;
+      default:
+        frameContext.reportError(
+            MessageType.ERROR,
+            String.format(
+                "StyledImageChunk missing Image content; has %s", imageChunk.getContentCase()));
+        return;
+    }
+
     StyleProvider chunkStyle = frameContext.makeStyleFor(imageChunk.getStyleReferences());
 
     // Set a placeholder empty image
@@ -262,10 +290,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     ImageSpanDrawableCallback imageSpanLoader =
         new ImageSpanDrawableCallback(wrapper, chunkStyle, textView);
     loadingImages.add(imageSpanLoader);
-    getParameters()
-        .hostProviders
-        .getAssetProvider()
-        .getImage(imageChunk.getImage(), imageSpanLoader);
+    getParameters().hostProviders.getAssetProvider().getImage(image, imageSpanLoader);
   }
 
   @Override
