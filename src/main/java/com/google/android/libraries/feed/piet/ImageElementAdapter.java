@@ -141,12 +141,13 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     if (imageView != null) {
       imageView.setImageDrawable(null);
     }
-    widthPx = DIMENSION_NOT_SET;
-    heightPx = DIMENSION_NOT_SET;
   }
 
   @Override
-  void onReleaseAdapter() {}
+  void onReleaseAdapter() {
+    widthPx = DIMENSION_NOT_SET;
+    heightPx = DIMENSION_NOT_SET;
+  }
 
   @Override
   StyleIdsStack getElementStyleIdsStack() {

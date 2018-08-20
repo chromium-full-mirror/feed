@@ -387,8 +387,8 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getView()).isNotNull();
     assertThat(adapter.getBaseView().getDrawable()).isNull();
 
-    assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
-    assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
   }
 
   @Test
@@ -435,6 +435,18 @@ public class ImageElementAdapterTest {
 
     // The image has the second drawable as expected.
     assertThat(imageView.getDrawable()).isEqualTo(drawable2);
+  }
+
+  @Test
+  public void testReleaseAdapter_resetsDims() {
+    setStyle(HEIGHT_DP, WIDTH_DP);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    adapter.unbindModel();
+    adapter.releaseAdapter();
+
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
   }
 
   @Test
