@@ -21,6 +21,9 @@ import static com.google.android.libraries.feed.basicstream.internal.viewholders
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.support.v7.util.DiffUtil;
+import android.support.v7.util.DiffUtil.DiffResult;
+import android.support.v7.util.ListUpdateCallback;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -177,19 +180,15 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   }
 
   public void setHeaders(List<Header> newHeaders) {
-    notifyItemRangeRemoved(0, headers.size());
+    // TODO: Move header orchestration into separate class once header orchestration
+    // logic is complex enough.
+    List<Header> oldHeaders = new ArrayList<>();
     for (HeaderDriver headerDriver : headers) {
-      headerDriver.onDestroy();
+      oldHeaders.add(headerDriver.getHeader());
     }
-    headers.clear();
-
-    for (Header header : newHeaders) {
-      // TODO: Move header orchestration into separate class once header orchestration logic
-      // is complex enough.
-      headers.add(createHeaderDriver(header));
-    }
-
-    notifyItemRangeInserted(0, headers.size());
+    DiffResult diffResult =
+        DiffUtil.calculateDiff(new HeaderDiffCallback(oldHeaders, newHeaders), true);
+    diffResult.dispatchUpdatesTo(new HeaderListUpdateCallback(newHeaders));
   }
 
   public void setStreamContentVisible(boolean streamContentVisible) {
@@ -287,5 +286,73 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   @VisibleForTesting
   HeaderDriver createHeaderDriver(Header header) {
     return new HeaderDriver(header, () -> dismissHeader(header));
+  }
+
+  private static class HeaderDiffCallback extends DiffUtil.Callback {
+
+    private final List<Header> oldHeaders;
+    private final List<Header> newHeaders;
+
+    private HeaderDiffCallback(List<Header> oldHeaders, List<Header> newHeaders) {
+      this.oldHeaders = oldHeaders;
+      this.newHeaders = newHeaders;
+    }
+
+    @Override
+    public int getOldListSize() {
+      return oldHeaders.size();
+    }
+
+    @Override
+    public int getNewListSize() {
+      return newHeaders.size();
+    }
+
+    @Override
+    public boolean areItemsTheSame(int i, int i1) {
+      return oldHeaders.get(i).equals(newHeaders.get(i1));
+    }
+
+    @Override
+    public boolean areContentsTheSame(int i, int i1) {
+      return oldHeaders.get(i).equals(newHeaders.get(i1));
+    }
+  }
+
+  private class HeaderListUpdateCallback implements ListUpdateCallback {
+
+    private final List<Header> newHeaders;
+
+    public HeaderListUpdateCallback(List<Header> newHeaders) {
+      this.newHeaders = newHeaders;
+    }
+
+    @Override
+    public void onInserted(int i, int i1) {
+      for (int index = i; index < newHeaders.size() && index < i + i1; index++) {
+        HeaderDriver headerDriver = createHeaderDriver(newHeaders.get(index));
+        headers.add(index, headerDriver);
+      }
+      notifyItemRangeInserted(i, i1);
+    }
+
+    @Override
+    public void onRemoved(int i, int i1) {
+      for (int index = i + i1 - 1; index >= 0 && index > i - i1; index--) {
+        headers.get(index).onDestroy();
+        headers.remove(index);
+      }
+      notifyItemRangeRemoved(i, i1);
+    }
+
+    @Override
+    public void onMoved(int i, int i1) {
+      notifyItemMoved(i, i1);
+    }
+
+    @Override
+    public void onChanged(int i, int i1, /*@Nullable*/ Object o) {
+      notifyItemRangeChanged(i, i1, o);
+    }
   }
 }
