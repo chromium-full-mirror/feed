@@ -835,11 +835,16 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   private void handleRemoveOperation(MutationHandler mutationHandler, StreamStructure removeChild) {
     // remove everything from the remove list first
+    // TODO: How do we handle remove on the root?
     String parentKey = removeChild.getParentContentId();
     synchronized (lock) {
       List<UpdatableModelChild> childList = containers.get(parentKey);
       if (childList == null) {
-        Logger.w(TAG, "Parent of removed item is not found");
+        if (!removeChild.hasParentContentId()) {
+          Logger.w(TAG, "Remove of root is not yet supported");
+        } else {
+          Logger.w(TAG, "Parent of removed item is not found");
+        }
         return;
       }
 

@@ -51,6 +51,8 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
+import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStructure;
+import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStructure.TreeNode;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
 import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCommitterFactory;
@@ -591,9 +593,23 @@ public class FeedSessionManager
   @Override
   public <T> void getStreamFeaturesFromHead(
       Function<StreamPayload, /*@Nullable*/ T> transformer,
-      Predicate<T> filter,
-      Consumer<Result<List<T>>> consumer) {
-    // TODO: Implement this...
+      Predicate</*@NonNull*/ T> filter,
+      Consumer<Result<List</*@NonNull*/ T>>> consumer) {
+    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+    Function<TreeNode, /*@Nullable*/ T> toStreamPayload =
+        treeNode -> transformer.apply(treeNode.getStreamPayload());
+    headAsStructure.initialize(
+        result -> {
+          if (!result.isSuccessful()) {
+            consumer.accept(Result.failure());
+            return;
+          }
+          Result<List</*@NonNull*/ T>> filterResults = headAsStructure.filter(toStreamPayload, filter);
+          consumer.accept(
+              filterResults.isSuccessful()
+                  ? Result.success(filterResults.getValue())
+                  : Result.failure());
+        });
   }
 
   @Override

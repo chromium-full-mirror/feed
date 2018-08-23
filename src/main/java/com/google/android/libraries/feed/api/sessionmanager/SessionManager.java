@@ -100,8 +100,8 @@ public interface SessionManager {
    */
   <T> void getStreamFeaturesFromHead(
       Function<StreamPayload, /*@Nullable*/ T> transformer,
-      Predicate<T> filter,
-      Consumer<Result<List<T>>> consumer);
+      Predicate</*@NonNull*/ T> filter,
+      Consumer<Result<List</*@NonNull*/ T>>> consumer);
 
   /**
    * This will run a Task on the SessionManager's Executor.

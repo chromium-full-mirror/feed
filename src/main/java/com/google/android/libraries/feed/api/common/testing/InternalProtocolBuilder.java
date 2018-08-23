@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.common.testing;
 
+import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -134,11 +135,25 @@ public class InternalProtocolBuilder {
     List<StreamStructure> streamStructures = new ArrayList<>();
     for (StreamDataOperation operation : dataOperations) {
       // For the structure, ignore the shared state
-      if (operation.hasStreamPayload() && operation.getStreamPayload().hasStreamSharedState()) {
+      if (operation.getStreamPayload().hasStreamSharedState()) {
         continue;
       }
       streamStructures.add(operation.getStreamStructure());
     }
     return streamStructures;
+  }
+
+  public List<PayloadWithId> buildAsPayloadWithId() {
+    List<PayloadWithId> payloads = new ArrayList<>();
+    for (StreamDataOperation operation : dataOperations) {
+      // For the structure, ignore the shared state
+      if (operation.getStreamPayload().hasStreamSharedState()) {
+        continue;
+      }
+      payloads.add(
+          new PayloadWithId(
+              operation.getStreamStructure().getContentId(), operation.getStreamPayload()));
+    }
+    return payloads;
   }
 }

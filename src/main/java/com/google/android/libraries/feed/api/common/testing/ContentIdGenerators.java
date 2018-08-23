@@ -19,12 +19,15 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 /** Test support class which creates Jardin content ids. */
 public class ContentIdGenerators {
   private static final String FEATURE = "feature";
+  private static final String ROOT_DOMAIN = "stream_root";
   private static final ContentId FEATURE_CONTENT_ID =
       ContentId.newBuilder().setContentDomain(FEATURE).setId(0).setTable(FEATURE).build();
   private static final ContentId TOKEN_ID =
       ContentId.newBuilder().setContentDomain("token").setId(0).setTable(FEATURE).build();
   private static final ContentId SHARED_STATE_CONTENT_ID =
       ContentId.newBuilder().setContentDomain("shared-state").setId(0).setTable(FEATURE).build();
+
+  public static final String ROOT_PREFIX = FEATURE + "::" + ROOT_DOMAIN;
 
   public String createFeatureContentId(long id) {
     return createContentId(FEATURE_CONTENT_ID.toBuilder().setId(id).build());
@@ -40,7 +43,7 @@ public class ContentIdGenerators {
 
   public String createRootContentId(int id) {
     return createContentId(
-        ContentId.newBuilder().setContentDomain("stream_root").setId(id).setTable(FEATURE).build());
+        ContentId.newBuilder().setContentDomain(ROOT_DOMAIN).setId(id).setTable(FEATURE).build());
   }
 
   public String createContentId(ContentId contentId) {
