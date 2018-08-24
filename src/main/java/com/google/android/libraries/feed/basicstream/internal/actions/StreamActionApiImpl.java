@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.actions;
 import android.content.Context;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.PopupMenu;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
@@ -84,6 +85,12 @@ public class StreamActionApiImpl implements StreamActionApi {
           return true;
         });
 
+    // We want to prevent any more touch events from be used (if a user has yet to end their current
+    // touch session). This prevents the possibility of scrolling after the context menu opens.
+    ViewParent parent = anchorView.getParent();
+    if (parent != null) {
+      parent.requestDisallowInterceptTouchEvent(true);
+    }
     popupMenu.show();
     basicLoggingApi.onContentContextMenuOpened(contentLoggingData);
   }

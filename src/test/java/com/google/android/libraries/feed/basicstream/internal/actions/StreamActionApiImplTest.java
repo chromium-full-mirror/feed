@@ -20,11 +20,13 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Context;
 import android.view.Menu;
 import android.view.View;
+import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -49,7 +51,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.Shadows;
 import org.robolectric.shadows.ShadowPopupMenu;
 
 /** Tests for {@link StreamActionApiImpl}. */
@@ -113,6 +114,7 @@ public class StreamActionApiImplTest {
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentLoggingData contentLoggingData;
   private StreamActionApiImpl streamActionApi;
+  private FrameLayout parentView;
   private View view;
 
   @Before
@@ -121,6 +123,8 @@ public class StreamActionApiImplTest {
 
     Context context = Robolectric.setupActivity(Activity.class);
     view = new View(context);
+    parentView = new FrameLayout(context);
+    parentView.addView(view);
     streamActionApi =
         new StreamActionApiImpl(
             context,
@@ -232,12 +236,14 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
+    assertThat(shadowOf(parentView).getDisallowInterceptTouchEvent()).isTrue();
+
     Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
     assertThat(menu.getItem(0).getTitle()).isEqualTo(OPEN_LABEL);
     assertThat(menu.getItem(1).getTitle()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
     assertThat(menu.getItem(2).getTitle()).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
 
-    ShadowPopupMenu shadowPopupMenu = Shadows.shadowOf(ShadowPopupMenu.getLatestPopupMenu());
+    ShadowPopupMenu shadowPopupMenu = shadowOf(ShadowPopupMenu.getLatestPopupMenu());
     shadowPopupMenu.getOnMenuItemClickListener().onMenuItemClick(menu.getItem(0));
     shadowPopupMenu.getOnMenuItemClickListener().onMenuItemClick(menu.getItem(1));
     shadowPopupMenu.getOnMenuItemClickListener().onMenuItemClick(menu.getItem(2));
