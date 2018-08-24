@@ -96,7 +96,7 @@ public class TextElementAdapterTest {
   public void testSetFont_boldFont() {
     Font font = Font.newBuilder().setWeight(FontWeight.BOLD).build();
 
-    adapter.setFont(font);
+    adapter.setValuesUsedInRecyclerKey(font);
     Typeface typeface = adapter.getBaseView().getTypeface();
     // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
     assertThat(typeface.getStyle() & Typeface.BOLD).isGreaterThan(0);
@@ -107,7 +107,7 @@ public class TextElementAdapterTest {
   public void testSetFont_italics() {
     Font font = Font.newBuilder().setItalic(true).build();
 
-    adapter.setFont(font);
+    adapter.setValuesUsedInRecyclerKey(font);
     Typeface typeface = adapter.getBaseView().getTypeface();
     // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
     assertThat(typeface.getStyle() & Typeface.BOLD).isEqualTo(0);
@@ -115,13 +115,29 @@ public class TextElementAdapterTest {
   }
 
   @Test
-  public void testSetFont_lineHeightRatio() {
-    float ratioToSet = 4.5f;
-    Font font = Font.newBuilder().setLineHeightRatio(ratioToSet).build();
+  public void testSetLineHeightRatio() {
+    float ratioToSet1 = 4.5f;
+    Style lineHeightStyle1 =
+        Style.newBuilder().setFont(Font.newBuilder().setLineHeightRatio(ratioToSet1)).build();
+    StyleProvider styleProvider1 = new StyleProvider(lineHeightStyle1, mockAssetProvider);
+    Element firstTextElement = getBaseTextElement(styleProvider1);
 
-    adapter.setFont(font);
-    Float lineHeightRatio = adapter.getBaseView().getLineSpacingMultiplier();
-    assertThat(lineHeightRatio).isEqualTo(ratioToSet);
+    adapter.createAdapter(firstTextElement, frameContext);
+    float lineHeightRatio1 = adapter.getBaseView().getLineSpacingMultiplier();
+    assertThat(lineHeightRatio1).isEqualTo(ratioToSet1);
+
+    adapter.releaseAdapter();
+
+    // test that the line height ratio is updated when the adapter is created a second time
+    float ratioToSet2 = 2.1f;
+    Style lineHeightStyle2 =
+        Style.newBuilder().setFont(Font.newBuilder().setLineHeightRatio(ratioToSet2)).build();
+    StyleProvider styleProvider2 = new StyleProvider(lineHeightStyle2, mockAssetProvider);
+    Element secondTextElement = getBaseTextElement(styleProvider2);
+
+    adapter.createAdapter(secondTextElement, frameContext);
+    float lineHeightRatio2 = adapter.getBaseView().getLineSpacingMultiplier();
+    assertThat(lineHeightRatio2).isEqualTo(ratioToSet2);
   }
 
   @Test

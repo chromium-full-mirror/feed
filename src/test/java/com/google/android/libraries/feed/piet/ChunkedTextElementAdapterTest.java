@@ -656,9 +656,11 @@ public class ChunkedTextElementAdapterTest {
   }
 
   @Test
-  public void testCreateKey_returnsSingleton() {
-    assertThat(adapter.createKey(Font.getDefaultInstance()))
-        .isSameAs(SingletonKeySupplier.SINGLETON_KEY);
+  public void testKeySupplier() {
+    ChunkedTextElementAdapter.KeySupplier keySupplier = new ChunkedTextElementAdapter.KeySupplier();
+    assertThat(keySupplier.getAdapterTag()).isEqualTo("ChunkedTextElementAdapter");
+    assertThat(keySupplier.getAdapter(context, adapterParameters)).isNotNull();
+    assertThat(keySupplier).isNotInstanceOf(SingletonKeySupplier.class);
   }
 
   @Test

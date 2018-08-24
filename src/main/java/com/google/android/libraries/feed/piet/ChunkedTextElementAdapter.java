@@ -39,7 +39,6 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
-import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
@@ -51,7 +50,6 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
-import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.TextProto.Chunk;
 import com.google.search.now.ui.piet.TextProto.ChunkedText;
@@ -302,11 +300,6 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     super.onUnbindModel();
   }
 
-  @Override
-  RecyclerKey createKey(Font font) {
-    return KeySupplier.SINGLETON_KEY;
-  }
-
   /**
    * Sets the width and height of the drawable based on the {@code imageStyle}, preserving aspect
    * ratio. If no dimensions are set in the style, defaults to matching the line height of the
@@ -444,7 +437,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     }
   }
 
-  static class KeySupplier extends SingletonKeySupplier<ChunkedTextElementAdapter, TextElement> {
+  static class KeySupplier extends TextElementKeySupplier<ChunkedTextElementAdapter> {
     @Override
     public String getAdapterTag() {
       return TAG;

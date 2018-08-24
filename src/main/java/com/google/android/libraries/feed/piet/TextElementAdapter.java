@@ -24,9 +24,11 @@ import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
+import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /**
@@ -53,11 +55,11 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   void onCreateAdapter(TextElement textLine, Element baseElement, FrameContext frameContext) {
     if (getKey() == null) {
       Font font = getElementStyle().getFont();
-      setFont(font);
+      setValuesUsedInRecyclerKey(font);
       setKey(createKey(font));
     }
 
-    // Setup the layout of the text lines.
+    // Setup the layout of the text lines, including all properties not in the recycler key.
     updateTextStyle();
   }
 
@@ -65,6 +67,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     TextView textView = getBaseView();
     StyleProvider textStyle = getElementStyle();
     textView.setTextColor(textStyle.getColor());
+    textView.setLineSpacing(/* add= */ 0, textStyle.getFont().getLineHeightRatio());
     if (textStyle.getMaxLines() > 0) {
       textView.setMaxLines(textStyle.getMaxLines());
       textView.setEllipsize(TextUtils.TruncateAt.END);
@@ -114,15 +117,12 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     textView.setText("");
   }
 
-  abstract RecyclerKey createKey(Font font);
-
   @VisibleForTesting
-  void setFont(Font font) {
-    // TODO: Line Height is currently not supported.
+  // LINT.IfChange(set_values_used_in_recycler_key)
+  void setValuesUsedInRecyclerKey(Font font) {
     // TODO: Implement typefaces
     TextView textView = getBaseView();
     textView.setTextSize(font.getSize());
-    textView.setLineSpacing(/* add= */ 0, font.getLineHeightRatio());
     boolean bold = false;
     switch (font.getWeight()) {
       case REGULAR:
@@ -161,4 +161,60 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       textView.setTypeface(Typeface.create(textView.getTypeface(), Typeface.NORMAL));
     }
   }
+  // LINT.ThenChange(:recycler_key)
+
+  RecyclerKey createKey(Font font) {
+    return new Key(font);
+  }
+
+  abstract static class TextElementKeySupplier<A extends TextElementAdapter>
+      implements AdapterKeySupplier<A, TextElement> {
+    @Override
+    public Key getKey(FrameContext frameContext, TextElement model) {
+      StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences());
+      return new Key(styleProvider.getFont());
+    }
+  }
+
+  /** We will Key TextViews off of the Ellipsizing, Font Size and FontWeight, and Italics. */
+  // LINT.IfChange(recycler_key)
+  static class Key extends RecyclerKey {
+    private final int size;
+    private final FontWeight fontWeight;
+    private final boolean italic;
+
+    Key(Font font) {
+      size = font.getSize();
+      fontWeight = font.getWeight();
+      italic = font.getItalic();
+    }
+
+    @Override
+    public int hashCode() {
+      // Can't use Objects.hash() as it is only available in KK+ and can't use Guava's impl either.
+      int result = size;
+      result = 31 * result + fontWeight.getNumber();
+      result = 31 * result + (italic ? 1 : 0);
+      return result;
+    }
+
+    @Override
+    public boolean equals(/*@Nullable*/ Object obj) {
+      if (obj == this) {
+        return true;
+      }
+
+      if (obj == null) {
+        return false;
+      }
+
+      if (!(obj instanceof Key)) {
+        return false;
+      }
+
+      Key key = (Key) obj;
+      return key.size == size && key.fontWeight == fontWeight && key.italic == italic;
+    }
+  }
+  // LINT.ThenChange(:set_values_used_in_recycler_key)
 }

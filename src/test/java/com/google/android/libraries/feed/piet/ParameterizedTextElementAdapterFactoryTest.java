@@ -26,7 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
-import com.google.android.libraries.feed.piet.ParameterizedTextElementAdapter.Key;
+import com.google.android.libraries.feed.piet.TextElementAdapter.Key;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
@@ -69,7 +69,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
   public void testKeySupplier() {
     ParameterizedTextElementAdapter.KeySupplier keySupplier =
         new ParameterizedTextElementAdapter.KeySupplier();
-    assertThat(keySupplier.getAdapterTag()).isEqualTo("TextElementAdapter");
+    assertThat(keySupplier.getAdapterTag()).isEqualTo("ParameterizedTextElementAdapter");
     assertThat(keySupplier.getAdapter(context, adapterParameters)).isNotNull();
     assertThat(keySupplier).isNotInstanceOf(SingletonKeySupplier.class);
     assertThat(keySupplier.getKey(frameContext, getBaseTextElement(null)))
