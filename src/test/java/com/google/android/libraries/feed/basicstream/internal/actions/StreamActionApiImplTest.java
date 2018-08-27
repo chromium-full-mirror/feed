@@ -27,8 +27,10 @@ import android.content.Context;
 import android.view.Menu;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.PopupMenu;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
@@ -107,6 +109,14 @@ public class StreamActionApiImplTest {
                           .build()))
           .build();
   private static final String SESSION_ID = "SESSION_ID";
+  private static final ContentMetadata CONTENT_METADATA =
+      new ContentMetadata(
+          URL,
+          "title",
+          /* imageUrl= */ null,
+          /* attribution= */ null,
+          /* faviconUrl= */ null,
+          /* snippet=*/ null);
 
   @Mock private ActionApi actionApi;
   @Mock private ActionParser actionParser;
@@ -194,8 +204,8 @@ public class StreamActionApiImplTest {
 
   @Test
   public void testDownloadUrl() {
-    streamActionApi.downloadUrl(URL);
-    verify(actionApi).downloadUrl(URL);
+    streamActionApi.downloadUrl(CONTENT_METADATA);
+    verify(actionApi).downloadUrl(CONTENT_METADATA);
   }
 
   @Test
@@ -239,14 +249,14 @@ public class StreamActionApiImplTest {
     assertThat(shadowOf(parentView).getDisallowInterceptTouchEvent()).isTrue();
 
     Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
-    assertThat(menu.getItem(0).getTitle()).isEqualTo(OPEN_LABEL);
-    assertThat(menu.getItem(1).getTitle()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
-    assertThat(menu.getItem(2).getTitle()).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
+    assertThat(menu.getItem(0).getTitle().toString()).isEqualTo(OPEN_LABEL);
+    assertThat(menu.getItem(1).getTitle().toString()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
+    assertThat(menu.getItem(2).getTitle().toString()).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
 
-    ShadowPopupMenu shadowPopupMenu = shadowOf(ShadowPopupMenu.getLatestPopupMenu());
-    shadowPopupMenu.getOnMenuItemClickListener().onMenuItemClick(menu.getItem(0));
-    shadowPopupMenu.getOnMenuItemClickListener().onMenuItemClick(menu.getItem(1));
-    shadowPopupMenu.getOnMenuItemClickListener().onMenuItemClick(menu.getItem(2));
+    PopupMenu popupMenu = ShadowPopupMenu.getLatestPopupMenu();
+    shadowOf(popupMenu).getOnMenuItemClickListener().onMenuItemClick(menu.getItem(0));
+    shadowOf(popupMenu).getOnMenuItemClickListener().onMenuItemClick(menu.getItem(1));
+    shadowOf(popupMenu).getOnMenuItemClickListener().onMenuItemClick(menu.getItem(2));
 
     InOrder inOrder = Mockito.inOrder(actionParser);
 
@@ -284,8 +294,8 @@ public class StreamActionApiImplTest {
     Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
 
     assertThat(menu.size()).isEqualTo(2);
-    assertThat(menu.getItem(0).getTitle()).isEqualTo(OPEN_LABEL);
-    assertThat(menu.getItem(1).getTitle()).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
+    assertThat(menu.getItem(0).getTitle().toString()).isEqualTo(OPEN_LABEL);
+    assertThat(menu.getItem(1).getTitle().toString()).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
   }
 
   @Test
@@ -310,8 +320,8 @@ public class StreamActionApiImplTest {
     Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
 
     assertThat(menu.size()).isEqualTo(2);
-    assertThat(menu.getItem(0).getTitle()).isEqualTo(OPEN_LABEL);
-    assertThat(menu.getItem(1).getTitle()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
+    assertThat(menu.getItem(0).getTitle().toString()).isEqualTo(OPEN_LABEL);
+    assertThat(menu.getItem(1).getTitle().toString()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
   }
 
   @Test

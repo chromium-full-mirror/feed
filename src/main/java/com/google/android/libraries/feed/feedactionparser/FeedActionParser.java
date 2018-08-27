@@ -22,8 +22,10 @@ import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata
 
 import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
@@ -46,12 +48,15 @@ public class FeedActionParser implements ActionParser {
 
   private final PietFeedActionPayloadRetriever pietFeedActionPayloadRetriever;
   private final ProtocolAdapter protocolAdapter;
+  private final Supplier</*@Nullable*/ ContentMetadata> contentMetadata;
 
-  public FeedActionParser(
+  FeedActionParser(
       ProtocolAdapter protocolAdapter,
-      PietFeedActionPayloadRetriever pietFeedActionPayloadRetriever) {
+      PietFeedActionPayloadRetriever pietFeedActionPayloadRetriever,
+      Supplier</*@Nullable*/ ContentMetadata> contentMetadata) {
     this.protocolAdapter = protocolAdapter;
     this.pietFeedActionPayloadRetriever = pietFeedActionPayloadRetriever;
+    this.contentMetadata = contentMetadata;
   }
 
   @Override
@@ -121,13 +126,13 @@ public class FeedActionParser implements ActionParser {
           Logger.e(TAG, "Cannot download: StreamActionApi does not support it");
           break;
         }
-
-        if (!feedActionMetadata.getDownloadData().hasUrl()) {
-          Logger.e(TAG, " Cannot download: no URL");
+        ContentMetadata contentMetadata = this.contentMetadata.get();
+        if (contentMetadata == null) {
+          Logger.e(TAG, " Cannot download: no ContentMetadata");
           break;
         }
 
-        streamActionApi.downloadUrl(feedActionMetadata.getDownloadData().getUrl());
+        streamActionApi.downloadUrl(contentMetadata);
         break;
       case LEARN_MORE:
         if (!streamActionApi.canLearnMore()) {
@@ -203,7 +208,7 @@ public class FeedActionParser implements ActionParser {
       case DISMISS:
         return streamActionApi.canDismiss();
       case DOWNLOAD:
-        return streamActionApi.canDownloadUrl();
+        return contentMetadata.get() != null && streamActionApi.canDownloadUrl();
       case LEARN_MORE:
         return streamActionApi.canLearnMore();
       case UNKNOWN:

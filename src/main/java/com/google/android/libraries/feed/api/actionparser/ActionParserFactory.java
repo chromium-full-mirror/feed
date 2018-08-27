@@ -14,7 +14,20 @@
 
 package com.google.android.libraries.feed.api.actionparser;
 
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.common.functional.Supplier;
+
 /** Factory for {@link ActionParser}. */
 public interface ActionParserFactory {
-  ActionParser build();
+
+  /**
+   * Builds the ActionParser.
+   *
+   * @param contentMetadata A {@link Supplier} for {@link ContentMetadata} required for the {@link
+   *     com.google.android.libraries.feed.host.action.ActionApi#downloadUrl(ContentMetadata)}
+   *     action. If the {@link Supplier} returns {@code null}, the download action will be
+   *     suppressed. A {@link Supplier} is used instead of just a {@link ContentMetadata} to save on
+   *     memory and startup time.
+   */
+  ActionParser build(Supplier</*@Nullable*/ ContentMetadata> contentMetadata);
 }

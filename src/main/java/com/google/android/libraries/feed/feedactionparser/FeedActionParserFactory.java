@@ -16,7 +16,9 @@ package com.google.android.libraries.feed.feedactionparser;
 
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 
 /** Default factory for the default {@link ActionParser} implementation. */
@@ -31,7 +33,8 @@ public class FeedActionParserFactory implements ActionParserFactory {
   }
 
   @Override
-  public ActionParser build() {
-    return new FeedActionParser(protocolAdapter, pietFeedActionPayloadRetriever);
+  public ActionParser build(Supplier</*@Nullable*/ ContentMetadata> contentMetadataSupplier) {
+    return new FeedActionParser(
+        protocolAdapter, pietFeedActionPayloadRetriever, contentMetadataSupplier);
   }
 }

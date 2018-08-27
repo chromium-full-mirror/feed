@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.host.action;
 
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+
 /**
  * The actions API allows the Feed to query the host as to what actions can be performed and
  * instruct the host to perform such actions. In the case that an action is triggered that is not
@@ -52,8 +54,12 @@ public interface ActionApi {
   /** Whether the host can open a URL in a new window. */
   boolean canOpenUrlInNewWindow();
 
-  /** Downloads the given url. */
-  void downloadUrl(String url);
+  /**
+   * Downloads the given url.
+   *
+   * @param contentMetadata The {@link ContentMetadata} defining the content to be downloaded.
+   */
+  void downloadUrl(ContentMetadata contentMetadata);
 
   /** Whether the host can download a URL. */
   boolean canDownloadUrl();

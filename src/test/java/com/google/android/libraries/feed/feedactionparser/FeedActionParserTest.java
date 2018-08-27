@@ -27,6 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
@@ -36,7 +37,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.DismissData;
-import com.google.search.now.ui.action.FeedActionProto.DownloadData;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
@@ -52,6 +52,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -129,22 +130,7 @@ public class FeedActionParserTest {
           .setExtension(
               FeedAction.feedActionExtension,
               FeedAction.newBuilder()
-                  .setMetadata(
-                      FeedActionMetadata.newBuilder()
-                          .setType(Type.DOWNLOAD)
-                          .setDownloadData(DownloadData.newBuilder().setUrl(URL)))
-                  .build())
-          .build();
-
-  private static final FeedActionPayload DOWNLOAD_URL_FEED_ACTION_NO_URL =
-      FeedActionPayload.newBuilder()
-          .setExtension(
-              FeedAction.feedActionExtension,
-              FeedAction.newBuilder()
-                  .setMetadata(
-                      FeedActionMetadata.newBuilder()
-                          .setType(Type.DOWNLOAD)
-                          .setDownloadData(DownloadData.newBuilder()))
+                  .setMetadata(FeedActionMetadata.newBuilder().setType(Type.DOWNLOAD).build())
                   .build())
           .build();
 
@@ -231,6 +217,14 @@ public class FeedActionParserTest {
                                   .addDataOperations(DataOperation.getDefaultInstance())))
                   .build())
           .build();
+  private static final ContentMetadata CONTENT_METADATA =
+      new ContentMetadata(
+          URL,
+          "title",
+          /* imageUrl= */ null,
+          /* attribution= */ null,
+          /* faviconUrl= */ null,
+          /* snippet= */ null);
 
   @Mock private StreamActionApi streamActionApi;
   @Mock private ProtocolAdapter protocolAdapter;
@@ -242,7 +236,9 @@ public class FeedActionParserTest {
     initMocks(this);
     when(protocolAdapter.getStreamContentId(DISMISS_CONTENT_ID))
         .thenReturn(DISMISS_CONTENT_ID_STRING);
-    feedActionParser = new FeedActionParser(protocolAdapter, new PietFeedActionPayloadRetriever());
+    feedActionParser =
+        new FeedActionParser(
+            protocolAdapter, new PietFeedActionPayloadRetriever(), () -> CONTENT_METADATA);
   }
 
   @Test
@@ -310,6 +306,14 @@ public class FeedActionParserTest {
   }
 
   @Test
+  public void testParseAction_downloadUrl() {
+    when(streamActionApi.canDownloadUrl()).thenReturn(true);
+    feedActionParser.parseFeedActionPayload(
+        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
+    verify(streamActionApi).downloadUrl(CONTENT_METADATA);
+  }
+
+  @Test
   public void testCanPerformActionFromContextMenu_openUrl() {
     when(streamActionApi.canOpenUrl()).thenReturn(true);
     assertThat(feedActionParser.canPerformAction(OPEN_URL_FEED_ACTION, streamActionApi)).isTrue();
@@ -355,22 +359,6 @@ public class FeedActionParserTest {
   }
 
   @Test
-  public void testDownloadUrl_noUrlPresent() {
-    when(streamActionApi.canDownloadUrl()).thenReturn(true);
-    feedActionParser.parseFeedActionPayload(
-        DOWNLOAD_URL_FEED_ACTION_NO_URL, streamActionApi, /* view= */ null);
-    verify(streamActionApi, times(0)).downloadUrl(anyString());
-  }
-
-  @Test
-  public void testDownloadUrl_noHostSupport() {
-    when(streamActionApi.canDownloadUrl()).thenReturn(false);
-    feedActionParser.parseFeedActionPayload(
-        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
-    verify(streamActionApi, times(0)).downloadUrl(anyString());
-  }
-
-  @Test
   public void testCanPerformActionFromContextMenu_learnMore() {
     when(streamActionApi.canLearnMore()).thenReturn(true);
     assertThat(feedActionParser.canPerformAction(LEARN_MORE_FEED_ACTION, streamActionApi)).isTrue();
@@ -379,10 +367,32 @@ public class FeedActionParserTest {
   }
 
   @Test
+  public void testDownloadUrl_noContentMetadata() {
+    feedActionParser =
+        new FeedActionParser(
+            protocolAdapter,
+            new PietFeedActionPayloadRetriever(),
+            /* contentMetadata= */ () -> null);
+    when(streamActionApi.canDownloadUrl()).thenReturn(true);
+    feedActionParser.parseFeedActionPayload(
+        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
+    verify(streamActionApi, times(0)).downloadUrl(any(ContentMetadata.class));
+  }
+
+  @Test
+  public void testDownloadUrl_noHostSupport() {
+    when(streamActionApi.canDownloadUrl()).thenReturn(false);
+    feedActionParser.parseFeedActionPayload(
+        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
+    verify(streamActionApi, times(0)).downloadUrl(any(ContentMetadata.class));
+  }
+
+  @Test
   public void testDismiss_noApiSupport() {
     when(streamActionApi.canDismiss()).thenReturn(false);
     feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
-    verify(streamActionApi, never()).dismiss(anyString(), any(List.class));
+    verify(streamActionApi, never())
+        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class));
   }
 
   @Test
@@ -390,7 +400,8 @@ public class FeedActionParserTest {
     when(streamActionApi.canDismiss()).thenReturn(true);
     feedActionParser.parseFeedActionPayload(
         DISMISS_FEED_ACTION_NO_CONTENT_ID, streamActionApi, /* view= */ null);
-    verify(streamActionApi, never()).dismiss(anyString(), any(List.class));
+    verify(streamActionApi, never())
+        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class));
   }
 
   @Test
@@ -407,7 +418,8 @@ public class FeedActionParserTest {
 
     feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
 
-    verify(streamActionApi, never()).dismiss(anyString(), any(List.class));
+    verify(streamActionApi, never())
+        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class));
   }
 
   @Test

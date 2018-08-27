@@ -21,6 +21,7 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
@@ -45,6 +46,7 @@ import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.stream.StreamStructureProto;
 import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
+import com.google.search.now.ui.stream.StreamStructureProto.OfflineMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -85,19 +87,17 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       FeedActionPayload swipeAction,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener) {
-    PietContent pietContent = getPietContent(contentFeatureModel.getStreamFeature().getContent());
+    Content content = contentFeatureModel.getStreamFeature().getContent();
+
+    PietContent pietContent = getPietContent(content);
     this.basicLoggingApi = basicLoggingApi;
     frame = pietContent.getFrame();
     pietSharedStates = getPietSharedStates(pietContent, modelProvider);
     contentId = contentFeatureModel.getStreamFeature().getContentId();
-    RepresentationData representationData =
-        contentFeatureModel.getStreamFeature().getContent().getRepresentationData();
+    RepresentationData representationData = content.getRepresentationData();
     contentLoggingData =
-        createContentLoggingData(
-            contentFeatureModel.getStreamFeature().getContent().getBasicLoggingMetadata(),
-            representationData,
-            position);
-    actionParser = actionParserFactory.build();
+        createContentLoggingData(content.getBasicLoggingMetadata(), representationData, position);
+    actionParser = actionParserFactory.build(() -> maybeBuildContentMetadata(content));
     streamActionApi =
         createStreamActionApi(
             context,
@@ -168,6 +168,35 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
         "Shared state was null. Stylesheets and templates on PietSharedState "
             + "will not be loaded.");
     return null;
+  }
+
+  /*@Nullable*/
+  private ContentMetadata maybeBuildContentMetadata(
+      /*@UnderInitialization*/ ContentDriver this, Content content) {
+    if (!content.getRepresentationData().hasUri()) {
+      Logger.w(TAG, "No URL to build ContentMetadata.");
+      return null;
+    }
+
+    OfflineMetadata metadata = content.getOfflineMetadata();
+
+    if (!metadata.hasTitle()) {
+      Logger.w(TAG, "No title to build ContentMetadata.");
+      return null;
+    }
+
+    String imageUrl = metadata.hasImageUrl() ? metadata.getImageUrl() : null;
+    String attribution = metadata.hasAttribution() ? metadata.getAttribution() : null;
+    String faviconUrl = metadata.hasFaviconUrl() ? metadata.getFaviconUrl() : null;
+    String snippet = metadata.hasSnippet() ? metadata.getSnippet() : null;
+
+    return new ContentMetadata(
+        content.getRepresentationData().getUri(),
+        metadata.getTitle(),
+        imageUrl,
+        attribution,
+        faviconUrl,
+        snippet);
   }
 
   @Override

@@ -21,6 +21,7 @@ import android.view.ViewParent;
 import android.widget.PopupMenu;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -152,8 +153,8 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   @Override
-  public void downloadUrl(String url) {
-    actionApi.downloadUrl(url);
+  public void downloadUrl(ContentMetadata contentMetadata) {
+    actionApi.downloadUrl(contentMetadata);
   }
 
   @Override

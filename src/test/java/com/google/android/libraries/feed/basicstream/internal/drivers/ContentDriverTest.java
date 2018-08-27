@@ -28,6 +28,7 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
@@ -35,6 +36,7 @@ import com.google.android.libraries.feed.basicstream.internal.logging.LoggingLis
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -51,6 +53,7 @@ import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.stream.StreamStructureProto.BasicLoggingMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import com.google.search.now.ui.stream.StreamStructureProto.Content.Type;
+import com.google.search.now.ui.stream.StreamStructureProto.OfflineMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -73,6 +76,8 @@ public class ContentDriverTest {
 
   private static final int POSITION = 1;
   private static final String CONTENT_URL = "google.com";
+  private static final String CONTENT_TITLE = "title";
+
   private static final BasicLoggingMetadata BASIC_LOGGING_METADATA =
       BasicLoggingMetadata.newBuilder()
           .setPublishedTimeSeconds(10)
@@ -82,6 +87,8 @@ public class ContentDriverTest {
       RepresentationData.newBuilder().setUri(CONTENT_URL).build();
   private static final ContentLoggingData CONTENT_LOGGING_DATA =
       new StreamContentLoggingData(POSITION, BASIC_LOGGING_METADATA, REPRESENTATION_DATA);
+  private static final OfflineMetadata OFFLINE_METADATA =
+      OfflineMetadata.newBuilder().setTitle(CONTENT_TITLE).build();
 
   private static final ContentId CONTENT_ID_1 =
       ContentId.newBuilder()
@@ -101,15 +108,15 @@ public class ContentDriverTest {
           .addPietSharedStates(CONTENT_ID_1)
           .addPietSharedStates(CONTENT_ID_2)
           .build();
-  private static final StreamFeature STREAM_FEATURE =
-      StreamFeature.newBuilder()
-          .setContent(
-              Content.newBuilder()
-                  .setBasicLoggingMetadata(BASIC_LOGGING_METADATA)
-                  .setRepresentationData(REPRESENTATION_DATA)
-                  .setType(Type.PIET)
-                  .setExtension(PietContent.pietContentExtension, PIET_CONTENT))
+  private static final Content CONTENT_NO_OFFLINE_METADATA =
+      Content.newBuilder()
+          .setBasicLoggingMetadata(BASIC_LOGGING_METADATA)
+          .setRepresentationData(REPRESENTATION_DATA)
+          .setType(Type.PIET)
+          .setExtension(PietContent.pietContentExtension, PIET_CONTENT)
           .build();
+  private static final Content CONTENT =
+      CONTENT_NO_OFFLINE_METADATA.toBuilder().setOfflineMetadata(OFFLINE_METADATA).build();
 
   private static final PietSharedState PIET_SHARED_STATE_1 =
       PietSharedState.newBuilder().addTemplates(Template.newBuilder().setTemplateId("1")).build();
@@ -152,10 +159,12 @@ public class ContentDriverTest {
   @Before
   public void setup() {
     initMocks(this);
-    when(modelFeature.getStreamFeature()).thenReturn(STREAM_FEATURE);
+    when(modelFeature.getStreamFeature())
+        .thenReturn(StreamFeature.newBuilder().setContent(CONTENT).build());
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(STREAM_SHARED_STATE_1);
     when(modelProvider.getSharedState(CONTENT_ID_2)).thenReturn(STREAM_SHARED_STATE_2);
-    when(actionParserFactory.build()).thenReturn(actionParser);
+    when(actionParserFactory.build(Mockito.<Supplier<ContentMetadata>>any()))
+        .thenReturn(actionParser);
     contentDriver =
         new ContentDriver(
             actionApi,
@@ -379,6 +388,20 @@ public class ContentDriverTest {
   }
 
   @Test
+  public void testNotEnoughInformationForContentMetadata() {
+    assertThat(getContentMetadataFor(CONTENT_NO_OFFLINE_METADATA)).isNull();
+  }
+
+  @Test
+  public void testContentMetadataProvider() {
+    ContentMetadata contentMetadata = getContentMetadataFor(CONTENT);
+
+    assertThat(contentMetadata).isNotNull();
+    assertThat(contentMetadata.getTitle()).isEqualTo(CONTENT_TITLE);
+    assertThat(contentMetadata.getUrl()).isEqualTo(CONTENT_URL);
+  }
+
+  @Test
   public void testUnbind() {
     contentDriver.bind(pietViewHolder);
 
@@ -386,5 +409,38 @@ public class ContentDriverTest {
 
     verify(pietViewHolder).unbind();
     assertThat(contentDriver.isBound()).isFalse();
+  }
+
+  /** For Captor of generic. */
+  @SuppressWarnings("unchecked")
+  /*@Nullable*/
+  private ContentMetadata getContentMetadataFor(Content content) {
+    when(modelFeature.getStreamFeature())
+        .thenReturn(StreamFeature.newBuilder().setContent(content).build());
+
+    reset(actionParserFactory);
+    when(actionParserFactory.build(Mockito.<Supplier<ContentMetadata>>any()))
+        .thenReturn(actionParser);
+
+    contentDriver =
+        new ContentDriver(
+            actionApi,
+            actionManager,
+            actionParserFactory,
+            basicLoggingApi,
+            context,
+            modelFeature,
+            modelProvider,
+            POSITION,
+            FeedActionPayload.getDefaultInstance(),
+            streamOfflineMonitor,
+            contentChangedListener);
+
+    ArgumentCaptor<Supplier<ContentMetadata>> contentMetadataSupplierCaptor =
+        ArgumentCaptor.forClass((Class<Supplier<ContentMetadata>>) (Class) Supplier.class);
+
+    verify(actionParserFactory).build(contentMetadataSupplierCaptor.capture());
+
+    return contentMetadataSupplierCaptor.getValue().get();
   }
 }
