@@ -66,6 +66,7 @@ public class RoundedCornerImageViewTest {
 
     // No shader should be created
     assertThat(view.shader).isNull();
+    assertThat(view.paint).isNull();
   }
 
   @Test
@@ -81,6 +82,7 @@ public class RoundedCornerImageViewTest {
 
     // No shader should be created
     assertThat(view.shader).isNull();
+    assertThat(view.paint).isNull();
   }
 
   @Test
@@ -95,6 +97,7 @@ public class RoundedCornerImageViewTest {
 
     // No shader should be created
     assertThat(view.shader).isNull();
+    assertThat(view.paint).isNull();
   }
 
   @Test
@@ -107,13 +110,32 @@ public class RoundedCornerImageViewTest {
         RoundedCornerViewHelper.TOP_CORNERS | RoundedCornerViewHelper.BOTTOM_CORNERS);
     view.setCornerRadius(5);
     assertThat(view.shader).isNotNull();
+    assertThat(view.paint).isNotNull();
     view.setImageDrawable(null);
     drawable = null;
 
     System.gc();
     assertThat(view.shader).isNull();
+    assertThat(view.paint).isNull();
     assertThat(view.getDrawable()).isNull();
     assertThat(weakDrawable.get()).isNull();
+  }
+
+  @Test
+  public void testSetCornerRadius() {
+    BitmapDrawable drawable = new BitmapDrawable(Bitmap.createBitmap(4, 4, Bitmap.Config.RGB_565));
+
+    view.setImageDrawable(drawable);
+    view.setRoundedCorners(
+        RoundedCornerViewHelper.TOP_CORNERS | RoundedCornerViewHelper.BOTTOM_CORNERS);
+    view.setCornerRadius(5);
+    assertThat(view.shader).isNotNull();
+    assertThat(view.paint).isNotNull();
+
+    view.setCornerRadius(0);
+    assertThat(view.shader).isNull();
+    assertThat(view.paint).isNull();
+    assertThat(view.getDrawable()).isNotNull();
   }
 
   @Test

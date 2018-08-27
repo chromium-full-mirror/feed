@@ -34,7 +34,7 @@ public class RoundedCornerImageView extends ImageView {
 
   /*@Nullable*/ @VisibleForTesting Shape roundedRectangle;
   /*@Nullable*/ @VisibleForTesting BitmapShader shader;
-  /*@Nullable*/ private Paint paint;
+  /*@Nullable*/ @VisibleForTesting Paint paint;
   private float radius;
   private int cornerField;
 
@@ -63,13 +63,11 @@ public class RoundedCornerImageView extends ImageView {
     if (radius > 0) {
       float[] radii = RoundedCornerViewHelper.createRoundedCornerMask(radius, cornerField);
       roundedRectangle = new RoundRectShape(radii, null, null);
-      paint = new Paint();
-      paint.setAntiAlias(true);
-      maybeCreateShader();
     } else {
       roundedRectangle = null;
-      paint = null;
     }
+
+    maybeCreateShader();
   }
 
   /**
@@ -108,6 +106,12 @@ public class RoundedCornerImageView extends ImageView {
         (drawable instanceof BitmapDrawable) ? ((BitmapDrawable) drawable).getBitmap() : null;
     if (roundedRectangle != null && bitmap != null) {
       shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+
+      paint = new Paint();
+      paint.setAntiAlias(true);
+    } else {
+      shader = null;
+      paint = null;
     }
   }
 
