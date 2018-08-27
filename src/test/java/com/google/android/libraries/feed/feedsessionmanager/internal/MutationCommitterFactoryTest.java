@@ -16,7 +16,9 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.android.libraries.feed.api.common.MutationContext.EMPTY_CONTEXT;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,6 +30,7 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.store.Store;
@@ -76,6 +79,7 @@ public class MutationCommitterFactoryTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private SchedulerApi schedulerApi;
   @Mock private Clock clock;
+  @Mock private KnownContentListener knownContentListener;
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
@@ -145,6 +149,7 @@ public class MutationCommitterFactoryTest {
 
   @Test
   public void testResetHead() {
+    when(clock.currentTimeMillis()).thenReturn(5L);
     List<StreamDataOperation> dataOperations = new ArrayList<>();
     dataOperations.add(
         getStreamDataOperation(
@@ -158,6 +163,8 @@ public class MutationCommitterFactoryTest {
     mutationCommitter.accept(Result.success(dataOperations));
     assertThat(mutationCommitter.clearedHead).isTrue();
     assertThat(resetSession).isEqualTo(session.getStreamSession());
+    verify(schedulerApi).onReceiveNewContent(5L);
+    verify(knownContentListener).onNewContentReceived(true, 5L);
   }
 
   @Test
@@ -186,6 +193,7 @@ public class MutationCommitterFactoryTest {
 
   @Test
   public void testUpdateContent() {
+    when(clock.currentTimeMillis()).thenReturn(8L);
     List<String> contentIds = getContentIds(3);
     List<Pair<StreamStructure, StreamPayload>> features =
         getFeatures(
@@ -207,6 +215,8 @@ public class MutationCommitterFactoryTest {
     for (PayloadWithId payload : result.getValue()) {
       assertThat(contentIds).contains(payload.contentId);
     }
+    verify(schedulerApi, never()).onReceiveNewContent(anyLong());
+    verify(knownContentListener).onNewContentReceived(false, 8L);
   }
 
   @Test
@@ -281,7 +291,12 @@ public class MutationCommitterFactoryTest {
             clock);
     return (MutationCommitter)
         committerFactory.create(
-            "task", mutationContext, this::resetHead, this::notifySessionError, sharedStateCache);
+            "task",
+            mutationContext,
+            this::resetHead,
+            this::notifySessionError,
+            sharedStateCache,
+            knownContentListener);
   }
 
   private List<String> getContentIds(int count) {

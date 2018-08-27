@@ -18,6 +18,7 @@ import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -108,10 +109,16 @@ public class MutationCommitterFactory implements Dumpable {
       MutationContext mutationContext,
       Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
       ModelErrorObserver modelErrorObserver,
-      Map<String, StreamSharedState> sharedStateCache) {
+      Map<String, StreamSharedState> sharedStateCache,
+      /*@Nullable*/ KnownContentListener knownContentListener) {
     createCount++;
     return new MutationCommitter(
-        task, mutationContext, resetHeadConsumer, modelErrorObserver, sharedStateCache);
+        task,
+        mutationContext,
+        resetHeadConsumer,
+        modelErrorObserver,
+        sharedStateCache,
+        knownContentListener);
   }
 
   @Override
@@ -130,6 +137,7 @@ public class MutationCommitterFactory implements Dumpable {
     private final Consumer</*@Nullable*/ StreamSession> resetHeadConsumer;
     private final ModelErrorObserver modelErrorObserver;
     private final Map<String, StreamSharedState> sharedStateCache;
+    /*@Nullable*/ private final KnownContentListener knownContentListener;
 
     private final List<StreamStructure> streamStructures = new ArrayList<>();
 
@@ -142,12 +150,14 @@ public class MutationCommitterFactory implements Dumpable {
         MutationContext mutationContext,
         Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
         ModelErrorObserver modelErrorObserver,
-        Map<String, StreamSharedState> sharedStateCache) {
+        Map<String, StreamSharedState> sharedStateCache,
+        /*@Nullable*/ KnownContentListener knownContentListener) {
       this.task = task;
       this.mutationContext = mutationContext;
       this.resetHeadConsumer = resetHeadConsumer;
       this.modelErrorObserver = modelErrorObserver;
       this.sharedStateCache = sharedStateCache;
+      this.knownContentListener = knownContentListener;
     }
 
     @Override
@@ -294,16 +304,23 @@ public class MutationCommitterFactory implements Dumpable {
           sessionCache.remove(session.getStreamSession().getStreamToken());
           continue;
         }
-        if (clearedHead && session == head) {
-          session.updateSession(clearedHead, streamStructures, mutationContext);
+        if (session == head) {
           long updateTime = clock.currentTimeMillis();
-          head.updateAccessTime(updateTime);
-          schedulerApi.onReceiveNewContent(updateTime);
-          Logger.i(
-              TAG,
-              "Cleared Head, new creation time %s",
-              StringFormattingUtils.formatLogDate(updateTime));
-          continue;
+          if (clearedHead) {
+            session.updateSession(clearedHead, streamStructures, mutationContext);
+            head.updateAccessTime(updateTime);
+            schedulerApi.onReceiveNewContent(updateTime);
+            if (knownContentListener != null) {
+              knownContentListener.onNewContentReceived(/* isNewRefresh */ true, updateTime);
+            }
+            Logger.i(
+                TAG,
+                "Cleared Head, new creation time %s",
+                StringFormattingUtils.formatLogDate(updateTime));
+            continue;
+          } else if (knownContentListener != null) {
+            knownContentListener.onNewContentReceived(/* isNewRefresh */ false, updateTime);
+          }
         }
         Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
         session.updateSession(clearedHead, streamStructures, mutationContext);

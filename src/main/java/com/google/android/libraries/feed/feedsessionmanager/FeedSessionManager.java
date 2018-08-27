@@ -182,7 +182,8 @@ public class FeedSessionManager
                 MutationContext.EMPTY_CONTEXT,
                 this::resetHead,
                 this::modelErrorObserver,
-                sharedStateCache));
+                sharedStateCache,
+                knownContentListener));
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the
@@ -489,7 +490,8 @@ public class FeedSessionManager
             mutationContext,
             this::resetHead,
             this::modelErrorObserver,
-            sharedStateCache));
+            sharedStateCache,
+            knownContentListener));
   }
 
   @Override
@@ -513,7 +515,8 @@ public class FeedSessionManager
             MutationContext.EMPTY_CONTEXT,
             this::resetHead,
             this::modelErrorObserver,
-            sharedStateCache));
+            sharedStateCache,
+            knownContentListener));
     if (streamSession != null) {
       String streamToken = streamSession.getStreamToken();
       Session session = sessionCache.get(streamToken);
@@ -589,7 +592,8 @@ public class FeedSessionManager
         mutationContext,
         this::resetHead,
         this::modelErrorObserver,
-        sharedStateCache);
+        sharedStateCache,
+        knownContentListener);
   }
 
   @Override
