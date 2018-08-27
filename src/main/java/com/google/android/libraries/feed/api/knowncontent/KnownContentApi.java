@@ -34,6 +34,16 @@ public interface KnownContentApi {
   /** Removes listener for new content. */
   void removeListener(KnownContentListener listener);
 
+  /**
+   * Gets listener that notifies all added listeners of {@link
+   * KnownContentListener#onContentRemoved(List)} or {@link
+   * KnownContentListener#onNewContentReceived(boolean, long)}.
+   *
+   * <p>Note: This method is internal to the Feed. It provides a {@link KnownContentListener} that,
+   * when notified, will propagate the notification to the host.
+   */
+  KnownContentListener getKnownContentHostNotifier();
+
   /** Listener for when content is added or removed. */
   interface KnownContentListener {
     /**

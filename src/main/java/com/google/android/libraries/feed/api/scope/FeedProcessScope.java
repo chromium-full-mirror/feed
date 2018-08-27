@@ -18,6 +18,7 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -36,6 +37,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedactionmanager.FeedActionManagerImpl;
 import com.google.android.libraries.feed.feedactionreader.FeedActionReader;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
+import com.google.android.libraries.feed.feedknowncontent.FeedKnownContentApi;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
 import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManagerFactory;
@@ -293,9 +295,12 @@ public class FeedProcessScope implements Dumpable {
                 lifecycleListener);
         sessionManager = fsmFactory.create();
       }
-
       ActionManager actionManager =
           new FeedActionManagerImpl(sessionManager, store, threadUtils, taskQueue);
+
+      if (knownContentApi == null) {
+        knownContentApi = new FeedKnownContentApi(sessionManager);
+      }
 
       return new FeedProcessScope(
           loggingApi,
@@ -311,7 +316,8 @@ public class FeedProcessScope implements Dumpable {
           clock,
           debugBehavior,
           actionManager,
-          configuration);
+          configuration,
+          knownContentApi);
     }
 
     // Required fields.
@@ -333,6 +339,7 @@ public class FeedProcessScope implements Dumpable {
     /*@MonotonicNonNull*/ private ContentStorageDirect contentStorage = null;
     /*@MonotonicNonNull*/ private JournalStorageDirect journalStorage = null;
     /*@MonotonicNonNull*/ private Clock clock;
+    /*@MonotonicNonNull*/ private KnownContentApi knownContentApi;
 
     // This will be overridden in tests.
     private ThreadUtils threadUtils = new ThreadUtils();
@@ -352,7 +359,8 @@ public class FeedProcessScope implements Dumpable {
       Clock clock,
       DebugBehavior debugBehavior,
       ActionManager actionManager,
-      Configuration configuration) {
+      Configuration configuration,
+      KnownContentApi knownContentApi) {
     this.loggingApi = loggingApi;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -367,6 +375,7 @@ public class FeedProcessScope implements Dumpable {
     this.debugBehavior = debugBehavior;
     this.actionManager = actionManager;
     this.configuration = configuration;
+    this.knownContentApi = knownContentApi;
   }
 
   private final LoggingApi loggingApi;
@@ -383,6 +392,7 @@ public class FeedProcessScope implements Dumpable {
   private final DebugBehavior debugBehavior;
   private final ActionManager actionManager;
   private final Configuration configuration;
+  private final KnownContentApi knownContentApi;
 
   public Clock getClock() {
     return clock;
@@ -418,5 +428,9 @@ public class FeedProcessScope implements Dumpable {
 
   public Store getStore() {
     return store;
+  }
+
+  public KnownContentApi getKnownContentApi() {
+    return knownContentApi;
   }
 }

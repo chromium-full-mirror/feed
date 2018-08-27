@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.api.sessionmanager;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.Result;
@@ -109,4 +110,7 @@ public interface SessionManager {
    * <p>TODO: Remove this when TaskQueue is moved outside of FeedModelProvider
    */
   void runTask(String task, Runnable runnable);
+
+  /** Sets {@link KnownContentListener} to allow for informing host of when content is added. */
+  void setKnownContentListener(KnownContentListener knownContentListener);
 }

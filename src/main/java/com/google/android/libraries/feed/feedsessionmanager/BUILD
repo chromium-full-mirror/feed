@@ -15,6 +15,7 @@ android_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
+        "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/protocoladapter",
         "//src/main/java/com/google/android/libraries/feed/api/requestmanager",
