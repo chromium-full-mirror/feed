@@ -42,6 +42,13 @@ public class MutationContextTest {
     assertThat(mutationContext).isNotNull();
     assertThat(mutationContext.getContinuationToken()).isEqualTo(token);
     assertThat(mutationContext.getRequestingSession()).isEqualTo(streamSession);
+    assertThat(mutationContext.isUserInitiated()).isFalse();
+  }
+
+  @Test
+  public void testUserInitiated_true() {
+    MutationContext mutationContext = new Builder().setUserInitiated(true).build();
+    assertThat(mutationContext.isUserInitiated()).isTrue();
   }
 
   @Test

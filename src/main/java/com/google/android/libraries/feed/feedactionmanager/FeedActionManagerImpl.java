@@ -59,6 +59,7 @@ public class FeedActionManagerImpl implements ActionManager {
     sessionManager
         .getUpdateConsumer(
             new MutationContext.Builder()
+                .setUserInitiated(true)
                 .setRequestingSession(streamSessionBuilder.build())
                 .build())
         .accept(Result.success(streamDataOperations));

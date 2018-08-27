@@ -26,17 +26,20 @@ public class MutationContext {
   /*@Nullable*/ private final StreamToken continuationToken;
   /*@Nullable*/ private final StreamSession requestingSession;
   /*@Nullable*/ private final Consumer<Boolean> mutationCompleteConsumer;
+  private final boolean userInitiated;
 
   /** Static used to represent an empty Mutation Context */
-  public static final MutationContext EMPTY_CONTEXT = new MutationContext(null, null, null);
+  public static final MutationContext EMPTY_CONTEXT = new MutationContext(null, null, null, false);
 
   private MutationContext(
       /*@Nullable*/ StreamToken continuationToken,
       /*@Nullable*/ StreamSession requestingSession,
-      /*@Nullable*/ Consumer<Boolean> mutationCompleteConsumer) {
+      /*@Nullable*/ Consumer<Boolean> mutationCompleteConsumer,
+      boolean userInitiated) {
     this.continuationToken = continuationToken;
     this.requestingSession = requestingSession;
     this.mutationCompleteConsumer = mutationCompleteConsumer;
+    this.userInitiated = userInitiated;
   }
 
   /** Returns the continuation token used to make the request. */
@@ -56,11 +59,17 @@ public class MutationContext {
     return mutationCompleteConsumer;
   }
 
+  /** Returns {@code true} if the mutation was user initiated. */
+  public boolean isUserInitiated() {
+    return userInitiated;
+  }
+
   /** Builder for creating a {@link com.google.android.libraries.feed.api.common.MutationContext */
   public static class Builder {
     /*@MonotonicNonNull*/ private StreamToken continuationToken;
     /*@MonotonicNonNull*/ private StreamSession requestingSession;
     /*@MonotonicNonNull*/ private Consumer<Boolean> mutationCompleteConsumer;
+    private boolean userInitiated = false;
 
     public Builder() {}
 
@@ -79,8 +88,14 @@ public class MutationContext {
       return this;
     }
 
+    public Builder setUserInitiated(boolean userInitiated) {
+      this.userInitiated = userInitiated;
+      return this;
+    }
+
     public MutationContext build() {
-      return new MutationContext(continuationToken, requestingSession, mutationCompleteConsumer);
+      return new MutationContext(
+          continuationToken, requestingSession, mutationCompleteConsumer, userInitiated);
     }
   }
 }
