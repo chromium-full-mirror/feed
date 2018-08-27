@@ -122,9 +122,8 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
       case CENTER_CROP:
         return ScaleType.CENTER_CROP;
       case CENTER_INSIDE:
-        return ScaleType.CENTER_INSIDE;
       case SCALE_TYPE_UNSPECIFIED:
-        return ScaleType.CENTER_INSIDE;
+        return ScaleType.FIT_CENTER;
       default:
         throw new IllegalArgumentException(
             String.format("Unsupported ScaleType: %s", pietScaleType));

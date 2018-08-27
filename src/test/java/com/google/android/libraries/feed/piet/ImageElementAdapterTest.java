@@ -511,7 +511,7 @@ public class ImageElementAdapterTest {
     verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(defaultDrawable);
     assertThat(imageView.getDrawable()).isEqualTo(defaultDrawable);
-    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_INSIDE);
+    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.FIT_CENTER);
   }
 
   private static Element asElement(ImageElement imageElement) {

@@ -23,6 +23,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
+import android.view.View.MeasureSpec;
 import java.lang.ref.WeakReference;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,11 +35,22 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class RoundedCornerImageViewTest {
 
+  private static final int DRAWABLE_WIDTH = 80;
+  private static final int DRAWABLE_HEIGHT = 40;
+  private static final int DRAWABLE_ASPECT_RATIO = 2;
+
+  private static final int CONTAINER_WIDTH = 90;
+  private static final int CONTAINER_HEIGHT = 30;
+
   private RoundedCornerImageView view;
+  private BitmapDrawable drawable;
 
   @Before
   public void setUp() {
     view = new RoundedCornerImageView(Robolectric.setupActivity(Activity.class));
+    drawable =
+        new BitmapDrawable(
+            Bitmap.createBitmap(DRAWABLE_WIDTH, DRAWABLE_HEIGHT, Bitmap.Config.RGB_565));
   }
 
   @Test
@@ -102,5 +114,159 @@ public class RoundedCornerImageViewTest {
     assertThat(view.shader).isNull();
     assertThat(view.getDrawable()).isNull();
     assertThat(weakDrawable.get()).isNull();
+  }
+
+  @Test
+  public void testScaling_noDrawable_exactly() {
+    int heightSpec = MeasureSpec.makeMeasureSpec(CONTAINER_HEIGHT, MeasureSpec.EXACTLY);
+    int widthSpec = MeasureSpec.makeMeasureSpec(CONTAINER_WIDTH, MeasureSpec.EXACTLY);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(CONTAINER_HEIGHT);
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_WIDTH);
+  }
+
+  @Test
+  public void testScaling_noDrawable_unspecified() {
+    int heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+    int widthSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(0);
+    assertThat(view.getMeasuredWidth()).isEqualTo(0);
+  }
+
+  @Test
+  public void testScaling_bothExactly() {
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(CONTAINER_HEIGHT, MeasureSpec.EXACTLY);
+    int widthSpec = MeasureSpec.makeMeasureSpec(CONTAINER_WIDTH, MeasureSpec.EXACTLY);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(CONTAINER_HEIGHT);
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_WIDTH);
+  }
+
+  @Test
+  public void testScaling_exactlyWidth_unspecifiedHeight() {
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+    int widthSpec = MeasureSpec.makeMeasureSpec(CONTAINER_WIDTH, MeasureSpec.EXACTLY);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(CONTAINER_WIDTH / DRAWABLE_ASPECT_RATIO);
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_WIDTH);
+  }
+
+  @Test
+  public void testScaling_exactlyHeight_unspecifiedWidth() {
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(CONTAINER_HEIGHT, MeasureSpec.EXACTLY);
+    int widthSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(CONTAINER_HEIGHT);
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_HEIGHT * DRAWABLE_ASPECT_RATIO);
+  }
+
+  @Test
+  public void testScaling_exactlyWidth_atMostHeight() {
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(CONTAINER_HEIGHT, MeasureSpec.AT_MOST);
+    int widthSpec = MeasureSpec.makeMeasureSpec(CONTAINER_WIDTH, MeasureSpec.EXACTLY);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(CONTAINER_HEIGHT);
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_WIDTH);
+  }
+
+  @Test
+  public void testScaling_exactlyHeight_atMostWidth() {
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(CONTAINER_HEIGHT, MeasureSpec.EXACTLY);
+    int widthSpec = MeasureSpec.makeMeasureSpec(CONTAINER_WIDTH, MeasureSpec.AT_MOST);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(CONTAINER_HEIGHT);
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_HEIGHT * DRAWABLE_ASPECT_RATIO);
+  }
+
+  @Test
+  public void testScaling_atMostHeightAndWidth_widerContainer() {
+    drawable = new BitmapDrawable(Bitmap.createBitmap(50, 100, Bitmap.Config.RGB_565));
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(200, MeasureSpec.AT_MOST);
+    int widthSpec = MeasureSpec.makeMeasureSpec(400, MeasureSpec.AT_MOST);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(200);
+    assertThat(view.getMeasuredWidth()).isEqualTo(100);
+  }
+
+  @Test
+  public void testScaling_atMostHeightAndWidth_tallerContainer() {
+    drawable = new BitmapDrawable(Bitmap.createBitmap(100, 50, Bitmap.Config.RGB_565));
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(400, MeasureSpec.AT_MOST);
+    int widthSpec = MeasureSpec.makeMeasureSpec(200, MeasureSpec.AT_MOST);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(100);
+    assertThat(view.getMeasuredWidth()).isEqualTo(200);
+  }
+
+  @Test
+  public void testScaling_atMostWidth_unspecifiedHeight() {
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+    int widthSpec = MeasureSpec.makeMeasureSpec(CONTAINER_WIDTH, MeasureSpec.AT_MOST);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(CONTAINER_WIDTH / DRAWABLE_ASPECT_RATIO);
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_WIDTH);
+  }
+
+  @Test
+  public void testScaling_atMostHeight_unspecifiedWidth() {
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(CONTAINER_HEIGHT, MeasureSpec.AT_MOST);
+    int widthSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(CONTAINER_HEIGHT);
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_HEIGHT * DRAWABLE_ASPECT_RATIO);
+  }
+
+  @Test
+  public void testScaling_bothUnspecified() {
+    view.setImageDrawable(drawable);
+
+    int heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+    int widthSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo(0xFFFFFF);
+    assertThat(view.getMeasuredWidth()).isEqualTo(0xFFFFFF);
   }
 }
