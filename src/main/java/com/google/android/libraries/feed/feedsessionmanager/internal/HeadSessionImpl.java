@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -77,10 +78,12 @@ public class HeadSessionImpl implements Session, Dumpable {
   public void updateSession(
       boolean clearHead,
       List<StreamStructure> streamStructures,
-      /*@Nullable*/ StreamToken mutationSourceToken) {
+      /*@Nullable*/ MutationContext mutationContext) {
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     updateCount++;
 
+    StreamToken mutationSourceToken =
+        mutationContext != null ? mutationContext.getContinuationToken() : null;
     if (mutationSourceToken != null) {
       String contentId = mutationSourceToken.getContentId();
       if (mutationSourceToken.hasContentId() && !contentInSession.contains(contentId)) {

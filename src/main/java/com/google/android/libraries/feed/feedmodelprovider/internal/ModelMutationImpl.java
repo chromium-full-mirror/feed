@@ -15,11 +15,11 @@
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,8 +32,8 @@ public class ModelMutationImpl implements ModelMutation {
   public static class Change {
     public final List<StreamStructure> structureChanges = new ArrayList<>();
     public final List<StreamStructure> updateChanges = new ArrayList<>();
-    public StreamToken mutationSourceToken;
-    public StreamSession streamSession;
+    /*@Nullable*/ public MutationContext mutationContext;
+    /*@Nullable*/ public StreamSession streamSession;
     public boolean cachedBindings;
   }
 
@@ -63,8 +63,8 @@ public class ModelMutationImpl implements ModelMutation {
   }
 
   @Override
-  public ModelMutation setMutationSourceToken(StreamToken mutationSourceToken) {
-    change.mutationSourceToken = mutationSourceToken;
+  public ModelMutation setMutationContext(MutationContext mutationContext) {
+    change.mutationContext = mutationContext;
     return this;
   }
 

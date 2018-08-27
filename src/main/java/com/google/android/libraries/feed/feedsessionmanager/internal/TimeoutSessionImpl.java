@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
@@ -30,7 +31,6 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
-import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +67,7 @@ public class TimeoutSessionImpl extends SessionImpl {
   public void updateSession(
       boolean clearHead,
       List<StreamStructure> streamStructures,
-      /*@Nullable*/ StreamToken mutationSourceToken) {
+      /*@Nullable*/ MutationContext mutationContext) {
     StreamSession ss = Validators.checkNotNull(streamSession);
     Logger.i(
         TAG,
@@ -106,7 +106,7 @@ public class TimeoutSessionImpl extends SessionImpl {
     }
 
     updateCount++;
-    updateSessionInternal(streamStructures, mutationSourceToken);
+    updateSessionInternal(streamStructures, mutationContext);
   }
 
   @Override

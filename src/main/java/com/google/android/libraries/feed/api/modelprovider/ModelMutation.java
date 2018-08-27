@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -32,8 +33,11 @@ public interface ModelMutation {
   /** Content for a child was updated. */
   ModelMutation updateChild(StreamStructure streamStructure);
 
-  /** StreamToken which is the source of the response */
-  ModelMutation setMutationSourceToken(StreamToken mutationSourceToken);
+  /**
+   * Set the MutationContext used to create the ModelMutation. This may contain the {@link
+   * StreamToken} which represents the source of the response.
+   */
+  ModelMutation setMutationContext(MutationContext mutationContext);
 
   /** Set the StreamSession of the session backing this ModelProvider. */
   ModelMutation setStreamSession(StreamSession streamSession);

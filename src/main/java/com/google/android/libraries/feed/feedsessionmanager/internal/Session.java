@@ -14,10 +14,10 @@
 
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
-import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +28,7 @@ public interface Session {
   void updateSession(
       boolean clearHead,
       List<StreamStructure> streamStructures,
-      /*@Nullable*/ StreamToken mutationSourceToken);
+      /*@Nullable*/ MutationContext mutationContext);
 
   boolean invalidateOnResetHead();
 

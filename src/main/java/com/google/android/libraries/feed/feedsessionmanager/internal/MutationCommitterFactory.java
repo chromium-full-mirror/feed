@@ -295,7 +295,7 @@ public class MutationCommitterFactory implements Dumpable {
           continue;
         }
         if (clearedHead && session == head) {
-          session.updateSession(clearedHead, streamStructures, mutationSourceToken);
+          session.updateSession(clearedHead, streamStructures, mutationContext);
           long updateTime = clock.currentTimeMillis();
           head.updateAccessTime(updateTime);
           schedulerApi.onReceiveNewContent(updateTime);
@@ -306,7 +306,7 @@ public class MutationCommitterFactory implements Dumpable {
           continue;
         }
         Logger.i(TAG, "Update Session %s", session.getStreamSession().getStreamToken());
-        session.updateSession(clearedHead, streamStructures, mutationSourceToken);
+        session.updateSession(clearedHead, streamStructures, mutationContext);
       }
       timeTracker.stop("", "sessionUpdate", "sessions", updates.size());
     }

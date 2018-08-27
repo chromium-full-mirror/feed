@@ -61,8 +61,9 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     SessionImpl session = getSessionImpl();
     session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true, null);
     int featureCnt = 3;
+    int featureId = 5;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
-    addFeatures(protocolBuilder, featureCnt, 1);
+    addFeatures(protocolBuilder, featureCnt, featureId);
     List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
 
     // 1 clear, 3 features
@@ -71,7 +72,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     assertThat(fakeSessionMutation.streamStructures).hasSize(featureCnt);
     assertThat(fakeModelMutator.addedChildren).hasSize(featureCnt);
     assertThat(session.contentInSession).hasSize(featureCnt);
-    assertThat(session.contentInSession).contains(contentIdGenerators.createFeatureContentId(1));
+    assertThat(session.contentInSession)
+        .contains(contentIdGenerators.createFeatureContentId(featureId));
   }
 
   @Test

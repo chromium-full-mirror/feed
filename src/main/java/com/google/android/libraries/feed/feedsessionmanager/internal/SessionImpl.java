@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -129,14 +130,14 @@ public class SessionImpl implements InitializableSession, Dumpable {
   public void updateSession(
       boolean clearHead,
       List<StreamStructure> streamStructures,
-      /*@Nullable*/ StreamToken mutationSourceToken) {
+      /*@Nullable*/ MutationContext mutationContext) {
     StreamSession ss = Validators.checkNotNull(streamSession);
     if (clearHead) {
       Logger.i(TAG, "Session %s not updated due to clearHead", ss.getStreamToken());
       return;
     }
     updateCount++;
-    updateSessionInternal(streamStructures, mutationSourceToken);
+    updateSessionInternal(streamStructures, mutationContext);
   }
 
   @Override
@@ -144,10 +145,12 @@ public class SessionImpl implements InitializableSession, Dumpable {
     return true;
   }
 
-  protected void updateSessionInternal(
-      List<StreamStructure> streamStructures, /*@Nullable*/ StreamToken mutationSourceToken) {
+  void updateSessionInternal(
+      List<StreamStructure> streamStructures, /*@Nullable*/ MutationContext mutationContext) {
 
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+    StreamToken mutationSourceToken =
+        mutationContext != null ? mutationContext.getContinuationToken() : null;
     if (mutationSourceToken != null) {
       String contentId = mutationSourceToken.getContentId();
       if (mutationSourceToken.hasContentId() && !contentInSession.contains(contentId)) {
@@ -161,9 +164,11 @@ public class SessionImpl implements InitializableSession, Dumpable {
     }
 
     ModelMutation modelMutation = (modelProvider != null) ? modelProvider.edit() : null;
-    if (modelMutation != null && mutationSourceToken != null) {
-      modelMutation.setMutationSourceToken(mutationSourceToken);
-      modelMutation.hasCachedBindings(true);
+    if (modelMutation != null && mutationContext != null) {
+      modelMutation.setMutationContext(mutationContext);
+      if (mutationContext.getContinuationToken() != null) {
+        modelMutation.hasCachedBindings(true);
+      }
     }
 
     int updateCnt = 0;

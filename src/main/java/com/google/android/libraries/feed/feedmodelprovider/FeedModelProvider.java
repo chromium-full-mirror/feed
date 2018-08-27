@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedmodelprovider;
 
 import android.database.Observable;
 import android.support.annotation.VisibleForTesting;
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
@@ -530,7 +531,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
           // Mutate the Model
           MutationHandler mutationHandler =
-              getMutationHandler(change.updateChanges, change.mutationSourceToken);
+              getMutationHandler(change.updateChanges, change.mutationContext);
           processMutation(mutationHandler, appendedChildren, removedChildren);
 
           if (shouldInsertSyntheticToken(change)) {
@@ -551,6 +552,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                 }
               });
           timeTracker.stop("", "modelProviderCommit");
+          StreamToken token =
+              (change.mutationContext != null)
+                  ? change.mutationContext.getContinuationToken()
+                  : null;
           Logger.i(
               TAG,
               "ModelProvider Mutation committed - appendedChildren %s, updateChildren %s, "
@@ -558,14 +563,16 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
               appendedChildren.size(),
               change.updateChanges.size(),
               removedChildren.size(),
-              change.mutationSourceToken != null);
+              token != null);
           return null;
         }
 
         /** Returns a MutationHandler for processing the mutation */
         private MutationHandler getMutationHandler(
-            List<StreamStructure> updatedChildren, StreamToken mutationSourceToken) {
+            List<StreamStructure> updatedChildren, /*@Nullable*/ MutationContext mutationContext) {
           synchronized (lock) {
+            StreamToken mutationSourceToken =
+                mutationContext != null ? mutationContext.getContinuationToken() : null;
             MutationHandler mutationHandler;
             if (currentState == State.INITIALIZING) {
               Validators.checkState(

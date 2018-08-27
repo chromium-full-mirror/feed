@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
@@ -115,10 +116,11 @@ public abstract class AbstractSessionImplTest {
 
     StreamToken token =
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
+    MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
     // The token needs to be in the session
     session.contentInSession.add(token.getContentId());
-    session.updateSession(false, streamStructures, token);
-    assertThat(fakeModelMutator.token).isEqualTo(token);
+    session.updateSession(false, streamStructures, context);
+    assertThat(fakeModelMutator.mutationContext).isEqualTo(context);
   }
 
   @Test
@@ -134,7 +136,8 @@ public abstract class AbstractSessionImplTest {
     assertThat(session.contentInSession).hasSize(0);
     StreamToken token =
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
-    session.updateSession(false, streamStructures, token);
+    MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
+    session.updateSession(false, streamStructures, context);
     assertThat(session.contentInSession).hasSize(0);
   }
 
@@ -176,11 +179,12 @@ public abstract class AbstractSessionImplTest {
     }
   }
 
+  /** Fake ModelMutation for tests. */
   protected static class FakeModelMutation implements ModelMutation {
     public final List<StreamStructure> addedChildren = new ArrayList<>();
     final List<StreamStructure> removedChildren = new ArrayList<>();
     final List<StreamStructure> updateChildren = new ArrayList<>();
-    StreamToken token;
+    MutationContext mutationContext;
     boolean commitCalled = false;
 
     @Override
@@ -202,8 +206,8 @@ public abstract class AbstractSessionImplTest {
     }
 
     @Override
-    public ModelMutation setMutationSourceToken(StreamToken mutationSourceToken) {
-      this.token = mutationSourceToken;
+    public ModelMutation setMutationContext(MutationContext mutationContext) {
+      this.mutationContext = mutationContext;
       return this;
     }
 
@@ -227,6 +231,7 @@ public abstract class AbstractSessionImplTest {
     }
   }
 
+  /** Fake SessionMutation for tests. */
   protected class FakeSessionMutation implements SessionMutation {
 
     public final List<StreamStructure> streamStructures = new ArrayList<>();

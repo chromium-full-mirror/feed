@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.store.SessionMutation;
@@ -135,7 +136,8 @@ public class HeadSessionImplTest {
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
     // The token needs to be in the session
     headSession.contentInSession.add(token.getContentId());
-    headSession.updateSession(false, streamStructures, token);
+    MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
+    headSession.updateSession(false, streamStructures, context);
     // features 3, plus the token added above
     assertThat(headSession.contentInSession).hasSize(featureCnt + 1);
   }
@@ -152,7 +154,8 @@ public class HeadSessionImplTest {
         StreamToken.newBuilder().setContentId(contentIdGenerators.createTokenContentId(2)).build();
 
     // The token needs to be in the session, if not we ignore the update
-    headSession.updateSession(false, streamStructures, token);
+    MutationContext context = new MutationContext.Builder().setContinuationToken(token).build();
+    headSession.updateSession(false, streamStructures, context);
     assertThat(headSession.contentInSession).hasSize(0);
   }
 

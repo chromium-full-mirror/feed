@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.feedmodelprovider.internal.ModelMutationImpl.Change;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -61,13 +62,14 @@ public class ModelMutationImplTest {
   }
 
   @Test
-  public void testTokenForMutation() {
+  public void testMutationContext() {
     ModelMutationImpl modelMutator = new ModelMutationImpl(committer);
-    StreamToken streamToken = StreamToken.newBuilder().build();
-    modelMutator.setMutationSourceToken(streamToken);
+    MutationContext mutationContext = MutationContext.EMPTY_CONTEXT;
+    modelMutator.setMutationContext(mutationContext);
     assertThat(modelMutator.change.structureChanges).isEmpty();
     modelMutator.commit();
     verify(committer).commit(modelMutator.change);
+    assertThat(modelMutator.change.mutationContext).isEqualTo(mutationContext);
   }
 
   @Test
