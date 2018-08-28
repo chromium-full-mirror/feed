@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.android.libraries.feed.piet.ElementAdapter.DIMENSION_NOT_SET;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -151,8 +152,8 @@ public class ElementAdapterTest {
 
   @Test
   public void testGetComputedDimensions_defaults() {
-    assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
-    assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(DIMENSION_NOT_SET);
   }
 
   @Test
@@ -300,6 +301,77 @@ public class ElementAdapterTest {
 
     assertThat(adapter.created).isTrue();
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
+  public void testCreateAdapter_setsDimensions() {
+    int width = 10;
+    int height = 20;
+
+    when(styleProvider.hasWidth()).thenReturn(true);
+    when(styleProvider.getWidth()).thenReturn(width);
+    when(styleProvider.hasHeight()).thenReturn(true);
+    when(styleProvider.getHeight()).thenReturn(height);
+
+    adapter.createAdapter(Element.getDefaultInstance(), frameContext);
+
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(width);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(height);
+  }
+
+  @Test
+  public void testCreateAdapter_resetsUnsetDimensions() {
+    // Set some dimensions first
+    int width = 10;
+    int height = 20;
+
+    when(styleProvider.hasWidth()).thenReturn(true);
+    when(styleProvider.getWidth()).thenReturn(width);
+    when(styleProvider.hasHeight()).thenReturn(true);
+    when(styleProvider.getHeight()).thenReturn(height);
+
+    adapter.createAdapter(Element.getDefaultInstance(), frameContext);
+    adapter.releaseAdapter();
+
+    // Recreate with new style that unsets the dimensions
+    when(styleProvider.hasWidth()).thenReturn(false);
+    when(styleProvider.getWidth()).thenReturn(999);
+    when(styleProvider.hasHeight()).thenReturn(false);
+    when(styleProvider.getHeight()).thenReturn(999);
+
+    adapter.createAdapter(Element.getDefaultInstance(), frameContext);
+
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(DIMENSION_NOT_SET);
+  }
+
+  @Test
+  public void testCreateAdapter_dimensionsDontOverrideSubclass() {
+    int width = 10;
+    int height = 20;
+
+    final int subclassWidth = 30;
+    final int subclassHeight = 40;
+
+    adapter =
+        new TestElementAdapter(context, parameters, view) {
+          @Override
+          protected void onCreateAdapter(
+              Object model, Element baseElement, FrameContext frameContext) {
+            widthPx = subclassWidth;
+            heightPx = subclassHeight;
+          }
+        };
+
+    when(styleProvider.hasWidth()).thenReturn(true);
+    when(styleProvider.getWidth()).thenReturn(width);
+    when(styleProvider.hasHeight()).thenReturn(true);
+    when(styleProvider.getHeight()).thenReturn(height);
+
+    adapter.createAdapter(Element.getDefaultInstance(), frameContext);
+
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(subclassWidth);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(subclassHeight);
   }
 
   @Test

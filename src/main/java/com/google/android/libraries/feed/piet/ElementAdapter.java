@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -135,6 +136,7 @@ abstract class ElementAdapter<V extends View, M> {
     }
 
     elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
+    setDesiredDimensions();
 
     onCreateAdapter(model, baseElement, frameContext);
 
@@ -371,6 +373,20 @@ abstract class ElementAdapter<V extends View, M> {
    */
   int getComputedHeightPx() {
     return heightPx;
+  }
+
+  /** Sets the adapter's desired dimensions based on the style. */
+  private void setDesiredDimensions() {
+    if (elementStyle.hasWidth()) {
+      widthPx = (int) LayoutUtils.dpToPx(elementStyle.getWidth(), context);
+    } else {
+      widthPx = DIMENSION_NOT_SET;
+    }
+    if (elementStyle.hasHeight()) {
+      heightPx = (int) LayoutUtils.dpToPx(elementStyle.getHeight(), context);
+    } else {
+      heightPx = DIMENSION_NOT_SET;
+    }
   }
 
   /** Sets the layout parameters on this adapter's view. */
