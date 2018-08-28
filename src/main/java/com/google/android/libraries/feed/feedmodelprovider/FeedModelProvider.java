@@ -268,6 +268,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
+  public void enableRemoveTracking(RemoveTrackingFactory<?> removeTrackingFactory) {
+    // @TODO: Implement this...
+  }
+
+  @Override
   public ModelMutation edit() {
     return new ModelMutationImpl(committer);
   }
