@@ -16,10 +16,6 @@ package com.google.android.libraries.feed.api.modelprovider;
 
 import android.support.annotation.IntDef;
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.functional.Predicate;
-import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
@@ -117,55 +113,15 @@ public interface ModelProvider {
    */
   List<ModelChild> getAllRootChildren();
 
-  /**
-   * Define a {@link Consumer} which will receive a {@link List} of {@code T} objects which are
-   * created while applying a transform and predicate to the nodes of the subtree being removed.
-   * This is created by the {@link RemoveTrackingFactory} for each mutation processed by a
-   * ModelProvider instance.
-   *
-   * <p>The {@code Consumer} will be called on the main thread and called once per mutation. In
-   * addition, the {@code Consumer} is called before the change operation.
-   */
-  class RemoveTrackingState<T> {
-    private final Function<StreamPayload, /*@Nullable*/ T> transformer;
-    private final Predicate<T> predicate;
-    private final Consumer<List<T>> consumer;
-
-    /**
-     * Create the state necessary to call transform and filter the removed subtree before calling
-     * the {@link Consumer}.
-     */
-    public RemoveTrackingState(
-        Function<StreamPayload, /*@Nullable*/ T> transformer,
-        Predicate<T> predicate,
-        Consumer<List<T>> consumer) {
-      this.transformer = transformer;
-      this.predicate = predicate;
-      this.consumer = consumer;
-    }
-
-    public Function<StreamPayload, /*@Nullable*/ T> getTransformer() {
-      return transformer;
-    }
-
-    public Predicate<T> getPredicate() {
-      return predicate;
-    }
-
-    public Consumer<List<T>> getConsumer() {
-      return consumer;
-    }
-  }
-
   /** Allow the Stream to provide a RemoveTracking based upon mutation context. */
   interface RemoveTrackingFactory<T> {
 
     /**
-     * Returns the {@link RemoveTrackingState}, if this returns {@code null} then no remove tracking
-     * will be preformed on this ModelProvider mutation.
+     * Returns the {@link RemoveTracking}, if this returns {@code null} then no remove tracking will
+     * be preformed on this ModelProvider mutation.
      */
     /*@Nullable*/
-    RemoveTrackingState<T> create(MutationContext mutationContext);
+    RemoveTracking<T> create(MutationContext mutationContext);
   }
 
   /** Called by the stream to set the {@link RemoveTrackingFactory}. */

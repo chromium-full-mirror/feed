@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.api.modelprovider.RemoveTracking;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -124,6 +125,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   private final TimingUtils timingUtils;
 
   /*@Nullable*/ private final Predicate<StreamStructure> filterPredicate;
+  /*@Nullable*/ private RemoveTrackingFactory<?> removeTrackingFactory;
 
   private final int nonCacheInitialPageSize;
   private final int nonCachePageSize;
@@ -269,7 +271,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   @Override
   public void enableRemoveTracking(RemoveTrackingFactory<?> removeTrackingFactory) {
-    // @TODO: Implement this...
+    this.removeTrackingFactory = removeTrackingFactory;
   }
 
   @Override
@@ -522,6 +524,14 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             }
           }
 
+          RemoveTracking<?> removeTracking = null;
+          if (removeTrackingFactory != null
+              && change.mutationContext != null
+              && !removedChildren.isEmpty()) {
+            // Remove tracking is enabled.
+            removeTracking = removeTrackingFactory.create(change.mutationContext);
+          }
+
           synchronized (lock) {
             // Add the updates to the childrenToBind
             for (StreamStructure updatedChild : change.updateChanges) {
@@ -537,7 +547,12 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           // Mutate the Model
           MutationHandler mutationHandler =
               getMutationHandler(change.updateChanges, change.mutationContext);
-          processMutation(mutationHandler, appendedChildren, removedChildren);
+          processMutation(mutationHandler, appendedChildren, removedChildren, removeTracking);
+          if (removeTracking != null) {
+            // Update the UI on the main thread.
+            mainThreadRunner.execute(
+                TAG + "-removeTracking", removeTracking::triggerConsumerUpdate);
+          }
 
           if (shouldInsertSyntheticToken(change)) {
             SyntheticTokenTracker tokenTracker =
@@ -599,7 +614,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         void processMutation(
             MutationHandler mutationHandler,
             List<UpdatableModelChild> appendedChildren,
-            List<StreamStructure> removedChildren) {
+            List<StreamStructure> removedChildren,
+            /*@Nullable*/ RemoveTracking<?> removeTracking) {
 
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
           synchronized (lock) {
@@ -643,7 +659,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             }
 
             for (StreamStructure removeChild : removedChildren) {
-              handleRemoveOperation(mutationHandler, removeChild);
+              handleRemoveOperation(mutationHandler, removeChild, removeTracking);
               contents.remove(removeChild.getContentId());
             }
           }
@@ -845,11 +861,28 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     }
   }
 
-  private void handleRemoveOperation(MutationHandler mutationHandler, StreamStructure removeChild) {
-    // remove everything from the remove list first
-    // TODO: How do we handle remove on the root?
-    String parentKey = removeChild.getParentContentId();
+  private void handleRemoveOperation(
+      MutationHandler mutationHandler,
+      StreamStructure removeChild,
+      /*@Nullable*/ RemoveTracking<?> removeTracking) {
+    if (!removeChild.hasParentContentId()) {
+      // It shouldn't be legal to remove the root, that is what CLEAR_HEAD is for.
+      Logger.e(TAG, "** Unable to remove the root element");
+      return;
+    }
+
+    if (removeTracking != null) {
+      synchronized (lock) {
+        UpdatableModelChild child = contents.get(removeChild.getContentId());
+        if (child != null) {
+          traverseNode(child, removeTracking);
+        } else {
+          Logger.w(TAG, "Didn't find child %s to do RemoveTracking", removeChild.getContentId());
+        }
+      }
+    }
     synchronized (lock) {
+      String parentKey = removeChild.getParentContentId();
       List<UpdatableModelChild> childList = containers.get(parentKey);
       if (childList == null) {
         if (!removeChild.hasParentContentId()) {
@@ -869,10 +902,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         return;
       }
       if (targetChild.getType() == Type.FEATURE) {
-        Logger.i(TAG, "Removing a child");
         mutationHandler.removeChild(parentKey, targetChild);
       } else if (targetChild.getType() == Type.TOKEN) {
-        Logger.i(TAG, "Removing a TOKEN %s", targetChild.getContentId());
         mutationHandler.removeChild(parentKey, targetChild);
       }
 
@@ -1128,6 +1159,20 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         containers.put(parentKey, new ArrayList<>());
       }
       return containers.get(parentKey);
+    }
+  }
+
+  private void traverseNode(UpdatableModelChild node, RemoveTracking<?> removeTracking) {
+    if (node.getType() == Type.FEATURE) {
+      removeTracking.filterStreamFeature(node.getModelFeature().getStreamFeature());
+      synchronized (lock) {
+        List<UpdatableModelChild> children = containers.get(node.getContentId());
+        if (children != null) {
+          for (UpdatableModelChild child : children) {
+            traverseNode(child, removeTracking);
+          }
+        }
+      }
     }
   }
 
