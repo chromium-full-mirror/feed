@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
@@ -160,7 +159,6 @@ public class RemoveTrackingBehaviorTest {
         return mutationContext.isUserInitiated()
             ? getRemoveTracking(
                 (streamFeature) -> simpleTransform(streamFeature),
-                (value) -> alwaysTrue(value),
                 consumer)
             : null;
       }
@@ -169,9 +167,8 @@ public class RemoveTrackingBehaviorTest {
 
   private RemoveTracking<String> getRemoveTracking(
       Function<StreamFeature, String> transformer,
-      Predicate<String> predicate,
       Consumer<List<String>> consumer) {
-    return new RemoveTracking<>(transformer, predicate, consumer);
+    return new RemoveTracking<>(transformer, consumer);
   }
 
   @SuppressWarnings("unused")

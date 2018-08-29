@@ -23,7 +23,6 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
@@ -38,10 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/**
- * Tests of the {@link SessionManager#getStreamFeaturesFromHead(Function, Predicate, Consumer)}
- * method.
- */
+/** Tests of the {@link SessionManager#getStreamFeaturesFromHead(Function, Consumer)} method. */
 @RunWith(RobolectricTestRunner.class)
 public class FilterHeadTest {
   @Mock private ThreadUtils threadUtils;
@@ -83,7 +79,6 @@ public class FilterHeadTest {
 
     sessionManager.getStreamFeaturesFromHead(
         transformer,
-        feature -> true,
         result -> {
           assertThat(result.isSuccessful()).isTrue();
           assertThat(result.getValue()).hasSize(11);
@@ -92,7 +87,6 @@ public class FilterHeadTest {
     // only return the contentId of the Content cards
     sessionManager.getStreamFeaturesFromHead(
         toContent,
-        feature -> true,
         result -> {
           assertThat(result.isSuccessful()).isTrue();
           assertThat(result.getValue()).hasSize(5);

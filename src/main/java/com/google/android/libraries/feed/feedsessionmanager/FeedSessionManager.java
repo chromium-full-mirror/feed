@@ -42,7 +42,6 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -598,19 +597,18 @@ public class FeedSessionManager
 
   @Override
   public <T> void getStreamFeaturesFromHead(
-      Function<StreamPayload, /*@Nullable*/ T> transformer,
-      Predicate</*@NonNull*/ T> filter,
+      Function<StreamPayload, /*@Nullable*/ T> filterPredicate,
       Consumer<Result<List</*@NonNull*/ T>>> consumer) {
     HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
     Function<TreeNode, /*@Nullable*/ T> toStreamPayload =
-        treeNode -> transformer.apply(treeNode.getStreamPayload());
+        treeNode -> filterPredicate.apply(treeNode.getStreamPayload());
     headAsStructure.initialize(
         result -> {
           if (!result.isSuccessful()) {
             consumer.accept(Result.failure());
             return;
           }
-          Result<List</*@NonNull*/ T>> filterResults = headAsStructure.filter(toStreamPayload, filter);
+          Result<List</*@NonNull*/ T>> filterResults = headAsStructure.filter(toStreamPayload);
           consumer.accept(
               filterResults.isSuccessful()
                   ? Result.success(filterResults.getValue())

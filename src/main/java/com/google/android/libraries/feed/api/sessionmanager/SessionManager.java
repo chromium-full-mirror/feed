@@ -22,7 +22,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDep
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -93,15 +92,14 @@ public interface SessionManager {
 
   /**
    * Create a filtered {@link List} of {@code T} objects and return it through the {@link Consumer}.
-   * The {@code transformer} function will be applied to each node in the structured tree defined by
-   * $HEAD. This value will then be tested with the {@link Predicate} function. Traversal is done in
-   * pre-order. All matching {@code T} instances will be added to the {@link List}. If {@code
-   * transformer} returns {@code null}, the value will be ignored. This is an expensive operation
-   * and will run on a background thread.
+   * The {@code filterPredicate} function will be applied to each node in the structured tree
+   * defined by $HEAD. The method acts as both a transformer to create type {@code T} and as a
+   * filter over the input {@link StreamPayload}. If {@code filterPredicate} returns {@code null},
+   * the value will not be added to the filtered list. This is an expensive operation and will run
+   * on a background thread.
    */
   <T> void getStreamFeaturesFromHead(
-      Function<StreamPayload, /*@Nullable*/ T> transformer,
-      Predicate</*@NonNull*/ T> filter,
+      Function<StreamPayload, /*@Nullable*/ T> filterPredicate,
       Consumer<Result<List</*@NonNull*/ T>>> consumer);
 
   /**

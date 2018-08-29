@@ -16,15 +16,14 @@ package com.google.android.libraries.feed.api.modelprovider;
 
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Class which implements the filtering portion of remove tracking. This class creates a {@code
- * List<T>} of items matching the {@link Predicate}. {@code T} is created by the {@code transform}
- * {@link Function}. The transform function may return null, these values will be ignored.
+ * List<T>} of items using the {@code filterPredicate} function to both filter and transform a
+ * {@link StreamFeature}. The function may return null, these values will be filtered.
  *
  * <p>The {@link #triggerConsumerUpdate()} will call the {@link Consumer}. It will be called when
  * all remove within the ModelProvider mutation have been processed.
@@ -33,8 +32,7 @@ import java.util.List;
  * addition, the {@code Consumer} is called before the change operation.
  */
 public class RemoveTracking<T> {
-  private final Function<StreamFeature, /*@Nullable*/ T> transformer;
-  private final Predicate<T> predicate;
+  private final Function<StreamFeature, /*@Nullable*/ T> filterPredicate;
   private final Consumer<List<T>> consumer;
   private final List<T> matchingItems = new ArrayList<>();
 
@@ -43,11 +41,8 @@ public class RemoveTracking<T> {
    * {@link Consumer}.
    */
   public RemoveTracking(
-      Function<StreamFeature, /*@Nullable*/ T> transformer,
-      Predicate<T> predicate,
-      Consumer<List<T>> consumer) {
-    this.transformer = transformer;
-    this.predicate = predicate;
+      Function<StreamFeature, /*@Nullable*/ T> filterPredicate, Consumer<List<T>> consumer) {
+    this.filterPredicate = filterPredicate;
     this.consumer = consumer;
   }
 
@@ -55,8 +50,8 @@ public class RemoveTracking<T> {
    * Called to transform and filter a {@link StreamFeature} found within a subtree being removed.
    */
   public void filterStreamFeature(StreamFeature streamFeature) {
-    T value = transformer.apply(streamFeature);
-    if (value != null && predicate.test(value)) {
+    T value = filterPredicate.apply(streamFeature);
+    if (value != null) {
       matchingItems.add(value);
     }
   }

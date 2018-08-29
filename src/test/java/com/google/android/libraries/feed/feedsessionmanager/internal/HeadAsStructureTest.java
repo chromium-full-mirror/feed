@@ -55,7 +55,7 @@ public class HeadAsStructureTest {
   @Test
   public void testUninitialized() {
     HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
-    Result<List<Void>> result = headAsStructure.filter(payload -> null, value -> false);
+    Result<List<Void>> result = headAsStructure.filter(payload -> null);
     assertThat(result.isSuccessful()).isFalse();
   }
 
@@ -185,8 +185,7 @@ public class HeadAsStructureTest {
               } else {
                 return null;
               }
-            },
-            streamFeature -> true);
+            });
     assertThat(results.isSuccessful()).isTrue();
     assertThat(results.getValue()).hasSize(4);
   }
@@ -208,8 +207,10 @@ public class HeadAsStructureTest {
     headAsStructure.initialize(result -> assertThat(result.isSuccessful()).isTrue());
     Result<List<String>> results =
         headAsStructure.filter(
-            node -> node.getStreamStructure().getContentId(),
-            contentId -> !contentId.startsWith(ROOT_PREFIX));
+            node ->
+                !node.getStreamStructure().getContentId().startsWith(ROOT_PREFIX)
+                    ? node.getStreamStructure().getContentId()
+                    : null);
     assertThat(results.isSuccessful()).isTrue();
     assertThat(results.getValue()).hasSize(3);
   }
@@ -241,8 +242,7 @@ public class HeadAsStructureTest {
               } else {
                 return null;
               }
-            },
-            streamFeature -> true);
+            });
     assertThat(results.isSuccessful()).isTrue();
     assertThat(results.getValue()).hasSize(3);
   }

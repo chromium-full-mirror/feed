@@ -22,7 +22,6 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
@@ -115,17 +114,16 @@ public class HeadAsStructure {
   }
 
   /**
-   * Using the current $HEAD, transformation the {@link TreeNode} stored at each node to {@code T},
-   * then applying the filter {@link Predicate} to the result to create a {@link List} of {@code T}
-   * which match the Predicate. If the transform returns {@code null}, the node is skipped.
+   * Using the current $HEAD, filter and transform the {@link TreeNode} stored at each node to
+   * {@code T}. The {@code filterPredicate} will filter and transform the node. If {@code
+   * filterPredicate} returns null, the value will be skipped.
    *
    * <p>This method must be called after {@link #initalized}. This method may run on the main
    * thread.
    */
   // The Nullness checker requires specifying the Nullable vs. NonNull state explicitly since it
   // can't be inferred from T.  This is done here and in the methods called below.
-  public <T> Result<List</*@NonNull*/ T>> filter(
-      Function<TreeNode, /*@Nullable*/ T> transformer, Predicate</*@NonNull*/ T> filter) {
+  public <T> Result<List</*@NonNull*/ T>> filter(Function<TreeNode, /*@Nullable*/ T> filterPredicate) {
     Logger.i(TAG, "filterHead");
     synchronized (lock) {
       if (!initalized) {
@@ -136,39 +134,32 @@ public class HeadAsStructure {
 
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     List</*@NonNull*/ T> filteredList = new ArrayList<>();
-    traverseHead(transformer, filter, filteredList);
+    traverseHead(filterPredicate, filteredList);
     Logger.i(TAG, "filterList size %s", filteredList.size());
     timeTracker.stop("task", "HeadFilter.filterHead");
     return Result.success(filteredList);
   }
 
   private <T> void traverseHead(
-      Function<TreeNode, /*@Nullable*/ T> transformer,
-      Predicate</*@NonNull*/ T> filter,
-      List</*@NonNull*/ T> results) {
+      Function<TreeNode, /*@Nullable*/ T> filterPredicate, List</*@NonNull*/ T> results) {
     TreeNode r = Validators.checkNotNull(root);
-    traverseNode(r, transformer, filter, results);
+    traverseNode(r, filterPredicate, results);
   }
 
   private <T> void traverseNode(
-      TreeNode node,
-      Function<TreeNode, /*@Nullable*/ T> transformer,
-      Predicate</*@NonNull*/ T> filter,
-      List</*@NonNull*/ T> results) {
+      TreeNode node, Function<TreeNode, /*@Nullable*/ T> filterPredicate, List</*@NonNull*/ T> results) {
     if (node.streamPayload == null) {
       Logger.w(TAG, "Found unbound node %s", node.streamStructure.getContentId());
       return;
     }
-    T data = transformer.apply(node);
+    T data = filterPredicate.apply(node);
     if (data != null) {
-      if (filter.test(data)) {
         results.add(data);
-      }
     }
     List<TreeNode> children = tree.get(node.streamStructure.getContentId());
     if (children != null) {
       for (TreeNode child : children) {
-        traverseNode(child, transformer, filter, results);
+        traverseNode(child, filterPredicate, results);
       }
     }
   }

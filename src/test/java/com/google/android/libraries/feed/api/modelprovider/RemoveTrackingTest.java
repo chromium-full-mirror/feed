@@ -22,7 +22,6 @@ import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
-import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import java.util.List;
 import org.junit.Before;
@@ -46,7 +45,6 @@ public class RemoveTrackingTest {
     RemoveTracking<String> removeTracking =
         getRemoveTracking(
             this::simpleTransform,
-            this::alwaysTrue,
             (contentIds) -> assertThat(contentIds).hasSize(0));
     removeTracking.triggerConsumerUpdate();
   }
@@ -56,25 +54,7 @@ public class RemoveTrackingTest {
     RemoveTracking<String> removeTracking =
         getRemoveTracking(
             this::simpleTransform,
-            this::alwaysTrue,
             (contentIds) -> assertThat(contentIds).hasSize(1));
-    InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
-    protocolBuilder.addFeature(idGenerators.createFeatureContentId(0), rootContentId);
-    List<PayloadWithId> payloads = protocolBuilder.buildAsPayloadWithId();
-    for (PayloadWithId payload : payloads) {
-      assertThat(payload.payload.hasStreamFeature()).isTrue();
-      removeTracking.filterStreamFeature(payload.payload.getStreamFeature());
-    }
-    removeTracking.triggerConsumerUpdate();
-  }
-
-  @Test
-  public void testNoMatchPredicate() {
-    RemoveTracking<String> removeTracking =
-        getRemoveTracking(
-            this::simpleTransform,
-            this::alwaysFalse,
-            (contentIds) -> assertThat(contentIds).hasSize(0));
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     protocolBuilder.addFeature(idGenerators.createFeatureContentId(0), rootContentId);
     List<PayloadWithId> payloads = protocolBuilder.buildAsPayloadWithId();
@@ -90,7 +70,6 @@ public class RemoveTrackingTest {
     RemoveTracking<String> removeTracking =
         getRemoveTracking(
             this::nullTransform,
-            this::alwaysTrue,
             (contentIds) -> assertThat(contentIds).hasSize(0));
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder();
     protocolBuilder.addFeature(idGenerators.createFeatureContentId(0), rootContentId);
@@ -104,19 +83,8 @@ public class RemoveTrackingTest {
 
   private RemoveTracking<String> getRemoveTracking(
       Function<StreamFeature, String> transformer,
-      Predicate<String> predicate,
       Consumer<List<String>> consumer) {
-    return new RemoveTracking<>(transformer, predicate, consumer);
-  }
-
-  @SuppressWarnings("unused")
-  private boolean alwaysTrue(String value) {
-    return true;
-  }
-
-  @SuppressWarnings("unused")
-  private boolean alwaysFalse(String value) {
-    return false;
+    return new RemoveTracking<>(transformer, consumer);
   }
 
   @SuppressWarnings("unused")
