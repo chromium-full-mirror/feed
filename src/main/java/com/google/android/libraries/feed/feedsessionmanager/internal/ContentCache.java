@@ -59,7 +59,6 @@ public class ContentCache implements Dumpable {
    */
   void finishMutation() {
     if (mutationCache.size() > maxMutationCacheSize) {
-      // TODO: Should we move the mutationCache.clear here?
       maxMutationCacheSize = mutationCache.size();
     }
   }

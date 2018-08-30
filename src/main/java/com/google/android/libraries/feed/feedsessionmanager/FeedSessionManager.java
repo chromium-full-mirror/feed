@@ -328,7 +328,6 @@ public class FeedSessionManager
       sessionCache.put(session.getStreamSession().getStreamToken(), session);
 
       // Set the streamSession on the ModelProvider.
-      // TODO: This makes the ModelProvider READY, what state should we leave it in?
       ModelMutation mutation = modelProvider.edit();
       mutation.setStreamSession(streamSession);
       mutation.commit();

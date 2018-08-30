@@ -53,9 +53,11 @@ public class FeatureDataOperationTransformer implements DataOperationTransformer
         // Tokens are handled in FeedProtocolAdapter
         break;
       default:
-        // TODO: This should be handled and we should return a result.
-        Logger.e(TAG, "Unknown Feature payload %s", dataOperation.getFeature().getRenderableUnit());
-        throw new RuntimeException("Unknown feature payload");
+        Logger.e(
+            TAG,
+            "Unknown Feature payload %s, ignored",
+            dataOperation.getFeature().getRenderableUnit());
+        return dataOperationBuilder;
     }
     dataOperationBuilder.setStreamPayload(
         dataOperationBuilder.getStreamPayload().toBuilder().setStreamFeature(streamFeature));

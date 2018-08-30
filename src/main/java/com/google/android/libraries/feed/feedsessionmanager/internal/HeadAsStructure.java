@@ -245,8 +245,8 @@ public class HeadAsStructure {
       return;
     }
     if (parentId == null) {
-      // TODO: Need to support this.
-      Logger.w(TAG, "Removing Root, Not yet supported");
+      // Removing root is not supported, CLEAR_HEAD is intended when the root itself is cleared.
+      Logger.w(TAG, "Removing Root is not supported, unable to remove %s", contentId);
       return;
     }
     List<TreeNode> parentChildren = tree.get(parentId);
