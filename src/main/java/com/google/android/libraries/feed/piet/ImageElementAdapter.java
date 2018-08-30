@@ -23,6 +23,7 @@ import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.ui.DrawableScalingHelper;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerImageView;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -159,7 +160,7 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     return imageView;
   }
 
-  private static class LoadImageCallback implements Consumer<Drawable> {
+  private class LoadImageCallback implements Consumer<Drawable> {
     private final ImageView imageView;
     private final ScaleType scaleType;
     boolean cancelled = false;
@@ -172,6 +173,18 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     @Override
     public void accept(Drawable drawable) {
       if (!cancelled) {
+
+        // Only perform image rescaling if both width/height are known as parameters.
+        if (widthPx > 0 && heightPx > 0) {
+          drawable =
+              DrawableScalingHelper.maybeScaleDrawable(
+                  getContext(),
+                  getParameters().hostProviders.getAssetProvider(),
+                  drawable,
+                  widthPx,
+                  heightPx);
+        }
+
         imageView.setImageDrawable(drawable);
         imageView.setScaleType(scaleType);
       }

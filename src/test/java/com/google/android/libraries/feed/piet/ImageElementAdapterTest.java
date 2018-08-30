@@ -26,7 +26,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
@@ -212,6 +215,91 @@ public class ImageElementAdapterTest {
 
     assertThat(adapter.getModel()).isSameAs(model.getImageElement());
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(styles);
+  }
+
+  @Test
+  public void testBindModel_bitmapImageScales() {
+    int styleWidth = 10;
+    int styleHeight = 15;
+    setStyle(styleHeight, styleWidth);
+    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
+    Element model =
+        asElement(
+            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
+
+    when(assetProvider.shouldPietResizeBitmaps()).thenReturn(true);
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    // Fire the callback
+    Bitmap bitmap = Bitmap.createBitmap(100, 150, Config.ALPHA_8);
+    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
+    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
+
+    imageView = adapter.getBaseView();
+
+    assertThat(imageView.getDrawable()).isInstanceOf(BitmapDrawable.class);
+
+    Bitmap createdBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+    assertThat(createdBitmap.getWidth()).isEqualTo(styleWidth);
+    assertThat(createdBitmap.getHeight()).isEqualTo(styleHeight);
+  }
+
+  @Test
+  public void testBindModel_bitmapSameSizeDoesNotScale() {
+    int styleWidth = 100;
+    int styleHeight = 150;
+    setStyle(styleHeight, styleWidth);
+    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
+    Element model =
+        asElement(
+            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
+
+    when(assetProvider.shouldPietResizeBitmaps()).thenReturn(true);
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    // Fire the callback
+    Bitmap bitmap = Bitmap.createBitmap(styleWidth, styleHeight, Config.ALPHA_8);
+    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
+    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
+
+    imageView = adapter.getBaseView();
+
+    assertThat(imageView.getDrawable()).isSameAs(specifiedBitmapDrawable);
+  }
+
+  @Test
+  public void testBindModel_bitmapImageDoesNotScaleDueToHostConfig() {
+    int styleWidth = 10;
+    int styleHeight = 15;
+    int originalBitmapWidth = 100;
+    int originalBitmapHeight = 150;
+    setStyle(styleHeight, styleWidth);
+    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
+    Element model =
+        asElement(
+            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
+
+    when(assetProvider.shouldPietResizeBitmaps()).thenReturn(false);
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    // Fire the callback
+    Bitmap bitmap = Bitmap.createBitmap(originalBitmapWidth, originalBitmapHeight, Config.ALPHA_8);
+    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
+    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
+
+    imageView = adapter.getBaseView();
+
+    assertThat(imageView.getDrawable()).isInstanceOf(BitmapDrawable.class);
+
+    Bitmap createdBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+    assertThat(createdBitmap.getWidth()).isEqualTo(originalBitmapWidth);
+    assertThat(createdBitmap.getHeight()).isEqualTo(originalBitmapHeight);
   }
 
   @Test
