@@ -31,10 +31,11 @@ public class FeatureDataOperationTransformer implements DataOperationTransformer
   @Override
   public StreamDataOperation.Builder transform(
       DataOperation dataOperation,
-      StreamDataOperation.Builder streamDataOperation,
+      StreamDataOperation.Builder dataOperationBuilder,
       FeedResponseMetadata feedResponseMetadata) {
+
     StreamFeature.Builder streamFeature =
-        streamDataOperation.getStreamPayload().getStreamFeature().toBuilder();
+        dataOperationBuilder.getStreamPayload().getStreamFeature().toBuilder();
     switch (dataOperation.getFeature().getRenderableUnit()) {
       case STREAM:
         streamFeature.setStream(dataOperation.getFeature().getExtension(Stream.streamExtension));
@@ -56,8 +57,8 @@ public class FeatureDataOperationTransformer implements DataOperationTransformer
         Logger.e(TAG, "Unknown Feature payload %s", dataOperation.getFeature().getRenderableUnit());
         throw new RuntimeException("Unknown feature payload");
     }
-    streamDataOperation.setStreamPayload(
-        streamDataOperation.getStreamPayload().toBuilder().setStreamFeature(streamFeature));
-    return streamDataOperation;
+    dataOperationBuilder.setStreamPayload(
+        dataOperationBuilder.getStreamPayload().toBuilder().setStreamFeature(streamFeature));
+    return dataOperationBuilder;
   }
 }

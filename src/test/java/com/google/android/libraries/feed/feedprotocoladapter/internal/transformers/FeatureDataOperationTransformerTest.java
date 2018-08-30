@@ -37,7 +37,7 @@ public class FeatureDataOperationTransformerTest {
 
   private static final String CONTENT_ID = "123";
   private DataOperation.Builder dataOperation;
-  private StreamDataOperation.Builder streamDataOperation;
+  private StreamDataOperation.Builder dataOperationBuilder;
   private StreamFeature streamFeature;
   private FeatureDataOperationTransformer featureDataOperationTransformer;
 
@@ -46,7 +46,7 @@ public class FeatureDataOperationTransformerTest {
     featureDataOperationTransformer = new FeatureDataOperationTransformer();
     dataOperation = DataOperation.newBuilder();
     streamFeature = StreamFeature.newBuilder().setContentId(CONTENT_ID).build();
-    streamDataOperation =
+    dataOperationBuilder =
         StreamDataOperation.newBuilder()
             .setStreamPayload(StreamPayload.newBuilder().setStreamFeature(streamFeature));
   }
@@ -64,7 +64,7 @@ public class FeatureDataOperationTransformerTest {
 
     StreamDataOperation.Builder operation =
         featureDataOperationTransformer.transform(
-            dataOperation.build(), streamDataOperation, FeedResponseMetadata.getDefaultInstance());
+            dataOperation.build(), dataOperationBuilder, FeedResponseMetadata.getDefaultInstance());
 
     assertThat(operation.getStreamPayload().getStreamFeature()).isEqualTo(expectedStreamFeature);
   }
@@ -82,7 +82,7 @@ public class FeatureDataOperationTransformerTest {
 
     StreamDataOperation.Builder operation =
         featureDataOperationTransformer.transform(
-            dataOperation.build(), streamDataOperation, FeedResponseMetadata.getDefaultInstance());
+            dataOperation.build(), dataOperationBuilder, FeedResponseMetadata.getDefaultInstance());
 
     assertThat(operation.getStreamPayload().getStreamFeature()).isEqualTo(expectedStreamFeature);
   }
@@ -100,7 +100,7 @@ public class FeatureDataOperationTransformerTest {
 
     StreamDataOperation.Builder operation =
         featureDataOperationTransformer.transform(
-            dataOperation.build(), streamDataOperation, FeedResponseMetadata.getDefaultInstance());
+            dataOperation.build(), dataOperationBuilder, FeedResponseMetadata.getDefaultInstance());
 
     assertThat(operation.getStreamPayload().getStreamFeature()).isEqualTo(expectedStreamFeature);
   }

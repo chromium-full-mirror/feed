@@ -42,7 +42,7 @@ public class ContentDataOperationTransformerTest {
       FeedResponseMetadata.newBuilder().setResponseTimeMs(RESPONSE_TIME).build();
   private ContentDataOperationTransformer contentDataOperationTransformer;
   private DataOperation.Builder dataOperation;
-  private StreamDataOperation.Builder streamDataOperation;
+  private StreamDataOperation.Builder dataOperationBuilder;
   private StreamFeature streamFeature;
 
   @Before
@@ -50,7 +50,7 @@ public class ContentDataOperationTransformerTest {
     contentDataOperationTransformer = new ContentDataOperationTransformer();
     dataOperation = DataOperation.newBuilder();
     streamFeature = StreamFeature.newBuilder().setContentId(CONTENT_ID).build();
-    streamDataOperation =
+    dataOperationBuilder =
         StreamDataOperation.newBuilder()
             .setStreamPayload(StreamPayload.newBuilder().setStreamFeature(streamFeature));
   }
@@ -73,7 +73,7 @@ public class ContentDataOperationTransformerTest {
 
     StreamDataOperation.Builder operation =
         contentDataOperationTransformer.transform(
-            dataOperation.build(), streamDataOperation, METADATA);
+            dataOperation.build(), dataOperationBuilder, METADATA);
 
     assertThat(operation.getStreamPayload().getStreamFeature().getContent())
         .isEqualTo(
@@ -97,17 +97,17 @@ public class ContentDataOperationTransformerTest {
             .setRenderableUnit(RenderableUnit.CONTENT));
     StreamDataOperation.Builder operation =
         contentDataOperationTransformer.transform(
-            dataOperation.build(), streamDataOperation, FeedResponseMetadata.getDefaultInstance());
+            dataOperation.build(), dataOperationBuilder, FeedResponseMetadata.getDefaultInstance());
 
-    assertThat(operation).isSameAs(streamDataOperation);
+    assertThat(operation).isSameAs(dataOperationBuilder);
   }
 
   @Test
   public void transform_featureIsNotContent() {
     StreamDataOperation.Builder operation =
         contentDataOperationTransformer.transform(
-            dataOperation.build(), streamDataOperation, METADATA);
+            dataOperation.build(), dataOperationBuilder, METADATA);
 
-    assertThat(operation).isSameAs(streamDataOperation);
+    assertThat(operation).isSameAs(dataOperationBuilder);
   }
 }
