@@ -66,7 +66,8 @@ message OrientationCondition {
     // ERR_INVALID_MEDIA_QUERY_CONDITION will be raised.
     UNSPECIFIED = 0;
 
-    // Height of the device is greater than the width of the device. Default.
+    // Height of the device is greater than or equal to the width of the device.
+    // Default.
     PORTRAIT = 1;
 
     // Width of the device is greater than the height of the device.
