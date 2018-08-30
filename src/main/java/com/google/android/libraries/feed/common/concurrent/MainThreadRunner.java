@@ -16,13 +16,23 @@ package com.google.android.libraries.feed.common.concurrent;
 
 import android.os.Handler;
 import android.os.Looper;
+import com.google.android.libraries.feed.common.logging.Logger;
+import java.util.concurrent.Executor;
 
-/** A {@link AbstractRunner} that executes on the main thread (UI thread). */
-public class MainThreadRunner extends AbstractRunner {
-  private static final String DESCRIPTION = "UiThread";
+/** Executes a task on the main thread (UI thread). */
+public class MainThreadRunner {
+  private static final String TAG = "MainThreadRunner";
   private static final Handler handler = new Handler(Looper.getMainLooper());
 
+  private final Executor executor;
+
   public MainThreadRunner() {
-    super(handler::post, DESCRIPTION);
+    this.executor = handler::post;
+  }
+
+  /** Executes the {@code runnable} on the {@link Executor} used to initialize this class. */
+  public void execute(String name, Runnable runnable) {
+    Logger.i(TAG, "Running task [%s] on the Main Thread", name);
+    executor.execute(runnable);
   }
 }
