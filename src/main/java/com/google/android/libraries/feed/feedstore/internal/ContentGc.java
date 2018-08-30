@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 /** Storage Content Garbage Collector. */
@@ -41,7 +41,7 @@ public class ContentGc {
   private final ContentStorageDirect contentStorageDirect;
   private final TimingUtils timingUtils;
 
-  public ContentGc(
+  ContentGc(
       Supplier<Set<String>> accessibleContentSupplier,
       Set<String> reservedContentIds,
       Supplier<Set<StreamAction>> actionsSupplier,
@@ -54,7 +54,7 @@ public class ContentGc {
     this.timingUtils = timingUtils;
   }
 
-  public void gc() {
+  void gc() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Set<String> population = getPopulation();
     // remove the items in the population that are accessible, reserved, or semantic properties
@@ -115,10 +115,9 @@ public class ContentGc {
   private Set<String> getPopulation() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Set<String> population = new HashSet<>();
-    // TODO: getAllKeys?
-    Result<Map<String, byte[]>> result = contentStorageDirect.getAll("");
+    Result<List<String>> result = contentStorageDirect.getAllKeys();
     if (result.isSuccessful()) {
-      population.addAll(result.getValue().keySet());
+      population.addAll(result.getValue());
     } else {
       Logger.e(TAG, "Unable to get all content, getAll failed");
     }
