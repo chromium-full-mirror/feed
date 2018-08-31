@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
@@ -87,7 +88,7 @@ public class StreamDriverTest {
   private Configuration configuration = new Configuration.Builder().build();
   private Context context;
 
-  public static FakeModelChild createFakeClusterModelChild() {
+  private static FakeModelChild createFakeClusterModelChild() {
     return new FakeModelChild.Builder()
         .setModelFeature(
             new FakeModelFeature.Builder()
@@ -106,6 +107,7 @@ public class StreamDriverTest {
     when(continuationDriver.getLeafFeatureDriver()).thenReturn(continuationDriver);
     when(noContentDriver.getLeafFeatureDriver()).thenReturn(noContentDriver);
     when(modelProvider.getRootFeature()).thenReturn(streamFeature);
+    when(modelProvider.getCurrentState()).thenReturn(State.READY);
 
     streamDriver = new StreamDriverForTest(modelProvider, threadUtils);
 
@@ -130,6 +132,22 @@ public class StreamDriverTest {
   }
 
   @Test
+  public void testBuildChildren_nullRoot() {
+    when(modelProvider.getRootFeature()).thenReturn(null);
+    streamDriver.getLeafFeatureDrivers();
+    verify(basicLoggingApi).onOpenedWithNoContent();
+  }
+
+  @Test
+  public void testBuildChildren_initializing() {
+    when(modelProvider.getRootFeature()).thenReturn(null);
+    when(modelProvider.getCurrentState()).thenReturn(State.INITIALIZING);
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+    assertThat(leafFeatureDrivers).hasSize(1);
+    assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(ZeroStateDriver.class);
+  }
+
+  @Test
   public void testMaybeRestoreScroll() {
     when(streamFeature.getCursor()).thenReturn(new FakeModelCursor.Builder().addCard().build());
 
@@ -149,7 +167,7 @@ public class StreamDriverTest {
 
     streamDriver.maybeRestoreScroll();
 
-    // Should restore scroll if a non-sythetic token is last
+    // Should restore scroll if a non-synthetic token is last
     verify(scrollRestorer).maybeRestoreScroll();
   }
 

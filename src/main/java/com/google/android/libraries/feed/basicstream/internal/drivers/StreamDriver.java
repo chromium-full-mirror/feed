@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
@@ -101,14 +102,15 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
    * given {@link ModelFeature}.
    */
   public List<LeafFeatureDriver> getLeafFeatureDrivers() {
-    if (!rootFeatureConsumed) {
+    if (modelProvider.getCurrentState() == State.READY && !rootFeatureConsumed) {
+      rootFeatureConsumed = true;
       ModelFeature rootFeature = modelProvider.getRootFeature();
-      // TODO: Log nocontent/no immediate content for null rootFeature once StreamDriver has
-      // more knowledge on sessions.
       if (rootFeature != null) {
         createAndInsertChildren(rootFeature, modelProvider);
         rootFeature.registerObserver(this);
-        rootFeatureConsumed = true;
+      } else {
+        Logger.w(TAG, "found null root feature loading Leaf Feature Drivers");
+        basicLoggingApi.onOpenedWithNoContent();
       }
     }
 
