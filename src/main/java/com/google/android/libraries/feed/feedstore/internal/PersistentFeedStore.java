@@ -222,7 +222,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
       tracker.stop("getSemanticProperties failed", contentIds);
     }
 
-    tracker.stop("getSemanticProperties", semanticPropertiesWithIds);
+    tracker.stop("task", "getSemanticProperties", "size", semanticPropertiesWithIds.size());
     return Result.success(semanticPropertiesWithIds);
   }
 
@@ -248,7 +248,7 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
           Logger.e(TAG, e, "Error parsing StreamAction for bytes: %s", bytes);
         }
       }
-      tracker.stop("getAllDismissActions");
+      tracker.stop("task", "getAllDismissActions", "size", actions.size());
       return Result.success(actions);
     }
   }
@@ -382,7 +382,8 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
           SEMANTIC_PROPERTIES_PREFIX + entry.getKey(), entry.getValue().toByteArray());
     }
     CommitResult commitResult = contentStorageDirect.commit(mutationBuilder.build());
-    tracker.stop("", "commitSemanticPropertiesMutation", "mutations", semanticPropertiesMap.size());
+    tracker.stop(
+        "task", "commitSemanticPropertiesMutation", "mutations", semanticPropertiesMap.size());
     return commitResult;
   }
 

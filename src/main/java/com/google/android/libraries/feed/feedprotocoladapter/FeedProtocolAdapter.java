@@ -177,7 +177,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
                 .build());
       }
     }
-    totalTimeTracker.stop("", "convertWireProtocol", "mutations", dataOperations.size());
+    totalTimeTracker.stop("task", "convertWireProtocol", "mutations", dataOperations.size());
     return Result.success(streamDataOperations);
   }
 

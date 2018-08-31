@@ -68,7 +68,7 @@ public class ContentGc {
 
     // Population now contains only un-accessible items
     removeUnAccessible(population);
-    tracker.stop("", "ContentGc", "contentRemoved", population.size());
+    tracker.stop("task", "ContentGc", "contentItemsRemoved", population.size());
   }
 
   private void removeUnAccessible(Set<String> unAccessible) {

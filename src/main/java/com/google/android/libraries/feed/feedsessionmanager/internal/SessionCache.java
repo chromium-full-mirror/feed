@@ -317,7 +317,9 @@ public class SessionCache implements Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     StreamSessions.Builder sessionsBuilder = StreamSessions.newBuilder();
+    int sessionCount = 0;
     synchronized (lock) {
+      sessionCount = sessions.size();
       for (Session s : sessions.values()) {
         sessionsBuilder.addStreamSessions(s.getStreamSession());
       }
@@ -327,7 +329,7 @@ public class SessionCache implements Dumpable {
     ContentMutation contentMutation = store.editContent();
     contentMutation.add(STREAM_SESSION_CONTENT_ID, payload);
     contentMutation.commit();
-    timeTracker.stop("task", "Update Stored Session Information");
+    timeTracker.stop("task", "updatePersistedSessions(Content)", "sessionCount", sessionCount);
   }
 
   /**

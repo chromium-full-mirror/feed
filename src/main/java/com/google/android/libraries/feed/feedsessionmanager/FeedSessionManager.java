@@ -189,8 +189,10 @@ public class FeedSessionManager
   // Session Manager thread so it's complete before we create any sessions.
   private void initializationTask() {
     threadUtils.checkNotMainThread();
-    Logger.i(TAG, "Task: Initialization");
-    timingUtils.pinThread(Thread.currentThread(), "SessionManager");
+    Thread currentThread = Thread.currentThread();
+    currentThread.setName("JardinExecutor");
+    timingUtils.pinThread(currentThread, "JardinExecutor");
+
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     // Initialize the Shared States cached here.
     ElapsedTimeTracker sharedStateTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
