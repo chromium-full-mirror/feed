@@ -32,13 +32,18 @@ public class ScrollRestorer {
   private static final String TAG = "ScrollRestorer";
 
   private final RecyclerView recyclerView;
+  private final StreamScrollMonitor streamScrollMonitor;
   private final int scrollPosition;
   private final int scrollOffset;
 
   private boolean canRestore;
 
-  public ScrollRestorer(RecyclerView recyclerView, /*@Nullable*/ ScrollState scrollState) {
+  public ScrollRestorer(
+      RecyclerView recyclerView,
+      StreamScrollMonitor streamScrollMonitor,
+      /*@Nullable*/ ScrollState scrollState) {
     this.recyclerView = recyclerView;
+    this.streamScrollMonitor = streamScrollMonitor;
 
     if (scrollState != null) {
       canRestore = true;
@@ -50,9 +55,10 @@ public class ScrollRestorer {
     }
   }
 
-  private ScrollRestorer(RecyclerView recyclerView) {
+  private ScrollRestorer(RecyclerView recyclerView, StreamScrollMonitor streamScrollMonitor) {
     canRestore = false;
     this.recyclerView = recyclerView;
+    this.streamScrollMonitor = streamScrollMonitor;
     scrollPosition = 0;
     scrollOffset = 0;
   }
@@ -61,8 +67,9 @@ public class ScrollRestorer {
    * Creates a {@code StreamRestorer} which will never restore state. This can be used to fulfill
    * {@code StreamRestorer} requests when no restore state is present.
    */
-  public static ScrollRestorer nonRestoringRestorer(RecyclerView recyclerView) {
-    return new ScrollRestorer(recyclerView);
+  public static ScrollRestorer nonRestoringRestorer(
+      RecyclerView recyclerView, StreamScrollMonitor streamScrollMonitor) {
+    return new ScrollRestorer(recyclerView, streamScrollMonitor);
   }
 
   /**
@@ -84,6 +91,7 @@ public class ScrollRestorer {
     }
     Logger.d(TAG, "Restoring scroll");
     getLayoutManager().scrollToPositionWithOffset(scrollPosition, scrollOffset);
+    streamScrollMonitor.onProgrammaticScroll();
     canRestore = false;
   }
 

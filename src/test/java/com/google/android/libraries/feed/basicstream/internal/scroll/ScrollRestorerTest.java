@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.basicstream.internal.scroll;
 
 import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.nonRestoringRestorer;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
@@ -26,6 +28,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanc
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -37,11 +40,16 @@ public class ScrollRestorerTest {
   private static final int OFFSET = -10;
   private static final ScrollState SCROLL_STATE =
       ScrollState.newBuilder().setPosition(POSITION).setOffset(OFFSET).build();
+
+  @Mock private StreamScrollMonitor streamScrollMonitor;
+
   private RecyclerView recyclerView;
   private LinearLayoutManagerForTest layoutManager;
 
   @Before
   public void setUp() {
+    initMocks(this);
+
     Context context = Robolectric.setupActivity(Activity.class);
     recyclerView = new RecyclerView(context);
     layoutManager = new LinearLayoutManagerForTest(context);
@@ -50,21 +58,25 @@ public class ScrollRestorerTest {
 
   @Test
   public void testRestoreScroll() {
-    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, SCROLL_STATE);
+    ScrollRestorer scrollRestorer =
+        new ScrollRestorer(recyclerView, streamScrollMonitor, SCROLL_STATE);
     scrollRestorer.maybeRestoreScroll();
 
+    verify(streamScrollMonitor).onProgrammaticScroll();
     assertThat(layoutManager.scrolledPosition).isEqualTo(POSITION);
     assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
   }
 
   @Test
   public void testRestoreScroll_repeatedCall() {
-    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, createScrollState(10, 20));
+    ScrollRestorer scrollRestorer =
+        new ScrollRestorer(recyclerView, streamScrollMonitor, createScrollState(10, 20));
     scrollRestorer.maybeRestoreScroll();
 
     layoutManager.scrollToPositionWithOffset(POSITION, OFFSET);
     scrollRestorer.maybeRestoreScroll();
 
+    verify(streamScrollMonitor).onProgrammaticScroll();
     assertThat(layoutManager.scrolledPosition).isEqualTo(POSITION);
     assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
   }
@@ -73,7 +85,8 @@ public class ScrollRestorerTest {
   public void testAbandonRestoringScroll() {
     layoutManager.scrollToPositionWithOffset(POSITION, OFFSET);
 
-    ScrollRestorer scrollRestorer = new ScrollRestorer(recyclerView, createScrollState(10, 20));
+    ScrollRestorer scrollRestorer =
+        new ScrollRestorer(recyclerView, streamScrollMonitor, createScrollState(10, 20));
     scrollRestorer.abandonRestoringScroll();
     scrollRestorer.maybeRestoreScroll();
 
@@ -86,13 +99,16 @@ public class ScrollRestorerTest {
     layoutManager.firstVisibleItemPosition = POSITION;
     layoutManager.firstVisibleViewOffset = OFFSET;
     ScrollState restorerScrollState =
-        nonRestoringRestorer(recyclerView).getScrollStateForScrollRestore();
+        nonRestoringRestorer(recyclerView, streamScrollMonitor).getScrollStateForScrollRestore();
     assertThat(restorerScrollState).isEqualTo(SCROLL_STATE);
   }
 
   @Test
   public void testGetBundleForScrollPosition_invalidPosition() {
-    assertThat(nonRestoringRestorer(recyclerView).getScrollStateForScrollRestore()).isNull();
+    assertThat(
+            nonRestoringRestorer(recyclerView, streamScrollMonitor)
+                .getScrollStateForScrollRestore())
+        .isNull();
   }
 
   private ScrollState createScrollState(int position, int offset) {

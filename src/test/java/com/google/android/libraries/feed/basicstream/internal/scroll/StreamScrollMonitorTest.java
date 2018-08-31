@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal;
+package com.google.android.libraries.feed.basicstream.internal.scroll;
 
+import static com.google.android.libraries.feed.api.stream.ScrollListener.UNKNOWN_SCROLL_DELTA;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
@@ -26,6 +27,7 @@ import android.support.v7.widget.RecyclerView;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.api.stream.ScrollListener.ScrollState;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +45,7 @@ public class StreamScrollMonitorTest {
 
   private StreamScrollMonitor streamScrollMonitor;
   private RecyclerView recyclerView;
+  private FakeMainThreadRunner mainThreadRunner;
 
   @Before
   public void setUp() {
@@ -50,8 +53,10 @@ public class StreamScrollMonitorTest {
 
     Context context = Robolectric.setupActivity(Activity.class);
     recyclerView = new RecyclerView(context);
+    mainThreadRunner = new FakeMainThreadRunner();
 
-    streamScrollMonitor = new StreamScrollMonitor(recyclerView, contentChangedListener);
+    streamScrollMonitor =
+        new StreamScrollMonitor(recyclerView, contentChangedListener, mainThreadRunner);
     streamScrollMonitor.addScrollListener(scrollListener1);
   }
 
@@ -130,5 +135,15 @@ public class StreamScrollMonitorTest {
 
     verify(scrollListener1, never()).onScrolled(anyInt(), anyInt());
     verify(scrollListener2).onScrolled(1, 2);
+  }
+
+  @Test
+  public void onProgrammaticScroll() {
+    streamScrollMonitor.onProgrammaticScroll();
+
+    verify(scrollListener1, never()).onScrolled(anyInt(), anyInt());
+
+    mainThreadRunner.runAllTasks();
+    verify(scrollListener1).onScrolled(UNKNOWN_SCROLL_DELTA, UNKNOWN_SCROLL_DELTA);
   }
 }

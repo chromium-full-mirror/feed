@@ -18,8 +18,20 @@ import android.support.annotation.IntDef;
 
 /** Interface users can implement to be told about changes to scrolling in the Stream. */
 public interface ScrollListener {
+
+  /**
+   * Constant used to denote that a scroll was performed but scroll delta could not be calculated.
+   * This normally maps to a programmatic scroll.
+   */
+  int UNKNOWN_SCROLL_DELTA = Integer.MIN_VALUE;
+
   void onScrollStateChanged(@ScrollState int state);
 
+  /**
+   * Called when a scroll happens and provides the amount of pixels scrolled. {@link
+   * #UNKNOWN_SCROLL_DELTA} will be specified if scroll delta would not be determined. An example of
+   * this would be a scroll initiated programmatically.
+   */
   void onScrolled(int dx, int dy);
 
   /** Possible scroll states. */

@@ -47,9 +47,10 @@ import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCal
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
-import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.basicstream.internal.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -98,6 +99,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final BasicLoggingApi basicLoggingApi;
   private final long immediateContentThreshold;
   private final StreamOfflineMonitor streamOfflineMonitor;
+  private final MainThreadRunner mainThreadRunner;
 
   private RecyclerView recyclerView;
   private Context context;
@@ -132,7 +134,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       Configuration configuration,
       SnackbarApi snackbarApi,
       BasicLoggingApi basicLoggingApi,
-      OfflineIndicatorApi offlineIndicatorApi) {
+      OfflineIndicatorApi offlineIndicatorApi,
+      MainThreadRunner mainThreadRunner) {
     this.cardConfiguration = cardConfiguration;
     this.clock = clock;
     this.threadUtils = threadUtils;
@@ -154,6 +157,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.actionManager = actionManager;
     this.configuration = configuration;
     this.snackbarApi = snackbarApi;
+    this.mainThreadRunner = mainThreadRunner;
     this.streamContentChangedListener = createStreamContentChangedListener();
     this.deepestContentTracker = new DeepestContentTracker();
     this.basicLoggingApi = basicLoggingApi;
@@ -195,10 +199,11 @@ public class BasicStream implements Stream, ModelProviderObserver {
   public void onCreate(/*@Nullable*/ String savedInstanceState) {
     checkState(recyclerView == null, "Can't call onCreate() multiple times.");
     setupRecyclerView();
-    streamScrollMonitor = createStreamScrollMonitor(recyclerView, streamContentChangedListener);
+    streamScrollMonitor =
+        createStreamScrollMonitor(recyclerView, streamContentChangedListener, mainThreadRunner);
 
     if (savedInstanceState == null) {
-      scrollRestorer = createScrollRestorer(recyclerView, null);
+      scrollRestorer = createScrollRestorer(recyclerView, streamScrollMonitor, null);
       return;
     }
 
@@ -210,10 +215,11 @@ public class BasicStream implements Stream, ModelProviderObserver {
         savedSessionToken = streamSavedInstanceState.getSessionToken();
       }
       scrollRestorer =
-          createScrollRestorer(recyclerView, streamSavedInstanceState.getScrollState());
+          createScrollRestorer(
+              recyclerView, streamScrollMonitor, streamSavedInstanceState.getScrollState());
     } catch (IllegalArgumentException | InvalidProtocolBufferException e) {
       Logger.wtf(TAG, "Could not parse saved instance state String.");
-      scrollRestorer = createScrollRestorer(recyclerView, null);
+      scrollRestorer = createScrollRestorer(recyclerView, streamScrollMonitor, null);
     }
   }
 
@@ -247,7 +253,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ScrollRestorer initialScrollRestorer =
           modelProvider.getCurrentState() == State.READY
               ? scrollRestorer
-              : createNonRestoringScrollRestorer(recyclerView);
+              : createNonRestoringScrollRestorer(recyclerView, streamScrollMonitor);
 
       streamDriver =
           createStreamDriver(
@@ -572,8 +578,10 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @VisibleForTesting
   StreamScrollMonitor createStreamScrollMonitor(
-      RecyclerView recyclerView, ContentChangedListener contentChangedListener) {
-    return new StreamScrollMonitor(recyclerView, contentChangedListener);
+      RecyclerView recyclerView,
+      ContentChangedListener contentChangedListener,
+      MainThreadRunner mainThreadRunner) {
+    return new StreamScrollMonitor(recyclerView, contentChangedListener, mainThreadRunner);
   }
 
   @VisibleForTesting
@@ -589,12 +597,15 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
   @VisibleForTesting
   ScrollRestorer createScrollRestorer(
-      RecyclerView recyclerView, /*@Nullable*/ ScrollState scrollState) {
-    return new ScrollRestorer(recyclerView, scrollState);
+      RecyclerView recyclerView,
+      StreamScrollMonitor streamScrollMonitor,
+      /*@Nullable*/ ScrollState scrollState) {
+    return new ScrollRestorer(recyclerView, streamScrollMonitor, scrollState);
   }
 
   @VisibleForTesting
-  ScrollRestorer createNonRestoringScrollRestorer(RecyclerView recyclerView) {
-    return ScrollRestorer.nonRestoringRestorer(recyclerView);
+  ScrollRestorer createNonRestoringScrollRestorer(
+      RecyclerView recyclerView, StreamScrollMonitor streamScrollMonitor) {
+    return ScrollRestorer.nonRestoringRestorer(recyclerView, streamScrollMonitor);
   }
 }

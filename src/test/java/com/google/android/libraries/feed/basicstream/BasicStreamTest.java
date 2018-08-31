@@ -55,9 +55,11 @@ import com.google.android.libraries.feed.basicstream.internal.StreamContentChang
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
-import com.google.android.libraries.feed.basicstream.internal.StreamScrollMonitor;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.basicstream.internal.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -132,6 +134,7 @@ public class BasicStreamTest {
   private Context context;
   private FakeClock clock;
   private BasicStreamForTest basicStream;
+  private FakeMainThreadRunner mainThreadRunner;
 
   @Before
   public void setUp() {
@@ -153,6 +156,7 @@ public class BasicStreamTest {
 
     context = Robolectric.setupActivity(Activity.class);
     clock = new FakeClock();
+    mainThreadRunner = new FakeMainThreadRunner();
     layoutManager = new LinearLayoutManagerWithFakePositioning(context);
 
     basicStream = createBasicStream(layoutManager);
@@ -685,7 +689,8 @@ public class BasicStreamTest {
           configuration,
           snackbarApi,
           basicLoggingApi,
-          offlineIndicatorApi);
+          offlineIndicatorApi,
+          mainThreadRunner);
       this.layoutManager = layoutManager;
     }
 
@@ -737,7 +742,9 @@ public class BasicStreamTest {
 
     @Override
     StreamScrollMonitor createStreamScrollMonitor(
-        RecyclerView recyclerView, ContentChangedListener contentChangedListener) {
+        RecyclerView recyclerView,
+        ContentChangedListener contentChangedListener,
+        MainThreadRunner mainThreadRunner) {
       return streamScrollMonitor;
     }
 
@@ -748,12 +755,15 @@ public class BasicStreamTest {
 
     @Override
     ScrollRestorer createScrollRestorer(
-        RecyclerView recyclerView, /*@Nullable*/ ScrollState scrollState) {
+        RecyclerView recyclerView,
+        StreamScrollMonitor streamScrollMonitor,
+        /*@Nullable*/ ScrollState scrollState) {
       return scrollRestorer;
     }
 
     @Override
-    ScrollRestorer createNonRestoringScrollRestorer(RecyclerView recyclerView) {
+    ScrollRestorer createNonRestoringScrollRestorer(
+        RecyclerView recyclerView, StreamScrollMonitor streamScrollMonitor) {
       return nonRestoringScrollRestorer;
     }
   }
