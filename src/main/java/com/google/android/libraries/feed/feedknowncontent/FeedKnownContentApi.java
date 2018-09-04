@@ -18,7 +18,13 @@ import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.functional.Function;
+import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
+import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,9 +36,12 @@ public class FeedKnownContentApi implements KnownContentApi {
   private final SessionManager sessionManager;
   private final Set<KnownContentListener> listeners = new HashSet<>();
   private final KnownContentListener listener;
+  private final MainThreadRunner mainThreadRunner;
 
-  public FeedKnownContentApi(SessionManager sessionManager) {
+  public FeedKnownContentApi(SessionManager sessionManager, MainThreadRunner mainThreadRunner) {
     this.sessionManager = sessionManager;
+    this.mainThreadRunner = mainThreadRunner;
+
     listener =
         new KnownContentListener() {
           @Override
@@ -54,7 +63,30 @@ public class FeedKnownContentApi implements KnownContentApi {
 
   @Override
   public void getKnownContent(Consumer<List<ContentMetadata>> knownContentConsumer) {
-    // TODO: Implement to provide host with knowledge of known content.
+    sessionManager.getStreamFeaturesFromHead(
+        (Function<StreamPayload, /*@Nullable*/ ContentMetadata>)
+            streamPayload -> {
+              if (!streamPayload.getStreamFeature().hasContent()) {
+                return null;
+              }
+
+              Content content = streamPayload.getStreamFeature().getContent();
+
+              return ContentMetadata.maybeCreateContentMetadata(
+                  content.getOfflineMetadata(), content.getRepresentationData());
+            },
+        (Result<List<ContentMetadata>> result) -> {
+          mainThreadRunner.execute(
+              "getKnownContentAccept",
+              () -> {
+                if (!result.isSuccessful()) {
+                  Logger.e(TAG, "Can't inform on known content due to internal feed error.");
+                  return;
+                }
+
+                knownContentConsumer.accept(result.getValue());
+              });
+        });
   }
 
   @Override

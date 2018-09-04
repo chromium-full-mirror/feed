@@ -300,7 +300,7 @@ public class FeedProcessScope implements Dumpable {
           new FeedActionManagerImpl(sessionManager, store, threadUtils, taskQueue);
 
       if (knownContentApi == null) {
-        knownContentApi = new FeedKnownContentApi(sessionManager);
+        knownContentApi = new FeedKnownContentApi(sessionManager, mainThreadRunner);
       }
 
       return new FeedProcessScope(

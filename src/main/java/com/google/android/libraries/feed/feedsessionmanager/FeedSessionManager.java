@@ -600,20 +600,25 @@ public class FeedSessionManager
   public <T> void getStreamFeaturesFromHead(
       Function<StreamPayload, /*@Nullable*/ T> filterPredicate,
       Consumer<Result<List</*@NonNull*/ T>>> consumer) {
-    HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
-    Function<TreeNode, /*@Nullable*/ T> toStreamPayload =
-        treeNode -> filterPredicate.apply(treeNode.getStreamPayload());
-    headAsStructure.initialize(
-        result -> {
-          if (!result.isSuccessful()) {
-            consumer.accept(Result.failure());
-            return;
-          }
-          Result<List</*@NonNull*/ T>> filterResults = headAsStructure.filter(toStreamPayload);
-          consumer.accept(
-              filterResults.isSuccessful()
-                  ? Result.success(filterResults.getValue())
-                  : Result.failure());
+    taskQueue.execute(
+        "getStreamFeaturesFromHead",
+        TaskType.BACKGROUND,
+        () -> {
+          HeadAsStructure headAsStructure = new HeadAsStructure(store, timingUtils, threadUtils);
+          Function<TreeNode, /*@Nullable*/ T> toStreamPayload =
+              treeNode -> filterPredicate.apply(treeNode.getStreamPayload());
+          headAsStructure.initialize(
+              result -> {
+                if (!result.isSuccessful()) {
+                  consumer.accept(Result.failure());
+                  return;
+                }
+                Result<List</*@NonNull*/ T>> filterResults = headAsStructure.filter(toStreamPayload);
+                consumer.accept(
+                    filterResults.isSuccessful()
+                        ? Result.success(filterResults.getValue())
+                        : Result.failure());
+              });
         });
   }
 
