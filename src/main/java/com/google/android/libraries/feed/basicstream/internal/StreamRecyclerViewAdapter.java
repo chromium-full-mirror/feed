@@ -310,12 +310,12 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
     @Override
     public boolean areItemsTheSame(int i, int i1) {
-      return oldHeaders.get(i).equals(newHeaders.get(i1));
+      return oldHeaders.get(i).getView().equals(newHeaders.get(i1).getView());
     }
 
     @Override
     public boolean areContentsTheSame(int i, int i1) {
-      return oldHeaders.get(i).equals(newHeaders.get(i1));
+      return oldHeaders.get(i).getView().equals(newHeaders.get(i1).getView());
     }
   }
 
