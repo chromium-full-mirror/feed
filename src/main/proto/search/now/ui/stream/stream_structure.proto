@@ -58,19 +58,22 @@ message Card {
 
 // Metadata object providing basic information for logging content.
 message BasicLoggingMetadata {
-  // Time when content was published
-  optional int64 published_time_seconds = 1;
 
   // Score given by NowStream
   optional float score = 2;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
+
+  reserved 1;
 }
 
 message RepresentationData {
   // URI (usually a URL) of what the content links to
   optional string uri = 1;
+
+  // Time when content was published
+  optional int64 published_time_seconds = 2;
 }
 
 message OfflineMetadata {
@@ -80,9 +83,8 @@ message OfflineMetadata {
   // Url for image for the content.
   optional string image_url = 2;
 
-  // Attribution of the content. Typically includes source and time since
-  // publishing.
-  optional string attribution = 3;
+  // Publisher of the content.
+  optional string publisher = 3;
 
   // Url for the favicon for the content.
   optional string favicon_url = 4;

@@ -80,11 +80,10 @@ public class ContentDriverTest {
 
   private static final BasicLoggingMetadata BASIC_LOGGING_METADATA =
       BasicLoggingMetadata.newBuilder()
-          .setPublishedTimeSeconds(10)
           .setScore(40)
           .build();
   private static final RepresentationData REPRESENTATION_DATA =
-      RepresentationData.newBuilder().setUri(CONTENT_URL).build();
+      RepresentationData.newBuilder().setUri(CONTENT_URL).setPublishedTimeSeconds(10).build();
   private static final ContentLoggingData CONTENT_LOGGING_DATA =
       new StreamContentLoggingData(POSITION, BASIC_LOGGING_METADATA, REPRESENTATION_DATA);
   private static final OfflineMetadata OFFLINE_METADATA =

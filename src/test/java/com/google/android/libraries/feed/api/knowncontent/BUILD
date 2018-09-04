@@ -1,0 +1,16 @@
+licenses(["notice"])  # Apache 2
+
+android_local_test(
+    name = "ContentMetadataTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["ContentMetadataTest.java"],
+    manifest = "AndroidManifest.xml",
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
+        "//src/main/proto/search/now/ui/stream:stream_java_proto_lite",
+        "@bazel_android//:robolectric",
+        "@com_google_truth_truth//jar",
+    ],
+)

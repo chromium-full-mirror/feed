@@ -113,8 +113,9 @@ public class StreamActionApiImplTest {
       new ContentMetadata(
           URL,
           "title",
+          /* timePublished= */ -1,
           /* imageUrl= */ null,
-          /* attribution= */ null,
+          /* publisher= */ null,
           /* faviconUrl= */ null,
           /* snippet=*/ null);
 

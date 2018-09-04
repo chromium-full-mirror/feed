@@ -14,30 +14,72 @@
 
 package com.google.android.libraries.feed.api.knowncontent;
 
+import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.search.now.ui.stream.StreamStructureProto.OfflineMetadata;
+import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 
 /** Metadata for content. */
 public class ContentMetadata {
 
+  public static final long UNKNOWN_TIME_PUBLISHED = -1L;
+
+  private static final String TAG = "ContentMetadata";
+
   private final String url;
   private final String title;
+  private final long timePublished;
   /*@Nullable*/ private final String imageUrl;
-  /*@Nullable*/ private final String attribution;
+  /*@Nullable*/ private final String publisher;
   /*@Nullable*/ private final String faviconUrl;
   /*@Nullable*/ private final String snippet;
+
+  /*@Nullable*/
+  public static ContentMetadata maybeCreateContentMetadata(
+      OfflineMetadata offlineMetadata, RepresentationData representationData) {
+    if (!representationData.hasUri()) {
+      Logger.w(TAG, "Can't build ContentMetadata with no URL");
+      return null;
+    }
+
+    if (!offlineMetadata.hasTitle()) {
+      Logger.w(TAG, "Can't build ContentMetadata with no title");
+      return null;
+    }
+
+    String imageUrl = offlineMetadata.hasImageUrl() ? offlineMetadata.getImageUrl() : null;
+    String publisher = offlineMetadata.hasPublisher() ? offlineMetadata.getPublisher() : null;
+    String faviconUrl = offlineMetadata.hasFaviconUrl() ? offlineMetadata.getFaviconUrl() : null;
+    String snippet = offlineMetadata.hasSnippet() ? offlineMetadata.getSnippet() : null;
+    long publishedTimeSeconds =
+        representationData.hasPublishedTimeSeconds()
+            ? representationData.getPublishedTimeSeconds()
+            : UNKNOWN_TIME_PUBLISHED;
+
+    return new ContentMetadata(
+        representationData.getUri(),
+        offlineMetadata.getTitle(),
+        publishedTimeSeconds,
+        imageUrl,
+        publisher,
+        faviconUrl,
+        snippet);
+  }
 
   public ContentMetadata(
       String url,
       String title,
+      long timePublished,
       /*@Nullable*/ String imageUrl,
-      /*@Nullable*/ String attribution,
+      /*@Nullable*/ String publisher,
       /*@Nullable*/ String faviconUrl,
       /*@Nullable*/ String snippet) {
     this.url = url;
     this.title = title;
     this.imageUrl = imageUrl;
-    this.attribution = attribution;
+    this.publisher = publisher;
     this.faviconUrl = faviconUrl;
     this.snippet = snippet;
+    this.timePublished = timePublished;
   }
 
   public String getUrl() {
@@ -54,13 +96,18 @@ public class ContentMetadata {
     return imageUrl;
   }
 
-  /**
-   * {@link String} representation of the source. Typically includes source and time since
-   * publishing.
-   */
+  /** {@link String} representation of the publisher. */
   /*@Nullable*/
-  public String getAttribution() {
-    return attribution;
+  public String getPublisher() {
+    return publisher;
+  }
+
+  /**
+   * Seconds of UTC time since the Unix Epoch 1970-01-01 T00:00:00Z or {@code
+   * UNKNOWN_TIME_PUBLISHED} if unknown.
+   */
+  public long getTimePublished() {
+    return timePublished;
   }
 
   /*@Nullable*/

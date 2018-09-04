@@ -33,7 +33,7 @@ public class StreamContentLoggingData implements ContentLoggingData {
       BasicLoggingMetadata basicLoggingMetadata,
       RepresentationData representationData) {
     this.positionInStream = positionInStream;
-    this.publishedTimeSeconds = basicLoggingMetadata.getPublishedTimeSeconds();
+    this.publishedTimeSeconds = representationData.getPublishedTimeSeconds();
     this.timeContentBecameAvailable =
         basicLoggingMetadata
             .getExtension(ClientBasicLoggingMetadata.clientBasicLoggingMetadata)
