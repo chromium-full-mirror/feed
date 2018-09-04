@@ -29,10 +29,12 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.RemoveTrackingFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver.StreamContentListener;
@@ -44,6 +46,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
@@ -82,6 +85,7 @@ public class StreamDriverTest {
   @Mock private SnackbarApi snackbarApi;
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
+  @Mock private KnownContentApi knownContentApi;
 
   @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
 
@@ -112,6 +116,17 @@ public class StreamDriverTest {
     streamDriver = new StreamDriverForTest(modelProvider, threadUtils);
 
     streamDriver.setStreamContentListener(contentListener);
+  }
+
+  @Test
+  public void testConstruction() {
+    ArgumentCaptor<RemoveTrackingFactory> removeTrackingFactoryArgumentCaptor =
+        ArgumentCaptor.forClass(RemoveTrackingFactory.class);
+
+    verify(modelProvider).enableRemoveTracking(removeTrackingFactoryArgumentCaptor.capture());
+
+    assertThat(removeTrackingFactoryArgumentCaptor.getValue())
+        .isInstanceOf(StreamRemoveTrackingFactory.class);
   }
 
   @Test
@@ -583,7 +598,8 @@ public class StreamDriverTest {
           contentChangedListener,
           scrollRestorer,
           basicLoggingApi,
-          mock(StreamOfflineMonitor.class));
+          mock(StreamOfflineMonitor.class),
+          knownContentApi);
       childrenCreated = new ArrayList<>();
     }
 

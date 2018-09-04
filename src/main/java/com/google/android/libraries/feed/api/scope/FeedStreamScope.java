@@ -18,6 +18,7 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -75,7 +76,8 @@ public class FeedStreamScope {
         Configuration config,
         SnackbarApi snackbarApi,
         BasicLoggingApi basicLoggingApi,
-        OfflineIndicatorApi offlineIndicatorApi) {
+        OfflineIndicatorApi offlineIndicatorApi,
+        KnownContentApi knownContentApi) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
@@ -94,6 +96,7 @@ public class FeedStreamScope {
       this.snackbarApi = snackbarApi;
       this.basicLoggingApi = basicLoggingApi;
       this.offlineIndicatorApi = offlineIndicatorApi;
+      this.knownContentApi = knownContentApi;
     }
 
     public Builder setActionParserFactory(ActionParserFactory actionParserFactory) {
@@ -155,7 +158,8 @@ public class FeedStreamScope {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                mainThreadRunner);
+                mainThreadRunner,
+                knownContentApi);
       }
       return new FeedStreamScope(
           actionApi,
@@ -187,6 +191,7 @@ public class FeedStreamScope {
     private final SnackbarApi snackbarApi;
     private final BasicLoggingApi basicLoggingApi;
     private final OfflineIndicatorApi offlineIndicatorApi;
+    private final KnownContentApi knownContentApi;
 
     // Optional internal components to override the default implementations.
     /*@MonotonicNonNull*/ private ActionParserFactory actionParserFactory;

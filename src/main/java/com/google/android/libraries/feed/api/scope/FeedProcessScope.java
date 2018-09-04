@@ -106,7 +106,8 @@ public class FeedProcessScope implements Dumpable {
         configuration,
         snackbarApi,
         basicLoggingApi,
-        offlineIndicatorApi);
+        offlineIndicatorApi,
+        knownContentApi);
   }
 
   @Override

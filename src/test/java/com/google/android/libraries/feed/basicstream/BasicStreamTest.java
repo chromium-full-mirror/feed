@@ -41,6 +41,7 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -129,6 +130,7 @@ public class BasicStreamTest {
   @Mock private ScrollRestorer nonRestoringScrollRestorer;
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
+  @Mock private KnownContentApi knownContentApi;
 
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
@@ -690,7 +692,8 @@ public class BasicStreamTest {
           snackbarApi,
           basicLoggingApi,
           offlineIndicatorApi,
-          mainThreadRunner);
+          mainThreadRunner,
+          knownContentApi);
       this.layoutManager = layoutManager;
     }
 
@@ -719,7 +722,8 @@ public class BasicStreamTest {
         ContentChangedListener contentChangedListener,
         ScrollRestorer scrollRestorer,
         BasicLoggingApi basicLoggingApi,
-        StreamOfflineMonitor streamOfflineMonitor) {
+        StreamOfflineMonitor streamOfflineMonitor,
+        KnownContentApi knownContentApi) {
       streamDriverScrollRestorer = scrollRestorer;
       return streamDriver;
     }

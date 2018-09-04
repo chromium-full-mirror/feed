@@ -25,6 +25,7 @@ import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -77,6 +78,7 @@ public class FeedStreamScopeTest {
   @Mock private SnackbarApi snackbarApi;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private OfflineIndicatorApi offlineIndicatorApi;
+  @Mock private KnownContentApi knownContentApi;
 
   private Context context;
   private MainThreadRunner mainThreadRunner;
@@ -117,7 +119,8 @@ public class FeedStreamScopeTest {
                 config,
                 snackbarApi,
                 basicLoggingApi,
-                offlineIndicatorApi)
+                offlineIndicatorApi,
+                knownContentApi)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -144,7 +147,8 @@ public class FeedStreamScopeTest {
                 config,
                 snackbarApi,
                 basicLoggingApi,
-                offlineIndicatorApi)
+                offlineIndicatorApi,
+                knownContentApi)
             .setActionParserFactory(actionParserFactory)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)

@@ -21,6 +21,7 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -38,6 +39,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -80,7 +82,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       ContentChangedListener contentChangedListener,
       ScrollRestorer scrollRestorer,
       BasicLoggingApi basicLoggingApi,
-      StreamOfflineMonitor streamOfflineMonitor) {
+      StreamOfflineMonitor streamOfflineMonitor,
+      KnownContentApi knownContentApi) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -95,6 +98,9 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     this.scrollRestorer = scrollRestorer;
     this.basicLoggingApi = basicLoggingApi;
     this.streamOfflineMonitor = streamOfflineMonitor;
+
+    modelProvider.enableRemoveTracking(
+        new StreamRemoveTrackingFactory(modelProvider, knownContentApi));
   }
 
   /**

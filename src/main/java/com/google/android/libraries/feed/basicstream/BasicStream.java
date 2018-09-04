@@ -30,6 +30,7 @@ import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -100,6 +101,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final long immediateContentThreshold;
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final MainThreadRunner mainThreadRunner;
+  private final KnownContentApi knownContentApi;
 
   private RecyclerView recyclerView;
   private Context context;
@@ -135,7 +137,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       SnackbarApi snackbarApi,
       BasicLoggingApi basicLoggingApi,
       OfflineIndicatorApi offlineIndicatorApi,
-      MainThreadRunner mainThreadRunner) {
+      MainThreadRunner mainThreadRunner,
+      KnownContentApi knownContentApi) {
     this.cardConfiguration = cardConfiguration;
     this.clock = clock;
     this.threadUtils = threadUtils;
@@ -166,6 +169,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
             ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
             DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
     this.streamOfflineMonitor = new StreamOfflineMonitor(offlineIndicatorApi);
+    this.knownContentApi = knownContentApi;
   }
 
   @VisibleForTesting
@@ -268,7 +272,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
               streamContentChangedListener,
               initialScrollRestorer,
               basicLoggingApi,
-              streamOfflineMonitor);
+              streamOfflineMonitor,
+              knownContentApi);
       adapter.setDriver(streamDriver);
       streamDriver.showZeroState(/* showSpinner= */ true);
     }
@@ -472,7 +477,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             streamContentChangedListener,
             scrollRestorer,
             basicLoggingApi,
-            streamOfflineMonitor);
+            streamOfflineMonitor,
+            knownContentApi);
 
     adapter.setDriver(streamDriver);
 
@@ -545,7 +551,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ContentChangedListener contentChangedListener,
       ScrollRestorer scrollRestorer,
       BasicLoggingApi basicLoggingApi,
-      StreamOfflineMonitor streamOfflineMonitor) {
+      StreamOfflineMonitor streamOfflineMonitor,
+      KnownContentApi knownContentApi) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -558,7 +565,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
         contentChangedListener,
         scrollRestorer,
         basicLoggingApi,
-        streamOfflineMonitor);
+        streamOfflineMonitor,
+        knownContentApi);
   }
 
   @VisibleForTesting
