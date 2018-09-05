@@ -143,6 +143,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     this.cardConfiguration = cardConfiguration;
     this.clock = clock;
     this.threadUtils = threadUtils;
+    this.streamOfflineMonitor = new StreamOfflineMonitor(offlineIndicatorApi);
     this.pietManager =
         createPietManager(
             context,
@@ -151,7 +152,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             customElementProvider,
             debugBehavior,
             clock,
-            hostBindingProvider);
+            hostBindingProvider,
+            streamOfflineMonitor);
     this.context = context;
     this.headers = headers;
     this.modelProviderFactory = modelProviderFactory;
@@ -169,7 +171,6 @@ public class BasicStream implements Stream, ModelProviderObserver {
         configuration.getValueOrDefault(
             ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
             DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
-    this.streamOfflineMonitor = new StreamOfflineMonitor(offlineIndicatorApi);
     this.knownContentApi = knownContentApi;
   }
 
@@ -182,12 +183,13 @@ public class BasicStream implements Stream, ModelProviderObserver {
       /*@Nullable*/ CustomElementProvider customElementProvider,
       DebugBehavior debugBehavior,
       Clock clock,
-      /*@Nullable*/ HostBindingProvider hostBindingProvider) {
+      /*@Nullable*/ HostBindingProvider hostBindingProvider,
+      StreamOfflineMonitor streamOfflineMonitor) {
     return new PietManager(
         debugBehavior,
         new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
         new PietCustomElementProvider(context, customElementProvider),
-        new PietHostBindingProvider(hostBindingProvider));
+        new PietHostBindingProvider(hostBindingProvider, streamOfflineMonitor));
   }
 
   @Override

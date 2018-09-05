@@ -20,6 +20,7 @@ import com.google.protobuf.GeneratedMessageLite.GeneratedExtension;
 import com.google.search.now.feed.client.StreamDataProto.ClientBasicLoggingMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
+import com.google.search.now.ui.stream.StreamOfflineExtensionProto.OfflineExtension;
 import com.google.search.now.ui.stream.StreamStructureProto;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
@@ -49,6 +50,7 @@ public class FeedExtensionRegistry {
     extensionRegistry.add(FeedAction.feedActionExtension);
     extensionRegistry.add(FeedRequest.feedRequest);
     extensionRegistry.add(FeedResponse.feedResponse);
+    extensionRegistry.add(OfflineExtension.offlineExtension);
     extensionRegistry.add(PietContent.pietContentExtension);
     extensionRegistry.add(PietFeedActionPayload.pietFeedActionPayloadExtension);
     extensionRegistry.add(StreamStructureProto.Stream.streamExtension);

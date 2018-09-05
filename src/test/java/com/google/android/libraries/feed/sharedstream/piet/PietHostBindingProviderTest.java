@@ -19,9 +19,11 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.HostBindingData;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
+import com.google.search.now.ui.stream.StreamOfflineExtensionProto.OfflineExtension;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +34,26 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class PietHostBindingProviderTest {
 
+  private static final String URL = "url";
+  private static final BindingValue OFFLINE_BINDING_VISIBILITY =
+      BindingValue.newBuilder().setBindingId("offline").build();
+  private static final BindingValue NOT_OFFLINE_BINDING_VISIBILITY =
+      BindingValue.newBuilder().setBindingId("not-offline").build();
+  public static final BindingValue OFFLINE_INDICATOR_BINDING =
+      BindingValue.newBuilder()
+          .setHostBindingData(
+              HostBindingData.newBuilder()
+                  .setExtension(
+                      OfflineExtension.offlineExtension,
+                      OfflineExtension.newBuilder()
+                          .setUrl(URL)
+                          .setOfflineBinding(OFFLINE_BINDING_VISIBILITY)
+                          .setNotOfflineBinding(NOT_OFFLINE_BINDING_VISIBILITY)
+                          .build()))
+          .build();
+
   @Mock private HostBindingProvider hostHostBindingProvider;
+  @Mock private StreamOfflineMonitor offlineMonitor;
 
   private static final ParameterizedText TEXT_PAYLOAD =
       ParameterizedText.newBuilder().setText("foo").build();
@@ -52,8 +73,10 @@ public class PietHostBindingProviderTest {
   public void setUp() {
     initMocks(this);
 
-    hostBindingProvider = new PietHostBindingProvider(/* hostBindingProvider */ null);
-    delegatingHostBindingProvider = new PietHostBindingProvider(hostHostBindingProvider);
+    hostBindingProvider =
+        new PietHostBindingProvider(/* hostBindingProvider */ null, offlineMonitor);
+    delegatingHostBindingProvider =
+        new PietHostBindingProvider(hostHostBindingProvider, offlineMonitor);
   }
 
   @Test
@@ -203,5 +226,35 @@ public class PietHostBindingProviderTest {
 
     assertThat(delegatingHostBindingProvider.getStyleBindingForValue(BINDING_WITH_HOST_DATA))
         .isEqualTo(hostBinding);
+  }
+
+  @Test
+  public void testGetVisibilityBindingForValue_delegating() {
+    BindingValue hostBinding = BindingValue.newBuilder().setBindingId("ved").build();
+    when(hostHostBindingProvider.getVisibilityBindingForValue(BINDING_WITH_HOST_DATA))
+        .thenReturn(hostBinding);
+
+    assertThat(delegatingHostBindingProvider.getVisibilityBindingForValue(BINDING_WITH_HOST_DATA))
+        .isEqualTo(hostBinding);
+  }
+
+  @Test
+  public void testGetVisibilityBindingForValue_noOfflineExtension() {
+    assertThat(hostBindingProvider.getVisibilityBindingForValue(BINDING_WITH_HOST_DATA))
+        .isEqualTo(BINDING_WITHOUT_HOST_DATA);
+  }
+
+  @Test
+  public void testGetVisibilityBindingForValue_offlineExtension_notOffline() {
+    when(offlineMonitor.isAvailableOffline(URL)).thenReturn(false);
+    assertThat(hostBindingProvider.getVisibilityBindingForValue(OFFLINE_INDICATOR_BINDING))
+        .isEqualTo(NOT_OFFLINE_BINDING_VISIBILITY);
+  }
+
+  @Test
+  public void testGetVisibilityBindingForValue_offlineExtension_offline() {
+    when(offlineMonitor.isAvailableOffline(URL)).thenReturn(true);
+    assertThat(hostBindingProvider.getVisibilityBindingForValue(OFFLINE_INDICATOR_BINDING))
+        .isEqualTo(OFFLINE_BINDING_VISIBILITY);
   }
 }

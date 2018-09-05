@@ -705,7 +705,8 @@ public class BasicStreamTest {
         /*@Nullable*/ CustomElementProvider customElementProvider,
         DebugBehavior debugBehavior,
         Clock clock,
-        /*@Nullable*/ HostBindingProvider hostBindingProvider) {
+        /*@Nullable*/ HostBindingProvider hostBindingProvider,
+        StreamOfflineMonitor streamOfflineMonitor) {
       return pietManager;
     }
 
