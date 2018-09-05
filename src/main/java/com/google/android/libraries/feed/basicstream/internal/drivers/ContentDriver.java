@@ -198,18 +198,16 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
     viewHolder = null;
   }
 
-  private void maybeRebind() {
+  @Override
+  public void maybeRebind() {
     if (viewHolder == null) {
       return;
     }
 
     // Unbinding clears the viewHolder, so storing to rebind.
     PietViewHolder localViewHolder = viewHolder;
-
     unbind();
-
     bind(localViewHolder);
-
     contentChangedListener.onContentChanged();
   }
 

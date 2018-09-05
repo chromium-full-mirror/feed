@@ -53,6 +53,18 @@ public class NoContentDriver extends LeafFeatureDriver {
     noContentViewHolder = null;
   }
 
+  @Override
+  public void maybeRebind() {
+    if (noContentViewHolder == null) {
+      return;
+    }
+
+    // Unbinding clears the viewHolder, so storing to rebind.
+    NoContentViewHolder localViewHolder = noContentViewHolder;
+    unbind();
+    bind(localViewHolder);
+  }
+
   @VisibleForTesting
   boolean isBound() {
     return noContentViewHolder != null;

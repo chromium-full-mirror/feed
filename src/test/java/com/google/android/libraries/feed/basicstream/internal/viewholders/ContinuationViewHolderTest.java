@@ -56,6 +56,7 @@ public class ContinuationViewHolderTest {
     cardConfiguration = new FakeCardConfiguration();
     context = Robolectric.setupActivity(Activity.class);
     frameLayout = new FrameLayout(context);
+    frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     continuationViewHolder =
         new ContinuationViewHolder(CONFIGURATION, context, frameLayout, cardConfiguration) {
           @Override

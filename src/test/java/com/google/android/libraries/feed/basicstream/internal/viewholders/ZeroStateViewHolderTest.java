@@ -54,6 +54,7 @@ public class ZeroStateViewHolderTest {
     cardConfiguration = new FakeCardConfiguration();
     context = Robolectric.setupActivity(Activity.class);
     frameLayout = new FrameLayout(context);
+    frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     zeroStateViewHolder = new ZeroStateViewHolder(context, frameLayout, cardConfiguration);
   }
 

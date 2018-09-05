@@ -61,6 +61,18 @@ public class HeaderDriver extends LeafFeatureDriver {
   }
 
   @Override
+  public void maybeRebind() {
+    if (headerViewHolder == null) {
+      return;
+    }
+
+    // Unbinding clears the viewHolder, so storing to rebind.
+    HeaderViewHolder localViewHolder = headerViewHolder;
+    unbind();
+    bind(localViewHolder);
+  }
+
+  @Override
   public int getItemViewType() {
     return ViewHolderType.TYPE_HEADER;
   }

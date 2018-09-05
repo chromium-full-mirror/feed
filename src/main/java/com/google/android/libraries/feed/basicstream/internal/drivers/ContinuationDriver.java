@@ -154,6 +154,18 @@ public class ContinuationDriver extends LeafFeatureDriver
   }
 
   @Override
+  public void maybeRebind() {
+    if (continuationViewHolder == null) {
+      return;
+    }
+
+    // Unbinding clears the viewHolder, so storing to rebind.
+    ContinuationViewHolder localViewHolder = continuationViewHolder;
+    unbind();
+    bind(localViewHolder);
+  }
+
+  @Override
   public void onTokenCompleted(TokenCompleted tokenCompleted) {
     threadUtils.checkMainThread();
     ModelCursor cursor = tokenCompleted.getCursor();

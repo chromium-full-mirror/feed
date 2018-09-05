@@ -18,9 +18,9 @@ import android.content.Context;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import android.widget.FrameLayout.LayoutParams;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
@@ -37,15 +37,15 @@ public class NoContentViewHolder extends FeedViewHolder {
   }
 
   public void bind() {
-    MarginLayoutParams marginLayoutParams =
-        new MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-    view.setLayoutParams(marginLayoutParams);
-    LayoutUtils.setMarginsRelative(
-        marginLayoutParams,
-        cardConfiguration.getCardStartMargin(),
-        0,
-        cardConfiguration.getCardEndMargin(),
-        cardConfiguration.getCardBottomMargin());
+    ViewGroup.LayoutParams layoutParams = itemView.getLayoutParams();
+    if (layoutParams instanceof MarginLayoutParams) {
+      LayoutUtils.setMarginsRelative(
+          (MarginLayoutParams) layoutParams,
+          cardConfiguration.getCardStartMargin(),
+          0,
+          cardConfiguration.getCardEndMargin(),
+          cardConfiguration.getCardBottomMargin());
+    }
     view.setBackground(cardConfiguration.getCardBackground());
   }
 

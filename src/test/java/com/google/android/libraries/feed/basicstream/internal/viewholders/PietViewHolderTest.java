@@ -93,6 +93,7 @@ public class PietViewHolderTest {
     cardConfiguration = new FakeCardConfiguration();
     context = Robolectric.setupActivity(Activity.class);
     frameLayout = new FrameLayout(context);
+    frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     view = new TextView(context);
     when(pietManager.createPietFrameAdapter(
             any(Supplier.class), any(ActionHandler.class), eq(context)))

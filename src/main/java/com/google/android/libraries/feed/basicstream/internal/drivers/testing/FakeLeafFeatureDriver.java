@@ -34,6 +34,9 @@ public class FakeLeafFeatureDriver extends LeafFeatureDriver {
   public void unbind() {}
 
   @Override
+  public void maybeRebind() {}
+
+  @Override
   @ViewHolderType
   public int getItemViewType() {
     return itemViewType;

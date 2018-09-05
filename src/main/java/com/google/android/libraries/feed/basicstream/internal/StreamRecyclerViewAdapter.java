@@ -166,6 +166,12 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     return leafFeatureDrivers.get(positionToStreamIndex(position)).itemId();
   }
 
+  public void rebind() {
+    for (LeafFeatureDriver driver : boundViewHolderToLeafFeatureDriverMap.values()) {
+      driver.maybeRebind();
+    }
+  }
+
   @VisibleForTesting
   public List<LeafFeatureDriver> getLeafFeatureDrivers() {
     return leafFeatureDrivers;

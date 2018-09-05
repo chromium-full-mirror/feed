@@ -71,6 +71,18 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
   }
 
   @Override
+  public void maybeRebind() {
+    if (zeroStateViewHolder == null) {
+      return;
+    }
+
+    // Unbinding clears the viewHolder, so storing to rebind.
+    ZeroStateViewHolder localViewHolder = zeroStateViewHolder;
+    unbind();
+    bind(localViewHolder);
+  }
+
+  @Override
   public void onClick(View v) {
     if (zeroStateViewHolder == null) {
       Logger.wtf(TAG, "Calling onClick before binding.");

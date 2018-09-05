@@ -20,9 +20,9 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import android.widget.FrameLayout.LayoutParams;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
@@ -35,7 +35,6 @@ import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
-import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import java.util.List;
@@ -107,17 +106,16 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
 
     cardView.setBackground(cardConfiguration.getCardBackground());
 
-    MarginLayoutParams marginLayoutParams =
-        new MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-    cardView.setLayoutParams(marginLayoutParams);
-    LayoutUtils.setMarginsRelative(
-        marginLayoutParams,
-        cardConfiguration.getCardStartMargin(),
-        0,
-        cardConfiguration.getCardEndMargin(),
-        cardConfiguration.getCardBottomMargin());
-
-    frameAdapter.bindModel(frame, (ShardingControl) null, pietSharedStates);
+    ViewGroup.LayoutParams layoutParams = cardView.getLayoutParams();
+    if (layoutParams instanceof MarginLayoutParams) {
+      LayoutUtils.setMarginsRelative(
+          (MarginLayoutParams) layoutParams,
+          cardConfiguration.getCardStartMargin(),
+          0,
+          cardConfiguration.getCardEndMargin(),
+          cardConfiguration.getCardBottomMargin());
+    }
+    frameAdapter.bindModel(frame, null, pietSharedStates);
     bound = true;
   }
 

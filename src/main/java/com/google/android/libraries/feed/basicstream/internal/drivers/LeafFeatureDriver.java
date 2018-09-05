@@ -50,6 +50,12 @@ public abstract class LeafFeatureDriver implements FeatureDriver {
    */
   public abstract void unbind();
 
+  /**
+   * This will cause the FeatureHolder associated with the Driver to rebind (unbind followed by
+   * bind).
+   */
+  public abstract void maybeRebind();
+
   /** Returns the contentId of the {@link LeafFeatureDriver} if it has one. */
   /*@Nullable*/
   public String getContentId() {
