@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.viewholders;
 import android.content.Context;
 import android.support.annotation.StringRes;
 import android.support.annotation.VisibleForTesting;
+import android.support.v7.widget.RecyclerView.LayoutParams;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,14 +55,19 @@ public class ZeroStateViewHolder extends FeedViewHolder {
 
   public void bind(OnClickListener onClickListener, int hour, boolean showSpinner) {
     ViewGroup.LayoutParams layoutParams = itemView.getLayoutParams();
-    if (layoutParams instanceof MarginLayoutParams) {
-      LayoutUtils.setMarginsRelative(
-          (MarginLayoutParams) layoutParams,
-          cardConfiguration.getCardStartMargin(),
-          0,
-          cardConfiguration.getCardEndMargin(),
-          cardConfiguration.getCardBottomMargin());
+    if (layoutParams == null) {
+      layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+      itemView.setLayoutParams(layoutParams);
+    } else if (!(layoutParams instanceof MarginLayoutParams)) {
+      layoutParams = new LayoutParams(layoutParams);
+      itemView.setLayoutParams(layoutParams);
     }
+    LayoutUtils.setMarginsRelative(
+        (MarginLayoutParams) layoutParams,
+        cardConfiguration.getCardStartMargin(),
+        0,
+        cardConfiguration.getCardEndMargin(),
+        cardConfiguration.getCardBottomMargin());
 
     bodyText.setText(getBodyText(hour));
     actionButton.setOnClickListener(onClickListener);

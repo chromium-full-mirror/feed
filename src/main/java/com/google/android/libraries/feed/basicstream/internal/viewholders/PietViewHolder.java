@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.support.v7.widget.RecyclerView.LayoutParams;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
 import android.view.ViewGroup;
@@ -107,14 +108,19 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     cardView.setBackground(cardConfiguration.getCardBackground());
 
     ViewGroup.LayoutParams layoutParams = cardView.getLayoutParams();
-    if (layoutParams instanceof MarginLayoutParams) {
-      LayoutUtils.setMarginsRelative(
-          (MarginLayoutParams) layoutParams,
-          cardConfiguration.getCardStartMargin(),
-          0,
-          cardConfiguration.getCardEndMargin(),
-          cardConfiguration.getCardBottomMargin());
+    if (layoutParams == null) {
+      layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+      cardView.setLayoutParams(layoutParams);
+    } else if (!(layoutParams instanceof MarginLayoutParams)) {
+      layoutParams = new LayoutParams(layoutParams);
+      cardView.setLayoutParams(layoutParams);
     }
+    LayoutUtils.setMarginsRelative(
+        (MarginLayoutParams) layoutParams,
+        cardConfiguration.getCardStartMargin(),
+        0,
+        cardConfiguration.getCardEndMargin(),
+        cardConfiguration.getCardBottomMargin());
     frameAdapter.bindModel(frame, null, pietSharedStates);
     bound = true;
   }
