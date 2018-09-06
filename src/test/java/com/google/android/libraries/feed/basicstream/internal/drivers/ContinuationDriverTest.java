@@ -22,6 +22,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -29,6 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.View.OnClickListener;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
@@ -428,5 +430,28 @@ public class ContinuationDriverTest {
     verify(continuationViewHolder)
         .bind(eq(continuationDriver), any(LoggingListener.class), eq(false));
     verify(continuationViewHolder, never()).setShowSpinner(anyBoolean());
+  }
+
+  @Test
+  public void testMaybeRebind() {
+    continuationDriver.bind(continuationViewHolder);
+    continuationDriver.maybeRebind();
+    verify(continuationViewHolder, times(2))
+        .bind(eq(continuationDriver), any(LoggingListener.class), eq(false));
+    verify(continuationViewHolder).unbind();
+  }
+
+  @Test
+  public void testMaybeRebind_nullViewHolder() {
+    // bind/unbind continuationViewHolder so we can then test the driver (and assume the view holder
+    // is null)
+    continuationDriver.bind(continuationViewHolder);
+    continuationDriver.unbind();
+    reset(continuationViewHolder);
+
+    continuationDriver.maybeRebind();
+    verify(continuationViewHolder, never()).unbind();
+    verify(continuationViewHolder, never())
+        .bind(any(OnClickListener.class), any(LoggingListener.class), anyBoolean());
   }
 }

@@ -17,7 +17,9 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -59,6 +61,7 @@ import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -205,6 +208,40 @@ public class ContentDriverTest {
             eq(FeedActionPayload.getDefaultInstance()),
             any(LoggingListener.class),
             eq(actionParser));
+  }
+
+  @Test
+  public void testMaybeRebind() {
+    contentDriver.bind(pietViewHolder);
+    contentDriver.maybeRebind();
+    verify(pietViewHolder, times(2))
+        .bind(
+            eq(PIET_CONTENT.getFrame()),
+            eq(PIET_SHARED_STATES),
+            eq(streamActionApi),
+            eq(FeedActionPayload.getDefaultInstance()),
+            any(LoggingListener.class),
+            eq(actionParser));
+    verify(pietViewHolder).unbind();
+  }
+
+  @Test
+  public void testMaybeRebind_nullViewHolder() {
+    // bind/unbind to associated the pietViewHolder with the contentDriver
+    contentDriver.bind(pietViewHolder);
+    contentDriver.unbind();
+    reset(pietViewHolder);
+
+    contentDriver.maybeRebind();
+    verify(pietViewHolder, never())
+        .bind(
+            any(Frame.class),
+            Mockito.<List<PietSharedState>>any(),
+            any(StreamActionApi.class),
+            any(FeedActionPayload.class),
+            any(LoggingListener.class),
+            any(ActionParser.class));
+    verify(pietViewHolder, never()).unbind();
   }
 
   @Test

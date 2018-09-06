@@ -15,6 +15,9 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -71,5 +74,24 @@ public class HeaderDriverTest {
 
     headerDriver.unbind();
     verifyNoMoreInteractions(headerViewHolder);
+  }
+
+  @Test
+  public void testMaybeRebind() {
+    headerDriver.bind(headerViewHolder);
+    headerDriver.maybeRebind();
+    verify(headerViewHolder, times(2)).bind(header, swipeNotifier);
+    verify(headerViewHolder).unbind();
+  }
+
+  @Test
+  public void testMaybeRebind_nullViewHolder() {
+    headerDriver.bind(headerViewHolder);
+    headerDriver.unbind();
+    reset(headerViewHolder);
+
+    headerDriver.maybeRebind();
+    verify(headerViewHolder, never()).bind(header, swipeNotifier);
+    verify(headerViewHolder, never()).unbind();
   }
 }

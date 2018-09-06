@@ -15,12 +15,19 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
@@ -129,5 +136,29 @@ public class ZeroStateDriverTest {
     verify(zeroStateViewHolder).showSpinner(true);
     verify(contentChangedListener).onContentChanged();
     verify(modelProvider).triggerRefresh();
+  }
+
+  @Test
+  public void testMaybeRebind() {
+    zeroStateDriver.bind(zeroStateViewHolder);
+    assertThat(zeroStateDriver.isBound()).isTrue();
+    zeroStateDriver.maybeRebind();
+    assertThat(zeroStateDriver.isBound()).isTrue();
+    verify(zeroStateViewHolder, times(2))
+        .bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ false);
+    verify(zeroStateViewHolder).unbind();
+  }
+
+  @Test
+  public void testMaybeRebind_nullViewHolder() {
+    zeroStateDriver.bind(zeroStateViewHolder);
+    zeroStateDriver.unbind();
+    reset(zeroStateViewHolder);
+
+    assertThat(zeroStateDriver.isBound()).isFalse();
+    zeroStateDriver.maybeRebind();
+    assertThat(zeroStateDriver.isBound()).isFalse();
+    verify(zeroStateViewHolder, never()).bind(any(OnClickListener.class), anyInt(), anyBoolean());
+    verify(zeroStateViewHolder, never()).unbind();
   }
 }

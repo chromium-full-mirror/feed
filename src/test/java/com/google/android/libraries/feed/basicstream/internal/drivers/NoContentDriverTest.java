@@ -15,6 +15,9 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -67,5 +70,29 @@ public class NoContentDriverTest {
 
     noContentDriver.unbind();
     verifyNoMoreInteractions(noContentViewHolder);
+  }
+
+  @Test
+  public void testMaybeRebind() {
+    noContentDriver.bind(noContentViewHolder);
+    assertThat(noContentDriver.isBound()).isTrue();
+
+    noContentDriver.maybeRebind();
+    assertThat(noContentDriver.isBound()).isTrue();
+    verify(noContentViewHolder, times(2)).bind();
+    verify(noContentViewHolder).unbind();
+  }
+
+  @Test
+  public void testMaybeRebind_nullViewHolder() {
+    // bind/unbind to associate the noContentViewHolder with the driver
+    noContentDriver.bind(noContentViewHolder);
+    noContentDriver.unbind();
+    reset(noContentViewHolder);
+
+    noContentDriver.maybeRebind();
+    assertThat(noContentDriver.isBound()).isFalse();
+    verify(noContentViewHolder, never()).bind();
+    verify(noContentViewHolder, never()).unbind();
   }
 }

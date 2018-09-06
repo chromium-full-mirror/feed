@@ -409,6 +409,14 @@ public class StreamRecyclerViewAdapterTest {
     verify(header1).onDismissed();
   }
 
+  @Test
+  public void testRebind() {
+    PietViewHolder viewHolder = mock(PietViewHolder.class);
+    streamRecyclerViewAdapter.onBindViewHolder(viewHolder, getContentBindingIndex(0));
+    streamRecyclerViewAdapter.rebind();
+    verify(initialFeatureDriver).maybeRebind();
+  }
+
   private FrameLayout getCardView(ViewHolder viewHolder) {
     return (FrameLayout) viewHolder.itemView;
   }
