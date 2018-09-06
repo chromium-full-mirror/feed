@@ -27,7 +27,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Base64;
 import android.view.View;
-import android.view.View.OnLayoutChangeListener;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -461,21 +460,9 @@ public class BasicStream implements Stream, ModelProviderObserver {
 
     recyclerView.setItemAnimator(new StreamItemAnimator(streamContentChangedListener));
     recyclerView.addOnLayoutChangeListener(
-        new OnLayoutChangeListener() {
-          @Override
-          public void onLayoutChange(
-              View v,
-              int left,
-              int top,
-              int right,
-              int bottom,
-              int oldLeft,
-              int oldTop,
-              int oldRight,
-              int oldBottom) {
-            if ((oldLeft != 0 && left != oldLeft) || (oldRight != 0 && right != oldRight)) {
-              adapter.rebind();
-            }
+        (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+          if ((oldLeft != 0 && left != oldLeft) || (oldRight != 0 && right != oldRight)) {
+            adapter.rebind();
           }
         });
   }
