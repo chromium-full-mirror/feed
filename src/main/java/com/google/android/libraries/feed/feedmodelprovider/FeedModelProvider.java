@@ -493,7 +493,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         public Void commit(Change change) {
           Logger.i(
               TAG,
-              "committer, structure changes %s, update changes %s",
+              "FeedModelProvider - committer, structure changes %s, update changes %s",
               change.structureChanges.size(),
               change.updateChanges.size());
           threadUtils.checkNotMainThread();

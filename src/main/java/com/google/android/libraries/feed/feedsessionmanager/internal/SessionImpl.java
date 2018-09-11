@@ -55,7 +55,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
   @VisibleForTesting public final Set<String> contentInSession = new HashSet<>();
 
   // operation counts for the dumper
-  protected int updateCount = 0;
+  int updateCount = 0;
 
   SessionImpl(Store store, TaskQueue taskQueue, TimingUtils timingUtils, ThreadUtils threadUtils) {
     this.store = store;
@@ -208,7 +208,11 @@ public class SessionImpl implements InitializableSession, Dumpable {
     }
 
     // Commit the Model Provider mutation after the store is updated.
-    taskQueue.execute("SessionImpl.sessionMutation", TaskType.USER_FACING, sessionMutation::commit);
+    int taskType =
+        mutationContext != null && mutationContext.isUserInitiated()
+            ? TaskType.POST_INIT
+            : TaskType.USER_FACING;
+    taskQueue.execute("SessionImpl.sessionMutation", taskType, sessionMutation::commit);
     if (modelMutation != null) {
       modelMutation.commit();
     }

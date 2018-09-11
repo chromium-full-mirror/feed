@@ -277,7 +277,8 @@ public class TaskQueue implements Dumpable {
           || taskType == TaskType.POST_INIT) {
         immediateTasks.add(taskWrapper);
         maxImmediateTasks = Math.max(immediateTasks.size(), maxImmediateTasks);
-        if (taskType == TaskType.HEAD_RESET) {
+        if (taskType == TaskType.HEAD_RESET || (taskType == TaskType.POST_INIT && initialized)) {
+          // HEAD_RESET and POST_INIT are both executed immediately
           executeNextTask();
         }
       } else if (taskType == TaskType.USER_FACING) {

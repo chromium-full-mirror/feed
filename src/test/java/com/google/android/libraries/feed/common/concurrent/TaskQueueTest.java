@@ -71,6 +71,25 @@ public class TaskQueueTest {
   }
 
   @Test
+  public void testPostInit() {
+    TaskQueue taskQueue = getTaskQueue();
+    taskQueue.initialize(this::noOp);
+
+    Runnable invalidate = () -> runnable(1);
+    Runnable postInit = () -> runnable(2);
+    Runnable userFacing = () -> runnable(3);
+    Runnable reset = () -> runnable(4);
+
+    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, invalidate);
+    taskQueue.execute("postInit", TaskType.POST_INIT, postInit);
+    taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
+    taskQueue.execute("reset", TaskType.HEAD_RESET, reset);
+
+    assertThat(taskQueue.hasBacklog()).isFalse();
+    assertOrder(1, 2, 4, 3);
+  }
+
+  @Test
   public void testHeadInvalidateReset() {
     TaskQueue taskQueue = getTaskQueue();
     taskQueue.initialize(this::noOp);

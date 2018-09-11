@@ -194,10 +194,14 @@ public class MutationCommitterFactory implements Dumpable {
           break;
         }
       }
+      int taskType;
+      if (mutationContext != null && mutationContext.isUserInitiated()) {
+        taskType = TaskType.POST_INIT;
+      } else {
+        taskType = clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING;
+      }
       taskQueue.execute(
-          "MutationCommitter:" + task + ":clearHead:" + clearedHead,
-          clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING,
-          this::commitTask);
+          "MutationCommitter:" + task + ":clearHead:" + clearedHead, taskType, this::commitTask);
     }
 
     private void commitTask() {
@@ -206,7 +210,12 @@ public class MutationCommitterFactory implements Dumpable {
       commitSessionUpdates();
       commitCount++;
       timeTracker.stop(
-          "task", "sessionMutation.commitTask:" + task, "mutations", streamStructures.size());
+          "task",
+          "sessionMutation.commitTask:" + task,
+          "mutations",
+          streamStructures.size(),
+          "userInitiated",
+          mutationContext != null ? mutationContext.isUserInitiated() : "No MutationContext");
     }
 
     private void commitContent() {
