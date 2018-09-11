@@ -285,7 +285,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       return;
     }
 
-    headers.remove(indexToRemove);
+    headers.remove(indexToRemove).onDestroy();
     notifyItemRemoved(indexToRemove);
   }
 

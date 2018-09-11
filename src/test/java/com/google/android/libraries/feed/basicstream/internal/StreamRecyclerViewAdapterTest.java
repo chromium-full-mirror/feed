@@ -110,6 +110,8 @@ public class StreamRecyclerViewAdapterTest {
 
     when(featureDriver1.getContentId()).thenReturn(FEATURE_DRIVER_1_CONTENT_ID);
     when(featureDriver2.getContentId()).thenReturn(FEATURE_DRIVER_2_CONTENT_ID);
+    when(headerDriver1.getHeader()).thenReturn(header1);
+    when(headerDriver2.getHeader()).thenReturn(header2);
 
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
@@ -389,12 +391,25 @@ public class StreamRecyclerViewAdapterTest {
 
   @Test
   public void testDismissHeader() {
-    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(3);
+    streamRecyclerViewAdapter =
+        new StreamRecyclerViewAdapter(
+            context, cardConfiguration, pietManager, deepestContentTracker, CONFIGURATION) {
+          @Override
+          HeaderDriver createHeaderDriver(Header header) {
+            if (header == headers.get(0)) {
+              return headerDriver1;
+            }
+            return headerDriver2;
+          }
+        };
+    streamRecyclerViewAdapter.setHeaders(headers);
+    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(2);
 
     streamRecyclerViewAdapter.dismissHeader(header1);
 
-    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(2);
+    assertThat(streamRecyclerViewAdapter.getItemCount()).isEqualTo(1);
     verify(header1).onDismissed();
+    verify(headerDriver1).onDestroy();
   }
 
   @Test
