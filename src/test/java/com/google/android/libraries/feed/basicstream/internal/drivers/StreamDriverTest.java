@@ -532,6 +532,7 @@ public class StreamDriverTest {
 
     verify(noContentDriver).onDestroy();
     verify(continuationDriver).onDestroy();
+    verify(streamFeature).unregisterObserver(streamDriver);
   }
 
   @Test

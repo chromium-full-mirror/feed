@@ -67,6 +67,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final StreamOfflineMonitor streamOfflineMonitor;
 
   private boolean rootFeatureConsumed;
+  private boolean modelFeatureChangeObserverRegistered;
 
   /*@Nullable*/ private StreamContentListener contentListener;
 
@@ -114,6 +115,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       if (rootFeature != null) {
         createAndInsertChildren(rootFeature, modelProvider);
         rootFeature.registerObserver(this);
+        modelFeatureChangeObserverRegistered = true;
       } else {
         Logger.w(TAG, "found null root feature loading Leaf Feature Drivers");
         basicLoggingApi.onOpenedWithNoContent();
@@ -300,6 +302,11 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   public void onDestroy() {
     for (FeatureDriver featureDriver : featureDrivers) {
       featureDriver.onDestroy();
+    }
+    ModelFeature modelFeature = modelProvider.getRootFeature();
+    if (modelFeature != null && modelFeatureChangeObserverRegistered) {
+      modelFeature.unregisterObserver(this);
+      modelFeatureChangeObserverRegistered = false;
     }
   }
 
