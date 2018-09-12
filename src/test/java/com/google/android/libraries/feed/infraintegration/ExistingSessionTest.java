@@ -150,4 +150,73 @@ public class ExistingSessionTest {
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     assertThat(modelProvider2.getCurrentState()).isEqualTo(State.READY);
   }
+
+  @Test
+  public void createModelProvider_invalidatedSession() {
+    // Create a simple stream with a root and three features
+    ContentId[] cards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(1),
+          WireProtocolResponseBuilder.createFeatureContentId(2),
+          WireProtocolResponseBuilder.createFeatureContentId(3)
+        };
+    WireProtocolResponseBuilder responseBuilder =
+        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    for (ContentId contentId : cards) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    assertThat(modelProvider).isNotNull();
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+    String sessionToken = modelProvider.getSessionToken();
+    assertThat(sessionToken).isNotEmpty();
+
+    modelProvider.invalidate();
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
+
+    // Attempt to connect with the session token we just invalidated.  This will result in a
+    // INVALIDATED ModelProvider.
+    ModelProvider modelProvider2 = modelProviderFactory.create(sessionToken);
+    assertThat(modelProvider2).isNotNull();
+    assertThat(modelProvider2.getCurrentState()).isEqualTo(State.INVALIDATED);
+  }
+
+  @Test
+  public void createModelProvider_detachSession() {
+    // Create a simple stream with a root and three features
+    ContentId[] cards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(1),
+          WireProtocolResponseBuilder.createFeatureContentId(2),
+          WireProtocolResponseBuilder.createFeatureContentId(3)
+        };
+    WireProtocolResponseBuilder responseBuilder =
+        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    for (ContentId contentId : cards) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    assertThat(modelProvider).isNotNull();
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+    String sessionToken = modelProvider.getSessionToken();
+    assertThat(sessionToken).isNotEmpty();
+
+    modelProvider.detachModelProvider();
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
+
+    // Attempt to connect with the session token we just detached.  This will work as expected.
+    ModelProvider modelProvider2 = modelProviderFactory.create(sessionToken);
+    assertThat(modelProvider2).isNotNull();
+    assertThat(modelProvider2.getCurrentState()).isEqualTo(State.READY);
+  }
 }

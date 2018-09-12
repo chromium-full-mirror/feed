@@ -280,13 +280,46 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   }
 
   @Override
-  public void invalidate() {
+  public void detachModelProvider() {
+    if (!moveToInvalidateState()) {
+      Logger.e(TAG, "unable to detach FeedModelProvider");
+      return;
+    }
     String sessionToken = getSessionToken();
-    Logger.i(TAG, "Invalidating the current ModelProvider: session %s", sessionToken);
+    if (sessionToken != null) {
+      Logger.i(TAG, "Detach the current ModelProvider: session %s", sessionToken);
+      sessionManager.detachSession(sessionToken);
+    }
+  }
+
+  @Override
+  public void invalidate() {
+    if (!moveToInvalidateState()) {
+      Logger.e(TAG, "unable to invalidate FeedModelProvider");
+      return;
+    }
+    String sessionToken = getSessionToken();
+    if (sessionToken != null) {
+      Logger.i(TAG, "Invalidating the current ModelProvider: session %s", sessionToken);
+      sessionManager.invalidatedSession(sessionToken);
+    }
+
+    // Always run the observers on the UI Thread
+    List<ModelProviderObserver> observers = getObserversToNotify();
+    mainThreadRunner.execute(
+        TAG + "-onSessionFinished",
+        () -> {
+          for (ModelProviderObserver observer : observers) {
+            observer.onSessionFinished();
+          }
+        });
+  }
+
+  private boolean moveToInvalidateState() {
     synchronized (lock) {
       if (currentState == State.INVALIDATED) {
         Logger.i(TAG, "Invalidated an already invalid ModelProvider");
-        return;
+        return false;
       }
       currentState = State.INVALIDATED;
       for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
@@ -299,20 +332,8 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       cursors.clear();
       tokens.clear();
       containers.clear();
-      if (sessionToken != null) {
-        sessionManager.invalidatedSession(sessionToken);
-      }
     }
-
-    // Always run the observers on the UI Thread
-    List<ModelProviderObserver> observers = getObserversToNotify();
-    mainThreadRunner.execute(
-        TAG + "-onSessionFinished",
-        () -> {
-          for (ModelProviderObserver observer : observers) {
-            observer.onSessionFinished();
-          }
-        });
+    return true;
   }
 
   @Override

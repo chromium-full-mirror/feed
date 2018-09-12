@@ -65,7 +65,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
   }
 
   @Override
-  public void bindModelProvider(ModelProvider modelProvider) {
+  public void bindModelProvider(/*@Nullable*/ ModelProvider modelProvider) {
     this.modelProvider = modelProvider;
   }
 

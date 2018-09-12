@@ -23,8 +23,11 @@ import java.util.List;
 /** A {@link Session} which supports initialization from $HEAD. */
 public interface InitializableSession extends Session {
 
-  /** Bind a ModelProvider to an existing, unbound session. */
-  void bindModelProvider(ModelProvider modelProvider);
+  /**
+   * Bind a ModelProvider to an existing, unbound session. If {@code null} is passed, this will
+   * unbind the Session, removing all references to the ModelProvider.
+   */
+  void bindModelProvider(/*@Nullable*/ ModelProvider modelProvider);
 
   /**
    * Set the StreamSession on the Sessions, this is often done in the populateModelProvider method.

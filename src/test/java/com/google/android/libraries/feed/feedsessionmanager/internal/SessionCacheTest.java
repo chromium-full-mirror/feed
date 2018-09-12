@@ -26,6 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
@@ -142,6 +143,26 @@ public class SessionCacheTest {
     assertThat(sessions).isNotNull();
     streamSessionList = sessions.getStreamSessionsList();
     assertThat(streamSessionList).hasSize(1);
+  }
+
+  @Test
+  public void testDetach() {
+    SessionCache sessionCache = getSessionCache();
+    sessionCache.initialize();
+    Session s1 = populateSession(1, 2);
+    String s1Token = s1.getStreamSession().getStreamToken();
+    sessionCache.put(s1Token, s1);
+
+    List<Session> sessions = sessionCache.getSessions();
+    assertThat(sessions).hasSize(2);
+    assertThat(sessions).contains(s1);
+    assertThat(s1.getModelProvider()).isNotNull();
+
+    sessionCache.detachModelProvider(s1Token);
+    sessions = sessionCache.getSessions();
+    assertThat(sessions).hasSize(2);
+    assertThat(sessions).contains(s1);
+    assertThat(s1.getModelProvider()).isNull();
   }
 
   @Test
@@ -362,6 +383,7 @@ public class SessionCacheTest {
               .setParentContentId(rootId)
               .build());
     }
+    session.bindModelProvider(mock(ModelProvider.class));
     session.populateModelProvider(streamSession, head, true, false, null);
     return session;
   }

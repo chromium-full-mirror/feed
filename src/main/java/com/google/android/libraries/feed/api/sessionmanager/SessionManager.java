@@ -54,6 +54,9 @@ public interface SessionManager {
   /** This is called by the ModelProvider when it is invalidated. */
   void invalidatedSession(String sessionToken);
 
+  /** This is called by the ModelProvider to detach the ModelProvider for the session. */
+  void detachSession(String sessionToken);
+
   /**
    * This method will invalidate head. All {@link #getNewSession(ModelProvider, ViewDepthProvider)}
    * will block until a new a response updates the SessionManager providing the new head.

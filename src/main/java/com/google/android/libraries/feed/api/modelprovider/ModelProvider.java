@@ -46,6 +46,14 @@ public interface ModelProvider {
    */
   void invalidate();
 
+  /**
+   * This is called to detach the ModelProvider from the SessionManager. The Session will continue
+   * to be persisted, but the SessionManager will drop connections to this ModelProvider. The
+   * ModelProvider will enter a {@code State.INVALIDATED}. This will not call the {@link
+   * ModelProviderObserver#onSessionFinished()}.
+   */
+  void detachModelProvider();
+
   /** Used by the session to raises a {@link ModelError} with the ModelProvider. */
   void raiseError(ModelError error);
 

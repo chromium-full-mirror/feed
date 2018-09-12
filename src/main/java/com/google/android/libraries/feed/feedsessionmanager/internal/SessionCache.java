@@ -75,6 +75,7 @@ public class SessionCache implements Dumpable {
   private int putCount = 0;
   private int removeCount = 0;
   private int unboundSessionCount = 0;
+  private int detachedSessionCount = 0;
   private int expiredSessionsCleared = 0;
 
   @VisibleForTesting
@@ -126,6 +127,23 @@ public class SessionCache implements Dumpable {
       sessions.put(sessionToken, session);
     }
     updatePersistedSessions();
+  }
+
+  public void detachModelProvider(String sessionToken) {
+    threadUtils.checkNotMainThread();
+    InitializableSession initializableSession;
+    synchronized (lock) {
+      Session session = sessions.get(sessionToken);
+      if (!(session instanceof InitializableSession)) {
+        Logger.w(TAG, "Unable to detach session %s", sessionToken);
+        return;
+      } else {
+        initializableSession = (InitializableSession) session;
+      }
+    }
+
+    initializableSession.bindModelProvider(null);
+    detachedSessionCount++;
   }
 
   /**
@@ -317,7 +335,7 @@ public class SessionCache implements Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
     StreamSessions.Builder sessionsBuilder = StreamSessions.newBuilder();
-    int sessionCount = 0;
+    int sessionCount;
     synchronized (lock) {
       sessionCount = sessions.size();
       for (Session s : sessions.values()) {
@@ -380,6 +398,7 @@ public class SessionCache implements Dumpable {
     }
     dumper.forKey("expiredSessionsCleared").value(expiredSessionsCleared).compactPrevious();
     dumper.forKey("unboundSessionCount").value(unboundSessionCount).compactPrevious();
+    dumper.forKey("detachedSessionCount").value(detachedSessionCount).compactPrevious();
     dumper.forKey("get").value(getCount);
     dumper.forKey("getAll").value(getAllCount).compactPrevious();
     dumper.forKey("put").value(putCount).compactPrevious();

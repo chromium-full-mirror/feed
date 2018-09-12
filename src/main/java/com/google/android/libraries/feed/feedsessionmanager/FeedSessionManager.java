@@ -463,6 +463,11 @@ public class FeedSessionManager
   }
 
   @Override
+  public void detachSession(String sessionToken) {
+    sessionCache.detachModelProvider(sessionToken);
+  }
+
+  @Override
   public void invalidateHead() {
     taskQueue.execute("invalidateHead", TaskType.HEAD_INVALIDATE, () -> resetHead(null));
   }
