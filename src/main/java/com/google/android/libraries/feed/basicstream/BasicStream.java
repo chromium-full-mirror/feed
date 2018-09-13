@@ -294,6 +294,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   public void onDestroy() {
     if (modelProvider != null) {
       modelProvider.unregisterObserver(this);
+      modelProvider.detachModelProvider();
     }
   }
 
