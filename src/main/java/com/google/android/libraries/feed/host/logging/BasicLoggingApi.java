@@ -37,6 +37,14 @@ public interface BasicLoggingApi {
   /** Called when content is clicked/tapped. */
   void onContentClicked(ContentLoggingData data);
 
+  /**
+   * Called when a client action has been performed on a piece of content.
+   *
+   * @param data data for content on which action was performed.
+   * @param actionType describes the type of action which is being performed by user.
+   */
+  void onClientAction(ContentLoggingData data, @ActionType int actionType);
+
   /** Called when the context menu for content has been opened. */
   void onContentContextMenuOpened(ContentLoggingData data);
 
