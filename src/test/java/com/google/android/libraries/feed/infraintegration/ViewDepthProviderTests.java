@@ -1,0 +1,139 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.infraintegration;
+
+import static com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.ROOT_CONTENT_ID;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.testing.FakeRequestManager;
+import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
+import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
+import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
+import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
+
+/**
+ * Tests of the ViewDepthProvider. The ViewDepthProvider indicates the depth of the Stream the user
+ * has seen. For some types of SchedulerApi {@link RequestBehavior} values this will prune the
+ * Stream beyond that depth.
+ */
+@RunWith(RobolectricTestRunner.class)
+public class ViewDepthProviderTests {
+  private static final ContentId[] REQUEST_ONE =
+      new ContentId[] {
+        WireProtocolResponseBuilder.createFeatureContentId(1),
+        WireProtocolResponseBuilder.createFeatureContentId(2),
+        WireProtocolResponseBuilder.createFeatureContentId(3),
+        WireProtocolResponseBuilder.createFeatureContentId(4)
+      };
+  private static final ContentId[] REQUEST_TWO =
+      new ContentId[] {
+        WireProtocolResponseBuilder.createFeatureContentId(5),
+        WireProtocolResponseBuilder.createFeatureContentId(6),
+        WireProtocolResponseBuilder.createFeatureContentId(7)
+      };
+
+  @Mock private ThreadUtils threadUtils;
+  @Mock private SchedulerApi schedulerApi;
+
+  private FakeRequestManager requestManager;
+  private ModelProviderFactory modelProviderFactory;
+  private ProtocolAdapter protocolAdapter;
+  private ModelProviderValidator modelValidator;
+  private SessionManager sessionManager;
+
+  @Before
+  public void setUp() {
+    initMocks(this);
+    Configuration configuration = InfrastructureIntegrationScope.getTimeoutSchedulerConfig();
+    InfrastructureIntegrationScope scope =
+        new InfrastructureIntegrationScope.Builder(
+                threadUtils, MoreExecutors.newDirectExecutorService())
+            .setConfiguration(configuration)
+            .setSchedulerApi(schedulerApi)
+            .build();
+    requestManager = scope.getRequestManager();
+    modelProviderFactory = scope.getModelProviderFactory();
+    protocolAdapter = scope.getProtocolAdapter();
+    modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
+    sessionManager = scope.getSessionManager();
+  }
+
+  @Test
+  public void testRequestWithWait() {
+
+    // Load up the initial request
+    WireProtocolResponseBuilder responseBuilder =
+        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    for (ContentId contentId : REQUEST_ONE) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    requestManager.queueResponse(responseBuilder.build());
+
+    // The REQUEST_ONE content will be added to head, this is then used to create the initial
+    // session.
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+
+    // The REQUEST_TWO content acts as a second request on the server, it is triggered by
+    // REQUEST_WITH_CONTENT
+    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+        .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
+    responseBuilder = new WireProtocolResponseBuilder().addClearOperation();
+    for (ContentId contentId : REQUEST_TWO) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    requestManager.queueResponse(responseBuilder.build());
+    ModelProvider modelProvider = modelProviderFactory.createNew(viewDepthProvider);
+
+    // The second request will be added after the first request, the ViewDepthProvider indicates
+    // we only saw [0] and [1] from the first request, so [2] and [3] will be removed.
+    modelValidator.assertCursorContents(
+        modelProvider,
+        REQUEST_ONE[0],
+        REQUEST_ONE[1],
+        REQUEST_TWO[0],
+        REQUEST_TWO[1],
+        REQUEST_TWO[2]);
+  }
+
+  private ViewDepthProvider viewDepthProvider =
+      new ViewDepthProvider() {
+        @Override
+        public /*@Nullable*/ String getChildViewDepth() {
+          return protocolAdapter.getStreamContentId(REQUEST_ONE[1]);
+        }
+      };
+}
