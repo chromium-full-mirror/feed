@@ -456,7 +456,7 @@ public class FeedSessionManager
   public void invalidatedSession(String sessionToken) {
     if (threadUtils.isMainThread()) {
       taskQueue.execute(
-          "modelInvalidatedSession", TaskType.USER_FACING, () -> sessionCache.remove(sessionToken));
+          "invalidatedSession", TaskType.USER_FACING, () -> sessionCache.remove(sessionToken));
     } else {
       sessionCache.remove(sessionToken);
     }
@@ -464,7 +464,14 @@ public class FeedSessionManager
 
   @Override
   public void detachSession(String sessionToken) {
-    sessionCache.detachModelProvider(sessionToken);
+    if (threadUtils.isMainThread()) {
+      taskQueue.execute(
+          "detachSession",
+          TaskType.USER_FACING,
+          () -> sessionCache.detachModelProvider(sessionToken));
+    } else {
+      sessionCache.detachModelProvider(sessionToken);
+    }
   }
 
   @Override
