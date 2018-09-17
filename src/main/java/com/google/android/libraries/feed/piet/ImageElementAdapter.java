@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
+import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -114,7 +115,22 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     LoadImageCallback loadImageCallback =
         new LoadImageCallback(getBaseView(), toAndroidScaleType(image.getScaleType()));
     currentlyLoadingImage = loadImageCallback;
-    getParameters().hostProviders.getAssetProvider().getImage(image, loadImageCallback);
+    getParameters()
+        .hostProviders
+        .getAssetProvider()
+        .getImage(
+            image,
+            convertDimensionForImageLoader(widthPx),
+            convertDimensionForImageLoader(heightPx),
+            loadImageCallback);
+  }
+
+  private int convertDimensionForImageLoader(int dimension) {
+    if (dimension == DIMENSION_NOT_SET) {
+      return DIMENSION_UNKNOWN;
+    }
+
+    return dimension;
   }
 
   @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")

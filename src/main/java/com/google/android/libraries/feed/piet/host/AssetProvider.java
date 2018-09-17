@@ -20,11 +20,26 @@ import com.google.search.now.ui.piet.ImagesProto.Image;
 
 /** Provide Assets from the host */
 public interface AssetProvider {
+  /** Constant used when an image's height or width is not known. */
+  int DIMENSION_UNKNOWN = -1;
+
   /**
    * Given an {@link Image}, asynchronously load the {@link Drawable} and return via a {@link
    * Consumer}.
+   *
+   * <p>The width and the height of the image can be provided preemptively, however it is not
+   * guaranteed that both dimensions will be known. In the case that only one dimension is known,
+   * the host should be careful to preserve the aspect ratio.
+   *
+   * @param image The image to load.
+   * @param widthPx The width of the {@link Image} in pixels. Will be {@link #DIMENSION_UNKNOWN} if
+   *     unknown.
+   * @param heightPx The height of the {@link Image} in pixels. Will be {@link #DIMENSION_UNKNOWN}
+   *     if unknown.
+   * @param consumer Callback to return the {@link Drawable} from an {@link Image} if the load
+   *     succeeds.
    */
-  void getImage(Image image, Consumer<Drawable> consumer);
+  void getImage(Image image, int widthPx, int heightPx, Consumer<Drawable> consumer);
 
   /**
    * Determines if Piet should try to resize BitmapDrawables retrieved via {@link #getImage(Image,

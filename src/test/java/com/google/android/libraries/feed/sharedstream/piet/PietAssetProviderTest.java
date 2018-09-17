@@ -40,6 +40,8 @@ import org.robolectric.RobolectricTestRunner;
 public class PietAssetProviderTest {
 
   private static final int DEFAULT_CORNER_RADIUS = 10;
+  private static final int WIDTH_PX = 50;
+  private static final int HEIGHT_PX = 150;
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private ImageLoaderApi imageLoaderApi;
@@ -71,8 +73,8 @@ public class PietAssetProviderTest {
           // Do nothing.
         };
 
-    pietAssetProvider.getImage(imageBuilder.build(), consumer);
-    verify(imageLoaderApi).loadDrawable(urls, consumer);
+    pietAssetProvider.getImage(imageBuilder.build(), WIDTH_PX, HEIGHT_PX, consumer);
+    verify(imageLoaderApi).loadDrawable(urls, WIDTH_PX, HEIGHT_PX, consumer);
   }
 
   @Test

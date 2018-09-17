@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -234,7 +235,9 @@ public class ImageElementAdapterTest {
     // Fire the callback
     Bitmap bitmap = Bitmap.createBitmap(100, 150, Config.ALPHA_8);
     BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
-    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    verify(assetProvider)
+        .getImage(
+            eq(DEFAULT_IMAGE), eq(styleWidth), eq(styleHeight), consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
 
     imageView = adapter.getBaseView();
@@ -263,7 +266,9 @@ public class ImageElementAdapterTest {
     // Fire the callback
     Bitmap bitmap = Bitmap.createBitmap(styleWidth, styleHeight, Config.ALPHA_8);
     BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
-    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    verify(assetProvider)
+        .getImage(
+            eq(DEFAULT_IMAGE), eq(styleWidth), eq(styleHeight), consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
 
     imageView = adapter.getBaseView();
@@ -290,7 +295,9 @@ public class ImageElementAdapterTest {
     // Fire the callback
     Bitmap bitmap = Bitmap.createBitmap(originalBitmapWidth, originalBitmapHeight, Config.ALPHA_8);
     BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
-    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    verify(assetProvider)
+        .getImage(
+            eq(DEFAULT_IMAGE), eq(styleWidth), eq(styleHeight), consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
 
     imageView = adapter.getBaseView();
@@ -374,7 +381,12 @@ public class ImageElementAdapterTest {
     adapter.bindModel(model, frameContext);
 
     // Fire the callback
-    verify(assetProvider).getImage(eq(imageWithScaleType), consumerArgumentCaptor.capture());
+    verify(assetProvider)
+        .getImage(
+            eq(imageWithScaleType),
+            eq(DIMENSION_UNKNOWN),
+            eq(DIMENSION_UNKNOWN),
+            consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(defaultDrawable);
 
     imageView = adapter.getBaseView();
@@ -396,7 +408,11 @@ public class ImageElementAdapterTest {
         asElement(ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build());
     adapter.bindModel(model2, frameContext);
     verify(assetProvider)
-        .getImage(eq(Image.getDefaultInstance()), consumerArgumentCaptor.capture());
+        .getImage(
+            eq(Image.getDefaultInstance()),
+            eq(WIDTH_DP),
+            eq(HEIGHT_DP),
+            consumerArgumentCaptor.capture());
 
     RecyclerKey key2 = adapter.getKey();
     assertThat(key1).isSameAs(key2);
@@ -488,7 +504,8 @@ public class ImageElementAdapterTest {
     imageView = adapter.getBaseView();
 
     adapter.unbindModel();
-    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    verify(assetProvider)
+        .getImage(eq(DEFAULT_IMAGE), eq(WIDTH_DP), eq(HEIGHT_DP), consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(defaultDrawable);
 
     // The drawable was not set by the callback because the model had already been unbound.
@@ -501,7 +518,8 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
 
-    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    verify(assetProvider)
+        .getImage(eq(DEFAULT_IMAGE), eq(WIDTH_DP), eq(HEIGHT_DP), consumerArgumentCaptor.capture());
 
     adapter.unbindModel();
 
@@ -518,7 +536,8 @@ public class ImageElementAdapterTest {
 
     // And now the callback for the second model completes
     Drawable drawable2 = new ColorDrawable(Color.RED);
-    verify(assetProvider).getImage(eq(model2), consumerArgumentCaptor.capture());
+    verify(assetProvider)
+        .getImage(eq(model2), eq(WIDTH_DP), eq(HEIGHT_DP), consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(drawable2);
 
     // The image has the second drawable as expected.
@@ -596,7 +615,12 @@ public class ImageElementAdapterTest {
   }
 
   private void assertDrawableSet(ImageView imageView) {
-    verify(assetProvider).getImage(eq(DEFAULT_IMAGE), consumerArgumentCaptor.capture());
+    verify(assetProvider)
+        .getImage(
+            eq(DEFAULT_IMAGE),
+            eq(DIMENSION_UNKNOWN),
+            eq(DIMENSION_UNKNOWN),
+            consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(defaultDrawable);
     assertThat(imageView.getDrawable()).isEqualTo(defaultDrawable);
     assertThat(imageView.getScaleType()).isEqualTo(ScaleType.FIT_CENTER);

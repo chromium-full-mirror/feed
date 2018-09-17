@@ -44,13 +44,13 @@ public class PietAssetProvider implements AssetProvider {
   }
 
   @Override
-  public void getImage(Image image, Consumer<Drawable> consumer) {
+  public void getImage(Image image, int widthPx, int heightPx, Consumer<Drawable> consumer) {
     List<String> urls = new ArrayList<>(image.getSourcesList().size());
     for (ImageSource source : image.getSourcesList()) {
       urls.add(source.getUrl());
     }
 
-    imageLoaderApi.loadDrawable(urls, consumer);
+    imageLoaderApi.loadDrawable(urls, widthPx, heightPx, consumer);
   }
 
   @Override

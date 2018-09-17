@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
+import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -289,7 +290,18 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     ImageSpanDrawableCallback imageSpanLoader =
         new ImageSpanDrawableCallback(wrapper, chunkStyle, textView);
     loadingImages.add(imageSpanLoader);
-    getParameters().hostProviders.getAssetProvider().getImage(image, imageSpanLoader);
+    int styleWidth =
+        chunkStyle.hasWidth()
+            ? (int) LayoutUtils.dpToPx(chunkStyle.getWidth(), getContext())
+            : DIMENSION_UNKNOWN;
+    int styleHeight =
+        chunkStyle.hasHeight()
+            ? (int) LayoutUtils.dpToPx(chunkStyle.getHeight(), getContext())
+            : DIMENSION_UNKNOWN;
+    getParameters()
+        .hostProviders
+        .getAssetProvider()
+        .getImage(image, styleWidth, styleHeight, imageSpanLoader);
   }
 
   @Override

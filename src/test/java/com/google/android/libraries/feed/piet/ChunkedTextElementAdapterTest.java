@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 import static com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.SINGLE_LAYER_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyInt;
@@ -259,7 +260,12 @@ public class ChunkedTextElementAdapterTest {
     ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
         ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
 
-    verify(mockAssetProvider).getImage(eq(IMAGE_CHUNK_IMAGE), imageCallbackCaptor.capture());
+    verify(mockAssetProvider)
+        .getImage(
+            eq(IMAGE_CHUNK_IMAGE),
+            eq(DIMENSION_UNKNOWN),
+            eq(DIMENSION_UNKNOWN),
+            imageCallbackCaptor.capture());
 
     // Activate the image loading callback
     Drawable imageDrawable = new ColorDrawable(123);
@@ -533,7 +539,12 @@ public class ChunkedTextElementAdapterTest {
 
     ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
         ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
-    verify(mockAssetProvider).getImage(eq(IMAGE_CHUNK_IMAGE), imageCallbackCaptor.capture());
+    verify(mockAssetProvider)
+        .getImage(
+            eq(IMAGE_CHUNK_IMAGE),
+            eq(STYLE_WIDTH_DP),
+            eq(STYLE_HEIGHT_DP),
+            imageCallbackCaptor.capture());
 
     // Activate the image loading callback
     Drawable imageDrawable = new ColorDrawable(123);
@@ -568,7 +579,12 @@ public class ChunkedTextElementAdapterTest {
 
     ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
         ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
-    verify(mockAssetProvider).getImage(eq(IMAGE_CHUNK_IMAGE), imageCallbackCaptor.capture());
+    verify(mockAssetProvider)
+        .getImage(
+            eq(IMAGE_CHUNK_IMAGE),
+            eq(STYLE_WIDTH_DP),
+            eq(STYLE_HEIGHT_DP),
+            imageCallbackCaptor.capture());
 
     // Activate the image loading callback
     Bitmap bitmap = Bitmap.createBitmap(100, 150, Bitmap.Config.ALPHA_8);
@@ -608,7 +624,12 @@ public class ChunkedTextElementAdapterTest {
 
     ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
         ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
-    verify(mockAssetProvider).getImage(eq(IMAGE_CHUNK_IMAGE), imageCallbackCaptor.capture());
+    verify(mockAssetProvider)
+        .getImage(
+            eq(IMAGE_CHUNK_IMAGE),
+            eq(STYLE_WIDTH_DP),
+            eq(STYLE_HEIGHT_DP),
+            imageCallbackCaptor.capture());
 
     // Activate the image loading callback
     Bitmap bitmap = Bitmap.createBitmap(100, 150, Bitmap.Config.ALPHA_8);
@@ -722,7 +743,12 @@ public class ChunkedTextElementAdapterTest {
     LayerDrawable containerDrawable = (LayerDrawable) imageSpans[0].getDrawable();
     ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
         ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
-    verify(mockAssetProvider).getImage(eq(IMAGE_CHUNK_IMAGE), imageCallbackCaptor.capture());
+    verify(mockAssetProvider)
+        .getImage(
+            eq(IMAGE_CHUNK_IMAGE),
+            eq(DIMENSION_UNKNOWN),
+            eq(DIMENSION_UNKNOWN),
+            imageCallbackCaptor.capture());
 
     // Unbind the model
     adapter.unbindModel();
