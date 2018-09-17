@@ -25,11 +25,17 @@ option cc_enable_arenas = true;
 
 // Defines a shadow for a given element. This message has sub-messages that
 // correspond to different methods that define shadows. Each client might
-// support a subset of the methodologies, and will ignore the ones it does not
-// support. See [INTERNAL LINK]
+// support a subset of the methodologies, will ignore the ones it does not
+// support, and may have a priority order for which type is used when multiple
+// shadow messages are defined (probably defaulting to the most descriptive
+// shadow type supported by the platform).
+// See [INTERNAL LINK]
 message Shadow {
   // BoxShadow definition. Supported by the web client.
   optional BoxShadow box_shadow = 1;
+
+  // Simple elevation-based shadow. Supported by Android and iOS.
+  optional ElevationShadow elevation_shadow = 2;
 }
 
 // Defines a box shadow, as described in the CSS spec:
@@ -60,4 +66,11 @@ message BoxShadow {
 
   // The color of the shadow.
   optional fixed32 color = 6;
+}
+
+// Defines a simple elevation-based shadow, as described in Material Design:
+// https://developer.android.com/training/material/shadows-clipping
+message ElevationShadow {
+  // Elevation of the view in dp; higher elevation creates larger shadows.
+  optional int32 elevation = 1;
 }
