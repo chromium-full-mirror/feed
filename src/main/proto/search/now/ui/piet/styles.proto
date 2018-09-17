@@ -241,7 +241,7 @@ message Borders {
   // Border for leading edge (left for LTR languages; right for RTL).
   optional Border start = 3;
 
-  // Border for trailing edge (left for LTR languages; right for RTL).
+  // Border for trailing edge (right for LTR languages; left for RTL).
   optional Border end = 4;
 }
 
@@ -257,6 +257,6 @@ message EdgeWidths {
   // Boundary for leading edge (left for LTR languages; right for RTL).
   optional uint32 start = 3;
 
-  // Boundary for trailing edge (left for LTR languages; right for RTL).
+  // Boundary for trailing edge (right for LTR languages; left for RTL).
   optional uint32 end = 4;
 }
