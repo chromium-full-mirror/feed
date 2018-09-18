@@ -30,12 +30,15 @@ public class StreamOfflineMonitor implements OfflineStatusListener {
 
   private static final String TAG = "StreamOfflineMonitor";
 
+  private final Set<String> contentToRequestStatus = new HashSet<>();
   private final Set<String> offlineContent = new HashSet<>();
   private final Map<String, List<Consumer<Boolean>>> offlineStatusConsumersMap = new HashMap<>();
+  private final OfflineIndicatorApi offlineIndicatorApi;
 
   @SuppressWarnings("nullness:argument.type.incompatible")
   public StreamOfflineMonitor(OfflineIndicatorApi offlineIndicatorApi) {
     offlineIndicatorApi.addOfflineStatusListener(this);
+    this.offlineIndicatorApi = offlineIndicatorApi;
   }
 
   /**
@@ -47,7 +50,11 @@ public class StreamOfflineMonitor implements OfflineStatusListener {
    * offline stories. At that point, any relevant listeners will be notified.
    */
   public boolean isAvailableOffline(String url) {
-    return offlineContent.contains(url);
+    if (offlineContent.contains(url)) {
+      return true;
+    }
+    contentToRequestStatus.add(url);
+    return false;
   }
 
   /**
@@ -91,6 +98,21 @@ public class StreamOfflineMonitor implements OfflineStatusListener {
     for (Consumer<Boolean> statusConsumer : offlineStatusConsumers) {
       statusConsumer.accept(availableOffline);
     }
+  }
+
+  public void requestOfflineStatusForNewContent() {
+    if (contentToRequestStatus.isEmpty()) {
+      return;
+    }
+
+    offlineIndicatorApi.getOfflineStatus(
+        new ArrayList<>(contentToRequestStatus),
+        offlineUrls -> {
+          for (String offlineUrl : offlineUrls) {
+            updateOfflineStatus(offlineUrl, true);
+          }
+        });
+    contentToRequestStatus.clear();
   }
 
   @Override

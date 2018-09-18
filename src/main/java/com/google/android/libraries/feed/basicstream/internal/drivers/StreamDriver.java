@@ -246,6 +246,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       }
     }
 
+    streamOfflineMonitor.requestOfflineStatusForNewContent();
+
     return leafFeatureDrivers;
   }
 

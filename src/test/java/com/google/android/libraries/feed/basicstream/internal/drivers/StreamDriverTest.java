@@ -19,6 +19,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -86,6 +87,7 @@ public class StreamDriverTest {
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private KnownContentApi knownContentApi;
+  @Mock private StreamOfflineMonitor streamOfflineMonitor;
 
   @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
 
@@ -144,6 +146,7 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers.get(2)).isEqualTo(continuationDriver);
 
     verify(continuationDriver).initialize();
+    verify(streamOfflineMonitor).requestOfflineStatusForNewContent();
   }
 
   @Test
@@ -244,6 +247,7 @@ public class StreamDriverTest {
     verify(contentListener).notifyContentRemoved(0);
     verify(contentListener)
         .notifyContentsAdded(0, Lists.newArrayList(getLeafFeatureDriverFromCluster(1)));
+    verify(streamOfflineMonitor, times(2)).requestOfflineStatusForNewContent();
   }
 
   @Test
@@ -288,7 +292,6 @@ public class StreamDriverTest {
 
   @Test
   public void testOnChange_remove() {
-
     FakeModelCursor fakeModelCursor =
         new FakeModelCursor.Builder().addCard().addCard().addCard().addCard().build();
 
@@ -514,6 +517,7 @@ public class StreamDriverTest {
     assertThat(featureDriversCaptor.getValue()).hasSize(1);
     assertThat(featureDriversCaptor.getValue().get(0))
         .isEqualTo(getLeafFeatureDriverFromCluster(2));
+    verify(streamOfflineMonitor, times(2)).requestOfflineStatusForNewContent();
   }
 
   @Test
@@ -599,7 +603,7 @@ public class StreamDriverTest {
           contentChangedListener,
           scrollRestorer,
           basicLoggingApi,
-          mock(StreamOfflineMonitor.class),
+          streamOfflineMonitor,
           knownContentApi);
       childrenCreated = new ArrayList<>();
     }

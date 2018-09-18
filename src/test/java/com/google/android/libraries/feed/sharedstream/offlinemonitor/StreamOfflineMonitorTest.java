@@ -16,18 +16,25 @@ package com.google.android.libraries.feed.sharedstream.offlinemonitor;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link StreamOfflineMonitor}. */
@@ -38,13 +45,15 @@ public class StreamOfflineMonitorTest {
 
   @Mock private Consumer<Boolean> offlineStatusConsumer1;
   @Mock private Consumer<Boolean> offlineStatusConsumer2;
+  @Mock private OfflineIndicatorApi offlineIndicatorApi;
+  @Captor private ArgumentCaptor<List<String>> listArgumentCaptor;
 
   private StreamOfflineMonitor streamOfflineMonitor;
 
   @Before
   public void setup() {
     initMocks(this);
-    streamOfflineMonitor = new StreamOfflineMonitor(mock(OfflineIndicatorApi.class));
+    streamOfflineMonitor = new StreamOfflineMonitor(offlineIndicatorApi);
   }
 
   @Test
@@ -101,5 +110,47 @@ public class StreamOfflineMonitorTest {
 
     verify(offlineStatusConsumer1, times(1)).accept(true);
     verify(offlineStatusConsumer1, times(1)).accept(false);
+  }
+
+  @Test
+  public void testRequestOfflineStatusForNewContent() {
+    String url1 = "gmail.com";
+    String url2 = "mail.google.com";
+
+    // Checking if they are offline adds them to the list of articles the StreamOfflineMonitor will
+    // ask about.
+    streamOfflineMonitor.isAvailableOffline(URL);
+    streamOfflineMonitor.isAvailableOffline(url1);
+    streamOfflineMonitor.isAvailableOffline(url2);
+
+    streamOfflineMonitor.requestOfflineStatusForNewContent();
+    verify(offlineIndicatorApi)
+        .getOfflineStatus(listArgumentCaptor.capture(), Mockito.<Consumer<List<String>>>any());
+
+    assertThat(listArgumentCaptor.getValue())
+        .containsExactlyElementsIn(Arrays.asList(URL, url1, url2));
+  }
+
+  @Test
+  public void testRequestOfflineStatusForNewContent_onlyRequestsOnce() {
+    // Checking if it is offline adds it to the list of articles the StreamOfflineMonitor will ask
+    // about.
+    streamOfflineMonitor.isAvailableOffline(URL);
+
+    streamOfflineMonitor.requestOfflineStatusForNewContent();
+    reset(offlineIndicatorApi);
+
+    streamOfflineMonitor.requestOfflineStatusForNewContent();
+
+    verify(offlineIndicatorApi, never())
+        .getOfflineStatus(eq(Collections.emptyList()), Mockito.<Consumer<List<String>>>any());
+  }
+
+  @Test
+  public void testRequestOfflineStatusForNewContent_noUrls() {
+    streamOfflineMonitor.requestOfflineStatusForNewContent();
+
+    verify(offlineIndicatorApi, never())
+        .getOfflineStatus(eq(Collections.emptyList()), Mockito.<Consumer<List<String>>>any());
   }
 }
