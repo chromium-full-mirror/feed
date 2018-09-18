@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -162,6 +163,13 @@ public class StreamActionApiImplTest {
     verify(actionManager)
         .dismiss(Collections.singletonList(contentId), streamDataOperations, SESSION_ID);
     verify(basicLoggingApi).onContentDismissed(contentLoggingData);
+  }
+
+  @Test
+  public void testOnClientAction() {
+    streamActionApi.onClientAction(ActionType.OPEN_URL);
+
+    verify(basicLoggingApi).onClientAction(contentLoggingData, ActionType.OPEN_URL);
   }
 
   @Test

@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -249,6 +250,7 @@ public class FeedActionParserTest {
         OPEN_URL_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
 
     verify(streamActionApi).openUrl(URL);
+    verify(streamActionApi).onClientAction(ActionType.OPEN_URL);
   }
 
   @Test
@@ -258,6 +260,7 @@ public class FeedActionParserTest {
         OPEN_NEW_WINDOW_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
 
     verify(streamActionApi).openUrlInNewWindow(URL);
+    verify(streamActionApi).onClientAction(ActionType.OPEN_URL_NEW_WINDOW);
   }
 
   @Test
@@ -267,6 +270,7 @@ public class FeedActionParserTest {
         OPEN_INCOGNITO_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
 
     verify(streamActionApi).openUrlInIncognitoMode(URL);
+    verify(streamActionApi).onClientAction(ActionType.OPEN_URL_INCOGNITO);
   }
 
   @Test
@@ -276,6 +280,7 @@ public class FeedActionParserTest {
         OPEN_NEW_TAB_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
 
     verify(streamActionApi).openUrlInNewTab(URL);
+    verify(streamActionApi).onClientAction(ActionType.OPEN_URL_NEW_TAB);
   }
 
   @Test
@@ -312,6 +317,7 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
     verify(streamActionApi).downloadUrl(CONTENT_METADATA);
+    verify(streamActionApi).onClientAction(ActionType.DOWNLOAD);
   }
 
   @Test

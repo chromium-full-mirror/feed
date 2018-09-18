@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedactionparser;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
+import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.DOWNLOAD;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_INCOGNITO;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_NEW_TAB;
@@ -27,6 +28,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.feedactionparser.internal.ActionTypeConverter;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -133,6 +135,7 @@ public class FeedActionParser implements ActionParser {
         }
 
         streamActionApi.downloadUrl(contentMetadata);
+        streamActionApi.onClientAction(ActionTypeConverter.convert(DOWNLOAD));
         break;
       case LEARN_MORE:
         if (!streamActionApi.canLearnMore()) {
@@ -183,6 +186,7 @@ public class FeedActionParser implements ActionParser {
       default:
         throw new AssertionError("Unhandled URL type: " + urlType);
     }
+    streamActionApi.onClientAction(ActionTypeConverter.convert(urlType));
   }
 
   @Override

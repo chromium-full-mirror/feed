@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -110,6 +111,11 @@ public class StreamActionApiImpl implements StreamActionApi {
   public void dismiss(String contentId, List<StreamDataOperation> dataOperations) {
     actionManager.dismiss(Collections.singletonList(contentId), dataOperations, sessionToken);
     basicLoggingApi.onContentDismissed(contentLoggingData);
+  }
+
+  @Override
+  public void onClientAction(@ActionType int actionType) {
+    basicLoggingApi.onClientAction(contentLoggingData, actionType);
   }
 
   @Override

@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.host.action;
 
 import android.view.View;
+import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import java.util.List;
@@ -36,4 +37,7 @@ public interface StreamActionApi extends ActionApi {
 
   /** Dismisses card. */
   void dismiss(String contentId, List<StreamDataOperation> dataOperations);
+
+  /** Called when a client action has been performed. */
+  void onClientAction(@ActionType int actionType);
 }

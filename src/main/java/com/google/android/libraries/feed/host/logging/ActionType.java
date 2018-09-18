@@ -25,6 +25,7 @@ import android.support.annotation.IntDef;
   ActionType.OPEN_URL_NEW_WINDOW,
   ActionType.DOWNLOAD
 })
+// LINT.IfChange
 public @interface ActionType {
   int UNKNOWN = -1;
   int OPEN_URL = 1;
@@ -33,3 +34,5 @@ public @interface ActionType {
   int OPEN_URL_NEW_WINDOW = 3;
   int DOWNLOAD = 5;
 }
+// LINT.ThenChange(/src/main/java/com/google/android/libraries/\
+//     feed/feedactionparser/internal/ActionTypeConverter.java)
