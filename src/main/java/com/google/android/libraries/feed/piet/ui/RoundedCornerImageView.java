@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.piet.ui;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -23,6 +24,7 @@ import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
 import android.graphics.drawable.shapes.Shape;
 import android.support.annotation.VisibleForTesting;
@@ -102,8 +104,14 @@ public class RoundedCornerImageView extends ImageView {
   protected void maybeCreateShader() {
     // Only create the shader if we have a rectangle to use as a mask.
     Drawable drawable = getDrawable();
-    Bitmap bitmap =
-        (drawable instanceof BitmapDrawable) ? ((BitmapDrawable) drawable).getBitmap() : null;
+    Bitmap bitmap = null;
+    if (drawable instanceof BitmapDrawable) {
+      bitmap = ((BitmapDrawable) drawable).getBitmap();
+    } else if (drawable instanceof LayerDrawable) {
+      // TODO: Find a better way to support LayerDrawables as converting to a Bitmap is
+      // expensive memory-wise.
+      bitmap = convertLayerDrawableToBitmap((LayerDrawable) drawable);
+    }
     if (roundedRectangle != null && bitmap != null) {
       shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
 
@@ -212,7 +220,7 @@ public class RoundedCornerImageView extends ImageView {
   private void updateApplyShader() {
     Drawable drawable = getDrawable();
     if ((drawable == null)
-        || !(drawable instanceof BitmapDrawable)
+        || (!(drawable instanceof BitmapDrawable) && !(drawable instanceof LayerDrawable))
         || (shader == null)
         || (paint == null)) {
       // In this state we wouldn't use the shader anyway.
@@ -297,7 +305,26 @@ public class RoundedCornerImageView extends ImageView {
     return radius;
   }
 
+  /*@Nullable*/
+  private Bitmap convertLayerDrawableToBitmap(LayerDrawable layerDrawable) {
+    // Cannot convert LayerDrawable if intrinsic width and height are unknown.
+    if (layerDrawable.getIntrinsicWidth() == -1 || layerDrawable.getIntrinsicHeight() == -1) {
+      return null;
+    }
+
+    Bitmap bitmap =
+        Bitmap.createBitmap(
+            layerDrawable.getIntrinsicWidth(),
+            layerDrawable.getIntrinsicHeight(),
+            Config.ARGB_8888);
+
+    layerDrawable.draw(new Canvas(bitmap));
+    return bitmap;
+  }
+
   private boolean isSupportedDrawable(Drawable drawable) {
-    return (drawable instanceof ColorDrawable) || (drawable instanceof BitmapDrawable);
+    return (drawable instanceof ColorDrawable)
+        || (drawable instanceof BitmapDrawable)
+        || (drawable instanceof LayerDrawable);
   }
 }

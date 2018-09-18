@@ -23,6 +23,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.view.View.MeasureSpec;
 import java.lang.ref.WeakReference;
 import org.junit.Before;
@@ -65,6 +66,36 @@ public class RoundedCornerImageViewTest {
     assertThat(view.roundedRectangle).isNotNull();
 
     // No shader should be created
+    assertThat(view.shader).isNull();
+    assertThat(view.paint).isNull();
+  }
+
+  @Test
+  public void testSetImageDrawable_withLayerDrawable() {
+    LayerDrawable layerDrawable = new LayerDrawable(new Drawable[] {drawable});
+
+    view.setImageDrawable(layerDrawable);
+
+    view.setRoundedCorners(
+        RoundedCornerViewHelper.TOP_CORNERS | RoundedCornerViewHelper.BOTTOM_CORNERS);
+    view.setCornerRadius(5);
+    assertThat(view.roundedRectangle).isNotNull();
+
+    assertThat(view.shader).isNotNull();
+    assertThat(view.paint).isNotNull();
+  }
+
+  @Test
+  public void testSetImageDrawable_withLayerDrawableAndIntrinsicHeightAndWidthUnknown() {
+    LayerDrawable layerDrawable = new LayerDrawable(new Drawable[] {new ColorDrawable(Color.RED)});
+
+    view.setImageDrawable(layerDrawable);
+
+    view.setRoundedCorners(
+        RoundedCornerViewHelper.TOP_CORNERS | RoundedCornerViewHelper.BOTTOM_CORNERS);
+    view.setCornerRadius(5);
+    assertThat(view.roundedRectangle).isNotNull();
+
     assertThat(view.shader).isNull();
     assertThat(view.paint).isNull();
   }
