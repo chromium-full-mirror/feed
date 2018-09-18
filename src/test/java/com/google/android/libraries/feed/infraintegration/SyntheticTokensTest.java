@@ -174,7 +174,7 @@ public class SyntheticTokensTest {
     pageCursor = completedArgumentCaptor.getValue().getCursor();
     assertThat(pageCursor).isNotNull();
     modelValidator.assertCursorContents(
-        cursor, Arrays.copyOfRange(cards, INITIAL_PAGE_SIZE + PAGE_SIZE, cards.length));
+        pageCursor, Arrays.copyOfRange(cards, INITIAL_PAGE_SIZE + PAGE_SIZE, cards.length));
     modelProvider.handleToken(token.getModelToken());
     cursor = root.getCursor();
     modelValidator.assertCursorContents(cursor, cards);

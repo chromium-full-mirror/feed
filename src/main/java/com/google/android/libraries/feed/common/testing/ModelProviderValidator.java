@@ -105,6 +105,7 @@ public class ModelProviderValidator {
       assertStreamContentId(child.getContentId(), args[pos]);
     }
     assertThat(cursor.isAtEnd()).isTrue();
+    assertThat(args.length).isEqualTo(size.get());
   }
 
   @SuppressWarnings("nullness")
