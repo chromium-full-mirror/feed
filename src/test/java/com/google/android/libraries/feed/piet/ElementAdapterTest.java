@@ -170,7 +170,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
 
-    assertThat(adapter.created).isTrue();
+    assertThat(adapter.testAdapterCreated).isTrue();
   }
 
   @Test
@@ -274,7 +274,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(defaultElement, frameContext);
 
-    assertThat(adapter.created).isFalse();
+    assertThat(adapter.testAdapterCreated).isFalse();
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
   }
 
@@ -299,7 +299,7 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(defaultElement, frameContext);
 
-    assertThat(adapter.created).isTrue();
+    assertThat(adapter.testAdapterCreated).isTrue();
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.VISIBLE);
   }
 
@@ -380,7 +380,7 @@ public class ElementAdapterTest {
 
     adapter.bindModel(defaultElement, defaultElement, frameContext);
 
-    assertThat(adapter.bound).isTrue();
+    assertThat(adapter.testAdapterBound).isTrue();
   }
 
   @Test
@@ -510,7 +510,7 @@ public class ElementAdapterTest {
 
     adapter.bindModel(invisibleElement, frameContext);
 
-    assertThat(adapter.bound).isTrue();
+    assertThat(adapter.testAdapterBound).isTrue();
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.INVISIBLE);
   }
 
@@ -529,7 +529,7 @@ public class ElementAdapterTest {
 
     adapter.bindModel(goneElement, frameContext);
 
-    assertThat(adapter.bound).isFalse();
+    assertThat(adapter.testAdapterBound).isFalse();
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
   }
 
@@ -548,9 +548,41 @@ public class ElementAdapterTest {
 
     adapter.bindModel(invisibleElement, frameContext);
 
-    assertThat(adapter.created).isTrue();
-    assertThat(adapter.bound).isTrue();
+    assertThat(adapter.testAdapterCreated).isTrue();
+    assertThat(adapter.testAdapterBound).isTrue();
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.INVISIBLE);
+  }
+
+  @Test
+  public void testBindModel_recreatesWhenVisibilityWasGone_bound() {
+    VisibilityBindingRef visibilityBinding =
+        VisibilityBindingRef.newBuilder().setBindingId("camo").build();
+    Element elementWithVisibilityBinding =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder()
+                    .setDefaultVisibility(Visibility.GONE)
+                    .setOverridingBoundVisibility(visibilityBinding))
+            .build();
+
+    // When adapter is created, the Element is GONE
+    when(frameContext.getVisibilityBindingValue(visibilityBinding))
+        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
+
+    adapter.createAdapter(elementWithVisibilityBinding, frameContext);
+
+    assertThat(adapter.testAdapterCreated).isFalse();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
+
+    // Now on binding, the Element is VISIBLE
+    when(frameContext.getVisibilityBindingValue(visibilityBinding))
+        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.VISIBLE).build());
+
+    adapter.bindModel(elementWithVisibilityBinding, frameContext);
+
+    assertThat(adapter.testAdapterCreated).isTrue();
+    assertThat(adapter.testAdapterBound).isTrue();
+    assertThat(adapter.getView().getVisibility()).isEqualTo(View.VISIBLE);
   }
 
   @Test
@@ -571,8 +603,8 @@ public class ElementAdapterTest {
     adapter.bindModel(goneElement, frameContext);
     adapter.unbindModel();
 
-    assertThat(adapter.created).isTrue();
-    adapter.created = false; // set this so we can test that it doesn't get recreated
+    assertThat(adapter.testAdapterCreated).isTrue();
+    adapter.testAdapterCreated = false; // set this so we can test that it doesn't get recreated
 
     // Bind a real element, and ensure that the adapter is not recreated.
     Element invisibleElement =
@@ -583,8 +615,8 @@ public class ElementAdapterTest {
 
     adapter.bindModel(invisibleElement, frameContext);
 
-    assertThat(adapter.created).isFalse();
-    assertThat(adapter.bound).isTrue();
+    assertThat(adapter.testAdapterCreated).isFalse();
+    assertThat(adapter.testAdapterBound).isTrue();
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.INVISIBLE);
   }
 
@@ -594,10 +626,10 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
     adapter.bindModel(defaultElement, defaultElement, frameContext);
-    assertThat(adapter.bound).isTrue();
+    assertThat(adapter.testAdapterBound).isTrue();
 
     adapter.unbindModel();
-    assertThat(adapter.bound).isFalse();
+    assertThat(adapter.testAdapterBound).isFalse();
   }
 
   @Test
@@ -689,14 +721,41 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testUnbindModel_affectsVisibilityCalculations() {
+    VisibilityBindingRef visibilityBinding =
+        VisibilityBindingRef.newBuilder().setBindingId("vis").build();
+    Element element =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder()
+                    .setDefaultVisibility(Visibility.INVISIBLE)
+                    .setOverridingBoundVisibility(visibilityBinding))
+            .build();
+    when(frameContext.getVisibilityBindingValue(visibilityBinding))
+        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.VISIBLE).build());
+
+    adapter.createAdapter(element, element, frameContext);
+    assertThat(adapter.getVisibilityForElement(element, frameContext))
+        .isEqualTo(Visibility.INVISIBLE);
+
+    adapter.bindModel(element, element, frameContext);
+    assertThat(adapter.getVisibilityForElement(element, frameContext))
+        .isEqualTo(Visibility.VISIBLE);
+
+    adapter.unbindModel();
+    assertThat(adapter.getVisibilityForElement(element, frameContext))
+        .isEqualTo(Visibility.INVISIBLE);
+  }
+
+  @Test
   public void testReleaseAdapter_callsOnReleaseAdapter() {
     Element defaultElement = Element.getDefaultInstance();
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
-    assertThat(adapter.created).isTrue();
+    assertThat(adapter.testAdapterCreated).isTrue();
 
     adapter.releaseAdapter();
-    assertThat(adapter.created).isFalse();
+    assertThat(adapter.testAdapterCreated).isFalse();
   }
 
   @Test
@@ -732,7 +791,7 @@ public class ElementAdapterTest {
     Element defaultElement = Element.getDefaultInstance();
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
-    adapter.setVisibility(Visibility.INVISIBLE);
+    adapter.setVisibilityOnView(Visibility.INVISIBLE);
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
 
     adapter.releaseAdapter();
@@ -743,13 +802,13 @@ public class ElementAdapterTest {
   public void testSetVisibility() {
     adapter.createAdapter(Element.getDefaultInstance(), Element.getDefaultInstance(), frameContext);
     adapter.getBaseView().setVisibility(View.GONE);
-    adapter.setVisibility(Visibility.VISIBLE);
+    adapter.setVisibilityOnView(Visibility.VISIBLE);
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
-    adapter.setVisibility(Visibility.INVISIBLE);
+    adapter.setVisibilityOnView(Visibility.INVISIBLE);
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.INVISIBLE);
-    adapter.setVisibility(Visibility.GONE);
+    adapter.setVisibilityOnView(Visibility.GONE);
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
-    adapter.setVisibility(Visibility.VISIBILITY_UNSPECIFIED);
+    adapter.setVisibilityOnView(Visibility.VISIBILITY_UNSPECIFIED);
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
   }
 
@@ -901,8 +960,8 @@ public class ElementAdapterTest {
   static class TestElementAdapter extends ElementAdapter<View, Object> {
     static final String DEFAULT_MODEL = "MODEL";
 
-    boolean created = false;
-    boolean bound = false;
+    boolean testAdapterCreated = false;
+    boolean testAdapterBound = false;
 
     View adapterView;
 
@@ -918,22 +977,22 @@ public class ElementAdapterTest {
 
     @Override
     protected void onCreateAdapter(Object model, Element baseElement, FrameContext frameContext) {
-      created = true;
+      testAdapterCreated = true;
     }
 
     @Override
     protected void onBindModel(Object model, Element baseElement, FrameContext frameContext) {
-      bound = true;
+      testAdapterBound = true;
     }
 
     @Override
     protected void onUnbindModel() {
-      bound = false;
+      testAdapterBound = false;
     }
 
     @Override
     protected void onReleaseAdapter() {
-      created = false;
+      testAdapterCreated = false;
     }
 
     public void setDims(int width, int height) {

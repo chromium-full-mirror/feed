@@ -330,18 +330,15 @@ public class ElementContainerAdapterTest {
   }
 
   @Test
-  public void testBindChildAdapters_errorIfNotCreatedFirst() {
-    assertThatRunnable(
-            () ->
-                adapter.bindModel(
-                    Collections.singletonList(
-                        Content.newBuilder().setElement(DEFAULT_ELEMENT).build()),
-                    DUMMY_BASE_ELEMENT,
-                    frameContext))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Adapter has not been created?");
+  public void testBindChildAdapters_createsAdapterIfNotAlreadyCreated() {
+    adapter.bindModel(
+        Collections.singletonList(Content.newBuilder().setElement(DEFAULT_ELEMENT).build()),
+        DUMMY_BASE_ELEMENT,
+        frameContext);
+
+    assertThat(adapter.childAdapters).hasSize(1);
+    assertThat(adapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
   }
 
   @Test

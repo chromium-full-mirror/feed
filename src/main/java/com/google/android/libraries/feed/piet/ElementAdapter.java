@@ -23,6 +23,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -61,6 +62,7 @@ abstract class ElementAdapter<V extends View, M> {
   /*@Nullable*/ private RecyclerKey key;
   private StyleProvider elementStyle;
   private boolean created = false;
+  private boolean binding = false;
 
   /*@Nullable*/ private FrameLayout wrapperView = null;
   @VisibleForTesting /*@Nullable*/ StackedElementAdapter overlayAdapter = null;
@@ -129,8 +131,8 @@ abstract class ElementAdapter<V extends View, M> {
     this.model = model;
     this.baseElement = baseElement;
 
-    Visibility visibility = baseElement.getVisibilityState().getDefaultVisibility();
-    setVisibility(visibility);
+    Visibility visibility = getVisibilityForElement(baseElement, frameContext);
+    setVisibilityOnView(visibility);
     if (visibility == Visibility.GONE) {
       return;
     }
@@ -165,23 +167,32 @@ abstract class ElementAdapter<V extends View, M> {
   void bindModel(M model, Element baseElement, FrameContext frameContext) {
     this.model = model;
     this.baseElement = baseElement;
+    binding = true;
     if (getElementStyleIdsStack().hasStyleBinding()) {
       elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
     }
 
-    Visibility visibility = getVisibilityWithBinding(frameContext);
+    Visibility visibility = getVisibilityForElement(baseElement, frameContext);
+    setVisibilityOnView(visibility);
     if (visibility == Visibility.GONE) {
-      setVisibility(visibility);
       return;
-    } else if (view.getVisibility() == View.GONE && !created) {
-      // If this used to be GONE, we need to initialize it.
-      // createAdapter will handle setting visibility.
+    }
+    if (!created) {
       createAdapter(model, baseElement, frameContext);
-    } else {
-      setVisibility(visibility);
+    }
+    if (!created) {
+      // This should not happen; indicates a problem in the logic if createAdapter here runs without
+      // successfully creating the adapter.
+      throw new IllegalStateException(
+          frameContext.reportError(MessageType.ERROR, "Binding uncreated adapter"));
     }
 
     onBindModel(model, baseElement, frameContext);
+    // Sometimes, onBindModel will short-circuit and set the visibility to GONE (ex. when an
+    // optional binding is not found). In that case, we don't want to continue binding.
+    if (getView().getVisibility() == View.GONE) {
+      return;
+    }
 
     bindOverlays(frameContext);
 
@@ -284,6 +295,7 @@ abstract class ElementAdapter<V extends View, M> {
     onUnbindModel();
     model = null;
     baseElement = Element.getDefaultInstance();
+    binding = false;
 
     // Unset actions
     ViewUtils.clearOnClickActions(getView());
@@ -321,7 +333,7 @@ abstract class ElementAdapter<V extends View, M> {
       overlayAdapter = null;
     }
 
-    setVisibility(Visibility.VISIBLE);
+    setVisibilityOnView(Visibility.VISIBLE);
 
     created = false;
   }
@@ -441,19 +453,19 @@ abstract class ElementAdapter<V extends View, M> {
     return parameters.templatedStringEvaluator;
   }
 
-  private Visibility getVisibilityWithBinding(FrameContext frameContext) {
-    VisibilityState visibilityState = baseElement.getVisibilityState();
-    Visibility visibility = visibilityState.getDefaultVisibility();
-    if (visibilityState.hasOverridingBoundVisibility()) {
+  @VisibleForTesting
+  Visibility getVisibilityForElement(Element element, FrameContext frameContext) {
+    VisibilityState visibilityState = element.getVisibilityState();
+    Visibility returnVisibility = visibilityState.getDefaultVisibility();
+    if (binding && visibilityState.hasOverridingBoundVisibility()) {
       BindingValue visibilityBinding =
           frameContext.getVisibilityBindingValue(visibilityState.getOverridingBoundVisibility());
-      visibility = visibilityBinding.getVisibility();
+      returnVisibility = visibilityBinding.getVisibility();
     }
-    return visibility;
+    return returnVisibility;
   }
 
-  protected void setVisibility(Visibility visibility) {
-    View view = getView();
+  void setVisibilityOnView(Visibility visibility) {
     switch (visibility) {
       case INVISIBLE:
         view.setVisibility(View.INVISIBLE);

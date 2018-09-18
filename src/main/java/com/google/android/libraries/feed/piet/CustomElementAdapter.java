@@ -55,7 +55,7 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
             frameContext.getCustomElementBindingValue(customElement.getCustomBinding());
         if (!binding.hasCustomElementData()) {
           if (customElement.getCustomBinding().getIsOptional()) {
-            setVisibility(Visibility.GONE);
+            setVisibilityOnView(Visibility.GONE);
             return;
           } else {
             throw new IllegalArgumentException(

@@ -85,7 +85,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
             frameContext.getChunkedTextBindingValue(textLine.getChunkedTextBinding());
         if (!binding.hasChunkedText()) {
           if (textLine.getChunkedTextBinding().getIsOptional()) {
-            setVisibility(Visibility.GONE);
+            setVisibilityOnView(Visibility.GONE);
             return;
           } else {
             throw new IllegalArgumentException(

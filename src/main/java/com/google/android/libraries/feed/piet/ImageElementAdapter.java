@@ -97,7 +97,7 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
         BindingValue binding = frameContext.getImageBindingValue(model.getImageBinding());
         if (!binding.hasImage()) {
           if (model.getImageBinding().getIsOptional()) {
-            setVisibility(Visibility.GONE);
+            setVisibilityOnView(Visibility.GONE);
             return;
           } else {
             throw new IllegalArgumentException(
