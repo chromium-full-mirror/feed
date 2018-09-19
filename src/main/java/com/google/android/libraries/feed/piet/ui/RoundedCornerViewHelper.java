@@ -14,16 +14,24 @@
 
 package com.google.android.libraries.feed.piet.ui;
 
+import android.view.View;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 import java.util.Arrays;
 
 /** Helper class to help work with rounded corner views. */
 public class RoundedCornerViewHelper {
 
-  public static final int TOP_CORNERS = Corners.TOP_LEFT_VALUE | Corners.TOP_RIGHT_VALUE;
-  public static final int BOTTOM_CORNERS = Corners.BOTTOM_LEFT_VALUE | Corners.BOTTOM_RIGHT_VALUE;
+  public static final int TOP_CORNERS = Corners.TOP_START_VALUE | Corners.TOP_END_VALUE;
+  public static final int BOTTOM_CORNERS = Corners.BOTTOM_START_VALUE | Corners.BOTTOM_END_VALUE;
 
-  static float[] createRoundedCornerMask(float radius, int cornerField) {
+  /**
+   * Returns a float[] representing the mask for which corners should be rounded with the radius.
+   *
+   * @param layoutDirection either 0 for {@link android.view.View#LAYOUT_DIRECTION_LTR} or 1 for
+   *     {@link android.view.View#LAYOUT_DIRECTION_RTL}. If an invalid value is passed in, default
+   *     to LTR.
+   */
+  static float[] createRoundedCornerMask(float radius, int cornerField, int layoutDirection) {
     float[] radii = new float[8];
     // If we don't have any radius, don't bother creating the mask.
     if (radius > 0) {
@@ -32,21 +40,40 @@ public class RoundedCornerViewHelper {
         return radii;
       }
 
-      if ((cornerField & Corners.TOP_LEFT_VALUE) != 0) {
-        radii[0] = radius;
-        radii[1] = radius;
-      }
-      if ((cornerField & Corners.TOP_RIGHT_VALUE) != 0) {
-        radii[2] = radius;
-        radii[3] = radius;
-      }
-      if ((cornerField & Corners.BOTTOM_RIGHT_VALUE) != 0) {
-        radii[4] = radius;
-        radii[5] = radius;
-      }
-      if ((cornerField & Corners.BOTTOM_LEFT_VALUE) != 0) {
-        radii[6] = radius;
-        radii[7] = radius;
+      if (layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+        if ((cornerField & Corners.TOP_START_VALUE) != 0) {
+          radii[2] = radius;
+          radii[3] = radius;
+        }
+        if ((cornerField & Corners.TOP_END_VALUE) != 0) {
+          radii[0] = radius;
+          radii[1] = radius;
+        }
+        if ((cornerField & Corners.BOTTOM_END_VALUE) != 0) {
+          radii[6] = radius;
+          radii[7] = radius;
+        }
+        if ((cornerField & Corners.BOTTOM_START_VALUE) != 0) {
+          radii[4] = radius;
+          radii[5] = radius;
+        }
+      } else {
+        if ((cornerField & Corners.TOP_START_VALUE) != 0) {
+          radii[0] = radius;
+          radii[1] = radius;
+        }
+        if ((cornerField & Corners.TOP_END_VALUE) != 0) {
+          radii[2] = radius;
+          radii[3] = radius;
+        }
+        if ((cornerField & Corners.BOTTOM_END_VALUE) != 0) {
+          radii[4] = radius;
+          radii[5] = radius;
+        }
+        if ((cornerField & Corners.BOTTOM_START_VALUE) != 0) {
+          radii[6] = radius;
+          radii[7] = radius;
+        }
       }
     }
 

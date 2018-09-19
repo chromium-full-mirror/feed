@@ -18,9 +18,12 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
+import java.util.Locale;
 
 /** General utilities to help with UI layout. */
 public class LayoutUtils {
@@ -38,5 +41,16 @@ public class LayoutUtils {
   public static float dpToPx(float dp, Context context) {
     DisplayMetrics metrics = context.getResources().getDisplayMetrics();
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, metrics);
+  }
+
+  /** Determines whether current locale is RTL. */
+  @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+  public static boolean isDefaultLocaleRtl() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+      return View.LAYOUT_DIRECTION_RTL
+          == TextUtils.getLayoutDirectionFromLocale(Locale.getDefault());
+    } else {
+      return false;
+    }
   }
 }

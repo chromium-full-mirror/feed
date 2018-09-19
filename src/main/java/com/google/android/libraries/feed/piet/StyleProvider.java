@@ -128,13 +128,8 @@ class StyleProvider {
   public void applyElementStyles(Context context, View view) {
     EdgeWidths padding = getPadding();
     applyPadding(context, view, padding);
+    view.setBackground(createBackground(context));
 
-    Drawable bg = createBackground(context);
-    if (bg != null) {
-      view.setBackground(bg);
-    } else {
-      view.setBackground(null);
-    }
     if (getMinHeight() > 0) {
       view.setMinimumHeight((int) LayoutUtils.dpToPx(getMinHeight(), context));
     } else {
@@ -198,8 +193,10 @@ class StyleProvider {
     }
     RoundedCornerColorDrawable bgDrawable = new RoundedCornerColorDrawable(background.getColor());
     if (hasRoundedCorners()) {
-      bgDrawable.setRoundedCorners(getRoundedCorners().getBitmask());
-      bgDrawable.setRadius(getRoundedCornerRadius(context));
+      int layoutDirection =
+          LayoutUtils.isDefaultLocaleRtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR;
+      bgDrawable.setRoundedCorners(
+          getRoundedCornerRadius(context), getRoundedCorners().getBitmask(), layoutDirection);
     }
     return bgDrawable;
   }

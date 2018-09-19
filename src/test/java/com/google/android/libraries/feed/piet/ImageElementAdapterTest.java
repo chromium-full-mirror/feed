@@ -70,7 +70,7 @@ public class ImageElementAdapterTest {
   private static final EdgeWidths PADDING =
       EdgeWidths.newBuilder().setBottom(1).setTop(2).setStart(3).setEnd(4).build();
   private static final RoundedCorners CORNERS =
-      RoundedCorners.newBuilder().setBitmask(Corners.BOTTOM_LEFT_VALUE).setRadius(34).build();
+      RoundedCorners.newBuilder().setBitmask(Corners.BOTTOM_START_VALUE).setRadius(34).build();
   private static final Image DEFAULT_IMAGE =
       Image.newBuilder().addSources(ImageSource.newBuilder().setUrl("icanhas.chz")).build();
   private static final Element DEFAULT_MODEL =

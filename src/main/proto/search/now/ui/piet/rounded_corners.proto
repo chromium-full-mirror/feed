@@ -32,22 +32,24 @@ option cc_enable_arenas = true;
 // current version of the implementation.
 message RoundedCorners {
   // Represents the set of values for a bitmask to specify which corners should
-  // be rounded. Values start at top-left and continue clock-wise.
+  // be rounded. Start indicates the left side for LTR settings, right side for
+  // RTL.
   enum Corners {
     // If unspecified, then all corners will be rounded.
     CORNERS_UNSPECIFIED = 0;
 
-    // Indicates that the top left corner should be rounded.
-    TOP_LEFT = 0x1;
+    // Indicates that the top starting corner should be rounded (top left for
+    // LTR, top right for RTL).
+    TOP_START = 0x1;
 
-    // Indicates that the top right corner should be rounded.
-    TOP_RIGHT = 0x2;
+    // Indicates that the top end corner should be rounded.
+    TOP_END = 0x2;
 
-    // Indicates that the bottom right corner should be rounded.
-    BOTTOM_RIGHT = 0x4;
+    // Indicates that the bottom end corner should be rounded.
+    BOTTOM_END = 0x4;
 
-    // Indicates that the bottom left corner should be rounded.
-    BOTTOM_LEFT = 0x8;
+    // Indicates that the bottom starting corner should be rounded.
+    BOTTOM_START = 0x8;
   }
 
   // A bitmask representing which corners should be rounded. Bit values are

@@ -29,7 +29,9 @@ import android.graphics.drawable.shapes.RoundRectShape;
 import android.graphics.drawable.shapes.Shape;
 import android.support.annotation.VisibleForTesting;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.ImageView;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 
 /** {@link ImageView} which is able to show colors and bitmaps with rounded-off corners. */
 public class RoundedCornerImageView extends ImageView {
@@ -63,7 +65,10 @@ public class RoundedCornerImageView extends ImageView {
   private void createRoundedCornerMask(float radius, int cornerField) {
     // If we don't have any radius values, don't bother creating the mask.
     if (radius > 0) {
-      float[] radii = RoundedCornerViewHelper.createRoundedCornerMask(radius, cornerField);
+      int layoutDirection =
+          LayoutUtils.isDefaultLocaleRtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR;
+      float[] radii =
+          RoundedCornerViewHelper.createRoundedCornerMask(radius, cornerField, layoutDirection);
       roundedRectangle = new RoundRectShape(radii, null, null);
     } else {
       roundedRectangle = null;

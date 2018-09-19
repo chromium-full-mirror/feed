@@ -27,6 +27,7 @@ public class RoundedCornerColorDrawable extends ColorDrawable {
   /*@Nullable*/ private Paint paint;
   private float radius;
   private int cornerField;
+  private int layoutDirection;
 
   public RoundedCornerColorDrawable(int color) {
     super(color);
@@ -53,30 +54,30 @@ public class RoundedCornerColorDrawable extends ColorDrawable {
    * Updates the rounded corner, using the radius set in the layout.
    *
    * @param roundedCorners Bitmask from {@link RoundedCorners.getBitmask()}
+   * @param layoutDirection Either 0 for {@link android.view.View#LAYOUT_DIRECTION_LTR} or 1 for
+   *     {@link android.view.View#LAYOUT_DIRECTION_RTL}. Used to determine whether corners need to
+   *     be flipped for RTL
    */
-  public void setRoundedCorners(int roundedCorners) {
-    if (cornerField == roundedCorners) {
+  public void setRoundedCorners(float radius, int roundedCorners, int layoutDirection) {
+    if (cornerField == roundedCorners
+        && this.radius == radius
+        && this.layoutDirection == layoutDirection) {
       return;
     }
     this.cornerField = roundedCorners;
-    createRoundedCornerMask(radius, cornerField);
+    this.radius = radius;
+    this.layoutDirection = layoutDirection;
+    createRoundedCornerMask(radius, roundedCorners, layoutDirection);
 
     // Request a re-draw.
     invalidateSelf();
   }
 
-  public void setRadius(float radius) {
-    if (this.radius == radius) {
-      return;
-    }
-    this.radius = radius;
-    createRoundedCornerMask(radius, cornerField);
-  }
-
-  private void createRoundedCornerMask(float radius, int cornerField) {
+  private void createRoundedCornerMask(float radius, int cornerField, int layoutDirection) {
     // If we don't have any radius values, don't bother creating the mask.
     if (radius > 0) {
-      float[] radii = RoundedCornerViewHelper.createRoundedCornerMask(radius, cornerField);
+      float[] radii =
+          RoundedCornerViewHelper.createRoundedCornerMask(radius, cornerField, layoutDirection);
       roundedRectangle = new RoundRectShape(radii, null, null);
       paint = new Paint();
       paint.setAntiAlias(true);
