@@ -59,8 +59,8 @@ import java.util.concurrent.CountDownLatch;
  * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager} to commit a mutation
  * defined as a List of {@link StreamDataOperation}.
  */
-public class MutationCommitterFactory implements Dumpable {
-  private static final String TAG = "MutationCommitter";
+public class SessionManagerMutation implements Dumpable {
+  private static final String TAG = "SessionManagerMutation";
 
   private final Store store;
   private final SessionCache sessionCache;
@@ -81,7 +81,7 @@ public class MutationCommitterFactory implements Dumpable {
     void onError(/*@Nullable*/ Session session, ModelError error);
   }
 
-  public MutationCommitterFactory(
+  public SessionManagerMutation(
       Store store,
       SessionCache sessionCache,
       ContentCache contentCache,
@@ -104,7 +104,7 @@ public class MutationCommitterFactory implements Dumpable {
    * Return a Consumer of StreamDataOperations which will update the {@link
    * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}.
    */
-  public Consumer<Result<List<StreamDataOperation>>> create(
+  public Consumer<Result<List<StreamDataOperation>>> createCommitter(
       String task,
       MutationContext mutationContext,
       Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
@@ -124,7 +124,7 @@ public class MutationCommitterFactory implements Dumpable {
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
-    dumper.forKey("mutationCreated").value(createCount);
+    dumper.forKey("mutationsCreated").value(createCount);
     dumper.forKey("commitCount").value(commitCount).compactPrevious();
     dumper.forKey("errorCount").value(errorCount).compactPrevious();
   }

@@ -24,9 +24,9 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.feedsessionmanager.internal.ContentCache;
-import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCommitterFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
+import com.google.android.libraries.feed.feedsessionmanager.internal.SessionManagerMutation;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
@@ -84,8 +84,8 @@ public class FeedSessionManagerFactory {
         new SessionCache(
             store, taskQueue, sessionFactory, lifetimeMs, timingUtils, threadUtils, clock);
     ContentCache contentCache = new ContentCache();
-    MutationCommitterFactory mutationCommitterFactory =
-        new MutationCommitterFactory(
+    SessionManagerMutation sessionManagerMutation =
+        new SessionManagerMutation(
             store,
             sessionCache,
             contentCache,
@@ -99,7 +99,7 @@ public class FeedSessionManagerFactory {
         taskQueue,
         sessionFactory,
         sessionCache,
-        mutationCommitterFactory,
+        sessionManagerMutation,
         contentCache,
         store,
         timingUtils,

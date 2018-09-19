@@ -59,10 +59,10 @@ android_local_test(
 )
 
 android_local_test(
-    name = "MutationCommitterFactoryTest",
+    name = "SessionManagerMutationTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["MutationCommitterFactoryTest.java"],
+    srcs = ["SessionManagerMutationTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

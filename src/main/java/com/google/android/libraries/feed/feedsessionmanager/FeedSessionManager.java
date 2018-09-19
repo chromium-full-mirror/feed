@@ -55,10 +55,10 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStruc
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadAsStructure.TreeNode;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.InitializableSession;
-import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCommitterFactory;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionCache;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFactory;
+import com.google.android.libraries.feed.feedsessionmanager.internal.SessionManagerMutation;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
@@ -108,7 +108,7 @@ public class FeedSessionManager
   /*@Nullable*/ @VisibleForTesting ModelError noCardsError;
 
   private final SessionFactory sessionFactory;
-  private final MutationCommitterFactory mutationCommitterFactory;
+  private final SessionManagerMutation sessionManagerMutation;
   private final Store store;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
@@ -130,7 +130,7 @@ public class FeedSessionManager
       TaskQueue taskQueue,
       SessionFactory sessionFactory,
       SessionCache sessionCache,
-      MutationCommitterFactory mutationCommitterFactory,
+      SessionManagerMutation sessionManagerMutation,
       ContentCache contentCache,
       Store store,
       TimingUtils timingUtils,
@@ -144,7 +144,7 @@ public class FeedSessionManager
     this.taskQueue = taskQueue;
     this.sessionFactory = sessionFactory;
     this.sessionCache = sessionCache;
-    this.mutationCommitterFactory = mutationCommitterFactory;
+    this.sessionManagerMutation = sessionManagerMutation;
     this.contentCache = contentCache;
 
     this.store = store;
@@ -176,7 +176,7 @@ public class FeedSessionManager
     taskQueue.initialize(this::initializationTask);
     requestManager.setDefaultTriggerRefreshConsumerSupplier(
         () ->
-            mutationCommitterFactory.create(
+            sessionManagerMutation.createCommitter(
                 "triggerRefresh",
                 MutationContext.EMPTY_CONTEXT,
                 this::resetHead,
@@ -497,7 +497,7 @@ public class FeedSessionManager
             .build();
     requestManager.loadMore(
         streamToken,
-        mutationCommitterFactory.create(
+        sessionManagerMutation.createCommitter(
             "handleToken",
             mutationContext,
             this::resetHead,
@@ -522,7 +522,7 @@ public class FeedSessionManager
     threadUtils.checkNotMainThread();
     requestManager.triggerRefresh(
         RequestReason.MANUAL_REFRESH,
-        mutationCommitterFactory.create(
+        sessionManagerMutation.createCommitter(
             "triggerRefresh",
             MutationContext.EMPTY_CONTEXT,
             this::resetHead,
@@ -599,7 +599,7 @@ public class FeedSessionManager
       Logger.i(TAG, "Lazy initialization triggered, triggerRefresh");
       initialize();
     }
-    return mutationCommitterFactory.create(
+    return sessionManagerMutation.createCommitter(
         "updateConsumer",
         mutationContext,
         this::resetHead,
@@ -671,7 +671,7 @@ public class FeedSessionManager
     dumper.dump(contentCache);
     dumper.dump(taskQueue);
     dumper.dump(sessionCache);
-    dumper.dump(mutationCommitterFactory);
+    dumper.dump(sessionManagerMutation);
   }
 
   /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */

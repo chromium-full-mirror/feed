@@ -41,7 +41,7 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.feedsessionmanager.internal.MutationCommitterFactory.MutationCommitter;
+import com.google.android.libraries.feed.feedsessionmanager.internal.SessionManagerMutation.MutationCommitter;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
@@ -70,11 +70,11 @@ import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
 /**
- * Tests of the {@link MutationCommitterFactory} and the actual committer {@link
- * MutationCommitterFactory.MutationCommitter}.
+ * Tests of the {@link SessionManagerMutation} and the actual committer {@link
+ * SessionManagerMutation.MutationCommitter}.
  */
 @RunWith(RobolectricTestRunner.class)
-public class MutationCommitterFactoryTest {
+public class SessionManagerMutationTest {
   @Mock private ContentCache contentCache;
   @Mock private ThreadUtils threadUtils;
   @Mock private SchedulerApi schedulerApi;
@@ -279,8 +279,8 @@ public class MutationCommitterFactoryTest {
   }
 
   private MutationCommitter getMutationCommitter(MutationContext mutationContext) {
-    MutationCommitterFactory committerFactory =
-        new MutationCommitterFactory(
+    SessionManagerMutation mutation =
+        new SessionManagerMutation(
             storeSpy,
             sessionCache,
             contentCache,
@@ -290,7 +290,7 @@ public class MutationCommitterFactoryTest {
             timingUtils,
             clock);
     return (MutationCommitter)
-        committerFactory.create(
+        mutation.createCommitter(
             "task",
             mutationContext,
             this::resetHead,
