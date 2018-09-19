@@ -63,6 +63,12 @@ public class ViewDepthProviderTests {
         WireProtocolResponseBuilder.createFeatureContentId(6),
         WireProtocolResponseBuilder.createFeatureContentId(7)
       };
+  private static final ContentId[] REQUEST_TWO_WITH_DUPLICATES =
+      new ContentId[] {
+        WireProtocolResponseBuilder.createFeatureContentId(5),
+        WireProtocolResponseBuilder.createFeatureContentId(6),
+        WireProtocolResponseBuilder.createFeatureContentId(4)
+      };
 
   @Mock private ThreadUtils threadUtils;
   @Mock private SchedulerApi schedulerApi;
@@ -91,7 +97,7 @@ public class ViewDepthProviderTests {
   }
 
   @Test
-  public void testRequestWithWait() {
+  public void baseDepthProviderTest() {
 
     // Load up the initial request
     WireProtocolResponseBuilder responseBuilder =
@@ -127,6 +133,44 @@ public class ViewDepthProviderTests {
         REQUEST_TWO[0],
         REQUEST_TWO[1],
         REQUEST_TWO[2]);
+  }
+
+  @Test
+  public void testDuplicateEntries() {
+    // Load up the initial request
+    WireProtocolResponseBuilder responseBuilder =
+        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    for (ContentId contentId : REQUEST_ONE) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    requestManager.queueResponse(responseBuilder.build());
+
+    // The REQUEST_ONE content will be added to head, this is then used to create the initial
+    // session.
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+
+    // The REQUEST_TWO content acts as a second request on the server, it is triggered by
+    // REQUEST_WITH_CONTENT
+    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+        .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
+    responseBuilder = new WireProtocolResponseBuilder().addClearOperation();
+    for (ContentId contentId : REQUEST_TWO_WITH_DUPLICATES) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    requestManager.queueResponse(responseBuilder.build());
+    ModelProvider modelProvider = modelProviderFactory.createNew(viewDepthProvider);
+
+    // The second request will be added after the first request, the ViewDepthProvider indicates
+    // we only saw [0] and [1] from the first request, so [2] and [3] will be removed.
+    modelValidator.assertCursorContents(
+        modelProvider,
+        REQUEST_ONE[0],
+        REQUEST_ONE[1],
+        REQUEST_TWO_WITH_DUPLICATES[0],
+        REQUEST_TWO_WITH_DUPLICATES[1],
+        REQUEST_TWO_WITH_DUPLICATES[2]);
   }
 
   private ViewDepthProvider viewDepthProvider =

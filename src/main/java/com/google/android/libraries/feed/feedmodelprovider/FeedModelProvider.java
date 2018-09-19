@@ -525,31 +525,28 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             streamSession = change.streamSession;
           }
 
-          // Separate the Appends from the Removes.  All appends and updates are considered
-          // unbound (childrenToBind) and will need to be sent to the ModelChildBinder.
-          List<UpdatableModelChild> appendedChildren = new ArrayList<>();
-          List<StreamStructure> removedChildren = new ArrayList<>();
+          // All appends and updates are considered unbound (childrenToBind) and will need to be
+          // sent to the ModelChildBinder.
+          Map<String, UpdatableModelChild> appendedChildren = new HashMap<>();
           List<UpdatableModelChild> childrenToBind = new ArrayList<>();
+          boolean removedChildren = false;
           for (StreamStructure structureChange : change.structureChanges) {
             if (filterPredicate != null && !filterPredicate.test(structureChange)) {
               continue;
             }
             if (structureChange.getOperation() == Operation.UPDATE_OR_APPEND) {
+              String contentId = structureChange.getContentId();
               UpdatableModelChild child =
-                  new UpdatableModelChild(
-                      structureChange.getContentId(), structureChange.getParentContentId());
-              appendedChildren.add(child);
+                  new UpdatableModelChild(contentId, structureChange.getParentContentId());
+              appendedChildren.put(contentId, child);
               childrenToBind.add(child);
             } else if (structureChange.getOperation() == Operation.REMOVE) {
-              removedChildren.add(structureChange);
+              removedChildren = true;
             }
           }
 
           RemoveTracking<?> removeTracking = null;
-          if (removeTrackingFactory != null
-              && change.mutationContext != null
-              && !removedChildren.isEmpty()) {
-            // Remove tracking is enabled.
+          if (removeTrackingFactory != null && change.mutationContext != null && removedChildren) {
             removeTracking = removeTrackingFactory.create(change.mutationContext);
           }
 
@@ -568,7 +565,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           // Mutate the Model
           MutationHandler mutationHandler =
               getMutationHandler(change.updateChanges, change.mutationContext);
-          processMutation(mutationHandler, appendedChildren, removedChildren, removeTracking);
+          processMutation(
+              mutationHandler, change.structureChanges, appendedChildren, removeTracking);
+
           if (removeTracking != null) {
             // Update the UI on the main thread.
             mainThreadRunner.execute(
@@ -599,11 +598,11 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                   : null;
           Logger.i(
               TAG,
-              "ModelProvider Mutation committed - appendedChildren %s, updateChildren %s, "
+              "ModelProvider Mutation committed - structure changes %s, childrenToBind %s, "
                   + "removedChildren %s, Token %s",
-              appendedChildren.size(),
-              change.updateChanges.size(),
-              removedChildren.size(),
+              change.structureChanges,
+              childrenToBind.size(),
+              removedChildren,
               token != null);
           return null;
         }
@@ -634,11 +633,13 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         /** Process the structure changes to update the model. */
         void processMutation(
             MutationHandler mutationHandler,
-            List<UpdatableModelChild> appendedChildren,
-            List<StreamStructure> removedChildren,
+            List<StreamStructure> structureChanges,
+            Map<String, UpdatableModelChild> appendedChildren,
             /*@Nullable*/ RemoveTracking<?> removeTracking) {
 
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+          int appends = 0;
+          int removes = 0;
           synchronized (lock) {
             // Processing before the structural mutation
             mutationHandler.preMutation();
@@ -646,51 +647,54 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             // process the structure changes
             String currentParentKey = null;
             ArrayList<UpdatableModelChild> childrenList = null;
-            for (UpdatableModelChild modelChild : appendedChildren) {
-              if (!modelChild.hasParentId()) {
-                if (!createRoot(modelChild)) {
-                  Logger.e(TAG, "Root update failed, invalidating model");
-                  currentState = State.INVALIDATED;
-                  List<ModelProviderObserver> observers = getObserversToNotify();
-                  mainThreadRunner.execute(
-                      TAG + "-multipleRootInvalidation",
-                      () -> {
-                        for (ModelProviderObserver observer : observers) {
-                          observer.onSessionFinished();
-                        }
-                      });
-                  return;
+            for (StreamStructure structure : structureChanges) {
+              if (structure.getOperation() == Operation.UPDATE_OR_APPEND) {
+                UpdatableModelChild modelChild = appendedChildren.get(structure.getContentId());
+                if (modelChild == null) {
+                  Logger.w(TAG, "Didn't find update child for %s", structure.getContentId());
+                  continue;
                 }
+                if (!modelChild.hasParentId()) {
+                  if (!createRoot(modelChild)) {
+                    Logger.e(TAG, "Root update failed, invalidating model");
+                    currentState = State.INVALIDATED;
+                    List<ModelProviderObserver> observers = getObserversToNotify();
+                    mainThreadRunner.execute(
+                        TAG + "-multipleRootInvalidation",
+                        () -> {
+                          for (ModelProviderObserver observer : observers) {
+                            observer.onSessionFinished();
+                          }
+                        });
+                    return;
+                  }
+                  contents.put(modelChild.getContentId(), modelChild);
+                  appends++;
+                  continue;
+                }
+
+                String parentKey = Validators.checkNotNull(modelChild.getParentId());
+                if (!parentKey.equals(currentParentKey)) {
+                  childrenList = getChildList(parentKey);
+                  currentParentKey = parentKey;
+                }
+                if (childrenList == null) {
+                  Logger.e(TAG, "childrenList was not set");
+                  continue;
+                }
+                childrenList.add(modelChild);
                 contents.put(modelChild.getContentId(), modelChild);
-                continue;
-              }
+                appends++;
 
-              String parentKey = Validators.checkNotNull(modelChild.getParentId());
-              if (!parentKey.equals(currentParentKey)) {
-                childrenList = getChildList(parentKey);
-                currentParentKey = parentKey;
+                mutationHandler.appendChild(parentKey, modelChild);
+              } else if (structure.getOperation() == Operation.REMOVE) {
+                handleRemoveOperation(mutationHandler, structure, removeTracking);
+                removes++;
+                contents.remove(structure.getContentId());
               }
-              if (childrenList == null) {
-                Logger.e(TAG, "childrenList was not set");
-                continue;
-              }
-              childrenList.add(modelChild);
-              contents.put(modelChild.getContentId(), modelChild);
-              mutationHandler.appendChild(parentKey, modelChild);
-            }
-
-            for (StreamStructure removeChild : removedChildren) {
-              handleRemoveOperation(mutationHandler, removeChild, removeTracking);
-              contents.remove(removeChild.getContentId());
             }
           }
-          timeTracker.stop(
-              "",
-              "modelMutation",
-              "appends",
-              appendedChildren.size(),
-              "removes",
-              removedChildren.size());
+          timeTracker.stop("", "modelMutation", "appends", appends, "removes", removes);
         }
       };
 

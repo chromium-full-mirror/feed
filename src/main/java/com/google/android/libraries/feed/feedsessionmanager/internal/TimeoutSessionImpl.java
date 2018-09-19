@@ -21,11 +21,9 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
-import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -90,13 +88,10 @@ public class TimeoutSessionImpl extends SessionImpl {
           // Calculate the children to remove and append StreamStructure remove operations
           String lowestChild = Validators.checkNotNull(viewDepthProvider).getChildViewDepth();
           if (lowestChild != null) {
-            List<StreamStructure> removeOperations =
-                removeItems(lowestChild, rootChildren, streamStructures);
+            List<StreamStructure> removeOperations = removeItems(lowestChild, rootChildren);
             if (!removeOperations.isEmpty()) {
-              taskQueue.execute(
-                  "removeLegacyHead",
-                  TaskType.BACKGROUND,
-                  () -> updateStoreWithRemoves(removeOperations));
+              removeOperations.addAll(streamStructures);
+              streamStructures = removeOperations;
             }
           }
         }
@@ -114,33 +109,14 @@ public class TimeoutSessionImpl extends SessionImpl {
     return false;
   }
 
-  private void updateStoreWithRemoves(List<StreamStructure> changes) {
-    SessionMutation sessionMutation = store.editSession(streamSession);
-    for (StreamStructure change : changes) {
-      sessionMutation.add(change);
-    }
-    sessionMutation.commit();
-  }
-
   @VisibleForTesting
-  List<StreamStructure> removeItems(
-      String lowestChild, List<ModelChild> rootChildren, List<StreamStructure> streamStructures) {
+  List<StreamStructure> removeItems(String lowestChild, List<ModelChild> rootChildren) {
     boolean remove = false;
     List<StreamStructure> removeOperations = new ArrayList<>();
     for (ModelChild child : rootChildren) {
-      if (remove) {
-        Logger.i(TAG, "Remove child %s", child.getContentId());
-        StreamStructure removeOperation =
-            createRemoveFeature(child.getContentId(), child.getParentId());
-        streamStructures.add(removeOperation);
-        removeOperations.add(removeOperation);
-        continue;
-      } else if (child.getType() == Type.TOKEN) {
-        Logger.i(TAG, "Remove token %s", child.getContentId());
-        streamStructures.add(createRemoveFeature(child.getContentId(), child.getParentId()));
-        continue;
-      }
-      if (child.getContentId().equals(lowestChild)) {
+      if (remove || child.getType() == Type.TOKEN) {
+        removeOperations.add(createRemoveFeature(child.getContentId(), child.getParentId()));
+      } else if (child.getContentId().equals(lowestChild)) {
         remove = true;
       }
     }

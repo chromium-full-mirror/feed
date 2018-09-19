@@ -135,13 +135,9 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     for (int i = 0; i < childCount; i++) {
       modelChildren.add(createModelChild(i));
     }
-    List<StreamStructure> streamStructures = new ArrayList<>();
     String lowestChild = contentIdGenerators.createFeatureContentId(6);
-    List<StreamStructure> removedItems =
-        session.removeItems(lowestChild, modelChildren, streamStructures);
-
-    assertThat(removedItems).hasSize(3);
-    assertThat(streamStructures).hasSize(3);
+    List<StreamStructure> removeOperations = session.removeItems(lowestChild, modelChildren);
+    assertThat(removeOperations).hasSize(3);
   }
 
   private ModelChild createModelChild(long id) {
