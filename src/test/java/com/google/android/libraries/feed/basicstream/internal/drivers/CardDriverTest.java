@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
@@ -117,7 +118,8 @@ public class CardDriverTest {
             mock(ModelProvider.class),
             POSITION,
             contentDriverChild,
-            mock(StreamOfflineMonitor.class));
+            mock(StreamOfflineMonitor.class),
+            mock(ContextMenuHelper.class));
   }
 
   @Test
@@ -181,7 +183,8 @@ public class CardDriverTest {
         ModelProvider modelProvider,
         int position,
         ContentDriver childContentDriver,
-        StreamOfflineMonitor streamOfflineMonitor) {
+        StreamOfflineMonitor streamOfflineMonitor,
+        ContextMenuHelper contextMenuHelper) {
       super(
           actionApi,
           actionManager,
@@ -192,7 +195,8 @@ public class CardDriverTest {
           modelProvider,
           position,
           streamOfflineMonitor,
-          contentChangedListener);
+          contentChangedListener,
+          contextMenuHelper);
       this.child = childContentDriver;
     }
 

@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.basicstream.internal.actions.StreamActi
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.OneShotVisibilityLoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
+import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
@@ -85,7 +86,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       int position,
       FeedActionPayload swipeAction,
       StreamOfflineMonitor streamOfflineMonitor,
-      ContentChangedListener contentChangedListener) {
+      ContentChangedListener contentChangedListener,
+      ContextMenuHelper contextMenuHelper) {
     Content content = contentFeatureModel.getStreamFeature().getContent();
 
     PietContent pietContent = getPietContent(content);
@@ -109,7 +111,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
             actionManager,
             basicLoggingApi,
             contentLoggingData,
-            modelProvider.getSessionToken());
+            modelProvider.getSessionToken(),
+            contextMenuHelper);
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
     contentUrl = representationData.getUri();
@@ -258,7 +261,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ActionManager actionManager,
       BasicLoggingApi basicLoggingApi,
       ContentLoggingData contentLoggingData,
-      /*@Nullable*/ String sessionToken) {
+      /*@Nullable*/ String sessionToken,
+      ContextMenuHelper contextMenuHelper) {
     return new StreamActionApiImpl(
         context,
         actionApi,
@@ -266,6 +270,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
         actionManager,
         basicLoggingApi,
         contentLoggingData,
+        contextMenuHelper,
         sessionToken);
   }
 

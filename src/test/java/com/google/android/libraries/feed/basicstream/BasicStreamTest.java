@@ -59,6 +59,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanc
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.FakeClock;
@@ -735,7 +736,8 @@ public class BasicStreamTest {
         ScrollRestorer scrollRestorer,
         BasicLoggingApi basicLoggingApi,
         StreamOfflineMonitor streamOfflineMonitor,
-        KnownContentApi knownContentApi) {
+        KnownContentApi knownContentApi,
+        ContextMenuHelper contextMenuHelper) {
       streamDriverScrollRestorer = scrollRestorer;
       return streamDriver;
     }

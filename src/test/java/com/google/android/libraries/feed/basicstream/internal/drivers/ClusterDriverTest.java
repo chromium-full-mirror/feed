@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
@@ -89,7 +90,8 @@ public class ClusterDriverTest {
             mock(ModelProvider.class),
             /* position= */ 0,
             cardDriver,
-            mock(StreamOfflineMonitor.class));
+            mock(StreamOfflineMonitor.class),
+            mock(ContextMenuHelper.class));
   }
 
   @Test
@@ -130,7 +132,8 @@ public class ClusterDriverTest {
         ModelProvider modelProvider,
         int position,
         CardDriver cardDriver,
-        StreamOfflineMonitor streamOfflineMonitor) {
+        StreamOfflineMonitor streamOfflineMonitor,
+        ContextMenuHelper contextMenuHelper) {
       super(
           actionApi,
           actionManager,
@@ -141,7 +144,8 @@ public class ClusterDriverTest {
           modelProvider,
           position,
           streamOfflineMonitor,
-          contentChangedListener);
+          contentChangedListener,
+          contextMenuHelper);
       this.cardDriver = cardDriver;
     }
 

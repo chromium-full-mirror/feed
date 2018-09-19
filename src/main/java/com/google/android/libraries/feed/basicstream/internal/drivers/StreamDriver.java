@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -65,6 +66,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final ScrollRestorer scrollRestorer;
   private final BasicLoggingApi basicLoggingApi;
   private final StreamOfflineMonitor streamOfflineMonitor;
+  private final ContextMenuHelper contextMenuHelper;
 
   private boolean rootFeatureConsumed;
   private boolean modelFeatureChangeObserverRegistered;
@@ -84,7 +86,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       ScrollRestorer scrollRestorer,
       BasicLoggingApi basicLoggingApi,
       StreamOfflineMonitor streamOfflineMonitor,
-      KnownContentApi knownContentApi) {
+      KnownContentApi knownContentApi,
+      ContextMenuHelper contextMenuHelper) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -92,6 +95,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     this.modelProvider = modelProvider;
     this.context = context;
     this.snackbarApi = snackbarApi;
+    this.contextMenuHelper = contextMenuHelper;
     this.modelChildFeatureDriverMap = new HashMap<>();
     this.featureDrivers = new ArrayList<>();
     this.configuration = configuration;
@@ -423,7 +427,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         modelProvider,
         position,
         streamOfflineMonitor,
-        contentChangedListener);
+        contentChangedListener,
+        contextMenuHelper);
   }
 
   @VisibleForTesting
@@ -438,7 +443,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         modelProvider,
         position,
         streamOfflineMonitor,
-        contentChangedListener);
+        contentChangedListener,
+        contextMenuHelper);
   }
 
   @VisibleForTesting

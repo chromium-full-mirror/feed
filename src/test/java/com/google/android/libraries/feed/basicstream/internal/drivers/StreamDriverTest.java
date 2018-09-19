@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -604,7 +605,8 @@ public class StreamDriverTest {
           scrollRestorer,
           basicLoggingApi,
           streamOfflineMonitor,
-          knownContentApi);
+          knownContentApi,
+          mock(ContextMenuHelper.class));
       childrenCreated = new ArrayList<>();
     }
 

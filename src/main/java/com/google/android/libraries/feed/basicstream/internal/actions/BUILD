@@ -10,6 +10,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/actionparser",
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/logging",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/util",
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",

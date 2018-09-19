@@ -22,6 +22,7 @@ import android.widget.PopupMenu;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
@@ -44,6 +45,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final ActionManager actionManager;
   private final BasicLoggingApi basicLoggingApi;
   private final ContentLoggingData contentLoggingData;
+  private final ContextMenuHelper contextMenuHelper;
 
   /*@Nullable*/ private final String sessionToken;
 
@@ -54,6 +56,7 @@ public class StreamActionApiImpl implements StreamActionApi {
       ActionManager actionManager,
       BasicLoggingApi basicLoggingApi,
       ContentLoggingData contentLoggingData,
+      ContextMenuHelper contextMenuHelper,
       /*@Nullable*/ String sessionToken) {
     this.context = context;
     this.actionApi = actionApi;
@@ -61,6 +64,7 @@ public class StreamActionApiImpl implements StreamActionApi {
     this.actionManager = actionManager;
     this.basicLoggingApi = basicLoggingApi;
     this.contentLoggingData = contentLoggingData;
+    this.contextMenuHelper = contextMenuHelper;
     this.sessionToken = sessionToken;
   }
 

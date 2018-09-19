@@ -51,6 +51,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanc
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.scroll.StreamScrollMonitor;
+import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -104,6 +105,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
   private final KnownContentApi knownContentApi;
 
   private RecyclerView recyclerView;
+  private ContextMenuHelper contextMenuHelper;
   private Context context;
   private List<Header> headers;
   private StreamConfiguration streamConfiguration;
@@ -275,7 +277,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
               initialScrollRestorer,
               basicLoggingApi,
               streamOfflineMonitor,
-              knownContentApi);
+              knownContentApi,
+              contextMenuHelper);
       adapter.setDriver(streamDriver);
       streamDriver.showZeroState(/* showSpinner= */ true);
     }
@@ -441,7 +444,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     adapter.setHeaders(headers);
     recyclerView = new RecyclerView(context);
     recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
-
+    contextMenuHelper = new ContextMenuHelper(recyclerView);
     new ItemTouchHelper(new StreamItemTouchCallbacks()).attachToRecyclerView(recyclerView);
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);
@@ -487,7 +490,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
             scrollRestorer,
             basicLoggingApi,
             streamOfflineMonitor,
-            knownContentApi);
+            knownContentApi,
+            contextMenuHelper);
 
     adapter.setDriver(streamDriver);
 
@@ -561,7 +565,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
       ScrollRestorer scrollRestorer,
       BasicLoggingApi basicLoggingApi,
       StreamOfflineMonitor streamOfflineMonitor,
-      KnownContentApi knownContentApi) {
+      KnownContentApi knownContentApi,
+      ContextMenuHelper contextMenuHelper) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -575,7 +580,8 @@ public class BasicStream implements Stream, ModelProviderObserver {
         scrollRestorer,
         basicLoggingApi,
         streamOfflineMonitor,
-        knownContentApi);
+        knownContentApi,
+        contextMenuHelper);
   }
 
   @VisibleForTesting
