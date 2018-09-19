@@ -13,16 +13,14 @@
 // limitations under the License.
 package com.google.android.libraries.feed.hostimpl.network;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.validateMockitoUsage;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -32,7 +30,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link NetworkClientWrapper}. */
@@ -43,7 +40,7 @@ public class NetworkClientWrapperTest {
   @Mock private HttpRequest request;
   @Mock private Consumer<HttpResponse> responseConsumer;
 
-  @Spy private MainThreadRunner mainThreadRunner = new FakeMainThreadRunner();
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
 
   @Before
   public void setup() {
@@ -62,7 +59,7 @@ public class NetworkClientWrapperTest {
         new NetworkClientWrapper(networkClient, threadUtils, mainThreadRunner);
     wrapper.send(request, responseConsumer);
     verify(networkClient).send(request, responseConsumer);
-    verify(mainThreadRunner, never()).execute(anyString(), any());
+    assertThat(mainThreadRunner.hasTasks()).isFalse();
   }
 
   @Test
@@ -71,14 +68,10 @@ public class NetworkClientWrapperTest {
     NetworkClientWrapper wrapper =
         new NetworkClientWrapper(networkClient, threadUtils, mainThreadRunner);
     wrapper.send(request, responseConsumer);
-    verify(networkClient).send(request, responseConsumer);
-    verify(mainThreadRunner).execute(anyString(), any(Runnable.class));
-  }
 
-  private static class FakeMainThreadRunner extends MainThreadRunner {
-    @Override
-    public void execute(String name, Runnable runnable) {
-      runnable.run();
-    }
+    assertThat(mainThreadRunner.hasTasks()).isTrue();
+    mainThreadRunner.runAllTasks();
+
+    verify(networkClient).send(request, responseConsumer);
   }
 }

@@ -158,7 +158,7 @@ public class BasicStreamTest {
 
     context = Robolectric.setupActivity(Activity.class);
     clock = new FakeClock();
-    mainThreadRunner = new FakeMainThreadRunner();
+    mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
     layoutManager = new LinearLayoutManagerWithFakePositioning(context);
 
     basicStream = createBasicStream(layoutManager);

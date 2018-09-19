@@ -21,17 +21,44 @@ import java.util.List;
 /** {@link MainThreadRunner} used for tests which is able to queue up tasks. */
 public class FakeMainThreadRunner extends MainThreadRunner {
 
+  private final boolean runTasksImmediately;
   private final List<Runnable> tasks = new ArrayList<>();
+  private final List<Runnable> completedTasks = new ArrayList<>();
+
+  public static FakeMainThreadRunner runTasksImmediately() {
+    return new FakeMainThreadRunner(true);
+  }
+
+  public static FakeMainThreadRunner queueAllTasks() {
+    return new FakeMainThreadRunner(false);
+  }
+
+  FakeMainThreadRunner(boolean runTasksImmediately) {
+    this.runTasksImmediately = runTasksImmediately;
+  }
 
   @Override
   public void execute(String name, Runnable runnable) {
     tasks.add(runnable);
+
+    if (runTasksImmediately) {
+      runAllTasks();
+    }
   }
 
   public void runAllTasks() {
     for (Runnable task : tasks) {
       task.run();
+      completedTasks.add(task);
     }
     tasks.clear();
+  }
+
+  public boolean hasTasks() {
+    return !tasks.isEmpty();
+  }
+
+  public int getCompletedTaskCount() {
+    return completedTasks.size();
   }
 }

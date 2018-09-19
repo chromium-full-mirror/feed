@@ -21,6 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -36,13 +37,17 @@ public class FeedModelProviderFactoryTest {
 
   @Mock private ThreadUtils threadUtils;
   @Mock private TimingUtils timingUtils;
-  @Mock private MainThreadRunner mainThreadRunner;
   @Mock private SessionManager sessionManager;
   @Mock private Configuration config;
+
+  private MainThreadRunner mainThreadRunner;
 
   @Before
   public void setUp() {
     initMocks(this);
+
+    mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+
     when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
     when(config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0)).thenReturn(0);
     when(config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0)).thenReturn(0);

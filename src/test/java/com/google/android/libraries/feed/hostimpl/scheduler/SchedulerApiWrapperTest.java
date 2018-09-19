@@ -14,16 +14,14 @@
 
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.validateMockitoUsage;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import org.junit.After;
@@ -31,7 +29,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link SchedulerApiWrapper}. */
@@ -42,7 +39,7 @@ public class SchedulerApiWrapperTest {
   @Mock private SchedulerApi schedulerApi;
   @Mock private SessionManagerState sessionManagerState;
 
-  @Spy private MainThreadRunner mainThreadRunner = new FakeMainThreadRunner();
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
   @Before
   public void setup() {
@@ -61,7 +58,7 @@ public class SchedulerApiWrapperTest {
         new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
     wrapper.shouldSessionRequestData(sessionManagerState);
     verify(schedulerApi).shouldSessionRequestData(sessionManagerState);
-    verify(mainThreadRunner, never()).execute(anyString(), any());
+    assertThat(mainThreadRunner.hasTasks()).isFalse();
   }
 
   @Test
@@ -71,7 +68,7 @@ public class SchedulerApiWrapperTest {
         new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
     wrapper.shouldSessionRequestData(sessionManagerState);
     verify(schedulerApi).shouldSessionRequestData(sessionManagerState);
-    verify(mainThreadRunner).execute(anyString(), any(Runnable.class));
+    assertThat(mainThreadRunner.getCompletedTaskCount()).isEqualTo(1);
   }
 
   @Test
@@ -81,7 +78,7 @@ public class SchedulerApiWrapperTest {
         new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
     wrapper.onReceiveNewContent(0);
     verify(schedulerApi).onReceiveNewContent(0);
-    verify(mainThreadRunner, never()).execute(anyString(), any());
+    assertThat(mainThreadRunner.hasTasks()).isFalse();
   }
 
   @Test
@@ -91,17 +88,17 @@ public class SchedulerApiWrapperTest {
         new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
     wrapper.onReceiveNewContent(0);
     verify(schedulerApi).onReceiveNewContent(0);
-    verify(mainThreadRunner).execute(anyString(), any(Runnable.class));
+    assertThat(mainThreadRunner.getCompletedTaskCount()).isEqualTo(1);
   }
 
   @Test
-  public void testOnRequestErrort_mainThread() {
+  public void testOnRequestError_mainThread() {
     when(threadUtils.isMainThread()).thenReturn(true);
     SchedulerApiWrapper wrapper =
         new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
     wrapper.onRequestError(0);
     verify(schedulerApi).onRequestError(0);
-    verify(mainThreadRunner, never()).execute(anyString(), any());
+    assertThat(mainThreadRunner.hasTasks()).isFalse();
   }
 
   @Test
@@ -111,13 +108,6 @@ public class SchedulerApiWrapperTest {
         new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
     wrapper.onRequestError(0);
     verify(schedulerApi).onRequestError(0);
-    verify(mainThreadRunner).execute(anyString(), any(Runnable.class));
-  }
-
-  private static class FakeMainThreadRunner extends MainThreadRunner {
-    @Override
-    public void execute(String name, Runnable runnable) {
-      runnable.run();
-    }
+    assertThat(mainThreadRunner.getCompletedTaskCount()).isEqualTo(1);
   }
 }

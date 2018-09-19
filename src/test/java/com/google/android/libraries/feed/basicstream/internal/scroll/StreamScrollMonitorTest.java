@@ -53,7 +53,7 @@ public class StreamScrollMonitorTest {
 
     Context context = Robolectric.setupActivity(Activity.class);
     recyclerView = new RecyclerView(context);
-    mainThreadRunner = new FakeMainThreadRunner();
+    mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
 
     streamScrollMonitor =
         new StreamScrollMonitor(recyclerView, contentChangedListener, mainThreadRunner);
