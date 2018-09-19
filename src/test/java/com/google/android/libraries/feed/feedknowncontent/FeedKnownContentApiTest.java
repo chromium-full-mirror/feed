@@ -15,9 +15,6 @@
 package com.google.android.libraries.feed.feedknowncontent;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -28,7 +25,7 @@ import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -61,7 +58,8 @@ public class FeedKnownContentApiTest {
   @Mock private KnownContentListener listener1;
   @Mock private KnownContentListener listener2;
   @Mock private Consumer<List<ContentMetadata>> knownContentConsumer;
-  @Mock private MainThreadRunner mainThreadRunner;
+
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
   @Captor
   private ArgumentCaptor<Function<StreamPayload, ContentMetadata>> knownContentFunctionCaptor;
@@ -75,13 +73,6 @@ public class FeedKnownContentApiTest {
   public void setUp() {
     initMocks(this);
     knownContentApi = new FeedKnownContentApi(sessionManager, mainThreadRunner);
-    doAnswer(
-            invocation -> {
-              ((Runnable) invocation.getArguments()[1]).run();
-              return null;
-            })
-        .when(mainThreadRunner)
-        .execute(anyString(), any(Runnable.class));
   }
 
   @Test
