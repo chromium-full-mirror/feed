@@ -600,7 +600,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
               TAG,
               "ModelProvider Mutation committed - structure changes %s, childrenToBind %s, "
                   + "removedChildren %s, Token %s",
-              change.structureChanges,
+              change.structureChanges.size(),
               childrenToBind.size(),
               removedChildren,
               token != null);
@@ -1063,7 +1063,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
     @Override
     public void removeChild(String parentKey, UpdatableModelChild child) {
-      Logger.i(TAG, "Removing child %s from %s", child.getContentId(), parentKey);
       FeatureChangeImpl change = getChange(parentKey);
       if (change != null) {
         change.getChildChangesImpl().removeChild(child);
@@ -1084,7 +1083,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       newParents.add(childKey);
       FeatureChangeImpl change = getChange(parentKey);
       if (change != null) {
-        Logger.i(TAG, "Add child %s [%s] to a parent %s", childKey, child.getType(), parentKey);
         change.getChildChangesImpl().addAppendChild(child);
       }
     }

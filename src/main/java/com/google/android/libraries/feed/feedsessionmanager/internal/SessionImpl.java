@@ -193,8 +193,6 @@ public class SessionImpl implements InitializableSession, Dumpable {
           addFeatureCnt++;
         }
       } else if (streamStructure.getOperation() == Operation.REMOVE) {
-        Logger.i(
-            TAG, "Removing Item %s from session %s", contentKey, streamSession.getStreamToken());
         sessionMutation.add(streamStructure);
         contentInSession.remove(contentKey);
         if (modelMutation != null) {
