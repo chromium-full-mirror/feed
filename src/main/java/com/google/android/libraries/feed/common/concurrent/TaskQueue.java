@@ -187,6 +187,22 @@ public class TaskQueue implements Dumpable {
     execute(task, taskType, runnable, null, 0);
   }
 
+  /**
+   * When running on a single thread in tests, it is possible that we set waitingForHeadReset after
+   * the task that would have cleared it is run. This only happens in tests since we use Direct
+   * Executors which can cause Tasks to run in a nested way not done when a SingleThreaded Executor
+   * is used. This method will reset the TaskQueue and run the queued tasks.
+   *
+   * <p>This can only be called from tests. Never call this from on test code.
+   */
+  @VisibleForTesting
+  public void runTasksForTest() {
+    synchronized (lock) {
+      waitingForHeadReset = false;
+    }
+    executeNextTask();
+  }
+
   /** Execute a task providing a timeout task */
   public void execute(
       String task,

@@ -85,6 +85,7 @@ public class InfrastructureIntegrationScope {
   private final FeedProtocolAdapter feedProtocolAdapter;
   private final FeedModelProviderFactory modelProviderFactory;
   private final FakeRequestManager fakeRequestManager;
+  private final TaskQueue taskQueue;
   private final FeedStore store;
 
   private InfrastructureIntegrationScope(
@@ -101,7 +102,7 @@ public class InfrastructureIntegrationScope {
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorageDirect contentStorage = new InMemoryContentStorage();
     JournalStorageDirect journalStorage = new InMemoryJournalStorage();
-    TaskQueue taskQueue = new TaskQueue(executorService, clock, false);
+    taskQueue = new TaskQueue(executorService, clock, false);
     store =
         new FeedStore(
             timingUtils,
@@ -146,6 +147,10 @@ public class InfrastructureIntegrationScope {
 
   public FeedStore getStore() {
     return store;
+  }
+
+  public TaskQueue getTaskQueue() {
+    return taskQueue;
   }
 
   public FakeRequestManager getRequestManager() {

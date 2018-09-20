@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDep
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -69,6 +70,12 @@ public class ViewDepthProviderTests {
         WireProtocolResponseBuilder.createFeatureContentId(6),
         WireProtocolResponseBuilder.createFeatureContentId(4)
       };
+  private static final ContentId[] REQUEST_TWO_WITH_DUPLICATES_PAGE =
+      new ContentId[] {
+        WireProtocolResponseBuilder.createFeatureContentId(5),
+        WireProtocolResponseBuilder.createFeatureContentId(4),
+        WireProtocolResponseBuilder.createFeatureContentId(7)
+      };
 
   @Mock private ThreadUtils threadUtils;
   @Mock private SchedulerApi schedulerApi;
@@ -78,6 +85,7 @@ public class ViewDepthProviderTests {
   private ProtocolAdapter protocolAdapter;
   private ModelProviderValidator modelValidator;
   private SessionManager sessionManager;
+  private TaskQueue taskQueue;
 
   @Before
   public void setUp() {
@@ -94,6 +102,7 @@ public class ViewDepthProviderTests {
     protocolAdapter = scope.getProtocolAdapter();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
     sessionManager = scope.getSessionManager();
+    taskQueue = scope.getTaskQueue();
   }
 
   @Test
@@ -171,6 +180,27 @@ public class ViewDepthProviderTests {
         REQUEST_TWO_WITH_DUPLICATES[0],
         REQUEST_TWO_WITH_DUPLICATES[1],
         REQUEST_TWO_WITH_DUPLICATES[2]);
+
+    // Now page in the same content, this should all be updates
+    responseBuilder = new WireProtocolResponseBuilder();
+    for (ContentId contentId : REQUEST_TWO_WITH_DUPLICATES_PAGE) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.SCHEDULED_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    // Due to running both requests on a single thread, we have to clear the TaskQueue
+    taskQueue.runTasksForTest();
+
+    modelValidator.assertCursorContents(
+        modelProvider,
+        REQUEST_ONE[0],
+        REQUEST_ONE[1],
+        REQUEST_TWO_WITH_DUPLICATES[0],
+        REQUEST_TWO_WITH_DUPLICATES[1],
+        REQUEST_TWO_WITH_DUPLICATES[2],
+        REQUEST_TWO_WITH_DUPLICATES_PAGE[2]);
   }
 
   private ViewDepthProvider viewDepthProvider =
