@@ -20,6 +20,7 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import android.view.View;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
+import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
 import java.util.List;
 
@@ -50,8 +51,7 @@ class TemplateBinder {
     FrameContext templateContext =
         frameContext.createTemplateContext(model.getTemplate(), model.getBindingContext());
 
-    TemplateKey templateKey =
-        new TemplateKey(model.getTemplate(), frameContext.getPietSharedStates());
+    TemplateKey templateKey = makeTemplateKey(model, frameContext);
     ElementAdapter<? extends View, ?> adapter = templateRecyclerPool.get(templateKey);
 
     if (adapter == null) {
@@ -69,8 +69,7 @@ class TemplateBinder {
 
   ElementAdapter<? extends View, ?> createTemplateAdapter(
       TemplateAdapterModel model, FrameContext frameContext) {
-    TemplateKey templateKey =
-        new TemplateKey(model.getTemplate(), frameContext.getPietSharedStates());
+    TemplateKey templateKey = makeTemplateKey(model, frameContext);
     ElementAdapter<? extends View, ?> adapter = templateRecyclerPool.get(templateKey);
 
     if (adapter == null) {
@@ -92,8 +91,7 @@ class TemplateBinder {
       ElementAdapter<? extends View, ?> adapter,
       TemplateAdapterModel model,
       FrameContext frameContext) {
-    TemplateKey templateKey =
-        new TemplateKey(model.getTemplate(), frameContext.getPietSharedStates());
+    TemplateKey templateKey = makeTemplateKey(model, frameContext);
 
     checkNotNull(adapter.getKey(), "Adapter key was null; not initialized correctly?");
     checkState(
@@ -107,12 +105,20 @@ class TemplateBinder {
     adapter.bindModel(model.getTemplate().getElement(), templateContext);
   }
 
+  private static TemplateKey makeTemplateKey(
+      TemplateAdapterModel model, FrameContext frameContext) {
+    return new TemplateKey(
+        model.getTemplate(),
+        frameContext.getPietSharedStates(),
+        frameContext.getMediaQueryStylesheet(model.getTemplate()));
+  }
+
   /**
    * Determines whether two templates are compatible for recycling. We're going to call the hash
    * code good enough for performance reasons (.equals() is expensive), and hope we don't get a lot
    * of collisions.
    */
-  @SuppressWarnings("ReferenceEquality")
+  @SuppressWarnings({"ReferenceEquality", "EqualsUsingHashCode"})
   static boolean templateEquals(/*@Nullable*/ Template template1, /*@Nullable*/ Template template2) {
     if (template1 == template2) {
       return true;
@@ -127,38 +133,67 @@ class TemplateBinder {
     private final Template template;
     /*@Nullable*/ private final List<PietSharedState> pietSharedStates;
 
-    TemplateKey(Template template, /*@Nullable*/ List<PietSharedState> pietSharedStates) {
+    // If the Template references a Stylesheet that has MediaQueryConditions on it, it needs to be
+    // part of the key.
+    /*@Nullable*/ private final Stylesheet mediaQueryBasedStylesheet;
+
+    TemplateKey(
+        Template template,
+        /*@Nullable*/ List<PietSharedState> pietSharedStates,
+        /*@Nullable*/ Stylesheet mediaQueryBasedStylesheet) {
       this.template = template;
       this.pietSharedStates = pietSharedStates;
+      this.mediaQueryBasedStylesheet = mediaQueryBasedStylesheet;
     }
 
-    /** Equals checks the hashCode of template and sharedState to avoid expensive proto equals. */
-    @SuppressWarnings("ReferenceEquality")
+    /** Equals checks the hashCode of the component fields to avoid expensive proto equals. */
+    @SuppressWarnings({"ReferenceEquality", "EqualsUsingHashCode"})
     @Override
     public boolean equals(/*@Nullable*/ Object o) {
       if (this == o) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (!(o instanceof TemplateKey)) {
         return false;
       }
 
       TemplateKey that = (TemplateKey) o;
 
+      // Check that Templates are equal
       if (!templateEquals(template, that.template)) {
         return false;
-      } else if (that.pietSharedStates == null || this.pietSharedStates == null) {
-        return this.pietSharedStates == that.pietSharedStates;
-      } else {
-        return this.pietSharedStates.size() == that.pietSharedStates.size()
-            && this.pietSharedStates.hashCode() == that.pietSharedStates.hashCode();
       }
+      // Check that PietSharedStates are equal or both null
+      if (that.pietSharedStates == null ^ this.pietSharedStates == null) {
+        return false;
+      }
+      if (this.pietSharedStates != null
+          && that.pietSharedStates != null
+          && (this.pietSharedStates.size() != that.pietSharedStates.size()
+              || this.pietSharedStates.hashCode() != that.pietSharedStates.hashCode())) {
+        return false;
+      }
+      // Check that stylesheets are equal or both null
+      if (that.mediaQueryBasedStylesheet == null ^ this.mediaQueryBasedStylesheet == null) {
+        return false;
+      }
+      if (this.mediaQueryBasedStylesheet != null
+          && that.mediaQueryBasedStylesheet != null
+          && this.mediaQueryBasedStylesheet.hashCode()
+              != that.mediaQueryBasedStylesheet.hashCode()) {
+        return false;
+      }
+
+      return true;
     }
 
     @Override
     public int hashCode() {
       int result = template.hashCode();
       result = 31 * result + (pietSharedStates != null ? pietSharedStates.hashCode() : 0);
+      result =
+          31 * result
+              + (mediaQueryBasedStylesheet != null ? mediaQueryBasedStylesheet.hashCode() : 0);
       return result;
     }
   }
@@ -188,13 +223,13 @@ class TemplateBinder {
       return bindingContext;
     }
 
-    @SuppressWarnings("ReferenceEquality")
+    @SuppressWarnings({"ReferenceEquality", "EqualsUsingHashCode"})
     @Override
     public boolean equals(/*@Nullable*/ Object o) {
       if (this == o) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (!(o instanceof TemplateAdapterModel)) {
         return false;
       }
 

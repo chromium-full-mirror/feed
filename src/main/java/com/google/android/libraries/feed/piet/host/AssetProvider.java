@@ -53,4 +53,7 @@ public interface AssetProvider {
 
   /** Returns the default corner rounding radius in pixels. */
   int getDefaultCornerRadius();
+
+  /** Returns whether the theme for the Piet rendering context is a "dark theme". */
+  boolean isDarkTheme();
 }

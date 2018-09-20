@@ -73,4 +73,10 @@ public class PietAssetProvider implements AssetProvider {
   public int getDefaultCornerRadius() {
     return cardConfiguration.getDefaultCornerRadius();
   }
+
+  @Override
+  public boolean isDarkTheme() {
+    // TODO: Support dark theme
+    return false;
+  }
 }

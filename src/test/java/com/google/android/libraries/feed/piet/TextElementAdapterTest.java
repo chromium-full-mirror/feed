@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier.SINGLETON_KEY;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
@@ -31,6 +30,7 @@ import android.text.TextUtils.TruncateAt;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.piet.TextElementAdapter.TextElementKey;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
@@ -95,8 +95,9 @@ public class TextElementAdapterTest {
   @Test
   public void testSetFont_boldFont() {
     Font font = Font.newBuilder().setWeight(FontWeight.BOLD).build();
+    TextElementKey key = new TextElementKey(font);
 
-    adapter.setValuesUsedInRecyclerKey(font);
+    adapter.setValuesUsedInRecyclerKey(key);
     Typeface typeface = adapter.getBaseView().getTypeface();
     // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
     assertThat(typeface.getStyle() & Typeface.BOLD).isGreaterThan(0);
@@ -106,8 +107,9 @@ public class TextElementAdapterTest {
   @Test
   public void testSetFont_italics() {
     Font font = Font.newBuilder().setItalic(true).build();
+    TextElementKey key = new TextElementKey(font);
 
-    adapter.setValuesUsedInRecyclerKey(font);
+    adapter.setValuesUsedInRecyclerKey(key);
     Typeface typeface = adapter.getBaseView().getTypeface();
     // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
     assertThat(typeface.getStyle() & Typeface.BOLD).isEqualTo(0);
@@ -305,8 +307,8 @@ public class TextElementAdapterTest {
     }
 
     @Override
-    RecyclerKey createKey(Font font) {
-      return SINGLETON_KEY;
+    TextElementKey createKey(Font font) {
+      return new TextElementKey(font);
     }
   }
 }

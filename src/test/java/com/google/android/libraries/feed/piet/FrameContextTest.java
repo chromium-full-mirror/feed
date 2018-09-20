@@ -20,6 +20,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -51,6 +53,9 @@ import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.MediaQueriesProto.ComparisonCondition;
+import com.google.search.now.ui.piet.MediaQueriesProto.FrameWidthCondition;
+import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
@@ -72,6 +77,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link FrameContext}. */
@@ -94,6 +100,7 @@ public class FrameContextTest {
   private static final String BINDING_ID = "BINDING_ID";
   private static final String INVALID_BINDING_ID = "NOT_A_REAL_BINDING_ID";
   private static final Map<String, Template> DEFAULT_TEMPLATES = new HashMap<>();
+  private static final int FRAME_WIDTH_PX = 999999;
 
   static {
     DEFAULT_TEMPLATES.put(DEFAULT_TEMPLATE_ID, DEFAULT_TEMPLATE);
@@ -111,11 +118,13 @@ public class FrameContextTest {
   private List<PietSharedState> pietSharedStates;
   private PietStylesHelper pietStylesHelper;
   private StyleProvider defaultStyleProvider;
+  private Context context;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
 
+    context = Robolectric.setupActivity(Activity.class);
     hostBindingProvider = new HostBindingProvider();
     hostProviders =
         new HostProviders(assetProvider, mock(CustomElementProvider.class), hostBindingProvider);
@@ -123,7 +132,8 @@ public class FrameContextTest {
 
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);
     pietSharedStates = new ArrayList<>();
-    pietStylesHelper = new PietStylesHelper(pietSharedStates);
+    pietStylesHelper =
+        new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, context);
   }
 
   @Test
@@ -178,7 +188,7 @@ public class FrameContextTest {
             DEFAULT_FRAME,
             defaultStylesheet,
             pietSharedStates,
-            new PietStylesHelper(pietSharedStates),
+            new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, context),
             DebugBehavior.VERBOSE,
             debugLogger,
             actionHandler,
@@ -193,7 +203,7 @@ public class FrameContextTest {
 
   @Test
   public void testThrowsWithNoBindingContext() {
-    frameContext = makeFrameContextForFrame();
+    frameContext = makeFrameContextForDefaultFrame();
 
     assertThatRunnable(
             () -> frameContext.getActionsFromBinding(ActionsBindingRef.getDefaultInstance()))
@@ -256,6 +266,27 @@ public class FrameContextTest {
     // Can't look up the SAMPLE_STYLE_ID anymore, so we return the default.
     assertThat(frameContextWithTemplate.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
         .isEqualTo(templateDefaultColor);
+  }
+
+  @Test
+  public void testCreateTemplateContext_stylesheetId() {
+    String styleId = "cotton";
+    int width = 343;
+    Style style = Style.newBuilder().setStyleId(styleId).setWidth(width).build();
+    String stylesheetId = "linen";
+    Stylesheet stylesheet =
+        Stylesheet.newBuilder().setStylesheetId(stylesheetId).addStyles(style).build();
+    pietSharedStates.add(PietSharedState.newBuilder().addStylesheets(stylesheet).build());
+    frameContext = defaultFrameContext();
+
+    Template template =
+        Template.newBuilder().setTemplateId("kingSize").setStylesheetId(stylesheetId).build();
+
+    FrameContext templateContext =
+        frameContext.createTemplateContext(template, BindingContext.getDefaultInstance());
+
+    StyleIdsStack styleRef = StyleIdsStack.newBuilder().addStyleIds(styleId).build();
+    assertThat(templateContext.makeStyleFor(styleRef).getWidth()).isEqualTo(width);
   }
 
   /** Bind a template with a child default style that is defined by the Template. */
@@ -1099,16 +1130,61 @@ public class FrameContextTest {
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 
-  private FrameContext defaultFrameContext() {
-    return makeFrameContextForFrame();
+  @Test
+  public void testGetMediaQueryStylesheet() {
+    String noMediaQueryStylesheetId = "noMediaQueries";
+    Stylesheet noMediaQueryStylesheet =
+        Stylesheet.newBuilder().setStylesheetId(noMediaQueryStylesheetId).build();
+
+    String mediaQueryStylesheetId = "mediaQueries";
+    Stylesheet mediaQueryStylesheet =
+        Stylesheet.newBuilder()
+            .setStylesheetId(mediaQueryStylesheetId)
+            .addConditions(
+                MediaQueryCondition.newBuilder()
+                    .setFrameWidth(
+                        FrameWidthCondition.newBuilder()
+                            .setWidth(0)
+                            .setCondition(ComparisonCondition.GREATER_THAN)))
+            .build();
+
+    pietSharedStates.add(
+        PietSharedState.newBuilder()
+            .addStylesheets(mediaQueryStylesheet)
+            .addStylesheets(noMediaQueryStylesheet)
+            .build());
+
+    FrameContext frameContext = defaultFrameContext();
+
+    Template inlineStylesheetTemplate =
+        Template.newBuilder()
+            .setStylesheet(Stylesheet.newBuilder().setStylesheetId("inline"))
+            .build();
+    assertThat(frameContext.getMediaQueryStylesheet(inlineStylesheetTemplate)).isNull();
+
+    Template notFoundStylesheetTemplate = Template.newBuilder().setStylesheetId("NotFound").build();
+    assertThat(frameContext.getMediaQueryStylesheet(notFoundStylesheetTemplate)).isNull();
+
+    Template noConditionsTemplate =
+        Template.newBuilder().setStylesheetId(noMediaQueryStylesheetId).build();
+    assertThat(frameContext.getMediaQueryStylesheet(noConditionsTemplate)).isNull();
+
+    Template mediaQueryTemplate =
+        Template.newBuilder().setStylesheetId(mediaQueryStylesheetId).build();
+    assertThat(frameContext.getMediaQueryStylesheet(mediaQueryTemplate))
+        .isEqualTo(mediaQueryStylesheet);
   }
 
-  private FrameContext makeFrameContextForFrame() {
+  private FrameContext defaultFrameContext() {
+    return makeFrameContextForDefaultFrame();
+  }
+
+  private FrameContext makeFrameContextForDefaultFrame() {
     return new FrameContext(
         DEFAULT_FRAME,
         defaultStylesheet,
         pietSharedStates,
-        new PietStylesHelper(pietSharedStates),
+        new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, context),
         DebugBehavior.VERBOSE,
         debugLogger,
         actionHandler,
@@ -1151,7 +1227,14 @@ public class FrameContextTest {
 
   private FrameContext makeFrameContextFromFrame(Frame frame) {
     return FrameContext.createFrameContext(
-        frame, pietSharedStates, DebugBehavior.VERBOSE, debugLogger, actionHandler, hostProviders);
+        frame,
+        FRAME_WIDTH_PX,
+        pietSharedStates,
+        DebugBehavior.VERBOSE,
+        debugLogger,
+        actionHandler,
+        hostProviders,
+        context);
   }
 
   private void setUpPietSharedStates() {

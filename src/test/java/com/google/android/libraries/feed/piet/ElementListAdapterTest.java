@@ -103,7 +103,6 @@ public class ElementListAdapterTest {
     context = RuntimeEnvironment.application;
 
     adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
-    adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(adapterParameters.defaultStyleProvider);
@@ -111,6 +110,8 @@ public class ElementListAdapterTest {
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+
+    adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }
 
   @Test

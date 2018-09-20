@@ -16,8 +16,11 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
+import android.content.Context;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
@@ -36,36 +39,46 @@ public class PietStylesHelper {
   private final Map<String, Stylesheet> stylesheets = new NoKeyOverwriteHashMap<>("Stylesheet");
   private final Map<String, Template> templates = new NoKeyOverwriteHashMap<>("Template");
 
-  PietStylesHelper(List<PietSharedState> pietSharedStates) {
-    setupStylesheetsAndTemplates(pietSharedStates);
-  }
+  private final MediaQueryHelper mediaQueryHelper;
 
-  /**
-   * Sets up maps of stylesheets and templates from a list of {@link PietSharedState}. If a
-   * stylesheet or template id is shared between any number of PietSharedStates, the last
-   * stylesheet/template will be used.
-   */
-  private void setupStylesheetsAndTemplates(
-      /*@UnderInitialization*/ PietStylesHelper this, List<PietSharedState> pietSharedStates) {
+  PietStylesHelper(
+      List<PietSharedState> pietSharedStates,
+      int frameWidthPx,
+      AssetProvider assetProvider,
+      Context context) {
+    mediaQueryHelper = new MediaQueryHelper(frameWidthPx, assetProvider, context);
     for (PietSharedState sharedState : pietSharedStates) {
       if (sharedState.getStylesheetsCount() > 0) {
         for (Stylesheet stylesheet : sharedState.getStylesheetsList()) {
-          stylesheets.put(stylesheet.getStylesheetId(), stylesheet);
+          if (mediaQueryHelper.areMediaQueriesMet(stylesheet.getConditionsList())) {
+            stylesheets.put(stylesheet.getStylesheetId(), stylesheet);
+          }
         }
       }
 
       for (Template template : sharedState.getTemplatesList()) {
-        templates.put(template.getTemplateId(), template);
+        if (mediaQueryHelper.areMediaQueriesMet(template.getConditionsList())) {
+          templates.put(template.getTemplateId(), template);
+        }
       }
     }
   }
 
+  boolean areMediaQueriesMet(List<MediaQueryCondition> conditions) {
+    return mediaQueryHelper.areMediaQueriesMet(conditions);
+  }
+
+  /*@Nullable*/
+  Stylesheet getStylesheet(String stylesheetId) {
+    return stylesheets.get(stylesheetId);
+  }
+
   /** Returns a Map of style_id to Style. This represents the Stylesheet. */
-  NoKeyOverwriteHashMap<String, Style> getStylesheet(String stylesheetId) {
+  NoKeyOverwriteHashMap<String, Style> getStylesheetMap(String stylesheetId) {
     if (stylesheetScopes.containsKey(stylesheetId)) {
       return stylesheetScopes.get(stylesheetId);
     }
-    Stylesheet stylesheet = stylesheets.get(stylesheetId);
+    Stylesheet stylesheet = getStylesheet(stylesheetId);
     if (stylesheet != null) {
       NoKeyOverwriteHashMap<String, Style> styleMap = createMapFromStylesheet(stylesheet);
       stylesheetScopes.put(stylesheet.getStylesheetId(), styleMap);

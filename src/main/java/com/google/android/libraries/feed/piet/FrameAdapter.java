@@ -84,12 +84,13 @@ public class FrameAdapter {
   // TODO: Need to implement support for sharding
   public void bindModel(
       Frame frame,
+      int frameWidth,
       /*@Nullable*/ ShardingControl shardingControl,
       List<PietSharedState> pietSharedStates) {
     long startTime = System.nanoTime();
-    FrameContext localFrameContext = createFrameContext(frame, pietSharedStates);
-    frameContext = localFrameContext;
     initialBind(parameters.parentViewSupplier.get());
+    FrameContext localFrameContext = createFrameContext(frame, frameWidth, pietSharedStates);
+    frameContext = localFrameContext;
     activeActions.clear();
     activeActions.addAll(frame.getActions().getOnHideActionsList());
     LinearLayout frameView = checkNotNull(view);
@@ -170,14 +171,17 @@ public class FrameAdapter {
   }
 
   @VisibleForTesting
-  FrameContext createFrameContext(Frame frame, List<PietSharedState> pietSharedStates) {
+  FrameContext createFrameContext(
+      Frame frame, int frameWidth, List<PietSharedState> pietSharedStates) {
     return FrameContext.createFrameContext(
         frame,
+        frameWidth,
         pietSharedStates,
         debugBehavior,
         new DebugLogger(),
         actionHandler,
-        parameters.hostProviders);
+        parameters.hostProviders,
+        context);
   }
 
   public void triggerViewActions(View viewport) {

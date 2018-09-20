@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateKey;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -73,6 +74,8 @@ public class TemplateBinderTest {
   private static final String OTHER_TEMPLATE_ID = "alleycat";
   private static final String TEXT_BINDING_ID = "ofmiceandmen";
   private static final String TEXT_CONTENTS = "afewmilessouth";
+
+  private static final int FRAME_WIDTH_PX = 321;
 
   private static final Template MODEL_TEMPLATE =
       Template.newBuilder()
@@ -161,7 +164,7 @@ public class TemplateBinderTest {
         templateBinder.createTemplateAdapter(model, frameContext);
 
     assertThat(adapter).isSameAs(elementListAdapter);
-    verify(elementListAdapter).setKey(new TemplateKey(template, sharedStates));
+    verify(elementListAdapter).setKey(new TemplateKey(template, sharedStates, null));
   }
 
   @Test
@@ -172,7 +175,7 @@ public class TemplateBinderTest {
             .setElement(DEFAULT_TEMPLATE_ELEMENT)
             .build();
     List<PietSharedState> sharedStates = Collections.emptyList();
-    TemplateKey templateKey = new TemplateKey(template, sharedStates);
+    TemplateKey templateKey = new TemplateKey(template, sharedStates, null);
     when(templateAdapter.getKey()).thenReturn(templateKey);
     when(frameContext.getPietSharedStates()).thenReturn(sharedStates);
 
@@ -284,14 +287,18 @@ public class TemplateBinderTest {
     Context context = Robolectric.setupActivity(Activity.class);
     List<PietSharedState> pietSharedStates = Collections.singletonList(pietSharedState);
     HostProviders mockHostProviders = mock(HostProviders.class);
+    AssetProvider mockAssetProvider = mock(AssetProvider.class);
+    when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
     frameContext =
         FrameContext.createFrameContext(
             frame,
+            FRAME_WIDTH_PX,
             pietSharedStates,
             DebugBehavior.VERBOSE,
             new DebugLogger(),
             actionHandler,
-            mockHostProviders);
+            mockHostProviders,
+            context);
     AdapterParameters adapterParameters =
         new AdapterParameters(context, Suppliers.of(null), mockHostProviders);
     TemplateBinder templateBinder = adapterParameters.templateBinder;
@@ -416,8 +423,8 @@ public class TemplateBinderTest {
             .build();
     TemplateAdapterModel model1 = new TemplateAdapterModel(template1, bindingContext);
     TemplateAdapterModel model2 = new TemplateAdapterModel(template2, bindingContext);
-    assertThat(new TemplateKey(template1, sharedStates))
-        .isNotEqualTo(new TemplateKey(template2, sharedStates));
+    assertThat(new TemplateKey(template1, sharedStates, null))
+        .isNotEqualTo(new TemplateKey(template2, sharedStates, null));
 
     // Set frameContext to return a new frameContext when a template is bound
     FrameContext templateContext = mock(FrameContext.class);
@@ -473,7 +480,7 @@ public class TemplateBinderTest {
         templateBinder.createAndBindTemplateAdapter(model, frameContext);
 
     assertThat(adapter).isSameAs(elementListAdapter);
-    verify(elementListAdapter).setKey(new TemplateKey(template, sharedStates));
+    verify(elementListAdapter).setKey(new TemplateKey(template, sharedStates, null));
 
     // Assert that adapter is bound with the template frameContext
     verify(elementListAdapter).bindModel(model.getTemplate().getElement(), templateContext);
@@ -505,7 +512,7 @@ public class TemplateBinderTest {
         .when(adapterFactory)
         .createAdapterForElement(DEFAULT_TEMPLATE_ELEMENT, templateContext);
 
-    TemplateKey templateKey = new TemplateKey(template, sharedStates);
+    TemplateKey templateKey = new TemplateKey(template, sharedStates, null);
     when(elementListAdapter.getKey()).thenReturn(templateKey);
     templateRecyclerPool.put(templateKey, elementListAdapter);
 
@@ -525,10 +532,11 @@ public class TemplateBinderTest {
   @Test
   public void testTemplateKey_equalWithSameObjects() {
     Template template = Template.newBuilder().setTemplateId("T").build();
+    Stylesheet stylesheet = Stylesheet.newBuilder().setStylesheetId("S").build();
     List<PietSharedState> sharedStates =
         listOfSharedStates(PietSharedState.newBuilder().addTemplates(template).build());
-    TemplateKey key1 = new TemplateKey(template, sharedStates);
-    TemplateKey key2 = new TemplateKey(template, sharedStates);
+    TemplateKey key1 = new TemplateKey(template, sharedStates, stylesheet);
+    TemplateKey key2 = new TemplateKey(template, sharedStates, stylesheet);
 
     assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
     assertThat(key1).isEqualTo(key2);
@@ -539,8 +547,8 @@ public class TemplateBinderTest {
     Template template1 = Template.newBuilder().setTemplateId("T").build();
     Template template2 = Template.newBuilder().setTemplateId("T").build();
     PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template1).build();
-    TemplateKey key1 = new TemplateKey(template1, listOfSharedStates(sharedState));
-    TemplateKey key2 = new TemplateKey(template2, listOfSharedStates(sharedState));
+    TemplateKey key1 = new TemplateKey(template1, listOfSharedStates(sharedState), null);
+    TemplateKey key2 = new TemplateKey(template2, listOfSharedStates(sharedState), null);
 
     assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
     assertThat(key1).isEqualTo(key2);
@@ -551,8 +559,21 @@ public class TemplateBinderTest {
     Template template = Template.newBuilder().setTemplateId("T").build();
     PietSharedState sharedState1 = PietSharedState.newBuilder().addTemplates(template).build();
     PietSharedState sharedState2 = PietSharedState.newBuilder().addTemplates(template).build();
-    TemplateKey key1 = new TemplateKey(template, listOfSharedStates(sharedState1));
-    TemplateKey key2 = new TemplateKey(template, listOfSharedStates(sharedState2));
+    TemplateKey key1 = new TemplateKey(template, listOfSharedStates(sharedState1), null);
+    TemplateKey key2 = new TemplateKey(template, listOfSharedStates(sharedState2), null);
+
+    assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
+    assertThat(key1).isEqualTo(key2);
+  }
+
+  @Test
+  public void testTemplateKey_equalWithDifferentStylesheetObject() {
+    Template template = Template.newBuilder().setTemplateId("T").build();
+    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template).build();
+    Stylesheet stylesheet1 = Stylesheet.newBuilder().setStylesheetId("1").build();
+    Stylesheet stylesheet2 = Stylesheet.newBuilder().setStylesheetId("1").build();
+    TemplateKey key1 = new TemplateKey(template, listOfSharedStates(sharedState), stylesheet1);
+    TemplateKey key2 = new TemplateKey(template, listOfSharedStates(sharedState), stylesheet2);
 
     assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
     assertThat(key1).isEqualTo(key2);
@@ -562,8 +583,9 @@ public class TemplateBinderTest {
   public void testTemplateKey_differentWithDifferentLengthSharedStates() {
     Template template = Template.newBuilder().setTemplateId("T").build();
     PietSharedState sharedState1 = PietSharedState.newBuilder().addTemplates(template).build();
-    TemplateKey key1 = new TemplateKey(template, listOfSharedStates(sharedState1));
-    TemplateKey key2 = new TemplateKey(template, listOfSharedStates(sharedState1, sharedState1));
+    TemplateKey key1 = new TemplateKey(template, listOfSharedStates(sharedState1), null);
+    TemplateKey key2 =
+        new TemplateKey(template, listOfSharedStates(sharedState1, sharedState1), null);
 
     assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
     assertThat(key1).isNotEqualTo(key2);
@@ -575,8 +597,8 @@ public class TemplateBinderTest {
     Template template2 = Template.newBuilder().setTemplateId("T2").build();
     List<PietSharedState> sharedStates =
         listOfSharedStates(PietSharedState.newBuilder().addTemplates(template1).build());
-    TemplateKey key1 = new TemplateKey(template1, sharedStates);
-    TemplateKey key2 = new TemplateKey(template2, sharedStates);
+    TemplateKey key1 = new TemplateKey(template1, sharedStates, null);
+    TemplateKey key2 = new TemplateKey(template2, sharedStates, null);
 
     assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
     assertThat(key1).isNotEqualTo(key2);
@@ -587,8 +609,21 @@ public class TemplateBinderTest {
     Template template = Template.newBuilder().setTemplateId("T").build();
     PietSharedState sharedState1 = PietSharedState.newBuilder().addTemplates(template).build();
     PietSharedState sharedState2 = PietSharedState.getDefaultInstance();
-    TemplateKey key1 = new TemplateKey(template, listOfSharedStates(sharedState1));
-    TemplateKey key2 = new TemplateKey(template, listOfSharedStates(sharedState2));
+    TemplateKey key1 = new TemplateKey(template, listOfSharedStates(sharedState1), null);
+    TemplateKey key2 = new TemplateKey(template, listOfSharedStates(sharedState2), null);
+
+    assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
+    assertThat(key1).isNotEqualTo(key2);
+  }
+
+  @Test
+  public void testTemplateKey_differentWithDifferentStylesheet() {
+    Template template = Template.newBuilder().setTemplateId("T").build();
+    PietSharedState sharedState = PietSharedState.newBuilder().addTemplates(template).build();
+    Stylesheet stylesheet1 = Stylesheet.newBuilder().setStylesheetId("1").build();
+    Stylesheet stylesheet2 = Stylesheet.newBuilder().setStylesheetId("2").build();
+    TemplateKey key1 = new TemplateKey(template, listOfSharedStates(sharedState), stylesheet1);
+    TemplateKey key2 = new TemplateKey(template, listOfSharedStates(sharedState), stylesheet2);
 
     assertThat(key1.hashCode()).isNotEqualTo(key2.hashCode());
     assertThat(key1).isNotEqualTo(key2);
@@ -605,15 +640,22 @@ public class TemplateBinderTest {
   public void testTemplateAdapterModel_lookUpTemplate() {
     ActionHandler actionHandler = mock(ActionHandler.class);
     List<PietSharedState> pietSharedStates = Collections.emptyList();
+    Context context = Robolectric.setupActivity(Activity.class);
+
+    HostProviders mockHostProviders = mock(HostProviders.class);
+    AssetProvider mockAssetProvider = mock(AssetProvider.class);
+    when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
 
     FrameContext frameContext =
         FrameContext.createFrameContext(
             DEFAULT_FRAME, // This defines MODEL_TEMPLATE
+            FRAME_WIDTH_PX,
             pietSharedStates,
             DebugBehavior.VERBOSE,
             new DebugLogger(),
             actionHandler,
-            mock(HostProviders.class));
+            mockHostProviders,
+            context);
 
     TemplateAdapterModel model =
         new TemplateAdapterModel(

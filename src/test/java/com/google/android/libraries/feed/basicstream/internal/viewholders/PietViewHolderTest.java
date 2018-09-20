@@ -175,7 +175,7 @@ public class PietViewHolderTest {
         actionParser);
 
     verify(frameAdapter)
-        .bindModel(Frame.getDefaultInstance(), /* shardingControl= */ null, pietSharedStates);
+        .bindModel(Frame.getDefaultInstance(), 0, /* shardingControl= */ null, pietSharedStates);
   }
 
   @Test
@@ -189,7 +189,7 @@ public class PietViewHolderTest {
         actionParser);
 
     verify(frameAdapter)
-        .bindModel(Frame.getDefaultInstance(), /* shardingControl= */ null, pietSharedStates);
+        .bindModel(Frame.getDefaultInstance(), 0, /* shardingControl= */ null, pietSharedStates);
     verify(frameAdapter).getFrameContainer();
 
     pietViewHolder.bind(
@@ -231,7 +231,7 @@ public class PietViewHolderTest {
 
     inOrder
         .verify(frameAdapter)
-        .bindModel(Frame.getDefaultInstance(), /* shardingControl= */ null, pietSharedStates);
+        .bindModel(Frame.getDefaultInstance(), 0, /* shardingControl= */ null, pietSharedStates);
     inOrder.verify(frameAdapter).unbindModel();
     inOrder.verifyNoMoreInteractions();
   }

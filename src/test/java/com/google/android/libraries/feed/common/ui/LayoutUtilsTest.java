@@ -68,4 +68,10 @@ public class LayoutUtilsTest {
     // TODO: Switch this to using @Config to set density to something different than 1.
     assertThat(LayoutUtils.dpToPx(1000.0f, context)).isEqualTo(1000.0f);
   }
+
+  @Test
+  public void testPxToDp() {
+    // TODO: Switch this to using @Config to set density to something different than 1.
+    assertThat(LayoutUtils.pxToDp(1000.0f, context)).isEqualTo(1000.0f);
+  }
 }

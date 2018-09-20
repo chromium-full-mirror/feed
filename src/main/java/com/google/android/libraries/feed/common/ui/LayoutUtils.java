@@ -43,6 +43,12 @@ public class LayoutUtils {
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, metrics);
   }
 
+  /** Convert PX to DP */
+  public static float pxToDp(float px, Context context) {
+    DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, metrics);
+  }
+
   /** Determines whether current locale is RTL. */
   @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
   public static boolean isDefaultLocaleRtl() {

@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;

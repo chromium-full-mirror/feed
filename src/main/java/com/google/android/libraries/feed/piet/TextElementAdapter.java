@@ -54,9 +54,9 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   @Override
   void onCreateAdapter(TextElement textLine, Element baseElement, FrameContext frameContext) {
     if (getKey() == null) {
-      Font font = getElementStyle().getFont();
-      setValuesUsedInRecyclerKey(font);
-      setKey(createKey(font));
+      TextElementKey key = createKey(getElementStyle().getFont());
+      setKey(key);
+      setValuesUsedInRecyclerKey(key);
     }
 
     // Setup the layout of the text lines, including all properties not in the recycler key.
@@ -119,12 +119,12 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
 
   @VisibleForTesting
   // LINT.IfChange(set_values_used_in_recycler_key)
-  void setValuesUsedInRecyclerKey(Font font) {
+  void setValuesUsedInRecyclerKey(TextElementKey fontKey) {
     // TODO: Implement typefaces
     TextView textView = getBaseView();
-    textView.setTextSize(font.getSize());
+    textView.setTextSize(fontKey.getSize());
     boolean bold = false;
-    switch (font.getWeight()) {
+    switch (fontKey.getFontWeight()) {
       case REGULAR:
         TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
         break;
@@ -149,12 +149,12 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
         TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
         break;
     }
-    if (bold || font.getItalic()) {
-      if (bold && font.getItalic()) {
+    if (bold || fontKey.isItalic()) {
+      if (bold && fontKey.isItalic()) {
         textView.setTypeface(textView.getTypeface(), Typeface.BOLD_ITALIC);
       } else if (bold) {
         textView.setTypeface(textView.getTypeface(), Typeface.BOLD);
-      } else if (font.getItalic()) {
+      } else if (fontKey.isItalic()) {
         textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
       }
     } else {
@@ -163,30 +163,42 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
   // LINT.ThenChange(:recycler_key)
 
-  RecyclerKey createKey(Font font) {
-    return new Key(font);
+  TextElementKey createKey(Font font) {
+    return new TextElementKey(font);
   }
 
   abstract static class TextElementKeySupplier<A extends TextElementAdapter>
       implements AdapterKeySupplier<A, TextElement> {
     @Override
-    public Key getKey(FrameContext frameContext, TextElement model) {
+    public TextElementKey getKey(FrameContext frameContext, TextElement model) {
       StyleProvider styleProvider = frameContext.makeStyleFor(model.getStyleReferences());
-      return new Key(styleProvider.getFont());
+      return new TextElementKey(styleProvider.getFont());
     }
   }
 
   /** We will Key TextViews off of the Ellipsizing, Font Size and FontWeight, and Italics. */
   // LINT.IfChange(recycler_key)
-  static class Key extends RecyclerKey {
+  static class TextElementKey extends RecyclerKey {
     private final int size;
     private final FontWeight fontWeight;
     private final boolean italic;
 
-    Key(Font font) {
+    TextElementKey(Font font) {
       size = font.getSize();
       fontWeight = font.getWeight();
       italic = font.getItalic();
+    }
+
+    public int getSize() {
+      return size;
+    }
+
+    public FontWeight getFontWeight() {
+      return fontWeight;
+    }
+
+    public boolean isItalic() {
+      return italic;
     }
 
     @Override
@@ -208,11 +220,11 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
         return false;
       }
 
-      if (!(obj instanceof Key)) {
+      if (!(obj instanceof TextElementKey)) {
         return false;
       }
 
-      Key key = (Key) obj;
+      TextElementKey key = (TextElementKey) obj;
       return key.size == size && key.fontWeight == fontWeight && key.italic == italic;
     }
   }

@@ -19,10 +19,16 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
+import android.content.Context;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
+import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition;
+import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition.DarkLightMode;
+import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
@@ -32,6 +38,7 @@ import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +46,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests of the {@link PietStylesHelper}. */
@@ -58,14 +66,28 @@ public class PietStylesHelperTest {
   private static final Template TEMPLATE_2 =
       Template.newBuilder().setTemplateId(TEMPLATE_ID_2).build();
 
+  private static final MediaQueryCondition DARK_CONDITION =
+      MediaQueryCondition.newBuilder()
+          .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.DARK))
+          .build();
+  private static final MediaQueryCondition LIGHT_CONDITION =
+      MediaQueryCondition.newBuilder()
+          .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.LIGHT))
+          .build();
+
+  private static final int FRAME_WIDTH_PX = 480;
+
   private List<PietSharedState> sharedStates = new ArrayList<>();
   @Mock FrameContext frameContext;
+  @Mock AssetProvider assetProvider;
 
+  private Context context;
   private PietStylesHelper helper;
   private PietSharedState sharedState1;
 
   @Before
   public void setUp() throws Exception {
+    context = Robolectric.setupActivity(Activity.class);
     initMocks(this);
     Stylesheet.Builder stylesheet1 =
         Stylesheet.newBuilder().setStylesheetId(STYLESHEET_ID_1).addStyles(STYLE_1);
@@ -87,20 +109,115 @@ public class PietStylesHelperTest {
     sharedStates.add(sharedState1);
     sharedStates.add(sharedState2);
 
-    helper = new PietStylesHelper(sharedStates);
+    helper = new PietStylesHelper(sharedStates, FRAME_WIDTH_PX, assetProvider, context);
+  }
+
+  @Test
+  public void testConstructorRespectsMediaQueryConditions_stylesheets() {
+    Stylesheet darkStylesheet =
+        Stylesheet.newBuilder()
+            .setStylesheetId("DARK")
+            .addConditions(DARK_CONDITION)
+            .addStyles(STYLE_1)
+            .build();
+    Stylesheet lightStylesheet =
+        Stylesheet.newBuilder()
+            .setStylesheetId("LIGHT")
+            .addConditions(LIGHT_CONDITION)
+            .addStyles(STYLE_2)
+            .build();
+
+    Style darkStyle = Style.newBuilder().setStyleId("dark").build();
+    Style lightStyle = Style.newBuilder().setStyleId("light").build();
+    Stylesheet switchStylesheetDark =
+        Stylesheet.newBuilder()
+            .setStylesheetId("SWITCH")
+            .addConditions(DARK_CONDITION)
+            .addStyles(darkStyle)
+            .build();
+    Stylesheet switchStylesheetLight =
+        Stylesheet.newBuilder()
+            .setStylesheetId("SWITCH")
+            .addConditions(LIGHT_CONDITION)
+            .addStyles(lightStyle)
+            .build();
+
+    PietSharedState sharedState =
+        PietSharedState.newBuilder()
+            .addStylesheets(darkStylesheet)
+            .addStylesheets(lightStylesheet)
+            .addStylesheets(switchStylesheetDark)
+            .addStylesheets(switchStylesheetLight)
+            .build();
+
+    when(assetProvider.isDarkTheme()).thenReturn(true);
+    helper =
+        new PietStylesHelper(
+            Collections.singletonList(sharedState), FRAME_WIDTH_PX, assetProvider, context);
+
+    assertThat(helper.getStylesheetMap("DARK")).containsExactly(STYLE_ID_1, STYLE_1);
+    assertThat(helper.getStylesheetMap("LIGHT")).isEmpty();
+    assertThat(helper.getStylesheetMap("SWITCH")).containsExactly("dark", darkStyle);
+
+    when(assetProvider.isDarkTheme()).thenReturn(false);
+    helper =
+        new PietStylesHelper(
+            Collections.singletonList(sharedState), FRAME_WIDTH_PX, assetProvider, context);
+
+    assertThat(helper.getStylesheetMap("DARK")).isEmpty();
+    assertThat(helper.getStylesheetMap("LIGHT")).containsExactly(STYLE_ID_2, STYLE_2);
+    assertThat(helper.getStylesheetMap("SWITCH")).containsExactly("light", lightStyle);
+  }
+
+  @Test
+  public void testConstructorRespectsMediaQueryConditions_templates() {
+    Template darkTemplate =
+        Template.newBuilder().setTemplateId("DARK").addConditions(DARK_CONDITION).build();
+    Template lightTemplate =
+        Template.newBuilder().setTemplateId("LIGHT").addConditions(LIGHT_CONDITION).build();
+    Template switchTemplateDark =
+        Template.newBuilder().setTemplateId("SWITCH").addConditions(DARK_CONDITION).build();
+    Template switchTemplateLight =
+        Template.newBuilder().setTemplateId("SWITCH").addConditions(LIGHT_CONDITION).build();
+
+    PietSharedState sharedState =
+        PietSharedState.newBuilder()
+            .addTemplates(darkTemplate)
+            .addTemplates(lightTemplate)
+            .addTemplates(switchTemplateDark)
+            .addTemplates(switchTemplateLight)
+            .build();
+
+    when(assetProvider.isDarkTheme()).thenReturn(true);
+    helper =
+        new PietStylesHelper(
+            Collections.singletonList(sharedState), FRAME_WIDTH_PX, assetProvider, context);
+
+    assertThat(helper.getTemplate("DARK")).isSameAs(darkTemplate);
+    assertThat(helper.getTemplate("LIGHT")).isNull();
+    assertThat(helper.getTemplate("SWITCH")).isSameAs(switchTemplateDark);
+
+    when(assetProvider.isDarkTheme()).thenReturn(false);
+    helper =
+        new PietStylesHelper(
+            Collections.singletonList(sharedState), FRAME_WIDTH_PX, assetProvider, context);
+
+    assertThat(helper.getTemplate("DARK")).isNull();
+    assertThat(helper.getTemplate("LIGHT")).isSameAs(lightTemplate);
+    assertThat(helper.getTemplate("SWITCH")).isSameAs(switchTemplateLight);
   }
 
   @Test
   public void testGetStylesheet() {
-    Map<String, Style> resultMap1 = helper.getStylesheet(STYLESHEET_ID_1);
+    Map<String, Style> resultMap1 = helper.getStylesheetMap(STYLESHEET_ID_1);
     assertThat(resultMap1).containsExactly(STYLE_ID_1, STYLE_1);
 
     // Retrieve map again to test caching
-    assertThat(helper.getStylesheet(STYLESHEET_ID_1)).isSameAs(resultMap1);
+    assertThat(helper.getStylesheetMap(STYLESHEET_ID_1)).isSameAs(resultMap1);
 
-    Map<String, Style> resultMap2 = helper.getStylesheet(STYLESHEET_ID_2);
+    Map<String, Style> resultMap2 = helper.getStylesheetMap(STYLESHEET_ID_2);
     assertThat(resultMap2).containsExactly(STYLE_ID_2, STYLE_2);
-    assertThat(helper.getStylesheet(STYLESHEET_ID_2)).isSameAs(resultMap2);
+    assertThat(helper.getStylesheetMap(STYLESHEET_ID_2)).isSameAs(resultMap2);
   }
 
   @Test
@@ -116,7 +233,8 @@ public class PietStylesHelperTest {
     sharedStates.add(sharedState1);
     sharedStates.add(sharedState2);
 
-    assertThatRunnable(() -> new PietStylesHelper(sharedStates))
+    assertThatRunnable(
+            () -> new PietStylesHelper(sharedStates, FRAME_WIDTH_PX, assetProvider, context))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
@@ -125,7 +243,7 @@ public class PietStylesHelperTest {
 
   @Test
   public void testGetStylesheet_notExist() {
-    assertThat(helper.getStylesheet("NOT EXIST")).isEmpty();
+    assertThat(helper.getStylesheetMap("NOT EXIST")).isEmpty();
   }
 
   @Test

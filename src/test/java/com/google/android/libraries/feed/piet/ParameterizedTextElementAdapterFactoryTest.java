@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier.SINGLETON_KEY;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -25,11 +24,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
-import com.google.android.libraries.feed.piet.TextElementAdapter.Key;
+import com.google.android.libraries.feed.piet.TextElementAdapter.TextElementKey;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.StylesProto.Font;
+import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import org.junit.Before;
@@ -67,14 +67,22 @@ public class ParameterizedTextElementAdapterFactoryTest {
 
   @Test
   public void testKeySupplier() {
+    String styleId = "text";
+    StyleIdsStack style = StyleIdsStack.newBuilder().addStyleIds(styleId).build();
+    Font font = Font.newBuilder().setSize(123).setItalic(true).setWeight(FontWeight.BLACK).build();
+    TextElement model = TextElement.newBuilder().setStyleReferences(style).build();
+    StyleProvider styleProvider = mock(StyleProvider.class);
+    when(frameContext.makeStyleFor(style)).thenReturn(styleProvider);
+    when(styleProvider.getFont()).thenReturn(font);
     ParameterizedTextElementAdapter.KeySupplier keySupplier =
         new ParameterizedTextElementAdapter.KeySupplier();
+
     assertThat(keySupplier.getAdapterTag()).isEqualTo("ParameterizedTextElementAdapter");
+
     assertThat(keySupplier.getAdapter(context, adapterParameters)).isNotNull();
-    assertThat(keySupplier).isNotInstanceOf(SingletonKeySupplier.class);
-    assertThat(keySupplier.getKey(frameContext, getBaseTextElement(null)))
-        .isNotSameAs(SINGLETON_KEY);
-    // TODO: When we finish Font support we need to test the getKey()
+
+    TextElementKey key = new TextElementKey(font);
+    assertThat(keySupplier.getKey(frameContext, model)).isEqualTo(key);
   }
 
   @Test
@@ -95,7 +103,8 @@ public class ParameterizedTextElementAdapterFactoryTest {
   public void testReleaseAndRecycling() {
     textElementFactory = new AdapterFactory<>(context, adapterParameters, keySupplier);
     TextElement textElement = getBaseTextElement(null);
-    Key adapterKey = new Key(adapterParameters.defaultStyleProvider.getFont());
+    TextElementKey adapterKey =
+        new TextElementKey(adapterParameters.defaultStyleProvider.getFont());
     when(adapter.getKey()).thenReturn(adapterKey);
     when(keySupplier.getKey(frameContext, textElement)).thenReturn(adapterKey);
 

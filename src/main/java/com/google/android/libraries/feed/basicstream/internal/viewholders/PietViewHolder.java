@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
+import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import java.util.List;
@@ -121,7 +122,12 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
         0,
         cardConfiguration.getCardEndMargin(),
         cardConfiguration.getCardBottomMargin());
-    frameAdapter.bindModel(frame, null, pietSharedStates);
+
+    frameAdapter.bindModel(
+        frame,
+        0, // TODO: set the frame width here
+        (ShardingControl) null,
+        pietSharedStates);
     bound = true;
   }
 

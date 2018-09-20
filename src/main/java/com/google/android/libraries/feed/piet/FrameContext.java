@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 
+import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -38,6 +39,7 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
+import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
@@ -101,7 +103,9 @@ class FrameContext {
     stylesHelper.addSharedStateTemplatesToFrame(templates);
     if (frame.getTemplatesCount() > 0) {
       for (Template template : frame.getTemplatesList()) {
-        templates.put(template.getTemplateId(), template);
+        if (pietStylesHelper.areMediaQueriesMet(template.getConditionsList())) {
+          templates.put(template.getTemplateId(), template);
+        }
       }
     }
   }
@@ -139,15 +143,19 @@ class FrameContext {
    */
   public static FrameContext createFrameContext(
       Frame frame,
+      int frameWidthPx,
       List<PietSharedState> pietSharedStates,
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       ActionHandler actionHandler,
-      HostProviders hostProviders) {
-    PietStylesHelper pietStylesHelper = new PietStylesHelper(pietSharedStates);
+      HostProviders hostProviders,
+      Context context) {
+    PietStylesHelper pietStylesHelper =
+        new PietStylesHelper(
+            pietSharedStates, frameWidthPx, hostProviders.getAssetProvider(), context);
     NoKeyOverwriteHashMap<String, Style> styleMap = null;
     if (frame.hasStylesheetId()) {
-      styleMap = pietStylesHelper.getStylesheet(frame.getStylesheetId());
+      styleMap = pietStylesHelper.getStylesheetMap(frame.getStylesheetId());
     } else if (frame.hasStylesheet()) {
       styleMap = PietStylesHelper.createMapFromStylesheet(frame.getStylesheet());
     }
@@ -170,6 +178,22 @@ class FrameContext {
     return frameContext;
   }
 
+  /** If the template's stylesheet could be affected by a MediaQuery, return it, otherwise null */
+  /*@Nullable*/
+  Stylesheet getMediaQueryStylesheet(Template template) {
+    if (!template.hasStylesheetId()) {
+      return null;
+    }
+    Stylesheet stylesheet = stylesHelper.getStylesheet(template.getStylesheetId());
+    if (stylesheet == null) {
+      return null;
+    }
+    if (stylesheet.getConditionsCount() == 0) {
+      return null;
+    }
+    return stylesheet;
+  }
+
   /**
    * Creates a new FrameContext which is scoped properly for the Template. The Frame's stylesheet is
    * discarded and replaced by the Template's stylesheet. In addition, a Template can define a root
@@ -184,7 +208,7 @@ class FrameContext {
         localStylesheet = PietStylesHelper.createMapFromStylesheet(template.getStylesheet());
         break;
       case STYLESHEET_ID:
-        localStylesheet = stylesHelper.getStylesheet(template.getStylesheetId());
+        localStylesheet = stylesHelper.getStylesheetMap(template.getStylesheetId());
         break;
       default:
         localStylesheet = new HashMap<>();

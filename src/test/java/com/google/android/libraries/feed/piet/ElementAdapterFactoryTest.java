@@ -245,7 +245,7 @@ public class ElementAdapterFactoryTest {
 
   @Test
   public void testReleaseAdapter_template() {
-    TemplateKey templateKey = new TemplateKey(Template.getDefaultInstance(), null);
+    TemplateKey templateKey = new TemplateKey(Template.getDefaultInstance(), null, null);
     when(templateAdapter.getKey()).thenReturn(templateKey);
 
     adapterFactory.releaseAdapter(templateAdapter);
@@ -337,7 +337,7 @@ public class ElementAdapterFactoryTest {
             .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
             .build();
     List<PietSharedState> sharedStates = Collections.emptyList();
-    when(templateAdapter.getKey()).thenReturn(new TemplateKey(template, sharedStates));
+    when(templateAdapter.getKey()).thenReturn(new TemplateKey(template, sharedStates, null));
     when(frameContext.getPietSharedStates()).thenReturn(sharedStates);
 
     // Release adapter to populate the recycler pool
