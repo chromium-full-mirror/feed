@@ -308,6 +308,33 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testOnDestroy_destroysStreamDriver() {
+    basicStream.onShow();
+    basicStream.onSessionStart();
+    reset(streamDriver);
+
+    basicStream.onDestroy();
+
+    verify(streamDriver).onDestroy();
+  }
+
+  @Test
+  public void testOnDestroy_unregistersOnLayoutChangeListener() {
+    // initial layout from 0, 0 will not rebind.
+    getStreamRecyclerView().layout(0, 0, 100, 300);
+    // change the width / height to simulate device rotation
+    getStreamRecyclerView().layout(0, 0, 300, 100);
+    verify(adapter).rebind();
+
+    reset(adapter);
+    basicStream.onDestroy();
+
+    // change the width / height to simulate device rotation
+    getStreamRecyclerView().layout(0, 0, 100, 300);
+    verify(adapter, never()).rebind();
+  }
+
+  @Test
   public void testGetSavedInstanceState() {
     basicStream.onShow();
 

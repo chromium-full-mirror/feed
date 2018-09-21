@@ -27,6 +27,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Base64;
 import android.view.View;
+import android.view.View.OnLayoutChangeListener;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -79,7 +80,7 @@ import java.util.List;
  * A basic implementation of a Feed {@link Stream} that is just able to render a vertical stream of
  * cards.
  */
-public class BasicStream implements Stream, ModelProviderObserver {
+public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChangeListener {
 
   private static final String TAG = "BasicStream";
 
@@ -296,9 +297,13 @@ public class BasicStream implements Stream, ModelProviderObserver {
   @Override
   public void onDestroy() {
     adapter.onDestroy();
+    recyclerView.removeOnLayoutChangeListener(this);
     if (modelProvider != null) {
       modelProvider.unregisterObserver(this);
       modelProvider.detachModelProvider();
+    }
+    if (streamDriver != null) {
+      streamDriver.onDestroy();
     }
   }
 
@@ -434,6 +439,22 @@ public class BasicStream implements Stream, ModelProviderObserver {
     modelProvider.triggerRefresh();
   }
 
+  @Override
+  public void onLayoutChange(
+      View v,
+      int left,
+      int top,
+      int right,
+      int bottom,
+      int oldLeft,
+      int oldTop,
+      int oldRight,
+      int oldBottom) {
+    if ((oldLeft != 0 && left != oldLeft) || (oldRight != 0 && right != oldRight)) {
+      checkNotNull(adapter, "onCreate must be called before so that adapter is set.").rebind();
+    }
+  }
+
   private void setupRecyclerView() {
     adapter =
         createRecyclerViewAdapter(
@@ -464,12 +485,7 @@ public class BasicStream implements Stream, ModelProviderObserver {
     }
 
     recyclerView.setItemAnimator(new StreamItemAnimator(streamContentChangedListener));
-    recyclerView.addOnLayoutChangeListener(
-        (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-          if ((oldLeft != 0 && left != oldLeft) || (oldRight != 0 && right != oldRight)) {
-            adapter.rebind();
-          }
-        });
+    recyclerView.addOnLayoutChangeListener(this);
   }
 
   private void updateAdapter(ModelProvider modelProvider) {
