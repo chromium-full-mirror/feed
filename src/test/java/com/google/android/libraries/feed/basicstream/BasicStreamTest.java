@@ -302,6 +302,7 @@ public class BasicStreamTest {
     basicStream.onShow();
     basicStream.onHide();
     basicStream.onDestroy();
+    verify(adapter).onDestroy();
     verify(initialModelProvider, never()).invalidate();
     verify(initialModelProvider).detachModelProvider();
   }

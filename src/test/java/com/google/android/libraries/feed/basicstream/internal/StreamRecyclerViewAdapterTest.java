@@ -301,6 +301,28 @@ public class StreamRecyclerViewAdapterTest {
   }
 
   @Test
+  public void testOnDestroy() {
+    streamRecyclerViewAdapter =
+        new StreamRecyclerViewAdapter(
+            context, cardConfiguration, pietManager, deepestContentTracker, CONFIGURATION) {
+          @Override
+          HeaderDriver createHeaderDriver(Header header) {
+            if (header == headers.get(0)) {
+              return headerDriver1;
+            }
+            return headerDriver2;
+          }
+        };
+    streamRecyclerViewAdapter.setHeaders(headers);
+    streamRecyclerViewAdapter.onDestroy();
+
+    verify(headerDriver1).unbind();
+    verify(headerDriver1).onDestroy();
+    verify(headerDriver2).unbind();
+    verify(headerDriver2).onDestroy();
+  }
+
+  @Test
   public void testSetHeaders_destroysPreviousHeaderDrivers() {
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(

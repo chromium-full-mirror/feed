@@ -45,6 +45,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -269,6 +270,14 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (streamContentVisible) {
       notifyItemRangeRemoved(headers.size(), itemCount);
     }
+  }
+
+  public void onDestroy() {
+    for (HeaderDriver header : headers) {
+      header.unbind();
+    }
+
+    setHeaders(Collections.emptyList());
   }
 
   @VisibleForTesting
