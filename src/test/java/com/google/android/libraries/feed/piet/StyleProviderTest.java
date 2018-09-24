@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build.VERSION_CODES;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
@@ -28,6 +29,8 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
+import com.google.search.now.ui.piet.ShadowsProto.ElevationShadow;
+import com.google.search.now.ui.piet.ShadowsProto.Shadow;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Style;
@@ -37,6 +40,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 /** TODO: Test remaining methods of StyleProvider. */
 @RunWith(RobolectricTestRunner.class)
@@ -99,7 +103,7 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testSetPadding() {
+  public void testApplyPadding() {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     View view = new View(context);
@@ -109,7 +113,7 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testSetMargins() {
+  public void testApplyMargins() {
     EdgeWidths margins =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     Style marginStyle = Style.newBuilder().setMargins(margins).build();
@@ -122,7 +126,7 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testUiElementStyles_padding() {
+  public void testElementStyles_padding() {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     Style paddingStyle = Style.newBuilder().setPadding(padding).build();
@@ -133,7 +137,7 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testUiElementStyles_backgroundAndCorners() {
+  public void testElementStyles_backgroundAndCorners() {
     View view = new View(context);
 
     int color = 0xffffffff;
@@ -155,7 +159,7 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testUiElementStyles_noBackgroundInStyle() {
+  public void testElementStyles_noBackgroundInStyle() {
     View view = new View(context);
     view.setBackground(new ColorDrawable(0xffff0000));
 
@@ -165,7 +169,7 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testUiElementStyles_noColorInFill() {
+  public void testElementStyles_noColorInFill() {
     View view = new View(context);
     view.setBackground(new ColorDrawable(0xffff0000));
 
@@ -177,7 +181,7 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testUiElementStyles_minimumHeight() {
+  public void testElementStyles_minimumHeight() {
     int minHeight = 12345;
     Style heightStyle = Style.newBuilder().setMinHeight(minHeight).build();
     View view = new View(context);
@@ -188,7 +192,7 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testUiElementStyles_noMinimumHeight() {
+  public void testElementStyles_noMinimumHeight() {
     Style noHeightStyle = Style.getDefaultInstance();
     View view = new View(context);
     view.setMinimumHeight(12345);
@@ -196,6 +200,59 @@ public class StyleProviderTest {
     new StyleProvider(noHeightStyle, mockAssetProvider).applyElementStyles(context, view);
 
     assertThat(view.getMinimumHeight()).isEqualTo(0);
+  }
+
+  @Test
+  public void testElementStyles_shadow() {
+    int elevation = 5280;
+    Style shadowStyle =
+        Style.newBuilder()
+            .setShadow(
+                Shadow.newBuilder()
+                    .setElevationShadow(ElevationShadow.newBuilder().setElevation(elevation)))
+            .build();
+    View view = new View(context);
+
+    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(context, view);
+
+    assertThat(view.getElevation()).isEqualTo((float) elevation);
+  }
+
+  @Test
+  public void testElementStyles_noShadow() {
+    Style shadowStyle =
+        Style.newBuilder()
+            .setShadow(
+                Shadow.newBuilder()
+                    .setElevationShadow(ElevationShadow.newBuilder().setElevation(5280)))
+            .build();
+    Style noShadowStyle = Style.getDefaultInstance();
+    View view = new View(context);
+
+    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(context, view);
+
+    new StyleProvider(noShadowStyle, mockAssetProvider).applyElementStyles(context, view);
+
+    assertThat(view.getElevation()).isEqualTo(0.0f);
+  }
+
+  @Test
+  @Config(sdk = VERSION_CODES.JELLY_BEAN)
+  public void testElementStyles_shadowDoesNotError_JB() {
+    Style shadowStyle =
+        Style.newBuilder()
+            .setShadow(
+                Shadow.newBuilder()
+                    .setElevationShadow(ElevationShadow.newBuilder().setElevation(5280)))
+            .build();
+    Style noShadowStyle = Style.getDefaultInstance();
+    View view = new View(context);
+
+    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(context, view);
+
+    new StyleProvider(noShadowStyle, mockAssetProvider).applyElementStyles(context, view);
+
+    // Assert nothing failed.
   }
 
   private void verifyPadding(View view, EdgeWidths padding) {

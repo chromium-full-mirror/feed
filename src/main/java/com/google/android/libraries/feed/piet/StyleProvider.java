@@ -18,6 +18,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.VisibleForTesting;
+import android.support.v4.view.ViewCompat;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
@@ -135,6 +136,12 @@ class StyleProvider {
     } else {
       view.setMinimumHeight(0);
     }
+
+    if (style.getShadow().hasElevationShadow()) {
+      ViewCompat.setElevation(view, style.getShadow().getElevationShadow().getElevation());
+    } else {
+      ViewCompat.setElevation(view, 0.0f);
+    }
   }
 
   /** Set the padding on a view */
@@ -182,12 +189,18 @@ class StyleProvider {
   /**
    * Return a {@link Drawable} with the fill and rounded corners defined on the style; returns
    * {@code null} if the background has no color defined.
-   *
-   * @param context
    */
   /*@Nullable*/
   Drawable createBackground(Context context) {
-    Fill background = getBackground();
+    return createBackgroundForFill(context, getBackground());
+  }
+
+  /**
+   * Return a {@link Drawable} with a given Fill and the rounded corners defined on the style;
+   * returns {@code null} if the background has no color defined.
+   */
+  /*@Nullable*/
+  Drawable createBackgroundForFill(Context context, Fill background) {
     if (!background.hasColor()) {
       return null;
     }
@@ -206,7 +219,7 @@ class StyleProvider {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof StyleProvider)) {
       return false;
     }
 
