@@ -116,6 +116,11 @@ public class PietViewHolderTest {
   }
 
   @Test
+  public void testCardViewSetup() {
+    assertThat(frameLayout.getId()).isEqualTo(R.id.feed_content_card);
+  }
+
+  @Test
   public void testBind_clearsPadding() {
     frameLayout.setPadding(1, 2, 3, 4);
 

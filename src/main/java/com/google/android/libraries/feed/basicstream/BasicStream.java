@@ -465,6 +465,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             configuration);
     adapter.setHeaders(headers);
     recyclerView = new RecyclerView(context);
+    recyclerView.setId(R.id.feed_stream_recycler_view);
     recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
     contextMenuHelper = new ContextMenuHelper(recyclerView);
     new ItemTouchHelper(new StreamItemTouchCallbacks()).attachToRecyclerView(recyclerView);

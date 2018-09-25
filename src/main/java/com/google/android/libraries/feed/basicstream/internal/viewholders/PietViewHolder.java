@@ -67,6 +67,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     super(cardView);
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;
+    cardView.setId(R.id.feed_content_card);
     this.frameAdapter =
         pietManager.createPietFrameAdapter(
             () -> cardView,

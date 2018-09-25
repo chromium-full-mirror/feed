@@ -167,6 +167,11 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testRecyclerViewSetup() {
+    assertThat(getStreamRecyclerView().getId()).isEqualTo(R.id.feed_stream_recycler_view);
+  }
+
+  @Test
   public void testOnSessionStart() {
     basicStream.onShow();
     reset(adapter);
