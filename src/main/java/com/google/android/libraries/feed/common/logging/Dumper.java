@@ -38,16 +38,20 @@ public class Dumper {
   // itself is always non-null, but the Dumpable may be null.
   private final WeakReference<Dumpable> currentDumpable;
   /*@Nullable*/ private final Dumper parent;
+  private final boolean redacted;
 
   // The root Dumper will create the values used by all children Dumper instances.  This flattens
   // the output into one list.
   @VisibleForTesting final List<DumperValue> values;
 
-  /** Returns the default Dumper */
+  /** Returns the default Dumper, this will show sensitive content. */
   public static Dumper newDefaultDumper() {
-    // TODO: We need to support a factory which creates either Redacted Dumpers or
-    // full Dumpers.
-    return new Dumper(1, null, new WeakReference<Dumpable>(null), new ArrayList<>());
+    return new Dumper(1, null, new WeakReference<>(null), new ArrayList<>(), false);
+  }
+
+  /** Returns a Dumper which will redact sensitive content. */
+  public static Dumper newRedactedDumper() {
+    return new Dumper(1, null, new WeakReference<>(null), new ArrayList<>(), true);
   }
 
   // Private constructor, these are created through the static newDefaultDumper} method.
@@ -55,11 +59,13 @@ public class Dumper {
       int indentLevel,
       /*@Nullable*/ Dumper parent,
       WeakReference<Dumpable> currentDumpable,
-      List<DumperValue> values) {
+      List<DumperValue> values,
+      boolean redacted) {
     this.indentLevel = indentLevel;
     this.parent = parent;
     this.currentDumpable = currentDumpable;
     this.values = values;
+    this.redacted = redacted;
   }
 
   private boolean isDescendentOf(Dumpable dumpable) {
@@ -73,7 +79,7 @@ public class Dumper {
   }
 
   private Dumper getChildDumper(/*@Nullable*/ Dumpable dumpable) {
-    return new Dumper(indentLevel + 1, this, new WeakReference<>(dumpable), values);
+    return new Dumper(indentLevel + 1, this, new WeakReference<>(dumpable), values, redacted);
   }
 
   /** Set the title of the section. This is output at the previous indent level. */
@@ -117,7 +123,7 @@ public class Dumper {
   public void write(Appendable writer) throws IOException {
     boolean newLine = true;
     for (DumperValue value : values) {
-      String stringValue = value.toString(false);
+      String stringValue = value.toString(redacted);
       if (!newLine) {
         if (value.compactPrevious) {
           writer.append(" | ");
@@ -149,12 +155,11 @@ public class Dumper {
    * line in the output.
    */
   public static class DumperValue {
-    private static final String REDACTED = "[REDACTED]";
+    @VisibleForTesting static final String REDACTED = "[REDACTED]";
     @VisibleForTesting final String name;
     @VisibleForTesting final StringBuilder content;
     @VisibleForTesting final int indentLevel;
     private boolean compactPrevious = false;
-    // TODO: What should the default be?
     private boolean sensitive = false;
 
     // create a DumpValue with just a name, this is not public, it will is called by Dumper

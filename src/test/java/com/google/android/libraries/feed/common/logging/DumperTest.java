@@ -28,6 +28,8 @@ public class DumperTest {
   private static final String KEY1 = "keyOne";
   private static final String KEY2 = "keyTwo";
   private static final String KEY3 = "keyThree";
+  private static final String VALUE1 = "valueOne";
+  private static final String VALUE2 = "valueTwo";
 
   @Test
   public void testBaseDumper() {
@@ -116,7 +118,7 @@ public class DumperTest {
     dumper.dump(testDumpable);
     StringWriter stringWriter = new StringWriter();
     dumper.write(stringWriter);
-    String dump = stringWriter.getBuffer().toString();
+    String dump = stringWriter.toString();
     assertThat(dump).contains(KEY1);
     assertThat(dump).contains("13");
   }
@@ -124,13 +126,30 @@ public class DumperTest {
   @Test
   public void testWrite_compact() throws Exception {
     Dumper dumper = Dumper.newDefaultDumper();
-    dumper.forKey(KEY1).value("valueOne");
-    dumper.forKey(KEY2).value("valueTwo").compactPrevious();
+    dumper.forKey(KEY1).value(VALUE1);
+    dumper.forKey(KEY2).value(VALUE2).compactPrevious();
     StringWriter stringWriter = new StringWriter();
     dumper.write(stringWriter);
-    String dump = stringWriter.getBuffer().toString();
+    String dump = stringWriter.toString();
     assertThat(dump).contains(" | ");
+    assertThat(dump).contains(VALUE1);
+    assertThat(dump).contains(VALUE2);
   }
+
+  @Test
+  public void testRedacted() throws Exception {
+    Dumper dumper = Dumper.newRedactedDumper();
+    dumper.forKey(KEY1).value(VALUE1).sensitive();
+    dumper.forKey(KEY2).value(VALUE2).compactPrevious();
+    StringWriter stringWriter = new StringWriter();
+    dumper.write(stringWriter);
+    String dump = stringWriter.toString();
+    assertThat(dump).contains(" | ");
+    assertThat(dump).contains(DumperValue.REDACTED);
+    assertThat(dump).doesNotContain(VALUE1);
+    assertThat(dump).contains(VALUE2);
+  }
+
 
   private static class TestDumpable implements Dumpable {
 
