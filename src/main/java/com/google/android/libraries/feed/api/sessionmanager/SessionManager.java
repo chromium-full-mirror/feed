@@ -105,13 +105,6 @@ public interface SessionManager {
       Function<StreamPayload, /*@Nullable*/ T> filterPredicate,
       Consumer<Result<List</*@NonNull*/ T>>> consumer);
 
-  /**
-   * This will run a Task on the SessionManager's Executor.
-   *
-   * <p>TODO: Remove this when TaskQueue is moved outside of FeedModelProvider
-   */
-  void runTask(String task, Runnable runnable);
-
   /** Sets {@link KnownContentListener} to allow for informing host of when content is added. */
   void setKnownContentListener(KnownContentListener knownContentListener);
 }

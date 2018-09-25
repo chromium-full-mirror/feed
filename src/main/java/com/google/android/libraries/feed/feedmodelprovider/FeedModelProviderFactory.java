@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDep
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Predicate;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -33,6 +34,7 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;
+  private final TaskQueue taskQueue;
   private final MainThreadRunner mainThreadRunner;
   private final Configuration config;
 
@@ -40,11 +42,13 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
       SessionManager sessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
+      TaskQueue taskQueue,
       MainThreadRunner mainThreadRunner,
       Configuration config) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
+    this.taskQueue = taskQueue;
     this.mainThreadRunner = mainThreadRunner;
     this.config = config;
   }
@@ -53,7 +57,7 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
   public ModelProvider create(String sessionToken) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(
-            sessionManager, threadUtils, timingUtils, mainThreadRunner, null, config);
+            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, null, config);
     sessionManager.getExistingSession(sessionToken, modelProvider);
     return modelProvider;
   }
@@ -69,7 +73,13 @@ public class FeedModelProviderFactory implements ModelProviderFactory {
       /*@Nullable*/ Predicate<StreamStructure> filterPredicate) {
     FeedModelProvider modelProvider =
         new FeedModelProvider(
-            sessionManager, threadUtils, timingUtils, mainThreadRunner, filterPredicate, config);
+            sessionManager,
+            threadUtils,
+            timingUtils,
+            taskQueue,
+            mainThreadRunner,
+            filterPredicate,
+            config);
     sessionManager.getNewSession(
         modelProvider, modelProvider.getViewDepthProvider(viewDepthProvider));
     return modelProvider;

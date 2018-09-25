@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedmodelprovider;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -44,6 +45,7 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserve
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.InitializeModel;
@@ -80,6 +82,7 @@ public class FeedModelProviderTest {
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
   private final String rootContentId = idGenerators.createRootContentId(0);
 
+  @Mock private TaskQueue taskQueue;
   @Mock private SessionManager sessionManager;
   @Mock private ThreadUtils threadUtils;
   @Mock private Configuration config;
@@ -465,11 +468,11 @@ public class FeedModelProviderTest {
     doAnswer(
             invocation -> {
               Object[] args = invocation.getArguments();
-              ((Runnable) args[1]).run();
+              ((Runnable) args[2]).run();
               return null;
             })
-        .when(sessionManager)
-        .runTask(anyString(), any());
+        .when(taskQueue)
+        .execute(anyString(), anyInt(), any());
 
     FeedModelProvider modelProvider = createFeedModelProvider();
 
@@ -616,7 +619,7 @@ public class FeedModelProviderTest {
 
   private FeedModelProvider createFeedModelProvider() {
     return new FeedModelProvider(
-        sessionManager, threadUtils, timingUtils, new MainThreadRunner(), null, config);
+        sessionManager, threadUtils, timingUtils, taskQueue, new MainThreadRunner(), null, config);
   }
 
   private StreamFeature createFeature(int i, String parentContentId) {

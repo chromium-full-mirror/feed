@@ -36,6 +36,8 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Predicate;
@@ -120,6 +122,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
+  private final TaskQueue taskQueue;
   private final MainThreadRunner mainThreadRunner;
   private final ModelChildBinder modelChildBinder;
   private final TimingUtils timingUtils;
@@ -137,12 +140,14 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       SessionManager sessionManager,
       ThreadUtils threadUtils,
       TimingUtils timingUtils,
+      TaskQueue taskQueue,
       MainThreadRunner mainThreadRunner,
       /*@Nullable*/ Predicate<StreamStructure> filterPredicate,
       Configuration config) {
     this.sessionManager = sessionManager;
     this.threadUtils = threadUtils;
     this.timingUtils = timingUtils;
+    this.taskQueue = taskQueue;
     this.mainThreadRunner = mainThreadRunner;
     this.nonCacheInitialPageSize =
         config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0);
@@ -213,8 +218,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         }
         // The nullness checker fails to understand tokenTracker can't be null in the Lambda usage
         SyntheticTokenTracker tt = Validators.checkNotNull(tokenTracker);
-        sessionManager.runTask(
-            "FeedModelProvider.handleSyntheticToken", () -> tt.handleSyntheticToken(token));
+        taskQueue.execute(
+            "FeedModelProvider.handleSyntheticToken",
+            TaskType.USER_FACING,
+            () -> tt.handleSyntheticToken(token));
         return;
       }
     }

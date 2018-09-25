@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.basicstream.BasicStream;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedactionparser.FeedActionParserFactory;
@@ -67,6 +68,7 @@ public class FeedStreamScope {
         SessionManager sessionManager,
         ThreadUtils threadUtils,
         TimingUtils timingUtils,
+        TaskQueue taskQueue,
         MainThreadRunner mainThreadRunner,
         Clock clock,
         DebugBehavior debugBehavior,
@@ -86,6 +88,7 @@ public class FeedStreamScope {
       this.sessionManager = sessionManager;
       this.threadUtils = threadUtils;
       this.timingUtils = timingUtils;
+      this.taskQueue = taskQueue;
       this.mainThreadRunner = mainThreadRunner;
       this.streamConfiguration = streamConfiguration;
       this.cardConfiguration = cardConfiguration;
@@ -128,11 +131,7 @@ public class FeedStreamScope {
       if (modelProviderFactory == null) {
         modelProviderFactory =
             new FeedModelProviderFactory(
-                sessionManager,
-                threadUtils,
-                timingUtils,
-                mainThreadRunner,
-                config);
+                sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, config);
       }
       if (actionParserFactory == null) {
         actionParserFactory = new FeedActionParserFactory(protocolAdapter);
@@ -178,6 +177,7 @@ public class FeedStreamScope {
     private final SessionManager sessionManager;
     private final ThreadUtils threadUtils;
     private final TimingUtils timingUtils;
+    private final TaskQueue taskQueue;
     private final MainThreadRunner mainThreadRunner;
     private final Clock clock;
     private final ActionManager actionManager;

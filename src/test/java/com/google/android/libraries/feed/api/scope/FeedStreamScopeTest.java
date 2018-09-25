@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -79,6 +80,7 @@ public class FeedStreamScopeTest {
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private OfflineIndicatorApi offlineIndicatorApi;
   @Mock private KnownContentApi knownContentApi;
+  @Mock private TaskQueue taskQueue;
 
   private Context context;
   private MainThreadRunner mainThreadRunner;
@@ -110,6 +112,7 @@ public class FeedStreamScopeTest {
                 sessionManager,
                 threadUtils,
                 timingUtils,
+                taskQueue,
                 mainThreadRunner,
                 clock,
                 DebugBehavior.VERBOSE,
@@ -138,6 +141,7 @@ public class FeedStreamScopeTest {
                 sessionManager,
                 threadUtils,
                 timingUtils,
+                taskQueue,
                 mainThreadRunner,
                 clock,
                 DebugBehavior.VERBOSE,

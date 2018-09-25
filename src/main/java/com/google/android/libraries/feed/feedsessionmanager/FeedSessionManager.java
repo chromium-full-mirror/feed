@@ -635,11 +635,6 @@ public class FeedSessionManager
   }
 
   @Override
-  public void runTask(String task, Runnable runnable) {
-    taskQueue.execute(task, TaskType.USER_FACING, runnable);
-  }
-
-  @Override
   public void setKnownContentListener(KnownContentListener knownContentListener) {
     this.knownContentListener = knownContentListener;
   }

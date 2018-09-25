@@ -97,6 +97,7 @@ public class FeedProcessScope implements Dumpable {
         sessionManager,
         threadUtils,
         timingUtils,
+        taskQueue,
         mainThreadRunner,
         clock,
         debugBehavior,
@@ -312,6 +313,7 @@ public class FeedProcessScope implements Dumpable {
           store,
           timingUtils,
           threadUtils,
+          taskQueue,
           mainThreadRunner,
           lifecycleListener,
           clock,
@@ -355,6 +357,7 @@ public class FeedProcessScope implements Dumpable {
       Store store,
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
+      TaskQueue taskQueue,
       MainThreadRunner mainThreadRunner,
       AppLifecycleListener appLifecycleListener,
       Clock clock,
@@ -370,6 +373,7 @@ public class FeedProcessScope implements Dumpable {
     this.store = store;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    this.taskQueue = taskQueue;
     this.mainThreadRunner = mainThreadRunner;
     this.appLifecycleListener = appLifecycleListener;
     this.clock = clock;
@@ -387,6 +391,7 @@ public class FeedProcessScope implements Dumpable {
   private final Store store;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
+  private final TaskQueue taskQueue;
   private final MainThreadRunner mainThreadRunner;
   private final AppLifecycleListener appLifecycleListener;
   private final Clock clock;
@@ -417,6 +422,10 @@ public class FeedProcessScope implements Dumpable {
 
   public MainThreadRunner getMainThreadRunner() {
     return mainThreadRunner;
+  }
+
+  public TaskQueue getTaskQueue() {
+    return taskQueue;
   }
 
   public AppLifecycleListener getAppLifecycleListener() {

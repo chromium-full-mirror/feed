@@ -130,7 +130,12 @@ public class InfrastructureIntegrationScope {
     feedSessionManager.initialize();
     modelProviderFactory =
         new FeedModelProviderFactory(
-            feedSessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            feedSessionManager,
+            threadUtils,
+            timingUtils,
+            taskQueue,
+            mainThreadRunner,
+            configuration);
   }
 
   public ProtocolAdapter getProtocolAdapter() {

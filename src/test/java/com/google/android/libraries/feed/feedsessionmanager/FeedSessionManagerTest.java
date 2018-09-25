@@ -224,7 +224,7 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getRootFeature()).isNotNull();
@@ -256,7 +256,7 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
     // We can't verify that raiseError was called on ModelProvider since all of that happens in
     // the createNew() call due to the single threaded nature.  We may want to have a test method
     // on the factory to install the observer when creating the ModelProvider.
@@ -447,7 +447,12 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            spySessionManager,
+            threadUtils,
+            timingUtils,
+            taskQueue,
+            mainThreadRunner,
+            configuration);
     modelProviderFactory.createNew(null);
     verify(spySessionManager).switchToEphemeralMode(anyString());
   }
@@ -463,7 +468,12 @@ public class FeedSessionManagerTest {
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            spySessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
+            spySessionManager,
+            threadUtils,
+            timingUtils,
+            taskQueue,
+            mainThreadRunner,
+            configuration);
     modelProviderFactory.createNew(null);
     verify(spySessionManager).switchToEphemeralMode(anyString());
   }
