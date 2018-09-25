@@ -162,12 +162,6 @@ public class FeedStreamScope {
                 knownContentApi);
       }
       return new FeedStreamScope(
-          actionApi,
-          Validators.checkNotNull(actionParserFactory),
-          protocolAdapter,
-          imageLoaderApi,
-          loggingApi,
-          sessionManager,
           Validators.checkNotNull(stream),
           Validators.checkNotNull(modelProviderFactory));
     }
@@ -176,7 +170,10 @@ public class FeedStreamScope {
     private final Context context;
     private final ActionApi actionApi;
     private final ImageLoaderApi imageLoaderApi;
+
+    @SuppressWarnings("unused")
     private final LoggingApi loggingApi;
+
     private final ProtocolAdapter protocolAdapter;
     private final SessionManager sessionManager;
     private final ThreadUtils threadUtils;
@@ -202,30 +199,12 @@ public class FeedStreamScope {
   }
 
   private FeedStreamScope(
-      ActionApi actionApi,
-      ActionParserFactory actionParserFactory,
-      ProtocolAdapter protocolAdapter,
-      ImageLoaderApi imageLoaderApi,
-      LoggingApi loggingApi,
-      SessionManager sessionManager,
       Stream stream,
       ModelProviderFactory modelProviderFactory) {
-    this.actionParserFactory = actionParserFactory;
-    this.actionApi = actionApi;
-    this.protocolAdapter = protocolAdapter;
-    this.imageLoaderApi = imageLoaderApi;
-    this.loggingApi = loggingApi;
-    this.sessionManager = sessionManager;
     this.stream = stream;
     this.modelProviderFactory = modelProviderFactory;
   }
 
-  private final ActionApi actionApi;
-  private final ImageLoaderApi imageLoaderApi;
-  private final LoggingApi loggingApi;
-  private final ActionParserFactory actionParserFactory;
-  private final ProtocolAdapter protocolAdapter;
-  private final SessionManager sessionManager;
   private final Stream stream;
   private final ModelProviderFactory modelProviderFactory;
 }
