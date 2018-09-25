@@ -79,8 +79,7 @@ public class ContentGc {
     }
     CommitResult result = contentStorageDirect.commit(mutationBuilder.build());
     if (result == CommitResult.FAILURE) {
-      // TODO: How do we handle the errors?
-      Logger.e(TAG, "Content Modification Failed");
+      Logger.e(TAG, "Content Modification failed removing unaccessible items.");
     }
     tracker.stop("", "removeUnAccessible", "mutations", unAccessible.size());
   }

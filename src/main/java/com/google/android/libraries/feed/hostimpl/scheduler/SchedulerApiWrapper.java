@@ -51,7 +51,6 @@ public class SchedulerApiWrapper implements SchedulerApi {
     } catch (InterruptedException | ExecutionException e) {
       Logger.e(TAG, e, null);
     }
-    // TODO: What should the default return be?
     return RequestBehavior.NO_REQUEST_WITH_WAIT;
   }
 

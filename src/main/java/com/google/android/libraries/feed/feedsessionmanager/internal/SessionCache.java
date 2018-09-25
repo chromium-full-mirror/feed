@@ -281,7 +281,6 @@ public class SessionCache implements Dumpable {
               unboundSession.populateModelProvider(
                   session, streamStructuresResult.getValue(), false, false, null);
             } else {
-              // TODO: handle errors
               Logger.e(TAG, "Failed to read unbound session state, ignored");
             }
             timeTracker.stop("task", "createUnboundSession");

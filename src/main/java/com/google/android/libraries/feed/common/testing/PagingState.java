@@ -72,7 +72,6 @@ public class PagingState {
         ContentId.newBuilder().setContentDomain("token").setId(id).setTable("feature").build();
 
     StreamToken.Builder tokenBuilder = StreamToken.newBuilder();
-    // TODO: This needs to be the real root id.  How do we get the root id?
     tokenBuilder.setParentId(idGenerator.createContentId(ROOT_CONTENT_ID));
     tokenBuilder.setContentId(idGenerator.createContentId(tokenId));
     tokenBuilder.setNextPageToken(token);

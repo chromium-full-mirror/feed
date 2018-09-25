@@ -257,9 +257,9 @@ public class FeedSessionManagerTest {
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
             sessionManager, threadUtils, timingUtils, mainThreadRunner, configuration);
-    // TODO: We can't verify that raiseError was called on ModelProvider since all of that
-    // happens in the createNew() call due to the single threaded nature.  We may want to have a
-    // test method on the factory to install the observer when creating the ModelProvider.
+    // We can't verify that raiseError was called on ModelProvider since all of that happens in
+    // the createNew() call due to the single threaded nature.  We may want to have a test method
+    // on the factory to install the observer when creating the ModelProvider.
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
 
     // Verify the failed session is correct

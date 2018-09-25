@@ -233,7 +233,6 @@ public class TimingUtils implements Dumpable {
   private static class TrackerState {
     final long duration;
     final String source;
-    // TODO: Should we convert this to Pair?
     final Object[] args;
     final int indent;
 

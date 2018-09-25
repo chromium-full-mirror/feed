@@ -52,8 +52,6 @@ public class UpdatableModelChild implements ModelChild {
   @Override
   public ModelFeature getModelFeature() {
     validateType(Type.FEATURE);
-    // TODO: We want to prune these once they are accessed by the cursor.  Add support
-    // for this.
     return modelFeature;
   }
 

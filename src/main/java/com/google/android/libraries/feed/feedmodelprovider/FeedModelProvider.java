@@ -1112,7 +1112,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           TAG + "-onFeatureChange",
           () -> {
             for (FeatureChangeImpl change : changes.values()) {
-              // TODO: This cast is because StreamFeatureChange is part of the API, cleanup?
               List<FeatureChangeObserver> observers =
                   ((UpdatableModelFeature) change.getModelFeature()).getObserversToNotify();
               for (FeatureChangeObserver observer : observers) {

@@ -277,7 +277,6 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     if (session.getStreamToken().equals(HEAD.getStreamToken())) {
-      // TODO: What type of exception should this throw?
       throw new IllegalStateException("Unable to delete the $HEAD session");
     }
     journalStorageDirect.commit(
