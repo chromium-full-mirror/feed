@@ -117,7 +117,7 @@ public class FeedRequestManager implements RequestManager {
     threadUtils.checkMainThread();
     taskQueue.execute(
         "requestManagerLoadMore",
-        TaskType.POST_INIT, // always run requests as soon as possible
+        TaskType.IMMEDIATE, // always run requests as soon as possible
         () -> {
           Logger.i(TAG, "Task: FeedRequestManager LoadMore");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);

@@ -235,7 +235,7 @@ public class FeedSessionManager
       Logger.i(TAG, "Delaying populateSession until initialization is finished");
       taskQueue.execute(
           "postInitialization/populateSession",
-          TaskType.POST_INIT,
+          TaskType.IMMEDIATE,
           () -> populateSession(session, viewDepthProvider));
     } else {
       populateSession(session, viewDepthProvider);
@@ -750,7 +750,7 @@ public class FeedSessionManager
     Logger.i(TAG, "onLifecycleEvent %s", event);
     switch (event) {
       case LifecycleEvent.CLEAR_ALL:
-        taskQueue.execute("reset", TaskType.POST_INIT, this::reset);
+        taskQueue.execute("reset", TaskType.IMMEDIATE, this::reset);
         break;
       case LifecycleEvent.INITIALIZE:
         initialize();

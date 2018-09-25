@@ -230,7 +230,7 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
         }
         break;
       case LifecycleEvent.CLEAR_ALL:
-        taskQueue.execute("clearAll", TaskType.POST_INIT, persistentStore::clearNonActionContent);
+        taskQueue.execute("clearAll", TaskType.IMMEDIATE, persistentStore::clearNonActionContent);
         break;
       default:
         // Do nothing

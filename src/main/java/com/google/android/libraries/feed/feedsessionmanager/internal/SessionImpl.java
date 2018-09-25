@@ -208,7 +208,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
     // Commit the Model Provider mutation after the store is updated.
     int taskType =
         mutationContext != null && mutationContext.isUserInitiated()
-            ? TaskType.POST_INIT
+            ? TaskType.IMMEDIATE
             : TaskType.USER_FACING;
     taskQueue.execute("SessionImpl.sessionMutation", taskType, sessionMutation::commit);
     if (modelMutation != null) {

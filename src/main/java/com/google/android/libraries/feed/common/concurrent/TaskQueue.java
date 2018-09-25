@@ -70,7 +70,7 @@ public class TaskQueue implements Dumpable {
   /** TaskType identifies the type of task being run and implicitly the priority of the task */
   @IntDef({
     TaskType.UNKNOWN,
-    TaskType.POST_INIT,
+    TaskType.IMMEDIATE,
     TaskType.HEAD_INVALIDATE,
     TaskType.HEAD_RESET,
     TaskType.USER_FACING,
@@ -79,8 +79,8 @@ public class TaskQueue implements Dumpable {
   public @interface TaskType {
     // Unknown task priority, shouldn't be used, this will be treated as a background task
     int UNKNOWN = 0;
-    // Runs immediately, post initialization task which waited for initialization to be finished
-    int POST_INIT = 1;
+    // Runs immediately.  IMMEDIATE tasks will wait for initialization to be finished
+    int IMMEDIATE = 1;
     // Runs immediately, $HEAD is invalidated (cleared) and delay tasks until HEAD_RESET
     int HEAD_INVALIDATE = 2;
     // Runs immediately, indicates the task will create a new $HEAD instance.
@@ -175,10 +175,9 @@ public class TaskQueue implements Dumpable {
    * first task run, all other tasks are delayed until initialization finishes.
    */
   public void initialize(Runnable runnable) {
-    // TODO: Should this have a TaskType.INIT?
     TaskWrapper task =
         new BaseTaskWrapper(
-            "initialize", TaskType.POST_INIT, () -> executeInitialization(runnable));
+            "initialize", TaskType.IMMEDIATE, () -> executeInitialization(runnable));
     task.runTask();
   }
 
@@ -290,11 +289,11 @@ public class TaskQueue implements Dumpable {
     synchronized (lock) {
       if (taskType == TaskType.HEAD_INVALIDATE
           || taskType == TaskType.HEAD_RESET
-          || taskType == TaskType.POST_INIT) {
+          || taskType == TaskType.IMMEDIATE) {
         immediateTasks.add(taskWrapper);
         maxImmediateTasks = Math.max(immediateTasks.size(), maxImmediateTasks);
-        if (taskType == TaskType.HEAD_RESET || (taskType == TaskType.POST_INIT && initialized)) {
-          // HEAD_RESET and POST_INIT are both executed immediately
+        if (taskType == TaskType.HEAD_RESET || (taskType == TaskType.IMMEDIATE && initialized)) {
+          // HEAD_RESET and IMMEDIATE are both executed immediately
           executeNextTask();
         }
       } else if (taskType == TaskType.USER_FACING) {
@@ -309,7 +308,7 @@ public class TaskQueue implements Dumpable {
 
   private void countTask(@TaskType int taskType) {
     taskCount++;
-    if (taskType == TaskType.POST_INIT) {
+    if (taskType == TaskType.IMMEDIATE) {
       postInitTaskCount++;
     } else if (taskType == TaskType.HEAD_INVALIDATE) {
       headInvalidateTaskCount++;

@@ -62,7 +62,7 @@ public class TaskQueueTest {
 
     taskQueue.execute("background", TaskType.BACKGROUND, background);
     taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
-    taskQueue.execute("postInit", TaskType.POST_INIT, postInit);
+    taskQueue.execute("postInit", TaskType.IMMEDIATE, postInit);
     assertThat(taskQueue.hasBacklog()).isTrue();
     taskQueue.initialize(init);
 
@@ -81,7 +81,7 @@ public class TaskQueueTest {
     Runnable reset = () -> runnable(4);
 
     taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, invalidate);
-    taskQueue.execute("postInit", TaskType.POST_INIT, postInit);
+    taskQueue.execute("postInit", TaskType.IMMEDIATE, postInit);
     taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
     taskQueue.execute("reset", TaskType.HEAD_RESET, reset);
 
@@ -116,7 +116,7 @@ public class TaskQueueTest {
     taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, headInvalidate);
     taskQueue.execute("background", TaskType.BACKGROUND, background);
     taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
-    taskQueue.execute("postInit", TaskType.POST_INIT, postInit); // run immediately
+    taskQueue.execute("postInit", TaskType.IMMEDIATE, postInit); // run immediately
     assertThat(taskQueue.hasBacklog()).isTrue();
     taskQueue.execute("headReset", TaskType.HEAD_RESET, headReset);
 
@@ -150,7 +150,7 @@ public class TaskQueueTest {
     taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, headInvalidate);
     taskQueue.execute("background", TaskType.BACKGROUND, background);
     taskQueue.execute("userFacing", TaskType.USER_FACING, userFacing);
-    taskQueue.execute("postInit", TaskType.POST_INIT, postInit);
+    taskQueue.execute("postInit", TaskType.IMMEDIATE, postInit);
     assertThat(taskQueue.hasBacklog()).isTrue();
 
     taskQueue.reset();

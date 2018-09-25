@@ -196,7 +196,7 @@ public class SessionManagerMutation implements Dumpable {
       }
       int taskType;
       if (mutationContext != null && mutationContext.isUserInitiated()) {
-        taskType = TaskType.POST_INIT;
+        taskType = TaskType.IMMEDIATE;
       } else {
         taskType = clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING;
       }
