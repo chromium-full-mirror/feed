@@ -189,10 +189,15 @@ public class FeedRequestManager implements RequestManager {
     uriBuilder.appendQueryParameter(LOCALE_PARAM, getLocale().toString());
 
     HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), HttpMethod.GET);
-    Logger.i(TAG, "Making Request: %s", httpRequest.getUri());
+    Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
     networkClient.send(
         httpRequest,
         input -> {
+          Logger.i(
+              TAG,
+              "Request: %s completed with response code: %s",
+              httpRequest.getUri().getPath(),
+              input.getResponseCode());
           if (input.getResponseCode() != 200) {
             String errorBody = null;
             try {
