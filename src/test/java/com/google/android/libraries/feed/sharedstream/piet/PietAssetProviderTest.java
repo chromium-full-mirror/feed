@@ -80,7 +80,7 @@ public class PietAssetProviderTest {
   @Test
   public void testGetRelativeElapsedString() {
     assertThat(pietAssetProvider.getRelativeElapsedString(TimeUnit.MINUTES.toMillis(1)))
-        .isEqualTo("1 min ago");
+        .isEqualTo("1 minute ago");
   }
 
   @Test

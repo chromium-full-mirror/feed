@@ -64,8 +64,7 @@ public class PietAssetProvider implements AssetProvider {
     return DateUtils.getRelativeTimeSpanString(
             clock.currentTimeMillis() - elapsedTimeMillis,
             clock.currentTimeMillis(),
-            DateUtils.MINUTE_IN_MILLIS,
-            DateUtils.FORMAT_ABBREV_RELATIVE)
+            DateUtils.MINUTE_IN_MILLIS)
         .toString();
   }
 
