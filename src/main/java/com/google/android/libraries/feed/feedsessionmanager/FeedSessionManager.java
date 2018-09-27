@@ -280,16 +280,17 @@ public class FeedSessionManager
       triggerRefresh(null);
     }
 
+    int taskType = TaskType.USER_FACING;
     if (behavior == RequestBehavior.NO_REQUEST_WITH_CONTENT && taskQueue.isMakingRequest()) {
-      // TODO: Need to support this
-      Logger.i(TAG, "No support for showing content while a request is being made");
+      // don't wait for the request to finish, go ahead and show the content
+      taskType = TaskType.IMMEDIATE;
     }
 
     // Task which creates and populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
     taskQueue.execute(
         "populateNewSession",
-        TaskType.USER_FACING,
+        taskType,
         () -> populateSessionTask(session, viewDepthProvider, legacyHeadContent),
         timeoutTask,
         sessionPopulationTimeoutMs);
@@ -488,7 +489,8 @@ public class FeedSessionManager
         streamToken.getContentId());
     threadUtils.checkMainThread();
 
-    // TODO: This should only create the request once.
+    // At the moment, this doesn't try to prevent multiple requests with the same Token.
+    // We may want to make sure we only make the request a single time.
     handleTokenCount++;
     MutationContext mutationContext =
         new MutationContext.Builder()
