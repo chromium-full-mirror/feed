@@ -186,8 +186,8 @@ public class SessionImpl implements InitializableSession, Dumpable {
           }
         } else {
           contentInSession.add(contentKey);
+          sessionMutation.add(streamStructure);
           if (modelMutation != null) {
-            sessionMutation.add(streamStructure);
             modelMutation.addChild(streamStructure);
           }
           addFeatureCnt++;

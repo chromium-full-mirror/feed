@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.feedstore.internal.FeedStoreCons
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
 
+import android.util.Base64;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -245,7 +246,12 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
           action = StreamAction.parseFrom(bytes);
           actions.add(action);
         } catch (InvalidProtocolBufferException e) {
-          Logger.e(TAG, e, "Error parsing StreamAction for bytes: %s", bytes);
+          Logger.e(
+              TAG,
+              e,
+              "Error parsing StreamAction for bytes: %s (length %d)",
+              Base64.encodeToString(bytes, Base64.DEFAULT),
+              bytes.length);
         }
       }
       tracker.stop("task", "getAllDismissActions", "size", actions.size());
@@ -455,7 +461,14 @@ public class PersistentFeedStore implements ClearableStore, Dumpable {
                 .setFeatureContentId(contentId)
                 .setTimestampSeconds(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()))
                 .build();
-        builder.append(action.toByteArray());
+        byte[] actionBytes = action.toByteArray();
+        Logger.i(
+            TAG,
+            "Adding StreamAction bytes %s (length %d) to journal %s",
+            Base64.encodeToString(actionBytes, Base64.DEFAULT),
+            actionBytes.length,
+            journalName);
+        builder.append(actionBytes);
       }
       commitResult = journalStorageDirect.commit(builder.build());
       if (commitResult == CommitResult.FAILURE) {

@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.common.functional.Committer;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 /** Implementation of {@link ActionMutation} */
 public class FeedActionMutation implements ActionMutation {
+  private static final String TAG = "FeedActionMutation";
 
   private final Map<Integer, List<String>> actions = new HashMap<>();
   private final Committer<CommitResult, Map<Integer, List<String>>> committer;
@@ -40,6 +42,7 @@ public class FeedActionMutation implements ActionMutation {
     }
     actionsForType.add(contentId);
     actions.put(action, actionsForType);
+    Logger.i(TAG, "Added action %d with content id %s", action, contentId);
     return this;
   }
 
