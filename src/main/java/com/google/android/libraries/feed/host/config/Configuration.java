@@ -27,6 +27,9 @@ public class Configuration {
   @StringDef({
     ConfigKey.FEED_SERVER_HOST,
     ConfigKey.FEED_SERVER_PATH_AND_PARAMS,
+    ConfigKey.FEED_SERVER_ENDPOINT,
+    ConfigKey.FEED_SERVER_METHOD,
+    ConfigKey.FEED_SERVER_RESPONSE_LENGTH_PREFIXED,
     ConfigKey.SESSION_LIFETIME_MS,
     ConfigKey.MOCK_SERVER_DELAY_MS,
     ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE,
@@ -53,6 +56,9 @@ public class Configuration {
   public @interface ConfigKey {
     String FEED_SERVER_HOST = "feed_server_host";
     String FEED_SERVER_PATH_AND_PARAMS = "feed_server_path_and_params";
+    String FEED_SERVER_ENDPOINT = "feed_server_endpoint";
+    String FEED_SERVER_METHOD = "feed_server_method";
+    String FEED_SERVER_RESPONSE_LENGTH_PREFIXED = "feed_server_response_length_prefixed";
     String SESSION_LIFETIME_MS = "session_lifetime_ms";
     String MOCK_SERVER_DELAY_MS = "mock_server_delay_ms";
     String INITIAL_NON_CACHED_PAGE_SIZE = "initial_non_cached_page_size";
