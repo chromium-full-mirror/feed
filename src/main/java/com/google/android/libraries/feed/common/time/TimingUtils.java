@@ -176,8 +176,18 @@ public class TimingUtils implements Dumpable {
     void popElapsedTimeTracker(ElapsedTimeTracker tracker) {
       ElapsedTimeTracker top = stack.peek();
       if (top != tracker) {
-        // TODO: What do we do about errors?
-        Logger.w(TAG, "Trying to Pop non-top of stack timer");
+        int pos = stack.search(tracker);
+        if (pos == -1) {
+          Logger.w(TAG, "Trying to Pop non-top of stack timer, ignoring");
+          return;
+        } else {
+          int c = 0;
+          while (stack.peek() != tracker) {
+            c++;
+            stack.pop();
+          }
+          Logger.w(TAG, "Pop TimingTracker which was not the current top, popped % items", c);
+        }
       }
       stack.pop();
       if (stack.isEmpty()) {

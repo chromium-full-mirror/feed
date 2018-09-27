@@ -724,8 +724,7 @@ public final class Logger {
         }
         break;
       default:
-        // TODO: What should we do by default.  If we hit this it's a code error in this
-        // class.  Handling as verbose...
+        // If we hit this it's a code error in this class, handling as verbose
         if (th != null) {
           Log.v(tag, formattedMessage, th);
         } else {
