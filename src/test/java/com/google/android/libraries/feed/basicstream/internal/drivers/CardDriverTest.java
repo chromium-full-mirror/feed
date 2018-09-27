@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHe
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
@@ -119,7 +120,8 @@ public class CardDriverTest {
             POSITION,
             contentDriverChild,
             mock(StreamOfflineMonitor.class),
-            mock(ContextMenuHelper.class));
+            mock(ContextMenuHelper.class),
+            mock(MenuMeasurer.class));
   }
 
   @Test
@@ -184,7 +186,8 @@ public class CardDriverTest {
         int position,
         ContentDriver childContentDriver,
         StreamOfflineMonitor streamOfflineMonitor,
-        ContextMenuHelper contextMenuHelper) {
+        ContextMenuHelper contextMenuHelper,
+        MenuMeasurer menuMeasurer) {
       super(
           actionApi,
           actionManager,
@@ -196,7 +199,8 @@ public class CardDriverTest {
           position,
           streamOfflineMonitor,
           contentChangedListener,
-          contextMenuHelper);
+          contextMenuHelper,
+          menuMeasurer);
       this.child = childContentDriver;
     }
 

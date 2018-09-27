@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHe
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.stream.StreamSwipeExtensionProto.SwipeActionExtension;
 
@@ -47,6 +48,7 @@ public class CardDriver implements FeatureDriver {
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final ContentChangedListener contentChangedListener;
   private final ContextMenuHelper contextMenuHelper;
+  private final MenuMeasurer menuMeasurer;
 
   /*@Nullable*/ private ContentDriver contentDriver;
 
@@ -61,7 +63,8 @@ public class CardDriver implements FeatureDriver {
       int position,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
-      ContextMenuHelper contextMenuHelper) {
+      ContextMenuHelper contextMenuHelper,
+      MenuMeasurer menuMeasurer) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -73,6 +76,7 @@ public class CardDriver implements FeatureDriver {
     this.streamOfflineMonitor = streamOfflineMonitor;
     this.contentChangedListener = contentChangedListener;
     this.contextMenuHelper = contextMenuHelper;
+    this.menuMeasurer = menuMeasurer;
   }
 
   @Override
@@ -130,6 +134,7 @@ public class CardDriver implements FeatureDriver {
         swipeAction,
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuHelper);
+        contextMenuHelper,
+        menuMeasurer);
   }
 }

@@ -78,6 +78,7 @@ import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.ArrayList;
@@ -770,7 +771,8 @@ public class BasicStreamTest {
         BasicLoggingApi basicLoggingApi,
         StreamOfflineMonitor streamOfflineMonitor,
         KnownContentApi knownContentApi,
-        ContextMenuHelper contextMenuHelper) {
+        ContextMenuHelper contextMenuHelper,
+        MenuMeasurer menuMeasurer) {
       streamDriverScrollRestorer = scrollRestorer;
       return streamDriver;
     }

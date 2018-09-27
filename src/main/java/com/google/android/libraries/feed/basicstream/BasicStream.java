@@ -73,6 +73,7 @@ import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOffli
 import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvider;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.List;
 
@@ -104,6 +105,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final MainThreadRunner mainThreadRunner;
   private final KnownContentApi knownContentApi;
+  private final MenuMeasurer menuMeasurer;
 
   private RecyclerView recyclerView;
   private ContextMenuHelper contextMenuHelper;
@@ -174,6 +176,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
             DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
     this.knownContentApi = knownContentApi;
+    menuMeasurer = new MenuMeasurer(context);
   }
 
   @VisibleForTesting
@@ -279,7 +282,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               basicLoggingApi,
               streamOfflineMonitor,
               knownContentApi,
-              contextMenuHelper);
+              contextMenuHelper,
+              menuMeasurer);
       adapter.setDriver(streamDriver);
       streamDriver.showZeroState(/* showSpinner= */ true);
     }
@@ -509,7 +513,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             basicLoggingApi,
             streamOfflineMonitor,
             knownContentApi,
-            contextMenuHelper);
+            contextMenuHelper,
+            menuMeasurer);
 
     adapter.setDriver(streamDriver);
 
@@ -584,7 +589,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       BasicLoggingApi basicLoggingApi,
       StreamOfflineMonitor streamOfflineMonitor,
       KnownContentApi knownContentApi,
-      ContextMenuHelper contextMenuHelper) {
+      ContextMenuHelper contextMenuHelper,
+      MenuMeasurer menuMeasurer) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -599,7 +605,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         basicLoggingApi,
         streamOfflineMonitor,
         knownContentApi,
-        contextMenuHelper);
+        contextMenuHelper,
+        menuMeasurer);
   }
 
   @VisibleForTesting

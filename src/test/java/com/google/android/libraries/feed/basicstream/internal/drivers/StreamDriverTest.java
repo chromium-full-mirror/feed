@@ -48,6 +48,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
@@ -606,7 +607,8 @@ public class StreamDriverTest {
           basicLoggingApi,
           streamOfflineMonitor,
           knownContentApi,
-          mock(ContextMenuHelper.class));
+          mock(ContextMenuHelper.class),
+          mock(MenuMeasurer.class));
       childrenCreated = new ArrayList<>();
     }
 

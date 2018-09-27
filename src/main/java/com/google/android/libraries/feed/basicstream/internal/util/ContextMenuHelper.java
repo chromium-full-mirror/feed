@@ -29,12 +29,17 @@ public class ContextMenuHelper {
    * Gets the height of the Stream. This is specifically the height visible on screen, not including
    * anything below the screen.
    */
-  public int getWindowHeight() {
+  public int getStreamHeight() {
     return view.getHeight();
   }
 
+  /** Gets the width of the Stream. */
+  public int getStreamWidth() {
+    return view.getWidth();
+  }
+
   /** Gets the Y coordinate of the position of the Stream. */
-  public int getWindowYPosition() {
+  public int getStreamYPosition() {
     int[] position = new int[2];
     view.getLocationInWindow(position);
     return position[1];

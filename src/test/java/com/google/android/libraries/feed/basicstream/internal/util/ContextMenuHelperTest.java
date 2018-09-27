@@ -46,6 +46,6 @@ public class ContextMenuHelperTest {
     int bottom = 150;
     view.layout(0, top, 0, bottom);
 
-    assertThat(new ContextMenuHelper(view).getWindowHeight()).isEqualTo(bottom - top);
+    assertThat(new ContextMenuHelper(view).getStreamHeight()).isEqualTo(bottom - top);
   }
 }

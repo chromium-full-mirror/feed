@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.basicstream.internal.actions;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -25,10 +26,12 @@ import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Context;
-import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
-import android.widget.PopupMenu;
+import android.widget.ListView;
+import android.widget.PopupWindow;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
@@ -37,6 +40,8 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -56,7 +61,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.shadows.ShadowPopupMenu;
+import org.robolectric.RuntimeEnvironment;
 
 /** Tests for {@link StreamActionApiImpl}. */
 @RunWith(RobolectricTestRunner.class)
@@ -121,12 +126,17 @@ public class StreamActionApiImplTest {
           /* publisher= */ null,
           /* faviconUrl= */ null,
           /* snippet=*/ null);
+  private static final int MENU_HEIGHT = 123;
+  private static final int MENU_WIDTH = 321;
+  public static final int NO_ID = -1;
 
   @Mock private ActionApi actionApi;
   @Mock private ActionParser actionParser;
   @Mock private ActionManager actionManager;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentLoggingData contentLoggingData;
+  @Mock private MenuMeasurer menuMeasurer;
+
   private StreamActionApiImpl streamActionApi;
   private FrameLayout parentView;
   private View view;
@@ -139,6 +149,9 @@ public class StreamActionApiImplTest {
     view = new View(context);
     parentView = new FrameLayout(context);
     parentView.addView(view);
+    when(menuMeasurer.measureAdapterContent(
+            any(ViewGroup.class), Mockito.<ArrayAdapter<?>>any(), anyInt(), anyInt(), anyInt()))
+        .thenReturn(new Size(MENU_WIDTH, MENU_HEIGHT));
     streamActionApi =
         new StreamActionApiImpl(
             context,
@@ -148,6 +161,7 @@ public class StreamActionApiImplTest {
             basicLoggingApi,
             contentLoggingData,
             mock(ContextMenuHelper.class),
+            menuMeasurer,
             SESSION_ID);
   }
 
@@ -260,15 +274,15 @@ public class StreamActionApiImplTest {
 
     assertThat(shadowOf(parentView).getDisallowInterceptTouchEvent()).isTrue();
 
-    Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
-    assertThat(menu.getItem(0).getTitle().toString()).isEqualTo(OPEN_LABEL);
-    assertThat(menu.getItem(1).getTitle().toString()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
-    assertThat(menu.getItem(2).getTitle().toString()).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
+    PopupWindow shadowPopupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
+    ListView listView = (ListView) shadowPopupWindow.getContentView();
+    assertThat(getItemLabelAt(listView, /* position= */ 0)).isEqualTo(OPEN_LABEL);
+    assertThat(getItemLabelAt(listView, /* position= */ 1)).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
+    assertThat(getItemLabelAt(listView, /* position= */ 2)).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
 
-    PopupMenu popupMenu = ShadowPopupMenu.getLatestPopupMenu();
-    shadowOf(popupMenu).getOnMenuItemClickListener().onMenuItemClick(menu.getItem(0));
-    shadowOf(popupMenu).getOnMenuItemClickListener().onMenuItemClick(menu.getItem(1));
-    shadowOf(popupMenu).getOnMenuItemClickListener().onMenuItemClick(menu.getItem(2));
+    listView.performItemClick(null, /* position= */ 0, NO_ID);
+    listView.performItemClick(null, /* position= */ 1, NO_ID);
+    listView.performItemClick(null, /* position= */ 2, NO_ID);
 
     InOrder inOrder = Mockito.inOrder(actionParser);
 
@@ -303,11 +317,12 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
-    Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
+    PopupWindow shadowPopupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
+    ListView listView = (ListView) shadowPopupWindow.getContentView();
 
-    assertThat(menu.size()).isEqualTo(2);
-    assertThat(menu.getItem(0).getTitle().toString()).isEqualTo(OPEN_LABEL);
-    assertThat(menu.getItem(1).getTitle().toString()).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
+    assertThat(listView.getAdapter().getCount()).isEqualTo(2);
+    assertThat(getItemLabelAt(listView, 0)).isEqualTo(OPEN_LABEL);
+    assertThat(getItemLabelAt(listView, 1)).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
   }
 
   @Test
@@ -329,11 +344,12 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
-    Menu menu = ShadowPopupMenu.getLatestPopupMenu().getMenu();
+    PopupWindow shadowPopupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
+    ListView listView = (ListView) shadowPopupWindow.getContentView();
 
-    assertThat(menu.size()).isEqualTo(2);
-    assertThat(menu.getItem(0).getTitle().toString()).isEqualTo(OPEN_LABEL);
-    assertThat(menu.getItem(1).getTitle().toString()).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
+    assertThat(listView.getAdapter().getCount()).isEqualTo(2);
+    assertThat(getItemLabelAt(listView, 0)).isEqualTo(OPEN_LABEL);
+    assertThat(getItemLabelAt(listView, 1)).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
   }
 
   @Test
@@ -350,7 +366,11 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
-    assertThat(ShadowPopupMenu.getLatestPopupMenu().getMenu()).isNotNull();
+    assertThat(shadowOf(RuntimeEnvironment.application).getLatestPopupWindow()).isNotNull();
     verify(basicLoggingApi).onContentContextMenuOpened(contentLoggingData);
+  }
+
+  public String getItemLabelAt(ListView listView, int position) {
+    return (String) listView.getAdapter().getItem(position);
   }
 }

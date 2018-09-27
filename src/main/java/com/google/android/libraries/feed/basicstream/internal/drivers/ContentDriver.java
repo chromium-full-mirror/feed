@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -87,7 +88,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       FeedActionPayload swipeAction,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
-      ContextMenuHelper contextMenuHelper) {
+      ContextMenuHelper contextMenuHelper,
+      MenuMeasurer menuMeasurer) {
     Content content = contentFeatureModel.getStreamFeature().getContent();
 
     PietContent pietContent = getPietContent(content);
@@ -112,7 +114,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
             basicLoggingApi,
             contentLoggingData,
             modelProvider.getSessionToken(),
-            contextMenuHelper);
+            contextMenuHelper,
+            menuMeasurer);
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
     contentUrl = representationData.getUri();
@@ -262,7 +265,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       BasicLoggingApi basicLoggingApi,
       ContentLoggingData contentLoggingData,
       /*@Nullable*/ String sessionToken,
-      ContextMenuHelper contextMenuHelper) {
+      ContextMenuHelper contextMenuHelper,
+      MenuMeasurer menuMeasurer) {
     return new StreamActionApiImpl(
         context,
         actionApi,
@@ -271,6 +275,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
         basicLoggingApi,
         contentLoggingData,
         contextMenuHelper,
+        menuMeasurer,
         sessionToken);
   }
 
