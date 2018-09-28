@@ -292,7 +292,6 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
         indexToRemove = i;
       }
     }
-    header.onDismissed();
     if (indexToRemove == -1) {
       Logger.w(TAG, "Header has already been removed.");
       return;
@@ -300,6 +299,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
     headers.remove(indexToRemove).onDestroy();
     notifyItemRemoved(indexToRemove);
+    header.onDismissed();
   }
 
   @VisibleForTesting
