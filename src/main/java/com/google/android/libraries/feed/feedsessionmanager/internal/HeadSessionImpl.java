@@ -144,8 +144,8 @@ public class HeadSessionImpl implements Session, Dumpable {
     } else {
       timeTracker.stop("updateSessionFailure", streamSession.getStreamToken());
       storeMutationFailures++;
-      // TODO: What do we do if this fails?
       Logger.e(TAG, "$HEAD session mutation failed");
+      store.switchToEphemeralMode();
     }
   }
 
