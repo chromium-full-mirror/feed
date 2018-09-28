@@ -24,7 +24,7 @@ import com.google.android.libraries.feed.common.functional.Supplier;
  * A state shared by instances of Cards and Slices. The state is accessed directly from the instance
  * instead of going through getX methods.
  *
- * <p>TODO: This is basically the Dagger state for Piet. Need to implement dagger support.
+ * <p>This is basically the Dagger state for Piet. If we can use Dagger, replace this with Dagger.
  */
 class AdapterParameters {
   // TODO: Make these configurable instead of constants.

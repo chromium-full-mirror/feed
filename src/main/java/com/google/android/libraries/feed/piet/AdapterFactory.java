@@ -114,7 +114,6 @@ class AdapterFactory<A extends ElementAdapter<?, M>, M> {
     int releaseCalls = 0;
     int getCalls = 0;
 
-    // TODO: Pass in the KeyProvider here
     public Statistics(String factoryName) {
       this.factoryName = factoryName;
     }
