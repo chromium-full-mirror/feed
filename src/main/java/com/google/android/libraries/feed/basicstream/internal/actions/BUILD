@@ -5,6 +5,8 @@ licenses(["notice"])  # Apache 2
 android_library(
     name = "actions",
     srcs = glob(["*.java"]),
+    manifest = "AndroidManifest.xml",
+    resource_files = glob(["res/**"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/actionmanager",
         "//src/main/java/com/google/android/libraries/feed/api/actionparser",

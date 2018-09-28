@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.basicstream.internal.actions;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.view.View;
 import android.view.ViewParent;
 import android.widget.ArrayAdapter;
@@ -113,6 +115,12 @@ public class StreamActionApiImpl implements StreamActionApi {
     int dialogHeight = measurements.getHeight();
     PopupWindow popupWindow = new PopupWindow(listView, measurements.getWidth(), dialogHeight);
     popupWindow.setFocusable(true);
+    popupWindow.setBackgroundDrawable(
+        context.getResources().getDrawable(R.drawable.popup_window_bg));
+    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+      popupWindow.setElevation(context.getResources().getDimension(R.dimen.popup_window_elevation));
+    }
+
     listView.setOnItemClickListener(
         (parent, view, position, id) -> {
           actionParser.parseFeedActionPayload(
