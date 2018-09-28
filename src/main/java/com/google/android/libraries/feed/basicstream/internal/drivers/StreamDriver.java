@@ -130,9 +130,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       }
     }
 
-    if (featureDrivers.isEmpty()) {
-      return Collections.singletonList(createZeroStateDriver(/* showSpinner= */ false));
-    }
+    addNoContentCardOrZeroStateIfNecessary();
 
     return buildLeafFeatureDrivers(featureDrivers);
   }
@@ -150,8 +148,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     scrollRestorer.maybeRestoreScroll();
   }
 
-  @VisibleForTesting
-  List<FeatureDriver> createAndInsertChildren(
+  private List<FeatureDriver> createAndInsertChildren(
       ModelFeature streamFeature, ModelProvider modelProvider) {
     return createAndInsertChildren(streamFeature.getCursor(), modelProvider);
   }

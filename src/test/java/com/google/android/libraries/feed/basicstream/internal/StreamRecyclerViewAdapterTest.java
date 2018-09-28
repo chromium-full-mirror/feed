@@ -54,7 +54,9 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -221,7 +223,14 @@ public class StreamRecyclerViewAdapterTest {
         .isEqualTo(FEATURE_DRIVER_1_ID);
     assertThat(streamRecyclerViewAdapter.getItemId(getContentBindingIndex(1)))
         .isEqualTo(FEATURE_DRIVER_2_ID);
-    verify(newDriver).maybeRestoreScroll();
+
+    InOrder inOrder = Mockito.inOrder(newDriver);
+
+    // getLeafFeatureDrivers() needs to be called before setting the listener, otherwise the adapter
+    // could be notified of a child and then given it in getLeafFeatureDrivers().
+    inOrder.verify(newDriver).getLeafFeatureDrivers();
+    inOrder.verify(newDriver).setStreamContentListener(streamRecyclerViewAdapter);
+    inOrder.verify(newDriver).maybeRestoreScroll();
   }
 
   @Test

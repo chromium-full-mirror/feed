@@ -211,8 +211,9 @@ public class StreamDriverTest {
     when(streamFeature.getCursor()).thenReturn(new FakeModelCursor.Builder().addToken().build());
 
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
-    assertThat(leafFeatureDrivers).hasSize(1);
-    assertThat(leafFeatureDrivers.get(0)).isEqualTo(continuationDriver);
+    assertThat(leafFeatureDrivers).hasSize(2);
+    assertThat(leafFeatureDrivers.get(0)).isEqualTo(noContentDriver);
+    assertThat(leafFeatureDrivers.get(1)).isEqualTo(continuationDriver);
   }
 
   @Test
@@ -223,8 +224,9 @@ public class StreamDriverTest {
 
     // Causes StreamDriver to build a list of children based on the children from the cursor.
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
-    assertThat(leafFeatureDrivers).hasSize(1);
-    assertThat(leafFeatureDrivers.get(0)).isEqualTo(continuationDriver);
+    assertThat(leafFeatureDrivers).hasSize(2);
+    assertThat(leafFeatureDrivers.get(0)).isEqualTo(noContentDriver);
+    assertThat(leafFeatureDrivers.get(1)).isEqualTo(continuationDriver);
 
     streamDriver.onNewChildren(initialCursor.getChildAt(0), newCursor.getModelChildren());
     leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
@@ -238,17 +240,17 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_tokenHandling_notifiesObservers() {
-    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addToken().build();
+    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addCard().addToken().build();
     FakeModelCursor newCursor = new FakeModelCursor.Builder().addCluster().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
     streamDriver.getLeafFeatureDrivers();
 
-    streamDriver.onNewChildren(initialCursor.getChildAt(0), newCursor.getModelChildren());
+    streamDriver.onNewChildren(initialCursor.getChildAt(1), newCursor.getModelChildren());
 
-    verify(contentListener).notifyContentRemoved(0);
+    verify(contentListener).notifyContentRemoved(1);
     verify(contentListener)
-        .notifyContentsAdded(0, Lists.newArrayList(getLeafFeatureDriverFromCluster(1)));
+        .notifyContentsAdded(1, Lists.newArrayList(getLeafFeatureDriverFromCluster(2)));
     verify(streamOfflineMonitor, times(2)).requestOfflineStatusForNewContent();
   }
 
@@ -378,27 +380,6 @@ public class StreamDriverTest {
     streamDriver.showZeroState(/* showSpinner= */ true);
 
     verify(continuationDriver).onDestroy();
-  }
-
-  @Test
-  public void testTriggerRefresh_removesZeroState() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().build();
-
-    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
-
-    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
-
-    assertThat(leafFeatureDrivers).hasSize(1);
-    assertThat(leafFeatureDrivers.get(0)).isInstanceOf(ZeroStateDriver.class);
-
-    FakeModelCursor fakeModelCursorWithCard = new FakeModelCursor.Builder().addCard().build();
-    when(streamFeature.getCursor()).thenReturn(fakeModelCursorWithCard);
-
-    streamDriver.createAndInsertChildren(streamFeature, modelProvider);
-
-    assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
-    assertThat(streamDriver.getLeafFeatureDrivers().get(0))
-        .isInstanceOf(FakeLeafFeatureDriver.class);
   }
 
   @Test

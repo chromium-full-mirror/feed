@@ -224,8 +224,12 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     notifyItemRangeRemoved(headers.size(), leafFeatureDrivers.size());
     leafFeatureDrivers.clear();
 
-    newStreamDriver.setStreamContentListener(this);
+    // It is important that we get call getLeafFeatureDrivers before setting the content listener.
+    // If this is done in the other order, it is possible that the StreamDriver notifies us of
+    // something being added inside of the getLeafFeatureDrivers() call, resulting in two copies of
+    // the LeafFeatureDriver being shown.
     leafFeatureDrivers.addAll(newStreamDriver.getLeafFeatureDrivers());
+    newStreamDriver.setStreamContentListener(this);
 
     streamDriver = newStreamDriver;
     if (streamContentVisible) {
