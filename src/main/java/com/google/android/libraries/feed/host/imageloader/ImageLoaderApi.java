@@ -34,7 +34,8 @@ public interface ImageLoaderApi {
    * <p>Feed will not cache any images, so if caching is desired, it should be done on the host
    * side.
    *
-   * @param urls A list of urls, tried in order until a load succeeds. Urls may be bundled.
+   * @param urls A list of urls, tried in order until a load succeeds. Urls may be bundled. The list
+   *     of bundled assets will be defined via the {@link BundledAssets} StringDef.
    * @param widthPx The width of the image in pixels. Will be {@link #DIMENSION_UNKNOWN} if unknown.
    * @param heightPx The height of the image in pixels. Will be {@link #DIMENSION_UNKNOWN} if
    *     unknown.
