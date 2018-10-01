@@ -55,7 +55,7 @@ message FeedActionMetadata {
     // strings.
     DOWNLOAD = 6;
     OPEN_URL_NEW_TAB = 7;
-    LEARN_MORE = 8 [deprecated = true];
+    LEARN_MORE = 8;
   }
   optional Type type = 1;
 
