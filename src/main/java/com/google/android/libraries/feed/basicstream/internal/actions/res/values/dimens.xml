@@ -16,9 +16,9 @@
 -->
 <!-- Dimension resources. -->
 <resources>
-  <dimen name="popup_window_border_radius">3dp</dimen>
-  <dimen name="popup_window_border_stroke">1dp</dimen>
+  <dimen name="feed_popup_window_border_radius">3dp</dimen>
+  <dimen name="feed_popup_window_border_stroke">1dp</dimen>
 
   <!-- Material design specs say 8dp elevation for popup windows.-->
-  <dimen name="popup_window_elevation">8dp</dimen>
+  <dimen name="feed_popup_window_elevation">8dp</dimen>
 </resources>

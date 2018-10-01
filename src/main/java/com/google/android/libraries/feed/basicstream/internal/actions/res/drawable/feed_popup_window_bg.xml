@@ -15,13 +15,13 @@
   limitations under the License.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-  <solid android:color="@color/popup_background_color"/>
+  <solid android:color="@color/feed_popup_background_color"/>
 
-  <stroke android:width="@dimen/popup_window_border_stroke"
-      android:color="@color/popup_background_color" />
+  <stroke android:width="@dimen/feed_popup_window_border_stroke"
+      android:color="@color/feed_popup_background_color" />
 
-  <corners android:bottomRightRadius="@dimen/popup_window_border_radius"
-      android:bottomLeftRadius="@dimen/popup_window_border_radius"
-      android:topLeftRadius="@dimen/popup_window_border_radius"
-      android:topRightRadius="@dimen/popup_window_border_radius" />
+  <corners android:bottomRightRadius="@dimen/feed_popup_window_border_radius"
+      android:bottomLeftRadius="@dimen/feed_popup_window_border_radius"
+      android:topLeftRadius="@dimen/feed_popup_window_border_radius"
+      android:topRightRadius="@dimen/feed_popup_window_border_radius" />
 </shape>

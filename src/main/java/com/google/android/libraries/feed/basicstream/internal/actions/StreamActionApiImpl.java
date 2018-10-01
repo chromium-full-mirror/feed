@@ -116,9 +116,10 @@ public class StreamActionApiImpl implements StreamActionApi {
     PopupWindow popupWindow = new PopupWindow(listView, measurements.getWidth(), dialogHeight);
     popupWindow.setFocusable(true);
     popupWindow.setBackgroundDrawable(
-        context.getResources().getDrawable(R.drawable.popup_window_bg));
+        context.getResources().getDrawable(R.drawable.feed_popup_window_bg));
     if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-      popupWindow.setElevation(context.getResources().getDimension(R.dimen.popup_window_elevation));
+      popupWindow.setElevation(
+          context.getResources().getDimension(R.dimen.feed_popup_window_elevation));
     }
 
     listView.setOnItemClickListener(

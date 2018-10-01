@@ -16,5 +16,5 @@
 -->
 <resources>
     <!-- 98% white. -->
-    <color name="popup_background_color">#FAFFFFFF</color>
+    <color name="feed_popup_background_color">#FAFFFFFF</color>
 </resources>
