@@ -1221,7 +1221,7 @@ initial_response {
                       binding_id: "image-binding"
                       image {
                         sources {
-                          url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Above_Gotham.jpg/640px-Above_Gotham.jpg"
+                          url: "https://upload.wikimedia.org/wikipedia/commons/thumb/[INTERNAL LINK].jpg/640px-Above_Gotham.jpg"
                         }
                         scale_type: CENTER_CROP
                       }

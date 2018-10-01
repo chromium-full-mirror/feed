@@ -28,10 +28,10 @@ option cc_enable_arenas = true;
 // adding a width-based conditional enables providing different layouts/styles
 // based on the user’s device, and this can be re-evaluated entirely client-side
 // e.g. if the user rotates their device so that the width changes.
-// The name MediaQueryCondition derives from a similar concept for We[INTERNAL LINK] and
+// The name MediaQueryCondition derives from a similar concept for Web/CSS and
 // most principles in the Piet Media Query spec are influenced by their Web
 // equivalents.
-// https://developer.mozilla.org/en-US/do[INTERNAL LINK]/CSS/Media_Queries/Using_media_queries
+// https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
 message MediaQueryCondition {
   oneof condition {
     // See the documentation for FrameWidthCondition.

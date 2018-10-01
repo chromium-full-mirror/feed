@@ -1040,7 +1040,7 @@ initial_response {
         [search.now.ui.stream.Content.content_extension] {
           type: PIET
           representation_data {
-            uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+            uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
           }
           offline_metadata {
             title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey"
@@ -1112,7 +1112,7 @@ initial_response {
                                 metadata {
                                   type: OPEN_URL
                                   open_url_data {
-                                    url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                    url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                   }
                                 }
                               }
@@ -1133,7 +1133,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL
                                             open_url_data {
-                                              url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                              url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                             }
                                           }
                                         }
@@ -1146,7 +1146,7 @@ initial_response {
                                           metadata {
                                             type: DOWNLOAD
                                             download_data {
-                                              url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                              url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                             }
                                           }
                                         }
@@ -1164,7 +1164,7 @@ initial_response {
                       binding_id: "image-overlay-visibility"
                       host_binding_data {
                         [search.now.ui.stream.OfflineExtension.offline_extension] {
-                          url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                          url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                           offline_binding {
                             visibility: VISIBLE
                           }
@@ -1742,7 +1742,7 @@ initial_response {
         [search.now.ui.stream.Content.content_extension] {
           type: PIET
           representation_data {
-            uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+            uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
           }
           offline_metadata {
             title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players"
@@ -1814,7 +1814,7 @@ initial_response {
                                 metadata {
                                   type: OPEN_URL
                                   open_url_data {
-                                    url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                    url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                   }
                                 }
                               }
@@ -1835,7 +1835,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL
                                             open_url_data {
-                                              url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                             }
                                           }
                                         }
@@ -1848,7 +1848,7 @@ initial_response {
                                           metadata {
                                             type: DOWNLOAD
                                             download_data {
-                                              url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                             }
                                           }
                                         }
@@ -1866,7 +1866,7 @@ initial_response {
                       binding_id: "image-overlay-visibility"
                       host_binding_data {
                         [search.now.ui.stream.OfflineExtension.offline_extension] {
-                          url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                          url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                           offline_binding {
                             visibility: VISIBLE
                           }
@@ -2939,7 +2939,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2012)"
@@ -3011,7 +3011,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -3032,7 +3032,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -3045,7 +3045,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -3063,7 +3063,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -3641,7 +3641,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2015)"
@@ -3713,7 +3713,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -3734,7 +3734,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -3747,7 +3747,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -3765,7 +3765,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -4839,7 +4839,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2020)"
@@ -4911,7 +4911,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -4932,7 +4932,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -4945,7 +4945,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -4963,7 +4963,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -5541,7 +5541,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2023)"
@@ -5613,7 +5613,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -5634,7 +5634,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -5647,7 +5647,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -5665,7 +5665,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -6711,7 +6711,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2028)"
@@ -6783,7 +6783,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -6804,7 +6804,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -6817,7 +6817,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -6835,7 +6835,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -7441,7 +7441,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2031)"
@@ -7513,7 +7513,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -7534,7 +7534,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -7547,7 +7547,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -7565,7 +7565,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -8611,7 +8611,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2036)"
@@ -8683,7 +8683,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -8704,7 +8704,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -8717,7 +8717,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -8735,7 +8735,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -9313,7 +9313,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2039)"
@@ -9385,7 +9385,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -9406,7 +9406,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -9419,7 +9419,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -9437,7 +9437,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -10511,7 +10511,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2044)"
@@ -10583,7 +10583,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -10604,7 +10604,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -10617,7 +10617,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -10635,7 +10635,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -11213,7 +11213,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2047)"
@@ -11285,7 +11285,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -11306,7 +11306,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -11319,7 +11319,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -11337,7 +11337,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -12411,7 +12411,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2052)"
@@ -12483,7 +12483,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -12504,7 +12504,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -12517,7 +12517,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -12535,7 +12535,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -13113,7 +13113,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2055)"
@@ -13185,7 +13185,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -13206,7 +13206,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -13219,7 +13219,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -13237,7 +13237,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -14311,7 +14311,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2060)"
@@ -14383,7 +14383,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -14404,7 +14404,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -14417,7 +14417,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -14435,7 +14435,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -15013,7 +15013,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2063)"
@@ -15085,7 +15085,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -15106,7 +15106,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -15119,7 +15119,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -15137,7 +15137,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -16183,7 +16183,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2068)"
@@ -16255,7 +16255,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -16276,7 +16276,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -16289,7 +16289,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -16307,7 +16307,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -16913,7 +16913,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2071)"
@@ -16985,7 +16985,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -17006,7 +17006,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -17019,7 +17019,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -17037,7 +17037,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -18083,7 +18083,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2076)"
@@ -18155,7 +18155,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -18176,7 +18176,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -18189,7 +18189,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -18207,7 +18207,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -18785,7 +18785,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2079)"
@@ -18857,7 +18857,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -18878,7 +18878,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -18891,7 +18891,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -18909,7 +18909,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -19983,7 +19983,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2084)"
@@ -20055,7 +20055,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -20076,7 +20076,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -20089,7 +20089,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -20107,7 +20107,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -20685,7 +20685,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2087)"
@@ -20757,7 +20757,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -20778,7 +20778,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -20791,7 +20791,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -20809,7 +20809,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -21883,7 +21883,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2092)"
@@ -21955,7 +21955,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -21976,7 +21976,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -21989,7 +21989,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -22007,7 +22007,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -22585,7 +22585,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+              uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
             }
             offline_metadata {
               title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players (2095)"
@@ -22657,7 +22657,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                      url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                     }
                                   }
                                 }
@@ -22678,7 +22678,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -22691,7 +22691,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                                url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                               }
                                             }
                                           }
@@ -22709,7 +22709,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                            url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                             offline_binding {
                               visibility: VISIBLE
                             }
@@ -23755,7 +23755,7 @@ conditional_responses {
           [search.now.ui.stream.Content.content_extension] {
             type: PIET
             representation_data {
-              uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+              uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
             }
             offline_metadata {
               title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey (2100)"
@@ -23827,7 +23827,7 @@ conditional_responses {
                                   metadata {
                                     type: OPEN_URL
                                     open_url_data {
-                                      url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                      url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                     }
                                   }
                                 }
@@ -23848,7 +23848,7 @@ conditional_responses {
                                             metadata {
                                               type: OPEN_URL
                                               open_url_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -23861,7 +23861,7 @@ conditional_responses {
                                             metadata {
                                               type: DOWNLOAD
                                               download_data {
-                                                url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                                url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                               }
                                             }
                                           }
@@ -23879,7 +23879,7 @@ conditional_responses {
                         binding_id: "image-overlay-visibility"
                         host_binding_data {
                           [search.now.ui.stream.OfflineExtension.offline_extension] {
-                            url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                            url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                             offline_binding {
                               visibility: VISIBLE
                             }

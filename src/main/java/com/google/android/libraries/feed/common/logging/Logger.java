@@ -632,7 +632,7 @@ public final class Logger {
       // Android M has a bug which makes isLoggable() inconsistent. Only suppress debug and verbose
       // level logging, to ensure that log messages of other levels are never suppressed. Note that
       // this effectively disables suppression of the log tag.
-      // See: http://g/android-chatty-eng/25uo6B2wraQ/discussion
+      // See: [INTERNAL LINK]
       return ((level != DEBUG && level != VERBOSE) || Log.isLoggable(cappedTag, level));
     } else {
       return Log.isLoggable(cappedTag, level);

@@ -39,7 +39,7 @@ message Shadow {
 }
 
 // Defines a box shadow, as described in the CSS spec:
-// https://developer.mozilla.org/en-US/do[INTERNAL LINK]/CSS/box-shadow.
+// https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow.
 message BoxShadow {
   // Defines the horizontal offset of the shadow.
   //  * A positive value puts the shadow on the right side of the box (does not

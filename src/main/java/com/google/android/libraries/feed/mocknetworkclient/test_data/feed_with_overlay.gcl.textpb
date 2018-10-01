@@ -1219,7 +1219,7 @@ initial_response {
         [search.now.ui.stream.Content.content_extension] {
           type: PIET
           representation_data {
-            uri: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+            uri: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
           }
           offline_metadata {
             title: "WSJ: Mueller probes Flynn role in plot to deliver cleric to Turkey"
@@ -1291,7 +1291,7 @@ initial_response {
                                 metadata {
                                   type: OPEN_URL
                                   open_url_data {
-                                    url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                    url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                   }
                                 }
                               }
@@ -1312,7 +1312,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL
                                             open_url_data {
-                                              url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                              url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                             }
                                           }
                                         }
@@ -1325,7 +1325,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL_NEW_WINDOW
                                             open_url_data {
-                                              url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                              url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                             }
                                           }
                                         }
@@ -1338,7 +1338,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL_INCOGNITO
                                             open_url_data {
-                                              url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                              url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                             }
                                           }
                                         }
@@ -1351,7 +1351,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL_NEW_TAB
                                             open_url_data {
-                                              url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                              url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                             }
                                           }
                                         }
@@ -1398,7 +1398,7 @@ initial_response {
                                           metadata {
                                             type: DOWNLOAD
                                             download_data {
-                                              url: "http://www.cnn.com/2017/11/10/politi[INTERNAL LINK]/index.html"
+                                              url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
                                             }
                                           }
                                         }
@@ -2128,7 +2128,7 @@ initial_response {
         [search.now.ui.stream.Content.content_extension] {
           type: PIET
           representation_data {
-            uri: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+            uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
           }
           offline_metadata {
             title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players"
@@ -2200,7 +2200,7 @@ initial_response {
                                 metadata {
                                   type: OPEN_URL
                                   open_url_data {
-                                    url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                    url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                   }
                                 }
                               }
@@ -2221,7 +2221,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL
                                             open_url_data {
-                                              url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                             }
                                           }
                                         }
@@ -2234,7 +2234,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL_NEW_WINDOW
                                             open_url_data {
-                                              url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                             }
                                           }
                                         }
@@ -2247,7 +2247,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL_INCOGNITO
                                             open_url_data {
-                                              url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                             }
                                           }
                                         }
@@ -2260,7 +2260,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL_NEW_TAB
                                             open_url_data {
-                                              url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                             }
                                           }
                                         }
@@ -2307,7 +2307,7 @@ initial_response {
                                           metadata {
                                             type: DOWNLOAD
                                             download_data {
-                                              url: "https://www.forbes.com/sites/insertcoin/2017/11/10/the-easiest-thing-niantic-could-do-to-re-engage-bored-pokemon-go-players/#5552558729cc"
+                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
                                             }
                                           }
                                         }

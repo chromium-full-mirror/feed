@@ -387,7 +387,7 @@ message GridCellWidth {
 
     // The width of the cell expressed as a weight. This weight is relative to
     // the remaining width, after DP and Content were allocated.
-    // For more information, see [INTERNAL LINK]/concepts/basics.
+    // For more information, see [INTERNAL LINK].
     int32 weight = 2;
 
     // The width of the content, limited to Content of TextElement or
