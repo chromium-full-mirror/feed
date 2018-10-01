@@ -171,9 +171,12 @@ public class ContinuationDriver extends LeafFeatureDriver
     ModelCursor cursor = tokenCompleted.getCursor();
     List<ModelChild> modelChildren = extractModelChildrenFromCursor(cursor);
 
-    // Display snackbar if there are no more cards.
-    if (modelChildren.isEmpty()
-        || (modelChildren.size() == 1 && modelChildren.get(0).getType() == Type.TOKEN)) {
+    // Display snackbar if there are no more cards. The snackbar should only be shown if the
+    // spinner is being shown. This ensures the snackbar is only shown in the instance of the Stream
+    // that triggered the pagination.
+    if (showSpinner
+        && (modelChildren.isEmpty()
+            || (modelChildren.size() == 1 && modelChildren.get(0).getType() == Type.TOKEN))) {
       snackbarApi.show(
           context.getResources().getString(R.string.snackbar_fetch_no_new_suggestions));
     }

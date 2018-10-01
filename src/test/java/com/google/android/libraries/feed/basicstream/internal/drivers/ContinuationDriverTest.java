@@ -378,6 +378,9 @@ public class ContinuationDriverTest {
 
   @Test
   public void testOnTokenCompleted_createsSnackbar_whenCursorReturnsEmptyPage() {
+    continuationDriver.bind(continuationViewHolder);
+    continuationDriver.onClick(/* v= */ null);
+
     continuationDriver.onTokenCompleted(new TokenCompleted(new FakeModelCursor.Builder().build()));
 
     verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
@@ -386,10 +389,22 @@ public class ContinuationDriverTest {
 
   @Test
   public void testOnTokenCompleted_createsSnackbar_whenCursorJustReturnsToken() {
+    continuationDriver.bind(continuationViewHolder);
+    continuationDriver.onClick(/* v= */ null);
+
     FakeModelCursor cursor = new FakeModelCursor.Builder().addToken().build();
     continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
 
     verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
+    verify(cursorChangedListener).onNewChildren(modelChild, cursor.getModelChildren());
+  }
+
+  @Test
+  public void testOnTokenCompleted_doesNotCreateSnackbar_whenSpinnerNotShown() {
+    FakeModelCursor cursor = new FakeModelCursor.Builder().addToken().build();
+    continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
+
+    verifyNoMoreInteractions(snackbarApi);
     verify(cursorChangedListener).onNewChildren(modelChild, cursor.getModelChildren());
   }
 
