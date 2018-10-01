@@ -20,22 +20,24 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.ui.GridRowView;
+import com.google.android.libraries.feed.piet.ui.GridRowView.LayoutParams;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.GridCell;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
+import com.google.search.now.ui.piet.ElementsProto.GridCellWidth.WidthSpecCase;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
 import java.util.List;
 
 /** An {@link ElementContainerAdapter} which manages {@code GridRow} slices. */
-class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
+class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
 
   private static final String TAG = "GridRowAdapter";
 
@@ -96,7 +98,12 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
           }
           break;
         default:
-          adapterIndex += adaptersPerContent[contentIndex];
+          for (int i = 0; i < adaptersPerContent[contentIndex]; i++) {
+            if (cell.hasWidthBinding()) {
+              setLayoutParamsOnCell(childAdapters.get(adapterIndex), cell, frameContext);
+            }
+            adapterIndex++;
+          }
       }
     }
   }
@@ -112,10 +119,6 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
     // TODO: Support full-cell backgrounds and horizontal/vertical gravity for all
     // types of ElementAdapter in GridCell.
 
-    // Default cell is weight = 1 and height = WRAP_CONTENT.
-    LayoutParams params = new LayoutParams(0, LayoutParams.WRAP_CONTENT);
-    params.weight = 1;
-
     GridCellWidth gridCellWidth = null;
     if (cell.hasWidth()) {
       gridCellWidth = cell.getWidth();
@@ -123,18 +126,29 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
       gridCellWidth = frameContext.getGridCellWidthFromBinding(cell.getWidthBinding());
     }
 
+    // Default cell is weight = 1 and height = WRAP_CONTENT.
+    boolean isCollapsible =
+        gridCellWidth != null
+            && gridCellWidth.getWidthSpecCase() != WidthSpecCase.WEIGHT
+            && gridCellWidth.getIsCollapsible();
+    LayoutParams params;
+    if (isCollapsible) {
+      params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.0f, true);
+    } else {
+      params = new LayoutParams(0, LayoutParams.WRAP_CONTENT, 1.0f, false);
+    }
+
     // If a width is specified on the proto, we expect it to be populated so we can use it.
     if (gridCellWidth != null) {
       switch (gridCellWidth.getWidthSpecCase()) {
         case CONTENT_WIDTH:
+          params.weight = 0;
+          params.width = LayoutParams.WRAP_CONTENT;
           switch (gridCellWidth.getContentWidth()) {
             case CONTENT_WIDTH:
               if (cellAdapter.getComputedWidthPx() != DIMENSION_NOT_SET) {
                 params.width = cellAdapter.getComputedWidthPx();
-              } else {
-                params.width = LayoutParams.WRAP_CONTENT;
               }
-              params.weight = 0;
               break;
             case INVALID_CONTENT_WIDTH:
             default:
@@ -172,11 +186,11 @@ class GridRowAdapter extends ElementContainerAdapter<LinearLayout, GridRow> {
   }
 
   @VisibleForTesting
-  static LinearLayout createView(Context context) {
-    LinearLayout viewGroup = new LinearLayout(context);
+  static GridRowView createView(Context context) {
+    GridRowView viewGroup = new GridRowView(context);
     viewGroup.setOrientation(LinearLayout.HORIZONTAL);
     viewGroup.setLayoutParams(
-        new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+        new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
     viewGroup.setBaselineAligned(false);
     return viewGroup;
   }

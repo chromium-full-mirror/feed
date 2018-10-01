@@ -31,10 +31,12 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
+import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.ui.GridRowView;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
@@ -50,10 +52,14 @@ import com.google.search.now.ui.piet.ElementsProto.GridCellWidth.ContentWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
+import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import com.google.search.now.ui.piet.TextProto.ParameterizedText;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,6 +78,14 @@ public class GridRowAdapterTest {
       Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()).build();
   private static final Content DEFAULT_CONTENT =
       Content.newBuilder().setElement(DEFAULT_ELEMENT).build();
+  private static final Content TEXT_CONTENT =
+      Content.newBuilder()
+          .setElement(
+              Element.newBuilder()
+                  .setTextElement(
+                      TextElement.newBuilder()
+                          .setParameterizedText(ParameterizedText.newBuilder().setText("TheGrid"))))
+          .build();
   private static final String BINDING_ID = "stripes";
   private static final ElementBindingRef ELEMENT_BINDING =
       ElementBindingRef.newBuilder().setBindingId(BINDING_ID).build();
@@ -259,8 +273,8 @@ public class GridRowAdapterTest {
 
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
-    assertThat(params.width).isEqualTo(0);
-    assertThat(params.weight).isEqualTo(1.0f);
+    assertThat(params.width).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(params.weight).isEqualTo(0.0f);
     verify(frameContext)
         .reportError(MessageType.WARNING, "Invalid content width: INVALID_CONTENT_WIDTH");
   }
@@ -405,6 +419,118 @@ public class GridRowAdapterTest {
     SpacerElementAdapter cellAdapter = (SpacerElementAdapter) adapter.childAdapters.get(0);
     LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
     assertThat(params.gravity).isEqualTo(Gravity.TOP);
+  }
+
+  @Test
+  public void testOnCreateAdapter_collapsibleCells_valid() {
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder().setContentWidth(ContentWidth.CONTENT_WIDTH))
+                    .setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder()
+                            .setContentWidth(ContentWidth.CONTENT_WIDTH)
+                            .setIsCollapsible(true))
+                    .setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(GridCellWidth.newBuilder().setDp(123))
+                    .setContent(TEXT_CONTENT))
+            .build();
+
+    adapter.createAdapter(asElement(gridRow), frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams().width)
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(adapter.getBaseView().getChildAt(1).getLayoutParams().width)
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(
+            ((GridRowView.LayoutParams) adapter.getBaseView().getChildAt(1).getLayoutParams())
+                .getIsCollapsible())
+        .isTrue();
+    assertThat(adapter.getBaseView().getChildAt(2).getLayoutParams().width)
+        .isEqualTo((int) LayoutUtils.dpToPx(123, context));
+  }
+
+  @Test
+  public void testOnCreateAdapter_collapsibleCells_multipleCollapsible() {
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder()
+                            .setContentWidth(ContentWidth.CONTENT_WIDTH)
+                            .setIsCollapsible(true))
+                    .setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(GridCellWidth.newBuilder().setDp(456).setIsCollapsible(true))
+                    .setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(GridCellWidth.newBuilder().setDp(123))
+                    .setContent(TEXT_CONTENT))
+            .build();
+
+    adapter.createAdapter(asElement(gridRow), frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams().width)
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(
+            ((GridRowView.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams())
+                .getIsCollapsible())
+        .isTrue();
+    assertThat(adapter.getBaseView().getChildAt(1).getLayoutParams().width).isEqualTo(456);
+    assertThat(
+            ((GridRowView.LayoutParams) adapter.getBaseView().getChildAt(1).getLayoutParams())
+                .getIsCollapsible())
+        .isTrue();
+    assertThat(adapter.getBaseView().getChildAt(2).getLayoutParams().width)
+        .isEqualTo((int) LayoutUtils.dpToPx(123, context));
+  }
+
+  @Test
+  public void testOnCreateAdapter_collapsibleCells_mixingCollapsibleAndWeight() {
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder()
+                            .setContentWidth(ContentWidth.CONTENT_WIDTH)
+                            .setIsCollapsible(true))
+                    .setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(GridCellWidth.newBuilder().setWeight(4))
+                    .setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(GridCellWidth.newBuilder().setDp(123))
+                    .setContent(TEXT_CONTENT))
+            .build();
+
+    adapter.createAdapter(asElement(gridRow), frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams().width)
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(
+            ((GridRowView.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams())
+                .getIsCollapsible())
+        .isTrue();
+    assertThat(adapter.getBaseView().getChildAt(1).getLayoutParams().width).isEqualTo(0);
+    assertThat(
+            ((LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(1).getLayoutParams())
+                .weight)
+        .isEqualTo(4.0f);
+    assertThat(adapter.getBaseView().getChildAt(2).getLayoutParams().width)
+        .isEqualTo((int) LayoutUtils.dpToPx(123, context));
   }
 
   @Test
@@ -576,6 +702,96 @@ public class GridRowAdapterTest {
   }
 
   @Test
+  public void testOnBindModel_collapsibleCells_valid() {
+    GridCellWidthBindingRef widthBinding =
+        GridCellWidthBindingRef.newBuilder().setBindingId("width").build();
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder().setContentWidth(ContentWidth.CONTENT_WIDTH))
+                    .setContent(TEXT_CONTENT))
+            .addCells(GridCell.newBuilder().setWidthBinding(widthBinding).setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(GridCellWidth.newBuilder().setDp(123))
+                    .setContent(TEXT_CONTENT))
+            .build();
+
+    when(frameContext.getGridCellWidthFromBinding(widthBinding))
+        .thenReturn(GridCellWidth.newBuilder().setDp(456).build());
+    adapter.createAdapter(asElement(gridRow), frameContext);
+
+    when(frameContext.getGridCellWidthFromBinding(widthBinding))
+        .thenReturn(
+            GridCellWidth.newBuilder()
+                .setContentWidth(ContentWidth.CONTENT_WIDTH)
+                .setIsCollapsible(true)
+                .build());
+    adapter.bindModel(asElement(gridRow), frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams().width)
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(adapter.getBaseView().getChildAt(1).getLayoutParams().width)
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(
+            ((GridRowView.LayoutParams) adapter.getBaseView().getChildAt(1).getLayoutParams())
+                .getIsCollapsible())
+        .isTrue();
+    assertThat(adapter.getBaseView().getChildAt(2).getLayoutParams().width)
+        .isEqualTo((int) LayoutUtils.dpToPx(123, context));
+  }
+
+  @Test
+  public void testOnBindModel_collapsibleCells_multipleCollapsible() {
+    GridCellWidthBindingRef widthBinding =
+        GridCellWidthBindingRef.newBuilder().setBindingId("width").build();
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder()
+                            .setContentWidth(ContentWidth.CONTENT_WIDTH)
+                            .setIsCollapsible(true))
+                    .setContent(TEXT_CONTENT))
+            .addCells(GridCell.newBuilder().setWidthBinding(widthBinding).setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(GridCellWidth.newBuilder().setDp(123))
+                    .setContent(TEXT_CONTENT))
+            .build();
+
+    when(frameContext.getGridCellWidthFromBinding(widthBinding))
+        .thenReturn(GridCellWidth.newBuilder().setDp(456).build());
+    adapter.createAdapter(asElement(gridRow), frameContext);
+
+    when(frameContext.getGridCellWidthFromBinding(widthBinding))
+        .thenReturn(
+            GridCellWidth.newBuilder()
+                .setContentWidth(ContentWidth.CONTENT_WIDTH)
+                .setIsCollapsible(true)
+                .build());
+    adapter.bindModel(asElement(gridRow), frameContext);
+
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams().width)
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(
+            ((GridRowView.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams())
+                .getIsCollapsible())
+        .isTrue();
+    assertThat(adapter.getBaseView().getChildAt(1).getLayoutParams().width)
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(
+            ((GridRowView.LayoutParams) adapter.getBaseView().getChildAt(1).getLayoutParams())
+                .getIsCollapsible())
+        .isTrue();
+    assertThat(adapter.getBaseView().getChildAt(2).getLayoutParams().width)
+        .isEqualTo((int) LayoutUtils.dpToPx(123, context));
+  }
+
+  @Test
   public void testUnbindModel() {
     GridRow model =
         GridRow.newBuilder()
@@ -600,6 +816,28 @@ public class GridRowAdapterTest {
   }
 
   @Test
+  public void testUnbindModel_worksTwice() {
+    GridRow model =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder()
+                            .setContentWidth(ContentWidth.CONTENT_WIDTH)
+                            .setIsCollapsible(true))
+                    .setContent(TEXT_CONTENT))
+            .build();
+
+    adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
+
+    adapter.unbindModel();
+    adapter.unbindModel();
+
+    // assert no failure.
+  }
+
+  @Test
   public void testReleaseAdapter() {
     GridRow model =
         GridRow.newBuilder()
@@ -619,6 +857,82 @@ public class GridRowAdapterTest {
     adapter.releaseAdapter();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
     assertThat(adapter.childAdapters).isEmpty();
+  }
+
+  @Test
+  public void testReleaseAdapter_collapsibleCells() {
+    GridRow model =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder()
+                            .setContentWidth(ContentWidth.CONTENT_WIDTH)
+                            .setIsCollapsible(true))
+                    .setContent(TEXT_CONTENT))
+            .build();
+
+    adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
+
+    adapter.unbindModel();
+    adapter.releaseAdapter();
+
+    assertThat(adapter.getBaseView().hasCollapsibleCells()).isFalse();
+  }
+
+  /**
+   * Mini integration test to ensure that WRAP_CONTENT is set on GridRowAdapter when it is within a
+   * hierarchy
+   */
+  @Test
+  public void testCollapsibleCells_integration() {
+    GridRow gridRow =
+        GridRow.newBuilder()
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(GridCellWidth.newBuilder().setDp(123))
+                    .setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder()
+                            .setContentWidth(ContentWidth.CONTENT_WIDTH)
+                            .setIsCollapsible(true))
+                    .setContent(TEXT_CONTENT))
+            .addCells(
+                GridCell.newBuilder()
+                    .setWidth(
+                        GridCellWidth.newBuilder().setContentWidth(ContentWidth.CONTENT_WIDTH))
+                    .setContent(TEXT_CONTENT))
+            .build();
+    Frame frame =
+        Frame.newBuilder()
+            .addContents(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder()
+                            .setElementList(
+                                ElementList.newBuilder()
+                                    .addContents(
+                                        Content.newBuilder()
+                                            .setElement(
+                                                Element.newBuilder().setGridRow(gridRow))))))
+            .build();
+    FrameAdapter frameAdapter =
+        new FrameAdapter(context, adapterParameters, actionHandler, DebugBehavior.SILENT);
+    frameAdapter.bindModel(frame, 0, null, Collections.emptyList());
+    LinearLayout gridRowView =
+        ((LinearLayout) ((LinearLayout) frameAdapter.getView().getChildAt(0)).getChildAt(0));
+    assertThat(gridRowView.getChildCount()).isEqualTo(3);
+    assertThat(gridRowView.getChildAt(0).getLayoutParams().width)
+        .isEqualTo((int) LayoutUtils.dpToPx(123, context));
+    assertThat(
+            ((GridRowView.LayoutParams) gridRowView.getChildAt(1).getLayoutParams())
+                .getIsCollapsible())
+        .isTrue();
+    assertThat(gridRowView.getChildAt(2).getLayoutParams().width)
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
   }
 
   @Test

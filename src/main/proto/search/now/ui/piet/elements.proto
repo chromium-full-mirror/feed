@@ -368,14 +368,15 @@ message GridCellWidth {
   // is supported only for GridCells with TextElement or ImageElement as their
   // content, in those cases, the width of the GridCell will be the width of the
   // contained element.
+  // If this is set and the enclosed Element is anything other than a
+  // TextElement or ImageElement,
+  // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT will be raised.
   enum ContentWidth {
     // Do not use. If used, this will raise
     // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT at runtime.
     INVALID_CONTENT_WIDTH = 0;
 
-    // If this is set and the enclosed Element is anything other than a
-    // TextElement or ImageElement,
-    // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT will be raised.
+    // This cell will expand just enough to fit its content.
     CONTENT_WIDTH = 1;
   }
 
@@ -395,6 +396,14 @@ message GridCellWidth {
     // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT is raised.
     ContentWidth content_width = 3;
   }
+
+  // Whether this cell will shrink if the GridRow is too small for its contents.
+  // This cell will always be less than or equal to the defined width.
+  // If there are multiple collapsible cells in a row, they will shrink in order
+  // from last to first (ex. the last cell will be width 0 before the cell
+  // before it begins to shrink).
+  // This is ignored if weight is set.
+  optional bool is_collapsible = 4;
 }
 
 // A vertically-oriented top-to-bottom list of Contents.
