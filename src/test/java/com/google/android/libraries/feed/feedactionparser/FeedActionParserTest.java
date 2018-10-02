@@ -459,6 +459,7 @@ public class FeedActionParserTest {
         LEARN_MORE_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken- */ null);
 
     verify(streamActionApi).learnMore();
+    verify(streamActionApi).onClientAction(ActionType.LEARN_MORE);
   }
 
   @Test

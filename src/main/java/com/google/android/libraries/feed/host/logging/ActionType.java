@@ -33,6 +33,7 @@ public @interface ActionType {
   int OPEN_URL_NEW_TAB = 4;
   int OPEN_URL_NEW_WINDOW = 3;
   int DOWNLOAD = 5;
+  int LEARN_MORE = 6;
 }
 // LINT.ThenChange(/src/main/java/com/google/android/libraries/\
 //     feed/feedactionparser/internal/ActionTypeConverter.java)

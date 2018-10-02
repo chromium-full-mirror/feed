@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedactionparser;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.DOWNLOAD;
+import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.LEARN_MORE;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_INCOGNITO;
 import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type.OPEN_URL_NEW_TAB;
@@ -144,6 +145,7 @@ public class FeedActionParser implements ActionParser {
         }
 
         streamActionApi.learnMore();
+        streamActionApi.onClientAction(ActionTypeConverter.convert(LEARN_MORE));
         break;
       default:
         Logger.wtf(TAG, "Haven't implemented host handling of %s", feedActionMetadata.getType());

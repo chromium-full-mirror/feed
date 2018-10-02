@@ -34,6 +34,8 @@ public class ActionTypeConverter {
         return ActionType.OPEN_URL_NEW_WINDOW;
       case DOWNLOAD:
         return ActionType.DOWNLOAD;
+      case LEARN_MORE:
+        return ActionType.LEARN_MORE;
       default:
         return ActionType.UNKNOWN;
     }
