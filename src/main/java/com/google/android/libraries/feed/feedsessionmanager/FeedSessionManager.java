@@ -123,7 +123,7 @@ public class FeedSessionManager
   private int newSessionCount = 0;
   private int existingSessionCount = 0;
   private int handleTokenCount = 0;
-  /*@Nullable*/ private KnownContentListener knownContentListener;
+  /*@MonotonicNonNull*/ private KnownContentListener knownContentListener;
 
   @SuppressWarnings("argument.type.incompatible") // ok call to registerObserver
   public FeedSessionManager(

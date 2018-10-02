@@ -88,7 +88,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
           childList.add(((UpdatableModelChild) modelChild));
           appendCount++;
         } else {
-          Logger.e(TAG, "non-UpdateableModelChild found, ignored");
+          Logger.e(TAG, "non-UpdatableModelChild found, ignored");
         }
       }
     }

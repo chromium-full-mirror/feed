@@ -46,7 +46,7 @@ import javax.annotation.concurrent.GuardedBy;
 
 /**
  * For the FeedSessionManager, this class is a cache of the {@link Session} objects which are
- * currently know defined.
+ * currently defined.
  */
 public class SessionCache implements Dumpable {
   private static final String TAG = "SessionCache";
