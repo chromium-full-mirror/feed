@@ -139,6 +139,10 @@ public class PietStylesHelper {
       if (boundStyle.hasColor()) {
         mergedStyle.setColor(boundStyle.getColor());
       }
+      if (boundStyle.hasPreLoadFill()) {
+        mergedStyle.setPreLoadFill(
+            mergedStyle.getPreLoadFill().toBuilder().mergeFrom(boundStyle.getPreLoadFill()));
+      }
     }
     return mergedStyle.build();
   }

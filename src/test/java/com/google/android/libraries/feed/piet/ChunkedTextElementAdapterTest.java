@@ -526,6 +526,9 @@ public class ChunkedTextElementAdapterTest {
     when(mockStyleProvider.getWidth()).thenReturn(STYLE_WIDTH_DP);
     when(mockStyleProvider.hasHeight()).thenReturn(true);
     when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
+    when(mockStyleProvider.hasPreLoadFill()).thenReturn(true);
+    Drawable preLoadFill = new ColorDrawable(Color.CYAN);
+    when(mockStyleProvider.createPreLoadFill(context)).thenReturn(preLoadFill);
 
     // Required to set up the local frameContext member var.
     adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
@@ -545,6 +548,9 @@ public class ChunkedTextElementAdapterTest {
             eq(STYLE_WIDTH_DP),
             eq(STYLE_HEIGHT_DP),
             imageCallbackCaptor.capture());
+
+    // Check for the pre-load fill
+    assertThat(containerDrawable.getDrawable(0)).isSameAs(preLoadFill);
 
     // Activate the image loading callback
     Drawable imageDrawable = new ColorDrawable(123);

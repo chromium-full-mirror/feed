@@ -62,6 +62,7 @@ public class StyleProviderTest {
         Style.newBuilder()
             .setColor(1)
             .setBackground(Fill.newBuilder().setColor(2))
+            .setPreLoadFill(Fill.newBuilder().setColor(9))
             .setRoundedCorners(RoundedCorners.newBuilder().setRadius(3))
             .setFont(Font.newBuilder().setSize(4))
             .setMaxLines(5)
@@ -74,6 +75,8 @@ public class StyleProviderTest {
 
     assertThat(styleProvider.getColor()).isEqualTo(style.getColor());
     assertThat(styleProvider.getBackground()).isEqualTo(style.getBackground());
+    assertThat(styleProvider.hasPreLoadFill()).isTrue();
+    assertThat(styleProvider.getPreLoadFill()).isEqualTo(style.getPreLoadFill());
     assertThat(styleProvider.getRoundedCorners()).isEqualTo(style.getRoundedCorners());
     assertThat(styleProvider.hasRoundedCorners()).isTrue();
     assertThat(styleProvider.getFont()).isEqualTo(style.getFont());
@@ -92,12 +95,14 @@ public class StyleProviderTest {
 
     assertThat(styleProvider.getColor()).isEqualTo(style.getColor());
     assertThat(styleProvider.getBackground()).isEqualTo(style.getBackground());
-    assertThat(styleProvider.getRoundedCorners()).isEqualTo(style.getRoundedCorners());
+    assertThat(styleProvider.hasPreLoadFill()).isFalse();
+    assertThat(styleProvider.getPreLoadFill()).isEqualTo(Fill.getDefaultInstance());
     assertThat(styleProvider.hasRoundedCorners()).isFalse();
+    assertThat(styleProvider.getRoundedCorners()).isEqualTo(RoundedCorners.getDefaultInstance());
     assertThat(styleProvider.getFont()).isEqualTo(Font.getDefaultInstance());
     assertThat(styleProvider.getMaxLines()).isEqualTo(style.getMaxLines());
-    assertThat(styleProvider.getHeight()).isEqualTo(style.getHeight());
-    assertThat(styleProvider.getWidth()).isEqualTo(style.getWidth());
+    assertThat(styleProvider.getHeight()).isEqualTo(0);
+    assertThat(styleProvider.getWidth()).isEqualTo(0);
     assertThat(styleProvider.hasHeight()).isFalse();
     assertThat(styleProvider.hasWidth()).isFalse();
   }
@@ -282,6 +287,29 @@ public class StyleProviderTest {
     assertThat(backgroundDrawable).isInstanceOf(RoundedCornerColorDrawable.class);
 
     RoundedCornerColorDrawable background = (RoundedCornerColorDrawable) backgroundDrawable;
+    assertThat(background.getColor()).isEqualTo(color);
+
+    // TODO: how to test rounded corners?
+  }
+
+  @Test
+  public void testCreatePreLoadFill() {
+    int color = 12345;
+    Fill fill = Fill.newBuilder().setColor(color).build();
+    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadius(4321).build();
+    StyleProvider styleProvider;
+
+    styleProvider = new StyleProvider(Style.getDefaultInstance(), mockAssetProvider);
+    assertThat(styleProvider.createPreLoadFill(context)).isNull();
+
+    styleProvider =
+        new StyleProvider(
+            Style.newBuilder().setPreLoadFill(fill).setRoundedCorners(roundedCorners).build(),
+            mockAssetProvider);
+    Drawable preLoadFillDrawable = styleProvider.createPreLoadFill(context);
+    assertThat(preLoadFillDrawable).isInstanceOf(RoundedCornerColorDrawable.class);
+
+    RoundedCornerColorDrawable background = (RoundedCornerColorDrawable) preLoadFillDrawable;
     assertThat(background.getColor()).isEqualTo(color);
 
     // TODO: how to test rounded corners?

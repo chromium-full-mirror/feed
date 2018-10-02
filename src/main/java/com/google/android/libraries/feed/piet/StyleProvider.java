@@ -70,6 +70,16 @@ class StyleProvider {
     return style.getBackground();
   }
 
+  /** The pre-load fill for this style */
+  public Fill getPreLoadFill() {
+    return style.getPreLoadFill();
+  }
+
+  /** Whether the style has a pre-load fill */
+  public boolean hasPreLoadFill() {
+    return style.hasPreLoadFill();
+  }
+
   /** The {@link RoundedCorners} to be used with the background color. */
   public RoundedCorners getRoundedCorners() {
     return style.getRoundedCorners();
@@ -196,11 +206,20 @@ class StyleProvider {
   }
 
   /**
+   * Return a {@link Drawable} with the fill and rounded corners defined on the style; returns
+   * {@code null} if the pre load fill has no color defined.
+   */
+  /*@Nullable*/
+  Drawable createPreLoadFill(Context context) {
+    return createBackgroundForFill(context, getPreLoadFill());
+  }
+
+  /**
    * Return a {@link Drawable} with a given Fill and the rounded corners defined on the style;
    * returns {@code null} if the background has no color defined.
    */
   /*@Nullable*/
-  Drawable createBackgroundForFill(Context context, Fill background) {
+  private Drawable createBackgroundForFill(Context context, Fill background) {
     if (!background.hasColor()) {
       return null;
     }

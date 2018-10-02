@@ -276,7 +276,13 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     StyleProvider chunkStyle = frameContext.makeStyleFor(imageChunk.getStyleReferences());
 
     // Set a placeholder empty image
-    ColorDrawable placeholder = new ColorDrawable(Color.TRANSPARENT);
+    Drawable placeholder = null;
+    if (chunkStyle.hasPreLoadFill()) {
+      placeholder = chunkStyle.createPreLoadFill(getContext());
+    }
+    if (placeholder == null) {
+      placeholder = new ColorDrawable(Color.TRANSPARENT);
+    }
     LayerDrawable wrapper = new LayerDrawable(new Drawable[] {placeholder});
     wrapper.setId(0, SINGLE_LAYER_ID);
     setBounds(wrapper, chunkStyle, textView);

@@ -58,6 +58,7 @@ message StyleIdsStack {
 }
 
 // A collection of attributes describing an element’s visual properties.
+// NextId: 16
 message Style {
   // Every style must have a name that is unique within the StyleSheet. But
   // don’t go overboard in naming these with namespaced constructs because
@@ -69,6 +70,11 @@ message Style {
 
   // Defines the background fill, either as a solid color, or a gradient.
   optional Fill background = 3;
+
+  // Defines a placeholder fill applied before an image loads (only for Image)
+  // This will be replaced by the Image when it loads asynchronously.
+  // Not relevant for platforms where image loading is synchronous.
+  optional Fill pre_load_fill = 15;
 
   // Font information applicable to text elements.
   optional Font font = 4;
@@ -147,6 +153,9 @@ message BoundStyle {
 
   // See comments for Style.background.
   optional Fill background = 2;
+
+  // See comments for Style.pre_load_fill
+  optional Fill pre_load_fill = 3;
 }
 
 // Font definitions for text elements. In the interest of preserving

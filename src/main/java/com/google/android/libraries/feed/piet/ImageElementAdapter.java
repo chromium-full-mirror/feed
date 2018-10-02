@@ -111,6 +111,11 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
             String.format(
                 "Unsupported or missing content in ImageElement: %s", model.getContentCase()));
     }
+
+    if (getElementStyle().hasPreLoadFill()) {
+      getBaseView().setImageDrawable(getElementStyle().createPreLoadFill(getContext()));
+    }
+
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
     LoadImageCallback loadImageCallback =
         new LoadImageCallback(getBaseView(), toAndroidScaleType(image.getScaleType()));

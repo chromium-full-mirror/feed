@@ -14,7 +14,6 @@
 
 syntax = "proto2";
 
-
 package search.now.ui.piet;
 
 option optimize_for=LITE_RUNTIME;

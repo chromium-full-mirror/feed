@@ -482,6 +482,30 @@ public class ImageElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_preLoadFill() {
+    Drawable preLoadFillDrawable = new ColorDrawable(Color.RED);
+
+    // Set up the StyleProvider mock
+    when(styleProvider.createPreLoadFill(context)).thenReturn(preLoadFillDrawable);
+    when(styleProvider.hasPreLoadFill()).thenReturn(true);
+
+    // Bind and expect the pre-load fill to be set
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    assertThat(adapter.getBaseView().getDrawable()).isSameAs(preLoadFillDrawable);
+
+    // Load drawable andreplace pre-load fill
+    verify(assetProvider)
+        .getImage(
+            eq(DEFAULT_IMAGE),
+            eq(DIMENSION_UNKNOWN),
+            eq(DIMENSION_UNKNOWN),
+            consumerArgumentCaptor.capture());
+    consumerArgumentCaptor.getValue().accept(defaultDrawable);
+    assertThat(adapter.getBaseView().getDrawable()).isSameAs(defaultDrawable);
+  }
+
+  @Test
   public void testUnbind() {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
