@@ -272,7 +272,9 @@ public class GridRowView extends LinearLayout {
     }
 
     public LayoutParams(LinearLayout.LayoutParams source) {
-      super(source);
+      super((MarginLayoutParams) source);
+      weight = source.weight;
+      gravity = source.gravity;
       isCollapsible = false;
     }
 
