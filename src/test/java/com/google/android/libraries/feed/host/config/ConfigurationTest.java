@@ -47,7 +47,7 @@ public class ConfigurationTest {
   public void hasValue_forValueThatDoesNotExist_returnsFalse() {
     Configuration configuration = new Configuration.Builder().build();
 
-    assertThat(configuration.hasValue(ConfigKey.FEED_SERVER_HOST)).isFalse();
+    assertThat(configuration.hasValue(ConfigKey.FEED_SERVER_ENDPOINT)).isFalse();
   }
 
   @Test
@@ -55,7 +55,7 @@ public class ConfigurationTest {
     final String defaultString = "defaultString";
     Configuration configuration = new Configuration.Builder().build();
 
-    assertThat(configuration.getValueOrDefault(ConfigKey.FEED_SERVER_HOST, defaultString))
+    assertThat(configuration.getValueOrDefault(ConfigKey.FEED_SERVER_ENDPOINT, defaultString))
         .isEqualTo(defaultString);
   }
 
@@ -63,20 +63,20 @@ public class ConfigurationTest {
   public void getValueOrDefault_forValueThatExists_returnsValue() {
     final String someValue = "someValue";
     Configuration configuration =
-        new Configuration.Builder().put(ConfigKey.FEED_SERVER_HOST, someValue).build();
+        new Configuration.Builder().put(ConfigKey.FEED_SERVER_ENDPOINT, someValue).build();
 
-    assertThat(configuration.getValueOrDefault(ConfigKey.FEED_SERVER_HOST, ""))
+    assertThat(configuration.getValueOrDefault(ConfigKey.FEED_SERVER_ENDPOINT, ""))
         .isEqualTo(someValue);
   }
 
   @Test
   public void getValueOrDefaultWithWrongType_throwsClassCastException() {
     Configuration configuration =
-        new Configuration.Builder().put(ConfigKey.FEED_SERVER_HOST, "someString").build();
+        new Configuration.Builder().put(ConfigKey.FEED_SERVER_ENDPOINT, "someString").build();
 
     try {
       @SuppressWarnings("unused") // Used for type inference
-      Boolean ignored = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_HOST, false);
+      Boolean ignored = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_ENDPOINT, false);
       fail();
     } catch (ClassCastException ignored) {
       // expected

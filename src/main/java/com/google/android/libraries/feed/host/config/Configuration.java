@@ -25,8 +25,6 @@ import java.util.HashMap;
 public class Configuration {
   /** A unique string identifier for a config value */
   @StringDef({
-    ConfigKey.FEED_SERVER_HOST,
-    ConfigKey.FEED_SERVER_PATH_AND_PARAMS,
     ConfigKey.FEED_SERVER_ENDPOINT,
     ConfigKey.FEED_SERVER_METHOD,
     ConfigKey.FEED_SERVER_RESPONSE_LENGTH_PREFIXED,
@@ -54,8 +52,6 @@ public class Configuration {
     ConfigKey.USE_DIRECT_STORAGE
   })
   public @interface ConfigKey {
-    String FEED_SERVER_HOST = "feed_server_host";
-    String FEED_SERVER_PATH_AND_PARAMS = "feed_server_path_and_params";
     String FEED_SERVER_ENDPOINT = "feed_server_endpoint";
     String FEED_SERVER_METHOD = "feed_server_method";
     String FEED_SERVER_RESPONSE_LENGTH_PREFIXED = "feed_server_response_length_prefixed";
@@ -69,7 +65,6 @@ public class Configuration {
     String USE_TIMEOUT_SCHEDULER = "use_timeout_scheduler";
     String TIMEOUT_STORIES_ARE_CURRENT = "timeout_stories_are_current";
     String TIMEOUT_STORIES_CURRENT_WITH_REFRESH = "timeout_stories_current_with_refresh";
-    String TIMEOUT_REQUEST_WITH_TIMEOUT_MS = "timeout_request_with_timeout_ms";
     String TIMEOUT_TIMEOUT_MS = "timeout_timeout_ms";
     String MINIMUM_VALID_ACTION_RATIO = "minimum_valid_action_ratio";
     String LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = "logging_immediate_content_threshold_ms";

@@ -178,9 +178,8 @@ public class FeedRequestManager implements RequestManager {
       Logger.e(TAG, "Error fetching dismiss actions");
     }
 
-    String host = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_HOST, "");
-    String path = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_PATH_AND_PARAMS, "");
-    Uri.Builder uriBuilder = Uri.parse(host + path).buildUpon();
+    String endpoint = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_ENDPOINT, "");
+    Uri.Builder uriBuilder = Uri.parse(endpoint).buildUpon();
     uriBuilder.appendQueryParameter(
         MOTHERSHIP_PARAM_PAYLOAD,
         Base64.encodeToString(
@@ -188,7 +187,10 @@ public class FeedRequestManager implements RequestManager {
     uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
     uriBuilder.appendQueryParameter(LOCALE_PARAM, getLocale().toString());
 
-    HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), HttpMethod.GET);
+    @HttpMethod
+    String httpMethod =
+        configuration.getValueOrDefault(ConfigKey.FEED_SERVER_METHOD, HttpMethod.GET);
+    HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), httpMethod);
     Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
     networkClient.send(
         httpRequest,
@@ -225,10 +227,13 @@ public class FeedRequestManager implements RequestManager {
   private void handleResponseBytes(
       byte[] responseBytes, Consumer<Result<List<StreamDataOperation>>> consumer) {
     Response response;
+    boolean isLengthPrefixed =
+        configuration.getValueOrDefault(ConfigKey.FEED_SERVER_RESPONSE_LENGTH_PREFIXED, true);
     try {
       response =
           Response.parseFrom(
-              getLengthPrefixedValue(responseBytes), extensionRegistry.getExtensionRegistry());
+              isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,
+              extensionRegistry.getExtensionRegistry());
     } catch (IOException e) {
       Logger.e(TAG, e, "Response parse failed");
       consumer.accept(Result.failure());
