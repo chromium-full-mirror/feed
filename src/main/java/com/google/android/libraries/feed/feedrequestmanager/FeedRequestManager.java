@@ -17,6 +17,8 @@ package com.google.android.libraries.feed.feedrequestmanager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.text.TextUtils;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
@@ -44,6 +46,8 @@ import com.google.protobuf.CodedInputStream;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ActionTypeProto;
+import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
+import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
@@ -56,8 +60,13 @@ import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
+import com.google.search.now.wire.feed.VersionProto.Version;
+import com.google.search.now.wire.feed.VersionProto.Version.Architecture;
+import com.google.search.now.wire.feed.VersionProto.Version.BuildType;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -163,7 +172,7 @@ public class FeedRequestManager implements RequestManager {
   }
 
   private RequestBuilder newDefaultRequest() {
-    return new RequestBuilder();
+    return new RequestBuilder().setLocale(getLocale());
   }
 
   private void executeRequest(
@@ -266,11 +275,11 @@ public class FeedRequestManager implements RequestManager {
     }
   }
 
-  // TODO: Populate ClientInfo
   private static class RequestBuilder {
 
     private ByteString token;
     private List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties;
+    private Locale locale;
 
     /**
      * Sets the token used to tell the server which page of results we want in the response.
@@ -288,6 +297,11 @@ public class FeedRequestManager implements RequestManager {
       return this;
     }
 
+    RequestBuilder setLocale(Locale locale) {
+      this.locale = locale;
+      return this;
+    }
+
     public Request build() {
       Request.Builder requestBuilder =
           Request.newBuilder().setRequestVersion(RequestVersion.FEED_QUERY);
@@ -301,6 +315,7 @@ public class FeedRequestManager implements RequestManager {
           && !dismissActionsWithSemanticProperties.isEmpty()) {
         feedRequestBuilder.addFeedActionQueryData(buildFeedActionQueryData());
       }
+      feedRequestBuilder.setClientInfo(buildClientInfo());
       requestBuilder.setExtension(FeedRequest.feedRequest, feedRequestBuilder.build());
 
       return requestBuilder.build();
@@ -351,7 +366,7 @@ public class FeedRequestManager implements RequestManager {
           .build();
     }
 
-    private <T> int getIndexForItem(Map<T, Integer> objectMap, T object) {
+    private static <T> int getIndexForItem(Map<T, Integer> objectMap, T object) {
       if (!objectMap.containsKey(object)) {
         int newIndex = objectMap.size();
         objectMap.put(object, newIndex);
@@ -359,6 +374,80 @@ public class FeedRequestManager implements RequestManager {
       } else {
         return objectMap.get(object);
       }
+    }
+
+    private ClientInfo buildClientInfo() {
+      ClientInfo.Builder clientInfoBuilder = ClientInfo.newBuilder();
+      clientInfoBuilder.setPlatformType(PlatformType.ANDROID);
+      clientInfoBuilder.setPlatformVersion(getPlatformVersion());
+      clientInfoBuilder.setLocale(locale.toLanguageTag());
+
+      // TODO: Fill in app_type and app_version through a new Host API.
+
+      return clientInfoBuilder.build();
+    }
+
+    private static Version getPlatformVersion() {
+      Version.Builder builder = Version.newBuilder();
+      String[] values = TextUtils.split(VERSION.RELEASE, "\\.");
+      if (values.length >= 1) {
+        NumberFormat integerParser = NumberFormat.getIntegerInstance();
+        try {
+          builder.setMajor(integerParser.parse(values[0]).intValue());
+          if (values.length >= 2) {
+            builder.setMinor(integerParser.parse(values[1]).intValue());
+            if (values.length >= 3) {
+              builder.setBuild(integerParser.parse(values[2]).intValue());
+              if (values.length >= 4) {
+                builder.setRevision(integerParser.parse(values[3]).intValue());
+              }
+            }
+          }
+        } catch (ParseException e) {
+          Logger.w(
+              TAG,
+              e,
+              "Invalid int value while parsing platform version: %s",
+              android.os.Build.VERSION.RELEASE);
+        }
+      } else {
+        Logger.w(TAG, "Invalid format while parsing platform version: %s" + Build.VERSION.RELEASE);
+      }
+      builder.setArchitecture(getPlatformArchitecture());
+      builder.setBuildType(getPlatformBuildType());
+      builder.setApiVersion(Build.VERSION.SDK_INT);
+      return builder.build();
+    }
+
+    private static Architecture getPlatformArchitecture() {
+      // TODO: Android may support multiple ABIS, should we send all?
+      String androidAbi =
+          Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+              ? Build.SUPPORTED_ABIS[0]
+              : Build.CPU_ABI;
+      switch (androidAbi) {
+        case "x86":
+        case "x86_64":
+          return Architecture.X86;
+        case "armeabi":
+        case "armeabi-v7a":
+          return Architecture.ARM;
+        case "arm64-v8a":
+          return Architecture.ARM64;
+        default:
+          return Architecture.UNKNOWN_ACHITECTURE;
+      }
+    }
+
+    private static BuildType getPlatformBuildType() {
+      if (Build.TAGS != null) {
+        if (Build.TAGS.contains("dev-keys") || Build.TAGS.contains("test-keys")) {
+          return BuildType.DEV;
+        } else if (Build.TAGS.contains("release-keys")) {
+          return BuildType.RELEASE;
+        }
+      }
+      return BuildType.UNKNOWN_BUILD_TYPE;
     }
   }
 }

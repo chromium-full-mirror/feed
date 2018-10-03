@@ -23,6 +23,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
@@ -48,6 +50,8 @@ import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.wire.feed.ActionTypeProto.ActionType;
+import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
+import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
@@ -59,6 +63,9 @@ import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
+import com.google.search.now.wire.feed.VersionProto.Version;
+import com.google.search.now.wire.feed.VersionProto.Version.Architecture;
+import com.google.search.now.wire.feed.VersionProto.Version.BuildType;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -74,6 +81,8 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
 
 /** Test of the {@link FeedRequestManager} class. */
 @RunWith(RobolectricTestRunner.class)
@@ -86,6 +95,7 @@ public class FeedRequestManagerTest {
   private static final String CONTENT_DOMAIN_2 = "contentDomain2";
   public static final long ID = 42;
   private static final long ID_2 = 2;
+
   @Mock private NetworkClient networkClient;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SchedulerApi scheduler;
@@ -112,6 +122,10 @@ public class FeedRequestManagerTest {
     FeedExtensionRegistry feedExtensionRegistry = new FeedExtensionRegistry(ArrayList::new);
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
+    ReflectionHelpers.setStaticField(Build.VERSION.class, "SDK_INT", VERSION_CODES.KITKAT);
+    ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "4.4.3");
+    ReflectionHelpers.setStaticField(Build.class, "CPU_ABI", "armeabi");
+    ReflectionHelpers.setStaticField(Build.class, "TAGS", "dev-keys");
     requestManager =
         new FeedRequestManager(
             configuration,
@@ -149,7 +163,7 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                FeedRequest.newBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
+                getTestFeedRequestBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
             .build();
     LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
   }
@@ -180,7 +194,7 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                FeedRequest.newBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
+                getTestFeedRequestBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
             .build();
     LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
 
@@ -227,7 +241,7 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                FeedRequest.newBuilder()
+                getTestFeedRequestBuilder()
                     .setFeedQuery(FeedQuery.getDefaultInstance())
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
@@ -286,7 +300,7 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                FeedRequest.newBuilder()
+                getTestFeedRequestBuilder()
                     .setFeedQuery(FeedQuery.getDefaultInstance())
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
@@ -345,7 +359,7 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                FeedRequest.newBuilder()
+                getTestFeedRequestBuilder()
                     .setFeedQuery(FeedQuery.getDefaultInstance())
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
@@ -403,7 +417,7 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                FeedRequest.newBuilder()
+                getTestFeedRequestBuilder()
                     .setFeedQuery(FeedQuery.getDefaultInstance())
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
@@ -473,7 +487,7 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                FeedRequest.newBuilder()
+                getTestFeedRequestBuilder()
                     .setFeedQuery(FeedQuery.getDefaultInstance())
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
@@ -539,7 +553,7 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                FeedRequest.newBuilder()
+                getTestFeedRequestBuilder()
                     .setFeedQuery(FeedQuery.getDefaultInstance())
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
@@ -604,7 +618,7 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                FeedRequest.newBuilder()
+                getTestFeedRequestBuilder()
                     .setFeedQuery(FeedQuery.getDefaultInstance())
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
@@ -670,7 +684,59 @@ public class FeedRequestManagerTest {
     verify(protocolAdapter, never()).createModel(any());
   }
 
-  private void assertHttpRequestFormattedCorrectly(HttpRequest httpRequest) {
+  @Test
+  @Config(sdk = VERSION_CODES.LOLLIPOP)
+  public void testClientInfo_postLollipop() throws Exception {
+    context.getResources().getConfiguration().locale = Locale.UK;
+    ReflectionHelpers.setStaticField(Build.VERSION.class, "SDK_INT", VERSION_CODES.LOLLIPOP);
+    ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "7.1.2b4.1");
+    ReflectionHelpers.setStaticField(Build.class, "SUPPORTED_ABIS", new String[] {"arm64-v8a"});
+    ReflectionHelpers.setStaticField(Build.class, "CPU_ABI", "armeabi");
+    ReflectionHelpers.setStaticField(Build.class, "TAGS", "release-keys");
+
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+
+    when(protocolAdapter.createModel(any(Response.class)))
+        .thenReturn(Result.success(new ArrayList<>()));
+
+    HttpRequest httpRequest = requestCaptor.getValue();
+
+    Request request =
+        Request.parseFrom(
+            Base64.decode(
+                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
+                Base64.URL_SAFE),
+            registry);
+    Request expectedRequest =
+        Request.newBuilder()
+            .setRequestVersion(RequestVersion.FEED_QUERY)
+            .setExtension(
+                FeedRequest.feedRequest,
+                getTestFeedRequestBuilder()
+                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setClientInfo(
+                        ClientInfo.newBuilder()
+                            .setPlatformType(PlatformType.ANDROID)
+                            .setPlatformVersion(
+                                Version.newBuilder()
+                                    .setMajor(7)
+                                    .setMinor(1)
+                                    .setBuild(2)
+                                    .setRevision(1)
+                                    .setArchitecture(Architecture.ARM64)
+                                    .setBuildType(BuildType.RELEASE)
+                                    .setApiVersion(VERSION_CODES.LOLLIPOP)
+                                    .build())
+                            .setLocale(Locale.UK.toLanguageTag())
+                            .build())
+                    .build())
+            .build();
+    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+  }
+
+  private static void assertHttpRequestFormattedCorrectly(HttpRequest httpRequest) {
     assertThat(httpRequest.getBody()).hasLength(0);
     assertThat(httpRequest.getMethod()).isEqualTo(HttpMethod.GET);
     assertThat(httpRequest.getUri().getQueryParameter("fmt")).isEqualTo("bin");
@@ -680,7 +746,8 @@ public class FeedRequestManagerTest {
         .isEqualTo("en_US");
   }
 
-  private HttpResponse createHttpResponse(int responseCode, Response response) throws IOException {
+  private static HttpResponse createHttpResponse(int responseCode, Response response)
+      throws IOException {
     byte[] rawResponse = response.toByteArray();
     ByteBuffer buffer = ByteBuffer.allocate(rawResponse.length + (Integer.SIZE / 8));
     CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
@@ -692,7 +759,7 @@ public class FeedRequestManagerTest {
     return new HttpResponse(responseCode, newResponse);
   }
 
-  private DismissActionWithSemanticProperties buildDismissAction(
+  private static DismissActionWithSemanticProperties buildDismissAction(
       long id, String contentDomain, String table, byte /*@Nullable*/ [] semanticProperties) {
     ContentId contentId =
         ContentId.newBuilder().setTable(table).setContentDomain(contentDomain).setId(id).build();
@@ -703,5 +770,23 @@ public class FeedRequestManagerTest {
     TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     return taskQueue;
+  }
+
+  private static FeedRequest.Builder getTestFeedRequestBuilder() {
+    return FeedRequest.newBuilder()
+        .setClientInfo(
+            ClientInfo.newBuilder()
+                .setPlatformType(PlatformType.ANDROID)
+                .setPlatformVersion(
+                    Version.newBuilder()
+                        .setMajor(4)
+                        .setMinor(4)
+                        .setBuild(3)
+                        .setArchitecture(Architecture.ARM)
+                        .setBuildType(BuildType.DEV)
+                        .setApiVersion(VERSION_CODES.KITKAT)
+                        .build())
+                .setLocale(Locale.US.toLanguageTag())
+                .build());
   }
 }
