@@ -143,59 +143,6 @@ public class ElementListAdapterTest {
     verify(styleProvider).applyElementStyles(context, adapter.getView());
   }
 
-  @Test
-  public void testOnCreateAdapter_setsMargins() {
-    String marginsStyleId = "spacecat";
-    StyleIdsStack marginsStyles = StyleIdsStack.newBuilder().addStyleIds(marginsStyleId).build();
-    Element elementWithMargins =
-        Element.newBuilder()
-            .setSpacerElement(SpacerElement.newBuilder().setStyleReferences(marginsStyles))
-            .build();
-    ElementList listWithStyles =
-        ElementList.newBuilder()
-            .addContents(Content.newBuilder().setElement(elementWithMargins))
-            .build();
-    when(frameContext.makeStyleFor(marginsStyles)).thenReturn(styleProvider);
-
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
-
-    // Assert that applyMargins is called on the child's layout params
-    ArgumentCaptor<MarginLayoutParams> capturedLayoutParams =
-        ArgumentCaptor.forClass(MarginLayoutParams.class);
-    verify(styleProvider).applyMargins(eq(context), capturedLayoutParams.capture());
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
-        .isInstanceOf(MarginLayoutParams.class);
-    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
-        .isSameAs(capturedLayoutParams.getValue());
-  }
-
-  @Test
-  public void testOnCreateAdapter_setsLayoutParams() {
-    ElementList listWithStyles =
-        ElementList.newBuilder()
-            .addContents(
-                Content.newBuilder()
-                    .setElement(
-                        DEFAULT_ELEMENT
-                            .toBuilder()
-                            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)))
-            .build();
-
-    adapter.createAdapter(asElement(listWithStyles), frameContext);
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
-    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
-        .isInstanceOf(LinearLayout.LayoutParams.class);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).gravity)
-        .isEqualTo(Gravity.CENTER_HORIZONTAL);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
-        .isEqualTo(ViewGroup.LayoutParams.MATCH_PARENT);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
-        .isEqualTo(0);
-  }
-
   @Config(shadows = {ExtendedShadowLinearLayout.class})
   @Test
   public void testTriggerActions_triggersChildren() {
@@ -394,6 +341,61 @@ public class ElementListAdapterTest {
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
     assertThat(adapter.childAdapters).isEmpty();
+  }
+
+  @Test
+  public void testOnBindModel_setsLayoutParams() {
+    ElementList listWithStyles =
+        ElementList.newBuilder()
+            .addContents(
+                Content.newBuilder()
+                    .setElement(
+                        DEFAULT_ELEMENT
+                            .toBuilder()
+                            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)))
+            .build();
+
+    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.bindModel(asElement(listWithStyles), frameContext);
+
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(LinearLayout.LayoutParams.class);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).gravity)
+        .isEqualTo(Gravity.CENTER_HORIZONTAL);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
+        .isEqualTo(ViewGroup.LayoutParams.MATCH_PARENT);
+    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
+        .isEqualTo(0);
+  }
+
+  @Test
+  public void testOnBindModel_setsMargins() {
+    String marginsStyleId = "spacecat";
+    StyleIdsStack marginsStyles = StyleIdsStack.newBuilder().addStyleIds(marginsStyleId).build();
+    Element elementWithMargins =
+        Element.newBuilder()
+            .setSpacerElement(SpacerElement.newBuilder().setStyleReferences(marginsStyles))
+            .build();
+    ElementList listWithStyles =
+        ElementList.newBuilder()
+            .addContents(Content.newBuilder().setElement(elementWithMargins))
+            .build();
+    when(frameContext.makeStyleFor(marginsStyles)).thenReturn(styleProvider);
+
+    adapter.createAdapter(asElement(listWithStyles), frameContext);
+    adapter.bindModel(asElement(listWithStyles), frameContext);
+
+    // Assert that applyMargins is called on the child's layout params
+    ArgumentCaptor<MarginLayoutParams> capturedLayoutParams =
+        ArgumentCaptor.forClass(MarginLayoutParams.class);
+    verify(styleProvider).applyMargins(eq(context), capturedLayoutParams.capture());
+
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isInstanceOf(MarginLayoutParams.class);
+    assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
+        .isSameAs(capturedLayoutParams.getValue());
   }
 
   @Test

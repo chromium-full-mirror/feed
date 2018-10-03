@@ -118,10 +118,13 @@ public class StackedElementAdapterTest {
   }
 
   @Test
-  public void testSetsLayoutParamsOnChildOnCreateForInlineAdapters() {
+  public void testSetsLayoutParamsOnChildForInlineAdapters() {
     Content imageContent =
         Content.newBuilder()
-            .setElement(Element.newBuilder().setImageElement(ImageElement.getDefaultInstance()))
+            .setElement(
+                Element.newBuilder()
+                    .setImageElement(
+                        ImageElement.newBuilder().setImage(Image.getDefaultInstance())))
             .build();
     List<Content> contents = Collections.singletonList(imageContent);
 
@@ -131,6 +134,7 @@ public class StackedElementAdapterTest {
     when(mockStyleProvider.getHeight()).thenReturn(456);
 
     adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
+    adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
 
     LayoutParams inlineAdapterLayoutParams =
         adapter.childAdapters.get(0).getView().getLayoutParams();
@@ -140,7 +144,7 @@ public class StackedElementAdapterTest {
   }
 
   @Test
-  public void testSetsLayoutParamsOnChildOnBindForBoundAdapters() {
+  public void testSetsLayoutParamsOnChildForBoundAdapters() {
     ElementBindingRef imageBinding = ElementBindingRef.newBuilder().setBindingId("image").build();
     BindingValue imageBindingValue =
         BindingValue.newBuilder()
@@ -173,6 +177,7 @@ public class StackedElementAdapterTest {
     List<Content> contents = Collections.singletonList(INLINE_CONTENT);
 
     adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
+    adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
 
     MarginLayoutParams childAdapterLayoutParams =
         (MarginLayoutParams) adapter.childAdapters.get(0).getView().getLayoutParams();

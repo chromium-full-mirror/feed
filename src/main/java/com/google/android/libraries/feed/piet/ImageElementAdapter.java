@@ -165,12 +165,6 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
   }
 
   @Override
-  void onReleaseAdapter() {
-    widthPx = DIMENSION_NOT_SET;
-    heightPx = DIMENSION_NOT_SET;
-  }
-
-  @Override
   StyleIdsStack getElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }

@@ -32,32 +32,10 @@ class StackedElementAdapter extends ElementContainerAdapter<FrameLayout, List<Co
   }
 
   @Override
-  public void onCreateAdapter(
-      List<Content> contents, Element baseElement, FrameContext frameContext) {
-    super.onCreateAdapter(contents, baseElement, frameContext);
-    for (ElementAdapter<?, ?> childAdapter : childAdapters) {
-      updateChildLayoutParams(childAdapter);
-    }
-  }
-
-  @Override
   public void onBindModel(List<Content> contents, Element baseElement, FrameContext frameContext) {
     super.onBindModel(contents, baseElement, frameContext);
-    int adapterIndex = 0;
-    for (int contentIndex = 0; contentIndex < contents.size(); contentIndex++) {
-      Content content = contents.get(contentIndex);
-      switch (content.getContentTypeCase()) {
-        case BOUND_ELEMENT:
-        case TEMPLATE_BINDING:
-          for (int i = 0; i < adaptersPerContent[contentIndex]; i++) {
-            updateChildLayoutParams(childAdapters.get(adapterIndex));
-            adapterIndex++;
-          }
-          break;
-        default:
-          // do nothing
-          adapterIndex += adaptersPerContent[contentIndex];
-      }
+    for (ElementAdapter<?, ?> childAdapter : childAdapters) {
+      updateChildLayoutParams(childAdapter);
     }
   }
 

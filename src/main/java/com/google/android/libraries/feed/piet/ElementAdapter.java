@@ -335,6 +335,9 @@ abstract class ElementAdapter<V extends View, M> {
 
     setVisibilityOnView(Visibility.VISIBLE);
 
+    widthPx = DIMENSION_NOT_SET;
+    heightPx = DIMENSION_NOT_SET;
+
     created = false;
   }
 

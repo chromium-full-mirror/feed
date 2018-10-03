@@ -143,11 +143,6 @@ public class GridRowAdapterTest {
     assertThat(adapter.childAdapters).hasSize(1);
     assertThat(adapter.getBaseView().getChildAt(0))
         .isSameAs(adapter.childAdapters.get(0).getView());
-    LayoutParams cellLayoutParams =
-        (LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
-    assertThat(cellLayoutParams.weight).isEqualTo(1.0f);
-    assertThat(cellLayoutParams.height)
-        .isEqualTo(adapter.childAdapters.get(0).getComputedHeightPx());
   }
 
   @Test
@@ -176,13 +171,14 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_widthDefaultsToWeight() {
+  public void testOnBindModel_setsLayoutParamsOnCell_widthDefaultsToWeight() {
     GridRow model =
         GridRow.newBuilder()
             .addCells(GridCell.newBuilder().setContent(DEFAULT_CONTENT).clearWidth())
             .build();
 
     adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
         .isInstanceOf(LinearLayout.LayoutParams.class);
@@ -193,7 +189,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_widthDp() {
+  public void testOnBindModel_setsLayoutParamsOnCell_widthDp() {
     int widthDp = 123;
     GridRow model =
         GridRow.newBuilder()
@@ -204,6 +200,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
         .isInstanceOf(LinearLayout.LayoutParams.class);
@@ -214,7 +211,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_widthWeight() {
+  public void testOnBindModel_setsLayoutParamsOnCell_widthWeight() {
     int widthWeight = 321;
     GridRow model =
         GridRow.newBuilder()
@@ -225,6 +222,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
         .isInstanceOf(LinearLayout.LayoutParams.class);
@@ -235,7 +233,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_widthBinding() {
+  public void testOnBindModel_setsLayoutParamsOnCell_widthBinding() {
     GridCellWidthBindingRef widthBindingRef =
         GridCellWidthBindingRef.newBuilder().setBindingId("fatcat").build();
     int widthDp = 222;
@@ -248,6 +246,7 @@ public class GridRowAdapterTest {
         .thenReturn(GridCellWidth.newBuilder().setDp(widthDp).build());
 
     adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
         .isInstanceOf(LinearLayout.LayoutParams.class);
@@ -258,7 +257,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_invalidContentWidth() {
+  public void testOnBindModel_setsLayoutParamsOnCell_invalidContentWidth() {
     GridRow model =
         GridRow.newBuilder()
             .addCells(
@@ -270,6 +269,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
 
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
@@ -280,7 +280,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_widthOfChildAdapter() {
+  public void testOnBindModel_setsLayoutParamsOnCell_widthOfChildAdapter() {
     StyleIdsStack childStyles = StyleIdsStack.newBuilder().addStyleIds("child").build();
     GridRow model =
         GridRow.newBuilder()
@@ -304,6 +304,7 @@ public class GridRowAdapterTest {
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
         .isInstanceOf(LinearLayout.LayoutParams.class);
@@ -314,7 +315,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_heightOfChildAdapter() {
+  public void testOnBindModel_setsLayoutParamsOnCell_heightOfChildAdapter() {
     StyleIdsStack childStyles = StyleIdsStack.newBuilder().addStyleIds("child").build();
     GridRow model =
         GridRow.newBuilder()
@@ -336,6 +337,7 @@ public class GridRowAdapterTest {
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
         .isInstanceOf(LinearLayout.LayoutParams.class);
@@ -345,7 +347,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_heightOfChildAdapterNotDefined() {
+  public void testOnBindModel_setsLayoutParamsOnCell_heightOfChildAdapterNotDefined() {
     StyleIdsStack childStyles = StyleIdsStack.newBuilder().addStyleIds("child").build();
     GridRow model =
         GridRow.newBuilder()
@@ -366,6 +368,7 @@ public class GridRowAdapterTest {
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams())
         .isInstanceOf(LinearLayout.LayoutParams.class);
@@ -375,7 +378,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_margins() {
+  public void testOnBindModel_setsLayoutParamsOnCell_margins() {
     StyleIdsStack childStyles = StyleIdsStack.newBuilder().addStyleIds("child").build();
     GridRow model =
         GridRow.newBuilder()
@@ -394,6 +397,7 @@ public class GridRowAdapterTest {
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(asElement(model), frameContext);
+    adapter.bindModel(asElement(model), frameContext);
 
     verify(childStyleProvider)
         .applyMargins(
@@ -401,7 +405,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_setsLayoutParamsOnCell_verticalGravityTop() {
+  public void testOnBindModel_setsLayoutParamsOnCell_verticalGravityTop() {
     GridRow gridRowTop =
         GridRow.newBuilder()
             .addCells(
@@ -415,6 +419,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.createAdapter(asElement(gridRowTop), frameContext);
+    adapter.bindModel(asElement(gridRowTop), frameContext);
 
     SpacerElementAdapter cellAdapter = (SpacerElementAdapter) adapter.childAdapters.get(0);
     LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
@@ -422,7 +427,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_collapsibleCells_valid() {
+  public void testOnBindModel_collapsibleCells_valid() {
     GridRow gridRow =
         GridRow.newBuilder()
             .addCells(
@@ -444,6 +449,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.createAdapter(asElement(gridRow), frameContext);
+    adapter.bindModel(asElement(gridRow), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams().width)
         .isEqualTo(LayoutParams.WRAP_CONTENT);
@@ -458,7 +464,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_collapsibleCells_multipleCollapsible() {
+  public void testOnBindModel_collapsibleCells_multipleCollapsible() {
     GridRow gridRow =
         GridRow.newBuilder()
             .addCells(
@@ -479,6 +485,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.createAdapter(asElement(gridRow), frameContext);
+    adapter.bindModel(asElement(gridRow), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams().width)
         .isEqualTo(LayoutParams.WRAP_CONTENT);
@@ -496,7 +503,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnCreateAdapter_collapsibleCells_mixingCollapsibleAndWeight() {
+  public void testOnBindModel_collapsibleCells_mixingCollapsibleAndWeight() {
     GridRow gridRow =
         GridRow.newBuilder()
             .addCells(
@@ -517,6 +524,7 @@ public class GridRowAdapterTest {
             .build();
 
     adapter.createAdapter(asElement(gridRow), frameContext);
+    adapter.bindModel(asElement(gridRow), frameContext);
 
     assertThat(adapter.getBaseView().getChildAt(0).getLayoutParams().width)
         .isEqualTo(LayoutParams.WRAP_CONTENT);
@@ -702,7 +710,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnBindModel_collapsibleCells_valid() {
+  public void testOnBindModel_collapsibleCells_valid_boundWidth() {
     GridCellWidthBindingRef widthBinding =
         GridCellWidthBindingRef.newBuilder().setBindingId("width").build();
     GridRow gridRow =
@@ -744,7 +752,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnBindModel_collapsibleCells_multipleCollapsible() {
+  public void testOnBindModel_collapsibleCells_multipleCollapsible_boundWidth() {
     GridCellWidthBindingRef widthBinding =
         GridCellWidthBindingRef.newBuilder().setBindingId("width").build();
     GridRow gridRow =

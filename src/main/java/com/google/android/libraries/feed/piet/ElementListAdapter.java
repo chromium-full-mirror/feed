@@ -48,10 +48,15 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   @Override
   void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
     super.onCreateAdapter(model, baseElement, frameContext);
+    setupGravityViews();
+  }
+
+  @Override
+  void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
+    super.onBindModel(model, baseElement, frameContext);
     for (ElementAdapter<? extends View, ?> adapter : childAdapters) {
       updateChildLayoutParams(adapter);
     }
-    setupGravityViews();
   }
 
   @Override

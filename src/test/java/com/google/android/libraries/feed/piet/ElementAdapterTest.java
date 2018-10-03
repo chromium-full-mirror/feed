@@ -799,6 +799,19 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testReleaseAdapter_resetsDimensions() {
+    Element defaultElement = Element.getDefaultInstance();
+
+    adapter.createAdapter(defaultElement, defaultElement, frameContext);
+    adapter.setDims(123, 456);
+
+    adapter.releaseAdapter();
+
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(DIMENSION_NOT_SET);
+  }
+
+  @Test
   public void testSetVisibility() {
     adapter.createAdapter(Element.getDefaultInstance(), Element.getDefaultInstance(), frameContext);
     adapter.getBaseView().setVisibility(View.GONE);

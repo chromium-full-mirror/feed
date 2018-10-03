@@ -54,19 +54,6 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
     return baseElement.getGridRow();
   }
 
-  @Override
-  void onCreateAdapter(GridRow gridRow, Element baseElement, FrameContext frameContext) {
-    super.onCreateAdapter(gridRow, baseElement, frameContext);
-
-    int adapterIndex = 0;
-    for (int contentIndex = 0; contentIndex < gridRow.getCellsCount(); contentIndex++) {
-      GridCell cell = gridRow.getCells(contentIndex);
-      for (int i = 0; i < adaptersPerContent[contentIndex]; i++) {
-        setLayoutParamsOnCell(childAdapters.get(adapterIndex), cell, frameContext);
-        adapterIndex++;
-      }
-    }
-  }
 
   @Override
   List<Content> getContentsFromModel(GridRow model) {
@@ -89,21 +76,9 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
         adaptersPerContent.length);
     for (int contentIndex = 0; contentIndex < gridRow.getCellsCount(); contentIndex++) {
       GridCell cell = gridRow.getCells(contentIndex);
-      switch (cell.getContent().getContentTypeCase()) {
-        case BOUND_ELEMENT:
-        case TEMPLATE_BINDING:
-          for (int i = 0; i < adaptersPerContent[contentIndex]; i++) {
-            setLayoutParamsOnCell(childAdapters.get(adapterIndex), cell, frameContext);
-            adapterIndex++;
-          }
-          break;
-        default:
-          for (int i = 0; i < adaptersPerContent[contentIndex]; i++) {
-            if (cell.hasWidthBinding()) {
-              setLayoutParamsOnCell(childAdapters.get(adapterIndex), cell, frameContext);
-            }
-            adapterIndex++;
-          }
+      for (int i = 0; i < adaptersPerContent[contentIndex]; i++) {
+        setLayoutParamsOnCell(childAdapters.get(adapterIndex), cell, frameContext);
+        adapterIndex++;
       }
     }
   }
