@@ -541,10 +541,6 @@ message BindingValue {
     // Binding value for visibility, which changes the VisibilityState of an
     // Element. This value can override the default visibility value set on an
     // Element.
-    //
-    // IMPORTANT (2018-07-27): Currently Piet renderers are not to spec.  They
-    //     treat this as visibility of a binding. This behavior is not to spec
-    //     and is in the process of changing.
     Visibility visibility = 13 [default = VISIBLE];
 
     // Use an already existing bound value in a transcluded template.

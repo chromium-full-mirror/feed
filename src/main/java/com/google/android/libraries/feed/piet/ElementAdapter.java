@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
-import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
@@ -459,13 +458,15 @@ abstract class ElementAdapter<V extends View, M> {
   @VisibleForTesting
   Visibility getVisibilityForElement(Element element, FrameContext frameContext) {
     VisibilityState visibilityState = element.getVisibilityState();
-    Visibility returnVisibility = visibilityState.getDefaultVisibility();
     if (binding && visibilityState.hasOverridingBoundVisibility()) {
-      BindingValue visibilityBinding =
-          frameContext.getVisibilityBindingValue(visibilityState.getOverridingBoundVisibility());
-      returnVisibility = visibilityBinding.getVisibility();
+      /*@Nullable*/
+      Visibility overridingVisibility =
+          frameContext.getVisibilityFromBinding(visibilityState.getOverridingBoundVisibility());
+      if (overridingVisibility != null) {
+        return overridingVisibility;
+      }
     }
-    return returnVisibility;
+    return visibilityState.getDefaultVisibility();
   }
 
   void setVisibilityOnView(Visibility visibility) {

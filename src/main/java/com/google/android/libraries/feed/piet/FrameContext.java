@@ -37,6 +37,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.VisibilityBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
+import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
@@ -341,6 +342,21 @@ class FrameContext {
     return bindingValue.getBoundStyle();
   }
 
+  /** Returns the {@link BindingValue} for the BindingRef; otherwise returns null. */
+  /*@Nullable*/
+  Visibility getVisibilityFromBinding(VisibilityBindingRef binding) {
+    BindingValue bindingValue = bindingValues.get(binding.getBindingId());
+    if (bindingValue != null && bindingValue.hasHostBindingData()) {
+      bindingValue = hostBindingProvider.getVisibilityBindingForValue(bindingValue);
+    }
+    if (bindingValue == null || !bindingValue.hasVisibility()) {
+      Logger.w(TAG, "No visibility found for binding %s", binding.getBindingId());
+      return null;
+    } else {
+      return bindingValue.getVisibility();
+    }
+  }
+
   /**
    * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
    * does not point to a template resource.
@@ -451,25 +467,6 @@ class FrameContext {
           reportError(
               MessageType.ERROR,
               String.format("Element binding not found for %s", binding.getBindingId())));
-    } else {
-      return bindingValue;
-    }
-  }
-
-  /**
-   * Returns the {@link BindingValue} for the BindingRef; throws IllegalStateException if binding id
-   * does not point to an Element.
-   */
-  BindingValue getVisibilityBindingValue(VisibilityBindingRef binding) {
-    BindingValue bindingValue = getBindingValue(binding.getBindingId());
-    if (bindingValue.hasHostBindingData()) {
-      bindingValue = hostBindingProvider.getVisibilityBindingForValue(bindingValue);
-    }
-    if (!bindingValue.hasVisibility()) {
-      throw new IllegalStateException(
-          reportError(
-              MessageType.ERROR,
-              String.format("Visibility binding not found for %s", binding.getBindingId())));
     } else {
       return bindingValue;
     }

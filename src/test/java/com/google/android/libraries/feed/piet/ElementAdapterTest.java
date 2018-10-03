@@ -290,12 +290,7 @@ public class ElementAdapterTest {
                     .setDefaultVisibility(Visibility.VISIBLE)
                     .setOverridingBoundVisibility(visibilityBinding))
             .build();
-    when(frameContext.getVisibilityBindingValue(visibilityBinding))
-        .thenReturn(
-            BindingValue.newBuilder()
-                .setBindingId(visibilityBindingId)
-                .setVisibility(Visibility.GONE)
-                .build());
+    when(frameContext.getVisibilityFromBinding(visibilityBinding)).thenReturn(Visibility.GONE);
 
     adapter.createAdapter(defaultElement, frameContext);
 
@@ -566,8 +561,7 @@ public class ElementAdapterTest {
             .build();
 
     // When adapter is created, the Element is GONE
-    when(frameContext.getVisibilityBindingValue(visibilityBinding))
-        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.GONE).build());
+    when(frameContext.getVisibilityFromBinding(visibilityBinding)).thenReturn(Visibility.GONE);
 
     adapter.createAdapter(elementWithVisibilityBinding, frameContext);
 
@@ -575,8 +569,7 @@ public class ElementAdapterTest {
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
 
     // Now on binding, the Element is VISIBLE
-    when(frameContext.getVisibilityBindingValue(visibilityBinding))
-        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.VISIBLE).build());
+    when(frameContext.getVisibilityFromBinding(visibilityBinding)).thenReturn(Visibility.VISIBLE);
 
     adapter.bindModel(elementWithVisibilityBinding, frameContext);
 
@@ -731,8 +724,7 @@ public class ElementAdapterTest {
                     .setDefaultVisibility(Visibility.INVISIBLE)
                     .setOverridingBoundVisibility(visibilityBinding))
             .build();
-    when(frameContext.getVisibilityBindingValue(visibilityBinding))
-        .thenReturn(BindingValue.newBuilder().setVisibility(Visibility.VISIBLE).build());
+    when(frameContext.getVisibilityFromBinding(visibilityBinding)).thenReturn(Visibility.VISIBLE);
 
     adapter.createAdapter(element, element, frameContext);
     assertThat(adapter.getVisibilityForElement(element, frameContext))
@@ -823,6 +815,45 @@ public class ElementAdapterTest {
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
     adapter.setVisibilityOnView(Visibility.VISIBILITY_UNSPECIFIED);
     assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.VISIBLE);
+  }
+
+  @Test
+  public void testGetVisibilityForElement() {
+    VisibilityBindingRef bindingRef =
+        VisibilityBindingRef.newBuilder().setBindingId("binding").build();
+    Element elementWithDefaultVisibility =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder().setDefaultVisibility(Visibility.INVISIBLE))
+            .build();
+    Element elementWithVisibilityOverride =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder()
+                    .setDefaultVisibility(Visibility.INVISIBLE)
+                    .setOverridingBoundVisibility(bindingRef))
+            .build();
+
+    // Default visibility; no override
+    assertThat(adapter.getVisibilityForElement(elementWithDefaultVisibility, frameContext))
+        .isEqualTo(Visibility.INVISIBLE);
+
+    // Don't look up override when not binding
+    when(frameContext.getVisibilityFromBinding(bindingRef)).thenReturn(Visibility.GONE);
+    assertThat(adapter.getVisibilityForElement(elementWithVisibilityOverride, frameContext))
+        .isEqualTo(Visibility.INVISIBLE);
+
+    adapter.bindModel(Element.getDefaultInstance(), frameContext);
+
+    // Look up override successfully
+    when(frameContext.getVisibilityFromBinding(bindingRef)).thenReturn(Visibility.GONE);
+    assertThat(adapter.getVisibilityForElement(elementWithVisibilityOverride, frameContext))
+        .isEqualTo(Visibility.GONE);
+
+    // Override not found; use default
+    when(frameContext.getVisibilityFromBinding(bindingRef)).thenReturn(null);
+    assertThat(adapter.getVisibilityForElement(elementWithVisibilityOverride, frameContext))
+        .isEqualTo(Visibility.INVISIBLE);
   }
 
   @Config(shadows = {ExtendedShadowView.class})

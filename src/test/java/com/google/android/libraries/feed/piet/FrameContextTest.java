@@ -618,32 +618,22 @@ public class FrameContextTest {
     frameContext = makeFrameContextWithBinding(visibilityBindingValue);
 
     // Succeed in looking up binding
-    assertThat(frameContext.getVisibilityBindingValue(visibilityBindingRef))
-        .isEqualTo(visibilityBindingValue);
+    assertThat(frameContext.getVisibilityFromBinding(visibilityBindingRef)).isEqualTo(visibility);
 
     // Can't look up binding
-    assertThatRunnable(
-            () ->
-                frameContext.getVisibilityBindingValue(
-                    VisibilityBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Visibility binding not found");
+    assertThat(
+            frameContext.getVisibilityFromBinding(
+                VisibilityBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
+        .isNull();
 
     // Binding has no content
-    assertThatRunnable(
-            () -> makeFrameContextWithNoBindings().getVisibilityBindingValue(visibilityBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
-        .that()
-        .hasMessageThat()
-        .contains("Visibility binding not found");
+    assertThat(makeFrameContextWithNoBindings().getVisibilityFromBinding(visibilityBindingRef))
+        .isNull();
   }
 
   @Test
   public void testGetVisibility_hostBinding() {
     Visibility visibility = Visibility.INVISIBLE;
-    BindingValue elementBindingValue = defaultBinding().setVisibility(visibility).build();
     BindingValue hostListBindingValue =
         defaultBinding()
             .setHostBindingData(HostBindingData.newBuilder())
@@ -655,8 +645,7 @@ public class FrameContextTest {
     frameContext = makeFrameContextWithBinding(hostListBindingValue);
 
     // Succeed in looking up binding
-    assertThat(frameContext.getVisibilityBindingValue(visibilityBindingRef))
-        .isEqualTo(elementBindingValue);
+    assertThat(frameContext.getVisibilityFromBinding(visibilityBindingRef)).isEqualTo(visibility);
   }
 
   @Test
