@@ -35,25 +35,25 @@ public class ParameterizedTextEvaluatorTest {
 
   @Mock private AssetProvider assetProvider;
 
+  private ParameterizedTextEvaluator evaluator;
+
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+    evaluator = new ParameterizedTextEvaluator();
   }
 
   @Test
   public void testEvaluate_noText() {
     ParameterizedText text = ParameterizedText.getDefaultInstance();
-    ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
-    assertThat(evaluator.evaluate(assetProvider, text)).isEmpty();
+    assertThat(evaluator.evaluate(assetProvider, text).toString()).isEmpty();
   }
 
   @Test
   public void testEvaluate_noParameters() {
     String content = "content";
-    ParameterizedText.Builder text = ParameterizedText.newBuilder();
-    text.setText(content);
-    ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
-    assertThat(evaluator.evaluate(assetProvider, text.build())).isEqualTo(content);
+    ParameterizedText text = ParameterizedText.newBuilder().setText(content).build();
+    assertThat(evaluator.evaluate(assetProvider, text).toString()).isEqualTo(content);
   }
 
   @Test
@@ -62,12 +62,13 @@ public class ParameterizedTextEvaluatorTest {
     String time = "10 minutes";
     when(assetProvider.getRelativeElapsedString(anyInt())).thenReturn(time);
 
-    ParameterizedText.Builder text = ParameterizedText.newBuilder();
-    text.setText(content);
-    text.addParameters(Parameter.newBuilder().setTimestampSeconds(10).build());
-    ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
+    ParameterizedText text =
+        ParameterizedText.newBuilder()
+            .setText(content)
+            .addParameters(Parameter.newBuilder().setTimestampSeconds(10))
+            .build();
 
-    assertThat(evaluator.evaluate(assetProvider, text.build()))
+    assertThat(evaluator.evaluate(assetProvider, text).toString())
         .isEqualTo(String.format(content, time));
   }
 
@@ -78,14 +79,39 @@ public class ParameterizedTextEvaluatorTest {
     String time2 = "20 minutes";
     when(assetProvider.getRelativeElapsedString(anyInt())).thenReturn(time1).thenReturn(time2);
 
-    ParameterizedText.Builder text = ParameterizedText.newBuilder();
-    text.setText(content);
-    text.addParameters(Parameter.newBuilder().setTimestampSeconds(1).build());
-    text.addParameters(Parameter.newBuilder().setTimestampSeconds(2).build());
-    ParameterizedTextEvaluator evaluator = new ParameterizedTextEvaluator();
+    ParameterizedText text =
+        ParameterizedText.newBuilder()
+            .setText(content)
+            .addParameters(Parameter.newBuilder().setTimestampSeconds(1))
+            .addParameters(Parameter.newBuilder().setTimestampSeconds(2))
+            .build();
 
-    assertThat(evaluator.evaluate(assetProvider, text.build()))
+    assertThat(evaluator.evaluate(assetProvider, text).toString())
         .isEqualTo(String.format(content, time1, time2));
+  }
+
+  @Test
+  public void testEvaluate_html() {
+    String content = "<h1>content</h1>";
+    ParameterizedText text =
+        ParameterizedText.newBuilder().setIsHtml(true).setText(content).build();
+    assertThat(evaluator.evaluate(assetProvider, text).toString()).isEqualTo("content\n\n");
+  }
+
+  @Test
+  public void testEvaluate_htmlAndParameters() {
+    String content = "<h1>content %s</h1>";
+    String time1 = "1 second";
+    when(assetProvider.getRelativeElapsedString(anyInt())).thenReturn(time1);
+
+    ParameterizedText text =
+        ParameterizedText.newBuilder()
+            .setIsHtml(true)
+            .setText(content)
+            .addParameters(Parameter.newBuilder().setTimestampSeconds(1))
+            .build();
+    assertThat(evaluator.evaluate(assetProvider, text).toString())
+        .isEqualTo("content 1 second\n\n");
   }
 
   @Test
@@ -105,7 +131,7 @@ public class ParameterizedTextEvaluatorTest {
           }
         };
 
-    assertThat(evaluator.evaluate(assetProvider, text.build()))
+    assertThat(evaluator.evaluate(assetProvider, text.build()).toString())
         .isEqualTo(String.format(content, time));
   }
 }

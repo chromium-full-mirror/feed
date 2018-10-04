@@ -70,6 +70,8 @@ public class ParameterizedTextElementAdapterTest {
         new AdapterParameters(
             null, null, hostProviders, new ParameterizedTextEvaluator(), null, null);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
+        .thenReturn(adapterParameters.defaultStyleProvider);
 
     adapter =
         new ParameterizedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);
@@ -88,7 +90,7 @@ public class ParameterizedTextElementAdapterTest {
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
-    assertThat(textView.getText()).isEqualTo(TEXT_LINE_CONTENT);
+    assertThat(textView.getText().toString()).isEqualTo(TEXT_LINE_CONTENT);
   }
 
   @Test
@@ -99,7 +101,7 @@ public class ParameterizedTextElementAdapterTest {
 
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
-    assertThat(textView.getText()).isEqualTo("");
+    assertThat(textView.getText().toString()).isEqualTo("");
     verify(frameContext)
         .reportError(
             MessageType.ERROR,
@@ -121,7 +123,7 @@ public class ParameterizedTextElementAdapterTest {
     assertThat(adapter.getView()).isNotNull();
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
-    assertThat(textView.getText()).isEqualTo(TEXT_LINE_CONTENT);
+    assertThat(textView.getText().toString()).isEqualTo(TEXT_LINE_CONTENT);
   }
 
   @Test
@@ -158,6 +160,22 @@ public class ParameterizedTextElementAdapterTest {
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
     assertThat(textView.getText().toString()).isEmpty();
+  }
+
+  @Test
+  public void testBindModel_html() {
+    Element model =
+        asElement(
+            TextElement.newBuilder()
+                .setParameterizedText(
+                    ParameterizedText.newBuilder().setIsHtml(true).setText("<h1>HEADING!</h1>"))
+                .build());
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+    assertThat(adapter.getView()).isNotNull();
+    TextView textView = adapter.getBaseView();
+    assertThat(textView).isNotNull();
+    assertThat(textView.getText().toString()).isEqualTo("HEADING!\n\n");
   }
 
   @Test

@@ -14,7 +14,8 @@
 
 package com.google.android.libraries.feed.piet;
 
-import android.content.Context;
+import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.support.annotation.VisibleForTesting;
 import android.text.Html;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -29,33 +30,31 @@ import java.util.concurrent.TimeUnit;
 public class ParameterizedTextEvaluator {
   private static final String TAG = "ParameterizedTextEvalua";
 
-  /**
-   * Evaluates the given parameterized string, and returns an html formatted char sequence for
-   * display.
-   *
-   * @return the evaluated template, or {@code null} if there is no display string
-   */
-  /*@Nullable*/
-  public CharSequence evaluateHtml(
-      AssetProvider assetProvider, Context context, ParameterizedText templatedString) {
+  /** Evaluates the given parameterized string, respecting the HTML setting */
+  public CharSequence evaluate(AssetProvider assetProvider, ParameterizedText templatedString) {
     if (!templatedString.hasText()) {
       Logger.w(TAG, "Got templated string with no display string");
-      return null;
+      return templatedString.getText();
     }
 
-    String evaluated = evaluate(assetProvider, templatedString);
-    if (evaluated == null) {
-      return null;
-    }
+    String evaluated = evaluateText(assetProvider, templatedString);
 
-    return Html.fromHtml(evaluated);
+    if (templatedString.getIsHtml()) {
+      if (Build.VERSION.SDK_INT < VERSION_CODES.N) {
+        return Html.fromHtml(evaluated);
+      } else {
+        return Html.fromHtml(evaluated, Html.FROM_HTML_MODE_LEGACY);
+      }
+    } else {
+      return evaluated;
+    }
   }
 
   /**
    * Evaluates the given ParameterizedText, and returns the raw evaluated value, without any Html
    * wrapping.
    */
-  public String evaluate(AssetProvider assetProvider, ParameterizedText templatedString) {
+  private String evaluateText(AssetProvider assetProvider, ParameterizedText templatedString) {
 
     if (!templatedString.hasText()) {
       Logger.w(TAG, "Got templated string with no display string");

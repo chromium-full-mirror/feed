@@ -200,7 +200,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
                 chunk.getTextChunk().getContentCase()));
         parameterizedText = ParameterizedText.getDefaultInstance();
     }
-    String evaluatedText =
+    CharSequence evaluatedText =
         getParameters()
             .templatedStringEvaluator
             .evaluate(getParameters().hostProviders.getAssetProvider(), parameterizedText);

@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-
 import android.content.Context;
 import android.widget.TextView;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
