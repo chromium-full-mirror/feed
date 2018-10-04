@@ -22,7 +22,6 @@ import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -158,7 +157,13 @@ public class FrameAdapter {
     int height = childAdapter.getComputedHeightPx();
     height = height == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.WRAP_CONTENT : height;
 
-    childAdapter.setLayoutParams(new FrameLayout.LayoutParams(width, height));
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
+
+    params.gravity =
+        ViewUtils.pietGravityToGravity(
+            childAdapter.getHorizontalGravity(), childAdapter.getVerticalGravity());
+
+    childAdapter.setLayoutParams(params);
   }
 
   /**

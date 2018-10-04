@@ -27,6 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
@@ -48,6 +49,7 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
+import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
@@ -123,6 +125,10 @@ public class FrameAdapterTest {
     doReturn(templateAdapter)
         .when(templateBinder)
         .createAndBindTemplateAdapter(any(TemplateAdapterModel.class), eq(frameContext));
+    when(elementAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
+    when(elementAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
+    when(templateAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
+    when(templateAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.reportError(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
@@ -317,6 +323,19 @@ public class FrameAdapterTest {
     verify(elementAdapter).setLayoutParams(layoutParamsCaptor.capture());
     assertThat(layoutParamsCaptor.getValue().width).isEqualTo(width);
     assertThat(layoutParamsCaptor.getValue().height).isEqualTo(height);
+  }
+
+  @Test
+  public void testBindModel_gravity() {
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
+    when(elementAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
+    when(elementAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
+
+    frameAdapter.bindModel(frame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
+
+    verify(elementAdapter).setLayoutParams(layoutParamsCaptor.capture());
+    assertThat(((LinearLayout.LayoutParams) layoutParamsCaptor.getValue()).gravity)
+        .isEqualTo(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
   }
 
   @Test
