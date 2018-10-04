@@ -33,9 +33,12 @@ message Version {
   // The CPU architecture that the native libraries support
   enum Architecture {
     UNKNOWN_ACHITECTURE = 0;
-    X86 = 1;
-    ARM = 2;
-    ARM64 = 3;
+    ARM = 1;
+    ARM64 = 2;
+    MIPS = 3;
+    MIPS64 = 4;
+    X86 = 5;
+    X86_64 = 6;
   }
   optional Architecture architecture = 5;
 
