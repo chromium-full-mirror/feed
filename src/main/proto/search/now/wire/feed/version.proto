@@ -44,7 +44,8 @@ message Version {
     UNKNOWN_BUILD_TYPE = 0;
     DEV = 1;
     ALPHA = 2;
-    RELEASE = 3;
+    BETA = 3;
+    RELEASE = 4;
   }
   optional BuildType build_type = 6;
 
