@@ -23,7 +23,8 @@ import android.support.annotation.IntDef;
   ActionType.OPEN_URL_INCOGNITO,
   ActionType.OPEN_URL_NEW_TAB,
   ActionType.OPEN_URL_NEW_WINDOW,
-  ActionType.DOWNLOAD
+  ActionType.DOWNLOAD,
+  ActionType.LEARN_MORE
 })
 // LINT.IfChange
 public @interface ActionType {
