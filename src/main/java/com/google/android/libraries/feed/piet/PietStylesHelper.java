@@ -88,10 +88,12 @@ public class PietStylesHelper {
     return createMapFromStylesheet(Stylesheet.getDefaultInstance());
   }
 
-  static NoKeyOverwriteHashMap<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
+  NoKeyOverwriteHashMap<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
     NoKeyOverwriteHashMap<String, Style> styleMap = new NoKeyOverwriteHashMap<>("Style");
     for (Style style : stylesheet.getStylesList()) {
-      styleMap.put(style.getStyleId(), style);
+      if (mediaQueryHelper.areMediaQueriesMet(style.getConditionsList())) {
+        styleMap.put(style.getStyleId(), style);
+      }
     }
     return styleMap;
   }

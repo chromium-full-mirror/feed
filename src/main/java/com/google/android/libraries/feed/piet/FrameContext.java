@@ -158,7 +158,7 @@ class FrameContext {
     if (frame.hasStylesheetId()) {
       styleMap = pietStylesHelper.getStylesheetMap(frame.getStylesheetId());
     } else if (frame.hasStylesheet()) {
-      styleMap = PietStylesHelper.createMapFromStylesheet(frame.getStylesheet());
+      styleMap = pietStylesHelper.createMapFromStylesheet(frame.getStylesheet());
     }
 
     if (styleMap == null) {
@@ -206,7 +206,7 @@ class FrameContext {
 
     switch (template.getTemplateStylesheetCase()) {
       case STYLESHEET:
-        localStylesheet = PietStylesHelper.createMapFromStylesheet(template.getStylesheet());
+        localStylesheet = stylesHelper.createMapFromStylesheet(template.getStylesheet());
         break;
       case STYLESHEET_ID:
         localStylesheet = stylesHelper.getStylesheetMap(template.getStylesheetId());

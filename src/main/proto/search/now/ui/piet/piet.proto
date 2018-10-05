@@ -154,9 +154,7 @@ message Stylesheet {
   repeated Style styles = 2;
 
   // This Stylesheet is only eligible to be used if *all* the conditions
-  // enumerated below are met. If a certain subset of styles are to be made
-  // available unconditionally, then those should be split out into a common
-  // stylesheet with fewer conditions. If even one condition is unsatisfied,
+  // enumerated below are met. If even one condition is unsatisfied,
   // this Stylesheet is treated as if it was never sent, which may cause
   // ERR_STYLESHEET_NOT_FOUND.
   repeated MediaQueryCondition conditions = 3;

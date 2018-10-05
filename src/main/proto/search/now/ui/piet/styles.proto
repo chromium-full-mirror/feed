@@ -16,6 +16,7 @@ syntax = "proto2";
 
 import "src/main/proto/search/now/ui/piet/binding_refs.proto";
 import "src/main/proto/search/now/ui/piet/gradients.proto";
+import "src/main/proto/search/now/ui/piet/media_queries.proto";
 import "src/main/proto/search/now/ui/piet/rounded_corners.proto";
 import "src/main/proto/search/now/ui/piet/shadows.proto";
 
@@ -58,12 +59,17 @@ message StyleIdsStack {
 }
 
 // A collection of attributes describing an element’s visual properties.
-// NextId: 16
+// NextId: 17
 message Style {
   // Every style must have a name that is unique within the StyleSheet. But
   // don’t go overboard in naming these with namespaced constructs because
   // longer strings lead to more bytes on the wire.
   optional string style_id = 1;
+
+  // This Style is only eligible to be used if *all* the conditions
+  // enumerated below are met. Multiple styles can have the same style id if
+  // their conditions are disjoint.
+  repeated MediaQueryCondition conditions = 16;
 
   // Foreground color (e.g. for text or any other foreground element).
   optional fixed32 color = 2;

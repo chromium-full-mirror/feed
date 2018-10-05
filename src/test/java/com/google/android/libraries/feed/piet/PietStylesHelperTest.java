@@ -254,7 +254,7 @@ public class PietStylesHelperTest {
     Style eighties = Style.newBuilder().setStyleId("80s").build();
     myStyles.addStyles(eighties);
 
-    assertThat(PietStylesHelper.createMapFromStylesheet(myStyles.build()))
+    assertThat(helper.createMapFromStylesheet(myStyles.build()))
         .containsExactly("60s", sixties, "80s", eighties);
   }
 
@@ -266,11 +266,40 @@ public class PietStylesHelperTest {
     Style sixtiesAgain = Style.newBuilder().setStyleId("60s").build();
     myStyles.addStyles(sixtiesAgain);
 
-    assertThatRunnable(() -> PietStylesHelper.createMapFromStylesheet(myStyles.build()))
+    assertThatRunnable(() -> helper.createMapFromStylesheet(myStyles.build()))
         .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Style key '60s' already defined");
+  }
+
+  @Test
+  public void testCreateMapFromStylesheet_filtersByMediaQuery() {
+    Stylesheet.Builder myStyles = Stylesheet.newBuilder();
+    Style lightStyle =
+        Style.newBuilder()
+            .setStyleId("theme")
+            .addConditions(
+                MediaQueryCondition.newBuilder()
+                    .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.LIGHT)))
+            .build();
+    myStyles.addStyles(lightStyle);
+    Style darkStyle =
+        Style.newBuilder()
+            .setStyleId("theme")
+            .addConditions(
+                MediaQueryCondition.newBuilder()
+                    .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.DARK)))
+            .build();
+    myStyles.addStyles(darkStyle);
+
+    when(assetProvider.isDarkTheme()).thenReturn(true);
+    assertThat(helper.createMapFromStylesheet(myStyles.build()))
+        .containsExactly("theme", darkStyle);
+
+    when(assetProvider.isDarkTheme()).thenReturn(false);
+    assertThat(helper.createMapFromStylesheet(myStyles.build()))
+        .containsExactly("theme", lightStyle);
   }
 
   @Test
