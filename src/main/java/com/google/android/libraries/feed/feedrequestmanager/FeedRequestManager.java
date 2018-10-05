@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
+import com.google.android.libraries.feed.common.locale.LocaleUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -380,7 +381,7 @@ public class FeedRequestManager implements RequestManager {
       ClientInfo.Builder clientInfoBuilder = ClientInfo.newBuilder();
       clientInfoBuilder.setPlatformType(PlatformType.ANDROID);
       clientInfoBuilder.setPlatformVersion(getPlatformVersion());
-      clientInfoBuilder.setLocale(locale.toLanguageTag());
+      clientInfoBuilder.setLocale(LocaleUtils.getLanguageTag(locale));
 
       // TODO: Fill in app_type and app_version through a new Host API.
 
