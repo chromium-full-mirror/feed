@@ -5,5 +5,8 @@ licenses(["notice"])  # Apache 2
 android_library(
     name = "config",
     srcs = glob(["*.java"]),
-    deps = ["@androidsdk//com.android.support:support-annotations-25.3.1"],
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common/logging",
+        "@androidsdk//com.android.support:support-annotations-25.3.1",
+    ],
 )

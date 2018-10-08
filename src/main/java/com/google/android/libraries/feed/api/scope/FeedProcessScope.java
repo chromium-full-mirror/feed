@@ -45,6 +45,7 @@ import com.google.android.libraries.feed.feedstore.ContentStorageDirectImpl;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.JournalStorageDirectImpl;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -146,13 +147,15 @@ public class FeedProcessScope implements Dumpable {
         SchedulerApi schedulerApi,
         FeedAppLifecycleListener lifecycleListener,
         DebugBehavior debugBehavior,
-        Context context) {
+        Context context,
+        ApplicationInfo applicationInfo) {
       this.configuration = configuration;
       this.singleThreadExecutor = singleThreadExecutor;
       this.loggingApi = loggingApi;
       this.lifecycleListener = lifecycleListener;
       this.debugBehavior = debugBehavior;
       this.context = context;
+      this.applicationInfo = applicationInfo;
 
       boolean directHostCallEnabled =
           configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
@@ -280,7 +283,8 @@ public class FeedProcessScope implements Dumpable {
                 timingUtils,
                 threadUtils,
                 actionReader,
-                context);
+                context,
+                applicationInfo);
       }
       if (sessionManager == null) {
         FeedSessionManagerFactory fsmFactory =
@@ -333,6 +337,7 @@ public class FeedProcessScope implements Dumpable {
     private final DebugBehavior debugBehavior;
     private final Context context;
     private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
+    private final ApplicationInfo applicationInfo;
 
     // Optional fields - if they are not provided, we will use default implementations.
     /*@MonotonicNonNull*/ private RequestManager requestManager = null;

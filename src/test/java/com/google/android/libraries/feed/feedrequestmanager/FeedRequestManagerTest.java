@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
@@ -51,6 +52,7 @@ import com.google.protobuf.ExtensionRegistryLite;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.wire.feed.ActionTypeProto.ActionType;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
+import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.AppType;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
@@ -95,6 +97,7 @@ public class FeedRequestManagerTest {
   private static final String CONTENT_DOMAIN_2 = "contentDomain2";
   public static final long ID = 42;
   private static final long ID_2 = 2;
+  private static final String APP_VERSION_STRING = "5.7";
 
   @Mock private NetworkClient networkClient;
   @Mock private ProtocolAdapter protocolAdapter;
@@ -103,6 +106,7 @@ public class FeedRequestManagerTest {
   @Mock private ActionReader actionReader;
   @Mock private Consumer<Result<List<StreamDataOperation>>> consumer;
   @Mock private Clock clock;
+  @Mock private ApplicationInfo applicationInfo;
   private Context context;
   @Captor private ArgumentCaptor<Consumer<HttpResponse>> responseConsumerCaptor;
   @Captor private ArgumentCaptor<HttpRequest> requestCaptor;
@@ -126,6 +130,10 @@ public class FeedRequestManagerTest {
     ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "4.4.3");
     ReflectionHelpers.setStaticField(Build.class, "CPU_ABI", "armeabi");
     ReflectionHelpers.setStaticField(Build.class, "TAGS", "dev-keys");
+    when(applicationInfo.getAppType()).thenReturn(ApplicationInfo.AppType.CHROME);
+    when(applicationInfo.getArchitecture()).thenReturn(ApplicationInfo.Architecture.ARM);
+    when(applicationInfo.getBuildType()).thenReturn(ApplicationInfo.BuildType.DEV);
+    when(applicationInfo.getVersionString()).thenReturn(APP_VERSION_STRING);
     requestManager =
         new FeedRequestManager(
             configuration,
@@ -137,7 +145,8 @@ public class FeedRequestManagerTest {
             timingUtils,
             threadUtils,
             actionReader,
-            context);
+            context,
+            applicationInfo);
 
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.emptyList()));
@@ -693,6 +702,10 @@ public class FeedRequestManagerTest {
     ReflectionHelpers.setStaticField(Build.class, "SUPPORTED_ABIS", new String[] {"arm64-v8a"});
     ReflectionHelpers.setStaticField(Build.class, "CPU_ABI", "armeabi");
     ReflectionHelpers.setStaticField(Build.class, "TAGS", "release-keys");
+    when(applicationInfo.getAppType()).thenReturn(ApplicationInfo.AppType.SEARCH_APP);
+    when(applicationInfo.getArchitecture()).thenReturn(ApplicationInfo.Architecture.ARM64);
+    when(applicationInfo.getBuildType()).thenReturn(ApplicationInfo.BuildType.RELEASE);
+    when(applicationInfo.getVersionString()).thenReturn("1.2.3.4");
 
     requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
 
@@ -730,6 +743,16 @@ public class FeedRequestManagerTest {
                                     .setApiVersion(VERSION_CODES.LOLLIPOP)
                                     .build())
                             .setLocale(Locale.UK.toLanguageTag())
+                            .setAppType(AppType.GSA)
+                            .setAppVersion(
+                                Version.newBuilder()
+                                    .setMajor(1)
+                                    .setMinor(2)
+                                    .setBuild(3)
+                                    .setRevision(4)
+                                    .setArchitecture(Architecture.ARM64)
+                                    .setBuildType(BuildType.RELEASE)
+                                    .build())
                             .build())
                     .build())
             .build();
@@ -787,6 +810,14 @@ public class FeedRequestManagerTest {
                         .setApiVersion(VERSION_CODES.KITKAT)
                         .build())
                 .setLocale(Locale.US.toLanguageTag())
+                .setAppType(AppType.CHROME)
+                .setAppVersion(
+                    Version.newBuilder()
+                        .setMajor(5)
+                        .setMinor(7)
+                        .setArchitecture(Architecture.ARM)
+                        .setBuildType(BuildType.DEV)
+                        .build())
                 .build());
   }
 }

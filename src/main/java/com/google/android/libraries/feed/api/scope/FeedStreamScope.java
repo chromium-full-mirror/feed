@@ -161,8 +161,7 @@ public class FeedStreamScope {
                 knownContentApi);
       }
       return new FeedStreamScope(
-          Validators.checkNotNull(stream),
-          Validators.checkNotNull(modelProviderFactory));
+          Validators.checkNotNull(stream), Validators.checkNotNull(modelProviderFactory));
     }
 
     // Required external dependencies.
@@ -198,9 +197,7 @@ public class FeedStreamScope {
     /*@MonotonicNonNull*/ private HostBindingProvider hostBindingProvider;
   }
 
-  private FeedStreamScope(
-      Stream stream,
-      ModelProviderFactory modelProviderFactory) {
+  private FeedStreamScope(Stream stream, ModelProviderFactory modelProviderFactory) {
     this.stream = stream;
     this.modelProviderFactory = modelProviderFactory;
   }

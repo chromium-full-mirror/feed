@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
+import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
@@ -69,12 +70,14 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private ActionReader actionReader;
   @Mock private Clock clock;
+
   @Captor private ArgumentCaptor<Response> responseCaptor;
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final Configuration configuration = new Configuration.Builder().build();
   private final TimingUtils timingUtils = new TimingUtils();
   private Context context;
+  private ApplicationInfo applicationInfo;
 
   @Override
   protected Uri getValidUri(@HttpMethod String method) {
@@ -86,6 +89,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
+    applicationInfo = new ApplicationInfo.Builder(context).setVersionString("0").build();
 
     MockServer mockServer = MockServer.getDefaultInstance();
     networkClient =
@@ -165,7 +169,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             timingUtils,
             threadUtils,
             actionReader,
-            context);
+            context,
+            applicationInfo);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -203,7 +208,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             timingUtils,
             threadUtils,
             actionReader,
-            context);
+            context,
+            applicationInfo);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 

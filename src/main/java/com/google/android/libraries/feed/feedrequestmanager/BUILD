@@ -2,6 +2,14 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2
 
+package_group(
+    name = "feedrequestmanager_pkgs",
+    packages = [
+        "//src/main/java/com/google/android/libraries/feed/feedrequestmanager/...",
+        "//src/test/java/com/google/android/libraries/feed/feedrequestmanager/...",
+    ],
+)
+
 android_library(
     name = "feedrequestmanager",
     srcs = glob(["*.java"]),
@@ -18,6 +26,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/common/logging",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
         "//src/main/java/com/google/android/libraries/feed/common/time",
+        "//src/main/java/com/google/android/libraries/feed/feedrequestmanager/internal",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/network",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",

@@ -17,12 +17,9 @@ package com.google.android.libraries.feed.feedrequestmanager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Build.VERSION;
-import android.text.TextUtils;
 import android.util.Base64;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.DismissActionWithSemanticProperties;
-import com.google.android.libraries.feed.common.locale.LocaleUtils;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -32,10 +29,13 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.locale.LocaleUtils;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
+import com.google.android.libraries.feed.feedrequestmanager.internal.Utils;
+import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.network.HttpRequest;
@@ -66,8 +66,6 @@ import com.google.search.now.wire.feed.VersionProto.Version.Architecture;
 import com.google.search.now.wire.feed.VersionProto.Version.BuildType;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -93,6 +91,7 @@ public class FeedRequestManager implements RequestManager {
   private final ThreadUtils threadUtils;
   private final ActionReader actionReader;
   private final Context context;
+  private ApplicationInfo applicationInfo;
 
   /*@Nullable*/
   private Supplier<Consumer<Result<List<StreamDataOperation>>>>
@@ -108,7 +107,8 @@ public class FeedRequestManager implements RequestManager {
       TimingUtils timingUtils,
       ThreadUtils threadUtils,
       ActionReader actionReader,
-      Context context) {
+      Context context,
+      ApplicationInfo applicationInfo) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -119,6 +119,7 @@ public class FeedRequestManager implements RequestManager {
     this.threadUtils = threadUtils;
     this.actionReader = actionReader;
     this.context = context;
+    this.applicationInfo = applicationInfo;
   }
 
   @Override
@@ -173,7 +174,7 @@ public class FeedRequestManager implements RequestManager {
   }
 
   private RequestBuilder newDefaultRequest() {
-    return new RequestBuilder().setLocale(getLocale());
+    return new RequestBuilder().setApplicationInfo(applicationInfo).setLocale(getLocale());
   }
 
   private void executeRequest(
@@ -281,6 +282,7 @@ public class FeedRequestManager implements RequestManager {
     private ByteString token;
     private List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties;
     private Locale locale;
+    private ApplicationInfo applicationInfo;
 
     /**
      * Sets the token used to tell the server which page of results we want in the response.
@@ -300,6 +302,11 @@ public class FeedRequestManager implements RequestManager {
 
     RequestBuilder setLocale(Locale locale) {
       this.locale = locale;
+      return this;
+    }
+
+    RequestBuilder setApplicationInfo(ApplicationInfo applicationInfo) {
+      this.applicationInfo = applicationInfo;
       return this;
     }
 
@@ -382,38 +389,14 @@ public class FeedRequestManager implements RequestManager {
       clientInfoBuilder.setPlatformType(PlatformType.ANDROID);
       clientInfoBuilder.setPlatformVersion(getPlatformVersion());
       clientInfoBuilder.setLocale(LocaleUtils.getLanguageTag(locale));
-
-      // TODO: Fill in app_type and app_version through a new Host API.
-
+      clientInfoBuilder.setAppType(Utils.convertAppType(applicationInfo.getAppType()));
+      clientInfoBuilder.setAppVersion(getAppVersion());
       return clientInfoBuilder.build();
     }
 
     private static Version getPlatformVersion() {
       Version.Builder builder = Version.newBuilder();
-      String[] values = TextUtils.split(VERSION.RELEASE, "\\.");
-      if (values.length >= 1) {
-        NumberFormat integerParser = NumberFormat.getIntegerInstance();
-        try {
-          builder.setMajor(integerParser.parse(values[0]).intValue());
-          if (values.length >= 2) {
-            builder.setMinor(integerParser.parse(values[1]).intValue());
-            if (values.length >= 3) {
-              builder.setBuild(integerParser.parse(values[2]).intValue());
-              if (values.length >= 4) {
-                builder.setRevision(integerParser.parse(values[3]).intValue());
-              }
-            }
-          }
-        } catch (ParseException e) {
-          Logger.w(
-              TAG,
-              e,
-              "Invalid int value while parsing platform version: %s",
-              android.os.Build.VERSION.RELEASE);
-        }
-      } else {
-        Logger.w(TAG, "Invalid format while parsing platform version: %s" + Build.VERSION.RELEASE);
-      }
+      Utils.fillVersionsFromString(builder, Build.VERSION.RELEASE);
       builder.setArchitecture(getPlatformArchitecture());
       builder.setBuildType(getPlatformBuildType());
       builder.setApiVersion(Build.VERSION.SDK_INT);
@@ -421,23 +404,11 @@ public class FeedRequestManager implements RequestManager {
     }
 
     private static Architecture getPlatformArchitecture() {
-      // TODO: Android may support multiple ABIS, should we send all?
       String androidAbi =
           Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
               ? Build.SUPPORTED_ABIS[0]
               : Build.CPU_ABI;
-      switch (androidAbi) {
-        case "x86":
-        case "x86_64":
-          return Architecture.X86;
-        case "armeabi":
-        case "armeabi-v7a":
-          return Architecture.ARM;
-        case "arm64-v8a":
-          return Architecture.ARM64;
-        default:
-          return Architecture.UNKNOWN_ACHITECTURE;
-      }
+      return Utils.convertArchitectureString(androidAbi);
     }
 
     private static BuildType getPlatformBuildType() {
@@ -449,6 +420,14 @@ public class FeedRequestManager implements RequestManager {
         }
       }
       return BuildType.UNKNOWN_BUILD_TYPE;
+    }
+
+    private Version getAppVersion() {
+      Version.Builder builder = Version.newBuilder();
+      Utils.fillVersionsFromString(builder, applicationInfo.getVersionString());
+      builder.setArchitecture(Utils.convertArchitecture(applicationInfo.getArchitecture()));
+      builder.setBuildType(Utils.convertBuildType(applicationInfo.getBuildType()));
+      return builder.build();
     }
   }
 }

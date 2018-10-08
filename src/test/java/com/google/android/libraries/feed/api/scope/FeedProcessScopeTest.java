@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
+import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
@@ -50,6 +51,7 @@ public class FeedProcessScopeTest {
   @Mock private NetworkClient networkClient;
   @Mock private SchedulerApi schedulerApi;
   @Mock private FeedAppLifecycleListener appLifecycleListener;
+  @Mock private ApplicationInfo applicationInfo;
 
   // Mocks for optional fields
   @Mock private FeedProtocolAdapter protocolAdapter;
@@ -79,7 +81,8 @@ public class FeedProcessScopeTest {
                 schedulerApi,
                 appLifecycleListener,
                 DebugBehavior.VERBOSE,
-                context)
+                context,
+                applicationInfo)
             .setThreadUtils(threadUtils)
             .build();
 
@@ -102,7 +105,8 @@ public class FeedProcessScopeTest {
                 schedulerApi,
                 appLifecycleListener,
                 DebugBehavior.VERBOSE,
-                context)
+                context,
+                applicationInfo)
             .setProtocolAdapter(protocolAdapter)
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)
