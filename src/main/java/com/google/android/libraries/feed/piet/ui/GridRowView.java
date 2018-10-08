@@ -71,7 +71,8 @@ public class GridRowView extends LinearLayout {
     // (This will not be 0/UNSPECIFIED because that is handled above)
     int maxWidth = MeasureSpec.getSize(widthMeasureSpec);
 
-    // TODO: Handle padding on the GridRowView
+    int gridRowVerticalPadding = getPaddingTop() + getPaddingBottom();
+    int gridRowHorizontalPadding = getPaddingLeft() + getPaddingRight();
 
     // Max height for child cells; either AT_MOST or UNSPECIFIED
     int maxHeightSpec;
@@ -80,7 +81,8 @@ public class GridRowView extends LinearLayout {
     if (heightMode == MeasureSpec.UNSPECIFIED) {
       maxHeightSpec = heightMeasureSpec;
     } else {
-      maxHeightSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.AT_MOST);
+      maxHeightSpec =
+          MeasureSpec.makeMeasureSpec(heightSize - gridRowVerticalPadding, MeasureSpec.AT_MOST);
     }
 
     int unlimitedSpace = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
@@ -109,6 +111,7 @@ public class GridRowView extends LinearLayout {
       }
       totalReservedWidth += params.getMarginStart() + params.getMarginEnd();
     }
+    totalReservedWidth += gridRowHorizontalPadding;
 
     // Calculate width remaining to the collapsible cell(s)
     int availableWidth = Math.max(maxWidth - totalReservedWidth, 0);
@@ -182,7 +185,7 @@ public class GridRowView extends LinearLayout {
         }
       }
       // We should not need to resize the cells because they were all already smaller than this.
-      rowHeight = Math.min(rowHeight, maxCellHeight);
+      rowHeight = Math.min(rowHeight, maxCellHeight + gridRowVerticalPadding);
     }
 
     setMeasuredDimension(maxWidth, rowHeight);

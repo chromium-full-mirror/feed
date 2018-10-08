@@ -517,6 +517,37 @@ public class GridRowViewTest {
     assertThat(gridRowView.getMeasuredWidth()).isEqualTo(200);
   }
 
+  @Test
+  public void testOnMeasure_respectsGridRowPadding() {
+    // DP, Collapsible, WRAP_CONTENT
+    // Collapsible cell is truncated
+
+    gridRowView.addView(widthView);
+    gridRowView.addView(collapsibleView);
+    gridRowView.addView(wrapContentView);
+
+    int paddingLeft = 10;
+    int paddingTop = 20;
+    int paddingRight = 30;
+    int paddingBottom = 40;
+    gridRowView.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
+
+    int sizeSpec = MeasureSpec.makeMeasureSpec(250, MeasureSpec.EXACTLY);
+    gridRowView.measure(sizeSpec, sizeSpec);
+
+    assertThat(widthView.requestedWidth).isEqualTo(WIDTH);
+    assertThat(collapsibleView.requestedWidth)
+        .isEqualTo(250 - WIDTH - WRAP_CONTENT_WIDTH - paddingLeft - paddingRight);
+    assertThat(wrapContentView.requestedWidth).isEqualTo(WRAP_CONTENT_WIDTH);
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(250);
+
+    int cellHeight = 250 - paddingTop - paddingBottom;
+    assertThat(widthView.requestedHeight).isEqualTo(cellHeight);
+    assertThat(collapsibleView.requestedHeight).isEqualTo(cellHeight);
+    assertThat(wrapContentView.requestedHeight).isEqualTo(cellHeight);
+    assertThat(gridRowView.getMeasuredHeight()).isEqualTo(250);
+  }
+
   private static class TestView extends View {
     private final int desiredWidth;
     private final int desiredHeight;
