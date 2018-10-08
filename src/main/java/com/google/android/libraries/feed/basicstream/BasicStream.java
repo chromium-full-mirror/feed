@@ -21,6 +21,7 @@ import android.content.Context;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -115,8 +116,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private StreamRecyclerViewAdapter adapter;
   private StreamScrollMonitor streamScrollMonitor;
   private ScrollRestorer scrollRestorer;
-  private boolean logOnContentShown = true;
   private long sessionStartTimestamp;
+  @LoggingState private int loggingState = LoggingState.STARTING;
 
   /*@MonotonicNonNull*/ private ModelProvider modelProvider;
   /*@MonotonicNonNull*/ private StreamDriver streamDriver;
@@ -517,6 +518,12 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             menuMeasurer);
 
     adapter.setDriver(streamDriver);
+    if (loggingState == LoggingState.STARTING
+        && modelProvider.getCurrentState() == State.READY
+        && modelProvider.getRootFeature() == null) {
+      basicLoggingApi.onOpenedWithNoContent();
+      loggingState = LoggingState.LOGGED_NO_CONTENT;
+    }
 
     deepestContentTracker.reset();
   }
@@ -527,7 +534,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     ModelProvider localModelProvider =
         checkNotNull(modelProvider, "Model Provider must be set if a session is active");
     updateAdapter(localModelProvider);
-    if (logOnContentShown) {
+    if (loggingState == LoggingState.STARTING) {
       if (!checkNotNull(streamDriver).hasContent()
           && clock.currentTimeMillis() - sessionStartTimestamp > immediateContentThreshold) {
         basicLoggingApi.onOpenedWithNoImmediateContent();
@@ -537,7 +544,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       basicLoggingApi.onOpenedWithContent(
           (int) timeToPopulateMs, checkNotNull(streamDriver).getLeafFeatureDrivers().size());
       // onOpenedWithContent should only be logged the first time the Stream is opened up.
-      logOnContentShown = false;
+      loggingState = LoggingState.LOGGED_CONTENT_SHOWN;
     }
   }
 
@@ -562,7 +569,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       Logger.wtf(TAG, "Not expecting non NO_CARDS_ERROR type.");
     }
 
-    basicLoggingApi.onOpenedWithNoContent();
+    if (loggingState == LoggingState.STARTING) {
+      basicLoggingApi.onOpenedWithNoContent();
+      loggingState = LoggingState.LOGGED_NO_CONTENT;
+    }
+
     scrollRestorer.abandonRestoringScroll();
     if (streamDriver != null) {
       streamDriver.showZeroState(/* showSpinner= */ false);
@@ -655,5 +666,16 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   ScrollRestorer createNonRestoringScrollRestorer(
       RecyclerView recyclerView, StreamScrollMonitor streamScrollMonitor) {
     return ScrollRestorer.nonRestoringRestorer(recyclerView, streamScrollMonitor);
+  }
+
+  @IntDef({
+    LoggingState.STARTING,
+    LoggingState.LOGGED_NO_CONTENT,
+    LoggingState.LOGGED_CONTENT_SHOWN
+  })
+  @interface LoggingState {
+    int STARTING = 0;
+    int LOGGED_NO_CONTENT = 1;
+    int LOGGED_CONTENT_SHOWN = 2;
   }
 }

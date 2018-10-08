@@ -126,7 +126,6 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         modelFeatureChangeObserverRegistered = true;
       } else {
         Logger.w(TAG, "found null root feature loading Leaf Feature Drivers");
-        basicLoggingApi.onOpenedWithNoContent();
       }
     }
 

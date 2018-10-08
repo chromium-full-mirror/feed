@@ -152,13 +152,6 @@ public class StreamDriverTest {
   }
 
   @Test
-  public void testBuildChildren_nullRoot() {
-    when(modelProvider.getRootFeature()).thenReturn(null);
-    streamDriver.getLeafFeatureDrivers();
-    verify(basicLoggingApi).onOpenedWithNoContent();
-  }
-
-  @Test
   public void testBuildChildren_initializing() {
     when(modelProvider.getRootFeature()).thenReturn(null);
     when(modelProvider.getCurrentState()).thenReturn(State.INITIALIZING);

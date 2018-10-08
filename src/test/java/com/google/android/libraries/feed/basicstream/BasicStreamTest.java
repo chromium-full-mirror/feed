@@ -44,6 +44,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
+import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
@@ -120,6 +121,7 @@ public class BasicStreamTest {
           .build();
 
   @Mock private StreamConfiguration streamConfiguration;
+  @Mock private ModelFeature modelFeature;
   @Mock private ModelProviderFactory modelProviderFactory;
   @Mock private ModelProvider initialModelProvider;
   @Mock private ModelProvider modelProvider;
@@ -207,6 +209,17 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testOnSessionStart_doesNotLogOnOpenedWithStreamContent_IfOnErrorLogsNoContent() {
+    basicStream.onShow();
+    basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
+    reset(basicLoggingApi);
+
+    basicStream.onSessionStart();
+
+    verify(basicLoggingApi, never()).onOpenedWithContent(anyInt(), anyInt());
+  }
+
+  @Test
   public void testOnSessionFinished() {
     basicStream.onShow();
     basicStream.onSessionFinished();
@@ -241,7 +254,22 @@ public class BasicStreamTest {
   }
 
   @Test
-  public void testOnError_logsOnOpenedWithNoImmediateContent() {
+  public void testOnError_doesNotDoubleLogOnOpenedWithNoContent() {
+    when(initialModelProvider.getCurrentState()).thenReturn(State.READY);
+    when(initialModelProvider.getRootFeature()).thenReturn(null);
+
+    basicStream.onShow();
+    // Trigger onOpenedWithNoContent logging through updating the driver.
+    basicStream.onSessionStart();
+    reset(basicLoggingApi);
+
+    basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
+
+    verify(basicLoggingApi, never()).onOpenedWithNoContent();
+  }
+
+  @Test
+  public void testOnSessionStart_logsOnOpenedWithNoImmediateContent() {
     clock = clock.set(10);
     basicStream.onShow();
     reset(streamDriver);
@@ -251,6 +279,54 @@ public class BasicStreamTest {
     basicStream.onSessionStart();
 
     verify(basicLoggingApi).onOpenedWithNoImmediateContent();
+  }
+
+  @Test
+  public void testOnSessionStart_logsOnOpenedWithNoContent() {
+    when(initialModelProvider.getCurrentState()).thenReturn(State.READY);
+    when(initialModelProvider.getRootFeature()).thenReturn(null);
+    basicStream.onShow();
+
+    basicStream.onSessionStart();
+
+    verify(basicLoggingApi).onOpenedWithNoContent();
+  }
+
+  @Test
+  public void testOnSessionStart_doesNotLogOnOpenedWithNoContent_ifModelProviderNotReady() {
+    when(initialModelProvider.getCurrentState()).thenReturn(State.INITIALIZING);
+    when(initialModelProvider.getRootFeature()).thenReturn(null);
+    basicStream.onShow();
+
+    basicStream.onSessionStart();
+
+    verify(basicLoggingApi, never()).onOpenedWithNoContent();
+  }
+
+  @Test
+  public void testOnSessionStart_doesNotLogOnOpenedWithNoContent_ifRootFeatureNotNull() {
+    when(initialModelProvider.getCurrentState()).thenReturn(State.READY);
+    when(initialModelProvider.getRootFeature()).thenReturn(modelFeature);
+    basicStream.onShow();
+
+    basicStream.onSessionStart();
+
+    verify(basicLoggingApi, never()).onOpenedWithNoContent();
+  }
+
+  @Test
+  public void testOnSessionStart_doesNotDoubleLogOnOpenedWithNoContent() {
+    when(initialModelProvider.getCurrentState()).thenReturn(State.READY);
+    when(initialModelProvider.getRootFeature()).thenReturn(null);
+
+    basicStream.onShow();
+    // Trigger onOpenedWithNoContent logging through onError.
+    basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
+    reset(basicLoggingApi);
+
+    basicStream.onSessionStart();
+
+    verify(basicLoggingApi, never()).onOpenedWithNoContent();
   }
 
   @Test
