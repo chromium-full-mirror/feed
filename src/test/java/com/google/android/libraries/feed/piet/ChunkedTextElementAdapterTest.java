@@ -528,7 +528,7 @@ public class ChunkedTextElementAdapterTest {
     when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
     when(mockStyleProvider.hasPreLoadFill()).thenReturn(true);
     Drawable preLoadFill = new ColorDrawable(Color.CYAN);
-    when(mockStyleProvider.createPreLoadFill(context)).thenReturn(preLoadFill);
+    when(mockStyleProvider.createPreLoadFill()).thenReturn(preLoadFill);
 
     // Required to set up the local frameContext member var.
     adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);

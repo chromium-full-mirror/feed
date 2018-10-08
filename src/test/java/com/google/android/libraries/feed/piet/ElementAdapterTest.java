@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
@@ -52,6 +53,7 @@ import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,6 +89,7 @@ public class ElementAdapterTest {
     parameters = new AdapterParameters(context, Suppliers.of((ViewGroup) null), hostProviders);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
+    when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
     view = new View(context);
     adapter = new TestElementAdapter(context, parameters, view);
   }
@@ -998,6 +1001,19 @@ public class ElementAdapterTest {
             eq(frame),
             eq(view),
             eq(null));
+  }
+
+  @Test
+  public void testRoundedCorners() {
+    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadius(123).build();
+    when(styleProvider.getRoundedCorners()).thenReturn(roundedCorners);
+
+    adapter.createAdapter(Element.getDefaultInstance(), frameContext);
+
+    assertThat(adapter.getView()).isInstanceOf(RoundedCornerWrapperView.class);
+
+    assertThat(((RoundedCornerWrapperView) adapter.getView()).getRoundedCorners())
+        .isSameAs(roundedCorners);
   }
 
   // Dummy implementation

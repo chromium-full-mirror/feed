@@ -33,6 +33,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -63,6 +64,8 @@ public class SpacerElementAdapterTest {
     adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(mockStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }
 

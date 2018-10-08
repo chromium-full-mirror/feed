@@ -21,6 +21,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.support.annotation.VisibleForTesting;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -43,6 +44,10 @@ public class RoundedCornerWrapperView extends FrameLayout {
   private final RectF maskRect;
 
   private Bitmap maskBitmap;
+
+  public RoundedCornerWrapperView(Context context) {
+    this(context, RoundedCorners.getDefaultInstance());
+  }
 
   public RoundedCornerWrapperView(Context context, RoundedCorners roundedCorners) {
     super(context);
@@ -170,5 +175,10 @@ public class RoundedCornerWrapperView extends FrameLayout {
   private boolean shouldRoundCorner(Corners corner) {
     return (roundedCorners.getBitmask() == 0)
         || (roundedCorners.getBitmask() & corner.getNumber()) != 0;
+  }
+
+  @VisibleForTesting
+  public RoundedCorners getRoundedCorners() {
+    return roundedCorners;
   }
 }

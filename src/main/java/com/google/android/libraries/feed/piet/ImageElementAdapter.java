@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.ui.DrawableScalingHelper;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerImageView;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
@@ -34,7 +33,7 @@ import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** An {@link ElementAdapter} for {@code ImageElement} elements. */
-class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageElement> {
+class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
   private static final String TAG = "ImageElementAdapter";
 
   /*@Nullable*/ private LoadImageCallback currentlyLoadingImage = null;
@@ -75,15 +74,6 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
       widthPx = DIMENSION_NOT_SET;
       heightPx = DIMENSION_NOT_SET;
     }
-
-    int cornerRadius = 0;
-    int cornerBitmask = 0;
-    if (style.hasRoundedCorners()) {
-      cornerBitmask = style.getRoundedCorners().getBitmask();
-      cornerRadius = style.getRoundedCornerRadius(getContext());
-    }
-    getBaseView().setRoundedCorners(cornerBitmask);
-    getBaseView().setCornerRadius(cornerRadius);
   }
 
   @Override
@@ -113,7 +103,7 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     }
 
     if (getElementStyle().hasPreLoadFill()) {
-      getBaseView().setImageDrawable(getElementStyle().createPreLoadFill(getContext()));
+      getBaseView().setImageDrawable(getElementStyle().createPreLoadFill());
     }
 
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
@@ -169,8 +159,8 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
     return getModel().getStyleReferences();
   }
 
-  private static RoundedCornerImageView createView(Context context) {
-    RoundedCornerImageView imageView = new RoundedCornerImageView(context);
+  private static ImageView createView(Context context) {
+    ImageView imageView = new ImageView(context);
     imageView.setCropToPadding(true);
     return imageView;
   }
@@ -200,6 +190,7 @@ class ImageElementAdapter extends ElementAdapter<RoundedCornerImageView, ImageEl
                   heightPx);
         }
 
+        // TODO: Set up transitioning to work.
         imageView.setImageDrawable(drawable);
         imageView.setScaleType(scaleType);
       }

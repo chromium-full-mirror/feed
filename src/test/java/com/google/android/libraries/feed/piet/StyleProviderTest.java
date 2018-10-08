@@ -26,7 +26,6 @@ import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.ShadowsProto.ElevationShadow;
@@ -277,19 +276,17 @@ public class StyleProviderTest {
     StyleProvider styleProvider;
 
     styleProvider = new StyleProvider(Style.getDefaultInstance(), mockAssetProvider);
-    assertThat(styleProvider.createBackground(context)).isNull();
+    assertThat(styleProvider.createBackground()).isNull();
 
     styleProvider =
         new StyleProvider(
             Style.newBuilder().setBackground(fill).setRoundedCorners(roundedCorners).build(),
             mockAssetProvider);
-    Drawable backgroundDrawable = styleProvider.createBackground(context);
-    assertThat(backgroundDrawable).isInstanceOf(RoundedCornerColorDrawable.class);
+    Drawable backgroundDrawable = styleProvider.createBackground();
+    assertThat(backgroundDrawable).isInstanceOf(ColorDrawable.class);
 
-    RoundedCornerColorDrawable background = (RoundedCornerColorDrawable) backgroundDrawable;
+    ColorDrawable background = (ColorDrawable) backgroundDrawable;
     assertThat(background.getColor()).isEqualTo(color);
-
-    // TODO: how to test rounded corners?
   }
 
   @Test
@@ -300,19 +297,17 @@ public class StyleProviderTest {
     StyleProvider styleProvider;
 
     styleProvider = new StyleProvider(Style.getDefaultInstance(), mockAssetProvider);
-    assertThat(styleProvider.createPreLoadFill(context)).isNull();
+    assertThat(styleProvider.createPreLoadFill()).isNull();
 
     styleProvider =
         new StyleProvider(
             Style.newBuilder().setPreLoadFill(fill).setRoundedCorners(roundedCorners).build(),
             mockAssetProvider);
-    Drawable preLoadFillDrawable = styleProvider.createPreLoadFill(context);
-    assertThat(preLoadFillDrawable).isInstanceOf(RoundedCornerColorDrawable.class);
+    Drawable preLoadFillDrawable = styleProvider.createPreLoadFill();
+    assertThat(preLoadFillDrawable).isInstanceOf(ColorDrawable.class);
 
-    RoundedCornerColorDrawable background = (RoundedCornerColorDrawable) preLoadFillDrawable;
+    ColorDrawable background = (ColorDrawable) preLoadFillDrawable;
     assertThat(background.getColor()).isEqualTo(color);
-
-    // TODO: how to test rounded corners?
   }
 
   @Test

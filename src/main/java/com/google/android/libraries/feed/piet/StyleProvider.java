@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.VisibleForTesting;
@@ -23,7 +24,6 @@ import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerColorDrawable;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
@@ -139,7 +139,7 @@ class StyleProvider {
   public void applyElementStyles(Context context, View view) {
     EdgeWidths padding = getPadding();
     applyPadding(context, view, padding);
-    view.setBackground(createBackground(context));
+    view.setBackground(createBackground());
 
     if (getMinHeight() > 0) {
       view.setMinimumHeight((int) LayoutUtils.dpToPx(getMinHeight(), context));
@@ -201,8 +201,8 @@ class StyleProvider {
    * {@code null} if the background has no color defined.
    */
   /*@Nullable*/
-  Drawable createBackground(Context context) {
-    return createBackgroundForFill(context, getBackground());
+  Drawable createBackground() {
+    return createBackgroundForFill(getBackground());
   }
 
   /**
@@ -210,8 +210,8 @@ class StyleProvider {
    * {@code null} if the pre load fill has no color defined.
    */
   /*@Nullable*/
-  Drawable createPreLoadFill(Context context) {
-    return createBackgroundForFill(context, getPreLoadFill());
+  Drawable createPreLoadFill() {
+    return createBackgroundForFill(getPreLoadFill());
   }
 
   /**
@@ -219,18 +219,11 @@ class StyleProvider {
    * returns {@code null} if the background has no color defined.
    */
   /*@Nullable*/
-  private Drawable createBackgroundForFill(Context context, Fill background) {
+  private Drawable createBackgroundForFill(Fill background) {
     if (!background.hasColor()) {
       return null;
     }
-    RoundedCornerColorDrawable bgDrawable = new RoundedCornerColorDrawable(background.getColor());
-    if (hasRoundedCorners()) {
-      int layoutDirection =
-          LayoutUtils.isDefaultLocaleRtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR;
-      bgDrawable.setRoundedCorners(
-          getRoundedCornerRadius(context), getRoundedCorners().getBitmask(), layoutDirection);
-    }
-    return bgDrawable;
+    return new ColorDrawable(background.getColor());
   }
 
   @Override

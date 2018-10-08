@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
@@ -108,8 +107,7 @@ public class FrameAdapter {
       }
 
       StyleProvider style = localFrameContext.makeStyleFor(frame.getStyleReferences());
-      Drawable bg = style.createBackground(context);
-      frameView.setBackground(bg);
+      frameView.setBackground(style.createBackground());
     } catch (RuntimeException e) {
       // TODO: Remove this once error reporting is fully implemented.
       Logger.e(TAG, e, "Catch top level exception");

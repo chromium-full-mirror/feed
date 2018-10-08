@@ -30,6 +30,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRe
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
@@ -72,6 +73,7 @@ public class ParameterizedTextElementAdapterTest {
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(adapterParameters.defaultStyleProvider);
+    when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 
     adapter =
         new ParameterizedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);

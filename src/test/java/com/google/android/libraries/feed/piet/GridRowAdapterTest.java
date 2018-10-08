@@ -56,6 +56,7 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
@@ -122,6 +123,7 @@ public class GridRowAdapterTest {
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
   }
 
   @Test
@@ -301,6 +303,8 @@ public class GridRowAdapterTest {
     StyleProvider childStyleProvider = mock(StyleProvider.class);
     when(childStyleProvider.hasWidth()).thenReturn(true);
     when(childStyleProvider.getWidth()).thenReturn(456);
+    when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(asElement(model), frameContext);
@@ -334,6 +338,8 @@ public class GridRowAdapterTest {
     StyleProvider childStyleProvider = mock(StyleProvider.class);
     when(childStyleProvider.hasHeight()).thenReturn(true);
     when(childStyleProvider.getHeight()).thenReturn(123);
+    when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(asElement(model), frameContext);
@@ -365,6 +371,8 @@ public class GridRowAdapterTest {
     StyleProvider childStyleProvider = mock(StyleProvider.class);
     when(childStyleProvider.hasHeight()).thenReturn(false);
     when(childStyleProvider.getHeight()).thenReturn(DIMENSION_NOT_SET);
+    when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(asElement(model), frameContext);
@@ -392,8 +400,11 @@ public class GridRowAdapterTest {
                                         SpacerElement.newBuilder()
                                             .setStyleReferences(childStyles)))))
             .build();
+
     StyleProvider childStyleProvider = mock(StyleProvider.class);
     when(childStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
     adapter.createAdapter(asElement(model), frameContext);

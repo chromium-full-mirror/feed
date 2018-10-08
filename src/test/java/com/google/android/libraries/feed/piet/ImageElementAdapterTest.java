@@ -128,22 +128,7 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
     assertThat(adapter.getBaseView().getCropToPadding()).isTrue();
-    verify(styleProvider).applyElementStyles(context, adapter.getView());
-  }
-
-  @Test
-  public void testCreateAdapter_roundedCorners() {
-    adapter.createAdapter(DEFAULT_MODEL, frameContext);
-
-    assertThat(adapter.getBaseView().getCornerRadius()).isWithin(.01F).of(CORNERS.getRadius());
-  }
-
-  @Test
-  public void testCreateAdapter_noRoundedCorners() {
-    when(styleProvider.hasRoundedCorners()).thenReturn(false);
-    adapter.createAdapter(DEFAULT_MODEL, frameContext);
-
-    assertThat(adapter.getBaseView().getCornerRadius()).isWithin(.01F).of(0);
+    verify(styleProvider).applyElementStyles(context, adapter.getBaseView());
   }
 
   @Test
@@ -338,7 +323,7 @@ public class ImageElementAdapterTest {
 
     adapter.bindModel(imageBindingElement, frameContext);
     assertThat(adapter.getBaseView().getDrawable()).isNull();
-    assertThat(adapter.getView().getVisibility()).isEqualTo(View.GONE);
+    assertThat(adapter.getBaseView().getVisibility()).isEqualTo(View.GONE);
   }
 
   @Test
@@ -448,7 +433,7 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    verify(styleProvider).applyElementStyles(context, adapter.getView());
+    verify(styleProvider).applyElementStyles(context, adapter.getBaseView());
 
     // Styles do not change when a different model is bound
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
@@ -478,7 +463,7 @@ public class ImageElementAdapterTest {
 
     verify(frameContext).makeStyleFor(boundStyle);
 
-    verify(styleProvider, times(2)).applyElementStyles(context, adapter.getView());
+    verify(styleProvider, times(2)).applyElementStyles(context, adapter.getBaseView());
   }
 
   @Test
@@ -486,7 +471,7 @@ public class ImageElementAdapterTest {
     Drawable preLoadFillDrawable = new ColorDrawable(Color.RED);
 
     // Set up the StyleProvider mock
-    when(styleProvider.createPreLoadFill(context)).thenReturn(preLoadFillDrawable);
+    when(styleProvider.createPreLoadFill()).thenReturn(preLoadFillDrawable);
     when(styleProvider.hasPreLoadFill()).thenReturn(true);
 
     // Bind and expect the pre-load fill to be set

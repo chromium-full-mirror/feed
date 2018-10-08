@@ -278,7 +278,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     // Set a placeholder empty image
     Drawable placeholder = null;
     if (chunkStyle.hasPreLoadFill()) {
-      placeholder = chunkStyle.createPreLoadFill(getContext());
+      placeholder = chunkStyle.createPreLoadFill();
     }
     if (placeholder == null) {
       placeholder = new ColorDrawable(Color.TRANSPARENT);

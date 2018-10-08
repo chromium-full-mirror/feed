@@ -49,6 +49,7 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
@@ -110,6 +111,7 @@ public class ElementListAdapterTest {
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }

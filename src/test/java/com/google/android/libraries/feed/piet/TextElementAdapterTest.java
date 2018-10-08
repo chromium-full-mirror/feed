@@ -37,6 +37,7 @@ import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
@@ -71,6 +72,7 @@ public class TextElementAdapterTest {
         new AdapterParameters(
             null, null, mockHostProviders, new ParameterizedTextEvaluator(), null, null);
     when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
+    when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 
     adapter = new TestTextElementAdapter(context, adapterParameters);
   }

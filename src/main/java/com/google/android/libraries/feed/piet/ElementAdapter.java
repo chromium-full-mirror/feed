@@ -24,6 +24,7 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -31,6 +32,7 @@ import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.HashSet;
 import java.util.Set;
@@ -63,7 +65,7 @@ abstract class ElementAdapter<V extends View, M> {
   private boolean created = false;
   private boolean binding = false;
 
-  /*@Nullable*/ private FrameLayout wrapperView = null;
+  /*@Nullable*/ private RoundedCornerWrapperView wrapperView = null;
   @VisibleForTesting /*@Nullable*/ StackedElementAdapter overlayAdapter = null;
 
   Actions actions = Actions.getDefaultInstance();
@@ -141,13 +143,35 @@ abstract class ElementAdapter<V extends View, M> {
 
     onCreateAdapter(model, baseElement, frameContext);
 
-    initializeOverlays(frameContext);
+    initializeWrapperViewDependentFeatures(
+        elementStyle.getRoundedCorners(), baseElement, frameContext);
 
     initializeOverflow(baseElement);
 
     elementStyle.applyElementStyles(getContext(), view);
 
     created = true;
+  }
+
+  private void initializeWrapperViewDependentFeatures(
+      RoundedCorners roundedCorners, Element baseElement, FrameContext frameContext) {
+    if (roundedCorners.getRadius() <= 0 && baseElement.getOverlaysCount() == 0) {
+      return;
+    }
+
+    RoundedCornerWrapperView wrapper = new RoundedCornerWrapperView(context, roundedCorners);
+    wrapper.addView(getBaseView());
+
+    if (baseElement.getOverlaysCount() > 0) {
+      overlayAdapter =
+          getParameters()
+              .elementAdapterFactory
+              .createStackedElementAdapter(baseElement.getOverlaysList(), frameContext);
+      overlayAdapter.setLayoutParams(
+          new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+      wrapper.addView(overlayAdapter.getView());
+    }
+    wrapperView = wrapper;
   }
 
   /** Performs child-class-specific adapter creation; to be overridden. */
@@ -208,18 +232,6 @@ abstract class ElementAdapter<V extends View, M> {
 
   /** Performs child-adapter-specific binding logic; to be overridden. */
   void onBindModel(M model, Element baseElement, FrameContext frameContext) {}
-
-  private void initializeOverlays(FrameContext frameContext) {
-    if (baseElement.getOverlaysCount() > 0) {
-      overlayAdapter =
-          getParameters()
-              .elementAdapterFactory
-              .createStackedElementAdapter(baseElement.getOverlaysList(), frameContext);
-      overlayAdapter.setLayoutParams(
-          new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-      addWrapperView(overlayAdapter.getView());
-    }
-  }
 
   private void bindOverlays(FrameContext frameContext) {
     if (baseElement.getOverlaysCount() > 0) {
@@ -342,21 +354,6 @@ abstract class ElementAdapter<V extends View, M> {
 
   /** Performs child-adapter-specific release logic; to be overridden. */
   void onReleaseAdapter() {}
-
-  /*@EnsuresNonNull("wrapperView")*/
-  private void initializeWrapperView() {
-    if (wrapperView != null) {
-      return;
-    }
-    FrameLayout wrapper = new FrameLayout(getContext());
-    wrapper.addView(getBaseView());
-    wrapperView = wrapper;
-  }
-
-  private void addWrapperView(View view) {
-    initializeWrapperView();
-    wrapperView.addView(view);
-  }
 
   /**
    * Subclasses will call this method when they are first bound to a Model to set the Key based upon

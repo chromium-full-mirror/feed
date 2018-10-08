@@ -36,6 +36,7 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
@@ -81,6 +82,7 @@ public class StackedElementAdapterTest {
     when(frameContext.getElementBindingValue(ELEMENT_BINDING)).thenReturn(ELEMENT_BINDING_VALUE);
     when(frameContext.makeStyleFor(any())).thenReturn(mockStyleProvider);
     when(mockHostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 
     adapterParameters = new AdapterParameters(context, Suppliers.of(null), mockHostProviders);
 
