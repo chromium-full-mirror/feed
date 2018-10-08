@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.content.Context;
+import android.graphics.drawable.RippleDrawable;
 import android.view.Gravity;
 import android.view.View;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -154,6 +155,7 @@ public class ViewUtilsTest {
     view.callOnClick();
     verify(mockActionHandler)
         .handleAction(DEFAULT_ACTION, ActionType.CLICK, DEFAULT_FRAME, view, null);
+    assertThat(view.getForeground()).isInstanceOf(RippleDrawable.class);
   }
 
   @Test
@@ -173,6 +175,7 @@ public class ViewUtilsTest {
     ViewUtils.setOnClickActions(Actions.getDefaultInstance(), view, mockFrameContext);
 
     assertViewNotClickable();
+    assertThat(view.getForeground()).isNull();
   }
 
   @Test
@@ -183,6 +186,7 @@ public class ViewUtilsTest {
     ViewUtils.setOnClickActions(Actions.getDefaultInstance(), view, mockFrameContext);
 
     assertThat(view.isLongClickable()).isFalse();
+    assertThat(view.getForeground()).isNull();
   }
 
   @Test
@@ -203,6 +207,22 @@ public class ViewUtilsTest {
     ViewUtils.clearOnLongClickActions(view);
 
     assertThat(view.isLongClickable()).isFalse();
+  }
+
+  @Test
+  public void testSetAndClearClickActions() {
+    ViewUtils.setOnClickActions(
+        Actions.newBuilder()
+            .setOnClickAction(DEFAULT_ACTION)
+            .setOnLongClickAction(DEFAULT_ACTION)
+            .build(),
+        view,
+        mockFrameContext);
+    ViewUtils.setOnClickActions(Actions.getDefaultInstance(), view, mockFrameContext);
+
+    assertViewNotClickable();
+    assertThat(view.isLongClickable()).isFalse();
+    assertThat(view.getForeground()).isNull();
   }
 
   @Test

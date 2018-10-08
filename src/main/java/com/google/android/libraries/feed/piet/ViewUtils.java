@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.piet;
 
 import android.graphics.Rect;
+import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.support.v4.view.ViewCompat;
 import android.view.Gravity;
 import android.view.View;
@@ -92,6 +94,15 @@ public class ViewUtils {
           });
     } else {
       clearOnClickActions(view);
+    }
+    // TODO: Implement alternative support for older versions
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.M) {
+      if (actions.hasOnClickAction() || actions.hasOnLongClickAction()) {
+        // CAUTION: this is only available in L+
+        view.setForeground(view.getContext().getDrawable(R.drawable.piet_clickable_ripple));
+      } else {
+        view.setForeground(null);
+      }
     }
   }
 
