@@ -16,32 +16,26 @@ package com.google.android.libraries.feed.basicstream.internal.actions;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
 import android.widget.ListView;
-import android.widget.PopupWindow;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
-import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
-import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
-import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager.ContextMenuClickHandler;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -56,12 +50,13 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 /** Tests for {@link StreamActionApiImpl}. */
 @RunWith(RobolectricTestRunner.class)
@@ -126,19 +121,18 @@ public class StreamActionApiImplTest {
           /* publisher= */ null,
           /* faviconUrl= */ null,
           /* snippet=*/ null);
-  private static final int MENU_HEIGHT = 123;
-  private static final int MENU_WIDTH = 321;
-  public static final int NO_ID = -1;
 
   @Mock private ActionApi actionApi;
   @Mock private ActionParser actionParser;
   @Mock private ActionManager actionManager;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentLoggingData contentLoggingData;
-  @Mock private MenuMeasurer menuMeasurer;
+  @Mock private ContextMenuManager contextMenuManager;
+
+  @Captor private ArgumentCaptor<ContextMenuClickHandler> handlerCaptor;
+  @Captor private ArgumentCaptor<List<String>> menuItemCaptor;
 
   private StreamActionApiImpl streamActionApi;
-  private FrameLayout parentView;
   private View view;
 
   @Before
@@ -147,21 +141,14 @@ public class StreamActionApiImplTest {
 
     Context context = Robolectric.setupActivity(Activity.class);
     view = new View(context);
-    parentView = new FrameLayout(context);
-    parentView.addView(view);
-    when(menuMeasurer.measureAdapterContent(
-            any(ViewGroup.class), Mockito.<ArrayAdapter<?>>any(), anyInt(), anyInt(), anyInt()))
-        .thenReturn(new Size(MENU_WIDTH, MENU_HEIGHT));
     streamActionApi =
         new StreamActionApiImpl(
-            context,
             actionApi,
             actionParser,
             actionManager,
             basicLoggingApi,
             contentLoggingData,
-            mock(ContextMenuHelper.class),
-            menuMeasurer,
+            contextMenuManager,
             SESSION_ID);
   }
 
@@ -272,17 +259,12 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
-    assertThat(shadowOf(parentView).getDisallowInterceptTouchEvent()).isTrue();
+    verify(contextMenuManager)
+        .openContextMenu(eq(view), Mockito.<List<String>>any(), handlerCaptor.capture());
 
-    PopupWindow shadowPopupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
-    ListView listView = (ListView) shadowPopupWindow.getContentView();
-    assertThat(getItemLabelAt(listView, /* position= */ 0)).isEqualTo(OPEN_LABEL);
-    assertThat(getItemLabelAt(listView, /* position= */ 1)).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
-    assertThat(getItemLabelAt(listView, /* position= */ 2)).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
-
-    listView.performItemClick(null, /* position= */ 0, NO_ID);
-    listView.performItemClick(null, /* position= */ 1, NO_ID);
-    listView.performItemClick(null, /* position= */ 2, NO_ID);
+    handlerCaptor.getValue().handleClick(0);
+    handlerCaptor.getValue().handleClick(1);
+    handlerCaptor.getValue().handleClick(2);
 
     InOrder inOrder = Mockito.inOrder(actionParser);
 
@@ -317,12 +299,13 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
-    PopupWindow shadowPopupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
-    ListView listView = (ListView) shadowPopupWindow.getContentView();
+    verify(contextMenuManager)
+        .openContextMenu(eq(view), menuItemCaptor.capture(), any(ContextMenuClickHandler.class));
 
-    assertThat(listView.getAdapter().getCount()).isEqualTo(2);
-    assertThat(getItemLabelAt(listView, 0)).isEqualTo(OPEN_LABEL);
-    assertThat(getItemLabelAt(listView, 1)).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
+    List<String> items = menuItemCaptor.getValue();
+    assertThat(items.size()).isEqualTo(2);
+    assertThat(items.get(0)).isEqualTo(OPEN_LABEL);
+    assertThat(items.get(1)).isEqualTo(OPEN_IN_INCOGNITO_MODE_LABEL);
   }
 
   @Test
@@ -344,12 +327,13 @@ public class StreamActionApiImplTest {
         OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
         view);
 
-    PopupWindow shadowPopupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
-    ListView listView = (ListView) shadowPopupWindow.getContentView();
+    verify(contextMenuManager)
+        .openContextMenu(eq(view), menuItemCaptor.capture(), any(ContextMenuClickHandler.class));
 
-    assertThat(listView.getAdapter().getCount()).isEqualTo(2);
-    assertThat(getItemLabelAt(listView, 0)).isEqualTo(OPEN_LABEL);
-    assertThat(getItemLabelAt(listView, 1)).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
+    List<String> items = menuItemCaptor.getValue();
+    assertThat(items.size()).isEqualTo(2);
+    assertThat(items.get(0)).isEqualTo(OPEN_LABEL);
+    assertThat(items.get(1)).isEqualTo(OPEN_IN_NEW_WINDOW_LABEL);
   }
 
   @Test
@@ -357,17 +341,33 @@ public class StreamActionApiImplTest {
     when(actionParser.canPerformAction(any(FeedActionPayload.class), eq(streamActionApi)))
         .thenReturn(true);
 
-    List<LabelledFeedActionData> labelledFeedActionDataList = new ArrayList<>();
-    labelledFeedActionDataList.add(NORMAL_OPEN_URL);
-    labelledFeedActionDataList.add(OPEN_IN_NEW_WINDOW);
-    labelledFeedActionDataList.add(OPEN_IN_INCOGNITO_MODE);
+    // Succeed when requesting a context menu.
+    when(contextMenuManager.openContextMenu(
+            any(View.class), Mockito.<List<String>>any(), any(ContextMenuClickHandler.class)))
+        .thenReturn(true);
 
     streamActionApi.openContextMenu(
-        OpenContextMenuData.newBuilder().addAllContextMenuData(labelledFeedActionDataList).build(),
+        OpenContextMenuData.newBuilder()
+            .addAllContextMenuData(Collections.singletonList(NORMAL_OPEN_URL))
+            .build(),
         view);
 
-    assertThat(shadowOf(RuntimeEnvironment.application).getLatestPopupWindow()).isNotNull();
     verify(basicLoggingApi).onContentContextMenuOpened(contentLoggingData);
+
+    reset(basicLoggingApi);
+
+    // Fail to open a context menu.
+    when(contextMenuManager.openContextMenu(
+            any(View.class), Mockito.<List<String>>any(), any(ContextMenuClickHandler.class)))
+        .thenReturn(false);
+
+    streamActionApi.openContextMenu(
+        OpenContextMenuData.newBuilder()
+            .addAllContextMenuData(Collections.singletonList(NORMAL_OPEN_URL))
+            .build(),
+        view);
+
+    verifyZeroInteractions(basicLoggingApi);
   }
 
   public String getItemLabelAt(ListView listView, int position) {

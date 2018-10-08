@@ -22,17 +22,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import android.app.Activity;
-import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
-import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
@@ -49,7 +47,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link CardDriver}. */
@@ -107,20 +104,18 @@ public class CardDriverTest {
         .thenReturn(StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build());
     when(contentDriverChild.getLeafFeatureDriver()).thenReturn(leafFeatureDriver);
 
-    Context context = Robolectric.setupActivity(Activity.class);
     cardDriver =
         new CardDriverForTest(
             mock(ActionApi.class),
             mock(ActionManager.class),
             mock(ActionParserFactory.class),
             mock(BasicLoggingApi.class),
-            context,
             cardModelFeature,
             mock(ModelProvider.class),
             POSITION,
             contentDriverChild,
             mock(StreamOfflineMonitor.class),
-            mock(ContextMenuHelper.class),
+            mock(ContextMenuManager.class),
             mock(MenuMeasurer.class));
   }
 
@@ -180,26 +175,24 @@ public class CardDriverTest {
         ActionManager actionManager,
         ActionParserFactory actionParserFactory,
         BasicLoggingApi basicLoggingApi,
-        Context context,
         ModelFeature cardModel,
         ModelProvider modelProvider,
         int position,
         ContentDriver childContentDriver,
         StreamOfflineMonitor streamOfflineMonitor,
-        ContextMenuHelper contextMenuHelper,
+        ContextMenuManager contextMenuManager,
         MenuMeasurer menuMeasurer) {
       super(
           actionApi,
           actionManager,
           actionParserFactory,
           basicLoggingApi,
-          context,
           cardModel,
           modelProvider,
           position,
           streamOfflineMonitor,
           contentChangedListener,
-          contextMenuHelper,
+          contextMenuManager,
           menuMeasurer);
       this.child = childContentDriver;
     }

@@ -42,11 +42,11 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
-import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
@@ -581,7 +581,7 @@ public class StreamDriverTest {
           basicLoggingApi,
           streamOfflineMonitor,
           knownContentApi,
-          mock(ContextMenuHelper.class),
+          mock(ContextMenuManager.class),
           mock(MenuMeasurer.class));
       childrenCreated = new ArrayList<>();
     }

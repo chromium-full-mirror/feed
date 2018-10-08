@@ -33,12 +33,12 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
-import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
@@ -67,7 +67,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final ScrollRestorer scrollRestorer;
   private final BasicLoggingApi basicLoggingApi;
   private final StreamOfflineMonitor streamOfflineMonitor;
-  private final ContextMenuHelper contextMenuHelper;
+  private final ContextMenuManager contextMenuManager;
   private final MenuMeasurer menuMeasurer;
 
   private boolean rootFeatureConsumed;
@@ -89,7 +89,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       BasicLoggingApi basicLoggingApi,
       StreamOfflineMonitor streamOfflineMonitor,
       KnownContentApi knownContentApi,
-      ContextMenuHelper contextMenuHelper,
+      ContextMenuManager contextMenuManager,
       MenuMeasurer menuMeasurer) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
@@ -98,7 +98,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     this.modelProvider = modelProvider;
     this.context = context;
     this.snackbarApi = snackbarApi;
-    this.contextMenuHelper = contextMenuHelper;
+    this.contextMenuManager = contextMenuManager;
     this.modelChildFeatureDriverMap = new HashMap<>();
     this.featureDrivers = new ArrayList<>();
     this.configuration = configuration;
@@ -422,13 +422,12 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         actionManager,
         actionParserFactory,
         basicLoggingApi,
-        context,
         modelFeature,
         modelProvider,
         position,
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuHelper,
+        contextMenuManager,
         menuMeasurer);
   }
 
@@ -439,13 +438,12 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         actionManager,
         actionParserFactory,
         basicLoggingApi,
-        context,
         modelFeature,
         modelProvider,
         position,
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuHelper,
+        contextMenuManager,
         menuMeasurer);
   }
 

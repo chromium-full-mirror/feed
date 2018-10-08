@@ -53,7 +53,6 @@ import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanc
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.scroll.StreamScrollMonitor;
-import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -70,6 +69,7 @@ import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
@@ -109,7 +109,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final MenuMeasurer menuMeasurer;
 
   private RecyclerView recyclerView;
-  private ContextMenuHelper contextMenuHelper;
+  private ContextMenuManager contextMenuManager;
   private Context context;
   private List<Header> headers;
   private StreamConfiguration streamConfiguration;
@@ -283,7 +283,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               basicLoggingApi,
               streamOfflineMonitor,
               knownContentApi,
-              contextMenuHelper,
+              contextMenuManager,
               menuMeasurer);
       adapter.setDriver(streamDriver);
       streamDriver.showZeroState(/* showSpinner= */ true);
@@ -472,7 +472,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     recyclerView = new RecyclerView(context);
     recyclerView.setId(R.id.feed_stream_recycler_view);
     recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
-    contextMenuHelper = new ContextMenuHelper(recyclerView);
+    contextMenuManager = new ContextMenuManager(recyclerView, menuMeasurer);
     new ItemTouchHelper(new StreamItemTouchCallbacks()).attachToRecyclerView(recyclerView);
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);
@@ -514,7 +514,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             basicLoggingApi,
             streamOfflineMonitor,
             knownContentApi,
-            contextMenuHelper,
+            contextMenuManager,
             menuMeasurer);
 
     adapter.setDriver(streamDriver);
@@ -600,7 +600,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       BasicLoggingApi basicLoggingApi,
       StreamOfflineMonitor streamOfflineMonitor,
       KnownContentApi knownContentApi,
-      ContextMenuHelper contextMenuHelper,
+      ContextMenuManager contextMenuManager,
       MenuMeasurer menuMeasurer) {
     return new StreamDriver(
         actionApi,
@@ -616,7 +616,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         basicLoggingApi,
         streamOfflineMonitor,
         knownContentApi,
-        contextMenuHelper,
+        contextMenuManager,
         menuMeasurer);
   }
 

@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,11 +39,11 @@ public class MenuMeasurer {
 
   // TODO: Test measureAdapterContent fully instead of just calculateSize.
   public Size measureAdapterContent(
-      ViewGroup parent, ArrayAdapter<?> adapter, int windowPadding, int maxWidth, int maxHeight) {
+      ViewGroup parent, ListAdapter adapter, int windowPadding, int maxWidth, int maxHeight) {
     return calculateSize(getMeasurements(parent, adapter), windowPadding, maxWidth, maxHeight);
   }
 
-  private List<Size> getMeasurements(ViewGroup parent, ArrayAdapter<?> adapter) {
+  private List<Size> getMeasurements(ViewGroup parent, ListAdapter adapter) {
     ArrayList<Size> measurements = new ArrayList<>(adapter.getCount());
     int widthMeasureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
     int heightMeasureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
@@ -88,7 +89,7 @@ public class MenuMeasurer {
   /** Minimal method to suppress an incorrect nullness error. */
   @SuppressWarnings("nullness:argument.type.incompatible")
   private View getViewFromAdapter(
-      ArrayAdapter<?> arrayAdapter, int index, /*@Nullable*/ View convertView, ViewGroup parentView) {
+      ListAdapter arrayAdapter, int index, /*@Nullable*/ View convertView, ViewGroup parentView) {
     return arrayAdapter.getView(index, convertView, parentView);
   }
 }

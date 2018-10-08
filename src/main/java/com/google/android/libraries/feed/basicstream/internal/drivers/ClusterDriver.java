@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
-import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
@@ -24,10 +23,10 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
-import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 
@@ -39,13 +38,12 @@ public class ClusterDriver implements FeatureDriver {
   private final ActionManager actionManager;
   private final ActionParserFactory actionParserFactory;
   private final BasicLoggingApi basicLoggingApi;
-  private final Context context;
   private final ModelFeature clusterModel;
   private final ModelProvider modelProvider;
   private final int position;
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final ContentChangedListener contentChangedListener;
-  private final ContextMenuHelper contextMenuHelper;
+  private final ContextMenuManager contextMenuManager;
   private final MenuMeasurer menuMeasurer;
   /*@Nullable*/ private CardDriver cardDriver;
 
@@ -54,25 +52,23 @@ public class ClusterDriver implements FeatureDriver {
       ActionManager actionManager,
       ActionParserFactory actionParserFactory,
       BasicLoggingApi basicLoggingApi,
-      Context context,
       ModelFeature clusterModel,
       ModelProvider modelProvider,
       int position,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
-      ContextMenuHelper contextMenuHelper,
+      ContextMenuManager contextMenuManager,
       MenuMeasurer menuMeasurer) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
     this.basicLoggingApi = basicLoggingApi;
-    this.context = context;
     this.clusterModel = clusterModel;
     this.modelProvider = modelProvider;
     this.position = position;
     this.streamOfflineMonitor = streamOfflineMonitor;
     this.contentChangedListener = contentChangedListener;
-    this.contextMenuHelper = contextMenuHelper;
+    this.contextMenuManager = contextMenuManager;
     this.menuMeasurer = menuMeasurer;
   }
 
@@ -133,13 +129,12 @@ public class ClusterDriver implements FeatureDriver {
         actionManager,
         actionParserFactory,
         basicLoggingApi,
-        context,
         content,
         modelProvider,
         position,
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuHelper,
+        contextMenuManager,
         menuMeasurer);
   }
 }

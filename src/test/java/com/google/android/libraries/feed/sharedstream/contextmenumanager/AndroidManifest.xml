@@ -15,5 +15,6 @@
   limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.android.libraries.feed.basicstream.internal.actions">
+      package="com.google.android.libraries.feed.sharedstream.contextmenumanager">
+  <uses-sdk android:minSdkVersion="16" />
 </manifest>

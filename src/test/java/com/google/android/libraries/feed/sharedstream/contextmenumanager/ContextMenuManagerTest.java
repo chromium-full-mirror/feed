@@ -1,0 +1,134 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.sharedstream.contextmenumanager;
+
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+import static org.robolectric.Shadows.shadowOf;
+
+import android.app.Activity;
+import android.content.Context;
+import android.view.View;
+import android.view.View.MeasureSpec;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
+import android.widget.ListView;
+import android.widget.PopupWindow;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager.ContextMenuClickHandler;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
+import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+
+/** Tests for {@link ContextMenuManager}. */
+@RunWith(RobolectricTestRunner.class)
+public class ContextMenuManagerTest {
+
+  private static final int NO_ID = -1;
+
+  @Mock private MenuMeasurer menuMeasurer;
+  @Mock private ContextMenuClickHandler clickHandler;
+
+  private Context context;
+  private ContextMenuManager contextMenuManager;
+  private FrameLayout parentView;
+  private View anchorView;
+  private List<String> adapterItems;
+
+  @Before
+  public void setup() {
+    initMocks(this);
+
+    context = Robolectric.setupActivity(Activity.class);
+    parentView = new FrameLayout(context);
+    anchorView = new View(context);
+    parentView.addView(anchorView);
+    contextMenuManager = new ContextMenuManager(parentView, menuMeasurer);
+    adapterItems = createAdapterItems();
+    when(menuMeasurer.measureAdapterContent(
+            any(ViewGroup.class),
+            Mockito.<ArrayAdapter<? extends Object>>any(),
+            anyInt(),
+            anyInt(),
+            anyInt()))
+        .thenReturn(new Size(1, 2));
+  }
+
+  @Test
+  public void testGetHeight() {
+    parentView.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+
+    int top = 25;
+    int bottom = 150;
+    parentView.layout(0, top, 0, bottom);
+
+    assertThat(contextMenuManager.getStreamHeight()).isEqualTo(bottom - top);
+  }
+
+  @Test
+  public void testOpenContextMenu() {
+    contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler);
+    assertThat(shadowOf(parentView).getDisallowInterceptTouchEvent()).isTrue();
+
+    PopupWindow popupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
+    ListView listView = (ListView) popupWindow.getContentView();
+
+    assertThat(listView.getAdapter().getItem(0)).isSameAs(adapterItems.get(0));
+    assertThat(listView.getAdapter().getItem(1)).isSameAs(adapterItems.get(1));
+    assertThat(listView.getAdapter().getItem(2)).isSameAs(adapterItems.get(2));
+
+    assertThat(popupWindow.isShowing()).isTrue();
+    listView.performItemClick(null, /* position= */ 1, NO_ID);
+
+    verify(clickHandler).handleClick(1);
+    assertThat(popupWindow.isShowing()).isFalse();
+  }
+
+  @Test
+  public void testOnlyOpensOneMenu() {
+    // Opens first context menu.
+    assertThat(contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler)).isTrue();
+
+    // Won't open a second one while the first one is open.
+    assertThat(contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler))
+        .isFalse();
+
+    shadowOf(RuntimeEnvironment.application).getLatestPopupWindow().dismiss();
+
+    // After the menu is dismissed another can be opened
+    assertThat(contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler)).isTrue();
+  }
+
+  private List<String> createAdapterItems() {
+    List<String> adapter = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      adapter.add(String.valueOf(i));
+    }
+    return adapter;
+  }
+}

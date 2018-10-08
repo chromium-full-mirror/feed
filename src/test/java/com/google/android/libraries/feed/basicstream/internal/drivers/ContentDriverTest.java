@@ -25,8 +25,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import android.app.Activity;
-import android.content.Context;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
@@ -36,7 +34,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
-import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -44,6 +41,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.common.collect.ImmutableList;
@@ -72,7 +70,6 @@ import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link ContentDriver}. */
@@ -155,11 +152,10 @@ public class ContentDriverTest {
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private ActionParser actionParser;
-  @Mock private ContextMenuHelper contextMenuHelper;
+  @Mock private ContextMenuManager contextMenuManager;
   @Mock private MenuMeasurer menuMeasurer;
   @Captor private ArgumentCaptor<Consumer<Boolean>> offlineConsumerCaptor;
 
-  private Context context;
   private ContentDriver contentDriver;
 
   @Before
@@ -177,31 +173,27 @@ public class ContentDriverTest {
             actionManager,
             actionParserFactory,
             basicLoggingApi,
-            context,
             modelFeature,
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuHelper,
+            contextMenuManager,
             menuMeasurer) {
           @Override
           StreamActionApi createStreamActionApi(
-              Context context,
               ActionApi actionApi,
               ActionParser actionParser,
               ActionManager actionManager,
               BasicLoggingApi basicLoggingApi,
               ContentLoggingData contentLoggingData,
               String sessionToken,
-              ContextMenuHelper contextMenuHelper,
+              ContextMenuManager contextMenuManager,
               MenuMeasurer menuMeasurer) {
             return streamActionApi;
           }
         };
-
-    context = Robolectric.setupActivity(Activity.class);
   }
 
   @Test
@@ -305,14 +297,13 @@ public class ContentDriverTest {
             actionManager,
             actionParserFactory,
             basicLoggingApi,
-            context,
             modelFeature,
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuHelper,
+            contextMenuManager,
             menuMeasurer);
 
     contentDriver.bind(pietViewHolder);
@@ -340,14 +331,13 @@ public class ContentDriverTest {
             actionManager,
             actionParserFactory,
             basicLoggingApi,
-            context,
             modelFeature,
             modelProvider,
             POSITION,
             payload,
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuHelper,
+            contextMenuManager,
             menuMeasurer);
 
     contentDriver.bind(pietViewHolder);
@@ -373,14 +363,13 @@ public class ContentDriverTest {
             actionManager,
             actionParserFactory,
             basicLoggingApi,
-            context,
             modelFeature,
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuHelper,
+            contextMenuManager,
             menuMeasurer);
 
     contentDriver.bind(pietViewHolder);
@@ -417,14 +406,13 @@ public class ContentDriverTest {
             actionManager,
             actionParserFactory,
             basicLoggingApi,
-            context,
             modelFeature,
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuHelper,
+            contextMenuManager,
             menuMeasurer);
 
     contentDriver.bind(pietViewHolder);
@@ -480,14 +468,13 @@ public class ContentDriverTest {
             actionManager,
             actionParserFactory,
             basicLoggingApi,
-            context,
             modelFeature,
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuHelper,
+            contextMenuManager,
             menuMeasurer);
 
     ArgumentCaptor<Supplier<ContentMetadata>> contentMetadataSupplierCaptor =

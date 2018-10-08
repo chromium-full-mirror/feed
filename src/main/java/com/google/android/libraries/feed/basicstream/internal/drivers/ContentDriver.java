@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
-import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
@@ -29,7 +28,6 @@ import com.google.android.libraries.feed.basicstream.internal.actions.StreamActi
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.OneShotVisibilityLoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.StreamContentLoggingData;
-import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
@@ -39,6 +37,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -81,14 +80,13 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ActionManager actionManager,
       ActionParserFactory actionParserFactory,
       BasicLoggingApi basicLoggingApi,
-      Context context,
       ModelFeature contentFeatureModel,
       ModelProvider modelProvider,
       int position,
       FeedActionPayload swipeAction,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
-      ContextMenuHelper contextMenuHelper,
+      ContextMenuManager contextMenuManager,
       MenuMeasurer menuMeasurer) {
     Content content = contentFeatureModel.getStreamFeature().getContent();
 
@@ -107,14 +105,13 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
                     content.getOfflineMetadata(), representationData));
     streamActionApi =
         createStreamActionApi(
-            context,
             actionApi,
             actionParser,
             actionManager,
             basicLoggingApi,
             contentLoggingData,
             modelProvider.getSessionToken(),
-            contextMenuHelper,
+            contextMenuManager,
             menuMeasurer);
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
@@ -258,24 +255,21 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   @VisibleForTesting
   StreamActionApi createStreamActionApi(
       /*@UnknownInitialization*/ ContentDriver this,
-      Context context,
       ActionApi actionApi,
       ActionParser actionParser,
       ActionManager actionManager,
       BasicLoggingApi basicLoggingApi,
       ContentLoggingData contentLoggingData,
       /*@Nullable*/ String sessionToken,
-      ContextMenuHelper contextMenuHelper,
+      ContextMenuManager contextMenuManager,
       MenuMeasurer menuMeasurer) {
     return new StreamActionApiImpl(
-        context,
         actionApi,
         actionParser,
         actionManager,
         basicLoggingApi,
         contentLoggingData,
-        contextMenuHelper,
-        menuMeasurer,
+        contextMenuManager,
         sessionToken);
   }
 

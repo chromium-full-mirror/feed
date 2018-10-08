@@ -60,7 +60,6 @@ import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanc
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.scroll.StreamScrollMonitor;
-import com.google.android.libraries.feed.basicstream.internal.util.ContextMenuHelper;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.FakeClock;
@@ -78,6 +77,7 @@ import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
@@ -847,7 +847,7 @@ public class BasicStreamTest {
         BasicLoggingApi basicLoggingApi,
         StreamOfflineMonitor streamOfflineMonitor,
         KnownContentApi knownContentApi,
-        ContextMenuHelper contextMenuHelper,
+        ContextMenuManager contextMenuManager,
         MenuMeasurer menuMeasurer) {
       streamDriverScrollRestorer = scrollRestorer;
       return streamDriver;
