@@ -18,8 +18,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
@@ -58,6 +61,7 @@ public class FeedKnownContentApiTest {
   @Mock private KnownContentListener listener1;
   @Mock private KnownContentListener listener2;
   @Mock private Consumer<List<ContentMetadata>> knownContentConsumer;
+  @Mock private ThreadUtils threadUtils;
 
   private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
@@ -72,7 +76,8 @@ public class FeedKnownContentApiTest {
   @Before
   public void setUp() {
     initMocks(this);
-    knownContentApi = new FeedKnownContentApi(sessionManager, mainThreadRunner);
+    when(threadUtils.isMainThread()).thenReturn(true);
+    knownContentApi = new FeedKnownContentApi(sessionManager, mainThreadRunner, threadUtils);
   }
 
   @Test
@@ -166,5 +171,28 @@ public class FeedKnownContentApiTest {
     contentMetadataResultCaptor.getValue().accept(Result.failure());
 
     verify(knownContentConsumer, never()).accept(Mockito.<List<ContentMetadata>>any());
+  }
+
+  @Test
+  public void testGetKnownContent_offMainThread() {
+    FakeMainThreadRunner fakeMainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+    when(threadUtils.isMainThread()).thenReturn(false);
+
+    knownContentApi = new FeedKnownContentApi(sessionManager, fakeMainThreadRunner, threadUtils);
+
+    knownContentApi.addListener(listener1);
+
+    knownContentApi
+        .getKnownContentHostNotifier()
+        .onNewContentReceived(/* isNewRefresh= */ false, CONTENT_CREATION_DATE_TIME_MS);
+
+    assertThat(fakeMainThreadRunner.hasTasks()).isTrue();
+
+    verifyZeroInteractions(listener1);
+
+    fakeMainThreadRunner.runAllTasks();
+
+    verify(listener1)
+        .onNewContentReceived(/* isNewRefresh= */ false, CONTENT_CREATION_DATE_TIME_MS);
   }
 }

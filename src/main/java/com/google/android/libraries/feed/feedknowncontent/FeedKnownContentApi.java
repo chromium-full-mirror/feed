@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.feedknowncontent;
 
+import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.knowncontent.ContentRemoval;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
@@ -35,30 +36,44 @@ public class FeedKnownContentApi implements KnownContentApi {
   private static final String TAG = "FeedKnownContentApi";
   private final SessionManager sessionManager;
   private final Set<KnownContentListener> listeners = new HashSet<>();
-  private final KnownContentListener listener;
   private final MainThreadRunner mainThreadRunner;
+  private final ThreadUtils threadUtils;
+  private final KnownContentListener listener;
 
-  public FeedKnownContentApi(SessionManager sessionManager, MainThreadRunner mainThreadRunner) {
+  @SuppressWarnings("nullness:method.invocation.invalid")
+  public FeedKnownContentApi(
+      SessionManager sessionManager, MainThreadRunner mainThreadRunner, ThreadUtils threadUtils) {
     this.sessionManager = sessionManager;
     this.mainThreadRunner = mainThreadRunner;
+    this.threadUtils = threadUtils;
 
-    listener =
+    this.listener =
         new KnownContentListener() {
           @Override
           public void onContentRemoved(List<ContentRemoval> contentRemoved) {
-            for (KnownContentListener knownContentListener : listeners) {
-              knownContentListener.onContentRemoved(contentRemoved);
-            }
+            runOnMainThread(
+                "onContentRemoved",
+                () -> {
+                  for (KnownContentListener knownContentListener : listeners) {
+                    knownContentListener.onContentRemoved(contentRemoved);
+                  }
+                });
           }
 
           @Override
           public void onNewContentReceived(boolean isNewRefresh, long contentCreationDateTimeMs) {
-            for (KnownContentListener knownContentListener : listeners) {
-              knownContentListener.onNewContentReceived(isNewRefresh, contentCreationDateTimeMs);
-            }
+            runOnMainThread(
+                "onNewContentReceived",
+                () -> {
+                  for (KnownContentListener knownContentListener : listeners) {
+                    knownContentListener.onNewContentReceived(
+                        isNewRefresh, contentCreationDateTimeMs);
+                  }
+                });
           }
         };
-    sessionManager.setKnownContentListener(listener);
+
+    sessionManager.setKnownContentListener(this.listener);
   }
 
   @Override
@@ -76,7 +91,7 @@ public class FeedKnownContentApi implements KnownContentApi {
                   content.getOfflineMetadata(), content.getRepresentationData());
             },
         (Result<List<ContentMetadata>> result) -> {
-          mainThreadRunner.execute(
+          runOnMainThread(
               "getKnownContentAccept",
               () -> {
                 if (!result.isSuccessful()) {
@@ -102,5 +117,14 @@ public class FeedKnownContentApi implements KnownContentApi {
   @Override
   public KnownContentListener getKnownContentHostNotifier() {
     return listener;
+  }
+
+  private void runOnMainThread(String name, Runnable runnable) {
+    if (threadUtils.isMainThread()) {
+      runnable.run();
+      return;
+    }
+
+    mainThreadRunner.execute(name, runnable);
   }
 }
