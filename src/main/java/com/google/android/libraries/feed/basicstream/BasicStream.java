@@ -458,6 +458,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     if ((oldLeft != 0 && left != oldLeft) || (oldRight != 0 && right != oldRight)) {
       checkNotNull(adapter, "onCreate must be called before so that adapter is set.").rebind();
     }
+
+    contextMenuManager.onDimensionsChanged();
   }
 
   private void setupRecyclerView() {

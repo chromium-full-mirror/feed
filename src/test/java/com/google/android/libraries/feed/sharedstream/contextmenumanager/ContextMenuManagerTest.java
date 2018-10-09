@@ -124,6 +124,18 @@ public class ContextMenuManagerTest {
     assertThat(contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler)).isTrue();
   }
 
+  @Test
+  public void testClosesMenuWhenDimensionsChange() {
+    contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler);
+
+    PopupWindow popupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
+    assertThat(popupWindow.isShowing()).isTrue();
+
+    contextMenuManager.onDimensionsChanged();
+
+    assertThat(popupWindow.isShowing()).isFalse();
+  }
+
   private List<String> createAdapterItems() {
     List<String> adapter = new ArrayList<>();
     for (int i = 0; i < 3; i++) {

@@ -198,6 +198,15 @@ public class ContextMenuManager {
     return popupWindow != null && popupWindow.isShowing();
   }
 
+  public void onDimensionsChanged() {
+    if (popupWindow == null) {
+      return;
+    }
+
+    popupWindow.dismiss();
+    popupWindow = null;
+  }
+
   /** Notifies creator of the menu that a click has occurred. */
   public interface ContextMenuClickHandler {
     void handleClick(int position);
