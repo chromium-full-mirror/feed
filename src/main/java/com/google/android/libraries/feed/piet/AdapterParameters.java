@@ -19,6 +19,7 @@ import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.time.Clock;
 
 /**
  * A state shared by instances of Cards and Slices. The state is accessed directly from the instance
@@ -38,6 +39,7 @@ class AdapterParameters {
   final ElementAdapterFactory elementAdapterFactory;
   final TemplateBinder templateBinder;
   final StyleProvider defaultStyleProvider;
+  final Clock clock;
 
   // Doesn't like passing "this" to the new ElementAdapterFactory; however, nothing in the factory's
   // construction will reference the elementAdapterFactory member of this, so should be safe.
@@ -45,10 +47,12 @@ class AdapterParameters {
   public AdapterParameters(
       Context context,
       Supplier</*@Nullable*/ ViewGroup> parentViewSupplier,
-      HostProviders hostProviders) {
+      HostProviders hostProviders,
+      Clock clock) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
+    this.clock = clock;
 
     templatedStringEvaluator = new ParameterizedTextEvaluator();
 
@@ -69,7 +73,8 @@ class AdapterParameters {
       HostProviders hostProviders,
       ParameterizedTextEvaluator templatedStringEvaluator,
       ElementAdapterFactory elementAdapterFactory,
-      TemplateBinder templateBinder) {
+      TemplateBinder templateBinder,
+      Clock clock) {
     this.context = context;
     this.parentViewSupplier = parentViewSupplier;
     this.hostProviders = hostProviders;
@@ -79,5 +84,6 @@ class AdapterParameters {
     this.templateBinder = templateBinder;
     this.defaultStyleProvider =
         new StyleProvider(StyleProvider.DEFAULT_STYLE, hostProviders.getAssetProvider());
+    this.clock = clock;
   }
 }

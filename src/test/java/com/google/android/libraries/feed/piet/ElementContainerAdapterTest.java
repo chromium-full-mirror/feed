@@ -30,6 +30,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
@@ -142,7 +143,7 @@ public class ElementContainerAdapterTest {
 
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     AdapterParameters adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders);
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
 
     when(frameContext.createTemplateContext(eq(DEFAULT_TEMPLATE), any(BindingContext.class)))
         .thenReturn(frameContext);

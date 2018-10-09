@@ -18,6 +18,8 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.SystemClockImpl;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -31,24 +33,32 @@ public class PietManager {
   private final DebugBehavior debugBehavior;
   private final CustomElementProvider customElementProvider;
   private final HostBindingProvider hostBindingProvider;
+  private final Clock clock;
   @VisibleForTesting /*@Nullable*/ AdapterParameters adapterParameters = null;
 
   public PietManager(
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider) {
-    this(debugBehavior, assetProvider, customElementProvider, new HostBindingProvider());
+    this(
+        debugBehavior,
+        assetProvider,
+        customElementProvider,
+        new HostBindingProvider(),
+        new SystemClockImpl());
   }
 
   public PietManager(
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider) {
+      HostBindingProvider hostBindingProvider,
+      Clock clock) {
     this.debugBehavior = debugBehavior;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
     this.hostBindingProvider = hostBindingProvider;
+    this.clock = clock;
   }
 
   public FrameAdapter createPietFrameAdapter(
@@ -72,7 +82,8 @@ public class PietManager {
           new AdapterParameters(
               context,
               cardViewProducer,
-              new HostProviders(assetProvider, customElementProvider, hostBindingProvider));
+              new HostProviders(assetProvider, customElementProvider, hostBindingProvider),
+              clock);
     }
     return adapterParameters;
   }

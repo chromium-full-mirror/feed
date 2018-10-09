@@ -37,6 +37,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -100,7 +101,8 @@ public class ImageElementAdapterTest {
     heightPx = (int) LayoutUtils.dpToPx(HEIGHT_DP, context);
     widthPx = (int) LayoutUtils.dpToPx(WIDTH_DP, context);
     AdapterParameters parameters =
-        new AdapterParameters(context, null, hostProviders, null, adapterFactory, templateBinder);
+        new AdapterParameters(
+            context, null, hostProviders, null, adapterFactory, templateBinder, new FakeClock());
 
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);

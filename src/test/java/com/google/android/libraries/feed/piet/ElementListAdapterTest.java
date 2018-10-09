@@ -31,6 +31,7 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.Space;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.ElementListAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -103,7 +104,8 @@ public class ElementListAdapterTest {
     initMocks(this);
     context = RuntimeEnvironment.application;
 
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
+    adapterParameters =
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(adapterParameters.defaultStyleProvider);

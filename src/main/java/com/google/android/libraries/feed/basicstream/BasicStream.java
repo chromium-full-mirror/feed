@@ -199,7 +199,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         debugBehavior,
         new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
         new PietCustomElementProvider(context, customElementProvider),
-        new PietHostBindingProvider(hostBindingProvider, streamOfflineMonitor));
+        new PietHostBindingProvider(hostBindingProvider, streamOfflineMonitor),
+        clock);
   }
 
   @Override

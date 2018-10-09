@@ -46,6 +46,7 @@ import android.text.style.StyleSpan;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ActionsClickableSpan;
@@ -156,7 +157,8 @@ public class ChunkedTextElementAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
-        new AdapterParameters(null, null, hostProviders, mockTextEvaluator, null, null);
+        new AdapterParameters(
+            null, null, hostProviders, mockTextEvaluator, null, null, new FakeClock());
 
     drawable = new ColorDrawable(Color.GREEN);
     Shadows.shadowOf(drawable).setIntrinsicHeight(IMAGE_HEIGHT_PX);

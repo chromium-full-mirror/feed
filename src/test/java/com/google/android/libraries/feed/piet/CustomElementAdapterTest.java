@@ -27,6 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.CustomElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
@@ -66,7 +67,8 @@ public class CustomElementAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     customView = new View(context);
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
+    adapterParameters =
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
     when(hostProviders.getCustomElementProvider()).thenReturn(customElementProvider);
     when(customElementProvider.createCustomElement(DUMMY_DATA)).thenReturn(customView);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))

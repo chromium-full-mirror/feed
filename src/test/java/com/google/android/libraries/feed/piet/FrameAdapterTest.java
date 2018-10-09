@@ -33,6 +33,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
@@ -116,7 +117,8 @@ public class FrameAdapterTest {
             hostProviders,
             new ParameterizedTextEvaluator(),
             adapterFactory,
-            templateBinder);
+            templateBinder,
+            new FakeClock());
     when(elementAdapter.getView()).thenReturn(new LinearLayout(context));
     when(templateAdapter.getView()).thenReturn(new LinearLayout(context));
     doReturn(elementAdapter)
@@ -241,7 +243,8 @@ public class FrameAdapterTest {
                     .setElement(Element.newBuilder().setGridRow(GridRow.getDefaultInstance())))
             .build();
     AdapterParameters adapterParameters =
-        new AdapterParameters(context, Suppliers.of(new LinearLayout(context)), hostProviders);
+        new AdapterParameters(
+            context, Suppliers.of(new LinearLayout(context)), hostProviders, new FakeClock());
     PietSharedState pietSharedState =
         PietSharedState.newBuilder()
             .addTemplates(
@@ -372,7 +375,7 @@ public class FrameAdapterTest {
     pietSharedStates.add(pietSharedState);
 
     AdapterParameters parameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders);
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
     FrameAdapter frameAdapter = new FrameAdapter(context, parameters, actionHandler, debugBehavior);
 
     frameAdapter.bindModel(frame, FRAME_WIDTH, null, pietSharedStates);

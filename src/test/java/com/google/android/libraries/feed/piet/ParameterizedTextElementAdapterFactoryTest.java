@@ -24,6 +24,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.piet.TextElementAdapter.TextElementKey;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -59,7 +60,8 @@ public class ParameterizedTextElementAdapterFactoryTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
     adapterParameters =
-        new AdapterParameters(null, null, new HostProviders(mock(AssetProvider.class), null, null));
+        new AdapterParameters(
+            null, null, new HostProviders(mock(AssetProvider.class), null, null), new FakeClock());
     when(keySupplier.getAdapter(context, adapterParameters))
         .thenReturn(adapter)
         .thenReturn(adapter2);

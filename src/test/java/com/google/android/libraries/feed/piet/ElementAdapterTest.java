@@ -32,6 +32,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -86,7 +87,9 @@ public class ElementAdapterTest {
   public void setUp() {
     initMocks(this);
     context = RuntimeEnvironment.application;
-    parameters = new AdapterParameters(context, Suppliers.of((ViewGroup) null), hostProviders);
+    parameters =
+        new AdapterParameters(
+            context, Suppliers.of((ViewGroup) null), hostProviders, new FakeClock());
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
@@ -226,7 +229,8 @@ public class ElementAdapterTest {
             hostProviders,
             new ParameterizedTextEvaluator(),
             mockFactory,
-            mock(TemplateBinder.class));
+            mock(TemplateBinder.class),
+            new FakeClock());
     adapter = new TestElementAdapter(context, parameters, view);
 
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);

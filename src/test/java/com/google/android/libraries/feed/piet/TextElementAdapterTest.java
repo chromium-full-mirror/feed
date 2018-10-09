@@ -30,6 +30,7 @@ import android.text.TextUtils.TruncateAt;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.piet.TextElementAdapter.TextElementKey;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
@@ -71,7 +72,13 @@ public class TextElementAdapterTest {
 
     adapterParameters =
         new AdapterParameters(
-            null, null, mockHostProviders, new ParameterizedTextEvaluator(), null, null);
+            null,
+            null,
+            mockHostProviders,
+            new ParameterizedTextEvaluator(),
+            null,
+            null,
+            new FakeClock());
     when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
     when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 

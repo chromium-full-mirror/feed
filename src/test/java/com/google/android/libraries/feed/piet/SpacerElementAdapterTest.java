@@ -26,6 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.SpacerElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -61,7 +62,8 @@ public class SpacerElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
+    adapterParameters =
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(mockStyleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());

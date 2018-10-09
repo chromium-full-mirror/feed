@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -104,7 +105,13 @@ public class PietManagerTest {
     HostProviders hostProviders = mock(HostProviders.class);
     pietManager.adapterParameters =
         new AdapterParameters(
-            context, cardViewSupplier, hostProviders, null, mockFactory, mockTemplateBinder);
+            context,
+            cardViewSupplier,
+            hostProviders,
+            null,
+            mockFactory,
+            mockTemplateBinder,
+            new FakeClock());
     pietManager.purgeRecyclerPools();
     verify(mockFactory).purgeRecyclerPools();
   }

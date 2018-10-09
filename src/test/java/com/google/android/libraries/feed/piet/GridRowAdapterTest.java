@@ -32,6 +32,7 @@ import android.view.Gravity;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -118,7 +119,8 @@ public class GridRowAdapterTest {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
 
-    adapterParameters = new AdapterParameters(context, Suppliers.of(null), hostProviders);
+    adapterParameters =
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
