@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -73,7 +72,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,14 +173,7 @@ public class FeedSessionManager
     store.registerObserver(this);
     taskQueue.initialize(this::initializationTask);
     requestManager.setDefaultTriggerRefreshConsumerSupplier(
-        () ->
-            sessionManagerMutation.createCommitter(
-                "triggerRefresh",
-                MutationContext.EMPTY_CONTEXT,
-                this::resetHead,
-                this::modelErrorObserver,
-                sharedStateCache,
-                knownContentListener));
+        () -> getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the
@@ -477,7 +468,7 @@ public class FeedSessionManager
 
   @Override
   public void invalidateHead() {
-    taskQueue.execute("invalidateHead", TaskType.HEAD_INVALIDATE, () -> resetHead(null));
+    sessionManagerMutation.resetHead();
   }
 
   @Override
@@ -497,15 +488,7 @@ public class FeedSessionManager
             .setContinuationToken(streamToken)
             .setRequestingSession(streamSession)
             .build();
-    requestManager.loadMore(
-        streamToken,
-        sessionManagerMutation.createCommitter(
-            "handleToken",
-            mutationContext,
-            this::resetHead,
-            this::modelErrorObserver,
-            sharedStateCache,
-            knownContentListener));
+    requestManager.loadMore(streamToken, getCommitter("handleToken", mutationContext));
   }
 
   @Override
@@ -524,13 +507,7 @@ public class FeedSessionManager
     threadUtils.checkNotMainThread();
     requestManager.triggerRefresh(
         RequestReason.MANUAL_REFRESH,
-        sessionManagerMutation.createCommitter(
-            "triggerRefresh",
-            MutationContext.EMPTY_CONTEXT,
-            this::resetHead,
-            this::modelErrorObserver,
-            sharedStateCache,
-            knownContentListener));
+        getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
     if (streamSession != null) {
       String streamToken = streamSession.getStreamToken();
       Session session = sessionCache.get(streamToken);
@@ -604,7 +581,6 @@ public class FeedSessionManager
     return sessionManagerMutation.createCommitter(
         "updateConsumer",
         mutationContext,
-        this::resetHead,
         this::modelErrorObserver,
         sharedStateCache,
         knownContentListener);
@@ -646,6 +622,16 @@ public class FeedSessionManager
     reset();
   }
 
+  private Consumer<Result<List<StreamDataOperation>>> getCommitter(
+      String taskName, MutationContext mutationContext) {
+    return sessionManagerMutation.createCommitter(
+        taskName,
+        mutationContext,
+        this::modelErrorObserver,
+        sharedStateCache,
+        knownContentListener);
+  }
+
   private void reset() {
     threadUtils.checkNotMainThread();
 
@@ -669,55 +655,6 @@ public class FeedSessionManager
     dumper.dump(taskQueue);
     dumper.dump(sessionCache);
     dumper.dump(sessionManagerMutation);
-  }
-
-  /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
-  @VisibleForTesting
-  void resetHead(/*@Nullable*/ StreamSession streamSession) {
-    threadUtils.checkNotMainThread();
-    ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    Collection<Session> currentSessions = sessionCache.getSessions();
-
-    // If we have old sessions and we received a clear head, let's invalidate the session that
-    // initiated the clear.
-    store.clearHead();
-    for (Session session : currentSessions) {
-      ModelProvider modelProvider = session.getModelProvider();
-      if (modelProvider != null
-          && session.invalidateOnResetHead()
-          && shouldInvalidateSession(streamSession, modelProvider)) {
-        invalidateSession(modelProvider, session);
-      }
-    }
-    timeTracker.stop("task", "resetHead");
-  }
-
-  /**
-   * This will determine if the ModelProvider (session) should be invalidated.
-   *
-   * <ol>
-   *   <li>ModelProvider should be READY
-   *   <li>Clearing head was initiated externally, not from an existing session
-   *   <li>Clearing head was initiated by the ModelProvider
-   *   <li>The ModelProvider doesn't yet have a session, so we'll create the session from the new
-   *       $HEAD
-   * </ol>
-   */
-  @VisibleForTesting
-  boolean shouldInvalidateSession(
-      /*@Nullable*/ StreamSession streamSession, ModelProvider modelProvider) {
-    // if the model provider isn't READY, don't invalidate the session
-    if (modelProvider.getCurrentState() != State.READY) {
-      return false;
-    }
-    // Clear was done outside of any session.
-    if (streamSession == null) {
-      return true;
-    }
-    // Invalidate if the ModelProvider doesn't yet have a session or if it matches the session
-    // which initiated the request clearing $HEAD.
-    String sessionToken = modelProvider.getSessionToken();
-    return (sessionToken == null || sessionToken.equals(streamSession.getStreamToken()));
   }
 
   private void invalidateSession(ModelProvider modelProvider, Session session) {
