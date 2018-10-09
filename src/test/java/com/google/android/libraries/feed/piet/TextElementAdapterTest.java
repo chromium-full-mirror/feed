@@ -36,6 +36,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
+import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.Font;
@@ -284,6 +285,19 @@ public class TextElementAdapterTest {
             .build();
     adapter.createAdapter(startElement, frameContext);
     assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.START);
+  }
+
+  @Test
+  public void testHorizontalAndVerticalAlignment() {
+    Element startElement =
+        getBaseTextElement()
+            .toBuilder()
+            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)
+            .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
+            .build();
+    adapter.createAdapter(startElement, frameContext);
+    assertThat(adapter.getBaseView().getGravity())
+        .isEqualTo(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
   }
 
   private Element getBaseTextElement() {
