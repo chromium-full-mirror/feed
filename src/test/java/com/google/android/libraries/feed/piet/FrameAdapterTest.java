@@ -130,7 +130,7 @@ public class FrameAdapterTest {
     when(templateAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
     when(templateAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
-    when(frameContext.reportError(eq(MessageType.ERROR), anyString()))
+    when(frameContext.reportMessage(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
             invocationOnMock -> {
               throw new RuntimeException((String) invocationOnMock.getArguments()[1]);
@@ -223,7 +223,7 @@ public class FrameAdapterTest {
                 content.getTemplateInvocation().getBindingContexts(2)),
             frameContext);
 
-    verify(frameContext, never()).reportError(anyInt(), anyString());
+    verify(frameContext, never()).reportMessage(anyInt(), anyString());
   }
 
   /** This test sets up all real objects to ensure that real adapters are bound and unbound, etc. */

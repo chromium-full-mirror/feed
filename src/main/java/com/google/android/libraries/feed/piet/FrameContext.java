@@ -15,6 +15,14 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_BINDING_VALUE_TYPE_MISMATCH;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_BINDING_VALUE;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_STYLE;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_TEMPLATE;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_BINDING_VALUE;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_STYLESHEET;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_TEMPLATE;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_UNSUPPORTED_FEATURE;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -38,6 +46,7 @@ import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
@@ -99,7 +108,7 @@ class FrameContext {
         debugLogger,
         actionHandler,
         hostProviders,
-        new NoKeyOverwriteHashMap<>("Template"));
+        new NoKeyOverwriteHashMap<>("Template", ERR_DUPLICATE_TEMPLATE));
 
     stylesHelper.addSharedStateTemplatesToFrame(templates);
     if (frame.getTemplatesCount() > 0) {
@@ -162,7 +171,7 @@ class FrameContext {
     }
 
     if (styleMap == null) {
-      styleMap = new NoKeyOverwriteHashMap<>("Style");
+      styleMap = new NoKeyOverwriteHashMap<>("Style", ERR_DUPLICATE_STYLE);
     }
     FrameContext frameContext =
         new FrameContext(
@@ -221,8 +230,12 @@ class FrameContext {
       if (template.getChildDefaultStyleIds().hasStyleBinding()) {
         Logger.wtf(
             TAG,
-            "Style bindings not supported for template default style (template: %s)",
-            template.getTemplateId());
+            reportMessage(
+                MessageType.ERROR,
+                ERR_UNSUPPORTED_FEATURE,
+                String.format(
+                    "Style bindings not supported for template default style (template: %s)",
+                    template.getTemplateId())));
         childDefaultStyleIds = childDefaultStyleIds.toBuilder().clearStyleBinding().build();
       }
       templateBaseStyle =
@@ -268,8 +281,12 @@ class FrameContext {
   public Template getTemplate(String templateId) {
     Template template = templates.get(templateId);
     if (template == null) {
-      throw new IllegalArgumentException(
-          reportError(MessageType.ERROR, String.format("Template '%s' not found", templateId)));
+      throw new PietFatalException(
+          ERR_MISSING_TEMPLATE,
+          reportMessage(
+              MessageType.ERROR,
+              ERR_MISSING_TEMPLATE,
+              String.format("Template '%s' not found", templateId)));
     }
     return template;
   }
@@ -311,9 +328,16 @@ class FrameContext {
     if (bindingValue != null && bindingValue.hasHostBindingData()) {
       bindingValue = hostBindingProvider.getActionsBindingForValue(bindingValue);
     }
-    if (bindingValue == null || !bindingValue.hasActions()) {
-      Logger.w(TAG, "No actions found for binding %s", binding.getBindingId());
+    if (bindingValue == null) {
       return Actions.getDefaultInstance();
+    }
+    if (!bindingValue.hasActions()) {
+      Logger.w(
+          TAG,
+          reportMessage(
+              MessageType.WARNING,
+              ERR_BINDING_VALUE_TYPE_MISMATCH,
+              String.format("No actions found for binding %s", binding.getBindingId())));
     }
     return bindingValue.getActions();
   }
@@ -335,9 +359,16 @@ class FrameContext {
     if (bindingValue != null && bindingValue.hasHostBindingData()) {
       bindingValue = hostBindingProvider.getStyleBindingForValue(bindingValue);
     }
-    if (bindingValue == null || !bindingValue.hasBoundStyle()) {
-      Logger.w(TAG, "No style found for binding %s", binding.getBindingId());
+    if (bindingValue == null) {
       return BoundStyle.getDefaultInstance();
+    }
+    if (!bindingValue.hasBoundStyle()) {
+      Logger.w(
+          TAG,
+          reportMessage(
+              MessageType.WARNING,
+              ERR_BINDING_VALUE_TYPE_MISMATCH,
+              String.format("No style found for binding %s", binding.getBindingId())));
     }
     return bindingValue.getBoundStyle();
   }
@@ -349,8 +380,15 @@ class FrameContext {
     if (bindingValue != null && bindingValue.hasHostBindingData()) {
       bindingValue = hostBindingProvider.getVisibilityBindingForValue(bindingValue);
     }
-    if (bindingValue == null || !bindingValue.hasVisibility()) {
-      Logger.w(TAG, "No visibility found for binding %s", binding.getBindingId());
+    if (bindingValue == null) {
+      return null;
+    } else if (!bindingValue.hasVisibility()) {
+      Logger.w(
+          TAG,
+          reportMessage(
+              MessageType.WARNING,
+              ERR_BINDING_VALUE_TYPE_MISMATCH,
+              String.format("No visibility found for binding %s", binding.getBindingId())));
       return null;
     } else {
       return bindingValue.getVisibility();
@@ -367,9 +405,11 @@ class FrameContext {
       bindingValue = hostBindingProvider.getTemplateBindingForValue(bindingValue);
     }
     if (!bindingValue.hasTemplateInvocation() && !binding.getIsOptional()) {
-      throw new IllegalStateException(
-          reportError(
+      throw new PietFatalException(
+          ERR_MISSING_BINDING_VALUE,
+          reportMessage(
               MessageType.ERROR,
+              ERR_MISSING_BINDING_VALUE,
               String.format("Template binding not found for %s", binding.getBindingId())));
     } else {
       return bindingValue;
@@ -386,9 +426,11 @@ class FrameContext {
       bindingValue = hostBindingProvider.getCustomElementDataBindingForValue(bindingValue);
     }
     if (!bindingValue.hasCustomElementData() && !binding.getIsOptional()) {
-      throw new IllegalStateException(
-          reportError(
+      throw new PietFatalException(
+          ERR_MISSING_BINDING_VALUE,
+          reportMessage(
               MessageType.ERROR,
+              ERR_MISSING_BINDING_VALUE,
               String.format("Custom element binding not found for %s", binding.getBindingId())));
     } else {
       return bindingValue;
@@ -405,9 +447,11 @@ class FrameContext {
       bindingValue = hostBindingProvider.getChunkedTextBindingForValue(bindingValue);
     }
     if (!bindingValue.hasChunkedText() && !binding.getIsOptional()) {
-      throw new IllegalStateException(
-          reportError(
+      throw new PietFatalException(
+          ERR_MISSING_BINDING_VALUE,
+          reportMessage(
               MessageType.ERROR,
+              ERR_MISSING_BINDING_VALUE,
               String.format("Chunked text binding not found for %s", binding.getBindingId())));
     } else {
       return bindingValue;
@@ -424,9 +468,11 @@ class FrameContext {
       bindingValue = hostBindingProvider.getParameterizedTextBindingForValue(bindingValue);
     }
     if (!bindingValue.hasParameterizedText() && !binding.getIsOptional()) {
-      throw new IllegalStateException(
-          reportError(
+      throw new PietFatalException(
+          ERR_MISSING_BINDING_VALUE,
+          reportMessage(
               MessageType.ERROR,
+              ERR_MISSING_BINDING_VALUE,
               String.format(
                   "Parameterized text binding not found for %s", binding.getBindingId())));
     } else {
@@ -444,9 +490,11 @@ class FrameContext {
       bindingValue = hostBindingProvider.getImageBindingForValue(bindingValue);
     }
     if (!bindingValue.hasImage() && !binding.getIsOptional()) {
-      throw new IllegalStateException(
-          reportError(
+      throw new PietFatalException(
+          ERR_MISSING_BINDING_VALUE,
+          reportMessage(
               MessageType.ERROR,
+              ERR_MISSING_BINDING_VALUE,
               String.format("Image binding not found for %s", binding.getBindingId())));
     } else {
       return bindingValue;
@@ -463,9 +511,11 @@ class FrameContext {
       bindingValue = hostBindingProvider.getElementBindingForValue(bindingValue);
     }
     if (!bindingValue.hasElement() && !binding.getIsOptional()) {
-      throw new IllegalStateException(
-          reportError(
+      throw new PietFatalException(
+          ERR_MISSING_BINDING_VALUE,
+          reportMessage(
               MessageType.ERROR,
+              ERR_MISSING_BINDING_VALUE,
               String.format("Element binding not found for %s", binding.getBindingId())));
     } else {
       return bindingValue;
@@ -484,9 +534,19 @@ class FrameContext {
    * Report user errors in frames. This will return the fully formed error so it can be logged at
    * the site of the error.
    */
-  public String reportError(@MessageType int errorType, String error) {
-    String e = String.format("[%s] %s", currentFrame.getTag(), error);
-    debugLogger.recordMessage(errorType, e);
+  public String reportMessage(@MessageType int messageType, String message) {
+    String e = String.format("[%s] %s", currentFrame.getTag(), message);
+    debugLogger.recordMessage(messageType, e);
+    return e;
+  }
+
+  /**
+   * Report user errors in frames. This will return the fully formed error so it can be logged at
+   * the site of the error.
+   */
+  public String reportMessage(@MessageType int messageType, ErrorCode errorCode, String message) {
+    String e = String.format("[%s] %s", currentFrame.getTag(), message);
+    debugLogger.recordMessage(messageType, errorCode, e);
     return e;
   }
 
@@ -495,19 +555,21 @@ class FrameContext {
       String error =
           String.format(
               "Stylesheet [%s] not found, no stylesheet used", currentFrame.getStylesheetId());
-      Logger.w(TAG, reportError(MessageType.ERROR, error));
+      Logger.w(TAG, reportMessage(MessageType.ERROR, ERR_MISSING_STYLESHEET, error));
     }
   }
 
   private Map<String, BindingValue> createBindingValueMap(BindingContext bindingContext) {
-    Map<String, BindingValue> bindingValueMap = new NoKeyOverwriteHashMap<>("BindingValue");
+    Map<String, BindingValue> bindingValueMap =
+        new NoKeyOverwriteHashMap<>("BindingValue", ERR_DUPLICATE_BINDING_VALUE);
     for (BindingValue bindingValue : bindingContext.getBindingValuesList()) {
       if (bindingValue.hasBindingIdFromTranscludingTemplate()) {
         BindingValue parentBindingValue =
             bindingValues.get(bindingValue.getBindingIdFromTranscludingTemplate());
         if (parentBindingValue == null) {
-          reportError(
+          reportMessage(
               MessageType.ERROR,
+              ERR_MISSING_BINDING_VALUE,
               String.format(
                   "Parent binding value '%s' not found",
                   bindingValue.getBindingIdFromTranscludingTemplate()));
@@ -527,7 +589,8 @@ class FrameContext {
   private static class ThrowingEmptyMap extends HashMap<String, BindingValue> {
     @Override
     public BindingValue get(/*@Nullable*/ Object key) {
-      throw new IllegalArgumentException(
+      throw new PietFatalException(
+          ErrorCode.ERR_MISSING_BINDING_VALUE,
           "Looking up bindings not supported in this context; no BindingValues defined.");
     }
   }

@@ -20,6 +20,7 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import java.util.List;
 
@@ -62,7 +63,8 @@ public class MediaQueryHelper {
           case NOT_EQUALS:
             return frameWidthPx != targetWidth;
           default:
-            throw new IllegalArgumentException(
+            throw new PietFatalException(
+                ErrorCode.ERR_INVALID_MEDIA_QUERY_CONDITION,
                 String.format(
                     "Unhandled ComparisonCondition: %s", condition.getFrameWidth().getCondition()));
         }
@@ -78,7 +80,8 @@ public class MediaQueryHelper {
             return deviceOrientation == Configuration.ORIENTATION_PORTRAIT
                 || deviceOrientation == Configuration.ORIENTATION_SQUARE;
           default:
-            throw new IllegalArgumentException(
+            throw new PietFatalException(
+                ErrorCode.ERR_INVALID_MEDIA_QUERY_CONDITION,
                 String.format(
                     "Unhandled Orientation: %s", condition.getOrientation().getOrientation()));
         }
@@ -92,11 +95,13 @@ public class MediaQueryHelper {
           case LIGHT:
             return !assetProvider.isDarkTheme();
           default:
-            throw new IllegalArgumentException(
+            throw new PietFatalException(
+                ErrorCode.ERR_INVALID_MEDIA_QUERY_CONDITION,
                 String.format("Unhandled DarkLightMode: %s", condition.getDarkLight().getMode()));
         }
       default:
-        throw new IllegalArgumentException(
+        throw new PietFatalException(
+            ErrorCode.ERR_INVALID_MEDIA_QUERY_CONDITION,
             String.format("Unhandled MediaQueryCondition: %s", condition.getConditionCase()));
     }
   }

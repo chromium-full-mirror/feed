@@ -17,7 +17,9 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -93,6 +95,8 @@ public class ElementAdapterFactoryTest {
   @Before
   public void setUp() {
     initMocks(this);
+    when(frameContext.reportMessage(anyInt(), any(), anyString()))
+        .thenAnswer(invocation -> invocation.getArguments()[2]);
     adapterFactory =
         new ElementAdapterFactory(
             customElementFactory,
@@ -190,7 +194,7 @@ public class ElementAdapterFactoryTest {
     Element element = Element.newBuilder().setTextElement(model).build();
 
     assertThatRunnable(() -> adapterFactory.createAdapterForElement(element, frameContext))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Unsupported TextElement type");
@@ -237,7 +241,7 @@ public class ElementAdapterFactoryTest {
     assertThatRunnable(
             () ->
                 adapterFactory.createAdapterForElement(Element.getDefaultInstance(), frameContext))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Unsupported Element type");

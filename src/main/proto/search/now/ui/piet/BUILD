@@ -36,3 +36,8 @@ java_lite_proto_library(
     name = "piet_java_proto_lite",
     deps = [":piet_proto"],
 )
+
+java_lite_proto_library(
+    name = "piet_errors_java_proto_lite",
+    deps = [":piet_errors_proto"],
+)

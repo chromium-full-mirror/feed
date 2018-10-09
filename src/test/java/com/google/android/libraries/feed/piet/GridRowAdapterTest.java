@@ -17,6 +17,9 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.ElementAdapter.DIMENSION_NOT_SET;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -54,6 +57,7 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
@@ -121,6 +125,8 @@ public class GridRowAdapterTest {
         .thenReturn(adapterParameters.defaultStyleProvider);
     when(frameContext.makeStyleFor(GRID_STYLES)).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
+    when(frameContext.reportMessage(anyInt(), any(), anyString()))
+        .thenAnswer(invocation -> invocation.getArguments()[2]);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
@@ -152,7 +158,7 @@ public class GridRowAdapterTest {
     GridRow model = GridRow.newBuilder().addCells(GridCell.getDefaultInstance()).build();
 
     assertThatRunnable(() -> adapter.createAdapter(asElement(model), frameContext))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Unhandled Content type: CONTENTTYPE_NOT_SET");
@@ -278,7 +284,10 @@ public class GridRowAdapterTest {
     assertThat(params.width).isEqualTo(LayoutParams.WRAP_CONTENT);
     assertThat(params.weight).isEqualTo(0.0f);
     verify(frameContext)
-        .reportError(MessageType.WARNING, "Invalid content width: INVALID_CONTENT_WIDTH");
+        .reportMessage(
+            MessageType.WARNING,
+            ErrorCode.ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS,
+            "Invalid content width: INVALID_CONTENT_WIDTH");
   }
 
   @Test
@@ -982,14 +991,14 @@ public class GridRowAdapterTest {
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
     assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Missing GridRow");
 
     Element emptyElement = Element.getDefaultInstance();
     assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Missing GridRow");

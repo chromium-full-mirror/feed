@@ -15,6 +15,8 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_POOR_FRAME_RATE;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -49,8 +51,9 @@ import java.util.Set;
  * and is managed by the host.
  */
 public class FrameAdapter {
-
   private static final String TAG = "FrameAdapter";
+
+  private static final String GENERIC_EXCEPTION = "Top Level Exception was caught - see logcat";
 
   private final Set<ElementAdapter<?, ?>> childAdapters;
 
@@ -111,8 +114,13 @@ public class FrameAdapter {
     } catch (RuntimeException e) {
       // TODO: Remove this once error reporting is fully implemented.
       Logger.e(TAG, e, "Catch top level exception");
-      localFrameContext.reportError(
-          MessageType.ERROR, "Top Level Exception was caught - see logcat");
+      String message = e.getMessage() != null ? e.getMessage() : GENERIC_EXCEPTION;
+      if (e instanceof PietFatalException) {
+        localFrameContext.reportMessage(
+            MessageType.ERROR, ((PietFatalException) e).getErrorCode(), message);
+      } else {
+        localFrameContext.reportMessage(MessageType.ERROR, message);
+      }
     }
     startTime = System.nanoTime() - startTime;
     // TODO: We should be targeting < 15ms and warn at 10ms?
@@ -121,8 +129,9 @@ public class FrameAdapter {
     if (startTime / 1000000 > 30) {
       Logger.w(
           TAG,
-          localFrameContext.reportError(
+          localFrameContext.reportMessage(
               MessageType.WARNING,
+              ERR_POOR_FRAME_RATE,
               String.format("Slow Bind (%s) time: %s ps", frame.getTag(), startTime / 1000)));
     }
     // If there were errors add an error slice to the frame
@@ -228,7 +237,13 @@ public class FrameAdapter {
         }
         return returnList;
       default:
-        Logger.wtf(TAG, "Unsupported Content type for frame: %s", content.getContentTypeCase());
+        Logger.wtf(
+            TAG,
+            frameContext.reportMessage(
+                MessageType.ERROR,
+                ERR_MISSING_OR_UNHANDLED_CONTENT,
+                String.format(
+                    "Unsupported Content type for frame: %s", content.getContentTypeCase())));
         return Collections.emptyList();
     }
   }

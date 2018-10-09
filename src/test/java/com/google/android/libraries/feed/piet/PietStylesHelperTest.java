@@ -235,7 +235,7 @@ public class PietStylesHelperTest {
 
     assertThatRunnable(
             () -> new PietStylesHelper(sharedStates, FRAME_WIDTH_PX, assetProvider, context))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Stylesheet key 'ss1' already defined");
@@ -267,7 +267,7 @@ public class PietStylesHelperTest {
     myStyles.addStyles(sixtiesAgain);
 
     assertThatRunnable(() -> helper.createMapFromStylesheet(myStyles.build()))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Style key '60s' already defined");
