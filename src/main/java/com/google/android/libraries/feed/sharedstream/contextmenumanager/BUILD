@@ -8,6 +8,7 @@ android_library(
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",
         "@com_google_code_findbugs_jsr305//jar",
     ],

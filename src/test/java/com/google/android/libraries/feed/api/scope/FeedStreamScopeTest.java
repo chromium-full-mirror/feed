@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -81,6 +82,7 @@ public class FeedStreamScopeTest {
   @Mock private OfflineIndicatorApi offlineIndicatorApi;
   @Mock private KnownContentApi knownContentApi;
   @Mock private TaskQueue taskQueue;
+  @Mock private FeedAppLifecycleListener lifecycleListener;
 
   private Context context;
   private MainThreadRunner mainThreadRunner;
@@ -123,7 +125,8 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                knownContentApi)
+                knownContentApi,
+                lifecycleListener)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -152,7 +155,8 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                knownContentApi)
+                knownContentApi,
+                lifecycleListener)
             .setActionParserFactory(actionParserFactory)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)

@@ -64,6 +64,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -135,6 +136,7 @@ public class BasicStreamTest {
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private KnownContentApi knownContentApi;
+  @Mock private FeedAppLifecycleListener lifecycleListener;
 
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
@@ -815,7 +817,8 @@ public class BasicStreamTest {
           basicLoggingApi,
           offlineIndicatorApi,
           mainThreadRunner,
-          knownContentApi);
+          knownContentApi,
+          lifecycleListener);
       this.layoutManager = layoutManager;
     }
 

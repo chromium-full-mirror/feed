@@ -23,12 +23,14 @@ import android.view.ViewParent;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
 import java.util.List;
 
 /** Provides information to allow for the construction of Context Menus. */
-public class ContextMenuManager {
+public class ContextMenuManager implements FeedLifecycleListener {
 
   // Indicates how deep into the card the menu should be set if the menu is showing below a card. IE
   // 4 indicates that the menu should be placed 1/4 of the way from the edge of the card.
@@ -44,10 +46,13 @@ public class ContextMenuManager {
 
   /*@Nullable*/ private PopupWindow popupWindow;
 
-  public ContextMenuManager(View view, MenuMeasurer menuMeasurer) {
+  @SuppressWarnings("nullness:argument.type.incompatible")
+  public ContextMenuManager(
+      View view, MenuMeasurer menuMeasurer, FeedAppLifecycleListener lifecycleListener) {
     this.view = view;
     this.context = view.getContext();
     this.menuMeasurer = menuMeasurer;
+    lifecycleListener.registerObserver(this);
   }
 
   /**
@@ -198,13 +203,26 @@ public class ContextMenuManager {
     return popupWindow != null && popupWindow.isShowing();
   }
 
-  public void onDimensionsChanged() {
+  private void dismissPopup() {
     if (popupWindow == null) {
       return;
     }
-
+    
     popupWindow.dismiss();
     popupWindow = null;
+  }
+
+  @Override
+  public void onLifecycleEvent(String event) {
+    if (!event.equals(LifecycleEvent.ENTER_BACKGROUND)) {
+      return;
+    }
+
+    dismissPopup();
+  }
+
+  public void onDimensionsChanged() {
+    dismissPopup();
   }
 
   /** Notifies creator of the menu that a click has occurred. */

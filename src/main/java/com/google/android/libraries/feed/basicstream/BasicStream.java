@@ -56,6 +56,7 @@ import com.google.android.libraries.feed.basicstream.internal.scroll.StreamScrol
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -107,6 +108,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final MainThreadRunner mainThreadRunner;
   private final KnownContentApi knownContentApi;
   private final MenuMeasurer menuMeasurer;
+  private final FeedAppLifecycleListener lifecycleListener;
 
   private RecyclerView recyclerView;
   private ContextMenuManager contextMenuManager;
@@ -144,11 +146,13 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       BasicLoggingApi basicLoggingApi,
       OfflineIndicatorApi offlineIndicatorApi,
       MainThreadRunner mainThreadRunner,
-      KnownContentApi knownContentApi) {
+      KnownContentApi knownContentApi,
+      FeedAppLifecycleListener lifecycleListener) {
     this.cardConfiguration = cardConfiguration;
     this.clock = clock;
     this.threadUtils = threadUtils;
     this.streamOfflineMonitor = new StreamOfflineMonitor(offlineIndicatorApi);
+    this.lifecycleListener = lifecycleListener;
     this.pietManager =
         createPietManager(
             context,
@@ -474,7 +478,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     recyclerView = new RecyclerView(context);
     recyclerView.setId(R.id.feed_stream_recycler_view);
     recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
-    contextMenuManager = new ContextMenuManager(recyclerView, menuMeasurer);
+    contextMenuManager = new ContextMenuManager(recyclerView, menuMeasurer, lifecycleListener);
     new ItemTouchHelper(new StreamItemTouchCallbacks()).attachToRecyclerView(recyclerView);
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);

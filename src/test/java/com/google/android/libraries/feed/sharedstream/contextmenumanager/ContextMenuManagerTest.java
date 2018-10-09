@@ -31,6 +31,8 @@ import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
+import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager.ContextMenuClickHandler;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
@@ -53,6 +55,7 @@ public class ContextMenuManagerTest {
 
   @Mock private MenuMeasurer menuMeasurer;
   @Mock private ContextMenuClickHandler clickHandler;
+  @Mock private FeedAppLifecycleListener lifecycleListener;
 
   private Context context;
   private ContextMenuManager contextMenuManager;
@@ -68,7 +71,7 @@ public class ContextMenuManagerTest {
     parentView = new FrameLayout(context);
     anchorView = new View(context);
     parentView.addView(anchorView);
-    contextMenuManager = new ContextMenuManager(parentView, menuMeasurer);
+    contextMenuManager = new ContextMenuManager(parentView, menuMeasurer, lifecycleListener);
     adapterItems = createAdapterItems();
     when(menuMeasurer.measureAdapterContent(
             any(ViewGroup.class),
@@ -122,6 +125,19 @@ public class ContextMenuManagerTest {
 
     // After the menu is dismissed another can be opened
     assertThat(contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler)).isTrue();
+  }
+
+  @Test
+  public void testDismiss_fromLockingPhone() {
+    contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler);
+
+    assertThat(shadowOf(RuntimeEnvironment.application).getLatestPopupWindow().isShowing())
+        .isTrue();
+
+    contextMenuManager.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
+
+    assertThat(shadowOf(RuntimeEnvironment.application).getLatestPopupWindow().isShowing())
+        .isFalse();
   }
 
   @Test
