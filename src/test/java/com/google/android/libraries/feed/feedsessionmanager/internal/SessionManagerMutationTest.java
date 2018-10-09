@@ -33,8 +33,6 @@ import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -97,6 +95,7 @@ public class SessionManagerMutationTest {
   private SessionCache sessionCache;
   private Session notifySession;
   private ModelError notifyError;
+  private StreamSession resetSession;
 
   @Before
   public void setUp() {
@@ -104,6 +103,7 @@ public class SessionManagerMutationTest {
     storeSpy = null;
     sharedStateCache.clear();
     notifySession = null;
+    resetSession = null;
     taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     Store store =
@@ -162,6 +162,7 @@ public class SessionManagerMutationTest {
             new MutationContext.Builder().setRequestingSession(session.getStreamSession()).build());
     mutationCommitter.accept(Result.success(dataOperations));
     assertThat(mutationCommitter.clearedHead).isTrue();
+    assertThat(resetSession).isEqualTo(session.getStreamSession());
     verify(schedulerApi).onReceiveNewContent(5L);
     verify(knownContentListener).onNewContentReceived(true, 5L);
   }
@@ -277,68 +278,6 @@ public class SessionManagerMutationTest {
     assertThat(mutationCommitter.validDataOperation(operation)).isTrue();
   }
 
-  @Test
-  public void testInvalidateHead() {
-    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    mutationCommitter.resetHead(null);
-    verify(storeSpy).clearHead();
-  }
-
-  @Test
-  public void testShouldInvalidateSession_modelProviderInitializing() {
-    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    ModelProvider modelProvider = mock(ModelProvider.class);
-    when(modelProvider.getCurrentState()).thenReturn(State.INITIALIZING);
-    assertThat(mutationCommitter.shouldInvalidateSession(null, modelProvider)).isFalse();
-  }
-
-  @Test
-  public void testShouldInvalidateSession_modelProviderInvalidated() {
-    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    ModelProvider modelProvider = mock(ModelProvider.class);
-    when(modelProvider.getCurrentState()).thenReturn(State.INVALIDATED);
-    assertThat(mutationCommitter.shouldInvalidateSession(null, modelProvider)).isFalse();
-  }
-
-  @Test
-  public void testShouldInvalidateSession_modelProviderReady() {
-    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    ModelProvider modelProvider = mock(ModelProvider.class);
-    when(modelProvider.getCurrentState()).thenReturn(State.READY);
-    assertThat(mutationCommitter.shouldInvalidateSession(null, modelProvider)).isTrue();
-  }
-
-  @Test
-  public void testShouldInvalidateSession_noModelProviderSession() {
-    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    ModelProvider modelProvider = mock(ModelProvider.class);
-    when(modelProvider.getCurrentState()).thenReturn(State.READY);
-    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:2").build();
-    assertThat(mutationCommitter.shouldInvalidateSession(streamSession, modelProvider)).isTrue();
-  }
-
-  @Test
-  public void testShouldInvalidateSession_differentSession() {
-    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    String sessionToken = "session:1";
-    ModelProvider modelProvider = mock(ModelProvider.class);
-    when(modelProvider.getCurrentState()).thenReturn(State.READY);
-    when(modelProvider.getSessionToken()).thenReturn(sessionToken);
-    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:2").build();
-    assertThat(mutationCommitter.shouldInvalidateSession(streamSession, modelProvider)).isFalse();
-  }
-
-  @Test
-  public void testShouldInvalidateSession_sameSession() {
-    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
-    String sessionToken = "session:1";
-    ModelProvider modelProvider = mock(ModelProvider.class);
-    when(modelProvider.getCurrentState()).thenReturn(State.READY);
-    when(modelProvider.getSessionToken()).thenReturn(sessionToken);
-    StreamSession streamSession = StreamSession.newBuilder().setStreamToken(sessionToken).build();
-    assertThat(mutationCommitter.shouldInvalidateSession(streamSession, modelProvider)).isTrue();
-  }
-
   private MutationCommitter getMutationCommitter(MutationContext mutationContext) {
     SessionManagerMutation mutation =
         new SessionManagerMutation(
@@ -354,6 +293,7 @@ public class SessionManagerMutationTest {
         mutation.createCommitter(
             "task",
             mutationContext,
+            this::resetHead,
             this::notifySessionError,
             sharedStateCache,
             knownContentListener);
@@ -399,6 +339,10 @@ public class SessionManagerMutationTest {
       builder.setStreamPayload(payload);
     }
     return builder.build();
+  }
+
+  private void resetHead(StreamSession streamSession) {
+    this.resetSession = streamSession;
   }
 
   private void notifySessionError(Session session, ModelError error) {

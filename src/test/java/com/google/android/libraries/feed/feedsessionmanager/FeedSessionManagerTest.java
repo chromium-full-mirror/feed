@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
@@ -475,6 +476,70 @@ public class FeedSessionManagerTest {
             configuration);
     modelProviderFactory.createNew(null);
     verify(spySessionManager).switchToEphemeralMode(anyString());
+  }
+
+  @Test
+  public void testInvalidateHead() {
+    FeedStore spyFeedStore = getSpyFeedStore();
+    FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
+    spySessionManager.invalidateHead();
+    verify(spySessionManager).resetHead(null);
+    verify(spyFeedStore).clearHead();
+  }
+
+  @Test
+  public void testShouldInvalidateSession_modelProviderInitializing() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    ModelProvider modelProvider = mock(ModelProvider.class);
+    when(modelProvider.getCurrentState()).thenReturn(State.INITIALIZING);
+    assertThat(sessionManager.shouldInvalidateSession(null, modelProvider)).isFalse();
+  }
+
+  @Test
+  public void testShouldInvalidateSession_modelProviderInvalidated() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    modelProvider = mock(ModelProvider.class);
+    when(modelProvider.getCurrentState()).thenReturn(State.INVALIDATED);
+    assertThat(sessionManager.shouldInvalidateSession(null, modelProvider)).isFalse();
+  }
+
+  @Test
+  public void testShouldInvalidateSession_modelProviderReady() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    modelProvider = mock(ModelProvider.class);
+    when(modelProvider.getCurrentState()).thenReturn(State.READY);
+    assertThat(sessionManager.shouldInvalidateSession(null, modelProvider)).isTrue();
+  }
+
+  @Test
+  public void testShouldInvalidateSession_noModelProviderSession() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    modelProvider = mock(ModelProvider.class);
+    when(modelProvider.getCurrentState()).thenReturn(State.READY);
+    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:2").build();
+    assertThat(sessionManager.shouldInvalidateSession(streamSession, modelProvider)).isTrue();
+  }
+
+  @Test
+  public void testShouldInvalidateSession_differentSession() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    String sessionToken = "session:1";
+    modelProvider = mock(ModelProvider.class);
+    when(modelProvider.getCurrentState()).thenReturn(State.READY);
+    when(modelProvider.getSessionToken()).thenReturn(sessionToken);
+    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:2").build();
+    assertThat(sessionManager.shouldInvalidateSession(streamSession, modelProvider)).isFalse();
+  }
+
+  @Test
+  public void testShouldInvalidateSession_sameSession() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    String sessionToken = "session:1";
+    modelProvider = mock(ModelProvider.class);
+    when(modelProvider.getCurrentState()).thenReturn(State.READY);
+    when(modelProvider.getSessionToken()).thenReturn(sessionToken);
+    StreamSession streamSession = StreamSession.newBuilder().setStreamToken(sessionToken).build();
+    assertThat(sessionManager.shouldInvalidateSession(streamSession, modelProvider)).isTrue();
   }
 
   private int populateSession(
