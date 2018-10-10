@@ -23,6 +23,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.drawable.shapes.RoundRectShape;
+import android.os.Build;
 import android.support.annotation.VisibleForTesting;
 import android.util.TypedValue;
 import android.view.View;
@@ -66,7 +67,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
     maskRect = new RectF();
     this.roundedCorners = roundedCorners;
 
-    if (shouldRoundAnyCorner()) {
+    if (shouldRoundAnyCorner() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       final int layoutDirection =
           LayoutUtils.isDefaultLocaleRtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR;
       super.setOutlineProvider(
