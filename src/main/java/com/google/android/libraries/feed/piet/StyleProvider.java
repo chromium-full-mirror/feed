@@ -136,17 +136,23 @@ class StyleProvider {
   }
 
   /** Sets the Padding and Background Color on the view. */
-  public void applyElementStyles(Context context, View view) {
+  void applyElementStyles(ElementAdapter<?, ?> adapter) {
+    Context context = adapter.getContext();
+    View view = adapter.getView();
+    View baseView = adapter.getBaseView();
+
+    // Apply layout styles
     EdgeWidths padding = getPadding();
-    applyPadding(context, view, padding);
-    view.setBackground(createBackground());
+    applyPadding(context, baseView, padding);
 
     if (getMinHeight() > 0) {
-      view.setMinimumHeight((int) LayoutUtils.dpToPx(getMinHeight(), context));
+      baseView.setMinimumHeight((int) LayoutUtils.dpToPx(getMinHeight(), context));
     } else {
-      view.setMinimumHeight(0);
+      baseView.setMinimumHeight(0);
     }
 
+    // Apply appearance styles
+    view.setBackground(createBackground());
     if (style.getShadow().hasElevationShadow()) {
       ViewCompat.setElevation(view, style.getShadow().getElevationShadow().getElevation());
     } else {

@@ -135,6 +135,11 @@ public class GridRowAdapterTest {
   }
 
   @Test
+  public void testViewDoesNotClip() {
+    assertThat(adapter.getBaseView().getClipToPadding()).isFalse();
+  }
+
+  @Test
   public void testOnCreateAdapter_makesRow() {
     // We create an adapter for the inline content, but not for the bound content.
     GridRow model =
@@ -177,7 +182,7 @@ public class GridRowAdapterTest {
     adapter.createAdapter(asElement(model), frameContext);
 
     verify(frameContext).makeStyleFor(GRID_STYLES);
-    verify(styleProvider).applyElementStyles(context, adapter.getBaseView());
+    verify(styleProvider).applyElementStyles(adapter);
   }
 
   @Test
@@ -728,7 +733,7 @@ public class GridRowAdapterTest {
 
     adapter.bindModel(asElement(gridRowWithBoundStyle), frameContext);
     verify(frameContext).makeStyleFor(styleWithBinding);
-    verify(otherStyleProvider).applyElementStyles(context, adapter.getBaseView());
+    verify(otherStyleProvider).applyElementStyles(adapter);
   }
 
   @Test

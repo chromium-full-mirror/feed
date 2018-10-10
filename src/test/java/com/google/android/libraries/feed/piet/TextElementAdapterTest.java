@@ -96,7 +96,7 @@ public class TextElementAdapterTest {
 
     adapter.createAdapter(textElement, frameContext);
 
-    verify(mockStyleProvider).applyElementStyles(context, adapter.getBaseView());
+    verify(mockStyleProvider).applyElementStyles(adapter);
     assertThat(adapter.getBaseView().getMaxLines()).isEqualTo(maxLines);
     assertThat(adapter.getBaseView().getEllipsize()).isEqualTo(TruncateAt.END);
     assertThat(adapter.getBaseView().getCurrentTextColor()).isEqualTo(color);

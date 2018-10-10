@@ -203,7 +203,7 @@ public class ParameterizedTextElementAdapterTest {
 
     adapter.createAdapter(model, frameContext);
     assertThat(adapter.getView()).isNotNull();
-    verify(mockStyleProvider).applyElementStyles(context, adapter.getView());
+    verify(mockStyleProvider).applyElementStyles(adapter);
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
   }

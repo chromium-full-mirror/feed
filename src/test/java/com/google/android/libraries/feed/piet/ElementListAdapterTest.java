@@ -119,6 +119,11 @@ public class ElementListAdapterTest {
   }
 
   @Test
+  public void testViewDoesNotClip() {
+    assertThat(adapter.getBaseView().getClipToPadding()).isFalse();
+  }
+
+  @Test
   public void testOnCreateAdapter_makesList() {
     ElementList listWithStyles =
         ElementList.newBuilder()
@@ -144,7 +149,7 @@ public class ElementListAdapterTest {
 
     adapter.createAdapter(asElement(listWithStyles), frameContext);
 
-    verify(styleProvider).applyElementStyles(context, adapter.getView());
+    verify(styleProvider).applyElementStyles(adapter);
   }
 
   @Config(shadows = {ExtendedShadowLinearLayout.class})

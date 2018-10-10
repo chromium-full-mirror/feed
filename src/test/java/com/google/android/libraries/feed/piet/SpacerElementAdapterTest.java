@@ -83,7 +83,7 @@ public class SpacerElementAdapterTest {
     adapter.createAdapter(spacerElement, frameContext);
     View v = adapter.getView();
     assertThat(v).isNotNull();
-    verify(mockStyleProvider).applyElementStyles(context, v);
+    verify(mockStyleProvider).applyElementStyles(adapter);
   }
 
   @Test

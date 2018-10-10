@@ -139,6 +139,7 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
     viewGroup.setOrientation(LinearLayout.VERTICAL);
     viewGroup.setLayoutParams(
         new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+    viewGroup.setClipToPadding(false);
     return viewGroup;
   }
 

@@ -172,6 +172,7 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
     viewGroup.setLayoutParams(
         new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
     viewGroup.setBaselineAligned(false);
+    viewGroup.setClipToPadding(false);
     return viewGroup;
   }
 

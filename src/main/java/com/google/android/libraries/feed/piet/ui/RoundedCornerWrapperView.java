@@ -17,13 +17,16 @@ package com.google.android.libraries.feed.piet.ui;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.graphics.drawable.shapes.RoundRectShape;
 import android.support.annotation.VisibleForTesting;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
@@ -39,6 +42,8 @@ public class RoundedCornerWrapperView extends FrameLayout {
   private final Paint paint;
   private final RoundedCorners roundedCorners;
 
+  /*@Nullable*/ private RoundRectShape outlineShape = null;
+
   // This is instantiated in the constructor and modified before use to save time on garbage
   // collection.
   private final RectF maskRect;
@@ -49,6 +54,8 @@ public class RoundedCornerWrapperView extends FrameLayout {
     this(context, RoundedCorners.getDefaultInstance());
   }
 
+  // Doesn't like the calls to makeRadius() and shouldRoundAnyCorner()
+  @SuppressWarnings("initialization")
   public RoundedCornerWrapperView(Context context, RoundedCorners roundedCorners) {
     super(context);
 
@@ -58,6 +65,30 @@ public class RoundedCornerWrapperView extends FrameLayout {
     paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     maskRect = new RectF();
     this.roundedCorners = roundedCorners;
+
+    if (shouldRoundAnyCorner()) {
+      final int layoutDirection =
+          LayoutUtils.isDefaultLocaleRtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR;
+      super.setOutlineProvider(
+          new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+              RoundRectShape localOutlineShape = outlineShape;
+              if (localOutlineShape == null
+                  || localOutlineShape.getHeight() != view.getHeight()
+                  || localOutlineShape.getWidth() != view.getWidth()) {
+                int radius = makeRadius(view.getWidth(), view.getHeight());
+                float[] radii =
+                    RoundedCornerViewHelper.createRoundedCornerMask(
+                        radius, roundedCorners.getBitmask(), layoutDirection);
+                localOutlineShape = new RoundRectShape(radii, null, null);
+                localOutlineShape.resize(view.getWidth(), view.getHeight());
+                outlineShape = localOutlineShape;
+              }
+              localOutlineShape.getOutline(outline);
+            }
+          });
+    }
 
     setWillNotDraw(false);
   }
@@ -88,7 +119,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
     canvas.drawBitmap(offscreenBitmap, 0f, 0f, paint);
   }
 
-  private Bitmap createMask(int width, int height) {
+  private int makeRadius(int width, int height) {
     int radius =
         (int)
             TypedValue.applyDimension(
@@ -108,6 +139,11 @@ public class RoundedCornerWrapperView extends FrameLayout {
           width,
           height);
     }
+    return radius;
+  }
+
+  private Bitmap createMask(int width, int height) {
+    int radius = makeRadius(width, height);
 
     Bitmap mask = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
     Canvas canvas = new Canvas(mask);

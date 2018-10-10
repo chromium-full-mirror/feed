@@ -149,7 +149,7 @@ abstract class ElementAdapter<V extends View, M> {
 
     initializeOverflow(baseElement);
 
-    elementStyle.applyElementStyles(getContext(), view);
+    elementStyle.applyElementStyles(this);
 
     created = true;
   }
@@ -225,7 +225,7 @@ abstract class ElementAdapter<V extends View, M> {
 
     // Reapply styles if we have style bindings
     if (getElementStyleIdsStack().hasStyleBinding()) {
-      elementStyle.applyElementStyles(getContext(), view);
+      elementStyle.applyElementStyles(this);
     }
   }
 

@@ -130,7 +130,7 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
     assertThat(adapter.getBaseView().getCropToPadding()).isTrue();
-    verify(styleProvider).applyElementStyles(context, adapter.getBaseView());
+    verify(styleProvider).applyElementStyles(adapter);
   }
 
   @Test
@@ -435,7 +435,7 @@ public class ImageElementAdapterTest {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
 
-    verify(styleProvider).applyElementStyles(context, adapter.getBaseView());
+    verify(styleProvider).applyElementStyles(adapter);
 
     // Styles do not change when a different model is bound
     StyleIdsStack otherStyle = StyleIdsStack.newBuilder().addStyleIds("ignored").build();
@@ -465,7 +465,7 @@ public class ImageElementAdapterTest {
 
     verify(frameContext).makeStyleFor(boundStyle);
 
-    verify(styleProvider, times(2)).applyElementStyles(context, adapter.getBaseView());
+    verify(styleProvider, times(2)).applyElementStyles(adapter);
   }
 
   @Test

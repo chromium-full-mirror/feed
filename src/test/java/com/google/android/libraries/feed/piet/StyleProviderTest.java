@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
@@ -46,6 +47,10 @@ import org.robolectric.annotation.Config;
 public class StyleProviderTest {
 
   @Mock private AssetProvider mockAssetProvider;
+  @Mock private ElementAdapter<View, ?> adapter;
+
+  private View view;
+  private View baseView;
 
   private Context context;
 
@@ -53,6 +58,11 @@ public class StyleProviderTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.setupActivity(Activity.class);
+    view = new View(context);
+    baseView = new View(context);
+    when(adapter.getView()).thenReturn(view);
+    when(adapter.getBaseView()).thenReturn(baseView);
+    when(adapter.getContext()).thenReturn(context);
   }
 
   @Test
@@ -110,7 +120,6 @@ public class StyleProviderTest {
   public void testApplyPadding() {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
-    View view = new View(context);
     new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
         .applyPadding(context, view, padding);
     verifyPadding(view, padding);
@@ -134,16 +143,13 @@ public class StyleProviderTest {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     Style paddingStyle = Style.newBuilder().setPadding(padding).build();
-    View view = new View(context);
 
-    new StyleProvider(paddingStyle, mockAssetProvider).applyElementStyles(context, view);
-    verifyPadding(view, padding);
+    new StyleProvider(paddingStyle, mockAssetProvider).applyElementStyles(adapter);
+    verifyPadding(baseView, padding);
   }
 
   @Test
   public void testElementStyles_backgroundAndCorners() {
-    View view = new View(context);
-
     int color = 0xffffffff;
     Fill background = Fill.newBuilder().setColor(color).build();
     RoundedCorners corners = RoundedCorners.newBuilder().setRadius(4).setBitmask(3).build();
@@ -156,7 +162,7 @@ public class StyleProviderTest {
             .build();
 
     StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
-    styleProvider.applyElementStyles(context, view);
+    styleProvider.applyElementStyles(adapter);
 
     ColorDrawable colorDrawable = (ColorDrawable) view.getBackground();
     assertThat(colorDrawable.getColor()).isEqualTo(color);
@@ -164,22 +170,19 @@ public class StyleProviderTest {
 
   @Test
   public void testElementStyles_noBackgroundInStyle() {
-    View view = new View(context);
     view.setBackground(new ColorDrawable(0xffff0000));
 
-    new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
-        .applyElementStyles(context, view);
+    new StyleProvider(Style.getDefaultInstance(), mockAssetProvider).applyElementStyles(adapter);
     assertThat(view.getBackground()).isNull();
   }
 
   @Test
   public void testElementStyles_noColorInFill() {
-    View view = new View(context);
     view.setBackground(new ColorDrawable(0xffff0000));
 
     Style style = Style.newBuilder().setBackground(Fill.getDefaultInstance()).build();
 
-    new StyleProvider(style, mockAssetProvider).applyElementStyles(context, view);
+    new StyleProvider(style, mockAssetProvider).applyElementStyles(adapter);
 
     assertThat(view.getBackground()).isNull();
   }
@@ -188,22 +191,20 @@ public class StyleProviderTest {
   public void testElementStyles_minimumHeight() {
     int minHeight = 12345;
     Style heightStyle = Style.newBuilder().setMinHeight(minHeight).build();
-    View view = new View(context);
 
-    new StyleProvider(heightStyle, mockAssetProvider).applyElementStyles(context, view);
+    new StyleProvider(heightStyle, mockAssetProvider).applyElementStyles(adapter);
 
-    assertThat(view.getMinimumHeight()).isEqualTo(minHeight);
+    assertThat(baseView.getMinimumHeight()).isEqualTo(minHeight);
   }
 
   @Test
   public void testElementStyles_noMinimumHeight() {
     Style noHeightStyle = Style.getDefaultInstance();
-    View view = new View(context);
     view.setMinimumHeight(12345);
 
-    new StyleProvider(noHeightStyle, mockAssetProvider).applyElementStyles(context, view);
+    new StyleProvider(noHeightStyle, mockAssetProvider).applyElementStyles(adapter);
 
-    assertThat(view.getMinimumHeight()).isEqualTo(0);
+    assertThat(baseView.getMinimumHeight()).isEqualTo(0);
   }
 
   @Test
@@ -215,9 +216,8 @@ public class StyleProviderTest {
                 Shadow.newBuilder()
                     .setElevationShadow(ElevationShadow.newBuilder().setElevation(elevation)))
             .build();
-    View view = new View(context);
 
-    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(context, view);
+    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(adapter);
 
     assertThat(view.getElevation()).isEqualTo((float) elevation);
   }
@@ -231,11 +231,10 @@ public class StyleProviderTest {
                     .setElevationShadow(ElevationShadow.newBuilder().setElevation(5280)))
             .build();
     Style noShadowStyle = Style.getDefaultInstance();
-    View view = new View(context);
 
-    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(context, view);
+    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(adapter);
 
-    new StyleProvider(noShadowStyle, mockAssetProvider).applyElementStyles(context, view);
+    new StyleProvider(noShadowStyle, mockAssetProvider).applyElementStyles(adapter);
 
     assertThat(view.getElevation()).isEqualTo(0.0f);
   }
@@ -250,11 +249,10 @@ public class StyleProviderTest {
                     .setElevationShadow(ElevationShadow.newBuilder().setElevation(5280)))
             .build();
     Style noShadowStyle = Style.getDefaultInstance();
-    View view = new View(context);
 
-    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(context, view);
+    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(adapter);
 
-    new StyleProvider(noShadowStyle, mockAssetProvider).applyElementStyles(context, view);
+    new StyleProvider(noShadowStyle, mockAssetProvider).applyElementStyles(adapter);
 
     // Assert nothing failed.
   }
