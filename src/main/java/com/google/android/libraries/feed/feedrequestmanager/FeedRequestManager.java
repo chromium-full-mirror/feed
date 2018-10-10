@@ -220,7 +220,9 @@ public class FeedRequestManager implements RequestManager {
             }
             Logger.e(TAG, "errorCode: %d", input.getResponseCode());
             Logger.e(TAG, "errorResponse: %s", errorBody);
-            scheduler.onRequestError(input.getResponseCode());
+            if (!requestBuilder.hasPageToken()) {
+              scheduler.onRequestError(input.getResponseCode());
+            }
             consumer.accept(Result.failure());
             return;
           }
@@ -292,6 +294,10 @@ public class FeedRequestManager implements RequestManager {
     RequestBuilder setPageToken(ByteString token) {
       this.token = token;
       return this;
+    }
+
+    boolean hasPageToken() {
+      return token != null;
     }
 
     RequestBuilder setActions(

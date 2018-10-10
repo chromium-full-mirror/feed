@@ -50,6 +50,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ActionTypeProto.ActionType;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.AppType;
@@ -70,6 +71,7 @@ import com.google.search.now.wire.feed.VersionProto.Version.Architecture;
 import com.google.search.now.wire.feed.VersionProto.Version.BuildType;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -673,6 +675,28 @@ public class FeedRequestManagerTest {
         .accept(createHttpResponse(/* responseCode= */ NOT_FOUND, response));
 
     verify(scheduler).onRequestError(NOT_FOUND);
+    verify(consumer).accept(consumerCapture.capture());
+    List<Result<List<StreamDataOperation>>> consumerCaptures = consumerCapture.getAllValues();
+    assertThat(consumerCaptures).hasSize(1);
+    Result<List<StreamDataOperation>> result = consumerCaptures.get(0);
+    assertThat(result.isSuccessful()).isFalse();
+  }
+
+  @Test
+  public void testHandleResponse_pageNotFound() throws Exception {
+    StreamToken token =
+        StreamToken.newBuilder()
+            .setNextPageToken(ByteString.copyFrom("abc", Charset.defaultCharset()))
+            .build();
+    requestManager.loadMore(token, consumer);
+
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+    Response response = Response.getDefaultInstance();
+    responseConsumerCaptor
+        .getValue()
+        .accept(createHttpResponse(/* responseCode= */ NOT_FOUND, response));
+
+    verify(scheduler, never()).onRequestError(NOT_FOUND);
     verify(consumer).accept(consumerCapture.capture());
     List<Result<List<StreamDataOperation>>> consumerCaptures = consumerCapture.getAllValues();
     assertThat(consumerCaptures).hasSize(1);
