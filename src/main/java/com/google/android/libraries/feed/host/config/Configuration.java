@@ -49,7 +49,9 @@ public class Configuration {
     // Percentage of the view that should be on screen to log a view
     ConfigKey.VIEW_LOG_THRESHOLD,
     // Use direct storage
-    ConfigKey.USE_DIRECT_STORAGE
+    ConfigKey.USE_DIRECT_STORAGE,
+    // Time in ms to wait for image loading before showing a fade in animation.
+    ConfigKey.FADE_IMAGE_THRESHOLD_MS,
   })
   public @interface ConfigKey {
     String FEED_SERVER_ENDPOINT = "feed_server_endpoint";
@@ -70,6 +72,7 @@ public class Configuration {
     String LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = "logging_immediate_content_threshold_ms";
     String VIEW_LOG_THRESHOLD = "view_log_threshold";
     String USE_DIRECT_STORAGE = "use_direct_storage";
+    String FADE_IMAGE_THRESHOLD_MS = "fade_image_threshold_ms";
   }
 
   private final HashMap<String, Object> values;

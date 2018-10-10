@@ -153,16 +153,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     this.threadUtils = threadUtils;
     this.streamOfflineMonitor = new StreamOfflineMonitor(offlineIndicatorApi);
     this.lifecycleListener = lifecycleListener;
-    this.pietManager =
-        createPietManager(
-            context,
-            cardConfiguration,
-            imageLoaderApi,
-            customElementProvider,
-            debugBehavior,
-            clock,
-            hostBindingProvider,
-            streamOfflineMonitor);
     this.context = context;
     this.headers = headers;
     this.modelProviderFactory = modelProviderFactory;
@@ -182,6 +172,18 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
     this.knownContentApi = knownContentApi;
     menuMeasurer = new MenuMeasurer(context);
+
+    this.pietManager =
+        createPietManager(
+            context,
+            cardConfiguration,
+            imageLoaderApi,
+            customElementProvider,
+            debugBehavior,
+            clock,
+            hostBindingProvider,
+            streamOfflineMonitor,
+            configuration);
   }
 
   @VisibleForTesting
@@ -194,10 +196,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       DebugBehavior debugBehavior,
       Clock clock,
       /*@Nullable*/ HostBindingProvider hostBindingProvider,
-      StreamOfflineMonitor streamOfflineMonitor) {
+      StreamOfflineMonitor streamOfflineMonitor,
+      Configuration configuration) {
     return new PietManager(
         debugBehavior,
-        new PietAssetProvider(imageLoaderApi, cardConfiguration, clock),
+        new PietAssetProvider(imageLoaderApi, cardConfiguration, clock, configuration),
         new PietCustomElementProvider(context, customElementProvider),
         new PietHostBindingProvider(hostBindingProvider, streamOfflineMonitor),
         clock);

@@ -56,4 +56,9 @@ public interface AssetProvider {
 
   /** Returns whether the theme for the Piet rendering context is a "dark theme". */
   boolean isDarkTheme();
+
+  /**
+   * Fade-in animation will only occur if image loading time takes less than this amount of time.
+   */
+  int getFadeImageThresholdMs();
 }

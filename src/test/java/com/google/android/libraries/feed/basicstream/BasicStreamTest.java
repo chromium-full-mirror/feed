@@ -831,7 +831,8 @@ public class BasicStreamTest {
         DebugBehavior debugBehavior,
         Clock clock,
         /*@Nullable*/ HostBindingProvider hostBindingProvider,
-        StreamOfflineMonitor streamOfflineMonitor) {
+        StreamOfflineMonitor streamOfflineMonitor,
+        Configuration config) {
       return pietManager;
     }
 

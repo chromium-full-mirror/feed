@@ -10,6 +10,7 @@ android_local_test(
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
