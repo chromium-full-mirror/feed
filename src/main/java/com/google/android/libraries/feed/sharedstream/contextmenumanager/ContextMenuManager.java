@@ -32,6 +32,8 @@ import java.util.List;
 /** Provides information to allow for the construction of Context Menus. */
 public class ContextMenuManager implements FeedLifecycleListener {
 
+  private static final String TAG = "ContextMenuManager";
+
   // Indicates how deep into the card the menu should be set if the menu is showing below a card. IE
   // 4 indicates that the menu should be placed 1/4 of the way from the edge of the card.
   private static final int FRACTION_FROM_EDGE = 4;
@@ -86,7 +88,7 @@ public class ContextMenuManager implements FeedLifecycleListener {
           popupWindow.dismiss();
         });
 
-    int yOffset = getYOffsetForContextMenu(anchorView, anchorView.getHeight());
+    int yOffset = getYOffsetForContextMenu(anchorView, measurements.getHeight());
 
     popupWindow.showAsDropDown(anchorView, anchorView.getWidth() / FRACTION_FROM_EDGE, yOffset);
 
