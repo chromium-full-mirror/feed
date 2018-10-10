@@ -116,6 +116,8 @@ public final class Utils {
         return Version.BuildType.DEV;
       case BuildType.ALPHA:
         return Version.BuildType.ALPHA;
+      case BuildType.BETA:
+        return Version.BuildType.BETA;
       case BuildType.RELEASE:
         return Version.BuildType.RELEASE;
       default:

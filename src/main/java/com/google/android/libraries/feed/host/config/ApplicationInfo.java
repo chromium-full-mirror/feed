@@ -53,12 +53,19 @@ public class ApplicationInfo {
     int X86_64 = 6;
   }
 
-  @IntDef({BuildType.UNKNOWN_BUILD_TYPE, BuildType.DEV, BuildType.ALPHA, BuildType.RELEASE})
+  @IntDef({
+    BuildType.UNKNOWN_BUILD_TYPE,
+    BuildType.DEV,
+    BuildType.ALPHA,
+    BuildType.BETA,
+    BuildType.RELEASE
+  })
   public @interface BuildType {
     int UNKNOWN_BUILD_TYPE = 0;
     int DEV = 1;
     int ALPHA = 2;
-    int RELEASE = 3;
+    int BETA = 3;
+    int RELEASE = 4;
   }
 
   @AppType private final int appType;
