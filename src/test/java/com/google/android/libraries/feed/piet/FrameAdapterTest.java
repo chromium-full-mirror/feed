@@ -115,7 +115,7 @@ public class FrameAdapterTest {
             null,
             Suppliers.of(new FrameLayout(context)),
             hostProviders,
-            new ParameterizedTextEvaluator(),
+            new ParameterizedTextEvaluator(new FakeClock()),
             adapterFactory,
             templateBinder,
             new FakeClock());

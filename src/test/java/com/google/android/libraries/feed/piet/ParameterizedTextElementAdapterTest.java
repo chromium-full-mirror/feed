@@ -74,7 +74,7 @@ public class ParameterizedTextElementAdapterTest {
             null,
             null,
             hostProviders,
-            new ParameterizedTextEvaluator(),
+            new ParameterizedTextEvaluator(new FakeClock()),
             null,
             null,
             new FakeClock());

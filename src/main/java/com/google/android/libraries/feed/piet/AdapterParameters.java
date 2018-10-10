@@ -54,7 +54,7 @@ class AdapterParameters {
     this.hostProviders = hostProviders;
     this.clock = clock;
 
-    templatedStringEvaluator = new ParameterizedTextEvaluator();
+    templatedStringEvaluator = new ParameterizedTextEvaluator(clock);
 
     KeyedRecyclerPool<ElementAdapter<? extends View, ?>> templateRecyclerPool =
         new KeyedRecyclerPool<>(DEFAULT_NUM_TEMPLATE_POOLS, DEFAULT_TEMPLATE_POOL_SIZE);

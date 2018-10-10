@@ -16,9 +16,9 @@ package com.google.android.libraries.feed.piet;
 
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
-import android.support.annotation.VisibleForTesting;
 import android.text.Html;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import java.util.ArrayList;
@@ -29,6 +29,11 @@ import java.util.concurrent.TimeUnit;
 /** Helper class to format templated strings when rendering cards. */
 public class ParameterizedTextEvaluator {
   private static final String TAG = "ParameterizedTextEvalua";
+  private final Clock clock;
+
+  ParameterizedTextEvaluator(Clock clock) {
+    this.clock = clock;
+  }
 
   /** Evaluates the given parameterized string, respecting the HTML setting */
   public CharSequence evaluate(AssetProvider assetProvider, ParameterizedText templatedString) {
@@ -90,14 +95,9 @@ public class ParameterizedTextEvaluator {
   private String evaluateParam(AssetProvider assetProvider, ParameterizedText.Parameter param) {
     if (param.hasTimestampSeconds()) {
       long elapsedTimeMillis =
-          getCurrentTimeMillis() - TimeUnit.SECONDS.toMillis(param.getTimestampSeconds());
+          clock.currentTimeMillis() - TimeUnit.SECONDS.toMillis(param.getTimestampSeconds());
       return assetProvider.getRelativeElapsedString(elapsedTimeMillis);
     }
     return null;
-  }
-
-  @VisibleForTesting
-  long getCurrentTimeMillis() {
-    return System.currentTimeMillis();
   }
 }

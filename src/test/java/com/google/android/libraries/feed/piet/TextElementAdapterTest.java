@@ -75,7 +75,7 @@ public class TextElementAdapterTest {
             null,
             null,
             mockHostProviders,
-            new ParameterizedTextEvaluator(),
+            new ParameterizedTextEvaluator(new FakeClock()),
             null,
             null,
             new FakeClock());

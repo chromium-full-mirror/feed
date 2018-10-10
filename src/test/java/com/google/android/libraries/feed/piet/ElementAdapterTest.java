@@ -227,7 +227,7 @@ public class ElementAdapterTest {
             context,
             Suppliers.of((ViewGroup) null),
             hostProviders,
-            new ParameterizedTextEvaluator(),
+            new ParameterizedTextEvaluator(new FakeClock()),
             mockFactory,
             mock(TemplateBinder.class),
             new FakeClock());
