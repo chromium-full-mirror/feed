@@ -24,7 +24,6 @@ import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplie
 import com.google.android.libraries.feed.piet.SpacerElementAdapter.DividerView;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
@@ -40,8 +39,7 @@ class SpacerElementAdapter extends ElementAdapter<DividerView, SpacerElement> {
   @Override
   SpacerElement getModelFromElement(Element baseElement) {
     if (!baseElement.hasSpacerElement()) {
-      throw new PietFatalException(
-          ErrorCode.ERR_MISSING_ELEMENT_CONTENTS,
+      throw new IllegalArgumentException(
           String.format("Missing SpacerElement; has %s", baseElement.getElementsCase()));
     }
     return baseElement.getSpacerElement();

@@ -17,8 +17,6 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -73,8 +71,6 @@ public class CustomElementAdapterTest {
     when(customElementProvider.createCustomElement(DUMMY_DATA)).thenReturn(customView);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(adapterParameters.defaultStyleProvider);
-    when(frameContext.reportMessage(anyInt(), any(), anyString()))
-        .thenAnswer(invocation -> invocation.getArguments()[2]);
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }
 
@@ -157,7 +153,7 @@ public class CustomElementAdapterTest {
     adapter.createAdapter(model, frameContext);
 
     assertThatRunnable(() -> adapter.bindModel(model, frameContext))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Custom element binding CUSTOM had no content");
@@ -215,14 +211,14 @@ public class CustomElementAdapterTest {
     Element elementWithWrongModel =
         Element.newBuilder().setTextElement(TextElement.getDefaultInstance()).build();
     assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing CustomElement");
 
     Element emptyElement = Element.getDefaultInstance();
     assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing CustomElement");

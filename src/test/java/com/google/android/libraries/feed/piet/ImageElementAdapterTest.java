@@ -182,7 +182,7 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(model, frameContext);
 
     assertThatRunnable(() -> adapter.bindModel(model, frameContext))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalStateException.class)
         .that()
         .hasMessageThat()
         .contains("Unsupported or missing content");
@@ -346,7 +346,7 @@ public class ImageElementAdapterTest {
                 .build());
 
     assertThatRunnable(() -> adapter.bindModel(imageBindingElement, frameContext))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Image binding foto had no content");
@@ -595,14 +595,14 @@ public class ImageElementAdapterTest {
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
     assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing ImageElement");
 
     Element emptyElement = Element.getDefaultInstance();
     assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing ImageElement");

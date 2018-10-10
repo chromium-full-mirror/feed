@@ -25,7 +25,6 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +47,7 @@ class DebugLogger {
     int WARNING = 2;
   }
 
-  private final SparseArray<List<ErrorCodeAndMessage>> messages;
+  private final SparseArray<List<String>> messages;
   private final SparseIntArray backgroundColors;
 
   DebugLogger() {
@@ -62,18 +61,14 @@ class DebugLogger {
   }
 
   void recordMessage(@MessageType int messageType, String error) {
-    recordMessage(messageType, ErrorCode.ERR_UNSPECIFIED, error);
-  }
-
-  void recordMessage(@MessageType int messageType, ErrorCode errorCode, String error) {
-    messages.get(messageType).add(new ErrorCodeAndMessage(errorCode, error));
+    messages.get(messageType).add(error);
   }
 
   /** Create a {@code View} containing all the messages of a certain type; null for no messages. */
   /*@Nullable*/
   View getReportView(@MessageType int messageType, Context context) {
-    List<ErrorCodeAndMessage> errors = this.messages.get(messageType);
-    if (errors.isEmpty()) {
+    List<String> messages = this.messages.get(messageType);
+    if (messages.isEmpty()) {
       return null;
     }
     LinearLayout view = new LinearLayout(context);
@@ -83,14 +78,14 @@ class DebugLogger {
     view.setLayoutParams(layoutParams);
     view.setBackgroundColor(backgroundColors.get(messageType));
     view.addView(getDivider(context));
-    for (ErrorCodeAndMessage error : errors) {
-      view.addView(getMessageTextView(error.message, context));
+    for (String message : messages) {
+      view.addView(getMessageTextView(message, context));
     }
     return view;
   }
 
   @VisibleForTesting
-  List<ErrorCodeAndMessage> getMessages(@MessageType int messageType) {
+  List<String> getMessages(@MessageType int messageType) {
     return messages.get(messageType);
   }
 
@@ -114,39 +109,5 @@ class DebugLogger {
         (int) LayoutUtils.dpToPx(PADDING, context));
     textView.setText(message);
     return textView;
-  }
-
-  static class ErrorCodeAndMessage {
-    final ErrorCode errorCode;
-    final String message;
-
-    ErrorCodeAndMessage(ErrorCode errorCode, String message) {
-      this.errorCode = errorCode;
-      this.message = message;
-    }
-
-    @Override
-    public boolean equals(/*@Nullable*/ Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof ErrorCodeAndMessage)) {
-        return false;
-      }
-
-      ErrorCodeAndMessage that = (ErrorCodeAndMessage) o;
-
-      if (errorCode != that.errorCode) {
-        return false;
-      }
-      return message.equals(that.message);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = errorCode.hashCode();
-      result = 31 * result + message.hashCode();
-      return result;
-    }
   }
 }

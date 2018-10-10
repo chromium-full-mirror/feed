@@ -20,7 +20,6 @@ import android.content.Context;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
@@ -36,11 +35,9 @@ public class PietStylesHelper {
   private static final String TAG = "PietStylesHelper";
 
   private final Map<String, NoKeyOverwriteHashMap<String, Style>> stylesheetScopes =
-      new NoKeyOverwriteHashMap<>("Style", ErrorCode.ERR_DUPLICATE_STYLE);
-  private final Map<String, Stylesheet> stylesheets =
-      new NoKeyOverwriteHashMap<>("Stylesheet", ErrorCode.ERR_DUPLICATE_STYLESHEET);
-  private final Map<String, Template> templates =
-      new NoKeyOverwriteHashMap<>("Template", ErrorCode.ERR_DUPLICATE_TEMPLATE);
+      new NoKeyOverwriteHashMap<>("Style");
+  private final Map<String, Stylesheet> stylesheets = new NoKeyOverwriteHashMap<>("Stylesheet");
+  private final Map<String, Template> templates = new NoKeyOverwriteHashMap<>("Template");
 
   private final MediaQueryHelper mediaQueryHelper;
 
@@ -92,8 +89,7 @@ public class PietStylesHelper {
   }
 
   NoKeyOverwriteHashMap<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
-    NoKeyOverwriteHashMap<String, Style> styleMap =
-        new NoKeyOverwriteHashMap<>("Style", ErrorCode.ERR_DUPLICATE_STYLE);
+    NoKeyOverwriteHashMap<String, Style> styleMap = new NoKeyOverwriteHashMap<>("Style");
     for (Style style : stylesheet.getStylesList()) {
       if (mediaQueryHelper.areMediaQueriesMet(style.getConditionsList())) {
         styleMap.put(style.getStyleId(), style);
@@ -129,7 +125,7 @@ public class PietStylesHelper {
         String error =
             String.format("Unable to bind style [%s], style not found in Stylesheet", style);
         if (frameContext != null) {
-          frameContext.reportMessage(MessageType.ERROR, ErrorCode.ERR_MISSING_STYLE, error);
+          frameContext.reportError(MessageType.ERROR, error);
         }
         Logger.w(TAG, error);
       }

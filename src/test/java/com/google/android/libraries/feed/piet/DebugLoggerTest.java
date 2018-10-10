@@ -23,9 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
-import com.google.android.libraries.feed.piet.DebugLogger.ErrorCodeAndMessage;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +72,7 @@ public class DebugLoggerTest {
     // Check the error box
     assertThat(reportView.getChildAt(1)).isInstanceOf(TextView.class);
     TextView textErrorView = (TextView) reportView.getChildAt(1);
-    assertThat(textErrorView.getText().toString()).isEqualTo(ERROR_TEXT_1);
+    assertThat(textErrorView.getText()).isEqualTo(ERROR_TEXT_1);
 
     // Check that padding has been set (but don't check specific values)
     assertThat(textErrorView.getPaddingBottom()).isNotEqualTo(0);
@@ -92,8 +90,8 @@ public class DebugLoggerTest {
 
     assertThat(reportView.getChildCount()).isEqualTo(3);
 
-    assertThat(((TextView) reportView.getChildAt(1)).getText().toString()).isEqualTo(ERROR_TEXT_1);
-    assertThat(((TextView) reportView.getChildAt(2)).getText().toString()).isEqualTo(ERROR_TEXT_2);
+    assertThat(((TextView) reportView.getChildAt(1)).getText()).isEqualTo(ERROR_TEXT_1);
+    assertThat(((TextView) reportView.getChildAt(2)).getText()).isEqualTo(ERROR_TEXT_2);
   }
 
   @Test
@@ -110,14 +108,11 @@ public class DebugLoggerTest {
 
     debugLogger.recordMessage(MessageType.WARNING, WARNING_TEXT);
     assertThat(debugLogger.getMessages(MessageType.ERROR)).isEmpty();
-    assertThat(debugLogger.getMessages(MessageType.WARNING))
-        .containsExactly(new ErrorCodeAndMessage(ErrorCode.ERR_UNSPECIFIED, WARNING_TEXT));
+    assertThat(debugLogger.getMessages(MessageType.WARNING)).containsExactly(WARNING_TEXT);
 
-    debugLogger.recordMessage(MessageType.ERROR, ErrorCode.ERR_PROTO_TOO_LARGE, ERROR_TEXT_1);
-    assertThat(debugLogger.getMessages(MessageType.ERROR))
-        .containsExactly(new ErrorCodeAndMessage(ErrorCode.ERR_PROTO_TOO_LARGE, ERROR_TEXT_1));
-    assertThat(debugLogger.getMessages(MessageType.WARNING))
-        .containsExactly(new ErrorCodeAndMessage(ErrorCode.ERR_UNSPECIFIED, WARNING_TEXT));
+    debugLogger.recordMessage(MessageType.ERROR, ERROR_TEXT_1);
+    assertThat(debugLogger.getMessages(MessageType.ERROR)).containsExactly(ERROR_TEXT_1);
+    assertThat(debugLogger.getMessages(MessageType.WARNING)).containsExactly(WARNING_TEXT);
   }
 
   @Test
@@ -128,12 +123,12 @@ public class DebugLoggerTest {
     LinearLayout errorView = (LinearLayout) debugLogger.getReportView(MessageType.ERROR, context);
 
     assertThat(errorView.getChildCount()).isEqualTo(2);
-    assertThat(((TextView) errorView.getChildAt(1)).getText().toString()).isEqualTo(ERROR_TEXT_1);
+    assertThat(((TextView) errorView.getChildAt(1)).getText()).isEqualTo(ERROR_TEXT_1);
 
     LinearLayout warningView =
         (LinearLayout) debugLogger.getReportView(MessageType.WARNING, context);
 
     assertThat(warningView.getChildCount()).isEqualTo(2);
-    assertThat(((TextView) warningView.getChildAt(1)).getText().toString()).isEqualTo(WARNING_TEXT);
+    assertThat(((TextView) warningView.getChildAt(1)).getText()).isEqualTo(WARNING_TEXT);
   }
 }

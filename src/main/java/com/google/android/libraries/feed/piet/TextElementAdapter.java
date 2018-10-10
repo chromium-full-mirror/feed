@@ -26,7 +26,6 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -45,8 +44,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   @Override
   protected TextElement getModelFromElement(Element baseElement) {
     if (!baseElement.hasTextElement()) {
-      throw new PietFatalException(
-          ErrorCode.ERR_MISSING_ELEMENT_CONTENTS,
+      throw new IllegalArgumentException(
           String.format("Missing TextElement; has %s", baseElement.getElementsCase()));
     }
     return baseElement.getTextElement();

@@ -525,14 +525,14 @@ public class ElementListAdapterTest {
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
     assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing ElementList");
 
     Element emptyElement = Element.getDefaultInstance();
     assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Missing ElementList");

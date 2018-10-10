@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 import static com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.SINGLE_LAYER_ID;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -66,7 +65,6 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -173,8 +171,6 @@ public class ChunkedTextElementAdapterTest {
     when(frameContext.makeStyleFor(CHUNK_STYLE)).thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(adapterParameters.defaultStyleProvider);
-    when(frameContext.reportMessage(anyInt(), any(), anyString()))
-        .thenAnswer(invocation -> invocation.getArguments()[2]);
     when(hostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getActionHandler()).thenReturn(mockActionHandler);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
@@ -298,9 +294,8 @@ public class ChunkedTextElementAdapterTest {
 
     assertThat(adapter.getBaseView().getText().toString()).isEmpty();
     verify(frameContext)
-        .reportMessage(
+        .reportError(
             MessageType.ERROR,
-            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
             "StyledTextChunk missing ParameterizedText content; has CONTENT_NOT_SET");
   }
 
@@ -327,7 +322,7 @@ public class ChunkedTextElementAdapterTest {
     ImageSpan[] imageSpans =
         ((SpannedString) adapter.getBaseView().getText()).getSpans(0, 1, ImageSpan.class);
     assertThat(imageSpans).hasLength(0);
-    verify(frameContext, never()).reportMessage(anyInt(), anyString());
+    verify(frameContext, never()).reportError(anyInt(), anyString());
   }
 
   @Test
@@ -351,10 +346,7 @@ public class ChunkedTextElementAdapterTest {
 
     assertThat(adapter.getBaseView().getText().toString()).isEmpty();
     verify(frameContext)
-        .reportMessage(
-            MessageType.ERROR,
-            ErrorCode.ERR_MISSING_BINDING_VALUE,
-            "No image found for binding id: image-binding-id");
+        .reportError(MessageType.ERROR, "No image found for binding id: image-binding-id");
   }
 
   @Test
@@ -378,10 +370,8 @@ public class ChunkedTextElementAdapterTest {
     assertThat(imageSpans).hasLength(0);
 
     verify(frameContext)
-        .reportMessage(
-            MessageType.ERROR,
-            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
-            "StyledImageChunk missing Image content; has CONTENT_NOT_SET");
+        .reportError(
+            MessageType.ERROR, "StyledImageChunk missing Image content; has CONTENT_NOT_SET");
   }
 
   @Test
@@ -394,7 +384,7 @@ public class ChunkedTextElementAdapterTest {
     adapter.createAdapter(asElement(elementWithWrongContent), frameContext);
 
     assertThatRunnable(() -> adapter.bindModel(asElement(elementWithWrongContent), frameContext))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Unhandled type of TextElement");
@@ -405,7 +395,7 @@ public class ChunkedTextElementAdapterTest {
     TextElement emptyElement = TextElement.getDefaultInstance();
 
     assertThatRunnable(() -> adapter.bindModel(asElement(emptyElement), frameContext))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Unhandled type of TextElement");
@@ -447,7 +437,7 @@ public class ChunkedTextElementAdapterTest {
     adapter.createAdapter(asElement(elementWithEmptyChunk), frameContext);
 
     assertThatRunnable(() -> adapter.bindModel(asElement(elementWithEmptyChunk), frameContext))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Unhandled type of ChunkedText Chunk");
@@ -489,7 +479,7 @@ public class ChunkedTextElementAdapterTest {
                 .build());
 
     assertThatRunnable(() -> adapter.setTextOnView(frameContext, chunkedTextBindingElement))
-        .throwsAnExceptionOfType(PietFatalException.class)
+        .throwsAnExceptionOfType(IllegalArgumentException.class)
         .that()
         .hasMessageThat()
         .contains("Chunked text binding PB had no content");

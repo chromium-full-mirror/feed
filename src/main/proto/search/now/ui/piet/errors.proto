@@ -320,24 +320,6 @@ enum ErrorCode {
     (client_error) = NOTICE
   ];
 
-  // If an Element is passed to an adapter but is missing the required type of
-  // content (ex. an Element without a TextElement in TextElementAdapter).
-  ERR_MISSING_ELEMENT_CONTENTS = 110 [
-    // Server should flag to feature authors when such data is given.
-    (server_error) = ERROR,
-    // Clients cannot render a Frame with this kind of error.
-    (client_error) = ERROR
-  ];
-
-  // A proto is missing some of the content it is expected to have.
-  // Ex. getting an unrecognized value for an enum or oneof case.
-  ERR_MISSING_OR_UNHANDLED_CONTENT = 111 [
-    // Server should flag to feature authors when such data is given.
-    (server_error) = ERROR,
-    // Clients cannot render a Frame with this kind of error.
-    (client_error) = ERROR
-  ];
-
   // ---------------------------------------------------------------------------
   // Performance Related.
   // Fields start at ID 201.

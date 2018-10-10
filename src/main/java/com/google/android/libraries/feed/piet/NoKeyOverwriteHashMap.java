@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import java.util.HashMap;
 
 /** Map that throws if you try to insert a second key with the same value. */
@@ -23,19 +22,15 @@ public class NoKeyOverwriteHashMap<K, V> extends HashMap<K, V> {
   /** A term for the items this map contains (ex. "Style" or "Template"); used in debug logs. */
   private final String termForContentValue;
 
-  private final ErrorCode errorCodeForDuplicate;
-
-  NoKeyOverwriteHashMap(String termForContentValue, ErrorCode errorCodeForDuplicate) {
+  NoKeyOverwriteHashMap(String termForContentValue) {
     this.termForContentValue = termForContentValue;
-    this.errorCodeForDuplicate = errorCodeForDuplicate;
   }
 
   @Override
   /*@Nullable*/
   public V put(K key, V value) {
     if (containsKey(key)) {
-      throw new PietFatalException(
-          errorCodeForDuplicate,
+      throw new IllegalArgumentException(
           String.format("%s key '%s' already defined", termForContentValue, key));
     }
     return super.put(key, value);

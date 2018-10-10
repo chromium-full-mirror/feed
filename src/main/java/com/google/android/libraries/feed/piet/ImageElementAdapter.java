@@ -29,7 +29,6 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
@@ -46,8 +45,7 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
   @Override
   ImageElement getModelFromElement(Element baseElement) {
     if (!baseElement.hasImageElement()) {
-      throw new PietFatalException(
-          ErrorCode.ERR_MISSING_ELEMENT_CONTENTS,
+      throw new IllegalArgumentException(
           String.format("Missing ImageElement; has %s", baseElement.getElementsCase()));
     }
     return baseElement.getImageElement();
@@ -92,16 +90,14 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
             setVisibilityOnView(Visibility.GONE);
             return;
           } else {
-            throw new PietFatalException(
-                ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+            throw new IllegalArgumentException(
                 String.format("Image binding %s had no content", binding.getBindingId()));
           }
         }
         image = binding.getImage();
         break;
       default:
-        throw new PietFatalException(
-            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+        throw new IllegalStateException(
             String.format(
                 "Unsupported or missing content in ImageElement: %s", model.getContentCase()));
     }
@@ -141,8 +137,7 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
       case SCALE_TYPE_UNSPECIFIED:
         return ScaleType.FIT_CENTER;
       default:
-        throw new PietFatalException(
-            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+        throw new IllegalArgumentException(
             String.format("Unsupported ScaleType: %s", pietScaleType));
     }
   }

@@ -32,7 +32,6 @@ import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.HashSet;
@@ -207,9 +206,8 @@ abstract class ElementAdapter<V extends View, M> {
     if (!created) {
       // This should not happen; indicates a problem in the logic if createAdapter here runs without
       // successfully creating the adapter.
-      throw new PietFatalException(
-          ErrorCode.ERR_UNSPECIFIED,
-          frameContext.reportMessage(MessageType.ERROR, "Binding uncreated adapter"));
+      throw new IllegalStateException(
+          frameContext.reportError(MessageType.ERROR, "Binding uncreated adapter"));
     }
 
     onBindModel(model, baseElement, frameContext);
@@ -481,9 +479,7 @@ abstract class ElementAdapter<V extends View, M> {
         view.setVisibility(View.VISIBLE);
         break;
       default:
-        throw new PietFatalException(
-            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
-            String.format("Unhandled visibility: %s", visibility));
+        throw new IllegalArgumentException(String.format("Unhandled visibility: %s", visibility));
     }
   }
 

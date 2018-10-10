@@ -20,13 +20,11 @@ import android.view.View;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
-import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 
 /** Adapter that manages a custom view created by the host. */
 class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
@@ -39,8 +37,7 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
   @Override
   protected CustomElement getModelFromElement(Element baseElement) {
     if (!baseElement.hasCustomElement()) {
-      throw new PietFatalException(
-          ErrorCode.ERR_MISSING_ELEMENT_CONTENTS,
+      throw new IllegalArgumentException(
           String.format("Missing CustomElement; has %s", baseElement.getElementsCase()));
     }
     return baseElement.getCustomElement();
@@ -61,24 +58,14 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
             setVisibilityOnView(Visibility.GONE);
             return;
           } else {
-            throw new PietFatalException(
-                ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
-                frameContext.reportMessage(
-                    MessageType.ERROR,
-                    ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
-                    String.format(
-                        "Custom element binding %s had no content", binding.getBindingId())));
+            throw new IllegalArgumentException(
+                String.format("Custom element binding %s had no content", binding.getBindingId()));
           }
         }
         customElementData = binding.getCustomElementData();
         break;
       default:
-        Logger.e(
-            TAG,
-            frameContext.reportMessage(
-                MessageType.ERROR,
-                ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
-                "Missing payload in CustomElement"));
+        Logger.e(TAG, "Missing payload in CustomElement");
         return;
     }
 

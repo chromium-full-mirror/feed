@@ -25,7 +25,6 @@ import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplie
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
-import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.List;
 
@@ -40,8 +39,7 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   @Override
   ElementList getModelFromElement(Element baseElement) {
     if (!baseElement.hasElementList()) {
-      throw new PietFatalException(
-          ErrorCode.ERR_MISSING_ELEMENT_CONTENTS,
+      throw new IllegalArgumentException(
           String.format("Missing ElementList; has %s", baseElement.getElementsCase()));
     }
     return baseElement.getElementList();

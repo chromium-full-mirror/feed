@@ -15,8 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
-import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS;
-import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_ELEMENT_CONTENTS;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -50,8 +48,7 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
   @Override
   GridRow getModelFromElement(Element baseElement) {
     if (!baseElement.hasGridRow()) {
-      throw new PietFatalException(
-          ERR_MISSING_ELEMENT_CONTENTS,
+      throw new IllegalArgumentException(
           String.format("Missing GridRow; has %s", baseElement.getElementsCase()));
     }
     return baseElement.getGridRow();
@@ -130,9 +127,8 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
               break;
             case INVALID_CONTENT_WIDTH:
             default:
-              frameContext.reportMessage(
+              frameContext.reportError(
                   MessageType.WARNING,
-                  ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS,
                   String.format("Invalid content width: %s", gridCellWidth.getContentWidth()));
           }
           break;
@@ -146,9 +142,8 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
           break;
         case WIDTHSPEC_NOT_SET:
         default:
-          frameContext.reportMessage(
+          frameContext.reportError(
               MessageType.WARNING,
-              ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS,
               String.format("Invalid content width: %s", gridCellWidth.getContentWidth()));
       }
     }
