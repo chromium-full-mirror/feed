@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -33,6 +34,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
@@ -76,6 +78,7 @@ public class ImageElementAdapterTest {
       Image.newBuilder().addSources(ImageSource.newBuilder().setUrl("icanhas.chz")).build();
   private static final Element DEFAULT_MODEL =
       asElement(ImageElement.newBuilder().setImage(DEFAULT_IMAGE).build());
+  private static final int FADE_IMAGE_THRESHOLD_MS = 682;
 
   @Mock private ElementAdapterFactory adapterFactory;
   @Mock private TemplateBinder templateBinder;
@@ -91,6 +94,7 @@ public class ImageElementAdapterTest {
   private int widthPx;
   private ImageView imageView;
   private final Drawable defaultDrawable = new ColorDrawable(Color.BLUE);
+  private final FakeClock clock = new FakeClock();
 
   private ImageElementAdapter adapter;
 
@@ -102,8 +106,9 @@ public class ImageElementAdapterTest {
     widthPx = (int) LayoutUtils.dpToPx(WIDTH_DP, context);
     AdapterParameters parameters =
         new AdapterParameters(
-            context, null, hostProviders, null, adapterFactory, templateBinder, new FakeClock());
+            context, null, hostProviders, null, adapterFactory, templateBinder, clock);
 
+    when(assetProvider.getFadeImageThresholdMs()).thenReturn(FADE_IMAGE_THRESHOLD_MS);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(PADDING);
@@ -606,6 +611,69 @@ public class ImageElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Missing ImageElement");
+  }
+
+  @Test
+  public void testFadeAnimation() {
+    clock.set(0);
+    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
+    Element model =
+        asElement(
+            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
+
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    // Fire the callback
+    Bitmap bitmap = Bitmap.createBitmap(100, 150, Config.ALPHA_8);
+    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
+    verify(assetProvider)
+        .getImage(
+            eq(DEFAULT_IMAGE),
+            /* widthPx= */ anyInt(),
+            /* heightPx= */ anyInt(),
+            consumerArgumentCaptor.capture());
+
+    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
+    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
+
+    imageView = adapter.getBaseView();
+
+    assertThat(imageView.getDrawable()).isInstanceOf(TransitionDrawable.class);
+
+    TransitionDrawable drawable = (TransitionDrawable) imageView.getDrawable();
+    assertThat(drawable.isCrossFadeEnabled()).isTrue();
+    assertThat(drawable.getDrawable(0)).isInstanceOf(ColorDrawable.class);
+    assertThat(((ColorDrawable) drawable.getDrawable(0)).getColor()).isEqualTo(Color.TRANSPARENT);
+    assertThat(drawable.getDrawable(1)).isSameAs(specifiedBitmapDrawable);
+  }
+
+  @Test
+  public void testFadeAnimation_usesPrefill() {
+    Drawable preLoadFillDrawable = new ColorDrawable(Color.RED);
+
+    // Set up the StyleProvider mock
+    when(styleProvider.createPreLoadFill()).thenReturn(preLoadFillDrawable);
+    when(styleProvider.hasPreLoadFill()).thenReturn(true);
+
+    // Bind and expect the pre-load fill to be set
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+
+    Bitmap bitmap = Bitmap.createBitmap(100, 150, Config.ALPHA_8);
+    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
+    verify(assetProvider)
+        .getImage(
+            eq(DEFAULT_IMAGE),
+            /* widthPx= */ anyInt(),
+            /* heightPx= */ anyInt(),
+            consumerArgumentCaptor.capture());
+
+    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
+    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
+
+    assertThat(((TransitionDrawable) adapter.getBaseView().getDrawable()).getDrawable(0))
+        .isSameAs(preLoadFillDrawable);
   }
 
   private void setStyle(/*@Nullable*/ Integer height, /*@Nullable*/ Integer width) {

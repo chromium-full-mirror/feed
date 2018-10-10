@@ -18,7 +18,12 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Drawable.Callback;
+import android.graphics.drawable.TransitionDrawable;
+import android.support.annotation.VisibleForTesting;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -165,35 +170,94 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
     return imageView;
   }
 
-  private class LoadImageCallback implements Consumer<Drawable> {
+  @VisibleForTesting
+  class LoadImageCallback implements Consumer<Drawable> {
+
+    private static final int FADE_IN_ANIMATION_TIME_MS = 300;
+
     private final ImageView imageView;
     private final ScaleType scaleType;
+    private final long initialTime;
+
     boolean cancelled = false;
+    /*@Nullable*/ private Drawable finalDrawable;
 
     LoadImageCallback(ImageView imageView, ScaleType scaleType) {
       this.imageView = imageView;
       this.scaleType = scaleType;
+      this.initialTime = getParameters().clock.elapsedRealtime();
     }
 
     @Override
     public void accept(Drawable drawable) {
-      if (!cancelled) {
-
-        // Only perform image rescaling if both width/height are known as parameters.
-        if (widthPx > 0 && heightPx > 0) {
-          drawable =
-              DrawableScalingHelper.maybeScaleDrawable(
-                  getContext(),
-                  getParameters().hostProviders.getAssetProvider(),
-                  drawable,
-                  widthPx,
-                  heightPx);
-        }
-
-        // TODO: Set up transitioning to work.
-        imageView.setImageDrawable(drawable);
-        imageView.setScaleType(scaleType);
+      if (cancelled) {
+        return;
       }
+
+      // Only perform image rescaling if both width/height are known as parameters.
+      if (widthPx > 0 && heightPx > 0) {
+        drawable =
+            DrawableScalingHelper.maybeScaleDrawable(
+                getContext(),
+                getParameters().hostProviders.getAssetProvider(),
+                drawable,
+                widthPx,
+                heightPx);
+      }
+      imageView.setScaleType(scaleType);
+
+      this.finalDrawable = drawable;
+
+      // If we are in the process of binding when we get the image, we should not fade in the
+      // image as the image was cached.
+      if (!shouldFadeInImage()) {
+        imageView.setImageDrawable(drawable);
+        // Invalidating the view as the view doesn't update if not manually updated here.
+        getView().invalidate();
+        return;
+      }
+
+      Drawable initialDrawable =
+          imageView.getDrawable() != null
+              ? imageView.getDrawable()
+              : new ColorDrawable(Color.TRANSPARENT);
+
+      Drawable[] layers = {initialDrawable, drawable};
+      TransitionDrawable transitionDrawable = new TransitionDrawable(layers);
+      imageView.setImageDrawable(transitionDrawable);
+      transitionDrawable.setCrossFadeEnabled(true);
+      transitionDrawable.startTransition(FADE_IN_ANIMATION_TIME_MS);
+      transitionDrawable.setCallback(
+          new Callback() {
+            @Override
+            public void invalidateDrawable(Drawable who) {
+              getView().invalidate();
+            }
+
+            @Override
+            public void scheduleDrawable(Drawable who, Runnable what, long when) {}
+
+            @Override
+            public void unscheduleDrawable(Drawable who, Runnable what) {}
+          });
+      getView()
+          .postDelayed(
+              () -> {
+                if (!cancelled) {
+                  // Allows GC of the initial drawable and the transition drawable. Additionally
+                  // fixes the issue where the transition sometimes doesn't occur, which would
+                  // result in blank images.
+                  imageView.setImageDrawable(finalDrawable);
+                  // Invalidating the view as the view doesn't update if not manually updated here.
+                  getView().invalidate();
+                }
+              },
+              FADE_IN_ANIMATION_TIME_MS);
+    }
+
+    private boolean shouldFadeInImage() {
+      return (getParameters().clock.elapsedRealtime() - initialTime)
+          > getParameters().hostProviders.getAssetProvider().getFadeImageThresholdMs();
     }
   }
 
