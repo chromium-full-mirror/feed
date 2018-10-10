@@ -107,7 +107,6 @@ public class SessionManagerMutation implements Dumpable {
   public Consumer<Result<List<StreamDataOperation>>> createCommitter(
       String task,
       MutationContext mutationContext,
-      Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
       ModelErrorObserver modelErrorObserver,
       Map<String, StreamSharedState> sharedStateCache,
       /*@Nullable*/ KnownContentListener knownContentListener) {
@@ -115,10 +114,14 @@ public class SessionManagerMutation implements Dumpable {
     return new MutationCommitter(
         task,
         mutationContext,
-        resetHeadConsumer,
         modelErrorObserver,
         sharedStateCache,
         knownContentListener);
+  }
+
+  public void resetHead() {
+    HeadMutationCommitter mutation = new HeadMutationCommitter();
+    taskQueue.execute("invalidateHead", TaskType.HEAD_INVALIDATE, () -> mutation.resetHead(null));
   }
 
   @Override
@@ -129,12 +132,69 @@ public class SessionManagerMutation implements Dumpable {
     dumper.forKey("errorCount").value(errorCount).compactPrevious();
   }
 
+  class HeadMutationCommitter {
+    /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
+    @VisibleForTesting
+    void resetHead(/*@Nullable*/ StreamSession streamSession) {
+      threadUtils.checkNotMainThread();
+      ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
+      Collection<Session> currentSessions = sessionCache.getSessions();
+
+      // If we have old sessions and we received a clear head, let's invalidate the session that
+      // initiated the clear.
+      store.clearHead();
+      for (Session session : currentSessions) {
+        ModelProvider modelProvider = session.getModelProvider();
+        if (modelProvider != null
+            && session.invalidateOnResetHead()
+            && shouldInvalidateSession(streamSession, modelProvider)) {
+          invalidateSession(modelProvider, session);
+        }
+      }
+      timeTracker.stop("task", "resetHead");
+    }
+
+    /**
+     * This will determine if the ModelProvider (session) should be invalidated.
+     *
+     * <ol>
+     *   <li>ModelProvider should be READY
+     *   <li>Clearing head was initiated externally, not from an existing session
+     *   <li>Clearing head was initiated by the ModelProvider
+     *   <li>The ModelProvider doesn't yet have a session, so we'll create the session from the new
+     *       $HEAD
+     * </ol>
+     */
+    @VisibleForTesting
+    boolean shouldInvalidateSession(
+        /*@Nullable*/ StreamSession streamSession, ModelProvider modelProvider) {
+      // if the model provider isn't READY, don't invalidate the session
+      if (modelProvider.getCurrentState() != State.READY) {
+        return false;
+      }
+      // Clear was done outside of any session.
+      if (streamSession == null) {
+        return true;
+      }
+      // Invalidate if the ModelProvider doesn't yet have a session or if it matches the session
+      // which initiated the request clearing $HEAD.
+      String sessionToken = modelProvider.getSessionToken();
+      return (sessionToken == null || sessionToken.equals(streamSession.getStreamToken()));
+    }
+
+    private void invalidateSession(ModelProvider modelProvider, Session session) {
+      threadUtils.checkNotMainThread();
+      Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getStreamToken());
+      modelProvider.invalidate();
+    }
+  }
+
   @VisibleForTesting
-  class MutationCommitter implements Consumer<Result<List<StreamDataOperation>>> {
+  class MutationCommitter extends HeadMutationCommitter
+      implements Consumer<Result<List<StreamDataOperation>>> {
 
     private final String task;
     private final MutationContext mutationContext;
-    private final Consumer</*@Nullable*/ StreamSession> resetHeadConsumer;
     private final ModelErrorObserver modelErrorObserver;
     private final Map<String, StreamSharedState> sharedStateCache;
     /*@Nullable*/ private final KnownContentListener knownContentListener;
@@ -148,13 +208,11 @@ public class SessionManagerMutation implements Dumpable {
     private MutationCommitter(
         String task,
         MutationContext mutationContext,
-        Consumer</*@Nullable*/ StreamSession> resetHeadConsumer,
         ModelErrorObserver modelErrorObserver,
         Map<String, StreamSharedState> sharedStateCache,
         /*@Nullable*/ KnownContentListener knownContentListener) {
       this.task = task;
       this.mutationContext = mutationContext;
-      this.resetHeadConsumer = resetHeadConsumer;
       this.modelErrorObserver = modelErrorObserver;
       this.sharedStateCache = sharedStateCache;
       this.knownContentListener = knownContentListener;
@@ -229,8 +287,7 @@ public class SessionManagerMutation implements Dumpable {
         Operation operation = dataOperation.getStreamStructure().getOperation();
         if (operation == Operation.CLEAR_ALL) {
           streamStructures.add(dataOperation.getStreamStructure());
-          resetHeadConsumer.accept(
-              (mutationContext != null) ? mutationContext.getRequestingSession() : null);
+          resetHead((mutationContext != null) ? mutationContext.getRequestingSession() : null);
           continue;
         }
 
