@@ -26,6 +26,8 @@ import com.google.android.libraries.feed.common.logging.Logger;
 public class GridRowView extends LinearLayout {
   private static final String TAG = "GridRowView";
 
+  // TODO: call to setOrientation(int) not allowed on the given receiver.
+  @SuppressWarnings("nullness:method.invocation.invalid")
   public GridRowView(Context context) {
     super(context);
     super.setOrientation(HORIZONTAL);
