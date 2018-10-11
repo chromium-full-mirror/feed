@@ -58,7 +58,7 @@ public interface AssetProvider {
   boolean isDarkTheme();
 
   /**
-   * Fade-in animation will only occur if image loading time takes less than this amount of time.
+   * Fade-in animation will only occur if image loading time takes more than this amount of time.
    */
   int getFadeImageThresholdMs();
 }
