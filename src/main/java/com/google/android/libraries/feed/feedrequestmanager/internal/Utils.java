@@ -66,6 +66,8 @@ public final class Utils {
         return ClientInfo.AppType.GSA;
       case AppType.CHROME:
         return ClientInfo.AppType.CHROME;
+      case AppType.TEST_APP:
+        return ClientInfo.AppType.TEST_APP;
       default:
         return ClientInfo.AppType.UNKNOWN_APP;
     }

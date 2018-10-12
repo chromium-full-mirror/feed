@@ -23,15 +23,12 @@ import com.google.android.libraries.feed.common.logging.Logger;
 /** API to allow the Feed to get information about the host application. */
 public class ApplicationInfo {
 
-  @IntDef({
-    AppType.UNKNOWN_APP,
-    AppType.SEARCH_APP,
-    AppType.CHROME,
-  })
+  @IntDef({AppType.UNKNOWN_APP, AppType.SEARCH_APP, AppType.CHROME, AppType.TEST_APP})
   public @interface AppType {
     int UNKNOWN_APP = 0;
     int SEARCH_APP = 1;
     int CHROME = 2;
+    int TEST_APP = 3;
   }
 
   @IntDef({
