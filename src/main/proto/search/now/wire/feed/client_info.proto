@@ -36,6 +36,7 @@ message ClientInfo {
     UNKNOWN_APP = 0;
     GSA = 1;
     CHROME = 2;
+    TEST_APP = 3;
   }
 
   // The type of OS that the client is running.
