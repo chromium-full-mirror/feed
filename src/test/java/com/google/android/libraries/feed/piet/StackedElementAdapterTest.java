@@ -82,6 +82,8 @@ public class StackedElementAdapterTest {
 
     when(frameContext.getElementBindingValue(ELEMENT_BINDING)).thenReturn(ELEMENT_BINDING_VALUE);
     when(frameContext.makeStyleFor(any())).thenReturn(mockStyleProvider);
+    when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
+        .thenAnswer(invocation -> invocation.getArguments()[0]);
     when(mockHostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 

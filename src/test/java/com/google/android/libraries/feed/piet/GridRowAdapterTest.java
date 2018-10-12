@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.piet.ElementAdapter.DIMENSION_NOT_SET;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -123,6 +124,8 @@ public class GridRowAdapterTest {
         .thenReturn(adapterParameters.defaultStyleProvider);
     when(frameContext.makeStyleFor(GRID_STYLES)).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
+    when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
+        .thenAnswer(invocation -> invocation.getArguments()[0]);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());

@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
+import com.google.android.libraries.feed.piet.ImageElementAdapter.LoadImageCallback;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
@@ -52,6 +53,9 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
+import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition;
+import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition.DarkLightMode;
+import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
@@ -110,6 +114,8 @@ public class ImageElementAdapterTest {
 
     when(assetProvider.getFadeImageThresholdMs()).thenReturn(FADE_IMAGE_THRESHOLD_MS);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
+    when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
+        .thenAnswer(invocation -> invocation.getArguments()[0]);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(PADDING);
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
@@ -495,6 +501,33 @@ public class ImageElementAdapterTest {
             consumerArgumentCaptor.capture());
     consumerArgumentCaptor.getValue().accept(defaultDrawable);
     assertThat(adapter.getBaseView().getDrawable()).isSameAs(defaultDrawable);
+  }
+
+  @Test
+  public void testBindModel_filtersImageSources() {
+    ImageSource activeSource =
+        ImageSource.newBuilder()
+            .addConditions(
+                MediaQueryCondition.newBuilder()
+                    .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.DARK)))
+            .build();
+    ImageSource inactiveSource =
+        ImageSource.newBuilder()
+            .addConditions(
+                MediaQueryCondition.newBuilder()
+                    .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.LIGHT)))
+            .build();
+    Image image = Image.newBuilder().addSources(activeSource).addSources(inactiveSource).build();
+    Image filteredImage = Image.newBuilder().addSources(activeSource).build();
+    when(frameContext.filterImageSourcesByMediaQueryCondition(image)).thenReturn(filteredImage);
+
+    Element model = asElement(ImageElement.newBuilder().setImage(image).build());
+
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    verify(assetProvider)
+        .getImage(eq(filteredImage), anyInt(), anyInt(), any(LoadImageCallback.class));
   }
 
   @Test

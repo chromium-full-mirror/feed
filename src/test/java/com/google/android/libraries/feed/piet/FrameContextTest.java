@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
@@ -53,7 +54,10 @@ import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.ImagesProto.ImageSource;
 import com.google.search.now.ui.piet.MediaQueriesProto.ComparisonCondition;
+import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition;
+import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition.DarkLightMode;
 import com.google.search.now.ui.piet.MediaQueriesProto.FrameWidthCondition;
 import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -1162,6 +1166,34 @@ public class FrameContextTest {
         Template.newBuilder().setStylesheetId(mediaQueryStylesheetId).build();
     assertThat(frameContext.getMediaQueryStylesheet(mediaQueryTemplate))
         .isEqualTo(mediaQueryStylesheet);
+  }
+
+  @Test
+  public void testFilterImageSourcesByMediaQueryCondition() {
+    ImageSource activeSource =
+        ImageSource.newBuilder()
+            .addConditions(
+                MediaQueryCondition.newBuilder()
+                    .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.DARK)))
+            .build();
+    ImageSource inactiveSource =
+        ImageSource.newBuilder()
+            .addConditions(
+                MediaQueryCondition.newBuilder()
+                    .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.LIGHT)))
+            .build();
+    ImageSource sourceWithNoConditions = ImageSource.getDefaultInstance();
+    Image image =
+        Image.newBuilder()
+            .addSources(activeSource)
+            .addSources(inactiveSource)
+            .addSources(sourceWithNoConditions)
+            .build();
+    when(assetProvider.isDarkTheme()).thenReturn(true);
+    frameContext = defaultFrameContext();
+
+    Image resultImage = frameContext.filterImageSourcesByMediaQueryCondition(image);
+    assertThat(resultImage.getSourcesList()).containsExactly(activeSource, sourceWithNoConditions);
   }
 
   private FrameContext defaultFrameContext() {

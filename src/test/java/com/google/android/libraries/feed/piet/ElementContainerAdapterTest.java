@@ -151,6 +151,8 @@ public class ElementContainerAdapterTest {
         .thenReturn(frameContext);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(adapterParameters.defaultStyleProvider);
+    when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
+        .thenAnswer(invocation -> invocation.getArguments()[0]);
 
     // Default no-errors behavior
     when(frameContext.getTemplateInvocationBindingValue(DEFAULT_TEMPLATE_BINDING))

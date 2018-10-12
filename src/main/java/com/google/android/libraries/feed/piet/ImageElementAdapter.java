@@ -111,6 +111,8 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
       getBaseView().setImageDrawable(getElementStyle().createPreLoadFill());
     }
 
+    image = frameContext.filterImageSourcesByMediaQueryCondition(image);
+
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
     LoadImageCallback loadImageCallback =
         new LoadImageCallback(getBaseView(), toAndroidScaleType(image.getScaleType()));

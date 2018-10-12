@@ -38,6 +38,8 @@ import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
+import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.ImagesProto.ImageSource;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
@@ -355,6 +357,16 @@ class FrameContext {
     } else {
       return bindingValue.getVisibility();
     }
+  }
+
+  Image filterImageSourcesByMediaQueryCondition(Image image) {
+    Image.Builder imageBuilder = image.toBuilder().clearSources();
+    for (ImageSource source : image.getSourcesList()) {
+      if (stylesHelper.areMediaQueriesMet(source.getConditionsList())) {
+        imageBuilder.addSources(source);
+      }
+    }
+    return imageBuilder.build();
   }
 
   /**

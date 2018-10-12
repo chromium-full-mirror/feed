@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 import static com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.SINGLE_LAYER_ID;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -52,6 +53,7 @@ import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ActionsC
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ImageSpanDrawableCallback;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapterTest.ShadowTextViewWithHeight;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.ImageElementAdapter.LoadImageCallback;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -67,6 +69,9 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
+import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition;
+import com.google.search.now.ui.piet.MediaQueriesProto.DarkLightCondition.DarkLightMode;
+import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
@@ -171,6 +176,8 @@ public class ChunkedTextElementAdapterTest {
     when(frameContext.makeStyleFor(CHUNK_STYLE)).thenReturn(mockStyleProvider);
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(adapterParameters.defaultStyleProvider);
+    when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
+        .thenAnswer(invocation -> invocation.getArguments()[0]);
     when(hostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getActionHandler()).thenReturn(mockActionHandler);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
@@ -414,6 +421,45 @@ public class ChunkedTextElementAdapterTest {
 
   @Test
   public void testBind_imageChunk() {
+    ImageSource activeSource =
+        ImageSource.newBuilder()
+            .addConditions(
+                MediaQueryCondition.newBuilder()
+                    .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.DARK)))
+            .build();
+    ImageSource inactiveSource =
+        ImageSource.newBuilder()
+            .addConditions(
+                MediaQueryCondition.newBuilder()
+                    .setDarkLight(DarkLightCondition.newBuilder().setMode(DarkLightMode.LIGHT)))
+            .build();
+    Image originalImage =
+        Image.newBuilder().addSources(activeSource).addSources(inactiveSource).build();
+    Image filteredImage = Image.newBuilder().addSources(activeSource).build();
+    when(frameContext.filterImageSourcesByMediaQueryCondition(originalImage))
+        .thenReturn(filteredImage);
+
+    Chunk imageChunk =
+        Chunk.newBuilder()
+            .setImageChunk(StyledImageChunk.newBuilder().setImage(originalImage))
+            .build();
+    TextElement chunkedImageElement =
+        TextElement.newBuilder()
+            .setChunkedText(ChunkedText.newBuilder().addChunks(imageChunk))
+            .build();
+
+    adapter.createAdapter(asElement(chunkedImageElement), frameContext);
+    adapter.bindModel(asElement(chunkedImageElement), frameContext);
+
+    assertThat(adapter.getBaseView().getText().toString()).isEqualTo(" ");
+    assertThat(((SpannedString) adapter.getBaseView().getText()).getSpans(0, 1, ImageSpan.class))
+        .hasLength(1);
+    verify(mockAssetProvider)
+        .getImage(eq(filteredImage), anyInt(), anyInt(), any(LoadImageCallback.class));
+  }
+
+  @Test
+  public void testBind_imageChunk_filtersSourcesByMediaQueryCondition() {
     TextElement chunkedImageElement =
         TextElement.newBuilder()
             .setChunkedText(ChunkedText.newBuilder().addChunks(IMAGE_CHUNK))

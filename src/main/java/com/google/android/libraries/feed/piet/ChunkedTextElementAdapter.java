@@ -273,6 +273,8 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
         return;
     }
 
+    image = frameContext.filterImageSourcesByMediaQueryCondition(image);
+
     StyleProvider chunkStyle = frameContext.makeStyleFor(imageChunk.getStyleReferences());
 
     // Set a placeholder empty image
