@@ -45,7 +45,7 @@ import javax.annotation.concurrent.GuardedBy;
  * </ol>
  *
  * <p>The {@code TaskQueue} start in initialization mode. All tasks will be delayed until we
- * initialization is completed. The {@link #executeInitialization} method is run to initialize the
+ * initialization is completed. The {@link #initialize(Runnable)} method is run to initialize the
  * FeedSessionManager. We also enter delayed mode when we either reset the $HEAD or invalidate the
  * $HEAD. For HEAD_RESET, we are making a request which will complete. Once it's complete, we will
  * process any delayed tasks. HEAD_INVALIDATE simply clears the contents of $HEAD. The expectation
@@ -119,9 +119,9 @@ public class TaskQueue implements Dumpable {
 
   // counters used for dump
   private int taskCount = 0;
-  private int immediateTasksCount = 0;
-  private int delayedTaskCount = 0;
-  private int postInitTaskCount = 0;
+  private int immediateRunCount = 0;
+  private int delayedRunCount = 0;
+  private int immediateTaskCount = 0;
   private int headInvalidateTaskCount = 0;
   private int headResetTaskCount = 0;
   private int userFacingTaskCount = 0;
@@ -175,10 +175,7 @@ public class TaskQueue implements Dumpable {
    * first task run, all other tasks are delayed until initialization finishes.
    */
   public void initialize(Runnable runnable) {
-    TaskWrapper task =
-        new BaseTaskWrapper(
-            "initialize", TaskType.IMMEDIATE, () -> executeInitialization(runnable));
-    task.runTask();
+    new InitializationTaskWrapper(runnable).runTask();
   }
 
   /** Execute a Task on the Executor. */
@@ -186,23 +183,7 @@ public class TaskQueue implements Dumpable {
     execute(task, taskType, runnable, null, 0);
   }
 
-  /**
-   * When running on a single thread in tests, it is possible that we set waitingForHeadReset after
-   * the task that would have cleared it is run. This only happens in tests since we use Direct
-   * Executors which can cause Tasks to run in a nested way not done when a SingleThreaded Executor
-   * is used. This method will reset the TaskQueue and run the queued tasks.
-   *
-   * <p>This can only be called from tests. Never call this from on test code.
-   */
-  @VisibleForTesting
-  public void runTasksForTest() {
-    synchronized (lock) {
-      waitingForHeadReset = false;
-    }
-    executeNextTask();
-  }
-
-  /** Execute a task providing a timeout task */
+  /** Execute a task providing a timeout task. */
   public void execute(
       String task,
       @TaskType int taskType,
@@ -210,17 +191,21 @@ public class TaskQueue implements Dumpable {
       /*@Nullable*/ Runnable timeOutRunnable,
       long timeoutMillis) {
 
-    Logger.i(TAG, " - task[%s - d: %s, b: %s]: %s", taskType, isDelayed(), hasBacklog(), task);
+    Logger.i(
+        TAG,
+        " - task[%s - d: %s, b: %s, t: %s]: %s",
+        taskType,
+        isDelayed(),
+        hasBacklog(),
+        timeOutRunnable != null,
+        task);
     countTask(taskType);
     boolean queueTask = isDelayed();
-    TaskWrapper taskWrapper;
-    Runnable taskRunnable = getRunnable(runnable, taskType);
+    TaskWrapper taskWrapper = getTaskWrapper(task, taskType, runnable);
     if (timeOutRunnable != null) {
       taskWrapper =
-          new TimeoutTaskWrapper(task, taskType, taskRunnable, timeOutRunnable)
+          new TimeoutTaskWrapper(task, taskType, taskWrapper, timeOutRunnable)
               .startTimeout(timeoutMillis);
-    } else {
-      taskWrapper = new BaseTaskWrapper(task, taskType, taskRunnable);
     }
     scheduleTask(queueTask, taskWrapper, taskType);
   }
@@ -232,57 +217,57 @@ public class TaskQueue implements Dumpable {
     }
     if (isDelayed()) {
       Logger.i(TAG, " * Starting starvation checks");
-      mainThreadHandler.postDelayed(this::checkForStarvation, STARVATION_CHECK_MS);
+      mainThreadHandler.postDelayed(new StarvationChecker(), STARVATION_CHECK_MS);
     }
   }
 
-  private void checkForStarvation() {
-    if (!isDelayed()) {
-      Logger.i(TAG, " * Starvation checks being turned off");
-      // Quick out, we are not delaying things, this stops starvation checking
-      return;
-    }
-    long lastTask = lastTaskFinished.get();
-    Logger.i(
-        TAG, " * Starvation Check, last task %s", StringFormattingUtils.formatLogDate(lastTask));
-    if (clock.currentTimeMillis() > lastTask + STARVATION_TIMEOUT_MS) {
-      Logger.e(TAG, "Starvation check failed, stopping the delay and running tasks");
-      // Reset the delay since things aren't being run
-      synchronized (lock) {
-        if (waitingForHeadReset) {
-          waitingForHeadReset = false;
-        }
-        if (!initialized) {
-          initialized = true;
-        }
+  private class StarvationChecker implements Runnable {
+    @Override
+    public void run() {
+      if (!isDelayed()) {
+        Logger.i(TAG, " * Starvation checks being turned off");
+        // Quick out, we are not delaying things, this stops starvation checking
+        return;
       }
-      executor.execute(this::executeNextTask);
-    } else {
-      mainThreadHandler.postDelayed(this::checkForStarvation, STARVATION_CHECK_MS);
+      long lastTask = lastTaskFinished.get();
+      Logger.i(
+          TAG, " * Starvation Check, last task %s", StringFormattingUtils.formatLogDate(lastTask));
+      if (clock.currentTimeMillis() > lastTask + STARVATION_TIMEOUT_MS) {
+        Logger.e(TAG, "Starvation check failed, stopping the delay and running tasks");
+        // Reset the delay since things aren't being run
+        synchronized (lock) {
+          if (waitingForHeadReset) {
+            waitingForHeadReset = false;
+          }
+          if (!initialized) {
+            initialized = true;
+          }
+        }
+        executeNextTask();
+      } else {
+        mainThreadHandler.postDelayed(this, STARVATION_CHECK_MS);
+      }
     }
   }
 
   private void scheduleTask(boolean queueTask, TaskWrapper taskWrapper, @TaskType int taskType) {
     if (queueTask || hasBacklog()) {
-      delayedTaskCount++;
+      delayedRunCount++;
       queueTask(taskWrapper, taskType);
     } else {
-      immediateTasksCount++;
+      immediateRunCount++;
       taskWrapper.runTask();
     }
   }
 
-  private Runnable getRunnable(Runnable runnable, @TaskType int taskType) {
+  private TaskWrapper getTaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
     if (taskType == TaskType.HEAD_RESET) {
-      return () -> executeHeadReset(runnable);
+      return new HeadResetTaskWrapper(task, taskType, runnable);
     }
     if (taskType == TaskType.HEAD_INVALIDATE) {
-      synchronized (lock) {
-        waitingForHeadReset = true;
-      }
-      return () -> executeHeadInvalidate(runnable);
+      return new HeadInvalidateTaskWrapper(task, taskType, runnable);
     }
-    return () -> executeTask(runnable);
+    return new TaskWrapper(task, taskType, runnable);
   }
 
   private void queueTask(TaskWrapper taskWrapper, @TaskType int taskType) {
@@ -292,8 +277,9 @@ public class TaskQueue implements Dumpable {
           || taskType == TaskType.IMMEDIATE) {
         immediateTasks.add(taskWrapper);
         maxImmediateTasks = Math.max(immediateTasks.size(), maxImmediateTasks);
-        if (taskType == TaskType.HEAD_RESET || (taskType == TaskType.IMMEDIATE && initialized)) {
-          // HEAD_RESET and IMMEDIATE are both executed immediately
+        if (taskType == TaskType.HEAD_RESET || initialized) {
+          // HEAD_RESET is executed immediately, HEAD_INVALIDATE and IMMEDIATE are executed after
+          // initialization has completed
           executeNextTask();
         }
       } else if (taskType == TaskType.USER_FACING) {
@@ -309,7 +295,7 @@ public class TaskQueue implements Dumpable {
   private void countTask(@TaskType int taskType) {
     taskCount++;
     if (taskType == TaskType.IMMEDIATE) {
-      postInitTaskCount++;
+      immediateTaskCount++;
     } else if (taskType == TaskType.HEAD_INVALIDATE) {
       headInvalidateTaskCount++;
     } else if (taskType == TaskType.HEAD_RESET) {
@@ -336,104 +322,141 @@ public class TaskQueue implements Dumpable {
     }
   }
 
-  private void executeInitialization(Runnable runnable) {
-    runnable.run();
-    synchronized (lock) {
-      initialized = true;
-    }
-    executeNextTask();
-  }
-
-  private void executeHeadReset(Runnable runnable) {
-    runnable.run();
-    synchronized (lock) {
-      waitingForHeadReset = false;
-    }
-    executeNextTask();
-  }
-
-  private void executeHeadInvalidate(Runnable runnable) {
-    runnable.run();
-    synchronized (lock) {
-      waitingForHeadReset = true;
-      startStarvationCheck();
-    }
-    executeNextTask();
-  }
-
-  private void executeTask(Runnable runnable) {
-    runnable.run();
-    executeNextTask();
-  }
-
   private void executeNextTask() {
     lastTaskFinished.set(clock.currentTimeMillis());
     synchronized (lock) {
+      TaskWrapper task = null;
       if (!immediateTasks.isEmpty()) {
-        TaskWrapper task = immediateTasks.remove();
-        task.runTask();
+        task = immediateTasks.remove();
       } else if (!userTasks.isEmpty() && !isDelayed()) {
-        TaskWrapper task = userTasks.remove();
-        task.runTask();
+        task = userTasks.remove();
       } else if (!backgroundTasks.isEmpty() && !isDelayed()) {
-        TaskWrapper task = backgroundTasks.remove();
+        task = backgroundTasks.remove();
+      }
+      if (task != null) {
         task.runTask();
       }
     }
   }
 
-  interface TaskWrapper {
-    void runTask();
-  }
+  /**
+   * This class wraps the Runnable as a Runnable. It provides common handling of all tasks. This is
+   * the default which supports the basic Task, subclasses will manage state changes.
+   */
+  private class TaskWrapper implements Runnable {
+    protected final String task;
+    final int taskType;
+    protected final Runnable runnable;
 
-  class BaseTaskWrapper implements TaskWrapper {
-    private final String task;
-    private final @TaskType int taskType;
-    private final Runnable taskRunnable;
-
-    BaseTaskWrapper(String task, @TaskType int taskType, Runnable taskRunnable) {
+    TaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
       this.task = task;
       this.taskType = taskType;
-      this.taskRunnable = taskRunnable;
+      this.runnable = runnable;
+    }
+
+    /** This will run the task on the {@link ExecutorService}. */
+    void runTask() {
+      Logger.i(TAG, "Execute task [%s - d: %s]: %s", taskType, isDelayed(), task);
+      executor.execute(this);
+    }
+
+    /** Run the task (Runnable) then trigger execution of the next task. */
+    @Override
+    public void run() {
+      runnable.run();
+      executeNextTask();
+    }
+  }
+
+  /**
+   * Initialization will flip the {@link #initialized} state to {@code true} when the initialization
+   * task completes.
+   */
+  private class InitializationTaskWrapper extends TaskWrapper {
+    InitializationTaskWrapper(Runnable runnable) {
+      super("initializationTask", TaskType.IMMEDIATE, runnable);
     }
 
     @Override
-    public void runTask() {
-      Logger.i(TAG, "Execute task [%s - %s]: %s", taskType, isDelayed(), task);
-      executor.execute(taskRunnable);
+    public void run() {
+      runnable.run();
+      synchronized (lock) {
+        initialized = true;
+      }
+      executeNextTask();
     }
   }
 
-  /** Runs a Task which has a timeout */
-  class TimeoutTaskWrapper implements TaskWrapper {
-    private final String task;
-    private final @TaskType int taskType;
-    private final Runnable taskRunnable;
+  /**
+   * HeadReset will run a task which resets $HEAD. It clears the {@link #waitingForHeadReset} state.
+   */
+  private class HeadResetTaskWrapper extends TaskWrapper {
+    HeadResetTaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
+      super(task, taskType, runnable);
+    }
+
+    @Override
+    public void run() {
+      runnable.run();
+      synchronized (lock) {
+        waitingForHeadReset = false;
+      }
+      executeNextTask();
+    }
+  }
+
+  /**
+   * HeadInvalidate is a task which marks the current head as invalid. The TaskQueue will then be
+   * delayed until {@link HeadResetTaskWrapper} has completed. This will set the {@link
+   * #waitingForHeadReset}. In addition starvation checks will be started.
+   */
+  private class HeadInvalidateTaskWrapper extends TaskWrapper {
+    HeadInvalidateTaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
+      super(task, taskType, runnable);
+      synchronized (lock) {
+        waitingForHeadReset = true;
+      }
+    }
+
+    @Override
+    public void run() {
+      runnable.run();
+      startStarvationCheck();
+      executeNextTask();
+    }
+  }
+
+  /**
+   * Runs a Task which has a timeout. The timeout task (Runnable) will run if the primary task is
+   * not started before the timeout millis.
+   */
+  private class TimeoutTaskWrapper extends TaskWrapper {
     private final Runnable timeoutRunnable;
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     TimeoutTaskWrapper(
         String task, @TaskType int taskType, Runnable taskRunnable, Runnable timeoutRunnable) {
-      this.task = task;
-      this.taskType = taskType;
-      this.taskRunnable = taskRunnable;
+      super(task, taskType, taskRunnable);
       this.timeoutRunnable = timeoutRunnable;
     }
 
-    TimeoutTaskWrapper startTimeout(long timeoutMillis) {
-      Logger.i("FeedSessionManager", "startingTimeout %s", timeoutMillis);
+    /**
+     * Start the timeout period. If we reach the timeout before the Task is run, the {@link
+     * #timeoutRunnable} will run.
+     */
+    private TimeoutTaskWrapper startTimeout(long timeoutMillis) {
       mainThreadHandler.postDelayed(this::runTimeoutCallback, timeoutMillis);
       return this;
     }
 
     @Override
-    public void runTask() {
+    void runTask() {
       Logger.i(TAG, "Execute task [%s - %s]: %s", taskType, isDelayed(), task);
       started.set(true);
-      executor.execute(taskRunnable);
+      super.runTask();
     }
 
-    void runTimeoutCallback() {
+    private void runTimeoutCallback() {
       if (started.get()) {
         return;
       }
@@ -446,10 +469,10 @@ public class TaskQueue implements Dumpable {
   public void dump(Dumper dumper) {
     dumper.title(TAG);
     dumper.forKey("tasks").value(taskCount);
-    dumper.forKey("immediateRun").value(immediateTasksCount).compactPrevious();
-    dumper.forKey("delayedRun").value(delayedTaskCount).compactPrevious();
+    dumper.forKey("immediateRun").value(immediateRunCount).compactPrevious();
+    dumper.forKey("delayedRun").value(delayedRunCount).compactPrevious();
 
-    dumper.forKey("postInitTasks").value(postInitTaskCount);
+    dumper.forKey("immediateTasks").value(immediateTaskCount);
     dumper.forKey("headInvalidateTasks").value(headInvalidateTaskCount).compactPrevious();
     dumper.forKey("headResetTasks").value(headResetTaskCount).compactPrevious();
     dumper.forKey("userFacingTasks").value(userFacingTaskCount).compactPrevious();
@@ -458,5 +481,21 @@ public class TaskQueue implements Dumpable {
     dumper.forKey("maxImmediateQueue").value(maxImmediateTasks);
     dumper.forKey("maxUserFacingQueue").value(maxUserFacingTasks).compactPrevious();
     dumper.forKey("maxBackgroundQueue").value(maxBackgroundTasks).compactPrevious();
+  }
+
+  /**
+   * When running on a single thread in tests, it is possible that we set waitingForHeadReset after
+   * the task that would have cleared it is run. This only happens in tests since we use Direct
+   * Executors which can cause Tasks to run in a nested way not done when a SingleThreaded Executor
+   * is used. This method will reset the TaskQueue and run the queued tasks.
+   *
+   * <p>This can only be called from tests. Never call this from on test code.
+   */
+  @VisibleForTesting
+  public void runTasksForTest() {
+    synchronized (lock) {
+      waitingForHeadReset = false;
+    }
+    executeNextTask();
   }
 }
