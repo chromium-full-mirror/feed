@@ -31,6 +31,7 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContentDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.HeaderDriver;
@@ -74,6 +75,7 @@ public class StreamRecyclerViewAdapterTest {
   private static final Configuration CONFIGURATION = new Configuration.Builder().build();
 
   @Mock private CardConfiguration cardConfiguration;
+  @Mock private ContentChangedListener contentChangedListener;
   @Mock private PietManager pietManager;
   @Mock private FrameAdapter frameAdapter;
   @Mock private StreamDriver driver;
@@ -122,6 +124,7 @@ public class StreamRecyclerViewAdapterTest {
             cardConfiguration,
             pietManager,
             deepestContentTracker,
+            contentChangedListener,
             CONFIGURATION);
     streamRecyclerViewAdapter.setHeaders(headers);
 
@@ -263,6 +266,7 @@ public class StreamRecyclerViewAdapterTest {
         0, Lists.newArrayList(featureDriver1, featureDriver2));
     assertThat(streamAdapterObserver.insertedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.insertedCount).isEqualTo(2);
+    verify(contentChangedListener).onContentChanged();
   }
 
   @Test
@@ -281,6 +285,7 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.notifyContentRemoved(0);
     assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
+    verify(contentChangedListener).onContentChanged();
   }
 
   @Test
@@ -298,6 +303,7 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter.notifyContentsCleared();
     assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
+    verify(contentChangedListener).onContentChanged();
   }
 
   @Test
@@ -314,7 +320,12 @@ public class StreamRecyclerViewAdapterTest {
   public void testOnDestroy() {
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
-            context, cardConfiguration, pietManager, deepestContentTracker, CONFIGURATION) {
+            context,
+            cardConfiguration,
+            pietManager,
+            deepestContentTracker,
+            contentChangedListener,
+            CONFIGURATION) {
           @Override
           HeaderDriver createHeaderDriver(Header header) {
             if (header == headers.get(0)) {
@@ -340,6 +351,7 @@ public class StreamRecyclerViewAdapterTest {
             cardConfiguration,
             pietManager,
             deepestContentTracker,
+            contentChangedListener,
             CONFIGURATION) {
           @Override
           HeaderDriver createHeaderDriver(Header header) {
@@ -425,7 +437,12 @@ public class StreamRecyclerViewAdapterTest {
   public void testDismissHeader() {
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
-            context, cardConfiguration, pietManager, deepestContentTracker, CONFIGURATION) {
+            context,
+            cardConfiguration,
+            pietManager,
+            deepestContentTracker,
+            contentChangedListener,
+            CONFIGURATION) {
           @Override
           HeaderDriver createHeaderDriver(Header header) {
             if (header == headers.get(0)) {

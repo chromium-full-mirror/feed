@@ -869,6 +869,7 @@ public class BasicStreamTest {
         CardConfiguration cardConfiguration,
         PietManager pietManager,
         DeepestContentTracker deepestContentTracker,
+        StreamContentChangedListener streamContentChangedListener,
         Configuration configuration) {
       return adapter;
     }

@@ -477,6 +477,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             cardConfiguration,
             pietManager,
             deepestContentTracker,
+            streamContentChangedListener,
             configuration);
     adapter.setHeaders(headers);
     recyclerView = new RecyclerView(context);
@@ -636,12 +637,14 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       CardConfiguration cardConfiguration,
       PietManager pietManager,
       DeepestContentTracker deepestContentTracker,
+      StreamContentChangedListener streamContentChangedListener,
       Configuration configuration) {
     return new StreamRecyclerViewAdapter(
         context,
         cardConfiguration,
         pietManager,
         deepestContentTracker,
+        streamContentChangedListener,
         configuration);
   }
 

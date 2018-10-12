@@ -28,6 +28,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.basicstream.internal.drivers.HeaderDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.LeafFeatureDriver;
@@ -62,6 +63,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final List<HeaderDriver> headers;
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
   private final DeepestContentTracker deepestContentTracker;
+  private final ContentChangedListener contentChangedListener;
 
   private boolean streamContentVisible;
 
@@ -74,10 +76,12 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       CardConfiguration cardConfiguration,
       PietManager pietManager,
       DeepestContentTracker deepestContentTracker,
+      ContentChangedListener contentChangedListener,
       Configuration configuration) {
     this.context = context;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
+    this.contentChangedListener = contentChangedListener;
     this.configuration = configuration;
     headers = new ArrayList<>();
     leafFeatureDrivers = new ArrayList<>();
@@ -252,6 +256,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (streamContentVisible) {
       notifyItemRangeInserted(insertionIndex, newFeatureDrivers.size());
     }
+    contentChangedListener.onContentChanged();
   }
 
   @Override
@@ -264,6 +269,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (streamContentVisible) {
       notifyItemRemoved(removalIndex);
     }
+    contentChangedListener.onContentChanged();
   }
 
   @Override
@@ -274,6 +280,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (streamContentVisible) {
       notifyItemRangeRemoved(headers.size(), itemCount);
     }
+    contentChangedListener.onContentChanged();
   }
 
   public void onDestroy() {
