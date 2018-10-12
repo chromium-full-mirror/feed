@@ -210,7 +210,7 @@ public class TaskQueue implements Dumpable {
       /*@Nullable*/ Runnable timeOutRunnable,
       long timeoutMillis) {
 
-    Logger.i(TAG, " - task[%s - %s]: %s", taskType, isDelayed(), task);
+    Logger.i(TAG, " - task[%s - d: %s, b: %s]: %s", taskType, isDelayed(), hasBacklog(), task);
     countTask(taskType);
     boolean queueTask = isDelayed();
     TaskWrapper taskWrapper;
@@ -263,7 +263,7 @@ public class TaskQueue implements Dumpable {
   }
 
   private void scheduleTask(boolean queueTask, TaskWrapper taskWrapper, @TaskType int taskType) {
-    if (queueTask) {
+    if (queueTask || hasBacklog()) {
       delayedTaskCount++;
       queueTask(taskWrapper, taskType);
     } else {
