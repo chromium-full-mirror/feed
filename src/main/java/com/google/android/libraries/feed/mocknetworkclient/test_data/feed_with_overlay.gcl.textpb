@@ -488,9 +488,6 @@ initial_response {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
                                             type: DOWNLOAD
-                                            download_data {
-                                              url: "http://profootballtalk.nbcsports.com/2017/11/10/jerry-jones-owners-should-approve-of-roger-goodells-decisions/"
-                                            }
                                           }
                                         }
                                       }
@@ -791,9 +788,6 @@ initial_response {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
                                             type: DOWNLOAD
-                                            download_data {
-                                              url: "https://www.nytimes.com/2017/11/10/world/asia/trump-apec-asia-trade.html"
-                                            }
                                           }
                                         }
                                       }
@@ -1094,9 +1088,6 @@ initial_response {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
                                             type: DOWNLOAD
-                                            download_data {
-                                              url: "https://www.washingtonpost.com/powerpost/national-republican-senatorial-committee-ends-joint-fundraising-agreement-with-roy-moore-campaign/2017/11/10/f393278c-c62e-11e7-84bc-5e285c7f4512_story.html?utm_term=.fd2ef2b9fedb"
-                                            }
                                           }
                                         }
                                       }
@@ -1397,9 +1388,6 @@ initial_response {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
                                             type: DOWNLOAD
-                                            download_data {
-                                              url: "http://www.cnn.com/2017/11/10/politics/wsj-flynn-turkey/index.html"
-                                            }
                                           }
                                         }
                                       }
@@ -1700,9 +1688,6 @@ initial_response {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
                                             type: DOWNLOAD
-                                            download_data {
-                                              url: "http://www.denverpost.com/2017/11/10/boulder-satellite-tracking-evaporating-planets/"
-                                            }
                                           }
                                         }
                                       }
@@ -2003,9 +1988,6 @@ initial_response {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
                                             type: DOWNLOAD
-                                            download_data {
-                                              url: "http://www.steamboattoday.com/news/city-of-steamboat-will-abandon-ship-and-replace-yampa-river-queen-with-new-playground/"
-                                            }
                                           }
                                         }
                                       }
@@ -2128,10 +2110,10 @@ initial_response {
         [search.now.ui.stream.Content.content_extension] {
           type: PIET
           representation_data {
-            uri: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
+            uri: "https://www.forbes.com/science/#776883b25738"
           }
           offline_metadata {
-            title: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players"
+            title: "Forbes Science Innovation"
             image_url: "overlay-image://?direction=start&url=https://encrypted-tbn1.gstatic.com/images?q%3Dtbn:ANd9GcR9HdsNXd1Z83y2MQDeE342tOYx0mSrfoZKkKU0403OAJJUrHfHZr1n11o3ARrjsOEVMQIBlZZ5nQ"
             publisher: "Forbes \302\267 %s"
             favicon_url: "https://www.google.com/s2/favicons?domain=www.forbes.com&sz=48"
@@ -2170,7 +2152,7 @@ initial_response {
                     binding_values {
                       binding_id: "title-binding"
                       parameterized_text {
-                        text: "The Easiest Thing Niantic Could Do to Re-Engage Bored \'Pokemon GO\' Players"
+                        text: "Forbes Science Innovation"
                       }
                     }
                     binding_values {
@@ -2200,7 +2182,7 @@ initial_response {
                                 metadata {
                                   type: OPEN_URL
                                   open_url_data {
-                                    url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
+                                    url: "https://www.forbes.com/science/#776883b25738"
                                   }
                                 }
                               }
@@ -2221,7 +2203,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL
                                             open_url_data {
-                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
+                                              url: "https://www.forbes.com/science/#776883b25738"
                                             }
                                           }
                                         }
@@ -2234,7 +2216,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL_NEW_WINDOW
                                             open_url_data {
-                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
+                                              url: "https://www.forbes.com/science/#776883b25738"
                                             }
                                           }
                                         }
@@ -2247,7 +2229,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL_INCOGNITO
                                             open_url_data {
-                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
+                                              url: "https://www.forbes.com/science/#776883b25738"
                                             }
                                           }
                                         }
@@ -2260,7 +2242,7 @@ initial_response {
                                           metadata {
                                             type: OPEN_URL_NEW_TAB
                                             open_url_data {
-                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
+                                              url: "https://www.forbes.com/science/#776883b25738"
                                             }
                                           }
                                         }
@@ -2306,9 +2288,6 @@ initial_response {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
                                             type: DOWNLOAD
-                                            download_data {
-                                              url: "https://www.forbes.com/[INTERNAL LINK]#5552558729cc"
-                                            }
                                           }
                                         }
                                       }
@@ -2609,9 +2588,6 @@ initial_response {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
                                             type: DOWNLOAD
-                                            download_data {
-                                              url: "http://www.cnn.com/2017/11/10/europe/france-school-car-incident/index.html"
-                                            }
                                           }
                                         }
                                       }

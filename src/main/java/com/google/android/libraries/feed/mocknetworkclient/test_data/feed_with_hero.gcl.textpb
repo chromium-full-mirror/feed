@@ -1221,7 +1221,7 @@ initial_response {
                       binding_id: "image-binding"
                       image {
                         sources {
-                          url: "https://upload.wikimedia.org/wikipedia/commons/thumb/[INTERNAL LINK].jpg/640px-Above_Gotham.jpg"
+                          url: "http://www.gstatic.com/android/now/images/default/hdpi/context_day_at_work.png"
                         }
                         scale_type: CENTER_CROP
                       }
