@@ -146,7 +146,7 @@ public class FrameAdapterTest {
         new FrameAdapter(context, adapterParameters, actionHandler, debugBehavior) {
           @Override
           FrameContext createFrameContext(
-              Frame frame, int frameWidth, List<PietSharedState> pietSharedStates) {
+              Frame frame, int frameWidthPx, List<PietSharedState> pietSharedStates) {
             return frameContext;
           }
         };
