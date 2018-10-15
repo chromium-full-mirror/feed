@@ -106,6 +106,11 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     textView.setText("");
   }
 
+  /** Return the height of the text in this view for line spacing calculations. */
+  float getTextHeightPx() {
+    return getBaseView().getTextSize();
+  }
+
   @VisibleForTesting
   // LINT.IfChange(set_values_used_in_recycler_key)
   void setValuesUsedInRecyclerKey(TextElementKey fontKey) {

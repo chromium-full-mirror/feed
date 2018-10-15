@@ -143,7 +143,17 @@ class StyleProvider {
 
     // Apply layout styles
     EdgeWidths padding = getPadding();
-    applyPadding(context, baseView, padding);
+
+    // Adds padding to the top and bottom of text views to match the behavior of CSS when line
+    // spacing is not 1.0.  This value can be negative if line spacing is less than 1.0.
+    int extraPaddingForLineHeight = 0;
+    if (adapter instanceof TextElementAdapter && getFont().getLineHeightRatio() != 1.0f) {
+      float textSize = ((TextElementAdapter) adapter).getTextHeightPx();
+      float extraLineHeight = (getFont().getLineHeightRatio() - 1.0f) / 2;
+      extraPaddingForLineHeight = (int) (textSize * extraLineHeight);
+    }
+
+    applyPadding(context, baseView, padding, extraPaddingForLineHeight);
 
     if (getMinHeight() > 0) {
       baseView.setMinimumHeight((int) LayoutUtils.dpToPx(getMinHeight(), context));
@@ -160,20 +170,23 @@ class StyleProvider {
     }
   }
 
-  /** Set the padding on a view */
-  void applyPadding(Context context, View view, EdgeWidths padding) {
+  /** Set the padding on a view. This includes adding extra padding for line spacing on TextView. */
+  void applyPadding(
+      Context context, View view, EdgeWidths padding, int extraTopAndBottomPaddingPx) {
+    int startPadding = (int) LayoutUtils.dpToPx(padding.getStart(), context);
+    int endPadding = (int) LayoutUtils.dpToPx(padding.getEnd(), context);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       view.setPaddingRelative(
-          (int) LayoutUtils.dpToPx(padding.getStart(), context),
-          (int) LayoutUtils.dpToPx(padding.getTop(), context),
-          (int) LayoutUtils.dpToPx(padding.getEnd(), context),
-          (int) LayoutUtils.dpToPx(padding.getBottom(), context));
+          startPadding,
+          (int) LayoutUtils.dpToPx(padding.getTop(), context) + extraTopAndBottomPaddingPx,
+          endPadding,
+          (int) LayoutUtils.dpToPx(padding.getBottom(), context) + extraTopAndBottomPaddingPx);
     } else {
       view.setPadding(
-          (int) LayoutUtils.dpToPx(padding.getStart(), context),
-          (int) LayoutUtils.dpToPx(padding.getTop(), context),
-          (int) LayoutUtils.dpToPx(padding.getEnd(), context),
-          (int) LayoutUtils.dpToPx(padding.getBottom(), context));
+          LayoutUtils.isDefaultLocaleRtl() ? endPadding : startPadding,
+          (int) LayoutUtils.dpToPx(padding.getTop(), context) + extraTopAndBottomPaddingPx,
+          LayoutUtils.isDefaultLocaleRtl() ? startPadding : endPadding,
+          (int) LayoutUtils.dpToPx(padding.getBottom(), context) + extraTopAndBottomPaddingPx);
     }
   }
 

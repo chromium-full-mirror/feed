@@ -209,6 +209,14 @@ public class TextElementAdapterTest {
   }
 
   @Test
+  public void testGetLineHeight() {
+    adapter.getBaseView().setTextSize(123.0f);
+    assertThat(adapter.getTextHeightPx()).isEqualTo(123.0f);
+    adapter.getBaseView().setTextSize(321.0f);
+    assertThat(adapter.getTextHeightPx()).isEqualTo(321.0f);
+  }
+
+  @Test
   public void testGetStyles() {
     StyleIdsStack elementStyles = StyleIdsStack.newBuilder().addStyleIds("hair").build();
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());

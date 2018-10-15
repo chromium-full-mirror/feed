@@ -182,6 +182,11 @@ message Font {
   // Line height, expressed as a multiple of size (hence the `_ratio` suffix).
   // The default value of 1.2 is intended to work well for most scenarios
   // without requiring feature authors to specify this explicitly.
+  // Behavior matches that of CSS: extra space appears between lines and evenly
+  // split above and below a block of text.
+  // For example, if the ratio is 2.0 and the text is 12pt tall, there will be
+  // 12pt of space between each pair of lines, and 6pt of space above and below
+  // the block of text.
   optional float line_height_ratio = 2 [default = 1.2];
 
   // Material Design specifies six weights for a font, in order from thinnest

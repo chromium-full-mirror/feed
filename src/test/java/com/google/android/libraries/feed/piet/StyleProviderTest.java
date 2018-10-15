@@ -25,6 +25,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION_CODES;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -48,9 +49,11 @@ public class StyleProviderTest {
 
   @Mock private AssetProvider mockAssetProvider;
   @Mock private ElementAdapter<View, ?> adapter;
+  @Mock private TextElementAdapter textAdapter;
 
   private View view;
   private View baseView;
+  private TextView textView;
 
   private Context context;
 
@@ -60,9 +63,13 @@ public class StyleProviderTest {
     context = Robolectric.setupActivity(Activity.class);
     view = new View(context);
     baseView = new View(context);
+    textView = new TextView(context);
     when(adapter.getView()).thenReturn(view);
     when(adapter.getBaseView()).thenReturn(baseView);
     when(adapter.getContext()).thenReturn(context);
+    when(textAdapter.getView()).thenReturn(view);
+    when(textAdapter.getBaseView()).thenReturn(textView);
+    when(textAdapter.getContext()).thenReturn(context);
   }
 
   @Test
@@ -121,8 +128,104 @@ public class StyleProviderTest {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
-        .applyPadding(context, view, padding);
+        .applyPadding(context, view, padding, 0);
     verifyPadding(view, padding);
+  }
+
+  @Test
+  public void testApplyPadding_textSpacing() {
+    EdgeWidths padding =
+        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
+    when(textAdapter.getTextHeightPx()).thenReturn(100.0f);
+    new StyleProvider(
+            Style.newBuilder()
+                .setFont(Font.newBuilder().setLineHeightRatio(1.5f))
+                .setPadding(padding)
+                .build(),
+            mockAssetProvider)
+        .applyElementStyles(textAdapter);
+
+    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
+    assertThat(textView.getPaddingTop())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) + 25);
+    assertThat(textView.getPaddingBottom())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) + 25);
+  }
+
+  @Test
+  public void testApplyPadding_textSpacingLessThanOne() {
+    EdgeWidths padding =
+        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
+    when(textAdapter.getTextHeightPx()).thenReturn(100.0f);
+    new StyleProvider(
+            Style.newBuilder()
+                .setFont(Font.newBuilder().setLineHeightRatio(0.5f))
+                .setPadding(padding)
+                .build(),
+            mockAssetProvider)
+        .applyElementStyles(textAdapter);
+
+    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, we take away an extra 25 at top and bottom.
+    assertThat(textView.getPaddingTop())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) - 25);
+    assertThat(textView.getPaddingBottom())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) - 25);
+  }
+
+  @Config(sdk = VERSION_CODES.JELLY_BEAN)
+  @Test
+  public void testApplyPadding_JB() {
+    EdgeWidths padding =
+        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
+    new StyleProvider(Style.newBuilder().setPadding(padding).build(), mockAssetProvider)
+        .applyElementStyles(adapter);
+    verifyPadding(baseView, padding);
+  }
+
+  @Config(sdk = VERSION_CODES.JELLY_BEAN)
+  @Test
+  public void testApplyPadding_textSpacing_JB() {
+    EdgeWidths padding =
+        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
+    when(textAdapter.getTextHeightPx()).thenReturn(100.0f);
+    new StyleProvider(
+            Style.newBuilder()
+                .setFont(Font.newBuilder().setLineHeightRatio(1.5f))
+                .setPadding(padding)
+                .build(),
+            mockAssetProvider)
+        .applyElementStyles(textAdapter);
+
+    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
+    assertThat(textView.getPaddingTop())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) + 25);
+    assertThat(textView.getPaddingBottom())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) + 25);
+  }
+
+  @Config(sdk = VERSION_CODES.JELLY_BEAN)
+  @Test
+  public void testApplyPadding_textSpacingLessThanOne_JB() {
+    EdgeWidths padding =
+        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
+    when(textAdapter.getTextHeightPx()).thenReturn(100.0f);
+    new StyleProvider(
+            Style.newBuilder()
+                .setFont(Font.newBuilder().setLineHeightRatio(0.5f))
+                .setPadding(padding)
+                .build(),
+            mockAssetProvider)
+        .applyElementStyles(textAdapter);
+
+    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, we take away an extra 25 at top and bottom.
+    assertThat(textView.getPaddingTop())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) - 25);
+    assertThat(textView.getPaddingBottom())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) - 25);
   }
 
   @Test
