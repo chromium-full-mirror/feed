@@ -152,6 +152,12 @@ public class ContextMenuManagerTest {
     assertThat(popupWindow.isShowing()).isFalse();
   }
 
+  @Test
+  public void testOnDestroy() {
+    contextMenuManager.onDestroy();
+    verify(lifecycleListener).unregisterObserver(contextMenuManager);
+  }
+
   private List<String> createAdapterItems() {
     List<String> adapter = new ArrayList<>();
     for (int i = 0; i < 3; i++) {

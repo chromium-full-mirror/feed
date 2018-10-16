@@ -45,6 +45,7 @@ public class ContextMenuManager implements FeedLifecycleListener {
   private final View view;
   private final Context context;
   private final MenuMeasurer menuMeasurer;
+  private final FeedAppLifecycleListener lifecycleListener;
 
   /*@Nullable*/ private PopupWindow popupWindow;
 
@@ -54,6 +55,7 @@ public class ContextMenuManager implements FeedLifecycleListener {
     this.view = view;
     this.context = view.getContext();
     this.menuMeasurer = menuMeasurer;
+    this.lifecycleListener = lifecycleListener;
     lifecycleListener.registerObserver(this);
   }
 
@@ -225,6 +227,10 @@ public class ContextMenuManager implements FeedLifecycleListener {
 
   public void onDimensionsChanged() {
     dismissPopup();
+  }
+
+  public void onDestroy() {
+    lifecycleListener.unregisterObserver(this);
   }
 
   /** Notifies creator of the menu that a click has occurred. */
