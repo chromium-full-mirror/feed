@@ -38,7 +38,6 @@ import android.graphics.drawable.TransitionDrawable;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
@@ -68,6 +67,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadows.ShadowLooper;
 
 /** Tests of the {@link ImageElementAdapter}. */
 @RunWith(RobolectricTestRunner.class)
@@ -91,7 +91,7 @@ public class ImageElementAdapterTest {
   @Mock private StyleProvider styleProvider;
   @Mock private HostProviders hostProviders;
 
-  @Captor ArgumentCaptor<Consumer<Drawable>> consumerArgumentCaptor;
+  @Captor ArgumentCaptor<LoadImageCallback> consumerArgumentCaptor;
 
   private Context context;
   private int heightPx;
@@ -649,13 +649,9 @@ public class ImageElementAdapterTest {
   @Test
   public void testFadeAnimation() {
     clock.set(0);
-    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
-    Element model =
-        asElement(
-            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
 
-    adapter.createAdapter(model, frameContext);
-    adapter.bindModel(model, frameContext);
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
 
     // Fire the callback
     Bitmap bitmap = Bitmap.createBitmap(100, 150, Config.ALPHA_8);
@@ -693,8 +689,6 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
     adapter.bindModel(DEFAULT_MODEL, frameContext);
 
-    Bitmap bitmap = Bitmap.createBitmap(100, 150, Config.ALPHA_8);
-    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
     verify(assetProvider)
         .getImage(
             eq(DEFAULT_IMAGE),
@@ -703,10 +697,74 @@ public class ImageElementAdapterTest {
             consumerArgumentCaptor.capture());
 
     clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
-    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
+    consumerArgumentCaptor
+        .getValue()
+        .accept(
+            new BitmapDrawable(
+                context.getResources(), Bitmap.createBitmap(100, 150, Config.ALPHA_8)));
 
     assertThat(((TransitionDrawable) adapter.getBaseView().getDrawable()).getDrawable(0))
         .isSameAs(preLoadFillDrawable);
+  }
+
+  @Test
+  public void testFadeAnimation_storesCallback() {
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+
+    // Fire the callback
+    verify(assetProvider)
+        .getImage(
+            eq(DEFAULT_IMAGE),
+            /* widthPx= */ anyInt(),
+            /* heightPx= */ anyInt(),
+            consumerArgumentCaptor.capture());
+
+    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
+
+    LoadImageCallback loadImageCallback = consumerArgumentCaptor.getValue();
+
+    loadImageCallback.accept(
+        new BitmapDrawable(context.getResources(), Bitmap.createBitmap(100, 150, Config.ALPHA_8)));
+
+    // This has to be referenced so that Drawable will not garbage collect the callback which is
+    // stored in a weak reference.
+    assertThat(loadImageCallback.transitionCallback).isNotNull();
+
+    loadImageCallback.cancel();
+
+    // Null out the callback so it can be garbage collected.
+    assertThat(loadImageCallback.transitionCallback).isNull();
+  }
+
+  @Test
+  public void testFadeAnimation_delayedTaskNullsCallback() {
+    adapter.createAdapter(DEFAULT_MODEL, frameContext);
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+
+    // Fire the callback
+    verify(assetProvider)
+        .getImage(
+            eq(DEFAULT_IMAGE),
+            /* widthPx= */ anyInt(),
+            /* heightPx= */ anyInt(),
+            consumerArgumentCaptor.capture());
+
+    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
+
+    LoadImageCallback loadImageCallback = consumerArgumentCaptor.getValue();
+
+    loadImageCallback.accept(
+        new BitmapDrawable(context.getResources(), Bitmap.createBitmap(100, 150, Config.ALPHA_8)));
+
+    // This has to be referenced so that Drawable will not garbage collect the callback which is
+    // stored in a weak reference.
+    assertThat(loadImageCallback.transitionCallback).isNotNull();
+
+    ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+    // Null out the callback so it can be garbage collected.
+    assertThat(loadImageCallback.transitionCallback).isNull();
   }
 
   private void setStyle(/*@Nullable*/ Integer height, /*@Nullable*/ Integer width) {

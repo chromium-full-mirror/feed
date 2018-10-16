@@ -153,7 +153,7 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
   @Override
   void onUnbindModel() {
     if (currentlyLoadingImage != null) {
-      currentlyLoadingImage.cancelled = true;
+      currentlyLoadingImage.cancel();
       currentlyLoadingImage = null;
     }
     ImageView imageView = getBaseView();
@@ -182,7 +182,10 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
     private final ScaleType scaleType;
     private final long initialTime;
 
-    boolean cancelled = false;
+    private boolean cancelled;
+
+    @VisibleForTesting /*@Nullable*/ Callback transitionCallback;
+
     /*@Nullable*/ private Drawable finalDrawable;
 
     LoadImageCallback(ImageView imageView, ScaleType scaleType) {
@@ -230,7 +233,10 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
       imageView.setImageDrawable(transitionDrawable);
       transitionDrawable.setCrossFadeEnabled(true);
       transitionDrawable.startTransition(FADE_IN_ANIMATION_TIME_MS);
-      transitionDrawable.setCallback(
+
+      // Storing callback so it won't be garbage collected by Drawable which holds it in a
+      // WeakReference
+      transitionCallback =
           new Callback() {
             @Override
             public void invalidateDrawable(Drawable who) {
@@ -242,18 +248,23 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
 
             @Override
             public void unscheduleDrawable(Drawable who, Runnable what) {}
-          });
+          };
+      transitionDrawable.setCallback(transitionCallback);
+
       getView()
           .postDelayed(
               () -> {
-                if (!cancelled) {
-                  // Allows GC of the initial drawable and the transition drawable. Additionally
-                  // fixes the issue where the transition sometimes doesn't occur, which would
-                  // result in blank images.
-                  imageView.setImageDrawable(finalDrawable);
-                  // Invalidating the view as the view doesn't update if not manually updated here.
-                  getView().invalidate();
+                if (cancelled) {
+                  return;
                 }
+
+                // Allows GC of the initial drawable and the transition drawable. Additionally
+                // fixes the issue where the transition sometimes doesn't occur, which would
+                // result in blank images.
+                imageView.setImageDrawable(finalDrawable);
+                // Invalidating the view as the view doesn't update if not manually updated here.
+                getView().invalidate();
+                transitionCallback = null;
               },
               FADE_IN_ANIMATION_TIME_MS);
     }
@@ -261,6 +272,11 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
     private boolean shouldFadeInImage() {
       return (getParameters().clock.elapsedRealtime() - initialTime)
           > getParameters().hostProviders.getAssetProvider().getFadeImageThresholdMs();
+    }
+
+    void cancel() {
+      this.cancelled = true;
+      transitionCallback = null;
     }
   }
 
