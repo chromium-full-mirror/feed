@@ -29,6 +29,7 @@ import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.ui.AspectRatioScalingImageView;
 import com.google.android.libraries.feed.piet.ui.DrawableScalingHelper;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -38,7 +39,7 @@ import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** An {@link ElementAdapter} for {@code ImageElement} elements. */
-class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
+class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, ImageElement> {
   private static final String TAG = "ImageElementAdapter";
 
   /*@Nullable*/ private LoadImageCallback currentlyLoadingImage = null;
@@ -166,8 +167,8 @@ class ImageElementAdapter extends ElementAdapter<ImageView, ImageElement> {
     return getModel().getStyleReferences();
   }
 
-  private static ImageView createView(Context context) {
-    ImageView imageView = new ImageView(context);
+  private static AspectRatioScalingImageView createView(Context context) {
+    AspectRatioScalingImageView imageView = new AspectRatioScalingImageView(context);
     imageView.setCropToPadding(true);
     return imageView;
   }
