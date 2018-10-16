@@ -66,6 +66,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final ContentChangedListener contentChangedListener;
 
   private boolean streamContentVisible;
+  private boolean shown;
 
   /*@Nullable*/ private StreamDriver streamDriver;
 
@@ -256,7 +257,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (streamContentVisible) {
       notifyItemRangeInserted(insertionIndex, newFeatureDrivers.size());
     }
-    contentChangedListener.onContentChanged();
+    maybeNotifyContentChanged();
   }
 
   @Override
@@ -269,7 +270,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (streamContentVisible) {
       notifyItemRemoved(removalIndex);
     }
-    contentChangedListener.onContentChanged();
+    maybeNotifyContentChanged();
   }
 
   @Override
@@ -280,7 +281,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     if (streamContentVisible) {
       notifyItemRangeRemoved(headers.size(), itemCount);
     }
-    contentChangedListener.onContentChanged();
+    maybeNotifyContentChanged();
   }
 
   public void onDestroy() {
@@ -289,6 +290,18 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     }
 
     setHeaders(Collections.emptyList());
+  }
+
+  public void setShown(boolean shown) {
+    this.shown = shown;
+  }
+
+  private void maybeNotifyContentChanged() {
+    // If Stream is not shown on screen, host should be notified as animations will not run and the
+    // host will not be notified through StreamItemAnimator.
+    if (!shown) {
+      contentChangedListener.onContentChanged();
+    }
   }
 
   @VisibleForTesting

@@ -262,11 +262,22 @@ public class StreamRecyclerViewAdapterTest {
 
   @Test
   public void testNotifyContentsAdded_notifiesListener() {
+    streamRecyclerViewAdapter.setShown(false);
     streamRecyclerViewAdapter.notifyContentsAdded(
         0, Lists.newArrayList(featureDriver1, featureDriver2));
+
     assertThat(streamAdapterObserver.insertedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.insertedCount).isEqualTo(2);
     verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testNotifyContentsAdded_doesNotNotifiesContentChangedListener_ifShownTrue() {
+    streamRecyclerViewAdapter.setShown(true);
+    streamRecyclerViewAdapter.notifyContentsAdded(
+        0, Lists.newArrayList(featureDriver1, featureDriver2));
+
+    verify(contentChangedListener, never()).onContentChanged();
   }
 
   @Test
@@ -282,10 +293,20 @@ public class StreamRecyclerViewAdapterTest {
 
   @Test
   public void testNotifyContentsRemoved_notifiesListener() {
+    streamRecyclerViewAdapter.setShown(false);
     streamRecyclerViewAdapter.notifyContentRemoved(0);
+
     assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
     verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testNotifyContentsRemoved_doesNotNotifiesContentChangedListener_ifShownTrue() {
+    streamRecyclerViewAdapter.setShown(true);
+    streamRecyclerViewAdapter.notifyContentRemoved(0);
+
+    verify(contentChangedListener, never()).onContentChanged();
   }
 
   @Test
@@ -300,10 +321,20 @@ public class StreamRecyclerViewAdapterTest {
 
   @Test
   public void testNotifyContentsCleared_notifiesListener() {
+    streamRecyclerViewAdapter.setShown(false);
     streamRecyclerViewAdapter.notifyContentsCleared();
+
     assertThat(streamAdapterObserver.removedStart).isEqualTo(headers.size());
     assertThat(streamAdapterObserver.removedCount).isEqualTo(1);
     verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void testNotifyContentsCleared_doesNotNotifiesContentChangedListener_ifShownTrue() {
+    streamRecyclerViewAdapter.setShown(true);
+    streamRecyclerViewAdapter.notifyContentsCleared();
+
+    verify(contentChangedListener, never()).onContentChanged();
   }
 
   @Test

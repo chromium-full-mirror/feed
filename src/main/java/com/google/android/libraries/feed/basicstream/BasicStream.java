@@ -296,6 +296,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       adapter.setDriver(streamDriver);
       streamDriver.showZeroState(/* showSpinner= */ true);
     }
+    adapter.setShown(true);
   }
 
   @Override
@@ -305,7 +306,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   public void onInactive() {}
 
   @Override
-  public void onHide() {}
+  public void onHide() {
+    adapter.setShown(false);
+  }
 
   @Override
   public void onDestroy() {

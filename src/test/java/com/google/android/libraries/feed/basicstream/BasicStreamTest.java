@@ -742,6 +742,23 @@ public class BasicStreamTest {
     assertThat(basicStream.streamDriverScrollRestorer).isEqualTo(scrollRestorer);
   }
 
+  @Test
+  public void testOnShow_setShown() {
+    basicStream.onShow();
+
+    verify(adapter).setShown(true);
+  }
+
+  @Test
+  public void testOnHide_setShown() {
+    basicStream.onShow();
+    reset(adapter);
+
+    basicStream.onHide();
+
+    verify(adapter).setShown(false);
+  }
+
   private byte[] decodeSavedInstanceStateString(String savedInstanceState) {
     return Base64.decode(savedInstanceState, Base64.DEFAULT);
   }
