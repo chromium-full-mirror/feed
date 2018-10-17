@@ -18,6 +18,8 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.widget.TextViewCompat;
 import android.text.TextUtils;
@@ -67,6 +69,12 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     StyleProvider textStyle = getElementStyle();
     textView.setTextColor(textStyle.getColor());
     textView.setLineSpacing(/* add= */ 0, textStyle.getFont().getLineHeightRatio());
+    // Letter spacing is currently untested due to lack of Robolectric support - don't delete this!
+    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+      textView.setLetterSpacing(textStyle.getFont().getLetterSpacing());
+    } else {
+      textView.setTextScaleX(1.0f + textStyle.getFont().getLetterSpacing());
+    }
     if (textStyle.getMaxLines() > 0) {
       textView.setMaxLines(textStyle.getMaxLines());
       textView.setEllipsize(TextUtils.TruncateAt.END);
