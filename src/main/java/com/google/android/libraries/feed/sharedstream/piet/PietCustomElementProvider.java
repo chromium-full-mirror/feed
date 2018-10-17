@@ -50,9 +50,9 @@ public class PietCustomElementProvider implements CustomElementProvider {
   }
 
   @Override
-  public void releaseCustomView(View customElementView) {
+  public void releaseCustomView(View customElementView, CustomElementData customElementData) {
     if (hostCustomElementProvider != null) {
-      hostCustomElementProvider.releaseCustomView(customElementView);
+      hostCustomElementProvider.releaseCustomView(customElementView, customElementData);
       return;
     }
 

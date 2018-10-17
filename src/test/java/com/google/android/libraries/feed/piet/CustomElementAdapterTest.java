@@ -166,7 +166,7 @@ public class CustomElementAdapterTest {
 
     adapter.unbindModel();
 
-    verify(customElementProvider).releaseCustomView(customView);
+    verify(customElementProvider).releaseCustomView(customView, DUMMY_DATA);
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
   }
 
@@ -193,8 +193,8 @@ public class CustomElementAdapterTest {
 
     adapter.unbindModel();
 
-    verify(customElementProvider).releaseCustomView(customView);
-    verify(customElementProvider).releaseCustomView(customView2);
+    verify(customElementProvider).releaseCustomView(customView, DUMMY_DATA);
+    verify(customElementProvider).releaseCustomView(customView2, DUMMY_DATA);
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
   }
 

@@ -27,5 +27,5 @@ public interface CustomElementProvider {
   View createCustomElement(CustomElementData customElementData);
 
   /** Notify the host that Piet is done with and will no longer use this custom element View. */
-  void releaseCustomView(View customElementView);
+  void releaseCustomView(View customElementView, CustomElementData customElementData);
 }

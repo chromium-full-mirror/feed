@@ -29,6 +29,7 @@ import com.google.search.now.ui.piet.ElementsProto.Visibility;
 /** Adapter that manages a custom view created by the host. */
 class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
   private static final String TAG = "CustomElementAdapter";
+  CustomElementData boundCustomElementData = CustomElementData.getDefaultInstance();
 
   CustomElementAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, new FrameLayout(context), KeySupplier.SINGLETON_KEY);
@@ -45,10 +46,9 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
 
   @Override
   void onBindModel(CustomElement customElement, Element baseElement, FrameContext frameContext) {
-    CustomElementData customElementData;
     switch (customElement.getContentCase()) {
       case CUSTOM_ELEMENT_DATA:
-        customElementData = customElement.getCustomElementData();
+        boundCustomElementData = customElement.getCustomElementData();
         break;
       case CUSTOM_BINDING:
         BindingValue binding =
@@ -62,7 +62,7 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
                 String.format("Custom element binding %s had no content", binding.getBindingId()));
           }
         }
-        customElementData = binding.getCustomElementData();
+        boundCustomElementData = binding.getCustomElementData();
         break;
       default:
         Logger.e(TAG, "Missing payload in CustomElement");
@@ -73,19 +73,21 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
         getParameters()
             .hostProviders
             .getCustomElementProvider()
-            .createCustomElement(customElementData);
+            .createCustomElement(boundCustomElementData);
     getBaseView().addView(v);
   }
 
   @Override
   void onUnbindModel() {
     FrameLayout baseView = getBaseView();
+    // There should be a maximum of one child that was bound, so using the CustomElementData that
+    // was saved during the last bind should be fine.
     if (baseView != null && baseView.getChildCount() > 0) {
       for (int i = 0; i < baseView.getChildCount(); i++) {
         getParameters()
             .hostProviders
             .getCustomElementProvider()
-            .releaseCustomView(baseView.getChildAt(i));
+            .releaseCustomView(baseView.getChildAt(i), boundCustomElementData);
       }
       baseView.removeAllViews();
     }

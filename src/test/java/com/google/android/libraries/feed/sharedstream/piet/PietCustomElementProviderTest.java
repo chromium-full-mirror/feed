@@ -72,15 +72,17 @@ public class PietCustomElementProviderTest {
 
   @Test
   public void testReleaseView_noHostDelegate() {
-    customElementProvider.releaseCustomView(new View(context));
+    customElementProvider.releaseCustomView(
+        new View(context), CustomElementData.getDefaultInstance());
 
     // Above call should not throw
   }
 
   @Test
   public void testReleaseView_hostDelegate() {
-    delegatingCustomElementProvider.releaseCustomView(hostCreatedView);
+    CustomElementData customElementData = CustomElementData.newBuilder().build();
+    delegatingCustomElementProvider.releaseCustomView(hostCreatedView, customElementData);
 
-    verify(hostCustomElementProvider).releaseCustomView(hostCreatedView);
+    verify(hostCustomElementProvider).releaseCustomView(hostCreatedView, customElementData);
   }
 }
