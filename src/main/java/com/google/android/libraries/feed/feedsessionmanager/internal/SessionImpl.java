@@ -87,6 +87,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
       boolean cachedBindings,
       boolean legacyHeadContent,
       /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+    Logger.i(TAG, "PopulateModelProvider %s items", head.size());
     this.streamSession = streamSession;
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
