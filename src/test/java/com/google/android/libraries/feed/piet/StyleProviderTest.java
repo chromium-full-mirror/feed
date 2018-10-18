@@ -132,48 +132,6 @@ public class StyleProviderTest {
     verifyPadding(view, padding);
   }
 
-  @Test
-  public void testApplyPadding_textSpacing() {
-    EdgeWidths padding =
-        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
-    when(textAdapter.getTextHeightPx()).thenReturn(100.0f);
-    new StyleProvider(
-            Style.newBuilder()
-                .setFont(Font.newBuilder().setLineHeightRatio(1.5f))
-                .setPadding(padding)
-                .build(),
-            mockAssetProvider)
-        .applyElementStyles(textAdapter);
-
-    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
-    assertThat(textView.getPaddingTop())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) + 25);
-    assertThat(textView.getPaddingBottom())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) + 25);
-  }
-
-  @Test
-  public void testApplyPadding_textSpacingLessThanOne() {
-    EdgeWidths padding =
-        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
-    when(textAdapter.getTextHeightPx()).thenReturn(100.0f);
-    new StyleProvider(
-            Style.newBuilder()
-                .setFont(Font.newBuilder().setLineHeightRatio(0.5f))
-                .setPadding(padding)
-                .build(),
-            mockAssetProvider)
-        .applyElementStyles(textAdapter);
-
-    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, we take away an extra 25 at top and bottom.
-    assertThat(textView.getPaddingTop())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) - 25);
-    assertThat(textView.getPaddingBottom())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) - 25);
-  }
-
   @Config(sdk = VERSION_CODES.JELLY_BEAN)
   @Test
   public void testApplyPadding_JB() {
@@ -184,48 +142,119 @@ public class StyleProviderTest {
     verifyPadding(baseView, padding);
   }
 
-  @Config(sdk = VERSION_CODES.JELLY_BEAN)
   @Test
-  public void testApplyPadding_textSpacing_JB() {
-    EdgeWidths padding =
-        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
-    when(textAdapter.getTextHeightPx()).thenReturn(100.0f);
-    new StyleProvider(
-            Style.newBuilder()
-                .setFont(Font.newBuilder().setLineHeightRatio(1.5f))
-                .setPadding(padding)
-                .build(),
-            mockAssetProvider)
-        .applyElementStyles(textAdapter);
-
+  public void testApplyPadding_lineSpacing() {
     // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
     // the view, so since the text size is 100, there is an extra 25 at top and bottom.
-    assertThat(textView.getPaddingTop())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) + 25);
-    assertThat(textView.getPaddingBottom())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) + 25);
+    testApplyPadding_lineSpacing_LollipopAndUp(
+        /* lineSpacing= */ 1.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ 25);
+  }
+
+  @Config(sdk = VERSION_CODES.LOLLIPOP)
+  @Test
+  public void testApplyPadding_lineSpacing_L() {
+    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
+    testApplyPadding_lineSpacing_LollipopAndUp(
+        /* lineSpacing= */ 1.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ 25);
+  }
+
+  @Config(sdk = VERSION_CODES.KITKAT)
+  @Test
+  public void testApplyPadding_lineSpacing_KK() {
+    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
+    testApplyPadding_lineSpacing_KKandUnder(
+        /* lineSpacing= */ 1.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ 25);
   }
 
   @Config(sdk = VERSION_CODES.JELLY_BEAN)
   @Test
-  public void testApplyPadding_textSpacingLessThanOne_JB() {
+  public void testApplyPadding_lineSpacing_JB() {
+    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
+    testApplyPadding_lineSpacing_KKandUnder(
+        /* lineSpacing= */ 1.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ 25);
+  }
+
+  @Test
+  public void testApplyPadding_lineSpacingLessThanOne() {
+    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
+    // topAndBottomPadding negative.
+    testApplyPadding_lineSpacing_LollipopAndUp(
+        /* lineSpacing= */ 0.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ -25);
+  }
+
+  @Config(sdk = VERSION_CODES.LOLLIPOP)
+  @Test
+  public void testApplyPadding_lineSpacingLessThanOne_L() {
+    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
+    // topAndBottomPadding negative.
+    testApplyPadding_lineSpacing_LollipopAndUp(
+        /* lineSpacing= */ 0.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ -25);
+  }
+
+  @Config(sdk = VERSION_CODES.KITKAT)
+  @Test
+  public void testApplyPadding_lineSpacingLessThanOne_KK() {
+    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
+    // topAndBottomPadding negative.
+    testApplyPadding_lineSpacing_KKandUnder(
+        /* lineSpacing= */ 0.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ -25);
+  }
+
+  @Config(sdk = VERSION_CODES.JELLY_BEAN)
+  @Test
+  public void testApplyPadding_lineSpacingLessThanOne_JB() {
+    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
+    // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
+    // topAndBottomPadding negative.
+    testApplyPadding_lineSpacing_KKandUnder(
+        /* lineSpacing= */ 0.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ -25);
+  }
+
+  private void testApplyPadding_lineSpacing_LollipopAndUp(
+      float lineSpacing, float textHeight, int topAndBottomPadding) {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
-    when(textAdapter.getTextHeightPx()).thenReturn(100.0f);
+    when(textAdapter.getTextHeightPx()).thenReturn(textHeight);
     new StyleProvider(
             Style.newBuilder()
-                .setFont(Font.newBuilder().setLineHeightRatio(0.5f))
+                .setFont(Font.newBuilder().setLineHeightRatio(lineSpacing))
                 .setPadding(padding)
                 .build(),
             mockAssetProvider)
         .applyElementStyles(textAdapter);
 
-    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, we take away an extra 25 at top and bottom.
     assertThat(textView.getPaddingTop())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) - 25);
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) + topAndBottomPadding);
     assertThat(textView.getPaddingBottom())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) - 25);
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) + topAndBottomPadding);
+  }
+
+  private void testApplyPadding_lineSpacing_KKandUnder(
+      float lineSpacing, float textHeight, int topAndBottomPadding) {
+    EdgeWidths padding =
+        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
+    when(textAdapter.getTextHeightPx()).thenReturn(textHeight);
+    new StyleProvider(
+            Style.newBuilder()
+                .setFont(Font.newBuilder().setLineHeightRatio(lineSpacing))
+                .setPadding(padding)
+                .build(),
+            mockAssetProvider)
+        .applyElementStyles(textAdapter);
+
+    // In KitKat and lower, extra line spacing equal to twice the topAndBottomPadding is already
+    // added to the bottom. That means topAndBottomPadding needs to be taken away from the bottom,
+    // to make bottom padding the same as top padding.
+    assertThat(textView.getPaddingTop())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) + topAndBottomPadding);
+    assertThat(textView.getPaddingBottom())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) - topAndBottomPadding);
   }
 
   @Test

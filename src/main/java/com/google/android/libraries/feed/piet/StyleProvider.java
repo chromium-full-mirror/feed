@@ -18,6 +18,8 @@ import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.view.ViewCompat;
 import android.view.View;
@@ -175,18 +177,25 @@ class StyleProvider {
       Context context, View view, EdgeWidths padding, int extraTopAndBottomPaddingPx) {
     int startPadding = (int) LayoutUtils.dpToPx(padding.getStart(), context);
     int endPadding = (int) LayoutUtils.dpToPx(padding.getEnd(), context);
+    int topPadding =
+        (int) LayoutUtils.dpToPx(padding.getTop(), context) + extraTopAndBottomPaddingPx;
+    int bottomPadding = (int) LayoutUtils.dpToPx(padding.getBottom(), context);
+    // In API version 21 (Lollipop), the implementation of lineSpacingMultiplier() changed to add no
+    // extra space beneath a block of text. Before API 21, we need to subtract the extra padding (so
+    // that only half the padding is on the bottom). After API 21, extra padding needs to be added.
+    if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP) {
+      bottomPadding -= extraTopAndBottomPaddingPx;
+    } else {
+      bottomPadding += extraTopAndBottomPaddingPx;
+    }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-      view.setPaddingRelative(
-          startPadding,
-          (int) LayoutUtils.dpToPx(padding.getTop(), context) + extraTopAndBottomPaddingPx,
-          endPadding,
-          (int) LayoutUtils.dpToPx(padding.getBottom(), context) + extraTopAndBottomPaddingPx);
+      view.setPaddingRelative(startPadding, topPadding, endPadding, bottomPadding);
     } else {
       view.setPadding(
           LayoutUtils.isDefaultLocaleRtl() ? endPadding : startPadding,
-          (int) LayoutUtils.dpToPx(padding.getTop(), context) + extraTopAndBottomPaddingPx,
+          topPadding,
           LayoutUtils.isDefaultLocaleRtl() ? startPadding : endPadding,
-          (int) LayoutUtils.dpToPx(padding.getBottom(), context) + extraTopAndBottomPaddingPx);
+          bottomPadding);
     }
   }
 
