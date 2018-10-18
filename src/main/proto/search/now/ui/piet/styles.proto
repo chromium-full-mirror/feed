@@ -139,7 +139,7 @@ message Style {
   // GridCells under it, and their descendants. This value comes on top of the
   // alpha value of colors.
   // Values between [0..1] are valid; those outside this range will be clamped.
-  optional float opacity = 13;
+  optional float opacity = 13 [default = 1.0];
 
   // Defines a shadow for an element.
   optional Shadow shadow = 14;

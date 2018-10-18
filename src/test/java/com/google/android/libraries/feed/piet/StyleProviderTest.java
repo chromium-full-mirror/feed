@@ -389,6 +389,18 @@ public class StyleProviderTest {
     // Assert nothing failed.
   }
 
+  @Test
+  public void testElementStyles_opacity() {
+    new StyleProvider(Style.newBuilder().setOpacity(0.5f).build(), mockAssetProvider)
+        .applyElementStyles(adapter);
+
+    assertThat(baseView.getAlpha()).isEqualTo(0.5f);
+
+    new StyleProvider(Style.getDefaultInstance(), mockAssetProvider).applyElementStyles(adapter);
+
+    assertThat(baseView.getAlpha()).isEqualTo(1.0f);
+  }
+
   private void verifyPadding(View view, EdgeWidths padding) {
     assertThat(view.getPaddingTop()).isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context));
     assertThat(view.getPaddingBottom())

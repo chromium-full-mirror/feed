@@ -170,6 +170,8 @@ class StyleProvider {
     } else {
       ViewCompat.setElevation(view, 0.0f);
     }
+
+    baseView.setAlpha(style.getOpacity());
   }
 
   /** Set the padding on a view. This includes adding extra padding for line spacing on TextView. */
