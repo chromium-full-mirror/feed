@@ -47,7 +47,7 @@ public class DebugLoggerTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     debugLogger = new DebugLogger();
   }
 

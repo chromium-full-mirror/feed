@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,8 +62,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadow.api.Shadow;
 
@@ -86,7 +87,7 @@ public class ElementAdapterTest {
   @Before
   public void setUp() {
     initMocks(this);
-    context = RuntimeEnvironment.application;
+    context = Robolectric.buildActivity(Activity.class).get();
     parameters =
         new AdapterParameters(
             context, Suppliers.of((ViewGroup) null), hostProviders, new FakeClock());

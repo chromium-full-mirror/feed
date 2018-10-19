@@ -63,7 +63,7 @@ public class CustomElementAdapterTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     customView = new View(context);
     adapterParameters =
         new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());

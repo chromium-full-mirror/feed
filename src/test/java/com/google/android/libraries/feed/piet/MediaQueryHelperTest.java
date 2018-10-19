@@ -53,7 +53,7 @@ public class MediaQueryHelperTest {
   @Before
   public void setUp() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     mediaQueryHelper = new MediaQueryHelper(DEFAULT_FRAME_WIDTH, assetProvider, context);
   }
 

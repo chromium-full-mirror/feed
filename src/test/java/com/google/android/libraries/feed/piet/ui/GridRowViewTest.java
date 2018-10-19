@@ -53,7 +53,7 @@ public class GridRowViewTest {
 
   @Before
   public void setUp() {
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
 
     unspecifiedSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
 

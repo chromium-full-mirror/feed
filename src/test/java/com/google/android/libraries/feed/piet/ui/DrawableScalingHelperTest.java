@@ -51,7 +51,7 @@ public class DrawableScalingHelperTest {
   public void setUp() {
     initMocks(this);
 
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     defaultBitmap = Bitmap.createBitmap(DEFAULT_WIDTH_DP, DEFAULT_HEIGHT_DP, Config.ALPHA_8);
     defaultBitmapDrawable = new BitmapDrawable(context.getResources(), defaultBitmap);
 

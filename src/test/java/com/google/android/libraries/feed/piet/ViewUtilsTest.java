@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.RippleDrawable;
 import android.view.Gravity;
@@ -41,8 +42,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadow.api.Shadow;
 
@@ -50,7 +51,7 @@ import org.robolectric.shadow.api.Shadow;
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ExtendedShadowView.class})
 public class ViewUtilsTest {
-  private final Context context = RuntimeEnvironment.application;
+  private final Context context = Robolectric.buildActivity(Activity.class).get();
 
   private static final Frame DEFAULT_FRAME = Frame.newBuilder().setTag("Frame").build();
   private static final Action DEFAULT_ACTION = Action.getDefaultInstance();

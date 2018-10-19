@@ -58,7 +58,7 @@ public class ParameterizedTextElementAdapterFactoryTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     adapterParameters =
         new AdapterParameters(
             null, null, new HostProviders(mock(AssetProvider.class), null, null), new FakeClock());

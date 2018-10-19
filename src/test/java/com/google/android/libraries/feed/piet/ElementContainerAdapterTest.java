@@ -139,7 +139,7 @@ public class ElementContainerAdapterTest {
   @Before
   public void setUp() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
 
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     AdapterParameters adapterParameters =

@@ -48,7 +48,7 @@ public class KeyedRecyclerPoolTest {
 
   @Before
   public void setUp() {
-    testContext = Robolectric.setupActivity(Activity.class);
+    testContext = Robolectric.buildActivity(Activity.class).get();
     initMocks(this);
   }
 

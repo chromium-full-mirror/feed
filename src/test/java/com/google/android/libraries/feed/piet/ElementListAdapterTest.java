@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
@@ -58,8 +59,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadow.api.Shadow;
 
@@ -102,7 +103,7 @@ public class ElementListAdapterTest {
   @Before
   public void setUp() {
     initMocks(this);
-    context = RuntimeEnvironment.application;
+    context = Robolectric.buildActivity(Activity.class).get();
 
     adapterParameters =
         new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());

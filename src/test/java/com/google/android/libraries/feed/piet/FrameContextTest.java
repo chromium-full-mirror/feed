@@ -130,7 +130,7 @@ public class FrameContextTest {
   public void setUp() throws Exception {
     initMocks(this);
 
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     hostBindingProvider = new HostBindingProvider();
     hostProviders =
         new HostProviders(assetProvider, mock(CustomElementProvider.class), hostBindingProvider);

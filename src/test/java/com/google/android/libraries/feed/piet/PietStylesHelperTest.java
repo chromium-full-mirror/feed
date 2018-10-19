@@ -87,7 +87,7 @@ public class PietStylesHelperTest {
 
   @Before
   public void setUp() throws Exception {
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     initMocks(this);
     Stylesheet.Builder stylesheet1 =
         Stylesheet.newBuilder().setStylesheetId(STYLESHEET_ID_1).addStyles(STYLE_1);

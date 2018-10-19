@@ -65,7 +65,7 @@ public class LoadImageCallbackTest {
   @Before
   public void setup() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
 
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(assetProvider.getFadeImageThresholdMs()).thenReturn(FADE_IMAGE_THRESHOLD_MS);

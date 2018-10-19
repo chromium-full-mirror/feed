@@ -286,7 +286,7 @@ public class TemplateBinderTest {
             .build();
 
     // Set up a "real" frameContext, adapterParameters, factory
-    Context context = Robolectric.setupActivity(Activity.class);
+    Context context = Robolectric.buildActivity(Activity.class).get();
     List<PietSharedState> pietSharedStates = Collections.singletonList(pietSharedState);
     HostProviders mockHostProviders = mock(HostProviders.class);
     AssetProvider mockAssetProvider = mock(AssetProvider.class);
@@ -643,7 +643,7 @@ public class TemplateBinderTest {
   public void testTemplateAdapterModel_lookUpTemplate() {
     ActionHandler actionHandler = mock(ActionHandler.class);
     List<PietSharedState> pietSharedStates = Collections.emptyList();
-    Context context = Robolectric.setupActivity(Activity.class);
+    Context context = Robolectric.buildActivity(Activity.class).get();
 
     HostProviders mockHostProviders = mock(HostProviders.class);
     AssetProvider mockAssetProvider = mock(AssetProvider.class);

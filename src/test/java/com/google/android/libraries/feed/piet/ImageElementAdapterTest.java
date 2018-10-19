@@ -93,7 +93,7 @@ public class ImageElementAdapterTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     heightPx = (int) LayoutUtils.dpToPx(HEIGHT_DP, context);
     widthPx = (int) LayoutUtils.dpToPx(WIDTH_DP, context);
     AdapterParameters parameters =

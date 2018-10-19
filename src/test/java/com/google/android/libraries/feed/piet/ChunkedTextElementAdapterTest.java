@@ -157,7 +157,7 @@ public class ChunkedTextElementAdapterTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     adapterParameters =
         new AdapterParameters(
             null, null, hostProviders, mockTextEvaluator, null, null, new FakeClock());

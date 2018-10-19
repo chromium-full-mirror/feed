@@ -78,7 +78,7 @@ public class StackedElementAdapterTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
 
     when(frameContext.getElementBindingValue(ELEMENT_BINDING)).thenReturn(ELEMENT_BINDING_VALUE);
     when(frameContext.makeStyleFor(any())).thenReturn(mockStyleProvider);
