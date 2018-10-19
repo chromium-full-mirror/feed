@@ -32,6 +32,8 @@ public interface ModelFeature {
   /**
    * An Cursor over the children of the feature. This Cursor is a one way iterator over the
    * children. If the feature does not contain children, an empty cursor will be returned.
+   *
+   * <p>Each call to this method will return a new instance of the ModelCursor.
    */
   ModelCursor getCursor();
 
