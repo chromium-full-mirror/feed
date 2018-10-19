@@ -104,6 +104,7 @@ public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
     responseHandlingCount++;
 
     FeedResponse feedResponse = response.getExtension(FeedResponse.feedResponse);
+    Logger.i(TAG, "createModel, operations %s", feedResponse.getDataOperationCount());
     Result<List<StreamDataOperation>> result =
         createOperations(
             feedResponse.getDataOperationList(), feedResponse.getFeedResponseMetadata());

@@ -259,7 +259,15 @@ public class SessionManagerMutation implements Dumpable {
         taskType = clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING;
       }
       taskQueue.execute(
-          "MutationCommitter:" + task + ":clearHead:" + clearedHead, taskType, this::commitTask);
+          "MutationCommitter(task "
+              + task
+              + ", size "
+              + dataOperations.size()
+              + ", clearHead "
+              + clearedHead
+              + ")",
+          taskType,
+          this::commitTask);
     }
 
     private void commitTask() {

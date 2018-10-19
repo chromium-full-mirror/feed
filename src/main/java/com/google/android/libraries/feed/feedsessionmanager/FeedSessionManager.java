@@ -498,7 +498,7 @@ public class FeedSessionManager
       initialize();
     }
     taskQueue.execute(
-        "triggerRefresh/Request/InvalidateSession",
+        "triggerRefresh(Invalidate,Request)",
         TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
         () -> triggerRefreshTask(streamSession));
   }
@@ -521,6 +521,8 @@ public class FeedSessionManager
       } else {
         Logger.w(TAG, "TriggerRefresh didn't find session %s", streamToken);
       }
+    } else {
+      Logger.i(TAG, "triggerRefreshTask no StreamSession provided");
     }
   }
 
