@@ -264,8 +264,20 @@ public class FeedModelProviderTest {
   @Test
   public void testForceRefresh() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    StreamSession mockSession = StreamSession.getDefaultInstance();
+    modelProvider.streamSession = mockSession;
     modelProvider.triggerRefresh();
-    verify(sessionManager).triggerRefresh(null);
+    assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
+    verify(sessionManager).triggerRefresh(mockSession);
+  }
+
+  @Test
+  public void testForceRefresh_delayed() {
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
+    modelProvider.triggerRefresh();
+    assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isTrue();
+    verify(sessionManager, never()).triggerRefresh(null);
   }
 
   @Test

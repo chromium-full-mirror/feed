@@ -136,6 +136,9 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   /*@Nullable*/ @VisibleForTesting StreamSession streamSession;
 
+  @GuardedBy("lock")
+  private boolean delayedTriggerRefresh = false;
+
   FeedModelProvider(
       SessionManager sessionManager,
       ThreadUtils threadUtils,
@@ -232,6 +235,12 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   @Override
   public void triggerRefresh() {
     threadUtils.checkMainThread();
+    if (streamSession == null) {
+      synchronized (lock) {
+        delayedTriggerRefresh = true;
+      }
+      return;
+    }
     sessionManager.triggerRefresh(streamSession);
   }
 
@@ -530,6 +539,13 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
           if (change.streamSession != null) {
             streamSession = change.streamSession;
+            if (delayedTriggerRefresh) {
+              synchronized (lock) {
+                delayedTriggerRefresh = false;
+              }
+              mainThreadRunner.execute("TriggerRefresh", () -> triggerRefresh());
+            }
+            Logger.i("steamboat", "MP - set streamSession %s", streamSession);
           }
 
           // All appends and updates are considered unbound (childrenToBind) and will need to be
@@ -1227,6 +1243,13 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   Map<ByteString, TokenTracking> getTokensForTest() {
     synchronized (lock) {
       return new HashMap<>(tokens);
+    }
+  }
+
+  @VisibleForTesting
+  boolean getDelayedTriggerRefreshForTest() {
+    synchronized (lock) {
+      return delayedTriggerRefresh;
     }
   }
 
