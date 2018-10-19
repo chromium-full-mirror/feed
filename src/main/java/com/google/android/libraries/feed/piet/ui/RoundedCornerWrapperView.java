@@ -55,7 +55,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
     this(context, RoundedCorners.getDefaultInstance());
   }
 
-  // Doesn't like the calls to makeRadius() and shouldRoundAnyCorner()
+  // Doesn't like the calls to makeRadius() and hasRoundedCorners()
   @SuppressWarnings("initialization")
   public RoundedCornerWrapperView(Context context, RoundedCorners roundedCorners) {
     super(context);
@@ -67,7 +67,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
     maskRect = new RectF();
     this.roundedCorners = roundedCorners;
 
-    if (shouldRoundAnyCorner() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+    if (hasRoundedCorners() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       final int layoutDirection =
           LayoutUtils.isDefaultLocaleRtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR;
       super.setOutlineProvider(
@@ -96,7 +96,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
 
   @Override
   public void draw(Canvas canvas) {
-    if (!shouldRoundAnyCorner()) {
+    if (!hasRoundedCorners()) {
       super.draw(canvas);
       return;
     }
@@ -205,7 +205,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
     return maskRect;
   }
 
-  private boolean shouldRoundAnyCorner() {
+  public boolean hasRoundedCorners() {
     return roundedCorners.getRadius() > 0;
   }
 

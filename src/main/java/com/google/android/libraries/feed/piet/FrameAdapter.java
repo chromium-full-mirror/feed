@@ -87,7 +87,8 @@ public class FrameAdapter {
       List<PietSharedState> pietSharedStates) {
     long startTime = System.nanoTime();
     initialBind(parameters.parentViewSupplier.get());
-    FrameContext localFrameContext = createFrameContext(frame, frameWidthPx, pietSharedStates);
+    FrameContext localFrameContext =
+        createFrameContext(frame, frameWidthPx, pietSharedStates, checkNotNull(view));
     frameContext = localFrameContext;
     activeActions.clear();
     activeActions.addAll(frame.getActions().getOnHideActionsList());
@@ -175,7 +176,7 @@ public class FrameAdapter {
 
   @VisibleForTesting
   FrameContext createFrameContext(
-      Frame frame, int frameWidthPx, List<PietSharedState> pietSharedStates) {
+      Frame frame, int frameWidthPx, List<PietSharedState> pietSharedStates, View frameView) {
     return FrameContext.createFrameContext(
         frame,
         frameWidthPx,
@@ -184,7 +185,8 @@ public class FrameAdapter {
         new DebugLogger(),
         actionHandler,
         parameters.hostProviders,
-        context);
+        context,
+        frameView);
   }
 
   public void triggerViewActions(View viewport) {

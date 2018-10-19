@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.view.View;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
@@ -79,6 +80,9 @@ class FrameContext {
   // The base / default style; set to DEFAULT_STYLE for Frame or childDefaultStyleId for Template.
   private final Style baseStyle;
 
+  // The root view of this frame.
+  private final View frameView;
+
   /** Initialize a FrameContext for the first time from a top-level Frame. */
   @VisibleForTesting
   FrameContext(
@@ -89,7 +93,8 @@ class FrameContext {
       DebugBehavior debugBehavior,
       DebugLogger debugLogger,
       ActionHandler actionHandler,
-      HostProviders hostProviders) {
+      HostProviders hostProviders,
+      View frameView) {
     this(
         frame,
         stylesheet,
@@ -101,7 +106,8 @@ class FrameContext {
         debugLogger,
         actionHandler,
         hostProviders,
-        new NoKeyOverwriteHashMap<>("Template"));
+        new NoKeyOverwriteHashMap<>("Template"),
+        frameView);
 
     stylesHelper.addSharedStateTemplatesToFrame(templates);
     if (frame.getTemplatesCount() > 0) {
@@ -125,7 +131,8 @@ class FrameContext {
       DebugLogger debugLogger,
       ActionHandler actionHandler,
       HostProviders hostProviders,
-      Map<String, Template> templates) {
+      Map<String, Template> templates,
+      View frameView) {
     currentFrame = frame;
     this.stylesheet = stylesheet;
     this.bindingValues = bindingValues;
@@ -138,6 +145,7 @@ class FrameContext {
     this.hostProviders = hostProviders;
     this.hostBindingProvider = hostProviders.getHostBindingProvider();
     this.templates = templates;
+    this.frameView = frameView;
   }
 
   /**
@@ -152,7 +160,8 @@ class FrameContext {
       DebugLogger debugLogger,
       ActionHandler actionHandler,
       HostProviders hostProviders,
-      Context context) {
+      Context context,
+      View frameView) {
     PietStylesHelper pietStylesHelper =
         new PietStylesHelper(
             pietSharedStates, frameWidthPx, hostProviders.getAssetProvider(), context);
@@ -175,7 +184,8 @@ class FrameContext {
             debugBehavior,
             debugLogger,
             actionHandler,
-            hostProviders);
+            hostProviders,
+            frameView);
     frameContext.computeErrors();
 
     return frameContext;
@@ -248,7 +258,8 @@ class FrameContext {
         debugLogger,
         actionHandler,
         hostProviders,
-        templates);
+        templates,
+        frameView);
   }
 
   public DebugBehavior getDebugBehavior() {
@@ -482,6 +493,11 @@ class FrameContext {
     } else {
       return bindingValue;
     }
+  }
+
+  /** Returns the root view of this Frame. */
+  View getFrameView() {
+    return frameView;
   }
 
   private BindingValue getBindingValue(String bindingId) {

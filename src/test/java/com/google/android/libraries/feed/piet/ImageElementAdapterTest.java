@@ -28,20 +28,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.TransitionDrawable;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
-import com.google.android.libraries.feed.piet.ImageElementAdapter.KeySupplier;
-import com.google.android.libraries.feed.piet.ImageElementAdapter.LoadImageCallback;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
@@ -62,12 +56,9 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.shadows.ShadowLooper;
 
 /** Tests of the {@link ImageElementAdapter}. */
 @RunWith(RobolectricTestRunner.class)
@@ -82,7 +73,6 @@ public class ImageElementAdapterTest {
       Image.newBuilder().addSources(ImageSource.newBuilder().setUrl("icanhas.chz")).build();
   private static final Element DEFAULT_MODEL =
       asElement(ImageElement.newBuilder().setImage(DEFAULT_IMAGE).build());
-  private static final int FADE_IMAGE_THRESHOLD_MS = 682;
 
   @Mock private ElementAdapterFactory adapterFactory;
   @Mock private TemplateBinder templateBinder;
@@ -90,17 +80,15 @@ public class ImageElementAdapterTest {
   @Mock private AssetProvider assetProvider;
   @Mock private StyleProvider styleProvider;
   @Mock private HostProviders hostProviders;
-
-  @Captor ArgumentCaptor<LoadImageCallback> consumerArgumentCaptor;
+  @Mock private LoadImageCallback loadImageCallback;
 
   private Context context;
   private int heightPx;
   private int widthPx;
   private ImageView imageView;
-  private final Drawable defaultDrawable = new ColorDrawable(Color.BLUE);
   private final FakeClock clock = new FakeClock();
 
-  private ImageElementAdapter adapter;
+  private ImageElementAdapterForTest adapter;
 
   @Before
   public void setUp() throws Exception {
@@ -112,7 +100,6 @@ public class ImageElementAdapterTest {
         new AdapterParameters(
             context, null, hostProviders, null, adapterFactory, templateBinder, clock);
 
-    when(assetProvider.getFadeImageThresholdMs()).thenReturn(FADE_IMAGE_THRESHOLD_MS);
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
         .thenAnswer(invocation -> invocation.getArguments()[0]);
@@ -122,7 +109,7 @@ public class ImageElementAdapterTest {
     when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
     when(styleProvider.getRoundedCornerRadius(context)).thenReturn(CORNERS.getRadius());
 
-    adapter = new KeySupplier().getAdapter(context, parameters);
+    adapter = new ImageElementAdapterForTest(context, parameters);
   }
 
   @Test
@@ -210,101 +197,11 @@ public class ImageElementAdapterTest {
     adapter.bindModel(model, frameContext);
 
     imageView = adapter.getBaseView();
-    assertDrawableSet(imageView);
+    verify(assetProvider)
+        .getImage(DEFAULT_IMAGE, DIMENSION_UNKNOWN, DIMENSION_UNKNOWN, loadImageCallback);
 
     assertThat(adapter.getModel()).isSameAs(model.getImageElement());
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(styles);
-  }
-
-  @Test
-  public void testBindModel_bitmapImageScales() {
-    int styleWidth = 10;
-    int styleHeight = 15;
-    setStyle(styleHeight, styleWidth);
-    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
-    Element model =
-        asElement(
-            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
-
-    when(assetProvider.shouldPietResizeBitmaps()).thenReturn(true);
-    adapter.createAdapter(model, frameContext);
-    adapter.bindModel(model, frameContext);
-
-    // Fire the callback
-    Bitmap bitmap = Bitmap.createBitmap(100, 150, Config.ALPHA_8);
-    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
-    verify(assetProvider)
-        .getImage(
-            eq(DEFAULT_IMAGE), eq(styleWidth), eq(styleHeight), consumerArgumentCaptor.capture());
-    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
-
-    imageView = adapter.getBaseView();
-
-    assertThat(imageView.getDrawable()).isInstanceOf(BitmapDrawable.class);
-
-    Bitmap createdBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-    assertThat(createdBitmap.getWidth()).isEqualTo(styleWidth);
-    assertThat(createdBitmap.getHeight()).isEqualTo(styleHeight);
-  }
-
-  @Test
-  public void testBindModel_bitmapSameSizeDoesNotScale() {
-    int styleWidth = 100;
-    int styleHeight = 150;
-    setStyle(styleHeight, styleWidth);
-    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
-    Element model =
-        asElement(
-            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
-
-    when(assetProvider.shouldPietResizeBitmaps()).thenReturn(true);
-    adapter.createAdapter(model, frameContext);
-    adapter.bindModel(model, frameContext);
-
-    // Fire the callback
-    Bitmap bitmap = Bitmap.createBitmap(styleWidth, styleHeight, Config.ALPHA_8);
-    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
-    verify(assetProvider)
-        .getImage(
-            eq(DEFAULT_IMAGE), eq(styleWidth), eq(styleHeight), consumerArgumentCaptor.capture());
-    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
-
-    imageView = adapter.getBaseView();
-
-    assertThat(imageView.getDrawable()).isSameAs(specifiedBitmapDrawable);
-  }
-
-  @Test
-  public void testBindModel_bitmapImageDoesNotScaleDueToHostConfig() {
-    int styleWidth = 10;
-    int styleHeight = 15;
-    int originalBitmapWidth = 100;
-    int originalBitmapHeight = 150;
-    setStyle(styleHeight, styleWidth);
-    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
-    Element model =
-        asElement(
-            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
-
-    when(assetProvider.shouldPietResizeBitmaps()).thenReturn(false);
-    adapter.createAdapter(model, frameContext);
-    adapter.bindModel(model, frameContext);
-
-    // Fire the callback
-    Bitmap bitmap = Bitmap.createBitmap(originalBitmapWidth, originalBitmapHeight, Config.ALPHA_8);
-    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
-    verify(assetProvider)
-        .getImage(
-            eq(DEFAULT_IMAGE), eq(styleWidth), eq(styleHeight), consumerArgumentCaptor.capture());
-    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
-
-    imageView = adapter.getBaseView();
-
-    assertThat(imageView.getDrawable()).isInstanceOf(BitmapDrawable.class);
-
-    Bitmap createdBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-    assertThat(createdBitmap.getWidth()).isEqualTo(originalBitmapWidth);
-    assertThat(createdBitmap.getHeight()).isEqualTo(originalBitmapHeight);
   }
 
   @Test
@@ -317,7 +214,8 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(model, frameContext);
     adapter.bindModel(model, frameContext);
 
-    assertDrawableSet(adapter.getBaseView());
+    verify(assetProvider)
+        .getImage(DEFAULT_IMAGE, DIMENSION_UNKNOWN, DIMENSION_UNKNOWN, loadImageCallback);
     assertThat(adapter.getModel()).isSameAs(model.getImageElement());
   }
 
@@ -378,17 +276,9 @@ public class ImageElementAdapterTest {
     adapter.createAdapter(model, frameContext);
     adapter.bindModel(model, frameContext);
 
-    // Fire the callback
     verify(assetProvider)
-        .getImage(
-            eq(imageWithScaleType),
-            eq(DIMENSION_UNKNOWN),
-            eq(DIMENSION_UNKNOWN),
-            consumerArgumentCaptor.capture());
-    consumerArgumentCaptor.getValue().accept(defaultDrawable);
-
-    imageView = adapter.getBaseView();
-    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
+        .getImage(imageWithScaleType, DIMENSION_UNKNOWN, DIMENSION_UNKNOWN, loadImageCallback);
+    assertThat(adapter.scaleTypeForCallback).isEqualTo(ScaleType.CENTER_CROP);
   }
 
   @Test
@@ -406,24 +296,16 @@ public class ImageElementAdapterTest {
         asElement(ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build());
     adapter.bindModel(model2, frameContext);
     verify(assetProvider)
-        .getImage(
-            eq(Image.getDefaultInstance()),
-            eq(WIDTH_DP),
-            eq(HEIGHT_DP),
-            consumerArgumentCaptor.capture());
+        .getImage(Image.getDefaultInstance(), WIDTH_DP, HEIGHT_DP, loadImageCallback);
 
     RecyclerKey key2 = adapter.getKey();
     assertThat(key1).isSameAs(key2);
     assertThat(adapter.getModel()).isSameAs(model2.getImageElement());
     assertThat(adapter.getView()).isNotNull();
 
-    Drawable drawable2 = new ColorDrawable(Color.RED);
-    consumerArgumentCaptor.getValue().accept(drawable2);
-
     ImageView imageView2 = adapter.getBaseView();
 
     assertThat(imageView2).isSameAs(imageView);
-    assertThat(imageView2.getDrawable()).isEqualTo(drawable2);
   }
 
   @Test
@@ -494,13 +376,7 @@ public class ImageElementAdapterTest {
 
     // Load drawable andreplace pre-load fill
     verify(assetProvider)
-        .getImage(
-            eq(DEFAULT_IMAGE),
-            eq(DIMENSION_UNKNOWN),
-            eq(DIMENSION_UNKNOWN),
-            consumerArgumentCaptor.capture());
-    consumerArgumentCaptor.getValue().accept(defaultDrawable);
-    assertThat(adapter.getBaseView().getDrawable()).isSameAs(defaultDrawable);
+        .getImage(DEFAULT_IMAGE, DIMENSION_UNKNOWN, DIMENSION_UNKNOWN, loadImageCallback);
   }
 
   @Test
@@ -553,44 +429,8 @@ public class ImageElementAdapterTest {
     imageView = adapter.getBaseView();
 
     adapter.unbindModel();
-    verify(assetProvider)
-        .getImage(eq(DEFAULT_IMAGE), eq(WIDTH_DP), eq(HEIGHT_DP), consumerArgumentCaptor.capture());
-    consumerArgumentCaptor.getValue().accept(defaultDrawable);
-
-    // The drawable was not set by the callback because the model had already been unbound.
-    assertThat(imageView.getDrawable()).isEqualTo(null);
-  }
-
-  @Test
-  public void testUnbind_cancelsCallback2() {
-    setStyle(HEIGHT_DP, WIDTH_DP);
-    adapter.createAdapter(DEFAULT_MODEL, frameContext);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
-
-    verify(assetProvider)
-        .getImage(eq(DEFAULT_IMAGE), eq(WIDTH_DP), eq(HEIGHT_DP), consumerArgumentCaptor.capture());
-
-    adapter.unbindModel();
-
-    // Bind a new model before the callback has completed
-    Image model2 = Image.newBuilder().setTintColor(5).build();
-    adapter.bindModel(asElement(ImageElement.newBuilder().setImage(model2).build()), frameContext);
-
-    // Callback now completes
-    consumerArgumentCaptor.getValue().accept(defaultDrawable);
-
-    // But has no effect
-    imageView = adapter.getBaseView();
-    assertThat(imageView.getDrawable()).isEqualTo(null);
-
-    // And now the callback for the second model completes
-    Drawable drawable2 = new ColorDrawable(Color.RED);
-    verify(assetProvider)
-        .getImage(eq(model2), eq(WIDTH_DP), eq(HEIGHT_DP), consumerArgumentCaptor.capture());
-    consumerArgumentCaptor.getValue().accept(drawable2);
-
-    // The image has the second drawable as expected.
-    assertThat(imageView.getDrawable()).isEqualTo(drawable2);
+    verify(assetProvider).getImage(DEFAULT_IMAGE, WIDTH_DP, HEIGHT_DP, loadImageCallback);
+    verify(loadImageCallback).cancel();
   }
 
   @Test
@@ -646,127 +486,6 @@ public class ImageElementAdapterTest {
         .contains("Missing ImageElement");
   }
 
-  @Test
-  public void testFadeAnimation() {
-    clock.set(0);
-
-    adapter.createAdapter(DEFAULT_MODEL, frameContext);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
-
-    // Fire the callback
-    Bitmap bitmap = Bitmap.createBitmap(100, 150, Config.ALPHA_8);
-    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
-    verify(assetProvider)
-        .getImage(
-            eq(DEFAULT_IMAGE),
-            /* widthPx= */ anyInt(),
-            /* heightPx= */ anyInt(),
-            consumerArgumentCaptor.capture());
-
-    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
-    consumerArgumentCaptor.getValue().accept(specifiedBitmapDrawable);
-
-    imageView = adapter.getBaseView();
-
-    assertThat(imageView.getDrawable()).isInstanceOf(TransitionDrawable.class);
-
-    TransitionDrawable drawable = (TransitionDrawable) imageView.getDrawable();
-    assertThat(drawable.isCrossFadeEnabled()).isTrue();
-    assertThat(drawable.getDrawable(0)).isInstanceOf(ColorDrawable.class);
-    assertThat(((ColorDrawable) drawable.getDrawable(0)).getColor()).isEqualTo(Color.TRANSPARENT);
-    assertThat(drawable.getDrawable(1)).isSameAs(specifiedBitmapDrawable);
-  }
-
-  @Test
-  public void testFadeAnimation_usesPrefill() {
-    Drawable preLoadFillDrawable = new ColorDrawable(Color.RED);
-
-    // Set up the StyleProvider mock
-    when(styleProvider.createPreLoadFill()).thenReturn(preLoadFillDrawable);
-    when(styleProvider.hasPreLoadFill()).thenReturn(true);
-
-    // Bind and expect the pre-load fill to be set
-    adapter.createAdapter(DEFAULT_MODEL, frameContext);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
-
-    verify(assetProvider)
-        .getImage(
-            eq(DEFAULT_IMAGE),
-            /* widthPx= */ anyInt(),
-            /* heightPx= */ anyInt(),
-            consumerArgumentCaptor.capture());
-
-    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
-    consumerArgumentCaptor
-        .getValue()
-        .accept(
-            new BitmapDrawable(
-                context.getResources(), Bitmap.createBitmap(100, 150, Config.ALPHA_8)));
-
-    assertThat(((TransitionDrawable) adapter.getBaseView().getDrawable()).getDrawable(0))
-        .isSameAs(preLoadFillDrawable);
-  }
-
-  @Test
-  public void testFadeAnimation_storesCallback() {
-    adapter.createAdapter(DEFAULT_MODEL, frameContext);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
-
-    // Fire the callback
-    verify(assetProvider)
-        .getImage(
-            eq(DEFAULT_IMAGE),
-            /* widthPx= */ anyInt(),
-            /* heightPx= */ anyInt(),
-            consumerArgumentCaptor.capture());
-
-    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
-
-    LoadImageCallback loadImageCallback = consumerArgumentCaptor.getValue();
-
-    loadImageCallback.accept(
-        new BitmapDrawable(context.getResources(), Bitmap.createBitmap(100, 150, Config.ALPHA_8)));
-
-    // This has to be referenced so that Drawable will not garbage collect the callback which is
-    // stored in a weak reference.
-    assertThat(loadImageCallback.transitionCallback).isNotNull();
-
-    loadImageCallback.cancel();
-
-    // Null out the callback so it can be garbage collected.
-    assertThat(loadImageCallback.transitionCallback).isNull();
-  }
-
-  @Test
-  public void testFadeAnimation_delayedTaskNullsCallback() {
-    adapter.createAdapter(DEFAULT_MODEL, frameContext);
-    adapter.bindModel(DEFAULT_MODEL, frameContext);
-
-    // Fire the callback
-    verify(assetProvider)
-        .getImage(
-            eq(DEFAULT_IMAGE),
-            /* widthPx= */ anyInt(),
-            /* heightPx= */ anyInt(),
-            consumerArgumentCaptor.capture());
-
-    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
-
-    LoadImageCallback loadImageCallback = consumerArgumentCaptor.getValue();
-
-    loadImageCallback.accept(
-        new BitmapDrawable(context.getResources(), Bitmap.createBitmap(100, 150, Config.ALPHA_8)));
-
-    // This has to be referenced so that Drawable will not garbage collect the callback which is
-    // stored in a weak reference.
-    assertThat(loadImageCallback.transitionCallback).isNotNull();
-
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-    // Null out the callback so it can be garbage collected.
-    assertThat(loadImageCallback.transitionCallback).isNull();
-  }
-
   private void setStyle(/*@Nullable*/ Integer height, /*@Nullable*/ Integer width) {
     if (height != null) {
       when(styleProvider.hasHeight()).thenReturn(true);
@@ -784,19 +503,22 @@ public class ImageElementAdapterTest {
     }
   }
 
-  private void assertDrawableSet(ImageView imageView) {
-    verify(assetProvider)
-        .getImage(
-            eq(DEFAULT_IMAGE),
-            eq(DIMENSION_UNKNOWN),
-            eq(DIMENSION_UNKNOWN),
-            consumerArgumentCaptor.capture());
-    consumerArgumentCaptor.getValue().accept(defaultDrawable);
-    assertThat(imageView.getDrawable()).isEqualTo(defaultDrawable);
-    assertThat(imageView.getScaleType()).isEqualTo(ScaleType.FIT_CENTER);
-  }
-
   private static Element asElement(ImageElement imageElement) {
     return Element.newBuilder().setImageElement(imageElement).build();
+  }
+
+  private class ImageElementAdapterForTest extends ImageElementAdapter {
+
+    private ScaleType scaleTypeForCallback;
+
+    private ImageElementAdapterForTest(Context context, AdapterParameters parameters) {
+      super(context, parameters);
+    }
+
+    @Override
+    LoadImageCallback createLoadImageCallback(ScaleType scaleType, FrameContext frameContext) {
+      this.scaleTypeForCallback = scaleType;
+      return loadImageCallback;
+    }
   }
 }

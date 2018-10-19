@@ -18,19 +18,12 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Drawable.Callback;
-import android.graphics.drawable.TransitionDrawable;
 import android.support.annotation.VisibleForTesting;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.ui.AspectRatioScalingImageView;
-import com.google.android.libraries.feed.piet.ui.DrawableScalingHelper;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
@@ -44,7 +37,8 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
 
   /*@Nullable*/ private LoadImageCallback currentlyLoadingImage = null;
 
-  private ImageElementAdapter(Context context, AdapterParameters parameters) {
+  @VisibleForTesting
+  ImageElementAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, createView(context), KeySupplier.SINGLETON_KEY);
   }
 
@@ -116,7 +110,7 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
 
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
     LoadImageCallback loadImageCallback =
-        new LoadImageCallback(getBaseView(), toAndroidScaleType(image.getScaleType()));
+        createLoadImageCallback(toAndroidScaleType(image.getScaleType()), frameContext);
     currentlyLoadingImage = loadImageCallback;
     getParameters()
         .hostProviders
@@ -167,117 +161,16 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
     return getModel().getStyleReferences();
   }
 
+  @VisibleForTesting
+  LoadImageCallback createLoadImageCallback(ScaleType scaleType, FrameContext frameContext) {
+    return new LoadImageCallback(
+        getBaseView(), scaleType, widthPx, heightPx, getContext(), getParameters(), frameContext);
+  }
+
   private static AspectRatioScalingImageView createView(Context context) {
     AspectRatioScalingImageView imageView = new AspectRatioScalingImageView(context);
     imageView.setCropToPadding(true);
     return imageView;
-  }
-
-  @VisibleForTesting
-  class LoadImageCallback implements Consumer<Drawable> {
-
-    private static final int FADE_IN_ANIMATION_TIME_MS = 300;
-
-    private final ImageView imageView;
-    private final ScaleType scaleType;
-    private final long initialTime;
-
-    private boolean cancelled;
-
-    @VisibleForTesting /*@Nullable*/ Callback transitionCallback;
-
-    /*@Nullable*/ private Drawable finalDrawable;
-
-    LoadImageCallback(ImageView imageView, ScaleType scaleType) {
-      this.imageView = imageView;
-      this.scaleType = scaleType;
-      this.initialTime = getParameters().clock.elapsedRealtime();
-    }
-
-    @Override
-    public void accept(Drawable drawable) {
-      if (cancelled) {
-        return;
-      }
-
-      // Only perform image rescaling if both width/height are known as parameters.
-      if (widthPx > 0 && heightPx > 0) {
-        drawable =
-            DrawableScalingHelper.maybeScaleDrawable(
-                getContext(),
-                getParameters().hostProviders.getAssetProvider(),
-                drawable,
-                widthPx,
-                heightPx);
-      }
-      imageView.setScaleType(scaleType);
-
-      this.finalDrawable = drawable;
-
-      // If we are in the process of binding when we get the image, we should not fade in the
-      // image as the image was cached.
-      if (!shouldFadeInImage()) {
-        imageView.setImageDrawable(drawable);
-        // Invalidating the view as the view doesn't update if not manually updated here.
-        getView().invalidate();
-        return;
-      }
-
-      Drawable initialDrawable =
-          imageView.getDrawable() != null
-              ? imageView.getDrawable()
-              : new ColorDrawable(Color.TRANSPARENT);
-
-      Drawable[] layers = {initialDrawable, drawable};
-      TransitionDrawable transitionDrawable = new TransitionDrawable(layers);
-      imageView.setImageDrawable(transitionDrawable);
-      transitionDrawable.setCrossFadeEnabled(true);
-      transitionDrawable.startTransition(FADE_IN_ANIMATION_TIME_MS);
-
-      // Storing callback so it won't be garbage collected by Drawable which holds it in a
-      // WeakReference
-      transitionCallback =
-          new Callback() {
-            @Override
-            public void invalidateDrawable(Drawable who) {
-              getView().invalidate();
-            }
-
-            @Override
-            public void scheduleDrawable(Drawable who, Runnable what, long when) {}
-
-            @Override
-            public void unscheduleDrawable(Drawable who, Runnable what) {}
-          };
-      transitionDrawable.setCallback(transitionCallback);
-
-      getView()
-          .postDelayed(
-              () -> {
-                if (cancelled) {
-                  return;
-                }
-
-                // Allows GC of the initial drawable and the transition drawable. Additionally
-                // fixes the issue where the transition sometimes doesn't occur, which would
-                // result in blank images.
-                imageView.setImageDrawable(finalDrawable);
-                // Invalidating the view as the view doesn't update if not manually updated here.
-                getView().invalidate();
-                transitionCallback = null;
-              },
-              FADE_IN_ANIMATION_TIME_MS);
-    }
-
-    private boolean shouldFadeInImage() {
-      return (getParameters().clock.elapsedRealtime() - initialTime)
-          > getParameters().hostProviders.getAssetProvider().getFadeImageThresholdMs();
-    }
-
-    void cancel() {
-      this.cancelled = true;
-      transitionCallback = null;
-    }
   }
 
   static class KeySupplier extends SingletonKeySupplier<ImageElementAdapter, ImageElement> {

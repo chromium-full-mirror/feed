@@ -30,6 +30,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
@@ -299,7 +300,8 @@ public class TemplateBinderTest {
             new DebugLogger(),
             actionHandler,
             mockHostProviders,
-            context);
+            context,
+            new FrameLayout(context));
     AdapterParameters adapterParameters =
         new AdapterParameters(context, Suppliers.of(null), mockHostProviders, new FakeClock());
     TemplateBinder templateBinder = adapterParameters.templateBinder;
@@ -656,7 +658,8 @@ public class TemplateBinderTest {
             new DebugLogger(),
             actionHandler,
             mockHostProviders,
-            context);
+            context,
+            new FrameLayout(context));
 
     TemplateAdapterModel model =
         new TemplateAdapterModel(

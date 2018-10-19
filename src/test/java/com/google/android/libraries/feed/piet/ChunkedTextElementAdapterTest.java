@@ -53,7 +53,6 @@ import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ActionsC
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapter.ImageSpanDrawableCallback;
 import com.google.android.libraries.feed.piet.ChunkedTextElementAdapterTest.ShadowTextViewWithHeight;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
-import com.google.android.libraries.feed.piet.ImageElementAdapter.LoadImageCallback;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;

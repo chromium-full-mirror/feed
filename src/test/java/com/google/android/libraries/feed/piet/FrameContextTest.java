@@ -23,6 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.widget.FrameLayout;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
@@ -123,6 +124,7 @@ public class FrameContextTest {
   private PietStylesHelper pietStylesHelper;
   private StyleProvider defaultStyleProvider;
   private Context context;
+  private FrameLayout frameView;
 
   @Before
   public void setUp() throws Exception {
@@ -138,6 +140,8 @@ public class FrameContextTest {
     pietSharedStates = new ArrayList<>();
     pietStylesHelper =
         new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, context);
+
+    frameView = new FrameLayout(context);
   }
 
   @Test
@@ -196,7 +200,8 @@ public class FrameContextTest {
             DebugBehavior.VERBOSE,
             debugLogger,
             actionHandler,
-            hostProviders);
+            hostProviders,
+            frameView);
 
     assertThat(frameContext.getFrame()).isEqualTo(DEFAULT_FRAME);
     assertThat(frameContext.getActionHandler()).isEqualTo(actionHandler);
@@ -1209,7 +1214,8 @@ public class FrameContextTest {
         DebugBehavior.VERBOSE,
         debugLogger,
         actionHandler,
-        hostProviders);
+        hostProviders,
+        frameView);
   }
 
   private FrameContext makeFrameContextWithBinding(BindingValue bindingValue) {
@@ -1226,7 +1232,8 @@ public class FrameContextTest {
         debugLogger,
         actionHandler,
         hostProviders,
-        DEFAULT_TEMPLATES);
+        DEFAULT_TEMPLATES,
+        frameView);
   }
 
   private FrameContext makeFrameContextWithNoBindings() {
@@ -1243,7 +1250,8 @@ public class FrameContextTest {
         debugLogger,
         actionHandler,
         hostProviders,
-        DEFAULT_TEMPLATES);
+        DEFAULT_TEMPLATES,
+        frameView);
   }
 
   private FrameContext makeFrameContextFromFrame(Frame frame) {
@@ -1255,7 +1263,8 @@ public class FrameContextTest {
         debugLogger,
         actionHandler,
         hostProviders,
-        context);
+        context,
+        frameView);
   }
 
   private void setUpPietSharedStates() {
