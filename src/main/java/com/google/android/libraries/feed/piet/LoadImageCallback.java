@@ -34,7 +34,7 @@ import java.util.List;
  * Handles loading images from the host. In particular, handles the resizing of images as well as
  * the fading animation.
  */
-public class LoadImageCallback implements Consumer<Drawable> {
+public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
 
   static final int FADE_IN_ANIMATION_TIME_MS = 300;
 
@@ -72,8 +72,8 @@ public class LoadImageCallback implements Consumer<Drawable> {
   }
 
   @Override
-  public void accept(Drawable drawable) {
-    if (cancelled) {
+  public void accept(/*@Nullable*/ Drawable drawable) {
+    if (cancelled || drawable == null) {
       return;
     }
 
@@ -141,7 +141,7 @@ public class LoadImageCallback implements Consumer<Drawable> {
   }
 
   /**
-   * Invalidates all views between the base view and a {@link RoundedCornerWrapperView}, which is
+   * s Invalidates all views between the base view and a {@link RoundedCornerWrapperView}, which is
    * required for the animations to succeed. This is necessary as the {@link
    * RoundedCornerWrapperView} masks its image and only redraws when explicitly told it needs to.
    * While invalidating the child view should result in the parent being invalidated, that is not

@@ -446,7 +446,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
   }
 
   @VisibleForTesting
-  class ImageSpanDrawableCallback implements Consumer<Drawable> {
+  class ImageSpanDrawableCallback implements Consumer</*@Nullable*/ Drawable> {
     private final LayerDrawable wrapper;
     private final StyleProvider imageStyle;
     private final TextView textView;
@@ -459,8 +459,8 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     }
 
     @Override
-    public void accept(Drawable imageDrawable) {
-      if (cancelled) {
+    public void accept(/*@Nullable*/ Drawable imageDrawable) {
+      if (cancelled || imageDrawable == null) {
         return;
       }
       imageDrawable = maybeResizeDrawable(imageDrawable, imageStyle);

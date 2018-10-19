@@ -37,9 +37,10 @@ public interface AssetProvider {
    * @param heightPx The height of the {@link Image} in pixels. Will be {@link #DIMENSION_UNKNOWN}
    *     if unknown.
    * @param consumer Callback to return the {@link Drawable} from an {@link Image} if the load
-   *     succeeds.
+   *     succeeds. {@literal null} should be passed to this if no source succeeds in loading the
+   *     image
    */
-  void getImage(Image image, int widthPx, int heightPx, Consumer<Drawable> consumer);
+  void getImage(Image image, int widthPx, int heightPx, Consumer</*@Nullable*/ Drawable> consumer);
 
   /**
    * Determines if Piet should try to resize BitmapDrawables retrieved via {@link #getImage(Image,

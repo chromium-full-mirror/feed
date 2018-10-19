@@ -51,7 +51,8 @@ public class PietAssetProvider implements AssetProvider {
   }
 
   @Override
-  public void getImage(Image image, int widthPx, int heightPx, Consumer<Drawable> consumer) {
+  public void getImage(
+      Image image, int widthPx, int heightPx, Consumer</*@Nullable*/ Drawable> consumer) {
     List<String> urls = new ArrayList<>(image.getSourcesList().size());
     for (ImageSource source : image.getSourcesList()) {
       urls.add(source.getUrl());
