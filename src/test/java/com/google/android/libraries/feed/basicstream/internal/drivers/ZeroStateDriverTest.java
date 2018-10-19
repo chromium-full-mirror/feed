@@ -57,7 +57,7 @@ public class ZeroStateDriverTest {
   @Before
   public void setup() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
 
     zeroStateDriver =
         new ZeroStateDriver(modelProvider, contentChangedListener, /* spinnerShown= */ false) {

@@ -139,7 +139,7 @@ public class StreamActionApiImplTest {
   public void setup() {
     initMocks(this);
 
-    Context context = Robolectric.setupActivity(Activity.class);
+    Context context = Robolectric.buildActivity(Activity.class).get();
     view = new View(context);
     streamActionApi =
         new StreamActionApiImpl(

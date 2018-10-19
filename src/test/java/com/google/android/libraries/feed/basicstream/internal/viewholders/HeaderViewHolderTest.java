@@ -46,7 +46,7 @@ public class HeaderViewHolderTest {
   @Before
   public void setUp() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     frameLayout = new FrameLayout(context);
     headerView = new FrameLayout(context);
     headerViewHolder = new HeaderViewHolder(frameLayout);

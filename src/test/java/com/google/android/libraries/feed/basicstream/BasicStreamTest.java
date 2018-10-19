@@ -162,7 +162,7 @@ public class BasicStreamTest {
 
     when(streamDriver.getLeafFeatureDrivers()).thenReturn(Collections.emptyList());
 
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     clock = new FakeClock();
     mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
     layoutManager = new LinearLayoutManagerWithFakePositioning(context);

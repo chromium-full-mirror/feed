@@ -109,7 +109,7 @@ public class StreamDriverTest {
   @Before
   public void setup() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     ThreadUtils threadUtils = new ThreadUtils();
 
     when(continuationDriver.getLeafFeatureDriver()).thenReturn(continuationDriver);

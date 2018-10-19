@@ -80,7 +80,7 @@ public class ContinuationDriverTest {
   @Before
   public void setup() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     when(modelChild.getModelToken()).thenReturn(modelToken);
 
     continuationDriver =

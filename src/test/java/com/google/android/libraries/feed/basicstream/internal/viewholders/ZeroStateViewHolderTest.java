@@ -52,7 +52,7 @@ public class ZeroStateViewHolderTest {
   public void setup() {
     initMocks(this);
     cardConfiguration = new FakeCardConfiguration();
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     frameLayout = new FrameLayout(context);
     frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     zeroStateViewHolder = new ZeroStateViewHolder(context, frameLayout, cardConfiguration);

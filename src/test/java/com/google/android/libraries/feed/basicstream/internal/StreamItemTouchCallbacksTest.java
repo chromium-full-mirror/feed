@@ -45,7 +45,7 @@ public final class StreamItemTouchCallbacksTest {
   @Before
   public void setUp() {
     callbacks = new StreamItemTouchCallbacks();
-    Context context = Robolectric.setupActivity(Activity.class);
+    Context context = Robolectric.buildActivity(Activity.class).get();
     recyclerView = new RecyclerView(context);
     frameLayout = new FrameLayout(context);
     dismissibleViewHolder = new DismissibleViewHolder(frameLayout, /* isDismissible= */ false);

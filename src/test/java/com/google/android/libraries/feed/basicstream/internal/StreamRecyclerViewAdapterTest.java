@@ -99,7 +99,7 @@ public class StreamRecyclerViewAdapterTest {
   public void setUp() {
     initMocks(this);
 
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     frameContainer = new LinearLayout(context);
 
     when(pietManager.createPietFrameAdapter(

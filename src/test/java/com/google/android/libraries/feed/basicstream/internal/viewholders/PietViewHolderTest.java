@@ -91,7 +91,7 @@ public class PietViewHolderTest {
   public void setUp() {
     initMocks(this);
     cardConfiguration = new FakeCardConfiguration();
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     frameLayout = new FrameLayout(context);
     frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     view = new TextView(context);

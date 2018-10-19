@@ -47,7 +47,7 @@ public class NoContentViewHolderTest {
   @Before
   public void setup() {
     initMocks(this);
-    Context context = Robolectric.setupActivity(Activity.class);
+    Context context = Robolectric.buildActivity(Activity.class).get();
     frameLayout = new FrameLayout(context);
     frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     noContentViewHolder = new NoContentViewHolder(cardConfiguration, context, frameLayout);
