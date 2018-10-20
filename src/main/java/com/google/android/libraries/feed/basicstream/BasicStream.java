@@ -224,7 +224,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         createStreamScrollMonitor(recyclerView, streamContentChangedListener, mainThreadRunner);
 
     if (savedInstanceState == null) {
-      scrollRestorer = createScrollRestorer(recyclerView, streamScrollMonitor, null);
+      scrollRestorer = createScrollRestorer(configuration, recyclerView, streamScrollMonitor, null);
       return;
     }
 
@@ -237,10 +237,13 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       }
       scrollRestorer =
           createScrollRestorer(
-              recyclerView, streamScrollMonitor, streamSavedInstanceState.getScrollState());
+              configuration,
+              recyclerView,
+              streamScrollMonitor,
+              streamSavedInstanceState.getScrollState());
     } catch (IllegalArgumentException | InvalidProtocolBufferException e) {
       Logger.wtf(TAG, "Could not parse saved instance state String.");
-      scrollRestorer = createScrollRestorer(recyclerView, streamScrollMonitor, null);
+      scrollRestorer = createScrollRestorer(configuration, recyclerView, streamScrollMonitor, null);
     }
   }
 
@@ -274,7 +277,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       ScrollRestorer initialScrollRestorer =
           modelProvider.getCurrentState() == State.READY
               ? scrollRestorer
-              : createNonRestoringScrollRestorer(recyclerView, streamScrollMonitor);
+              : createNonRestoringScrollRestorer(configuration, recyclerView, streamScrollMonitor);
 
       streamDriver =
           createStreamDriver(
@@ -339,7 +342,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       builder.setSessionToken(checkNotNull(modelProvider.getSessionToken()));
     }
 
-    ScrollState scrollState = scrollRestorer.getScrollStateForScrollRestore();
+    ScrollState scrollState =
+        scrollRestorer.getScrollStateForScrollRestore(adapter.getHeaderCount());
     if (scrollState != null) {
       builder.setScrollState(scrollState);
     }
@@ -674,16 +678,19 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @VisibleForTesting
   ScrollRestorer createScrollRestorer(
+      Configuration configuration,
       RecyclerView recyclerView,
       StreamScrollMonitor streamScrollMonitor,
       /*@Nullable*/ ScrollState scrollState) {
-    return new ScrollRestorer(recyclerView, streamScrollMonitor, scrollState);
+    return new ScrollRestorer(configuration, recyclerView, streamScrollMonitor, scrollState);
   }
 
   @VisibleForTesting
   ScrollRestorer createNonRestoringScrollRestorer(
-      RecyclerView recyclerView, StreamScrollMonitor streamScrollMonitor) {
-    return ScrollRestorer.nonRestoringRestorer(recyclerView, streamScrollMonitor);
+      Configuration configuration,
+      RecyclerView recyclerView,
+      StreamScrollMonitor streamScrollMonitor) {
+    return ScrollRestorer.nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor);
   }
 
   @IntDef({

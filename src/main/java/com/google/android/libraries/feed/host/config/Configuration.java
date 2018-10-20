@@ -25,6 +25,11 @@ import java.util.HashMap;
 public class Configuration {
   /** A unique string identifier for a config value */
   @StringDef({
+    // Configuration to have Stream abort restores if user is past configured fold count.
+    ConfigKey.ABANDON_RESTORE_BELOW_FOLD,
+    // Configuration on threshold of cards which abandons a restore if scroll is past that content
+    // count.
+    ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD,
     ConfigKey.FEED_SERVER_ENDPOINT,
     ConfigKey.FEED_SERVER_METHOD,
     ConfigKey.FEED_SERVER_RESPONSE_LENGTH_PREFIXED,
@@ -54,6 +59,8 @@ public class Configuration {
     ConfigKey.FADE_IMAGE_THRESHOLD_MS,
   })
   public @interface ConfigKey {
+    String ABANDON_RESTORE_BELOW_FOLD = "abandon_restore_below_fold";
+    String ABANDON_RESTORE_BELOW_FOLD_THRESHOLD = "abandon_restore_below_fold_threshold";
     String FEED_SERVER_ENDPOINT = "feed_server_endpoint";
     String FEED_SERVER_METHOD = "feed_server_method";
     String FEED_SERVER_RESPONSE_LENGTH_PREFIXED = "feed_server_response_length_prefixed";

@@ -16,7 +16,11 @@ package com.google.android.libraries.feed.basicstream.internal.scroll;
 
 import static com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer.nonRestoringRestorer;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
@@ -25,6 +29,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,12 +42,16 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ScrollRestorerTest {
 
-  private static final int POSITION = 4;
+  private static final int HEADER_COUNT = 3;
+  private static final int TOP_POSITION = 4;
+  private static final int BOTTOM_POSITION = 10;
+  private static final int ABANDON_RESTORE_THRESHOLD = BOTTOM_POSITION;
   private static final int OFFSET = -10;
   private static final ScrollState SCROLL_STATE =
-      ScrollState.newBuilder().setPosition(POSITION).setOffset(OFFSET).build();
+      ScrollState.newBuilder().setPosition(TOP_POSITION).setOffset(OFFSET).build();
 
   @Mock private StreamScrollMonitor streamScrollMonitor;
+  @Mock private Configuration configuration;
 
   private RecyclerView recyclerView;
   private LinearLayoutManagerForTest layoutManager;
@@ -50,7 +60,14 @@ public class ScrollRestorerTest {
   public void setUp() {
     initMocks(this);
 
+    when(configuration.getValueOrDefault(eq(ConfigKey.ABANDON_RESTORE_BELOW_FOLD), anyBoolean()))
+        .thenReturn(false);
+    when(configuration.getValueOrDefault(
+            eq(ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD), anyInt()))
+        .thenReturn(ABANDON_RESTORE_THRESHOLD);
+
     Context context = Robolectric.buildActivity(Activity.class).get();
+
     recyclerView = new RecyclerView(context);
     layoutManager = new LinearLayoutManagerForTest(context);
     recyclerView.setLayoutManager(layoutManager);
@@ -59,56 +76,100 @@ public class ScrollRestorerTest {
   @Test
   public void testRestoreScroll() {
     ScrollRestorer scrollRestorer =
-        new ScrollRestorer(recyclerView, streamScrollMonitor, SCROLL_STATE);
+        new ScrollRestorer(configuration, recyclerView, streamScrollMonitor, SCROLL_STATE);
     scrollRestorer.maybeRestoreScroll();
 
     verify(streamScrollMonitor).onProgrammaticScroll();
-    assertThat(layoutManager.scrolledPosition).isEqualTo(POSITION);
+    assertThat(layoutManager.scrolledPosition).isEqualTo(TOP_POSITION);
     assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
   }
 
   @Test
   public void testRestoreScroll_repeatedCall() {
     ScrollRestorer scrollRestorer =
-        new ScrollRestorer(recyclerView, streamScrollMonitor, createScrollState(10, 20));
+        new ScrollRestorer(
+            configuration, recyclerView, streamScrollMonitor, createScrollState(10, 20));
     scrollRestorer.maybeRestoreScroll();
 
-    layoutManager.scrollToPositionWithOffset(POSITION, OFFSET);
+    layoutManager.scrollToPositionWithOffset(TOP_POSITION, OFFSET);
     scrollRestorer.maybeRestoreScroll();
 
     verify(streamScrollMonitor).onProgrammaticScroll();
-    assertThat(layoutManager.scrolledPosition).isEqualTo(POSITION);
+    assertThat(layoutManager.scrolledPosition).isEqualTo(TOP_POSITION);
     assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
   }
 
   @Test
   public void testAbandonRestoringScroll() {
-    layoutManager.scrollToPositionWithOffset(POSITION, OFFSET);
+    layoutManager.scrollToPositionWithOffset(TOP_POSITION, OFFSET);
 
     ScrollRestorer scrollRestorer =
-        new ScrollRestorer(recyclerView, streamScrollMonitor, createScrollState(10, 20));
+        new ScrollRestorer(
+            configuration, recyclerView, streamScrollMonitor, createScrollState(10, 20));
     scrollRestorer.abandonRestoringScroll();
     scrollRestorer.maybeRestoreScroll();
 
-    assertThat(layoutManager.scrolledPosition).isEqualTo(POSITION);
+    assertThat(layoutManager.scrolledPosition).isEqualTo(TOP_POSITION);
     assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
   }
 
   @Test
   public void testGetScrollStateForScrollPosition() {
-    layoutManager.firstVisibleItemPosition = POSITION;
+    layoutManager.firstVisibleItemPosition = TOP_POSITION;
     layoutManager.firstVisibleViewOffset = OFFSET;
     ScrollState restorerScrollState =
-        nonRestoringRestorer(recyclerView, streamScrollMonitor).getScrollStateForScrollRestore();
+        nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+            .getScrollStateForScrollRestore(HEADER_COUNT);
     assertThat(restorerScrollState).isEqualTo(SCROLL_STATE);
   }
 
   @Test
   public void testGetBundleForScrollPosition_invalidPosition() {
     assertThat(
-            nonRestoringRestorer(recyclerView, streamScrollMonitor)
-                .getScrollStateForScrollRestore())
+            nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+                .getScrollStateForScrollRestore(10))
         .isNull();
+  }
+
+  @Test
+  public void testGetScrollStateForScrollPosition_abandonRestoreBelowFold_properRestore() {
+    when(configuration.getValueOrDefault(eq(ConfigKey.ABANDON_RESTORE_BELOW_FOLD), anyBoolean()))
+        .thenReturn(true);
+
+    layoutManager.firstVisibleItemPosition = TOP_POSITION;
+    layoutManager.firstVisibleViewOffset = OFFSET;
+    layoutManager.lastVisibleItemPosition = BOTTOM_POSITION;
+    ScrollState restorerScrollState =
+        nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+            .getScrollStateForScrollRestore(HEADER_COUNT);
+    assertThat(restorerScrollState).isEqualTo(SCROLL_STATE);
+  }
+
+  @Test
+  public void testGetScrollStateForScrollPosition_abandonRestoreBelowFold_badBottomPosition() {
+    when(configuration.getValueOrDefault(eq(ConfigKey.ABANDON_RESTORE_BELOW_FOLD), anyBoolean()))
+        .thenReturn(true);
+
+    layoutManager.firstVisibleItemPosition = TOP_POSITION;
+    layoutManager.firstVisibleViewOffset = OFFSET;
+    ScrollState restorerScrollState =
+        nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+            .getScrollStateForScrollRestore(HEADER_COUNT);
+    assertThat(restorerScrollState).isNull();
+  }
+
+  @Test
+  public void testGetScrollStateForScrollPosition_abandonRestoreBelowFold_restorePastThreshold() {
+    when(configuration.getValueOrDefault(eq(ConfigKey.ABANDON_RESTORE_BELOW_FOLD), anyBoolean()))
+        .thenReturn(true);
+
+    layoutManager.firstVisibleItemPosition = TOP_POSITION;
+    layoutManager.firstVisibleViewOffset = OFFSET;
+    layoutManager.lastVisibleItemPosition = ABANDON_RESTORE_THRESHOLD + HEADER_COUNT + 1;
+    ScrollState restorerScrollState =
+        nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
+            .getScrollStateForScrollRestore(HEADER_COUNT);
+    assertThat(restorerScrollState).isNull();
   }
 
   private ScrollState createScrollState(int position, int offset) {
@@ -122,6 +183,8 @@ public class ScrollRestorerTest {
     private int firstVisibleItemPosition = RecyclerView.NO_POSITION;
     private int firstVisibleViewOffset;
 
+    private int lastVisibleItemPosition = RecyclerView.NO_POSITION;
+
     private int scrolledPosition;
     private int scrolledOffset;
 
@@ -133,6 +196,11 @@ public class ScrollRestorerTest {
     @Override
     public int findFirstVisibleItemPosition() {
       return firstVisibleItemPosition;
+    }
+
+    @Override
+    public int findLastVisibleItemPosition() {
+      return lastVisibleItemPosition;
     }
 
     @Override

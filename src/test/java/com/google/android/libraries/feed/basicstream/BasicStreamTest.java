@@ -105,6 +105,7 @@ public class BasicStreamTest {
   private static final int TOP_PADDING = 3;
   private static final int BOTTOM_PADDING = 4;
   private static final long LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = 1000;
+  private static final int ADAPTER_HEADER_COUNT = 5;
 
   private static final String SESSION_TOKEN = "session-token";
   private static final ScrollState SCROLL_STATE =
@@ -143,10 +144,20 @@ public class BasicStreamTest {
   private FakeClock clock;
   private BasicStreamForTest basicStream;
   private FakeMainThreadRunner mainThreadRunner;
+  private List<Header> headers;
 
   @Before
   public void setUp() {
     initMocks(this);
+
+    headers = new ArrayList<>();
+    headers.add(mock(Header.class));
+
+    // TODO: Move header orchestration into separate class.
+    // Purposely using a different header count here as it is possible for size of headers to change
+    // due to swipe to dismiss.  Adapter is source of truth for headers right now. Ideally we should
+    // have a drivers specifically for header management but we don't just yet.
+    when(adapter.getHeaderCount()).thenReturn(ADAPTER_HEADER_COUNT);
 
     when(streamConfiguration.getPaddingStart()).thenReturn(START_PADDING);
     when(streamConfiguration.getPaddingEnd()).thenReturn(END_PADDING);
@@ -158,7 +169,8 @@ public class BasicStreamTest {
 
     when(initialModelProvider.getSessionToken()).thenReturn(SESSION_TOKEN);
 
-    when(scrollRestorer.getScrollStateForScrollRestore()).thenReturn(SCROLL_STATE);
+    when(scrollRestorer.getScrollStateForScrollRestore(ADAPTER_HEADER_COUNT))
+        .thenReturn(SCROLL_STATE);
 
     when(streamDriver.getLeafFeatureDrivers()).thenReturn(Collections.emptyList());
 
@@ -467,7 +479,7 @@ public class BasicStreamTest {
       throws InvalidProtocolBufferException {
     basicStream.onShow();
 
-    when(scrollRestorer.getScrollStateForScrollRestore()).thenReturn(null);
+    when(scrollRestorer.getScrollStateForScrollRestore(ADAPTER_HEADER_COUNT)).thenReturn(null);
     StreamSavedInstanceState savedInstanceState =
         StreamSavedInstanceState.parseFrom(
             decodeSavedInstanceStateString(basicStream.getSavedInstanceStateString()));
@@ -779,7 +791,7 @@ public class BasicStreamTest {
         mock(CustomElementProvider.class),
         DebugBehavior.VERBOSE,
         new ThreadUtils(),
-        /* headers= */ new ArrayList<>(),
+        headers,
         clock,
         modelProviderFactory,
         new HostBindingProvider(),
@@ -906,6 +918,7 @@ public class BasicStreamTest {
 
     @Override
     ScrollRestorer createScrollRestorer(
+        Configuration configuration,
         RecyclerView recyclerView,
         StreamScrollMonitor streamScrollMonitor,
         /*@Nullable*/ ScrollState scrollState) {
@@ -914,7 +927,9 @@ public class BasicStreamTest {
 
     @Override
     ScrollRestorer createNonRestoringScrollRestorer(
-        RecyclerView recyclerView, StreamScrollMonitor streamScrollMonitor) {
+        Configuration configuration,
+        RecyclerView recyclerView,
+        StreamScrollMonitor streamScrollMonitor) {
       return nonRestoringScrollRestorer;
     }
   }

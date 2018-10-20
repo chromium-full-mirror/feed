@@ -40,7 +40,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
-import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -67,7 +66,6 @@ public class ContinuationDriverTest {
   @Mock private ModelChild modelChild;
   @Mock private ModelProvider modelProvider;
   @Mock private ModelToken modelToken;
-  @Mock private ScrollRestorer scrollRestorer;
   @Mock private SnackbarApi snackbarApi;
   @Mock private ThreadUtils threadUtils;
   @Mock private CursorChangedListener cursorChangedListener;
@@ -92,7 +90,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
     continuationDriver.initialize();
@@ -109,7 +106,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
 
@@ -125,7 +121,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
 
@@ -143,7 +138,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
     continuationDriver.initialize();
@@ -164,7 +158,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
     continuationDriver.initialize();
@@ -191,7 +184,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
 
@@ -212,7 +204,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
 
@@ -233,7 +224,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
 
@@ -318,7 +308,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
     continuationDriver.initialize();
@@ -356,24 +345,6 @@ public class ContinuationDriverTest {
 
     verify(cursorChangedListener).onNewChildren(modelChild, cursor.getModelChildren());
     verifyNoMoreInteractions(snackbarApi);
-  }
-
-  @Test
-  public void testOnTokenCompleted_restoresScroll() {
-    when(modelToken.isSynthetic()).thenReturn(false);
-
-    continuationDriver.onTokenCompleted(new TokenCompleted(new FakeModelCursor.Builder().build()));
-
-    verify(scrollRestorer).maybeRestoreScroll();
-  }
-
-  @Test
-  public void testOnTokenCompleted_doesNotRestoreScrollForSyntheticToken() {
-    when(modelToken.isSynthetic()).thenReturn(true);
-
-    continuationDriver.onTokenCompleted(new TokenCompleted(new FakeModelCursor.Builder().build()));
-
-    verify(scrollRestorer, never()).maybeRestoreScroll();
   }
 
   @Test
@@ -429,7 +400,6 @@ public class ContinuationDriverTest {
             modelChild,
             modelProvider,
             POSITION,
-            scrollRestorer,
             snackbarApi,
             threadUtils);
 

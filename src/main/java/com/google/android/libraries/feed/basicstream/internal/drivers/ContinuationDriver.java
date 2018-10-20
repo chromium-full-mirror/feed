@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
-import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
@@ -56,7 +55,6 @@ public class ContinuationDriver extends LeafFeatureDriver
   private final ModelToken modelToken;
   private final ModelProvider modelProvider;
   private final int position;
-  private final ScrollRestorer scrollRestorer;
   private final SnackbarApi snackbarApi;
   private final ThreadUtils threadUtils;
   private boolean showSpinner;
@@ -72,7 +70,6 @@ public class ContinuationDriver extends LeafFeatureDriver
       ModelChild modelChild,
       ModelProvider modelProvider,
       int position,
-      ScrollRestorer scrollRestorer,
       SnackbarApi snackbarApi,
       ThreadUtils threadUtils) {
     this.basicLoggingApi = basicLoggingApi;
@@ -82,7 +79,6 @@ public class ContinuationDriver extends LeafFeatureDriver
     this.modelProvider = modelProvider;
     this.modelToken = modelChild.getModelToken();
     this.position = position;
-    this.scrollRestorer = scrollRestorer;
     this.snackbarApi = snackbarApi;
     this.threadUtils = threadUtils;
     this.showSpinner =
@@ -181,10 +177,6 @@ public class ContinuationDriver extends LeafFeatureDriver
           context.getResources().getString(R.string.snackbar_fetch_no_new_suggestions));
     }
 
-    // TODO: Handle continuation driver. This needs to handle synthetic tokens.
-    if (!isSynthetic()) {
-      scrollRestorer.maybeRestoreScroll();
-    }
     cursorChangedListener.onNewChildren(modelChild, modelChildren);
   }
 

@@ -210,7 +210,6 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
                 child,
                 modelProvider,
                 position,
-                scrollRestorer,
                 snackbarApi);
 
         // TODO: Look into moving initialize() into a more generic location. We don't
@@ -303,6 +302,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         && featureDrivers.get(0) instanceof NoContentDriver) {
       showZeroState(false);
     }
+
+    maybeRestoreScroll();
   }
 
   public void onDestroy() {
@@ -455,7 +456,6 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       ModelChild modelChild,
       ModelProvider modelProvider,
       int position,
-      ScrollRestorer scrollRestorer,
       SnackbarApi snackbarApi) {
     return new ContinuationDriver(
         basicLoggingApi,
@@ -465,7 +465,6 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         modelChild,
         modelProvider,
         position,
-        scrollRestorer,
         snackbarApi,
         threadUtils);
   }

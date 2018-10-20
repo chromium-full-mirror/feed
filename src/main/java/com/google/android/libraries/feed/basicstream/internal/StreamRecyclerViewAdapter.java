@@ -203,6 +203,10 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     diffResult.dispatchUpdatesTo(new HeaderListUpdateCallback(newHeaders));
   }
 
+  public int getHeaderCount() {
+    return headers.size();
+  }
+
   public void setStreamContentVisible(boolean streamContentVisible) {
     if (this.streamContentVisible == streamContentVisible) {
       return;

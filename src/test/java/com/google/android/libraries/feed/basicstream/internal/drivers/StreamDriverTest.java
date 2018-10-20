@@ -229,6 +229,31 @@ public class StreamDriverTest {
     // If the above two assertions pass, this is also guaranteed to pass. This is just to explicitly
     // check that the ContinuationDriver has been removed.
     assertThat(leafFeatureDrivers).doesNotContain(continuationDriver);
+
+    verify(scrollRestorer).maybeRestoreScroll();
+  }
+
+  @Test
+  public void testContinuationToken_tokenHandling_newSyntheticToken() {
+    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addSyntheticToken().build();
+    FakeModelCursor newCursor =
+        new FakeModelCursor.Builder().addCluster().addSyntheticToken().build();
+    when(streamFeature.getCursor()).thenReturn(initialCursor);
+    when(continuationDriver.isSynthetic()).thenReturn(true);
+
+    // Causes StreamDriver to build a list of children based on the children from the cursor.
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+    assertThat(leafFeatureDrivers).hasSize(2);
+    assertThat(leafFeatureDrivers.get(0)).isEqualTo(noContentDriver);
+    assertThat(leafFeatureDrivers.get(1)).isEqualTo(continuationDriver);
+
+    streamDriver.onNewChildren(initialCursor.getChildAt(0), newCursor.getModelChildren());
+    leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+    assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
+    assertThat(leafFeatureDrivers.get(0)).isEqualTo(getLeafFeatureDriverFromCluster(1));
+    assertThat(leafFeatureDrivers.get(1)).isEqualTo(continuationDriver);
+
+    verify(scrollRestorer, never()).maybeRestoreScroll();
   }
 
   @Test
@@ -594,7 +619,6 @@ public class StreamDriverTest {
         ModelChild modelChild,
         ModelProvider modelProvider,
         int position,
-        ScrollRestorer scrollRestorer,
         SnackbarApi snackbarApi) {
       childrenCreated.add(continuationDriver);
       return continuationDriver;

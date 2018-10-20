@@ -22,6 +22,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 
 /**
  * Class which is able to save a scroll position for a RecyclerView and restore to that scroll
@@ -31,6 +33,10 @@ public class ScrollRestorer {
 
   private static final String TAG = "ScrollRestorer";
 
+  private static final boolean ABANDON_RESTORE_BELOW_FOLD_DEFAULT = true;
+  private static final int ABANDON_RESTORE_BELOW_FOLD_THRESHOLD_DEFAULT = 10;
+
+  private final Configuration configuration;
   private final RecyclerView recyclerView;
   private final StreamScrollMonitor streamScrollMonitor;
   private final int scrollPosition;
@@ -39,9 +45,11 @@ public class ScrollRestorer {
   private boolean canRestore;
 
   public ScrollRestorer(
+      Configuration configuration,
       RecyclerView recyclerView,
       StreamScrollMonitor streamScrollMonitor,
       /*@Nullable*/ ScrollState scrollState) {
+    this.configuration = configuration;
     this.recyclerView = recyclerView;
     this.streamScrollMonitor = streamScrollMonitor;
 
@@ -55,8 +63,12 @@ public class ScrollRestorer {
     }
   }
 
-  private ScrollRestorer(RecyclerView recyclerView, StreamScrollMonitor streamScrollMonitor) {
+  private ScrollRestorer(
+      Configuration configuration,
+      RecyclerView recyclerView,
+      StreamScrollMonitor streamScrollMonitor) {
     canRestore = false;
+    this.configuration = configuration;
     this.recyclerView = recyclerView;
     this.streamScrollMonitor = streamScrollMonitor;
     scrollPosition = 0;
@@ -68,8 +80,10 @@ public class ScrollRestorer {
    * {@code StreamRestorer} requests when no restore state is present.
    */
   public static ScrollRestorer nonRestoringRestorer(
-      RecyclerView recyclerView, StreamScrollMonitor streamScrollMonitor) {
-    return new ScrollRestorer(recyclerView, streamScrollMonitor);
+      Configuration configuration,
+      RecyclerView recyclerView,
+      StreamScrollMonitor streamScrollMonitor) {
+    return new ScrollRestorer(configuration, recyclerView, streamScrollMonitor);
   }
 
   /**
@@ -95,9 +109,13 @@ public class ScrollRestorer {
     canRestore = false;
   }
 
-  /** Returns a bundle which can be used for restoring scroll state on an activity restart. */
+  /**
+   * Returns a bundle which can be used for restoring scroll state on an activity restart.
+   *
+   * @param currentHeaderCount The amount of headers which appear before Stream content.
+   */
   /*@Nullable*/
-  public ScrollState getScrollStateForScrollRestore() {
+  public ScrollState getScrollStateForScrollRestore(int currentHeaderCount) {
     LinearLayoutManager layoutManager = getLayoutManager();
 
     int scrollPosition = layoutManager.findFirstVisibleItemPosition();
@@ -108,6 +126,28 @@ public class ScrollRestorer {
     View view = layoutManager.findViewByPosition(scrollPosition);
     if (view == null) {
       return null;
+    }
+
+    // Determine if we can restore past the fold.
+    if (configuration.getValueOrDefault(
+        ConfigKey.ABANDON_RESTORE_BELOW_FOLD, ABANDON_RESTORE_BELOW_FOLD_DEFAULT)) {
+      int bottomScrollPosition = layoutManager.findLastVisibleItemPosition();
+      int threshold =
+          configuration.getValueOrDefault(
+              ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD,
+              ABANDON_RESTORE_BELOW_FOLD_THRESHOLD_DEFAULT);
+
+      if (bottomScrollPosition == RecyclerView.NO_POSITION
+          || bottomScrollPosition - currentHeaderCount > threshold) {
+        Logger.w(
+            TAG,
+            "Abandoning scroll due to fold threshold.  Bottom scroll index: %d, Header "
+                + "count: %d, Configured Threshold: %d",
+            bottomScrollPosition,
+            currentHeaderCount,
+            threshold);
+        return null;
+      }
     }
 
     return ScrollState.newBuilder().setPosition(scrollPosition).setOffset(view.getTop()).build();
