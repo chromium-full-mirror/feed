@@ -57,6 +57,8 @@ public class Configuration {
     ConfigKey.USE_DIRECT_STORAGE,
     // Time in ms to wait for image loading before showing a fade in animation.
     ConfigKey.FADE_IMAGE_THRESHOLD_MS,
+    // Only update HEAD and the session making a page request
+    ConfigKey.LIMIT_PAGE_UPDATES,
   })
   public @interface ConfigKey {
     String ABANDON_RESTORE_BELOW_FOLD = "abandon_restore_below_fold";
@@ -80,6 +82,7 @@ public class Configuration {
     String VIEW_LOG_THRESHOLD = "view_log_threshold";
     String USE_DIRECT_STORAGE = "use_direct_storage";
     String FADE_IMAGE_THRESHOLD_MS = "fade_image_threshold_ms";
+    String LIMIT_PAGE_UPDATES = "limit_page_updates";
   }
 
   private final HashMap<String, Object> values;

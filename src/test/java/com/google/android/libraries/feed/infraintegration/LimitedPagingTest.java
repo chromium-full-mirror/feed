@@ -1,0 +1,125 @@
+// Copyright 2018 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.android.libraries.feed.infraintegration;
+
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.testing.FakeRequestManager;
+import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
+import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
+import com.google.android.libraries.feed.common.testing.PagingState;
+import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
+
+/** Test which verifies that multiple session page correctly when limited paging is on. */
+@RunWith(RobolectricTestRunner.class)
+public class LimitedPagingTest {
+  // Create a simple stream with a root and three features
+  private static final ContentId[] PAGE_1 =
+      new ContentId[] {
+        WireProtocolResponseBuilder.createFeatureContentId(1),
+        WireProtocolResponseBuilder.createFeatureContentId(2),
+        WireProtocolResponseBuilder.createFeatureContentId(3)
+      };
+  private static final ContentId[] PAGE_2 =
+      new ContentId[] {
+        WireProtocolResponseBuilder.createFeatureContentId(4),
+        WireProtocolResponseBuilder.createFeatureContentId(5),
+        WireProtocolResponseBuilder.createFeatureContentId(6)
+      };
+
+  @Mock private ThreadUtils threadUtils;
+
+  private FakeRequestManager requestManager;
+  private SessionManager sessionManager;
+  private ModelProviderFactory modelProviderFactory;
+  private ModelProviderValidator modelValidator;
+
+  private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
+
+  @Before
+  public void setUp() {
+    initMocks(this);
+    InfrastructureIntegrationScope scope =
+        new InfrastructureIntegrationScope.Builder(
+                threadUtils, MoreExecutors.newDirectExecutorService())
+            .build();
+    requestManager = scope.getRequestManager();
+    sessionManager = scope.getSessionManager();
+    modelProviderFactory = scope.getModelProviderFactory();
+    modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
+  }
+
+  @Test
+  public void testPagingDetachedSession() {
+    PagingState s1State = new PagingState(PAGE_1, PAGE_2, 1, contentIdGenerators);
+    requestManager.queueResponse(s1State.initialResponse);
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+
+    // Create the sessionOne from page1 and a token
+    ModelProvider sessionOne = modelProviderFactory.createNew(null);
+    ModelChild tokenChild = modelValidator.assertCursorContentsWithToken(sessionOne, PAGE_1);
+
+    // Create the sessionTwo matching sessionOne
+    ModelProvider sessionTwo = modelProviderFactory.createNew(null);
+    modelValidator.assertCursorContentsWithToken(sessionTwo, PAGE_1);
+
+    // Now Page session one and verify both session are as expected, only session one will contain
+    // the paged content
+    requestManager.queueResponse(s1State.pageResponse);
+    sessionOne.handleToken(tokenChild.getModelToken());
+
+    // Create the sessionOne from page1 and a token
+    modelValidator.assertCursorContents(
+        sessionOne, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
+    modelValidator.assertCursorContentsWithToken(sessionTwo, PAGE_1);
+
+    // Now create a new session from $HEAD to verify that the page response was added to $HEAD
+    ModelProvider sessionThree = modelProviderFactory.createNew(null);
+    modelValidator.assertCursorContents(
+        sessionThree, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
+
+    // Page session two, this should not change anything else
+    requestManager.queueResponse(s1State.pageResponse);
+    sessionTwo.handleToken(tokenChild.getModelToken());
+    modelValidator.assertCursorContents(
+        sessionOne, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
+    modelValidator.assertCursorContents(
+        sessionTwo, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
+    modelValidator.assertCursorContents(
+        sessionThree, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
+
+    // Verify that paging session two did not update $HEAD
+    ModelProvider sessionFour = modelProviderFactory.createNew(null);
+    modelValidator.assertCursorContents(
+        sessionFour, PAGE_1[0], PAGE_1[1], PAGE_1[2], PAGE_2[0], PAGE_2[1], PAGE_2[2]);
+  }
+}

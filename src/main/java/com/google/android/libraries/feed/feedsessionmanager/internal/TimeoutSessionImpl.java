@@ -42,8 +42,12 @@ public class TimeoutSessionImpl extends SessionImpl {
   @VisibleForTesting /*@Nullable*/ ViewDepthProvider viewDepthProvider;
 
   TimeoutSessionImpl(
-      Store store, TaskQueue taskQueue, TimingUtils timingUtils, ThreadUtils threadUtils) {
-    super(store, taskQueue, timingUtils, threadUtils);
+      Store store,
+      boolean limitPagingUpdates,
+      TaskQueue taskQueue,
+      TimingUtils timingUtils,
+      ThreadUtils threadUtils) {
+    super(store, limitPagingUpdates, taskQueue, timingUtils, threadUtils);
     Logger.i(TAG, "Using TimeoutSessionImpl");
   }
 

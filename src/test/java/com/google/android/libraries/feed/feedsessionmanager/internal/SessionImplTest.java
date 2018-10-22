@@ -73,7 +73,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
   protected SessionImpl getSessionImpl() {
     TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
-    SessionImpl session = new SessionImpl(store, taskQueue, timingUtils, threadUtils);
+    SessionImpl session = new SessionImpl(store, false, taskQueue, timingUtils, threadUtils);
     session.bindModelProvider(modelProvider);
     return session;
   }

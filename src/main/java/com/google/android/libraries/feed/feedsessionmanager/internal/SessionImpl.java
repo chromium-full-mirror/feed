@@ -47,6 +47,7 @@ public class SessionImpl implements InitializableSession, Dumpable {
   protected final TaskQueue taskQueue;
   protected final ThreadUtils threadUtils;
   protected final TimingUtils timingUtils;
+  private final boolean limitPagingUpdates;
 
   // Allow creation of the session without a model provider, this becomes an unbound session
   protected /*@Nullable*/ ModelProvider modelProvider;
@@ -57,11 +58,17 @@ public class SessionImpl implements InitializableSession, Dumpable {
   // operation counts for the dumper
   int updateCount = 0;
 
-  SessionImpl(Store store, TaskQueue taskQueue, TimingUtils timingUtils, ThreadUtils threadUtils) {
+  SessionImpl(
+      Store store,
+      boolean limitPagingUpdates,
+      TaskQueue taskQueue,
+      TimingUtils timingUtils,
+      ThreadUtils threadUtils) {
     this.store = store;
     this.taskQueue = taskQueue;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    this.limitPagingUpdates = limitPagingUpdates;
   }
 
   @Override
@@ -154,13 +161,24 @@ public class SessionImpl implements InitializableSession, Dumpable {
         mutationContext != null ? mutationContext.getContinuationToken() : null;
     if (mutationSourceToken != null) {
       String contentId = mutationSourceToken.getContentId();
-      if (mutationSourceToken.hasContentId() && !contentInSession.contains(contentId)) {
+      if (!contentInSession.contains(contentId)) {
         // Make sure that mutationSourceToken is a token in this session, if not, we don't update
         // the session.
         timeTracker.stop(
             "updateSessionIgnored", streamSession.getStreamToken(), "Token Not Found", contentId);
         Logger.i(TAG, "Token %s not found in session, ignoring update", contentId);
         return;
+      } else if (limitPagingUpdates) {
+        StreamSession mutationSession =
+            Validators.checkNotNull(mutationContext).getRequestingSession();
+        if (mutationSession == null) {
+          Logger.i(TAG, "Request Session was not set, ignoring update");
+          return;
+        }
+        if (!streamSession.getStreamToken().equals(mutationSession.getStreamToken())) {
+          Logger.i(TAG, "Limiting Updates, paging request made on another session");
+          return;
+        }
       }
     }
 

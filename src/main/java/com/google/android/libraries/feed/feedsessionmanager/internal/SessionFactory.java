@@ -31,6 +31,7 @@ public class SessionFactory {
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
   private final boolean useTimeScheduler;
+  private final boolean limitPagingUpdates;
 
   public SessionFactory(
       Store store,
@@ -43,12 +44,13 @@ public class SessionFactory {
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     useTimeScheduler = config.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, false);
+    limitPagingUpdates = config.getValueOrDefault(ConfigKey.LIMIT_PAGE_UPDATES, true);
   }
 
   public InitializableSession getSession() {
     return useTimeScheduler
-        ? new TimeoutSessionImpl(store, taskQueue, timingUtils, threadUtils)
-        : new SessionImpl(store, taskQueue, timingUtils, threadUtils);
+        ? new TimeoutSessionImpl(store, limitPagingUpdates, taskQueue, timingUtils, threadUtils)
+        : new SessionImpl(store, limitPagingUpdates, taskQueue, timingUtils, threadUtils);
   }
 
   public HeadSessionImpl getHeadSession() {

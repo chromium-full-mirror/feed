@@ -28,6 +28,8 @@ import com.google.android.libraries.feed.common.testing.InfrastructureIntegratio
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
@@ -66,9 +68,12 @@ public class DetachSessionTest {
   @Before
   public void setUp() {
     initMocks(this);
+    Configuration configuration =
+        new Configuration.Builder().put(ConfigKey.LIMIT_PAGE_UPDATES, false).build();
     InfrastructureIntegrationScope scope =
         new InfrastructureIntegrationScope.Builder(
                 threadUtils, MoreExecutors.newDirectExecutorService())
+            .setConfiguration(configuration)
             .build();
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();

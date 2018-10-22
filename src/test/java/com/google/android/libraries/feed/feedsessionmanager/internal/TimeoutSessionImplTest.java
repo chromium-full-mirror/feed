@@ -156,7 +156,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   protected TimeoutSessionImpl getSessionImpl() {
     TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
-    TimeoutSessionImpl session = new TimeoutSessionImpl(store, taskQueue, timingUtils, threadUtils);
+    TimeoutSessionImpl session =
+        new TimeoutSessionImpl(store, false, taskQueue, timingUtils, threadUtils);
     session.bindModelProvider(modelProvider);
     return session;
   }
