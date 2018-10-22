@@ -42,7 +42,7 @@ public class AspectRatioScalingImageViewTest {
 
   @Before
   public void setUp() {
-    view = new AspectRatioScalingImageView(Robolectric.setupActivity(Activity.class));
+    view = new AspectRatioScalingImageView(Robolectric.buildActivity(Activity.class).get());
     drawable =
         new BitmapDrawable(
             Bitmap.createBitmap(DRAWABLE_WIDTH, DRAWABLE_HEIGHT, Bitmap.Config.RGB_565));

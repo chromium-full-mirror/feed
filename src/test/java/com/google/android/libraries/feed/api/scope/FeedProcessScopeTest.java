@@ -66,7 +66,7 @@ public class FeedProcessScopeTest {
   @Before
   public void setUp() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
   }
 
   @Test

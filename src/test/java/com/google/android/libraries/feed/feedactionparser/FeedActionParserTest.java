@@ -285,7 +285,7 @@ public class FeedActionParserTest {
 
   @Test
   public void testParseAction_contextMenu() {
-    Context context = Robolectric.setupActivity(Activity.class);
+    Context context = Robolectric.buildActivity(Activity.class).get();
     View view = new View(context);
 
     when(streamActionApi.canOpenContextMenu()).thenReturn(true);

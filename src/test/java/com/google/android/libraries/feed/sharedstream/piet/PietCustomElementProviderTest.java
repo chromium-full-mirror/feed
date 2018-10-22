@@ -46,7 +46,7 @@ public class PietCustomElementProviderTest {
   public void setUp() {
     initMocks(this);
 
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     hostCreatedView = new View(context);
     customElementProvider =
         new PietCustomElementProvider(context, /* customElementProvider */ null);

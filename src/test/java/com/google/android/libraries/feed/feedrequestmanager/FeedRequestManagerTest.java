@@ -123,7 +123,7 @@ public class FeedRequestManagerTest {
   @Before
   public void setUp() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     context.getResources().getConfiguration().locale = Locale.US;
     FeedExtensionRegistry feedExtensionRegistry = new FeedExtensionRegistry(ArrayList::new);
     registry = ExtensionRegistryLite.newInstance();

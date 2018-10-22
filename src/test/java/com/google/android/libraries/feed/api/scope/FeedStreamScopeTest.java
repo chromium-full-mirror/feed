@@ -94,7 +94,7 @@ public class FeedStreamScopeTest {
   @Before
   public void setUp() {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     mainThreadRunner = new MainThreadRunner();
     threadUtils = new ThreadUtils();
     timingUtils = new TimingUtils();

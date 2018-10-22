@@ -88,7 +88,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   @Before
   public void setUp() throws Exception {
     initMocks(this);
-    context = Robolectric.setupActivity(Activity.class);
+    context = Robolectric.buildActivity(Activity.class).get();
     applicationInfo = new ApplicationInfo.Builder(context).setVersionString("0").build();
 
     MockServer mockServer = MockServer.getDefaultInstance();
