@@ -70,6 +70,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final ContextMenuManager contextMenuManager;
   private final MenuMeasurer menuMeasurer;
 
+  private boolean restoring;
   private boolean rootFeatureConsumed;
   private boolean modelFeatureChangeObserverRegistered;
 
@@ -90,7 +91,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       StreamOfflineMonitor streamOfflineMonitor,
       KnownContentApi knownContentApi,
       ContextMenuManager contextMenuManager,
-      MenuMeasurer menuMeasurer) {
+      MenuMeasurer menuMeasurer,
+      boolean restoring) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -107,6 +109,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     this.basicLoggingApi = basicLoggingApi;
     this.streamOfflineMonitor = streamOfflineMonitor;
     this.menuMeasurer = menuMeasurer;
+    this.restoring = restoring;
 
     modelProvider.enableRemoveTracking(
         new StreamRemoveTrackingFactory(modelProvider, knownContentApi));
@@ -143,6 +146,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         return;
       }
     }
+
+    restoring = false;
 
     scrollRestorer.maybeRestoreScroll();
   }
@@ -210,7 +215,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
                 child,
                 modelProvider,
                 position,
-                snackbarApi);
+                snackbarApi,
+                restoring);
 
         // TODO: Look into moving initialize() into a more generic location. We don't
         // really want work to be done in the constructor so we call an initialize() method to
@@ -456,7 +462,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       ModelChild modelChild,
       ModelProvider modelProvider,
       int position,
-      SnackbarApi snackbarApi) {
+      SnackbarApi snackbarApi,
+      boolean restoring) {
     return new ContinuationDriver(
         basicLoggingApi,
         configuration,
@@ -466,7 +473,9 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         modelProvider,
         position,
         snackbarApi,
-        threadUtils);
+        threadUtils,
+        // We always want to automatically consume synthetic tokens when we are restoring.
+        /*forceAutoConsumeSyntheticTokens= */ restoring);
   }
 
   @VisibleForTesting

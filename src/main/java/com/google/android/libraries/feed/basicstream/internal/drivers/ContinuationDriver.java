@@ -57,6 +57,8 @@ public class ContinuationDriver extends LeafFeatureDriver
   private final int position;
   private final SnackbarApi snackbarApi;
   private final ThreadUtils threadUtils;
+  private final boolean consumeSyntheticTokens;
+
   private boolean showSpinner;
   private boolean initialized;
   private boolean viewLogged;
@@ -71,7 +73,8 @@ public class ContinuationDriver extends LeafFeatureDriver
       ModelProvider modelProvider,
       int position,
       SnackbarApi snackbarApi,
-      ThreadUtils threadUtils) {
+      ThreadUtils threadUtils,
+      boolean forceAutoConsumeSyntheticTokens) {
     this.basicLoggingApi = basicLoggingApi;
     this.context = context;
     this.cursorChangedListener = cursorChangedListener;
@@ -83,6 +86,9 @@ public class ContinuationDriver extends LeafFeatureDriver
     this.threadUtils = threadUtils;
     this.showSpinner =
         configuration.getValueOrDefault(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false);
+    this.consumeSyntheticTokens =
+        configuration.getValueOrDefault(ConfigKey.CONSUME_SYNTHETIC_TOKENS, false)
+            || forceAutoConsumeSyntheticTokens;
   }
 
   public boolean isSynthetic() {
@@ -96,7 +102,7 @@ public class ContinuationDriver extends LeafFeatureDriver
 
     initialized = true;
     modelToken.registerObserver(this);
-    if (modelToken.isSynthetic()) {
+    if (modelToken.isSynthetic() && consumeSyntheticTokens) {
       Logger.d(TAG, "Handling synthetic token");
       showSpinner = true;
       modelProvider.handleToken(modelToken);

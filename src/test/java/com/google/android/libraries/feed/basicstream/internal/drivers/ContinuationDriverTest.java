@@ -48,11 +48,13 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
@@ -70,7 +72,6 @@ public class ContinuationDriverTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private CursorChangedListener cursorChangedListener;
   @Mock private ContinuationViewHolder continuationViewHolder;
-
   private Context context;
   private ContinuationDriver continuationDriver;
   private Configuration configuration = new Configuration.Builder().build();
@@ -91,7 +92,8 @@ public class ContinuationDriverTest {
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
     continuationDriver.initialize();
   }
 
@@ -107,7 +109,8 @@ public class ContinuationDriverTest {
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
 
     assertThat(continuationDriver.isSynthetic()).isFalse();
 
@@ -122,7 +125,8 @@ public class ContinuationDriverTest {
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
 
     assertThat(continuationDriver.isSynthetic()).isTrue();
   }
@@ -139,7 +143,8 @@ public class ContinuationDriverTest {
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
     continuationDriver.initialize();
 
     verify(modelToken).registerObserver(continuationDriver);
@@ -147,19 +152,23 @@ public class ContinuationDriverTest {
   }
 
   @Test
-  public void testInitialize_syntheticToken() {
+  public void testInitialize_syntheticTokenConsume() {
     when(modelToken.isSynthetic()).thenReturn(true);
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
-            new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
+            new Configuration.Builder()
+                .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true)
+                .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, true)
+                .build(),
             context,
             cursorChangedListener,
             modelChild,
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
     continuationDriver.initialize();
 
     // Call initialize again to make sure it doesn't duplicate work
@@ -174,6 +183,71 @@ public class ContinuationDriverTest {
   }
 
   @Test
+  public void testInitialize_syntheticTokenNotConsumed() {
+    when(modelToken.isSynthetic()).thenReturn(true);
+    continuationDriver =
+        new ContinuationDriver(
+            basicLoggingApi,
+            new Configuration.Builder()
+                .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true)
+                .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, false)
+                .build(),
+            context,
+            cursorChangedListener,
+            modelChild,
+            modelProvider,
+            POSITION,
+            snackbarApi,
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
+    continuationDriver.initialize();
+
+    // Call initialize again to make sure it doesn't duplicate work
+    continuationDriver.initialize();
+
+    verify(modelToken).registerObserver(continuationDriver);
+    verify(modelProvider, never()).handleToken(modelToken);
+
+    continuationDriver.bind(continuationViewHolder);
+    verify(continuationViewHolder)
+        .bind(eq(continuationDriver), any(LoggingListener.class), eq(true));
+  }
+
+  @Test
+  public void testInitialize_autoConsumeSyntheticTokenOnRestore() {
+    when(modelToken.isSynthetic()).thenReturn(true);
+    continuationDriver =
+        new ContinuationDriver(
+            basicLoggingApi,
+            new Configuration.Builder()
+                .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true)
+                .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, false)
+                .build(),
+            context,
+            cursorChangedListener,
+            modelChild,
+            modelProvider,
+            POSITION,
+            snackbarApi,
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ true);
+
+    continuationDriver.initialize();
+
+    // Token should be immediately handled as we create the ContinuationDriver with
+    // forceAutoConsumeSyntheticTokens = true.
+    verify(modelProvider).handleToken(modelToken);
+
+    continuationDriver.onTokenCompleted(
+        new TokenCompleted(new FakeModelCursor.Builder().addCard().build()));
+
+    // The listener should be notified that the token was automatically consumed as it was a
+    // synthetic token.
+    verify(cursorChangedListener)
+        .onNewChildren(any(ModelChild.class), Mockito.<List<ModelChild>>any()/* autoConsumed= */ );
+  }
+
+  @Test
   public void testBind_immediatePaginationOn() {
     continuationDriver =
         new ContinuationDriver(
@@ -185,7 +259,8 @@ public class ContinuationDriverTest {
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
 
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
@@ -205,7 +280,8 @@ public class ContinuationDriverTest {
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
 
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
@@ -225,7 +301,8 @@ public class ContinuationDriverTest {
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
 
     assertThatRunnable(() -> continuationDriver.bind(continuationViewHolder))
         .throwsAnExceptionOfType(IllegalStateException.class);
@@ -309,7 +386,8 @@ public class ContinuationDriverTest {
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
 
@@ -401,7 +479,8 @@ public class ContinuationDriverTest {
             modelProvider,
             POSITION,
             snackbarApi,
-            threadUtils);
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
 
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);

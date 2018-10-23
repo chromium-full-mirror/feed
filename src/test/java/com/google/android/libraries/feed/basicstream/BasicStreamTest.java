@@ -572,6 +572,47 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testRestore_createsStreamDriver() {
+    basicStream.onShow();
+
+    Bundle bundle = basicStream.getSavedInstanceState();
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
+    basicStream.onCreate(bundle);
+
+    basicStream.onShow();
+
+    assertThat(basicStream.streamDriverRestoring).isTrue();
+  }
+
+  @Test
+  public void testRestore_createsStreamDriver_afterFailure() {
+    basicStream.onShow();
+
+    Bundle bundle = basicStream.getSavedInstanceState();
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
+    basicStream.onCreate(bundle);
+
+    // onSessionFinish indicates the restore has failed.
+    basicStream.onSessionFinished();
+
+    basicStream.onShow();
+
+    assertThat(basicStream.streamDriverRestoring).isFalse();
+  }
+
+  @Test
   @Config(sdk = VERSION_CODES.JELLY_BEAN)
   public void testPadding_jellyBean() {
     // Padding is setup in constructor.
@@ -804,6 +845,7 @@ public class BasicStreamTest {
   private class BasicStreamForTest extends BasicStream {
 
     private final LinearLayoutManager layoutManager;
+    private boolean streamDriverRestoring;
 
     private ScrollRestorer streamDriverScrollRestorer;
     private StreamContentChangedListener contentChangedListener;
@@ -881,8 +923,10 @@ public class BasicStreamTest {
         StreamOfflineMonitor streamOfflineMonitor,
         KnownContentApi knownContentApi,
         ContextMenuManager contextMenuManager,
-        MenuMeasurer menuMeasurer) {
+        MenuMeasurer menuMeasurer,
+        boolean restoring) {
       streamDriverScrollRestorer = scrollRestorer;
+      streamDriverRestoring = restoring;
       return streamDriver;
     }
 

@@ -119,6 +119,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private StreamScrollMonitor streamScrollMonitor;
   private ScrollRestorer scrollRestorer;
   private long sessionStartTimestamp;
+  private boolean isRestoring;
+
   @LoggingState private int loggingState = LoggingState.STARTING;
 
   /*@MonotonicNonNull*/ private ModelProvider modelProvider;
@@ -235,6 +237,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       if (streamSavedInstanceState.hasSessionToken()) {
         savedSessionToken = streamSavedInstanceState.getSessionToken();
       }
+
       scrollRestorer =
           createScrollRestorer(
               configuration,
@@ -255,6 +258,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       ModelProvider localModelProvider = null;
       String localSavedSessionToken = savedSessionToken;
       if (localSavedSessionToken != null) {
+        isRestoring = true;
         Logger.d(TAG, "Attempting to restoring session token: %s.", localSavedSessionToken);
         localModelProvider = modelProviderFactory.create(localSavedSessionToken);
       }
@@ -295,7 +299,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               streamOfflineMonitor,
               knownContentApi,
               contextMenuManager,
-              menuMeasurer);
+              menuMeasurer,
+              isRestoring);
       adapter.setDriver(streamDriver);
       streamDriver.showZeroState(/* showSpinner= */ true);
     }
@@ -535,7 +540,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             streamOfflineMonitor,
             knownContentApi,
             contextMenuManager,
-            menuMeasurer);
+            menuMeasurer,
+            isRestoring);
 
     adapter.setDriver(streamDriver);
     if (loggingState == LoggingState.STARTING
@@ -575,6 +581,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     // it would be to a card which is no longer present.  For simplicity just abandon scroll
     // restoring for now.  We can improve logic if this doesn't prove to be sufficient enough.
     scrollRestorer.abandonRestoringScroll();
+
+    isRestoring = false;
 
     if (modelProvider != null) {
       modelProvider.unregisterObserver(this);
@@ -621,7 +629,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       StreamOfflineMonitor streamOfflineMonitor,
       KnownContentApi knownContentApi,
       ContextMenuManager contextMenuManager,
-      MenuMeasurer menuMeasurer) {
+      MenuMeasurer menuMeasurer,
+      boolean restoring) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -637,7 +646,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         streamOfflineMonitor,
         knownContentApi,
         contextMenuManager,
-        menuMeasurer);
+        menuMeasurer,
+        restoring);
   }
 
   @VisibleForTesting

@@ -117,7 +117,7 @@ public class StreamDriverTest {
     when(modelProvider.getRootFeature()).thenReturn(streamFeature);
     when(modelProvider.getCurrentState()).thenReturn(State.READY);
 
-    streamDriver = new StreamDriverForTest(modelProvider, threadUtils);
+    streamDriver = new StreamDriverForTest(modelProvider, threadUtils, /* restoring= */ false);
 
     streamDriver.setStreamContentListener(contentListener);
   }
@@ -570,6 +570,28 @@ public class StreamDriverTest {
     assertThat(streamDriver.hasContent()).isFalse();
   }
 
+  @Test
+  public void testAutoConsumeSyntheticTokensOnRestore() {
+    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    FakeModelCursor newCursor = new FakeModelCursor.Builder().addToken().build();
+
+    when(streamFeature.getCursor()).thenReturn(initialCursor);
+
+    streamDriver = new StreamDriverForTest(modelProvider, new ThreadUtils(), /* restoring= */ true);
+
+    streamDriver.getLeafFeatureDrivers();
+
+    assertThat(streamDriver.wasRestoringDuringLastContinuationDriver).isTrue();
+
+    // Restoring scroll indicates that restore is over, and further continuation drivers will not be
+    // forced to consume synthetic tokens.
+    streamDriver.maybeRestoreScroll();
+
+    streamDriver.onNewChildren(initialCursor.getChildAt(1), newCursor.getModelChildren());
+
+    assertThat(streamDriver.wasRestoringDuringLastContinuationDriver).isFalse();
+  }
+
   // TODO: Instead of just checking that the ModelFeature is of the correct type, check
   // that it is the one created by the FakeModelCursor.Builder.
   private LeafFeatureDriver getLeafFeatureDriverFromCard(int i) {
@@ -590,8 +612,9 @@ public class StreamDriverTest {
     // TODO: create a fake for ContinuationDriver so that this can be
     // List<FakeFeatureDriver>
     private List<FeatureDriver> childrenCreated;
+    private boolean wasRestoringDuringLastContinuationDriver;
 
-    StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils) {
+    StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils, boolean restoring) {
       super(
           actionApi,
           actionManager,
@@ -607,7 +630,8 @@ public class StreamDriverTest {
           streamOfflineMonitor,
           knownContentApi,
           mock(ContextMenuManager.class),
-          mock(MenuMeasurer.class));
+          mock(MenuMeasurer.class),
+          restoring);
       childrenCreated = new ArrayList<>();
     }
 
@@ -619,7 +643,9 @@ public class StreamDriverTest {
         ModelChild modelChild,
         ModelProvider modelProvider,
         int position,
-        SnackbarApi snackbarApi) {
+        SnackbarApi snackbarApi,
+        boolean restoring) {
+      this.wasRestoringDuringLastContinuationDriver = restoring;
       childrenCreated.add(continuationDriver);
       return continuationDriver;
     }
