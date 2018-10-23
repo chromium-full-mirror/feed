@@ -302,7 +302,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               menuMeasurer,
               isRestoring);
       adapter.setDriver(streamDriver);
-      streamDriver.showZeroState(/* showSpinner= */ true);
+      if (!isRestoring) {
+        streamDriver.showZeroState(/* showSpinner= */ true);
+      }
     }
     adapter.setShown(true);
   }
@@ -582,6 +584,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     // restoring for now.  We can improve logic if this doesn't prove to be sufficient enough.
     scrollRestorer.abandonRestoringScroll();
 
+    if (streamDriver != null) {
+      streamDriver.showZeroState(/* showSpinner= */ true);
+    }
     isRestoring = false;
 
     if (modelProvider != null) {

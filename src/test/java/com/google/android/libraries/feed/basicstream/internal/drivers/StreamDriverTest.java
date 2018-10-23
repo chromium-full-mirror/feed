@@ -363,6 +363,18 @@ public class StreamDriverTest {
   }
 
   @Test
+  public void testGetLeafFeatureDrivers_doesNotAddZeroState_ifRestoring() {
+    streamDriver = new StreamDriverForTest(modelProvider, new ThreadUtils(), /* restoring= */ true);
+    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+
+    assertThat(leafFeatureDrivers).hasSize(0);
+  }
+
+  @Test
   public void testShowZeroState_createsZeroState() {
     FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addCard().build();
 

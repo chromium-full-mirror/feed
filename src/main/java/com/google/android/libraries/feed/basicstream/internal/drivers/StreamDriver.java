@@ -333,7 +333,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
   private void addNoContentCardOrZeroStateIfNecessary() {
     LeafFeatureDriver leafFeatureDriver = null;
-    if (featureDrivers.isEmpty()) {
+    if (!restoring && featureDrivers.isEmpty()) {
       leafFeatureDriver = createZeroStateDriver(/* showSpinner= */ false);
     } else if (featureDrivers.size() == 1 && isLastDriverContinuationDriver()) {
       leafFeatureDriver = createNoContentDriver();

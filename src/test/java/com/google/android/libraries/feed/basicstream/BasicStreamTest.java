@@ -20,6 +20,7 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -236,9 +237,11 @@ public class BasicStreamTest {
   @Test
   public void testOnSessionFinished() {
     basicStream.onShow();
+    reset(streamDriver);
     basicStream.onSessionFinished();
 
     verify(scrollRestorer).abandonRestoringScroll();
+    verify(streamDriver).showZeroState(/*showSpinner= */ true);
     verify(initialModelProvider).unregisterObserver(basicStream);
     verify(modelProviderFactory, times(2)).createNew(any(ViewDepthProvider.class));
     verify(modelProvider).registerObserver(basicStream);
@@ -522,6 +525,42 @@ public class BasicStreamTest {
     basicStream.onShow();
 
     verify(restoredModelProvider).registerObserver(basicStream);
+  }
+
+  @Test
+  public void testRestore_doesNotShowZeroState() {
+    basicStream.onShow();
+
+    Bundle bundle = basicStream.getSavedInstanceState();
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    when(modelProviderFactory.create(SESSION_TOKEN)).thenReturn(restoredModelProvider);
+
+    reset(streamDriver);
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
+    basicStream.onCreate(bundle);
+
+    basicStream.onShow();
+
+    verify(streamDriver, never()).showZeroState(anyBoolean());
+  }
+
+  @Test
+  public void testRestore_showsZeroStateIfNoSessionToRestore() {
+    basicStream.onShow();
+
+    basicStream.onHide();
+    basicStream.onDestroy();
+
+    reset(streamDriver);
+    basicStream = createBasicStream(new LinearLayoutManagerWithFakePositioning(context));
+    basicStream.onCreate(Bundle.EMPTY);
+
+    basicStream.onShow();
+
+    verify(streamDriver).showZeroState(/*showSpinner= */ true);
   }
 
   @Test
