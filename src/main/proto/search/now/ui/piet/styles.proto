@@ -240,6 +240,8 @@ message Font {
 
 // Definition of a Border.
 message Border {
+  option deprecated = true;
+
   // The color of the border.
   optional fixed32 color = 1;
 
@@ -251,18 +253,50 @@ message Border {
 }
 
 // A set of four Borders for all four edges of a view.
+// NextId: 8
 message Borders {
+  enum Edges {
+    // If unspecified, then all edges will have borders.
+    EDGES_UNSPECIFIED = 0;
+
+    // Indicates that the start side of the item should have a border
+    START = 0x1;
+
+    // Indicates that the top side of the item should have a border
+    TOP = 0x2;
+
+    // Indicates that the end side of the item should have a border
+    END = 0x4;
+
+    // Indicates that the bottom side of the item should have a border
+    BOTTOM = 0x8;
+  }
+
+  // A bitmask representing which sides should have borders. Bit values are
+  // defined by the `Edges` enum. If no sides are specified (the default), then
+  // all sides will have a border.
+  optional int32 bitmask = 5;
+
+  // The color of the border.
+  optional fixed32 color = 6;
+
+  // Width of the border.
+  optional int32 width = 7;
+
   // Top border.
-  optional Border top = 1;
+  optional Border top = 1 [deprecated = true];
 
   // Bottom border.
-  optional Border bottom = 2;
+  optional Border bottom = 2 [deprecated = true];
 
   // Border for leading edge (left for LTR languages; right for RTL).
-  optional Border start = 3;
+  optional Border start = 3 [deprecated = true];
 
   // Border for trailing edge (right for LTR languages; left for RTL).
-  optional Border end = 4;
+  optional Border end = 4 [deprecated = true];
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
 }
 
 // A set of four values for widths of the edges of a view, used for
