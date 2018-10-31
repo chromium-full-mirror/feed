@@ -638,6 +638,7 @@ public class FeedSessionManager
     threadUtils.checkNotMainThread();
 
     // Clear the task queue first, preventing any tasks from running until initialization
+    invalidateHead();
     taskQueue.reset();
     sessionCache.reset();
     contentCache.reset();

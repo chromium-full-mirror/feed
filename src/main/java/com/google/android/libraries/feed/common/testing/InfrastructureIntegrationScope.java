@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.common.testing;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -85,6 +86,7 @@ public class InfrastructureIntegrationScope {
   private final FeedProtocolAdapter feedProtocolAdapter;
   private final FeedModelProviderFactory modelProviderFactory;
   private final FakeRequestManager fakeRequestManager;
+  private final FeedAppLifecycleListener appLifecycleListener;
   private final TaskQueue taskQueue;
   private final FeedStore store;
 
@@ -97,7 +99,7 @@ public class InfrastructureIntegrationScope {
       long requestDelayMs) {
     TimingUtils timingUtils = new TimingUtils();
     MainThreadRunner mainThreadRunner = new MainThreadRunner();
-    FeedAppLifecycleListener appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
+    appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorageDirect contentStorage = new InMemoryContentStorage();
@@ -160,6 +162,10 @@ public class InfrastructureIntegrationScope {
 
   public FakeRequestManager getRequestManager() {
     return fakeRequestManager;
+  }
+
+  public AppLifecycleListener getAppLifecycleListener() {
+    return appLifecycleListener;
   }
 
   private static class ExtensionProvider implements ProtoExtensionProvider {
