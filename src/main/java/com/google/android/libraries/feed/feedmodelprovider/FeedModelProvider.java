@@ -542,7 +542,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             synchronized (lock) {
               if (delayedTriggerRefresh) {
                 delayedTriggerRefresh = false;
-                mainThreadRunner.execute("TriggerRefresh", () -> triggerRefresh());
+                mainThreadRunner.execute(TAG + "-TriggerRefresh", () -> triggerRefresh());
               }
             }
             Logger.i("steamboat", "MP - set streamSession %s", streamSession);

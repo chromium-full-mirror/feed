@@ -66,7 +66,7 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
    */
   public void onProgrammaticScroll() {
     mainThreadRunner.execute(
-        "onProgrammaticScroll",
+        TAG + "-onProgrammaticScroll",
         () -> {
           // Post scroll as this allows users of scroll to retrieve new heights/widths of change.
           onScrolled(recyclerView, UNKNOWN_SCROLL_DELTA, UNKNOWN_SCROLL_DELTA);
