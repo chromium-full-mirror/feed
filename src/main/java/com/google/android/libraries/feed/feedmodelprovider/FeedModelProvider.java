@@ -549,7 +549,6 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                 mainThreadRunner.execute(TAG + " TriggerRefresh", () -> triggerRefresh());
               }
             }
-            Logger.i("steamboat", "MP - set streamSession %s", streamSession);
           }
 
           // All appends and updates are considered unbound (childrenToBind) and will need to be
