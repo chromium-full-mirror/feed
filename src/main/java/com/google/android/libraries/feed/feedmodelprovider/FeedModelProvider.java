@@ -337,6 +337,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
         Logger.i(TAG, "Invalidated an already invalid ModelProvider");
         return false;
       }
+      Logger.i(
+          TAG,
+          "Moving %s to INVALIDATED",
+          (streamSession != null) ? streamSession.getStreamToken() : "No streamSession");
       currentState = State.INVALIDATED;
       for (WeakReference<ModelCursorImpl> cursorRef : cursors) {
         ModelCursorImpl cursor = cursorRef.get();
@@ -680,6 +684,12 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                 if (!modelChild.hasParentId()) {
                   if (!createRoot(modelChild)) {
                     Logger.e(TAG, "Root update failed, invalidating model");
+                    Logger.i(
+                        TAG,
+                        "Moving %s to INVALIDATED",
+                        (streamSession != null)
+                            ? streamSession.getStreamToken()
+                            : "No streamSession");
                     currentState = State.INVALIDATED;
                     List<ModelProviderObserver> observers = getObserversToNotify();
                     mainThreadRunner.execute(
@@ -986,6 +996,10 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   class InitializeModel extends MutationHandler {
     @Override
     public void postMutation() {
+      Logger.i(
+          TAG,
+          "Moving %s to READY",
+          (streamSession != null) ? streamSession.getStreamToken() : "No streamSession");
       synchronized (lock) {
         currentState = State.READY;
       }
