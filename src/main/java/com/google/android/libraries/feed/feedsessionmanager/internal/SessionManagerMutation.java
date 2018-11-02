@@ -27,7 +27,6 @@ import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -369,7 +368,7 @@ public class SessionManagerMutation implements Dumpable {
         }
       }
       Collection<Session> updates = sessionCache.getSessions();
-      HeadSessionImpl head = Validators.checkNotNull(sessionCache.getHead());
+      HeadSessionImpl head = sessionCache.getHead();
       for (Session session : updates) {
         ModelProvider modelProvider = session.getModelProvider();
         if (modelProvider != null && modelProvider.getCurrentState() == State.INVALIDATED) {

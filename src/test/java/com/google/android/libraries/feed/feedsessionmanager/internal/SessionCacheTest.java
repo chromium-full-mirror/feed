@@ -83,7 +83,8 @@ public class SessionCacheTest {
     Map<String, Session> sessions = sessionCache.getSessionsMapForTest();
     assertThat(sessions).isEmpty();
     assertThat(sessionCache.isHeadInitialized()).isFalse();
-    assertThat(sessionCache.getHead()).isNull();
+    assertThat(sessionCache.getHead()).isNotNull();
+    assertThat(sessionCache.getHead().isHeadEmpty()).isTrue();
     sessionCache.initialize();
 
     // Initialization adds $HEAD
@@ -91,6 +92,7 @@ public class SessionCacheTest {
     assertThat(sessionCache.isHeadInitialized()).isTrue();
     assertThat(sessions).hasSize(1);
     assertThat(sessionCache.getHead()).isNotNull();
+    assertThat(sessionCache.getHead().isHeadEmpty()).isFalse();
   }
 
   @Test

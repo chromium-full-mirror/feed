@@ -101,6 +101,9 @@ public class FeedSessionManager
 
   @VisibleForTesting final AtomicBoolean initialized = new AtomicBoolean(false);
 
+  // Keep track of sessions being created which haven't been added to the SessionCache.
+  private final List<InitializableSession> sessionsUnderConstruction = new ArrayList<>();
+
   // This captures the NO_CARDS_ERROR when a request fails. The request fails in one task and this
   // is sent to the ModelProvider in the populateSessionTask.
   /*@Nullable*/ @VisibleForTesting ModelError noCardsError;
@@ -196,6 +199,7 @@ public class FeedSessionManager
       // without shared states we need to switch to ephemeral mode
       switchToEphemeralMode("SharedStates failed to load, no shared states are loaded.");
       taskQueue.reset();
+      sharedStateTimeTracker.stop("", "sharedStateTimeTracker", "error", "store error");
       timeTracker.stop("task", "Initialization", "error", "switchToEphemeralMode");
       return;
     }
@@ -221,6 +225,7 @@ public class FeedSessionManager
     }
     InitializableSession session = sessionFactory.getSession();
     session.bindModelProvider(modelProvider);
+    sessionsUnderConstruction.add(session);
 
     if (!sessionCache.isHeadInitialized()) {
       Logger.i(TAG, "Delaying populateSession until initialization is finished");
@@ -238,7 +243,7 @@ public class FeedSessionManager
   // new session.
   private void populateSession(
       InitializableSession session, /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
-    HeadSessionImpl headSession = Validators.checkNotNull(sessionCache.getHead());
+    HeadSessionImpl headSession = sessionCache.getHead();
     SessionManagerState sessionManagerState =
         new SessionManagerState(
             !headSession.isHeadEmpty(),
@@ -320,6 +325,7 @@ public class FeedSessionManager
           streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
       session.setStreamSession(recordedSession);
       sessionCache.put(session.getStreamSession().getStreamToken(), session);
+      sessionsUnderConstruction.remove(session);
 
       // Set the streamSession on the ModelProvider.
       ModelMutation mutation = modelProvider.edit();
@@ -640,6 +646,14 @@ public class FeedSessionManager
     // Clear the task queue first, preventing any tasks from running until initialization
     invalidateHead();
     taskQueue.reset();
+    // Invalidate all sessions currently under construction
+    for (InitializableSession session : sessionsUnderConstruction) {
+      ModelProvider modelProvider = session.getModelProvider();
+      if (modelProvider != null) {
+        modelProvider.invalidate();
+      }
+    }
+    sessionsUnderConstruction.clear();
     sessionCache.reset();
     contentCache.reset();
     sharedStateCache.clear();

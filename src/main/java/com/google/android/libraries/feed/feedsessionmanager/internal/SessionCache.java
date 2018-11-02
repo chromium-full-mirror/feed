@@ -59,7 +59,9 @@ public class SessionCache implements Dumpable {
   private final Map<String, Session> sessions = new HashMap<>();
 
   // Head is in effect final once it's assigned in the initializationTask.
-  /*@MonotonicNonNull*/ private HeadSessionImpl head;
+  private final HeadSessionImpl head;
+
+  private boolean initialized = false;
 
   private final Store store;
   private final TaskQueue taskQueue;
@@ -105,6 +107,8 @@ public class SessionCache implements Dumpable {
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtil;
     this.clock = clock;
+
+    this.head = sessionFactory.getHeadSession();
   }
 
   /**
@@ -164,14 +168,13 @@ public class SessionCache implements Dumpable {
 
   /** Returns {@code true} if HEAD has been initialize, which happens in {@link #initialize()}. */
   public boolean isHeadInitialized() {
-    return head != null && !head.isHeadEmpty();
+    return initialized;
   }
 
   /**
    * Return {@link HeadSessionImpl} for head. Returns {@code null} if {@link #initialize()} hasn't
    * finished running.
    */
-  /*@Nullable*/
   public HeadSessionImpl getHead() {
     return head;
   }
@@ -190,7 +193,6 @@ public class SessionCache implements Dumpable {
 
     // create the head session from the data in the Store
     ElapsedTimeTracker headTimeTracker = timingUtils.getElapsedTimeTracker(TAG);
-    head = sessionFactory.getHeadSession();
     synchronized (lock) {
       sessions.put(head.getStreamSession().getStreamToken(), head);
     }
@@ -199,6 +201,7 @@ public class SessionCache implements Dumpable {
       return false;
     }
     head.initializeSession(results.getValue());
+    initialized = true;
     headTimeTracker.stop("", "createHead");
 
     initializePersistedSessions();
@@ -218,10 +221,9 @@ public class SessionCache implements Dumpable {
     }
     synchronized (lock) {
       sessions.clear();
-      if (head != null) {
-        head.reset();
-        sessions.put(head.getStreamSession().getStreamToken(), head);
-      }
+      head.reset();
+      sessions.put(head.getStreamSession().getStreamToken(), head);
+      initialized = true;
     }
   }
 
