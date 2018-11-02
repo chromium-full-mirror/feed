@@ -65,7 +65,6 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -138,7 +137,7 @@ public class BasicStreamTest {
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private KnownContentApi knownContentApi;
-  @Mock private FeedAppLifecycleListener lifecycleListener;
+  @Mock private ContextMenuManager contextMenuManager;
 
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
@@ -851,6 +850,12 @@ public class BasicStreamTest {
     verify(adapter).setShown(false);
   }
 
+  @Test
+  public void testOnHide_dismissesPopup() {
+    basicStream.onHide();
+    verify(contextMenuManager).dismissPopup();
+  }
+
   private byte[] decodeSavedInstanceStateString(String savedInstanceState) {
     return Base64.decode(savedInstanceState, Base64.DEFAULT);
   }
@@ -927,8 +932,7 @@ public class BasicStreamTest {
           basicLoggingApi,
           offlineIndicatorApi,
           mainThreadRunner,
-          knownContentApi,
-          lifecycleListener);
+          knownContentApi);
       this.layoutManager = layoutManager;
     }
 
@@ -1014,6 +1018,12 @@ public class BasicStreamTest {
         RecyclerView recyclerView,
         StreamScrollMonitor streamScrollMonitor) {
       return nonRestoringScrollRestorer;
+    }
+
+    @Override
+    ContextMenuManager createContextMenuManager(
+        RecyclerView recyclerView, MenuMeasurer menuMeasurer) {
+      return contextMenuManager;
     }
   }
 

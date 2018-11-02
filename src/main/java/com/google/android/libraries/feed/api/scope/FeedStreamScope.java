@@ -30,7 +30,6 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedactionparser.FeedActionParserFactory;
-import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -80,8 +79,7 @@ public class FeedStreamScope {
         SnackbarApi snackbarApi,
         BasicLoggingApi basicLoggingApi,
         OfflineIndicatorApi offlineIndicatorApi,
-        KnownContentApi knownContentApi,
-        FeedAppLifecycleListener lifecycleListener) {
+        KnownContentApi knownContentApi) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
@@ -102,7 +100,6 @@ public class FeedStreamScope {
       this.basicLoggingApi = basicLoggingApi;
       this.offlineIndicatorApi = offlineIndicatorApi;
       this.knownContentApi = knownContentApi;
-      this.lifecycleListener = lifecycleListener;
     }
 
     public Builder setActionParserFactory(ActionParserFactory actionParserFactory) {
@@ -161,8 +158,7 @@ public class FeedStreamScope {
                 basicLoggingApi,
                 offlineIndicatorApi,
                 mainThreadRunner,
-                knownContentApi,
-                lifecycleListener);
+                knownContentApi);
       }
       return new FeedStreamScope(
           Validators.checkNotNull(stream), Validators.checkNotNull(modelProviderFactory));
@@ -192,7 +188,6 @@ public class FeedStreamScope {
     private final BasicLoggingApi basicLoggingApi;
     private final OfflineIndicatorApi offlineIndicatorApi;
     private final KnownContentApi knownContentApi;
-    private final FeedAppLifecycleListener lifecycleListener;
 
     // Optional internal components to override the default implementations.
     /*@MonotonicNonNull*/ private ActionParserFactory actionParserFactory;

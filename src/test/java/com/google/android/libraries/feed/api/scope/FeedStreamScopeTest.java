@@ -128,8 +128,7 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                knownContentApi,
-                lifecycleListener)
+                knownContentApi)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -158,8 +157,7 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                knownContentApi,
-                lifecycleListener)
+                knownContentApi)
             .setActionParserFactory(actionParserFactory)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)

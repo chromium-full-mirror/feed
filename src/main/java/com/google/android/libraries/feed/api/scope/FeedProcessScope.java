@@ -88,8 +88,7 @@ public class FeedProcessScope implements Dumpable {
       CardConfiguration cardConfiguration,
       SnackbarApi snackbarApi,
       BasicLoggingApi basicLoggingApi,
-      OfflineIndicatorApi offlineIndicatorApi,
-      FeedAppLifecycleListener lifecycleListener) {
+      OfflineIndicatorApi offlineIndicatorApi) {
     return new FeedStreamScope.Builder(
         context,
         actionApi,
@@ -110,8 +109,7 @@ public class FeedProcessScope implements Dumpable {
         snackbarApi,
         basicLoggingApi,
         offlineIndicatorApi,
-        knownContentApi,
-        lifecycleListener);
+        knownContentApi);
   }
 
   @Override

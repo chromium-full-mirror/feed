@@ -23,14 +23,12 @@ import android.view.ViewParent;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
-import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
-import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
 import java.util.List;
 
 /** Provides information to allow for the construction of Context Menus. */
-public class ContextMenuManager implements FeedLifecycleListener {
+public class ContextMenuManager {
 
   private static final String TAG = "ContextMenuManager";
 
@@ -45,18 +43,14 @@ public class ContextMenuManager implements FeedLifecycleListener {
   private final View view;
   private final Context context;
   private final MenuMeasurer menuMeasurer;
-  private final FeedAppLifecycleListener lifecycleListener;
 
   /*@Nullable*/ private PopupWindow popupWindow;
 
   @SuppressWarnings("nullness:argument.type.incompatible")
-  public ContextMenuManager(
-      View view, MenuMeasurer menuMeasurer, FeedAppLifecycleListener lifecycleListener) {
+  public ContextMenuManager(View view, MenuMeasurer menuMeasurer) {
     this.view = view;
     this.context = view.getContext();
     this.menuMeasurer = menuMeasurer;
-    this.lifecycleListener = lifecycleListener;
-    lifecycleListener.registerObserver(this);
   }
 
   /**
@@ -207,7 +201,8 @@ public class ContextMenuManager implements FeedLifecycleListener {
     return popupWindow != null && popupWindow.isShowing();
   }
 
-  private void dismissPopup() {
+  /** Dismiss a popup if one is showing. */
+  public void dismissPopup() {
     if (popupWindow == null) {
       return;
     }
@@ -216,21 +211,8 @@ public class ContextMenuManager implements FeedLifecycleListener {
     popupWindow = null;
   }
 
-  @Override
-  public void onLifecycleEvent(String event) {
-    if (!event.equals(LifecycleEvent.ENTER_BACKGROUND)) {
-      return;
-    }
-
-    dismissPopup();
-  }
-
   public void onDimensionsChanged() {
     dismissPopup();
-  }
-
-  public void onDestroy() {
-    lifecycleListener.unregisterObserver(this);
   }
 
   /** Notifies creator of the menu that a click has occurred. */
