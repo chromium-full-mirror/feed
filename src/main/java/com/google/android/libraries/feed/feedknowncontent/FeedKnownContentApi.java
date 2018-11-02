@@ -52,7 +52,7 @@ public class FeedKnownContentApi implements KnownContentApi {
           @Override
           public void onContentRemoved(List<ContentRemoval> contentRemoved) {
             runOnMainThread(
-                "onContentRemoved",
+                TAG + " onContentRemoved",
                 () -> {
                   for (KnownContentListener knownContentListener : listeners) {
                     knownContentListener.onContentRemoved(contentRemoved);
@@ -63,7 +63,7 @@ public class FeedKnownContentApi implements KnownContentApi {
           @Override
           public void onNewContentReceived(boolean isNewRefresh, long contentCreationDateTimeMs) {
             runOnMainThread(
-                "onNewContentReceived",
+                TAG + " onNewContentReceived",
                 () -> {
                   for (KnownContentListener knownContentListener : listeners) {
                     knownContentListener.onNewContentReceived(
@@ -92,7 +92,7 @@ public class FeedKnownContentApi implements KnownContentApi {
             },
         (Result<List<ContentMetadata>> result) -> {
           runOnMainThread(
-              "getKnownContentAccept",
+              TAG + " getKnownContentAccept",
               () -> {
                 if (!result.isSuccessful()) {
                   Logger.e(TAG, "Can't inform on known content due to internal feed error.");

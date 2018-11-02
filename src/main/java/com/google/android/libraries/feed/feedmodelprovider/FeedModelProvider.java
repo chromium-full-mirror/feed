@@ -323,7 +323,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     // Always run the observers on the UI Thread
     List<ModelProviderObserver> observers = getObserversToNotify();
     mainThreadRunner.execute(
-        TAG + "-onSessionFinished",
+        TAG + " onSessionFinished",
         () -> {
           for (ModelProviderObserver observer : observers) {
             observer.onSessionFinished();
@@ -361,7 +361,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
     if (error.getErrorType() == ErrorType.NO_CARDS_ERROR) {
       List<ModelProviderObserver> observers = getObserversToNotify();
       mainThreadRunner.execute(
-          TAG + "-onError",
+          TAG + " onError",
           () -> {
             for (ModelProviderObserver observer : observers) {
               observer.onError(error);
@@ -376,7 +376,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       if (token != null) {
         List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
         mainThreadRunner.execute(
-            TAG + "-onTokenChange",
+            TAG + " onTokenChange",
             () -> {
               for (TokenCompletedObserver observer : observers) {
                 observer.onError(error);
@@ -546,7 +546,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
             synchronized (lock) {
               if (delayedTriggerRefresh) {
                 delayedTriggerRefresh = false;
-                mainThreadRunner.execute(TAG + "-TriggerRefresh", () -> triggerRefresh());
+                mainThreadRunner.execute(TAG + " TriggerRefresh", () -> triggerRefresh());
               }
             }
             Logger.i("steamboat", "MP - set streamSession %s", streamSession);
@@ -598,7 +598,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
           if (removeTracking != null) {
             // Update the UI on the main thread.
             mainThreadRunner.execute(
-                TAG + "-removeTracking", removeTracking::triggerConsumerUpdate);
+                TAG + " removeTracking", removeTracking::triggerConsumerUpdate);
           }
 
           if (shouldInsertSyntheticToken(change)) {
@@ -693,7 +693,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                     currentState = State.INVALIDATED;
                     List<ModelProviderObserver> observers = getObserversToNotify();
                     mainThreadRunner.execute(
-                        TAG + "-multipleRootInvalidation",
+                        TAG + " multipleRootInvalidation",
                         () -> {
                           for (ModelProviderObserver observer : observers) {
                             observer.onSessionFinished();
@@ -878,7 +878,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                   TokenCompleted tokenCompleted = new TokenCompleted(cursor);
                   List<TokenCompletedObserver> observers = token.getObserversToNotify();
                   mainThreadRunner.execute(
-                      TAG + "-onTokenChange",
+                      TAG + " onTokenChange",
                       () -> {
                         for (TokenCompletedObserver observer : observers) {
                           observer.onTokenCompleted(tokenCompleted);
@@ -1005,7 +1005,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       }
       List<ModelProviderObserver> observers = getObserversToNotify();
       mainThreadRunner.execute(
-          TAG + "-onSessionStart",
+          TAG + " onSessionStart",
           () -> {
             for (ModelProviderObserver observer : observers) {
               observer.onSessionStart();
@@ -1061,7 +1061,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
       TokenCompleted tokenCompleted = new TokenCompleted(cursor);
       List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
       mainThreadRunner.execute(
-          TAG + "-onTokenChange",
+          TAG + " onTokenChange",
           () -> {
             for (TokenCompletedObserver observer : observers) {
               observer.onTokenCompleted(tokenCompleted);
@@ -1146,7 +1146,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
       // Update the Observers on the UI Thread
       mainThreadRunner.execute(
-          TAG + "-onFeatureChange",
+          TAG + " onFeatureChange",
           () -> {
             for (FeatureChangeImpl change : changes.values()) {
               List<FeatureChangeObserver> observers =

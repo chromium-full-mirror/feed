@@ -45,7 +45,7 @@ public class NetworkClientWrapper implements NetworkClient {
       return;
     }
     mainThreadRunner.execute(
-        TAG + "-send", () -> directNetworkClient.send(request, responseConsumer));
+        TAG + " send", () -> directNetworkClient.send(request, responseConsumer));
   }
 
   @Override

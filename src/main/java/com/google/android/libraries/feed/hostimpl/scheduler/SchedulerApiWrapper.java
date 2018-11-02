@@ -44,7 +44,7 @@ public class SchedulerApiWrapper implements SchedulerApi {
     }
     SimpleSettableFuture<Integer> future = new SimpleSettableFuture<>();
     mainThreadRunner.execute(
-        TAG + "-shouldSessionRequestData",
+        TAG + " shouldSessionRequestData",
         () -> future.put(directSchedulerApi.shouldSessionRequestData(sessionManagerState)));
     try {
       return future.get();
@@ -61,7 +61,7 @@ public class SchedulerApiWrapper implements SchedulerApi {
       return;
     }
     mainThreadRunner.execute(
-        TAG + "-onReceiveNewContent",
+        TAG + " onReceiveNewContent",
         () -> {
           directSchedulerApi.onReceiveNewContent(contentCreationDateTimeMs);
         });
@@ -74,7 +74,7 @@ public class SchedulerApiWrapper implements SchedulerApi {
       return;
     }
     mainThreadRunner.execute(
-        TAG + "-onRequestError",
+        TAG + " onRequestError",
         () -> {
           directSchedulerApi.onRequestError(networkResponseCode);
         });
