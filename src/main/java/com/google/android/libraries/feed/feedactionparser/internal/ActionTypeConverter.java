@@ -39,7 +39,6 @@ public class ActionTypeConverter {
       default:
         return ActionType.UNKNOWN;
     }
-    // LINT.ThenChange(/src/main/java/com/google/android/libraries/\
-    //     feed/host/logging/ActionType.java)
+    // LINT.ThenChange
   }
 }

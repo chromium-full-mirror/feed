@@ -120,7 +120,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
 
   @VisibleForTesting
-  // LINT.IfChange(set_values_used_in_recycler_key)
+  // LINT.IfChange
   void setValuesUsedInRecyclerKey(TextElementKey fontKey) {
     // TODO: Implement typefaces
     TextView textView = getBaseView();
@@ -163,7 +163,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       textView.setTypeface(Typeface.create(textView.getTypeface(), Typeface.NORMAL));
     }
   }
-  // LINT.ThenChange(:recycler_key)
+  // LINT.ThenChange
 
   TextElementKey createKey(Font font) {
     return new TextElementKey(font);
@@ -179,7 +179,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
 
   /** We will Key TextViews off of the Ellipsizing, Font Size and FontWeight, and Italics. */
-  // LINT.IfChange(recycler_key)
+  // LINT.IfChange
   static class TextElementKey extends RecyclerKey {
     private final int size;
     private final FontWeight fontWeight;
@@ -230,5 +230,5 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       return key.size == size && key.fontWeight == fontWeight && key.italic == italic;
     }
   }
-  // LINT.ThenChange(:set_values_used_in_recycler_key)
+  // LINT.ThenChange
 }

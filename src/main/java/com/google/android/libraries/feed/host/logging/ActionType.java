@@ -36,5 +36,4 @@ public @interface ActionType {
   int DOWNLOAD = 5;
   int LEARN_MORE = 6;
 }
-// LINT.ThenChange(/src/main/java/com/google/android/libraries/\
-//     feed/feedactionparser/internal/ActionTypeConverter.java)
+// LINT.ThenChange
