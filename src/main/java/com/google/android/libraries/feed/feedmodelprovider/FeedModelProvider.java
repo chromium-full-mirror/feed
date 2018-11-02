@@ -600,11 +600,13 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
                 TAG + " removeTracking", removeTracking::triggerConsumerUpdate);
           }
 
-          if (shouldInsertSyntheticToken(change)) {
-            SyntheticTokenTracker tokenTracker =
-                new SyntheticTokenTracker(
-                    Validators.checkNotNull(root), 0, nonCacheInitialPageSize);
-            childrenToBind = tokenTracker.insertToken();
+          synchronized (lock) {
+            if (shouldInsertSyntheticToken(change)) {
+              SyntheticTokenTracker tokenTracker =
+                  new SyntheticTokenTracker(
+                      Validators.checkNotNull(root), 0, nonCacheInitialPageSize);
+              childrenToBind = tokenTracker.insertToken();
+            }
           }
 
           bindChildrenAndTokens(
