@@ -275,6 +275,10 @@ message Borders {
   // A bitmask representing which sides should have borders. Bit values are
   // defined by the `Edges` enum. If no sides are specified (the default), then
   // all sides will have a border.
+  //
+  // NOTICE: having a rounded corner with a border only on one side is strongly
+  // discouraged as it leads to undefined and inconsistent behavior across
+  // platforms.
   optional int32 bitmask = 5;
 
   // The color of the border.

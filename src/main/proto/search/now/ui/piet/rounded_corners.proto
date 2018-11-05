@@ -55,6 +55,10 @@ message RoundedCorners {
   // A bitmask representing which corners should be rounded. Bit values are
   // defined by the `Corners` enum. If no corners are specified, then this will
   // be applied to all corners.
+  //
+  // NOTICE: having a rounded corner with a border only on one side is strongly
+  // discouraged as it leads to undefined and inconsistent behavior across
+  // platforms.
   optional int32 bitmask = 1;
 
   // The radius of the rounding applied to the specified corners, specified in
