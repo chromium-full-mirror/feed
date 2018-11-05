@@ -25,6 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
@@ -82,6 +83,7 @@ public class CardDriverTest {
   @Mock private ContentChangedListener contentChangedListener;
 
   private CardDriverForTest cardDriver;
+  private FakeModelCursor cardCursor;
 
   @Before
   public void setup() {
@@ -94,9 +96,10 @@ public class CardDriverTest {
     // ModelChild containing content.
     ModelChild pietModelChild = mock(ModelChild.class);
     when(pietModelChild.getModelFeature()).thenReturn(childModelFeature);
+    when(pietModelChild.getType()).thenReturn(Type.FEATURE);
 
     // Cursor to transverse the content of a card.
-    FakeModelCursor cardCursor = new FakeModelCursor(Lists.newArrayList(pietModelChild));
+    cardCursor = new FakeModelCursor(Lists.newArrayList(pietModelChild));
 
     // A ModelFeature representing a card.
     when(cardModelFeature.getCursor()).thenReturn(cardCursor);
@@ -163,6 +166,17 @@ public class CardDriverTest {
     cardDriver.onDestroy();
 
     verify(contentDriverChild).onDestroy();
+  }
+
+  @Test
+  public void testUnboundChild() {
+    ModelChild pietModelChild = mock(ModelChild.class);
+    when(pietModelChild.getType()).thenReturn(Type.UNBOUND);
+
+    // Override setup with an unbound child in the cursor
+    cardCursor.setModelChildren(Lists.newArrayList(pietModelChild));
+
+    assertThat(cardDriver.getLeafFeatureDriver()).isNull();
   }
 
   public class CardDriverForTest extends CardDriver {

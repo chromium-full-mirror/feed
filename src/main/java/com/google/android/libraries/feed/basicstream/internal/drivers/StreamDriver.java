@@ -248,11 +248,18 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
   private List<LeafFeatureDriver> buildLeafFeatureDrivers(List<FeatureDriver> featureDrivers) {
     List<LeafFeatureDriver> leafFeatureDrivers = new ArrayList<>();
+    List<FeatureDriver> removes = new ArrayList<>();
     for (FeatureDriver featureDriver : featureDrivers) {
       LeafFeatureDriver childContentModel = featureDriver.getLeafFeatureDriver();
       if (childContentModel != null) {
         leafFeatureDrivers.add(childContentModel);
+      } else {
+        removes.add(featureDriver);
       }
+    }
+    for (FeatureDriver driver : removes) {
+      this.featureDrivers.remove(driver);
+      driver.onDestroy();
     }
 
     streamOfflineMonitor.requestOfflineStatusForNewContent();
@@ -321,6 +328,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       modelFeature.unregisterObserver(this);
       modelFeatureChangeObserverRegistered = false;
     }
+    modelChildFeatureDriverMap.clear();
   }
 
   public boolean hasContent() {

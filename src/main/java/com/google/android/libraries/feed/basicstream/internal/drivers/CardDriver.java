@@ -20,10 +20,12 @@ import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
+import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
@@ -102,6 +104,10 @@ public class CardDriver implements FeatureDriver {
     // TODO: add change listener to ModelFeature.
     ModelChild child;
     if ((child = cursor.getNextItem()) != null) {
+      if (child.getType() != Type.FEATURE) {
+        Logger.e(TAG, "ContentChild was not bound to a Feature, found type: %s", child.getType());
+        return null;
+      }
       ModelFeature contentModel = child.getModelFeature();
       checkState(contentModel.getStreamFeature().hasContent(), "Expected content for feature");
       return createContentDriver(

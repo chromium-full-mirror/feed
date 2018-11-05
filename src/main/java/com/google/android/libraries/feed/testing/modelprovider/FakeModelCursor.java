@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.testing.modelprovider;
 
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
+import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
@@ -31,6 +32,10 @@ public class FakeModelCursor implements ModelCursor {
 
   public FakeModelCursor(List<ModelChild> modelChildren) {
     currentIndex = 0;
+    this.modelChildren = modelChildren;
+  }
+
+  public void setModelChildren(List<ModelChild> modelChildren) {
     this.modelChildren = modelChildren;
   }
 
@@ -71,6 +76,12 @@ public class FakeModelCursor implements ModelCursor {
 
       cursorChildren.add(cardChild);
 
+      return this;
+    }
+
+    public Builder addChild(ModelFeature feature) {
+      ModelChild child = new FakeModelChild.Builder().setModelFeature(feature).build();
+      cursorChildren.add(child);
       return this;
     }
 

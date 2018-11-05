@@ -55,6 +55,7 @@ import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,6 +76,11 @@ import org.robolectric.RobolectricTestRunner;
 public class StreamDriverTest {
 
   private StreamDriverForTest streamDriver;
+
+  private static final ModelFeature UNBOUND_CARD =
+      new FakeModelFeature.Builder()
+          .setStreamFeature(StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
+          .build();
 
   @Mock private ActionApi actionApi;
   @Mock private ActionManager actionManager;
@@ -149,6 +155,18 @@ public class StreamDriverTest {
 
     verify(continuationDriver).initialize();
     verify(streamOfflineMonitor).requestOfflineStatusForNewContent();
+  }
+
+  @Test
+  public void testBuildChildren_unboundContent() {
+    when(streamFeature.getCursor())
+        .thenReturn(new FakeModelCursor.Builder().addChild(UNBOUND_CARD).addCard().build());
+
+    // Causes StreamDriver to build a list of children based on the children from the cursor.
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+
+    assertThat(leafFeatureDrivers).hasSize(1);
+    assertThat(leafFeatureDrivers.get(0)).isEqualTo(getLeafFeatureDriverFromCard(1));
   }
 
   @Test
@@ -672,10 +690,20 @@ public class StreamDriverTest {
 
     @Override
     FeatureDriver createCardDriver(ModelFeature modelFeature, int position) {
-      FeatureDriver featureDriver =
-          new FakeFeatureDriver.Builder().setModelFeature(modelFeature).build();
-      childrenCreated.add(featureDriver);
-      return featureDriver;
+      if (modelFeature != UNBOUND_CARD) {
+        FeatureDriver featureDriver =
+            new FakeFeatureDriver.Builder().setModelFeature(modelFeature).build();
+        childrenCreated.add(featureDriver);
+        return featureDriver;
+      } else {
+        FeatureDriver featureDriver =
+            new FakeFeatureDriver.Builder()
+                .setModelFeature(modelFeature)
+                .setLeafFeatureDriver(null)
+                .build();
+        childrenCreated.add(featureDriver);
+        return featureDriver;
+      }
     }
 
     @Override
