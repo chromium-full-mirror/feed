@@ -193,14 +193,14 @@ public class SpacerElementAdapterTest {
     Element elementWithWrongModel =
         Element.newBuilder().setCustomElement(CustomElement.getDefaultInstance()).build();
     assertThatRunnable(() -> adapter.getModelFromElement(elementWithWrongModel))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Missing SpacerElement");
 
     Element emptyElement = Element.getDefaultInstance();
     assertThatRunnable(() -> adapter.getModelFromElement(emptyElement))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Missing SpacerElement");

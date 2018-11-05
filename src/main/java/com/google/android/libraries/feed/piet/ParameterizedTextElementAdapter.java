@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 
 /** An {@link ElementAdapter} which manages {@code ParameterizedText} elements. */
@@ -42,7 +43,8 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
 
         if (!bindingValue.hasParameterizedText()
             && !textLine.getParameterizedTextBinding().getIsOptional()) {
-          throw new IllegalArgumentException(
+          throw new PietFatalException(
+              ErrorCode.ERR_MISSING_BINDING_VALUE,
               String.format(
                   "Parameterized text binding %s had no content", bindingValue.getBindingId()));
         }
@@ -50,8 +52,9 @@ class ParameterizedTextElementAdapter extends TextElementAdapter {
         setTextOnView(getBaseView(), bindingValue.getParameterizedText());
         break;
       default:
-        frameContext.reportError(
+        frameContext.reportMessage(
             MessageType.ERROR,
+            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
             String.format(
                 "TextElement missing ParameterizedText content; has %s",
                 textLine.getContentCase()));

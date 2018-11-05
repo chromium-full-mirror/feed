@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.piet;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateKey;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
@@ -26,6 +27,7 @@ import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -115,9 +117,14 @@ class ElementAdapterFactory {
                 parameterizedTextElementFactory.get(element.getTextElement(), frameContext);
             break;
           default:
-            throw new IllegalArgumentException(
-                String.format(
-                    "Unsupported TextElement type: %s", element.getTextElement().getContentCase()));
+            throw new PietFatalException(
+                ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+                frameContext.reportMessage(
+                    MessageType.ERROR,
+                    ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+                    String.format(
+                        "Unsupported TextElement type: %s",
+                        element.getTextElement().getContentCase())));
         }
         break;
       case IMAGE_ELEMENT:
@@ -134,8 +141,12 @@ class ElementAdapterFactory {
         break;
       case ELEMENTS_NOT_SET:
       default:
-        throw new IllegalArgumentException(
-            String.format("Unsupported Element type: %s", element.getElementsCase()));
+        throw new PietFatalException(
+            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+            frameContext.reportMessage(
+                MessageType.ERROR,
+                ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+                String.format("Unsupported Element type: %s", element.getElementsCase())));
     }
     returnAdapter.createAdapter(element, frameContext);
     return returnAdapter;

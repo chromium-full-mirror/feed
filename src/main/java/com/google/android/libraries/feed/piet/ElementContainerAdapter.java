@@ -21,11 +21,13 @@ import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.PietProto.Template;
 import java.util.ArrayList;
 import java.util.List;
@@ -121,8 +123,12 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           adaptersPerContent[contentIndex] = 0;
           continue;
         default:
-          throw new IllegalArgumentException(
-              String.format("Unhandled Content type: %s", content.getContentTypeCase()));
+          throw new PietFatalException(
+              ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+              frameContext.reportMessage(
+                  MessageType.ERROR,
+                  ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+                  String.format("Unhandled Content type: %s", content.getContentTypeCase())));
       }
     }
   }
@@ -265,8 +271,12 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           }
           break;
         default:
-          throw new IllegalArgumentException(
-              String.format("Unhandled Content type: %s", content.getContentTypeCase()));
+          throw new PietFatalException(
+              ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+              frameContext.reportMessage(
+                  MessageType.ERROR,
+                  ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+                  String.format("Unhandled Content type: %s", content.getContentTypeCase())));
       }
     }
   }
@@ -299,7 +309,8 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
           adaptersPerContent[contentIndex] = 0;
           break;
         default:
-          throw new IllegalArgumentException(
+          throw new PietFatalException(
+              ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
               String.format("Unhandled Content type: %s", content.getContentTypeCase()));
       }
     }

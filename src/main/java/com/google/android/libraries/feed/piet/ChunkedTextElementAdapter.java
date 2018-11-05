@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
 import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_BINDING_VALUE;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -50,6 +52,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
@@ -88,16 +91,25 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
             setVisibilityOnView(Visibility.GONE);
             return;
           } else {
-            throw new IllegalArgumentException(
-                String.format("Chunked text binding %s had no content", binding.getBindingId()));
+            throw new PietFatalException(
+                ERR_MISSING_BINDING_VALUE,
+                frameContext.reportMessage(
+                    MessageType.ERROR,
+                    ERR_MISSING_BINDING_VALUE,
+                    String.format(
+                        "Chunked text binding %s had no content", binding.getBindingId())));
           }
         }
         chunkedText = binding.getChunkedText();
         break;
       default:
-        throw new IllegalArgumentException(
-            String.format(
-                "Unhandled type of TextElement; had content %s", textLine.getContentCase()));
+        throw new PietFatalException(
+            ERR_MISSING_OR_UNHANDLED_CONTENT,
+            frameContext.reportMessage(
+                MessageType.ERROR,
+                ERR_MISSING_OR_UNHANDLED_CONTENT,
+                String.format(
+                    "Unhandled type of TextElement; had content %s", textLine.getContentCase())));
     }
     bindChunkedText(chunkedText, frameContext);
   }
@@ -117,7 +129,8 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
           break;
 
         default:
-          throw new IllegalArgumentException(
+          throw new PietFatalException(
+              ERR_MISSING_OR_UNHANDLED_CONTENT,
               String.format(
                   "Unhandled type of ChunkedText Chunk; had content %s", chunk.getContentCase()));
       }
@@ -193,8 +206,9 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
         parameterizedText = textBindingValue.getParameterizedText();
         break;
       default:
-        frameContext.reportError(
+        frameContext.reportMessage(
             MessageType.ERROR,
+            ERR_MISSING_OR_UNHANDLED_CONTENT,
             String.format(
                 "StyledTextChunk missing ParameterizedText content; has %s",
                 chunk.getTextChunk().getContentCase()));
@@ -238,8 +252,12 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     if (chunkStyle.getMaxLines() > 0) {
       Logger.e(
           TAG,
-          "Ignoring max lines parameter set to '%s'; not supported on chunks.",
-          chunkStyle.getMaxLines());
+          frameContext.reportMessage(
+              MessageType.WARNING,
+              ErrorCode.ERR_UNSUPPORTED_FEATURE,
+              String.format(
+                  "Ignoring max lines parameter set to '%s'; not supported on chunks.",
+                  chunkStyle.getMaxLines())));
     }
   }
 
@@ -257,8 +275,9 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
         BindingValue imageBindingValue = frameContext.getImageBindingValue(imageBinding);
         if (!imageBindingValue.hasImage()) {
           if (!imageBinding.getIsOptional()) {
-            frameContext.reportError(
+            frameContext.reportMessage(
                 MessageType.ERROR,
+                ERR_MISSING_BINDING_VALUE,
                 String.format("No image found for binding id: %s", imageBinding.getBindingId()));
           }
           return;
@@ -266,8 +285,9 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
         image = imageBindingValue.getImage();
         break;
       default:
-        frameContext.reportError(
+        frameContext.reportMessage(
             MessageType.ERROR,
+            ERR_MISSING_OR_UNHANDLED_CONTENT,
             String.format(
                 "StyledImageChunk missing Image content; has %s", imageChunk.getContentCase()));
         return;

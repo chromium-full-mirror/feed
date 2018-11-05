@@ -25,6 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
+import com.google.android.libraries.feed.piet.DebugLogger.ErrorCodeAndMessage;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -51,6 +52,7 @@ import com.google.search.now.ui.piet.ElementsProto.HostBindingData;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
@@ -392,9 +394,12 @@ public class FrameContextTest {
                 .build());
 
     assertThat(debugLogger.getMessages(MessageType.ERROR))
-        .containsExactly("[] Parent binding value 'NOT_FOUND' not found");
+        .containsExactly(
+            new ErrorCodeAndMessage(
+                ErrorCode.ERR_MISSING_BINDING_VALUE,
+                "[] Parent binding value 'NOT_FOUND' not found"));
     assertThatRunnable(() -> childContext.getParameterizedTextBindingValue(childTextBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Parameterized text binding not found for CHILD");
@@ -439,7 +444,7 @@ public class FrameContextTest {
                     ParameterizedTextBindingRef.newBuilder()
                         .setBindingId(INVALID_BINDING_ID)
                         .build()))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Parameterized text binding not found");
@@ -447,7 +452,7 @@ public class FrameContextTest {
     // Binding has no content
     assertThatRunnable(
             () -> makeFrameContextWithNoBindings().getParameterizedTextBindingValue(textBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Parameterized text binding not found");
@@ -510,14 +515,14 @@ public class FrameContextTest {
             () ->
                 frameContext.getImageBindingValue(
                     ImageBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Image binding not found");
 
     // Binding has no content
     assertThatRunnable(() -> makeFrameContextWithNoBindings().getImageBindingValue(imageBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Image binding not found");
@@ -569,7 +574,7 @@ public class FrameContextTest {
             () ->
                 frameContext.getElementBindingValue(
                     ElementBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Element binding not found");
@@ -577,7 +582,7 @@ public class FrameContextTest {
     // Binding has no content
     assertThatRunnable(
             () -> makeFrameContextWithNoBindings().getElementBindingValue(elementBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Element binding not found");
@@ -783,7 +788,7 @@ public class FrameContextTest {
             () ->
                 frameContext.getTemplateInvocationBindingValue(
                     TemplateBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Template binding not found for NOT_A_REAL_BINDING_ID");
@@ -793,7 +798,7 @@ public class FrameContextTest {
             () ->
                 frameContext.getTemplateInvocationBindingValue(
                     TemplateBindingRef.newBuilder().setBindingId(BINDING_ID).build()))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Template binding not found for BINDING_ID");
@@ -830,7 +835,7 @@ public class FrameContextTest {
             () ->
                 frameContext.getCustomElementBindingValue(
                     CustomBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Custom element binding not found");
@@ -838,7 +843,7 @@ public class FrameContextTest {
     // Binding has no content
     assertThatRunnable(
             () -> makeFrameContextWithNoBindings().getCustomElementBindingValue(customBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Custom element binding not found");
@@ -903,7 +908,7 @@ public class FrameContextTest {
             () ->
                 frameContext.getChunkedTextBindingValue(
                     ChunkedTextBindingRef.newBuilder().setBindingId(INVALID_BINDING_ID).build()))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Chunked text binding not found");
@@ -911,7 +916,7 @@ public class FrameContextTest {
     // Binding has no content
     assertThatRunnable(
             () -> makeFrameContextWithNoBindings().getChunkedTextBindingValue(textBindingRef))
-        .throwsAnExceptionOfType(IllegalStateException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Chunked text binding not found");

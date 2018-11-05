@@ -31,6 +31,7 @@ import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRe
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -110,10 +111,11 @@ public class ParameterizedTextElementAdapterTest {
 
     TextView textView = adapter.getBaseView();
     assertThat(textView).isNotNull();
-    assertThat(textView.getText().toString()).isEqualTo("");
+    assertThat(textView.getText().toString()).isEmpty();
     verify(frameContext)
-        .reportError(
+        .reportMessage(
             MessageType.ERROR,
+            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
             "TextElement missing ParameterizedText content; has CONTENT_NOT_SET");
   }
 
@@ -144,7 +146,7 @@ public class ParameterizedTextElementAdapterTest {
     adapter.createAdapter(model, frameContext);
 
     assertThatRunnable(() -> adapter.bindModel(model, frameContext))
-        .throwsAnExceptionOfType(IllegalArgumentException.class)
+        .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()
         .contains("Parameterized text binding binding had no content");
