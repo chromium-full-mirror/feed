@@ -247,15 +247,15 @@ abstract class ElementAdapter<V extends View, M> {
     switch (baseElement.getActionsDataCase()) {
       case ACTIONS:
         actions = baseElement.getActions();
-        ViewUtils.setOnClickActions(actions, getView(), frameContext);
+        ViewUtils.setOnClickActions(actions, getBaseView(), frameContext);
         break;
       case ACTIONS_BINDING:
         actions = frameContext.getActionsFromBinding(baseElement.getActionsBinding());
-        ViewUtils.setOnClickActions(actions, getView(), frameContext);
+        ViewUtils.setOnClickActions(actions, getBaseView(), frameContext);
         break;
       default:
         actions = Actions.getDefaultInstance();
-        ViewUtils.clearOnClickActions(getView());
+        ViewUtils.clearOnClickActions(getBaseView());
     }
     setHideActionsActive();
   }

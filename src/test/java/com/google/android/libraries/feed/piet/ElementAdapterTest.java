@@ -446,6 +446,25 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_setsActionsOnBaseView() {
+    Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
+    Element elementWithActions =
+        Element.newBuilder()
+            .setActions(actions)
+            .addOverlays(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
+            .build();
+
+    adapter.createAdapter(elementWithActions, elementWithActions, frameContext);
+    adapter.bindModel(elementWithActions, elementWithActions, frameContext);
+    assertThat(adapter.getView().hasOnClickListeners()).isFalse();
+    assertThat(adapter.getBaseView().hasOnClickListeners()).isTrue();
+    assertThat(adapter.actions).isSameAs(actions);
+  }
+
+  @Test
   public void testBindModel_setsActionsWithBinding() {
     Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
     ActionsBindingRef actionsBinding =
@@ -470,6 +489,32 @@ public class ElementAdapterTest {
 
     adapter.bindModel(elementWithoutActions, elementWithoutActions, frameContext);
     assertThat(adapter.getView().hasOnClickListeners()).isFalse();
+    assertThat(adapter.actions).isSameAs(Actions.getDefaultInstance());
+  }
+
+  @Test
+  public void testBindModel_unsetsActionsOnBaseView() {
+    Actions actions = Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()).build();
+    Element elementWithActions =
+        Element.newBuilder()
+            .setActions(actions)
+            .addOverlays(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
+            .build();
+    Element elementWithoutActions = elementWithActions.toBuilder().clearActions().build();
+
+    adapter.createAdapter(elementWithActions, elementWithActions, frameContext);
+    adapter.bindModel(elementWithActions, elementWithActions, frameContext);
+    assertThat(adapter.getView().hasOnClickListeners()).isFalse();
+    assertThat(adapter.getBaseView().hasOnClickListeners()).isTrue();
+    assertThat(adapter.actions).isSameAs(actions);
+
+    adapter.unbindModel();
+    adapter.bindModel(elementWithoutActions, elementWithoutActions, frameContext);
+    assertThat(adapter.getView().hasOnClickListeners()).isFalse();
+    assertThat(adapter.getBaseView().hasOnClickListeners()).isFalse();
     assertThat(adapter.actions).isSameAs(Actions.getDefaultInstance());
   }
 
