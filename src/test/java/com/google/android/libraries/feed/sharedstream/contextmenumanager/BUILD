@@ -1,10 +1,10 @@
 licenses(["notice"])  # Apache 2
 
 android_local_test(
-    name = "ContextMenuManagerTest",
+    name = "ContextMenuManagerImplTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["ContextMenuManagerTest.java"],
+    srcs = ["ContextMenuManagerImplTest.java"],
     manifest = "AndroidManifest.xml",
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

@@ -45,9 +45,9 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
-/** Tests for {@link ContextMenuManager}. */
+/** Tests for {@link ContextMenuManagerImpl}. */
 @RunWith(RobolectricTestRunner.class)
-public class ContextMenuManagerTest {
+public class ContextMenuManagerImplTest {
 
   private static final int NO_ID = -1;
 
@@ -55,7 +55,7 @@ public class ContextMenuManagerTest {
   @Mock private ContextMenuClickHandler clickHandler;
 
   private Context context;
-  private ContextMenuManager contextMenuManager;
+  private ContextMenuManagerImpl contextMenuManager;
   private FrameLayout parentView;
   private View anchorView;
   private List<String> adapterItems;
@@ -68,7 +68,8 @@ public class ContextMenuManagerTest {
     parentView = new FrameLayout(context);
     anchorView = new View(context);
     parentView.addView(anchorView);
-    contextMenuManager = new ContextMenuManager(parentView, menuMeasurer);
+    contextMenuManager = new ContextMenuManagerImpl(menuMeasurer, context);
+    contextMenuManager.setView(parentView);
     adapterItems = createAdapterItems();
     when(menuMeasurer.measureAdapterContent(
             any(ViewGroup.class),

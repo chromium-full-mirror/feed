@@ -70,6 +70,7 @@ import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManagerImpl;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
@@ -109,7 +110,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final MenuMeasurer menuMeasurer;
 
   private RecyclerView recyclerView;
-  private ContextMenuManager contextMenuManager;
+  private ContextMenuManagerImpl contextMenuManager;
   private Context context;
   private List<Header> headers;
   private StreamConfiguration streamConfiguration;
@@ -704,9 +705,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   }
 
   @VisibleForTesting
-  ContextMenuManager createContextMenuManager(
+  ContextMenuManagerImpl createContextMenuManager(
       RecyclerView recyclerView, MenuMeasurer menuMeasurer) {
-    return new ContextMenuManager(recyclerView, menuMeasurer);
+    ContextMenuManagerImpl manager = new ContextMenuManagerImpl(menuMeasurer, context);
+    manager.setView(recyclerView);
+    return manager;
   }
 
   @IntDef({

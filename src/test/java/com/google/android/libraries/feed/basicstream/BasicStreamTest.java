@@ -79,6 +79,7 @@ import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManagerImpl;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
@@ -137,7 +138,7 @@ public class BasicStreamTest {
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private KnownContentApi knownContentApi;
-  @Mock private ContextMenuManager contextMenuManager;
+  @Mock private ContextMenuManagerImpl contextMenuManager;
 
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
@@ -1021,7 +1022,7 @@ public class BasicStreamTest {
     }
 
     @Override
-    ContextMenuManager createContextMenuManager(
+    ContextMenuManagerImpl createContextMenuManager(
         RecyclerView recyclerView, MenuMeasurer menuMeasurer) {
       return contextMenuManager;
     }
