@@ -60,7 +60,7 @@ message StyleIdsStack {
 }
 
 // A collection of attributes describing an element’s visual properties.
-// NextId: 18
+// NextId: 19
 message Style {
   // Every style must have a name that is unique within the StyleSheet. But
   // don’t go overboard in naming these with namespaced constructs because
@@ -143,6 +143,10 @@ message Style {
   // Defines a shadow for an element.
   optional Shadow shadow = 14;
 
+  // Scale type for images
+  // This may not be supported for images in ChunkedText for all platforms.
+  optional Image.ScaleType scale_type = 18 [default = CENTER_INSIDE];
+
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 }
@@ -183,6 +187,9 @@ message BoundStyle {
 
   // See comments for Style.image_loading_settings
   optional ImageLoadingSettings image_loading_settings = 4;
+
+  // See comments for Style.scale_type
+  optional Image.ScaleType scale_type = 5;
 }
 // LINT.ThenChange
 

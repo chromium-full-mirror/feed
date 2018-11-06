@@ -55,7 +55,9 @@ message Image {
     CENTER_CROP = 2;
   }
   // How the image should be scaled.
-  optional ScaleType scale_type = 2 [default = CENTER_INSIDE];
+  // DEPRECATED: use the scale_type on Style message instead
+  optional ScaleType scale_type = 2
+      [default = CENTER_INSIDE, deprecated = true];
 
   // The tint to be applied to this icon. If this optional field is not
   // provided, then no tint will be applied. See [INTERNAL LINK]
