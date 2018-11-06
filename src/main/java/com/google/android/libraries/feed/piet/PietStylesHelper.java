@@ -135,6 +135,7 @@ public class PietStylesHelper {
       }
     }
     if (stack.hasStyleBinding()) {
+      // LINT.IfChange
       FrameContext localFrameContext =
           checkNotNull(frameContext, "Binding styles not supported when frameContext is null");
       BoundStyle boundStyle = localFrameContext.getStyleFromBinding(stack.getStyleBinding());
@@ -145,10 +146,14 @@ public class PietStylesHelper {
       if (boundStyle.hasColor()) {
         mergedStyle.setColor(boundStyle.getColor());
       }
-      if (boundStyle.hasPreLoadFill()) {
-        mergedStyle.setPreLoadFill(
-            mergedStyle.getPreLoadFill().toBuilder().mergeFrom(boundStyle.getPreLoadFill()));
+      if (boundStyle.hasImageLoadingSettings()) {
+        mergedStyle.setImageLoadingSettings(
+            mergedStyle
+                .getImageLoadingSettings()
+                .toBuilder()
+                .mergeFrom(boundStyle.getImageLoadingSettings()));
       }
+      // LINT.ThenChange
     }
     return mergedStyle.build();
   }

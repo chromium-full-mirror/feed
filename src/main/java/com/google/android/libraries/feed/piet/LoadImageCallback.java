@@ -41,8 +41,9 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
   private final ImageView imageView;
   private final ScaleType scaleType;
   private final long initialTime;
-  private final int heightPx;
   private final int widthPx;
+  private final int heightPx;
+  private final boolean fadeImage;
   private final AdapterParameters parameters;
   private final Context context;
   private final FrameContext frameContext;
@@ -58,6 +59,7 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
       ScaleType scaleType,
       int widthPx,
       int heightPx,
+      boolean fadeImage,
       Context context,
       AdapterParameters parameters,
       FrameContext frameContext) {
@@ -65,6 +67,7 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
     this.scaleType = scaleType;
     this.widthPx = widthPx;
     this.heightPx = heightPx;
+    this.fadeImage = fadeImage;
     this.parameters = parameters;
     this.context = context;
     this.initialTime = parameters.clock.elapsedRealtime();
@@ -168,8 +171,9 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
   }
 
   private boolean shouldFadeInImage() {
-    return (parameters.clock.elapsedRealtime() - initialTime)
-        > parameters.hostProviders.getAssetProvider().getFadeImageThresholdMs();
+    return fadeImage
+        && (parameters.clock.elapsedRealtime() - initialTime)
+            > parameters.hostProviders.getAssetProvider().getFadeImageThresholdMs();
   }
 
   void cancel() {

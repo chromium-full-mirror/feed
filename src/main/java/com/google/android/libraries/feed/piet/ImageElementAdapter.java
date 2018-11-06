@@ -169,7 +169,14 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
   @VisibleForTesting
   LoadImageCallback createLoadImageCallback(ScaleType scaleType, FrameContext frameContext) {
     return new LoadImageCallback(
-        getBaseView(), scaleType, widthPx, heightPx, getContext(), getParameters(), frameContext);
+        getBaseView(),
+        scaleType,
+        widthPx,
+        heightPx,
+        getElementStyle().getFadeInImageOnLoad(),
+        getContext(),
+        getParameters(),
+        frameContext);
   }
 
   private static AspectRatioScalingImageView createView(Context context) {

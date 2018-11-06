@@ -89,7 +89,14 @@ public class LoadImageCallbackTest {
 
     LoadImageCallback callback =
         new LoadImageCallback(
-            imageView, ScaleType.CENTER, WIDTH_PX, HEIGHT_PX, context, parameters, frameContext);
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            true,
+            context,
+            parameters,
+            frameContext);
 
     clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
     callback.accept(finalDrawable);
@@ -108,7 +115,14 @@ public class LoadImageCallbackTest {
 
     LoadImageCallback callback =
         new LoadImageCallback(
-            imageView, ScaleType.CENTER, WIDTH_PX, HEIGHT_PX, context, parameters, frameContext);
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            true,
+            context,
+            parameters,
+            frameContext);
 
     clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
     callback.accept(finalDrawable);
@@ -121,12 +135,40 @@ public class LoadImageCallbackTest {
   }
 
   @Test
-  public void testQuickLoad_doesntFade() {
+  public void testQuickLoad_doesntFade_fadingDisabled() {
     ImageView imageView = new ImageView(context);
 
     LoadImageCallback callback =
         new LoadImageCallback(
-            imageView, ScaleType.CENTER, WIDTH_PX, HEIGHT_PX, context, parameters, frameContext);
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            false,
+            context,
+            parameters,
+            frameContext);
+
+    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
+    callback.accept(finalDrawable);
+
+    assertThat(imageView.getDrawable()).isSameAs(finalDrawable);
+  }
+
+  @Test
+  public void testQuickLoad_doesntFade_loadsBeforeTimeout() {
+    ImageView imageView = new ImageView(context);
+
+    LoadImageCallback callback =
+        new LoadImageCallback(
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            true,
+            context,
+            parameters,
+            frameContext);
 
     clock.advance(FADE_IMAGE_THRESHOLD_MS - 1);
     callback.accept(finalDrawable);
@@ -142,6 +184,7 @@ public class LoadImageCallbackTest {
             ScaleType.CENTER,
             WIDTH_PX,
             HEIGHT_PX,
+            true,
             context,
             parameters,
             frameContext);
@@ -163,7 +206,14 @@ public class LoadImageCallbackTest {
     ImageView imageView = new ImageView(context);
     LoadImageCallback callback =
         new LoadImageCallback(
-            imageView, ScaleType.CENTER, WIDTH_PX, HEIGHT_PX, context, parameters, frameContext);
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            true,
+            context,
+            parameters,
+            frameContext);
     clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
     callback.accept(finalDrawable);
 
@@ -190,7 +240,14 @@ public class LoadImageCallbackTest {
     ImageView imageView = new ImageView(context);
 
     new LoadImageCallback(
-            imageView, ScaleType.CENTER, WIDTH_PX, HEIGHT_PX, context, parameters, frameContext)
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            false,
+            context,
+            parameters,
+            frameContext)
         .accept(new BitmapDrawable(context.getResources(), bitmap));
     BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
     assertThat(bitmapDrawable.getBitmap().getWidth()).isEqualTo(WIDTH_PX);
@@ -206,7 +263,14 @@ public class LoadImageCallbackTest {
     ImageView imageView = new ImageView(context);
 
     new LoadImageCallback(
-            imageView, ScaleType.CENTER, WIDTH_PX, HEIGHT_PX, context, parameters, frameContext)
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            false,
+            context,
+            parameters,
+            frameContext)
         .accept(new BitmapDrawable(context.getResources(), bitmap));
     BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
     assertThat(bitmapDrawable.getBitmap().getWidth()).isEqualTo(123);
@@ -218,7 +282,14 @@ public class LoadImageCallbackTest {
     ImageView imageView = new ImageView(context);
     LoadImageCallback callback =
         new LoadImageCallback(
-            imageView, ScaleType.CENTER, WIDTH_PX, HEIGHT_PX, context, parameters, frameContext);
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            false,
+            context,
+            parameters,
+            frameContext);
     callback.accept(finalDrawable);
 
     assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER);
@@ -238,7 +309,14 @@ public class LoadImageCallbackTest {
 
     LoadImageCallback callback =
         new LoadImageCallback(
-            imageView, ScaleType.CENTER, WIDTH_PX, HEIGHT_PX, context, parameters, frameContext);
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            true,
+            context,
+            parameters,
+            frameContext);
 
     clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
     callback.accept(finalDrawable);
@@ -268,7 +346,14 @@ public class LoadImageCallbackTest {
 
     LoadImageCallback callback =
         new LoadImageCallback(
-            imageView, ScaleType.CENTER, WIDTH_PX, HEIGHT_PX, context, parameters, frameContext);
+            imageView,
+            ScaleType.CENTER,
+            WIDTH_PX,
+            HEIGHT_PX,
+            true,
+            context,
+            parameters,
+            frameContext);
 
     clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
     callback.accept(finalDrawable);

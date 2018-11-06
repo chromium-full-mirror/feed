@@ -34,6 +34,7 @@ import com.google.search.now.ui.piet.ShadowsProto.ElevationShadow;
 import com.google.search.now.ui.piet.ShadowsProto.Shadow;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
+import com.google.search.now.ui.piet.StylesProto.ImageLoadingSettings;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,7 +79,11 @@ public class StyleProviderTest {
         Style.newBuilder()
             .setColor(1)
             .setBackground(Fill.newBuilder().setColor(2))
-            .setPreLoadFill(Fill.newBuilder().setColor(9))
+            .setImageLoadingSettings(
+                ImageLoadingSettings.newBuilder()
+                    .setPreLoadFill(Fill.newBuilder().setColor(9))
+                    .setFadeInImageOnLoad(true)
+                    .build())
             .setRoundedCorners(RoundedCorners.newBuilder().setRadius(3))
             .setFont(Font.newBuilder().setSize(4))
             .setMaxLines(5)
@@ -92,7 +97,10 @@ public class StyleProviderTest {
     assertThat(styleProvider.getColor()).isEqualTo(style.getColor());
     assertThat(styleProvider.getBackground()).isEqualTo(style.getBackground());
     assertThat(styleProvider.hasPreLoadFill()).isTrue();
-    assertThat(styleProvider.getPreLoadFill()).isEqualTo(style.getPreLoadFill());
+    assertThat(styleProvider.getPreLoadFill())
+        .isEqualTo(style.getImageLoadingSettings().getPreLoadFill());
+    assertThat(styleProvider.getFadeInImageOnLoad())
+        .isEqualTo(style.getImageLoadingSettings().getFadeInImageOnLoad());
     assertThat(styleProvider.getRoundedCorners()).isEqualTo(style.getRoundedCorners());
     assertThat(styleProvider.hasRoundedCorners()).isTrue();
     assertThat(styleProvider.getFont()).isEqualTo(style.getFont());
@@ -113,6 +121,7 @@ public class StyleProviderTest {
     assertThat(styleProvider.getBackground()).isEqualTo(style.getBackground());
     assertThat(styleProvider.hasPreLoadFill()).isFalse();
     assertThat(styleProvider.getPreLoadFill()).isEqualTo(Fill.getDefaultInstance());
+    assertThat(styleProvider.getFadeInImageOnLoad()).isFalse();
     assertThat(styleProvider.hasRoundedCorners()).isFalse();
     assertThat(styleProvider.getRoundedCorners()).isEqualTo(RoundedCorners.getDefaultInstance());
     assertThat(styleProvider.getFont()).isEqualTo(Font.getDefaultInstance());
@@ -443,7 +452,11 @@ public class StyleProviderTest {
 
     styleProvider =
         new StyleProvider(
-            Style.newBuilder().setPreLoadFill(fill).setRoundedCorners(roundedCorners).build(),
+            Style.newBuilder()
+                .setImageLoadingSettings(
+                    ImageLoadingSettings.newBuilder().setPreLoadFill(fill).build())
+                .setRoundedCorners(roundedCorners)
+                .build(),
             mockAssetProvider);
     Drawable preLoadFillDrawable = styleProvider.createPreLoadFill();
     assertThat(preLoadFillDrawable).isInstanceOf(ColorDrawable.class);

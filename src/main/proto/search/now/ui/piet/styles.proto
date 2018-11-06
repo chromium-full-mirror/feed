@@ -16,6 +16,7 @@ syntax = "proto2";
 
 import "src/main/proto/search/now/ui/piet/binding_refs.proto";
 import "src/main/proto/search/now/ui/piet/gradients.proto";
+import "src/main/proto/search/now/ui/piet/images.proto";
 import "src/main/proto/search/now/ui/piet/media_queries.proto";
 import "src/main/proto/search/now/ui/piet/rounded_corners.proto";
 import "src/main/proto/search/now/ui/piet/shadows.proto";
@@ -59,7 +60,7 @@ message StyleIdsStack {
 }
 
 // A collection of attributes describing an element’s visual properties.
-// NextId: 17
+// NextId: 18
 message Style {
   // Every style must have a name that is unique within the StyleSheet. But
   // don’t go overboard in naming these with namespaced constructs because
@@ -77,10 +78,8 @@ message Style {
   // Defines the background fill, either as a solid color, or a gradient.
   optional Fill background = 3;
 
-  // Defines a placeholder fill applied before an image loads (only for Image)
-  // This will be replaced by the Image when it loads asynchronously.
-  // Not relevant for platforms where image loading is synchronous.
-  optional Fill pre_load_fill = 15;
+  // Configuration for image loading behavior (such as fading in)
+  optional ImageLoadingSettings image_loading_settings = 17;
 
   // Font information applicable to text elements.
   optional Font font = 4;
@@ -148,11 +147,33 @@ message Style {
   extensions 10000 to max;
 }
 
+// Various configuration parameters for image loading
+message ImageLoadingSettings {
+  // If this is set, images will fade in after loading asynchronously.
+  // May not be supported on all platforms.
+  optional bool fade_in_image_on_load = 1;
+
+  oneof preload {
+    // Defines a placeholder fill applied before an image loads.
+    // This will be replaced by the Image when it loads asynchronously.
+    // Not relevant for platforms where image loading is synchronous.
+    Fill pre_load_fill = 2;
+
+    // Defines a placeholder image applied before an image loads.
+    // This will be replaced by the Image when it loads asynchronously.
+    // This should be an on-device asset; it doesn't make sense to have the pre-
+    // load image also load asynchronously.
+    // Not relevant for platforms where image loading is synchronous.
+    Image pre_load_image = 3;
+  }
+}
+
 // Style that can be bound to an element. Not all style attributes can be bound
 // due to performance (specifically, this affects view recycling).
 //
 // PLEASE NOTE: Field names inside this message should bear the exact same names
 //     as their counterparts in the Style message.
+// LINT.IfChange
 message BoundStyle {
   // See comments for Style.color.
   optional fixed32 color = 1;
@@ -160,9 +181,10 @@ message BoundStyle {
   // See comments for Style.background.
   optional Fill background = 2;
 
-  // See comments for Style.pre_load_fill
-  optional Fill pre_load_fill = 3;
+  // See comments for Style.image_loading_settings
+  optional ImageLoadingSettings image_loading_settings = 4;
 }
+// LINT.ThenChange
 
 // Font definitions for text elements. In the interest of preserving
 // consistency, feature authors are highly encouraged to use Fonts as part of a

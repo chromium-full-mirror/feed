@@ -74,12 +74,17 @@ class StyleProvider {
 
   /** The pre-load fill for this style */
   public Fill getPreLoadFill() {
-    return style.getPreLoadFill();
+    return style.getImageLoadingSettings().getPreLoadFill();
   }
 
   /** Whether the style has a pre-load fill */
   public boolean hasPreLoadFill() {
-    return style.hasPreLoadFill();
+    return style.getImageLoadingSettings().hasPreLoadFill();
+  }
+
+  /** Whether to fade in the image after it's loaded */
+  public boolean getFadeInImageOnLoad() {
+    return style.getImageLoadingSettings().getFadeInImageOnLoad();
   }
 
   /** The {@link RoundedCorners} to be used with the background color. */
