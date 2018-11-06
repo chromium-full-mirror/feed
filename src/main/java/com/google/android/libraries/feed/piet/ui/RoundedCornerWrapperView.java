@@ -68,8 +68,6 @@ public class RoundedCornerWrapperView extends FrameLayout {
     this.roundedCorners = roundedCorners;
 
     if (hasRoundedCorners() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      final int layoutDirection =
-          LayoutUtils.isDefaultLocaleRtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR;
       super.setOutlineProvider(
           new ViewOutlineProvider() {
             @Override
@@ -81,7 +79,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
                 int radius = makeRadius(view.getWidth(), view.getHeight());
                 float[] radii =
                     RoundedCornerViewHelper.createRoundedCornerMask(
-                        radius, roundedCorners.getBitmask(), layoutDirection);
+                        radius, roundedCorners.getBitmask());
                 localOutlineShape = new RoundRectShape(radii, null, null);
                 localOutlineShape.resize(view.getWidth(), view.getHeight());
                 outlineShape = localOutlineShape;

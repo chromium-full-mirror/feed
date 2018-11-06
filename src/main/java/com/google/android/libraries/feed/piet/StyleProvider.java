@@ -24,10 +24,15 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v4.view.ViewCompat;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.ui.BorderDrawable;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerViewHelper;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
+import com.google.search.now.ui.piet.StylesProto.Borders;
+import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Style;
@@ -48,6 +53,9 @@ class StyleProvider {
           .setMargins(EdgeWidths.getDefaultInstance())
           .setMaxLines(0)
           .build();
+
+  // For borders with no rounded corners.
+  private static final float[] ZERO_RADIUS = new float[] {0, 0, 0, 0, 0, 0, 0, 0};
 
   private final Style style;
   private final AssetProvider assetProvider;
@@ -110,6 +118,16 @@ class StyleProvider {
   /** This style's margins */
   public EdgeWidths getMargins() {
     return style.getMargins();
+  }
+
+  /** Whether this style has borders */
+  public boolean hasBorders() {
+    return style.getBorders().getWidth() > 0;
+  }
+
+  /** This style's borders */
+  public Borders getBorders() {
+    return style.getBorders();
   }
 
   /** The max_lines for a TextView */
@@ -182,11 +200,15 @@ class StyleProvider {
   /** Set the padding on a view. This includes adding extra padding for line spacing on TextView. */
   void applyPadding(
       Context context, View view, EdgeWidths padding, int extraTopAndBottomPaddingPx) {
-    int startPadding = (int) LayoutUtils.dpToPx(padding.getStart(), context);
-    int endPadding = (int) LayoutUtils.dpToPx(padding.getEnd(), context);
+    int startPadding =
+        (int) LayoutUtils.dpToPx(padding.getStart() + getBorderWidth(Edges.START), context);
+    int endPadding =
+        (int) LayoutUtils.dpToPx(padding.getEnd() + getBorderWidth(Edges.END), context);
     int topPadding =
-        (int) LayoutUtils.dpToPx(padding.getTop(), context) + extraTopAndBottomPaddingPx;
-    int bottomPadding = (int) LayoutUtils.dpToPx(padding.getBottom(), context);
+        (int) LayoutUtils.dpToPx(padding.getTop() + getBorderWidth(Edges.TOP), context)
+            + extraTopAndBottomPaddingPx;
+    int bottomPadding =
+        (int) LayoutUtils.dpToPx(padding.getBottom() + getBorderWidth(Edges.BOTTOM), context);
     // In API version 21 (Lollipop), the implementation of lineSpacingMultiplier() changed to add no
     // extra space beneath a block of text. Before API 21, we need to subtract the extra padding (so
     // that only half the padding is on the bottom). After API 21, extra padding needs to be added.
@@ -204,6 +226,36 @@ class StyleProvider {
           LayoutUtils.isDefaultLocaleRtl() ? startPadding : endPadding,
           bottomPadding);
     }
+  }
+
+  int getBorderWidth(Borders.Edges edge) {
+    if (!hasBorders()) {
+      return 0;
+    }
+    if (getBorders().getBitmask() == 0 || ((getBorders().getBitmask() & edge.getNumber()) != 0)) {
+      return getBorders().getWidth();
+    }
+    return 0;
+  }
+
+  void addBorders(FrameLayout view, Context context) {
+    if (!hasBorders()) {
+      return;
+    }
+
+    // Set up outline of borders
+    float[] outerRadii;
+    if (hasRoundedCorners()) {
+      outerRadii =
+          RoundedCornerViewHelper.createRoundedCornerMask(
+              getRoundedCornerRadius(context), getRoundedCorners().getBitmask());
+    } else {
+      outerRadii = ZERO_RADIUS;
+    }
+
+    // Create a drawable to stroke the border
+    BorderDrawable borderDrawable = new BorderDrawable(context, getBorders(), outerRadii);
+    view.setForeground(borderDrawable);
   }
 
   /** Sets appropriate margins on a {@link MarginLayoutParams} instance. */

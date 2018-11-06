@@ -156,7 +156,9 @@ abstract class ElementAdapter<V extends View, M> {
 
   private void initializeWrapperViewDependentFeatures(
       RoundedCorners roundedCorners, Element baseElement, FrameContext frameContext) {
-    if (roundedCorners.getRadius() <= 0 && baseElement.getOverlaysCount() == 0) {
+    if (roundedCorners.getRadius() <= 0
+        && baseElement.getOverlaysCount() == 0
+        && !elementStyle.hasBorders()) {
       return;
     }
 
@@ -172,6 +174,9 @@ abstract class ElementAdapter<V extends View, M> {
           new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
       wrapper.addView(overlayAdapter.getView());
     }
+
+    elementStyle.addBorders(wrapper, getContext());
+
     wrapperView = wrapper;
   }
 

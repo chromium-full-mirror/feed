@@ -20,18 +20,25 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION_CODES;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 import com.google.search.now.ui.piet.ShadowsProto.ElevationShadow;
 import com.google.search.now.ui.piet.ShadowsProto.Shadow;
+import com.google.search.now.ui.piet.StylesProto.Borders;
+import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.ImageLoadingSettings;
@@ -130,6 +137,16 @@ public class StyleProviderTest {
     assertThat(styleProvider.getWidth()).isEqualTo(0);
     assertThat(styleProvider.hasHeight()).isFalse();
     assertThat(styleProvider.hasWidth()).isFalse();
+  }
+
+  @Test
+  public void testHasBorders_falseIfWidthZero() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder().setBorders(Borders.newBuilder().setBitmask(15)).build(),
+            mockAssetProvider);
+
+    assertThat(styleProvider.hasBorders()).isFalse();
   }
 
   @Test
@@ -264,6 +281,97 @@ public class StyleProviderTest {
         .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) + topAndBottomPadding);
     assertThat(textView.getPaddingBottom())
         .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) - topAndBottomPadding);
+  }
+
+  @Test
+  public void testApplyPadding_addsExtraForBorders_allSides() {
+    EdgeWidths padding =
+        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
+    Style bordersStyle = Style.newBuilder().setBorders(Borders.newBuilder().setWidth(5)).build();
+    new StyleProvider(bordersStyle, mockAssetProvider).applyPadding(context, view, padding, 0);
+
+    assertThat(view.getPaddingTop()).isEqualTo((int) LayoutUtils.dpToPx(1 + 5, context));
+    assertThat(view.getPaddingBottom()).isEqualTo((int) LayoutUtils.dpToPx(2 + 5, context));
+    assertThat(view.getPaddingStart()).isEqualTo((int) LayoutUtils.dpToPx(3 + 5, context));
+    assertThat(view.getPaddingEnd()).isEqualTo((int) LayoutUtils.dpToPx(4 + 5, context));
+  }
+
+  @Test
+  public void testApplyPadding_addsExtraForBorders_someSides() {
+    EdgeWidths padding =
+        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
+    Style bordersBottomRight =
+        Style.newBuilder()
+            .setBorders(
+                Borders.newBuilder()
+                    .setWidth(5)
+                    .setBitmask(Edges.BOTTOM.getNumber() | Edges.END.getNumber()))
+            .build();
+    new StyleProvider(bordersBottomRight, mockAssetProvider)
+        .applyPadding(context, view, padding, 0);
+
+    assertThat(view.getPaddingTop()).isEqualTo((int) LayoutUtils.dpToPx(1, context));
+    assertThat(view.getPaddingBottom()).isEqualTo((int) LayoutUtils.dpToPx(2 + 5, context));
+    assertThat(view.getPaddingStart()).isEqualTo((int) LayoutUtils.dpToPx(3, context));
+    assertThat(view.getPaddingEnd()).isEqualTo((int) LayoutUtils.dpToPx(4 + 5, context));
+  }
+
+  @Test
+  public void testCreateBorderDrawable() {
+    Borders borders =
+        Borders.newBuilder()
+            .setColor(Color.CYAN)
+            .setWidth(4)
+            .setBitmask(Edges.TOP.getNumber() | Edges.END.getNumber())
+            .build();
+
+    FrameLayout view = new FrameLayout(context);
+    new StyleProvider(Style.newBuilder().setBorders(borders).build(), mockAssetProvider)
+        .addBorders(view, context);
+    BorderDrawable borderDrawable = (BorderDrawable) view.getForeground();
+    borderDrawable.setBounds(0, 0, 0, 0);
+
+    assertThat(borderDrawable.getPaint().getColor()).isEqualTo(Color.CYAN);
+    assertThat(borderDrawable.getBounds()).isEqualTo(new Rect(-4, 0, 0, 4));
+  }
+
+  @Test
+  public void testCreateBorderDrawable_roundedCorners() {
+    Borders borders =
+        Borders.newBuilder()
+            .setColor(Color.CYAN)
+            .setWidth(4)
+            .setBitmask(Edges.TOP.getNumber() | Edges.END.getNumber())
+            .build();
+    RoundedCorners roundedCorners =
+        RoundedCorners.newBuilder()
+            .setRadius(16)
+            .setBitmask(Corners.TOP_START.getNumber() | Corners.BOTTOM_END.getNumber())
+            .build();
+
+    FrameLayout view = new FrameLayout(context);
+    new StyleProvider(
+            Style.newBuilder().setBorders(borders).setRoundedCorners(roundedCorners).build(),
+            mockAssetProvider)
+        .addBorders(view, context);
+    BorderDrawable borderDrawable = (BorderDrawable) view.getForeground();
+    borderDrawable.setBounds(0, 0, 0, 0);
+
+    assertThat(borderDrawable.getPaint().getColor()).isEqualTo(Color.CYAN);
+    assertThat(borderDrawable.getBounds()).isEqualTo(new Rect(-4, 0, 0, 4));
+
+    // I don't think there's any great way to test the rounded corners part.
+  }
+
+  @Test
+  public void testCreateBorderDrawable_noOp() {
+    FrameLayout view = new FrameLayout(context);
+    new StyleProvider(
+            Style.newBuilder().setBorders(Borders.newBuilder().setWidth(0)).build(),
+            mockAssetProvider)
+        .addBorders(view, context);
+
+    assertThat(view.getForeground()).isNull();
   }
 
   @Test

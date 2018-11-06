@@ -261,6 +261,15 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testCreateAdapter_addsBorders() {
+    when(styleProvider.hasBorders()).thenReturn(true);
+
+    adapter.createAdapter(Element.getDefaultInstance(), Element.getDefaultInstance(), frameContext);
+
+    verify(styleProvider).addBorders((FrameLayout) adapter.getView(), context);
+  }
+
+  @Test
   public void testCreateAdapter_appliesVisibility() {
     Element defaultElement =
         Element.newBuilder()
