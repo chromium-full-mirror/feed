@@ -1,3 +1,5 @@
+load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:android_local_test.bzl", "DEFAULT_ANDROID_LOCAL_TEST_MANIFEST")
+
 licenses(["notice"])  # Apache 2
 
 android_local_test(
@@ -5,7 +7,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContentCacheTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common/testing",
@@ -22,7 +24,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["HeadSessionImplTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -42,7 +44,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["HeadAsStructureTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -63,7 +65,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SessionManagerMutationTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -95,7 +97,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SessionCacheTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -124,7 +126,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SessionImplTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -149,7 +151,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["TimeoutSessionImplTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",

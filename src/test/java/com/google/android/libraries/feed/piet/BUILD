@@ -1,3 +1,5 @@
+load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:android_local_test.bzl", "DEFAULT_ANDROID_LOCAL_TEST_MANIFEST")
+
 licenses(["notice"])  # Apache 2
 
 android_local_test(
@@ -5,7 +7,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ChunkedTextElementAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -25,7 +27,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["CustomElementAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -43,7 +45,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["DebugLoggerTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/ui",
@@ -60,7 +62,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ElementAdapterFactoryTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -79,7 +81,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ElementAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -99,7 +101,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ElementContainerAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -118,7 +120,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ElementListAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -137,7 +139,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FrameAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -157,7 +159,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FrameContextTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -176,7 +178,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["GridRowAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -197,7 +199,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ImageElementAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -220,7 +222,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["KeyedRecyclerPoolTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -238,7 +240,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["LoadImageCallbackTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -258,7 +260,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["MediaQueryHelperTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -290,7 +292,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ParameterizedTextElementAdapterFactoryTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -309,7 +311,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ParameterizedTextElementAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -328,7 +330,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ParameterizedTextEvaluatorTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -346,7 +348,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietManagerTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -365,7 +367,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PietStylesHelperTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -383,7 +385,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SingleKeyRecyclerPoolTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -400,7 +402,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SpacerElementAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -418,7 +420,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StackedElementAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -436,7 +438,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StyleProviderTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/ui",
@@ -455,7 +457,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["TemplateBinderTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -474,7 +476,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["TextElementAdapterTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
@@ -493,7 +495,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ViewUtilsTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
