@@ -153,6 +153,9 @@ public class PietStylesHelper {
                 .toBuilder()
                 .mergeFrom(boundStyle.getImageLoadingSettings()));
       }
+      if (boundStyle.hasScaleType()) {
+        mergedStyle.setScaleType(boundStyle.getScaleType());
+      }
       // LINT.ThenChange
     }
     return mergedStyle.build();

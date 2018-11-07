@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerViewHelper;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
+import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.Borders;
 import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
@@ -93,6 +94,11 @@ class StyleProvider {
   /** Whether to fade in the image after it's loaded */
   public boolean getFadeInImageOnLoad() {
     return style.getImageLoadingSettings().getFadeInImageOnLoad();
+  }
+
+  /** Image scale type on this style */
+  public Image.ScaleType getScaleType() {
+    return style.getScaleType();
   }
 
   /** The {@link RoundedCorners} to be used with the background color. */

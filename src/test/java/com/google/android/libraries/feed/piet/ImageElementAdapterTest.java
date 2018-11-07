@@ -108,6 +108,7 @@ public class ImageElementAdapterTest {
     when(styleProvider.hasRoundedCorners()).thenReturn(true);
     when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
     when(styleProvider.getRoundedCornerRadius(context)).thenReturn(CORNERS.getRadius());
+    when(styleProvider.getScaleType()).thenReturn(Image.ScaleType.CENTER_INSIDE);
 
     adapter = new ImageElementAdapterForTest(context, parameters);
   }
@@ -262,7 +263,7 @@ public class ImageElementAdapterTest {
   }
 
   @Test
-  public void testBindModel_setsScaleType() {
+  public void testBindModel_setsScaleType_deprecatedField() {
     StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
     Image imageWithScaleType =
         DEFAULT_IMAGE.toBuilder().setScaleType(Image.ScaleType.CENTER_CROP).build();
@@ -278,6 +279,22 @@ public class ImageElementAdapterTest {
 
     verify(assetProvider)
         .getImage(imageWithScaleType, DIMENSION_UNKNOWN, DIMENSION_UNKNOWN, loadImageCallback);
+    assertThat(adapter.scaleTypeForCallback).isEqualTo(ScaleType.CENTER_CROP);
+  }
+
+  @Test
+  public void testBindModel_setsScaleType() {
+    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
+    when(styleProvider.getScaleType()).thenReturn(Image.ScaleType.CENTER_CROP);
+    Element model =
+        asElement(
+            ImageElement.newBuilder().setImage(DEFAULT_IMAGE).setStyleReferences(styles).build());
+
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    verify(assetProvider)
+        .getImage(DEFAULT_IMAGE, DIMENSION_UNKNOWN, DIMENSION_UNKNOWN, loadImageCallback);
     assertThat(adapter.scaleTypeForCallback).isEqualTo(ScaleType.CENTER_CROP);
   }
 

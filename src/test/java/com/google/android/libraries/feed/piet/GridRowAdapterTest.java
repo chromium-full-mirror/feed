@@ -60,6 +60,7 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.ImagesProto.Image.ScaleType;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
@@ -322,6 +323,7 @@ public class GridRowAdapterTest {
     when(childStyleProvider.hasWidth()).thenReturn(true);
     when(childStyleProvider.getWidth()).thenReturn(456);
     when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+    when(childStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
@@ -357,6 +359,7 @@ public class GridRowAdapterTest {
     when(childStyleProvider.hasHeight()).thenReturn(true);
     when(childStyleProvider.getHeight()).thenReturn(123);
     when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+    when(childStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 

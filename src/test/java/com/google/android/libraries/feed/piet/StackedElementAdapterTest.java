@@ -37,6 +37,7 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.ImagesProto.Image.ScaleType;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import java.util.Collections;
 import java.util.List;
@@ -138,6 +139,7 @@ public class StackedElementAdapterTest {
     when(mockStyleProvider.hasHeight()).thenReturn(true);
     when(mockStyleProvider.getWidth()).thenReturn(123);
     when(mockStyleProvider.getHeight()).thenReturn(456);
+    when(mockStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
     adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
     adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
@@ -167,6 +169,7 @@ public class StackedElementAdapterTest {
     when(mockStyleProvider.hasHeight()).thenReturn(true);
     when(mockStyleProvider.getWidth()).thenReturn(123);
     when(mockStyleProvider.getHeight()).thenReturn(456);
+    when(mockStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
     adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
     adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);

@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
+import com.google.search.now.ui.piet.ImagesProto.Image.ScaleType;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 import com.google.search.now.ui.piet.ShadowsProto.ElevationShadow;
@@ -97,6 +98,7 @@ public class StyleProviderTest {
             .setMinHeight(6)
             .setHeight(7)
             .setWidth(8)
+            .setScaleType(ScaleType.CENTER_CROP)
             .build();
 
     StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
@@ -116,6 +118,7 @@ public class StyleProviderTest {
     assertThat(styleProvider.getWidth()).isEqualTo(style.getWidth());
     assertThat(styleProvider.hasHeight()).isTrue();
     assertThat(styleProvider.hasWidth()).isTrue();
+    assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
   }
 
   @Test
@@ -137,6 +140,7 @@ public class StyleProviderTest {
     assertThat(styleProvider.getWidth()).isEqualTo(0);
     assertThat(styleProvider.hasHeight()).isFalse();
     assertThat(styleProvider.hasWidth()).isFalse();
+    assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_INSIDE);
   }
 
   @Test

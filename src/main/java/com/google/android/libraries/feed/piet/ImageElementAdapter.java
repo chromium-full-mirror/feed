@@ -113,8 +113,11 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
     image = frameContext.filterImageSourcesByMediaQueryCondition(image);
 
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
+    // TODO: Remove the fallback for Image.getScaleType()
+    Image.ScaleType scaleType =
+        image.hasScaleType() ? image.getScaleType() : getElementStyle().getScaleType();
     LoadImageCallback loadImageCallback =
-        createLoadImageCallback(toAndroidScaleType(image.getScaleType()), frameContext);
+        createLoadImageCallback(toAndroidScaleType(scaleType), frameContext);
     currentlyLoadingImage = loadImageCallback;
     getParameters()
         .hostProviders
