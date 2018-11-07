@@ -1,3 +1,5 @@
+load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:android_local_test.bzl", "DEFAULT_ANDROID_LOCAL_TEST_MANIFEST")
+
 licenses(["notice"])  # Apache 2
 
 android_local_test(
@@ -5,7 +7,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["InMemoryJournalStorageTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -24,7 +26,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["InMemoryContentStorageTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/common",
@@ -47,7 +49,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentContentStorageTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -69,7 +71,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentJournalStorageTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",

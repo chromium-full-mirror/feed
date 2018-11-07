@@ -1,3 +1,5 @@
+load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:android_local_test.bzl", "DEFAULT_ANDROID_LOCAL_TEST_MANIFEST")
+
 licenses(["notice"])  # Apache 2
 
 android_local_test(
@@ -5,7 +7,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["CardDriverTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/actionmanager",
@@ -36,7 +38,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ClusterDriverTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/actionmanager",
@@ -64,7 +66,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContentDriverTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/actionmanager",
@@ -100,7 +102,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContinuationDriverTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
@@ -124,7 +126,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["HeaderDriverTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
@@ -141,7 +143,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["NoContentDriverTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
@@ -157,7 +159,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamDriverTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/actionmanager",
@@ -194,7 +196,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ZeroStateDriverTest.java"],
-    manifest = "AndroidManifest.xml",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
