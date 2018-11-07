@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.testing.modelprovider;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
@@ -65,12 +66,17 @@ public class FakeModelCursor implements ModelCursor {
     List<ModelChild> cursorChildren = new ArrayList<>();
 
     public Builder addCard() {
+      return addCardWithCursor(new FakeModelCursor.Builder().build());
+    }
+
+    public Builder addCardWithCursor(ModelCursor modelCursor) {
       ModelChild cardChild =
           new FakeModelChild.Builder()
               .setModelFeature(
                   new FakeModelFeature.Builder()
                       .setStreamFeature(
                           StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
+                      .setModelCursor(modelCursor)
                       .build())
               .build();
 
@@ -86,6 +92,10 @@ public class FakeModelCursor implements ModelCursor {
     }
 
     public Builder addCluster() {
+      return addClusterWithCursor(new FakeModelCursor(new ArrayList<>()));
+    }
+
+    public Builder addClusterWithCursor(ModelCursor cursor) {
       ModelChild clusterChild =
           new FakeModelChild.Builder()
               .setModelFeature(
@@ -94,6 +104,7 @@ public class FakeModelCursor implements ModelCursor {
                           StreamFeature.newBuilder()
                               .setCluster(Cluster.getDefaultInstance())
                               .build())
+                      .setModelCursor(cursor)
                       .build())
               .build();
 
@@ -103,18 +114,19 @@ public class FakeModelCursor implements ModelCursor {
     }
 
     public Builder addToken(boolean isSynthetic) {
-      ModelChild tokenChild =
-          new FakeModelChild.Builder()
-              .setModelToken(new FakeModelToken.Builder().setIsSynthetic(isSynthetic).build())
-              .build();
-
-      cursorChildren.add(tokenChild);
-
-      return this;
+      return addToken(new FakeModelToken.Builder().setIsSynthetic(isSynthetic).build());
     }
 
     public Builder addToken() {
       return addToken(/* isSynthetic= */ false);
+    }
+
+    public Builder addToken(ModelToken token) {
+      ModelChild tokenChild = new FakeModelChild.Builder().setModelToken(token).build();
+
+      cursorChildren.add(tokenChild);
+
+      return this;
     }
 
     public Builder addSyntheticToken() {
