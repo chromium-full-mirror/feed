@@ -66,6 +66,10 @@ initial_response {
               color: 587137279
             }
           }
+          styles {
+            style_id: "center-crop"
+            scale_type: CENTER_CROP
+          }
         }
       }
     }
@@ -245,6 +249,7 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "tall-image-with-height"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
@@ -252,7 +257,6 @@ initial_response {
                                 width_px: 544
                                 height_px: 1024
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -267,6 +271,7 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "wide-image-with-height"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
@@ -274,7 +279,6 @@ initial_response {
                                 width_px: 1024
                                 height_px: 213
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -367,6 +371,7 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "tall-image"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
@@ -374,7 +379,6 @@ initial_response {
                                 width_px: 544
                                 height_px: 1024
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -389,6 +393,7 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "wide-image"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
@@ -396,7 +401,6 @@ initial_response {
                                 width_px: 1024
                                 height_px: 213
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -485,12 +489,12 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "tall-image"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/544px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -505,12 +509,12 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "wide-image"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/1024px-Magdeburg_2018.jpeg"
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -615,6 +619,7 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "tall-image-with-height2"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
@@ -622,7 +627,6 @@ initial_response {
                                 width_px: 127
                                 height_px: 240
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -637,6 +641,7 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "wide-image-with-height2"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
@@ -644,7 +649,6 @@ initial_response {
                                 width_px: 320
                                 height_px: 67
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -737,6 +741,7 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "tall-image"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
@@ -744,7 +749,6 @@ initial_response {
                                 width_px: 127
                                 height_px: 240
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -759,6 +763,7 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "wide-image"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
@@ -766,7 +771,6 @@ initial_response {
                                 width_px: 320
                                 height_px: 67
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -855,12 +859,12 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "tall-image"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/127px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }
@@ -875,12 +879,12 @@ initial_response {
                           image_element {
                             style_references {
                               style_ids: "wide-image"
+                              style_ids: "center-crop"
                             }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/320px-Magdeburg_2018.jpeg"
                               }
-                              scale_type: CENTER_CROP
                             }
                           }
                         }

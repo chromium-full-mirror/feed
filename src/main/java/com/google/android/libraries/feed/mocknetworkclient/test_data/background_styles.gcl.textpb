@@ -563,6 +563,7 @@ initial_response {
                     bitmask: 9
                     radius: 40
                   }
+                  scale_type: CENTER_CROP
                 }
               }
               style_references {
@@ -578,7 +579,6 @@ initial_response {
                       sources {
                         url: "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcR7csq_YyHSa2jBWiEkVAbECueSFbVeg8VkVGG9474cQW_L6AT9"
                       }
-                      scale_type: CENTER_CROP
                     }
                   }
                 }

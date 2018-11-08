@@ -46,6 +46,7 @@ initial_response {
               style_id: "image"
               width: 96
               height: 112
+              scale_type: CENTER_CROP
             }
             styles {
               style_id: "cell-style"
@@ -368,7 +369,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRydPYA9MW5_G1lKk6fM8OVNf9z7lF5e7ZI2hAAVIAAb-_b3eyQrCQN6j2AcNAaWu-KO11XpQfC-A"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -599,7 +599,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRh1tEaJT-br6mBxM89U3vgjDldwb9L_baZszhstAGMQh3_fuG13ax3C9ewR2tq45tbZj74CHl3KNU"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -830,7 +829,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTWemQt24vuAlcjON_8NzOA3ZYEG03b-Wklvo2_cpk_eWooNdYAhxXbazZuv9Y7AZws2Xv5n4Xvm0"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -1061,7 +1059,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQz4-TOlUDcX_j89z_LAIKcut0rRUbYmZ1kK89JATXJL8szyOArEt7BGzIhcZRHI5BYREY3meio1tU"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -1292,7 +1289,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTz19uN0l1h021PxH7S4CtDErHhM4B8U1hjo0r7sQRMtCq1vjtBektPUtyTaGGzdnd-wVU1tKpqdA"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -1523,7 +1519,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcSoF-4GkCkOzSmiHp58QoyBERjH3kH5tiaoZeIjEEsLuKdl9EEapB2J1h--POUBiJNG68nRgqHcmA"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -1754,7 +1749,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcR9HdsNXd1Z83y2MQDeE342tOYx0mSrfoZKkKU0403OAJJUrHfHZr1n11o3ARrjsOEVMQIBlZZ5nQ"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -1985,7 +1979,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQawd6lLp2kLa2OTpzk1XY7GW1TP_4rh7WUX96MSbuFXYYvvBeCZeeJMq2-MgPrXS1QTuATr_wxKZM"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -2216,7 +2209,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRydPYA9MW5_G1lKk6fM8OVNf9z7lF5e7ZI2hAAVIAAb-_b3eyQrCQN6j2AcNAaWu-KO11XpQfC-A"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
@@ -2447,7 +2439,6 @@ initial_response {
                         sources {
                           url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRh1tEaJT-br6mBxM89U3vgjDldwb9L_baZszhstAGMQh3_fuG13ax3C9ewR2tq45tbZj74CHl3KNU"
                         }
-                        scale_type: CENTER_CROP
                       }
                     }
                     binding_values {
