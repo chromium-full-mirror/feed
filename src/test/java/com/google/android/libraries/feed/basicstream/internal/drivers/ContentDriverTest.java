@@ -43,7 +43,6 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
-import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -153,7 +152,6 @@ public class ContentDriverTest {
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private ActionParser actionParser;
   @Mock private ContextMenuManager contextMenuManager;
-  @Mock private MenuMeasurer menuMeasurer;
   @Captor private ArgumentCaptor<Consumer<Boolean>> offlineConsumerCaptor;
 
   private ContentDriver contentDriver;
@@ -179,8 +177,7 @@ public class ContentDriverTest {
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager,
-            menuMeasurer) {
+            contextMenuManager) {
           @Override
           StreamActionApi createStreamActionApi(
               ActionApi actionApi,
@@ -189,8 +186,7 @@ public class ContentDriverTest {
               BasicLoggingApi basicLoggingApi,
               ContentLoggingData contentLoggingData,
               String sessionToken,
-              ContextMenuManager contextMenuManager,
-              MenuMeasurer menuMeasurer) {
+              ContextMenuManager contextMenuManager) {
             return streamActionApi;
           }
         };
@@ -303,8 +299,7 @@ public class ContentDriverTest {
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager,
-            menuMeasurer);
+            contextMenuManager);
 
     contentDriver.bind(pietViewHolder);
 
@@ -337,8 +332,7 @@ public class ContentDriverTest {
             payload,
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager,
-            menuMeasurer);
+            contextMenuManager);
 
     contentDriver.bind(pietViewHolder);
 
@@ -369,8 +363,7 @@ public class ContentDriverTest {
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager,
-            menuMeasurer);
+            contextMenuManager);
 
     contentDriver.bind(pietViewHolder);
 
@@ -412,8 +405,7 @@ public class ContentDriverTest {
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager,
-            menuMeasurer);
+            contextMenuManager);
 
     contentDriver.bind(pietViewHolder);
 
@@ -474,8 +466,7 @@ public class ContentDriverTest {
             FeedActionPayload.getDefaultInstance(),
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager,
-            menuMeasurer);
+            contextMenuManager);
 
     ArgumentCaptor<Supplier<ContentMetadata>> contentMetadataSupplierCaptor =
         ArgumentCaptor.forClass((Class<Supplier<ContentMetadata>>) (Class) Supplier.class);

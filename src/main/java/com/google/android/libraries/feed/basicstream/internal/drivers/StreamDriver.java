@@ -40,7 +40,6 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
-import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,7 +67,6 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final BasicLoggingApi basicLoggingApi;
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final ContextMenuManager contextMenuManager;
-  private final MenuMeasurer menuMeasurer;
 
   private boolean restoring;
   private boolean rootFeatureConsumed;
@@ -91,7 +89,6 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       StreamOfflineMonitor streamOfflineMonitor,
       KnownContentApi knownContentApi,
       ContextMenuManager contextMenuManager,
-      MenuMeasurer menuMeasurer,
       boolean restoring) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
@@ -108,7 +105,6 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     this.scrollRestorer = scrollRestorer;
     this.basicLoggingApi = basicLoggingApi;
     this.streamOfflineMonitor = streamOfflineMonitor;
-    this.menuMeasurer = menuMeasurer;
     this.restoring = restoring;
 
     modelProvider.enableRemoveTracking(
@@ -442,8 +438,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         position,
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuManager,
-        menuMeasurer);
+        contextMenuManager);
   }
 
   @VisibleForTesting
@@ -458,8 +453,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         position,
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuManager,
-        menuMeasurer);
+        contextMenuManager);
   }
 
   @VisibleForTesting

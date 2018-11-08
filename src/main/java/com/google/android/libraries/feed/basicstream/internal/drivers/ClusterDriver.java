@@ -28,7 +28,6 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
-import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 
 /** {@link FeatureDriver} for Clusters. */
 public class ClusterDriver implements FeatureDriver {
@@ -44,7 +43,6 @@ public class ClusterDriver implements FeatureDriver {
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final ContentChangedListener contentChangedListener;
   private final ContextMenuManager contextMenuManager;
-  private final MenuMeasurer menuMeasurer;
   /*@Nullable*/ private CardDriver cardDriver;
 
   ClusterDriver(
@@ -57,8 +55,7 @@ public class ClusterDriver implements FeatureDriver {
       int position,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
-      ContextMenuManager contextMenuManager,
-      MenuMeasurer menuMeasurer) {
+      ContextMenuManager contextMenuManager) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -69,7 +66,6 @@ public class ClusterDriver implements FeatureDriver {
     this.streamOfflineMonitor = streamOfflineMonitor;
     this.contentChangedListener = contentChangedListener;
     this.contextMenuManager = contextMenuManager;
-    this.menuMeasurer = menuMeasurer;
   }
 
   @Override
@@ -134,7 +130,6 @@ public class ClusterDriver implements FeatureDriver {
         position,
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuManager,
-        menuMeasurer);
+        contextMenuManager);
   }
 }

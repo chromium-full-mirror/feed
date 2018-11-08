@@ -39,7 +39,6 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
-import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -86,8 +85,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       FeedActionPayload swipeAction,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
-      ContextMenuManager contextMenuManager,
-      MenuMeasurer menuMeasurer) {
+      ContextMenuManager contextMenuManager) {
     Content content = contentFeatureModel.getStreamFeature().getContent();
 
     PietContent pietContent = getPietContent(content);
@@ -111,8 +109,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
             basicLoggingApi,
             contentLoggingData,
             modelProvider.getSessionToken(),
-            contextMenuManager,
-            menuMeasurer);
+            contextMenuManager);
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
     contentUrl = representationData.getUri();
@@ -261,8 +258,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       BasicLoggingApi basicLoggingApi,
       ContentLoggingData contentLoggingData,
       /*@Nullable*/ String sessionToken,
-      ContextMenuManager contextMenuManager,
-      MenuMeasurer menuMeasurer) {
+      ContextMenuManager contextMenuManager) {
     return new StreamActionApiImpl(
         actionApi,
         actionParser,

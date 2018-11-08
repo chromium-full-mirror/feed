@@ -107,7 +107,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final MainThreadRunner mainThreadRunner;
   private final KnownContentApi knownContentApi;
-  private final MenuMeasurer menuMeasurer;
 
   private RecyclerView recyclerView;
   private ContextMenuManagerImpl contextMenuManager;
@@ -170,7 +169,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
             DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
     this.knownContentApi = knownContentApi;
-    menuMeasurer = new MenuMeasurer(context);
 
     this.pietManager =
         createPietManager(
@@ -296,7 +294,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               streamOfflineMonitor,
               knownContentApi,
               contextMenuManager,
-              menuMeasurer,
               isRestoring);
       adapter.setDriver(streamDriver);
       if (!isRestoring) {
@@ -495,7 +492,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     recyclerView = new RecyclerView(context);
     recyclerView.setId(R.id.feed_stream_recycler_view);
     recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
-    contextMenuManager = createContextMenuManager(recyclerView, menuMeasurer);
+    contextMenuManager = createContextMenuManager(recyclerView, new MenuMeasurer(context));
     new ItemTouchHelper(new StreamItemTouchCallbacks()).attachToRecyclerView(recyclerView);
     recyclerView.setAdapter(adapter);
     recyclerView.setClipToPadding(false);
@@ -538,7 +535,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             streamOfflineMonitor,
             knownContentApi,
             contextMenuManager,
-            menuMeasurer,
             isRestoring);
 
     adapter.setDriver(streamDriver);
@@ -630,7 +626,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       StreamOfflineMonitor streamOfflineMonitor,
       KnownContentApi knownContentApi,
       ContextMenuManager contextMenuManager,
-      MenuMeasurer menuMeasurer,
       boolean restoring) {
     return new StreamDriver(
         actionApi,
@@ -647,7 +642,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         streamOfflineMonitor,
         knownContentApi,
         contextMenuManager,
-        menuMeasurer,
         restoring);
   }
 

@@ -967,7 +967,6 @@ public class BasicStreamTest {
         StreamOfflineMonitor streamOfflineMonitor,
         KnownContentApi knownContentApi,
         ContextMenuManager contextMenuManager,
-        MenuMeasurer menuMeasurer,
         boolean restoring) {
       streamDriverScrollRestorer = scrollRestorer;
       streamDriverRestoring = restoring;
