@@ -35,7 +35,6 @@ import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
-import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -299,7 +298,7 @@ public class LoadImageCallbackTest {
   public void testInvalidatesBelowRoundedCornerFrameLayout() {
     FrameLayout frameLayout1 = new FrameLayout(context);
     RoundedCornerWrapperView roundedCornerWrapperView =
-        new RoundedCornerWrapperView(context, RoundedCorners.newBuilder().setRadius(16).build());
+        new RoundedCornerWrapperView(context, 0, 16);
     FrameLayout frameLayout2 = new FrameLayout(context);
 
     ImageView imageView = new ImageView(context);
@@ -333,10 +332,10 @@ public class LoadImageCallbackTest {
   @Test
   public void testInvalidatesBelowRoundedCornerFrameLayout_notAboveFrameView() {
     RoundedCornerWrapperView roundedCornerAboveFrameView =
-        new RoundedCornerWrapperView(context, RoundedCorners.newBuilder().setRadius(34).build());
+        new RoundedCornerWrapperView(context, 0, 34);
     FrameLayout frameView = new FrameLayout(context);
     RoundedCornerWrapperView roundedCornerBelowFrameView =
-        new RoundedCornerWrapperView(context, RoundedCorners.newBuilder().setRadius(32).build());
+        new RoundedCornerWrapperView(context, 0, 32);
     ImageView imageView = new ImageView(context);
 
     roundedCornerAboveFrameView.addView(frameView);

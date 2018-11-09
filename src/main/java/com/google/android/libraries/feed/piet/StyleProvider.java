@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerViewHelper;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
@@ -107,8 +108,8 @@ class StyleProvider {
   }
 
   /** Whether rounded corners are explicitly specified */
-  public boolean hasRoundedCorners() {
-    return style.hasRoundedCorners();
+  public boolean hasRoundedCorners(Context context) {
+    return getRoundedCornerRadius(context) > 0;
   }
 
   /** The font for this style */
@@ -234,7 +235,7 @@ class StyleProvider {
     }
   }
 
-  int getBorderWidth(Borders.Edges edge) {
+  private int getBorderWidth(Borders.Edges edge) {
     if (!hasBorders()) {
       return 0;
     }
@@ -251,7 +252,7 @@ class StyleProvider {
 
     // Set up outline of borders
     float[] outerRadii;
-    if (hasRoundedCorners()) {
+    if (hasRoundedCorners(context)) {
       outerRadii =
           RoundedCornerViewHelper.createRoundedCornerMask(
               getRoundedCornerRadius(context), getRoundedCorners().getBitmask());
@@ -265,7 +266,7 @@ class StyleProvider {
   }
 
   /** Sets appropriate margins on a {@link MarginLayoutParams} instance. */
-  public void applyMargins(Context context, MarginLayoutParams marginLayoutParams) {
+  void applyMargins(Context context, MarginLayoutParams marginLayoutParams) {
     EdgeWidths margins = getMargins();
     int startMargin = (int) LayoutUtils.dpToPx(margins.getStart(), context);
     int endMargin = (int) LayoutUtils.dpToPx(margins.getEnd(), context);
@@ -280,13 +281,26 @@ class StyleProvider {
     }
   }
 
-  public int getRoundedCornerRadius(Context context) {
-    RoundedCorners roundedCorners = getRoundedCorners();
-    if (roundedCorners.hasRadius()) {
-      return (int) LayoutUtils.dpToPx(roundedCorners.getRadius(), context);
-    } else {
-      return assetProvider.getDefaultCornerRadius();
+  int getRoundedCornerRadius(Context context) {
+    if (!style.hasRoundedCorners()) {
+      return 0;
     }
+    RoundedCorners roundedCorners = getRoundedCorners();
+    if (roundedCorners.getUseHostRadiusOverride()) {
+      int radius = assetProvider.getDefaultCornerRadius();
+      if (radius > 0) {
+        return radius;
+      }
+    }
+    return (int) LayoutUtils.dpToPx(roundedCorners.getRadius(), context);
+  }
+
+  FrameLayout createWrapperView(Context context) {
+    if (hasRoundedCorners(context)) {
+      return new RoundedCornerWrapperView(
+          context, getRoundedCorners().getBitmask(), getRoundedCornerRadius(context));
+    }
+    return new FrameLayout(context);
   }
 
   /**

@@ -65,6 +65,10 @@ message RoundedCorners {
   // DP. This value must be non-zero, otherwise it’s a no-op.
   optional int32 radius = 2;
 
+  // Flag to ask the host for a default radius. If the host does not return a
+  // radius, fall back to the "radius" field.
+  optional bool use_host_radius_override = 3;
+
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
 }

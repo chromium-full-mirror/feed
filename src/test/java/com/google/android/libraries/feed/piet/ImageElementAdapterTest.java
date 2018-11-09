@@ -37,6 +37,7 @@ import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -105,10 +106,13 @@ public class ImageElementAdapterTest {
         .thenAnswer(invocation -> invocation.getArguments()[0]);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(PADDING);
-    when(styleProvider.hasRoundedCorners()).thenReturn(true);
+    when(styleProvider.hasRoundedCorners(context)).thenReturn(true);
     when(styleProvider.getRoundedCorners()).thenReturn(CORNERS);
     when(styleProvider.getRoundedCornerRadius(context)).thenReturn(CORNERS.getRadius());
     when(styleProvider.getScaleType()).thenReturn(Image.ScaleType.CENTER_INSIDE);
+    when(styleProvider.createWrapperView(context))
+        .thenReturn(
+            new RoundedCornerWrapperView(context, CORNERS.getBitmask(), CORNERS.getRadius()));
 
     adapter = new ImageElementAdapterForTest(context, parameters);
   }

@@ -6,7 +6,6 @@ android_library(
     name = "ui",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
         "//src/main/java/com/google/android/libraries/feed/common/ui",
         "//src/main/java/com/google/android/libraries/feed/piet/host",

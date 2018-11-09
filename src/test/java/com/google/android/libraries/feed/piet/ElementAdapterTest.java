@@ -93,7 +93,10 @@ public class ElementAdapterTest {
             context, Suppliers.of((ViewGroup) null), hostProviders, new FakeClock());
     when(frameContext.makeStyleFor(any(StyleIdsStack.class))).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
+    when(styleProvider.hasRoundedCorners(context)).thenReturn(false);
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+    when(styleProvider.createWrapperView(context)).thenReturn(new FrameLayout(context));
+
     view = new View(context);
     adapter = new TestElementAdapter(context, parameters, view);
   }
@@ -1064,15 +1067,14 @@ public class ElementAdapterTest {
 
   @Test
   public void testRoundedCorners() {
-    RoundedCorners roundedCorners = RoundedCorners.newBuilder().setRadius(123).build();
-    when(styleProvider.getRoundedCorners()).thenReturn(roundedCorners);
+    RoundedCornerWrapperView roundedCornerWrapperView =
+        new RoundedCornerWrapperView(context, 0, 10);
+    when(styleProvider.hasRoundedCorners(context)).thenReturn(true);
+    when(styleProvider.createWrapperView(context)).thenReturn(roundedCornerWrapperView);
 
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
 
-    assertThat(adapter.getView()).isInstanceOf(RoundedCornerWrapperView.class);
-
-    assertThat(((RoundedCornerWrapperView) adapter.getView()).getRoundedCorners())
-        .isSameAs(roundedCorners);
+    assertThat(adapter.getView()).isSameAs(roundedCornerWrapperView);
   }
 
   // Dummy implementation

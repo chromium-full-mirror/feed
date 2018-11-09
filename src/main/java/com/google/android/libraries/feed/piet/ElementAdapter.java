@@ -24,7 +24,6 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -33,7 +32,6 @@ import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
-import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.HashSet;
 import java.util.Set;
@@ -66,7 +64,7 @@ abstract class ElementAdapter<V extends View, M> {
   private boolean created = false;
   private boolean binding = false;
 
-  /*@Nullable*/ private RoundedCornerWrapperView wrapperView = null;
+  /*@Nullable*/ private FrameLayout wrapperView = null;
   @VisibleForTesting /*@Nullable*/ StackedElementAdapter overlayAdapter = null;
 
   Actions actions = Actions.getDefaultInstance();
@@ -144,8 +142,7 @@ abstract class ElementAdapter<V extends View, M> {
 
     onCreateAdapter(model, baseElement, frameContext);
 
-    initializeWrapperViewDependentFeatures(
-        elementStyle.getRoundedCorners(), baseElement, frameContext);
+    initializeWrapperViewDependentFeatures(baseElement, frameContext);
 
     initializeOverflow(baseElement);
 
@@ -155,14 +152,14 @@ abstract class ElementAdapter<V extends View, M> {
   }
 
   private void initializeWrapperViewDependentFeatures(
-      RoundedCorners roundedCorners, Element baseElement, FrameContext frameContext) {
-    if (roundedCorners.getRadius() <= 0
+      Element baseElement, FrameContext frameContext) {
+    if (!elementStyle.hasRoundedCorners(getContext())
         && baseElement.getOverlaysCount() == 0
         && !elementStyle.hasBorders()) {
       return;
     }
 
-    RoundedCornerWrapperView wrapper = new RoundedCornerWrapperView(context, roundedCorners);
+    FrameLayout wrapper = elementStyle.createWrapperView(context);
     wrapper.addView(getBaseView());
 
     if (baseElement.getOverlaysCount() > 0) {

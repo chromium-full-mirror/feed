@@ -24,14 +24,11 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.drawable.shapes.RoundRectShape;
 import android.os.Build;
-import android.support.annotation.VisibleForTesting;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
-import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 
 /** Wrapper for {@link View} instances in Piet that require rounded corners. */
@@ -41,7 +38,8 @@ public class RoundedCornerWrapperView extends FrameLayout {
   private final Paint maskPaint;
   private final PorterDuffXfermode xfermode;
   private final Paint paint;
-  private final RoundedCorners roundedCorners;
+  private final int roundedCornerRadius;
+  private final int bitmask;
 
   /*@Nullable*/ private RoundRectShape outlineShape = null;
 
@@ -51,21 +49,18 @@ public class RoundedCornerWrapperView extends FrameLayout {
 
   private Bitmap maskBitmap;
 
-  public RoundedCornerWrapperView(Context context) {
-    this(context, RoundedCorners.getDefaultInstance());
-  }
-
-  // Doesn't like the calls to makeRadius() and hasRoundedCorners()
+  // Doesn't like the call to setOutlineProvider
   @SuppressWarnings("initialization")
-  public RoundedCornerWrapperView(Context context, RoundedCorners roundedCorners) {
+  public RoundedCornerWrapperView(Context context, int bitmask, int roundedCornerRadius) {
     super(context);
+    this.roundedCornerRadius = roundedCornerRadius;
 
     maskPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     xfermode = new PorterDuffXfermode(PorterDuff.Mode.CLEAR);
     maskPaint.setXfermode(xfermode);
     paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     maskRect = new RectF();
-    this.roundedCorners = roundedCorners;
+    this.bitmask = bitmask;
 
     if (hasRoundedCorners() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       super.setOutlineProvider(
@@ -76,10 +71,8 @@ public class RoundedCornerWrapperView extends FrameLayout {
               if (localOutlineShape == null
                   || localOutlineShape.getHeight() != view.getHeight()
                   || localOutlineShape.getWidth() != view.getWidth()) {
-                int radius = makeRadius(view.getWidth(), view.getHeight());
-                float[] radii =
-                    RoundedCornerViewHelper.createRoundedCornerMask(
-                        radius, roundedCorners.getBitmask());
+                int radius = makeRadius(view.getWidth(), view.getHeight(), roundedCornerRadius);
+                float[] radii = RoundedCornerViewHelper.createRoundedCornerMask(radius, bitmask);
                 localOutlineShape = new RoundRectShape(radii, null, null);
                 localOutlineShape.resize(view.getWidth(), view.getHeight());
                 outlineShape = localOutlineShape;
@@ -118,13 +111,11 @@ public class RoundedCornerWrapperView extends FrameLayout {
     canvas.drawBitmap(offscreenBitmap, 0f, 0f, paint);
   }
 
-  private int makeRadius(int width, int height) {
-    int radius =
-        (int)
-            TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                roundedCorners.getRadius(),
-                getContext().getResources().getDisplayMetrics());
+  private static int makeRadius(int width, int height, int desiredRadius) {
+    if (desiredRadius == 0) {
+      return 0;
+    }
+    int radius = desiredRadius;
 
     // Radius can't be bigger than half of the width or height of the view.
     // TODO: Allow for radius to be greater than half of the dimensions as long as adjacent
@@ -142,7 +133,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
   }
 
   private Bitmap createMask(int width, int height) {
-    int radius = makeRadius(width, height);
+    int radius = makeRadius(width, height, roundedCornerRadius);
 
     Bitmap mask = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
     Canvas canvas = new Canvas(mask);
@@ -203,17 +194,12 @@ public class RoundedCornerWrapperView extends FrameLayout {
     return maskRect;
   }
 
+  /** This should always be true; we should not be using this view when corners are not round. */
   public boolean hasRoundedCorners() {
-    return roundedCorners.getRadius() > 0;
+    return roundedCornerRadius > 0;
   }
 
   private boolean shouldRoundCorner(Corners corner) {
-    return (roundedCorners.getBitmask() == 0)
-        || (roundedCorners.getBitmask() & corner.getNumber()) != 0;
-  }
-
-  @VisibleForTesting
-  public RoundedCorners getRoundedCorners() {
-    return roundedCorners;
+    return (bitmask == 0) || (bitmask & corner.getNumber()) != 0;
   }
 }

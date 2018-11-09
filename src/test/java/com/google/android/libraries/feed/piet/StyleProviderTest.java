@@ -32,6 +32,7 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.ImagesProto.Image.ScaleType;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
@@ -111,7 +112,7 @@ public class StyleProviderTest {
     assertThat(styleProvider.getFadeInImageOnLoad())
         .isEqualTo(style.getImageLoadingSettings().getFadeInImageOnLoad());
     assertThat(styleProvider.getRoundedCorners()).isEqualTo(style.getRoundedCorners());
-    assertThat(styleProvider.hasRoundedCorners()).isTrue();
+    assertThat(styleProvider.hasRoundedCorners(context)).isTrue();
     assertThat(styleProvider.getFont()).isEqualTo(style.getFont());
     assertThat(styleProvider.getMaxLines()).isEqualTo(style.getMaxLines());
     assertThat(styleProvider.getHeight()).isEqualTo(style.getHeight());
@@ -132,7 +133,7 @@ public class StyleProviderTest {
     assertThat(styleProvider.hasPreLoadFill()).isFalse();
     assertThat(styleProvider.getPreLoadFill()).isEqualTo(Fill.getDefaultInstance());
     assertThat(styleProvider.getFadeInImageOnLoad()).isFalse();
-    assertThat(styleProvider.hasRoundedCorners()).isFalse();
+    assertThat(styleProvider.hasRoundedCorners(context)).isFalse();
     assertThat(styleProvider.getRoundedCorners()).isEqualTo(RoundedCorners.getDefaultInstance());
     assertThat(styleProvider.getFont()).isEqualTo(Font.getDefaultInstance());
     assertThat(styleProvider.getMaxLines()).isEqualTo(style.getMaxLines());
@@ -151,6 +152,88 @@ public class StyleProviderTest {
             mockAssetProvider);
 
     assertThat(styleProvider.hasBorders()).isFalse();
+  }
+
+  @Test
+  public void testHasRoundedCorners_notHostProvidedNonZero() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder()
+                .setRoundedCorners(
+                    RoundedCorners.newBuilder()
+                        .setRadius(123)
+                        .setBitmask(4)
+                        .setUseHostRadiusOverride(false))
+                .build(),
+            mockAssetProvider);
+    when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(321);
+
+    assertThat(styleProvider.hasRoundedCorners(context)).isTrue();
+    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(123);
+  }
+
+  @Test
+  public void testHasRoundedCorners_hostProvidedNonZero() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder()
+                .setRoundedCorners(
+                    RoundedCorners.newBuilder()
+                        .setRadius(123)
+                        .setBitmask(4)
+                        .setUseHostRadiusOverride(true))
+                .build(),
+            mockAssetProvider);
+    when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(321);
+
+    assertThat(styleProvider.hasRoundedCorners(context)).isTrue();
+    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(321);
+  }
+
+  @Test
+  public void testHasRoundedCorners_notHostProvidedZero() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder()
+                .setRoundedCorners(
+                    RoundedCorners.newBuilder()
+                        .setRadius(0)
+                        .setBitmask(4)
+                        .setUseHostRadiusOverride(false))
+                .build(),
+            mockAssetProvider);
+    when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(321);
+
+    assertThat(styleProvider.hasRoundedCorners(context)).isFalse();
+    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(0);
+  }
+
+  @Test
+  public void testHasRoundedCorners_hostProvidedZero() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder()
+                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(123).setBitmask(4))
+                .build(),
+            mockAssetProvider);
+    when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(0);
+
+    assertThat(styleProvider.hasRoundedCorners(context)).isTrue();
+    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(123);
+  }
+
+  @Test
+  public void testHasRoundedCorners_radiusAndHostSayZero() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder()
+                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(0).setBitmask(4))
+                .build(),
+            mockAssetProvider);
+    when(mockAssetProvider.getDefaultCornerRadius()).thenReturn(0);
+
+    assertThat(styleProvider.hasRoundedCorners(context)).isFalse();
+    assertThat(styleProvider.getRoundedCornerRadius(context)).isEqualTo(0);
   }
 
   @Test
@@ -376,6 +459,32 @@ public class StyleProviderTest {
         .addBorders(view, context);
 
     assertThat(view.getForeground()).isNull();
+  }
+
+  @Test
+  public void testCreateWrapperView_noRoundedCorners() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder()
+                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(0).setBitmask(4))
+                .build(),
+            mockAssetProvider);
+
+    assertThat(styleProvider.createWrapperView(context))
+        .isNotInstanceOf(RoundedCornerWrapperView.class);
+  }
+
+  @Test
+  public void testCreateWrapperView_roundedCorners() {
+    StyleProvider styleProvider =
+        new StyleProvider(
+            Style.newBuilder()
+                .setRoundedCorners(RoundedCorners.newBuilder().setRadius(9).setBitmask(4))
+                .build(),
+            mockAssetProvider);
+
+    assertThat(styleProvider.createWrapperView(context))
+        .isInstanceOf(RoundedCornerWrapperView.class);
   }
 
   @Test
