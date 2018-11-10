@@ -66,23 +66,8 @@ public class FakeModelCursor implements ModelCursor {
     List<ModelChild> cursorChildren = new ArrayList<>();
 
     public Builder addCard() {
-      return addCardWithCursor(new FakeModelCursor.Builder().build());
-    }
-
-    public Builder addCardWithCursor(ModelCursor modelCursor) {
-      ModelChild cardChild =
-          new FakeModelChild.Builder()
-              .setModelFeature(
-                  new FakeModelFeature.Builder()
-                      .setStreamFeature(
-                          StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
-                      .setModelCursor(modelCursor)
-                      .build())
-              .build();
-
-      cursorChildren.add(cardChild);
-
-      return this;
+      final FakeModelCursor build = new Builder().build();
+      return addChildWithModelFeature(getCardModelFeatureWithCursor(build));
     }
 
     public Builder addChild(ModelFeature feature) {
@@ -92,24 +77,13 @@ public class FakeModelCursor implements ModelCursor {
     }
 
     public Builder addCluster() {
-      return addClusterWithCursor(new FakeModelCursor(new ArrayList<>()));
+      final FakeModelCursor cursor = new FakeModelCursor(new ArrayList<>());
+      return addChildWithModelFeature(getClusterModelFeatureWithCursor(cursor));
     }
 
-    public Builder addClusterWithCursor(ModelCursor cursor) {
-      ModelChild clusterChild =
-          new FakeModelChild.Builder()
-              .setModelFeature(
-                  new FakeModelFeature.Builder()
-                      .setStreamFeature(
-                          StreamFeature.newBuilder()
-                              .setCluster(Cluster.getDefaultInstance())
-                              .build())
-                      .setModelCursor(cursor)
-                      .build())
-              .build();
-
-      cursorChildren.add(clusterChild);
-
+    public Builder addChildWithModelFeature(FakeModelFeature modelFeature) {
+      ModelChild cardChild = new FakeModelChild.Builder().setModelFeature(modelFeature).build();
+      cursorChildren.add(cardChild);
       return this;
     }
 
@@ -136,5 +110,20 @@ public class FakeModelCursor implements ModelCursor {
     public FakeModelCursor build() {
       return new FakeModelCursor(cursorChildren);
     }
+  }
+
+  public static FakeModelFeature getCardModelFeatureWithCursor(ModelCursor modelCursor) {
+    return new FakeModelFeature.Builder()
+        .setStreamFeature(StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
+        .setModelCursor(modelCursor)
+        .build();
+  }
+
+  public static FakeModelFeature getClusterModelFeatureWithCursor(ModelCursor cursor) {
+    return new FakeModelFeature.Builder()
+        .setStreamFeature(
+            StreamFeature.newBuilder().setCluster(Cluster.getDefaultInstance()).build())
+        .setModelCursor(cursor)
+        .build();
   }
 }
