@@ -214,12 +214,16 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
                 chunk.getTextChunk().getContentCase()));
         parameterizedText = ParameterizedText.getDefaultInstance();
     }
+    StyleProvider chunkStyle = frameContext.makeStyleFor(chunk.getTextChunk().getStyleReferences());
+    if (chunkStyle.getMargins().hasStart()) {
+      addMargin(spannable, chunkStyle.getMargins().getStart());
+    }
+
     CharSequence evaluatedText =
         getParameters()
             .templatedStringEvaluator
             .evaluate(getParameters().hostProviders.getAssetProvider(), parameterizedText);
     spannable.append(evaluatedText);
-    StyleProvider chunkStyle = frameContext.makeStyleFor(chunk.getTextChunk().getStyleReferences());
     if (chunkStyle.hasColor()) {
       spannable.setSpan(
           new ForegroundColorSpan(chunkStyle.getColor()),
@@ -258,6 +262,10 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
               String.format(
                   "Ignoring max lines parameter set to '%s'; not supported on chunks.",
                   chunkStyle.getMaxLines())));
+    }
+
+    if (chunkStyle.getMargins().hasEnd()) {
+      addMargin(spannable, chunkStyle.getMargins().getEnd());
     }
   }
 
@@ -310,9 +318,17 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     setBounds(wrapper, chunkStyle, textView);
     ImageSpan imageSpan = new ImageSpan(wrapper);
 
+    if (chunkStyle.getMargins().hasStart()) {
+      addMargin(spannable, chunkStyle.getMargins().getStart());
+    }
+
     spannable.append(" "); // dummy space to overwrite
     spannable.setSpan(
         imageSpan, spannable.length() - 1, spannable.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+
+    if (chunkStyle.getMargins().hasEnd()) {
+      addMargin(spannable, chunkStyle.getMargins().getEnd());
+    }
 
     // Start asynchronously loading the real image.
     ImageSpanDrawableCallback imageSpanLoader =
@@ -339,6 +355,16 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     }
     loadingImages.clear();
     super.onUnbindModel();
+  }
+
+  private void addMargin(SpannableStringBuilder spannable, int marginDp) {
+    ColorDrawable spacer = new ColorDrawable(Color.TRANSPARENT);
+    int width = (int) LayoutUtils.dpToPx(marginDp, getContext());
+    spacer.setBounds(0, 0, width, 1);
+    ImageSpan margin = new ImageSpan(spacer);
+    spannable.append(" ");
+    spannable.setSpan(
+        margin, spannable.length() - 1, spannable.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
   }
 
   private Drawable maybeResizeDrawable(Drawable imageDrawable, StyleProvider imageStyle) {

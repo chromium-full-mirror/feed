@@ -72,6 +72,7 @@ import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.ImagesProto.ImageSource;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
@@ -182,6 +183,7 @@ public class ChunkedTextElementAdapterTest {
     when(hostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
     when(frameContext.getActionHandler()).thenReturn(mockActionHandler);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
+    when(mockStyleProvider.getMargins()).thenReturn(EdgeWidths.getDefaultInstance());
 
     adapter = new ChunkedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);
   }
@@ -537,6 +539,34 @@ public class ChunkedTextElementAdapterTest {
   }
 
   @Test
+  public void testAddTextChunk_addsMargins() {
+    when(mockStyleProvider.hasWidth()).thenReturn(true);
+    when(mockStyleProvider.getWidth()).thenReturn(STYLE_WIDTH_DP);
+    when(mockStyleProvider.hasHeight()).thenReturn(true);
+    when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
+
+    when(mockStyleProvider.getMargins())
+        .thenReturn(EdgeWidths.newBuilder().setStart(11).setEnd(22).build());
+
+    // Required to set up the local frameContext member var.
+    adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
+
+    adapter.addTextChunk(frameContext, spannable, TEXT_CHUNK);
+
+    assertThat(spannable.toString()).isEqualTo(" smooth ");
+
+    ImageSpan[] imageSpans = spannable.getSpans(0, 8, ImageSpan.class);
+
+    Drawable leftMarginDrawable = imageSpans[0].getDrawable();
+    assertThat(leftMarginDrawable.getBounds().left).isEqualTo(0);
+    assertThat(leftMarginDrawable.getBounds().right).isEqualTo(11);
+
+    Drawable rightMarginDrawable = imageSpans[1].getDrawable();
+    assertThat(leftMarginDrawable.getBounds().left).isEqualTo(0);
+    assertThat(rightMarginDrawable.getBounds().right).isEqualTo(22);
+  }
+
+  @Test
   public void testAddImageChunk_setsImageAndDims() {
     when(mockStyleProvider.hasWidth()).thenReturn(true);
     when(mockStyleProvider.getWidth()).thenReturn(STYLE_WIDTH_DP);
@@ -666,6 +696,34 @@ public class ChunkedTextElementAdapterTest {
 
     assertThat(imageDrawable).isEqualTo(specifiedBitmapDrawable);
     assertThat(imageDrawable.getBounds()).isEqualTo(new Rect(0, 0, widthPx, heightPx));
+  }
+
+  @Test
+  public void testAddImageChunk_addsMargins() {
+    when(mockStyleProvider.hasWidth()).thenReturn(true);
+    when(mockStyleProvider.getWidth()).thenReturn(STYLE_WIDTH_DP);
+    when(mockStyleProvider.hasHeight()).thenReturn(true);
+    when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
+
+    when(mockStyleProvider.getMargins())
+        .thenReturn(EdgeWidths.newBuilder().setStart(11).setEnd(22).build());
+
+    // Required to set up the local frameContext member var.
+    adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
+
+    adapter.addImageChunk(frameContext, textView, spannable, IMAGE_CHUNK);
+
+    assertThat(spannable.toString()).isEqualTo("   ");
+
+    ImageSpan[] imageSpans = spannable.getSpans(0, 3, ImageSpan.class);
+
+    Drawable leftMarginDrawable = imageSpans[0].getDrawable();
+    assertThat(leftMarginDrawable.getBounds().left).isEqualTo(0);
+    assertThat(leftMarginDrawable.getBounds().right).isEqualTo(11);
+
+    Drawable rightMarginDrawable = imageSpans[2].getDrawable();
+    assertThat(leftMarginDrawable.getBounds().left).isEqualTo(0);
+    assertThat(rightMarginDrawable.getBounds().right).isEqualTo(22);
   }
 
   @Test
