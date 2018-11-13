@@ -324,7 +324,8 @@ public class FeedProcessScope implements Dumpable {
           debugBehavior,
           actionManager,
           configuration,
-          knownContentApi);
+          knownContentApi,
+          extensionRegistry);
     }
 
     // Required fields.
@@ -369,7 +370,8 @@ public class FeedProcessScope implements Dumpable {
       DebugBehavior debugBehavior,
       ActionManager actionManager,
       Configuration configuration,
-      KnownContentApi knownContentApi) {
+      KnownContentApi knownContentApi,
+      FeedExtensionRegistry feedExtensionRegistry) {
     this.loggingApi = loggingApi;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -386,6 +388,7 @@ public class FeedProcessScope implements Dumpable {
     this.actionManager = actionManager;
     this.configuration = configuration;
     this.knownContentApi = knownContentApi;
+    this.feedExtensionRegistry = feedExtensionRegistry;
   }
 
   private final LoggingApi loggingApi;
@@ -404,6 +407,7 @@ public class FeedProcessScope implements Dumpable {
   private final ActionManager actionManager;
   private final Configuration configuration;
   private final KnownContentApi knownContentApi;
+  private final FeedExtensionRegistry feedExtensionRegistry;
 
   public Clock getClock() {
     return clock;
@@ -447,5 +451,9 @@ public class FeedProcessScope implements Dumpable {
 
   public KnownContentApi getKnownContentApi() {
     return knownContentApi;
+  }
+
+  public FeedExtensionRegistry getFeedExtensionRegistry() {
+    return feedExtensionRegistry;
   }
 }
