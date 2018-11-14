@@ -41,7 +41,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 /** Implementation of {@link ContentStorage} that persists data to disk. */
 public class PersistentContentStorage implements ContentStorage, ContentStorageDirect {
@@ -51,12 +51,11 @@ public class PersistentContentStorage implements ContentStorage, ContentStorageD
 
   private final Context context;
   private final ThreadUtils threadUtils;
-  private final ExecutorService executor;
+  private final Executor executor;
 
   private File contentDir;
 
-  public PersistentContentStorage(
-      Context context, ExecutorService executor, ThreadUtils threadUtils) {
+  public PersistentContentStorage(Context context, Executor executor, ThreadUtils threadUtils) {
     this.context = context;
     this.executor = executor;
     this.threadUtils = threadUtils;

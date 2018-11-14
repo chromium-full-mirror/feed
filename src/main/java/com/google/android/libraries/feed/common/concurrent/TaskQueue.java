@@ -25,7 +25,7 @@ import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -112,7 +112,7 @@ public class TaskQueue implements Dumpable {
   /** Track the time the last task finished. Used for Starvation checks. */
   private final AtomicLong lastTaskFinished = new AtomicLong();
 
-  private final ExecutorService executor;
+  private final Executor executor;
   private final Clock clock;
   private final boolean checkStarvation;
   private final Handler mainThreadHandler;
@@ -135,7 +135,7 @@ public class TaskQueue implements Dumpable {
    *     checks during tests. Starvation checks on the Main Thread Executor (used by tests) will
    *     result in an infinite loop if the queue is ever delayed.
    */
-  public TaskQueue(ExecutorService executor, Clock clock, boolean checkStarvation) {
+  public TaskQueue(Executor executor, Clock clock, boolean checkStarvation) {
     this.executor = executor;
     this.clock = clock;
     this.checkStarvation = checkStarvation;
@@ -354,7 +354,7 @@ public class TaskQueue implements Dumpable {
       this.runnable = runnable;
     }
 
-    /** This will run the task on the {@link ExecutorService}. */
+    /** This will run the task on the {@link Executor}. */
     void runTask() {
       Logger.i(TAG, "Execute task [%s - d: %s]: %s", taskType, isDelayed(), task);
       executor.execute(this);

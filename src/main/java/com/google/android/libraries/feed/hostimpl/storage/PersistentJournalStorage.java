@@ -44,7 +44,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 /**
  * Implementation of {@link JournalStorage} that persists data to disk.
@@ -71,7 +71,7 @@ public class PersistentJournalStorage implements JournalStorage, JournalStorageD
 
   private final Context context;
   private final ThreadUtils threadUtils;
-  private final ExecutorService executor;
+  private final Executor executor;
   private File journalDir;
 
   /**
@@ -82,7 +82,7 @@ public class PersistentJournalStorage implements JournalStorage, JournalStorageD
   private int existingSchema;
 
   public PersistentJournalStorage(
-      Context context, ExecutorService executorService, ThreadUtils threadUtils) {
+      Context context, Executor executorService, ThreadUtils threadUtils) {
     this.context = context;
     this.executor = executorService;
     this.threadUtils = threadUtils;
