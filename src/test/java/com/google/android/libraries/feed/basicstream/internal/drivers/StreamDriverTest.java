@@ -31,7 +31,6 @@ import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
-import com.google.android.libraries.feed.api.modelprovider.FeatureChange;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
@@ -52,6 +51,7 @@ import com.google.android.libraries.feed.sharedstream.removetrackingfactory.Stre
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
+import com.google.android.libraries.feed.testing.modelprovider.FeatureChangeBuilder;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
@@ -341,7 +341,7 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers).hasSize(4);
 
     streamDriver.onChange(
-        new ChildChangeBuilder()
+        new FeatureChangeBuilder()
             .addChildForRemoval(fakeModelCursor.getChildAt(1))
             .addChildForRemoval(fakeModelCursor.getChildAt(2))
             .build());
@@ -361,7 +361,7 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers).hasSize(1);
 
     streamDriver.onChange(
-        new ChildChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+        new FeatureChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(ZeroStateDriver.class);
@@ -440,7 +440,7 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers).hasSize(2);
 
     streamDriver.onChange(
-        new ChildChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+        new FeatureChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
@@ -455,7 +455,7 @@ public class StreamDriverTest {
     streamDriver.getLeafFeatureDrivers();
 
     streamDriver.onChange(
-        new ChildChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+        new FeatureChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
@@ -475,7 +475,7 @@ public class StreamDriverTest {
     streamDriver.getLeafFeatureDrivers();
 
     streamDriver.onChange(
-        new ChildChangeBuilder().addChildForRemoval(initialCursor.getChildAt(0)).build());
+        new FeatureChangeBuilder().addChildForRemoval(initialCursor.getChildAt(0)).build());
     streamDriver.onNewChildren(initialCursor.getChildAt(1), Collections.emptyList());
 
     verify(noContentDriver).onDestroy();
@@ -493,7 +493,7 @@ public class StreamDriverTest {
     streamDriver.getLeafFeatureDrivers();
 
     streamDriver.onChange(
-        new ChildChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
+        new FeatureChangeBuilder().addChildForRemoval(fakeModelCursor.getChildAt(0)).build());
 
     verify(contentListener).notifyContentRemoved(0);
     verifyNoMoreInteractions(contentListener);
@@ -509,7 +509,7 @@ public class StreamDriverTest {
     streamDriver.getLeafFeatureDrivers();
 
     streamDriver.onChange(
-        new ChildChangeBuilder()
+        new FeatureChangeBuilder()
             .addChildForRemoval(fakeModelCursor.getChildAt(0))
             .addChildForAppending(createFakeClusterModelChild())
             .build());
@@ -537,7 +537,7 @@ public class StreamDriverTest {
     reset(contentListener);
 
     streamDriver.onChange(
-        new ChildChangeBuilder().addChildForAppending(createFakeClusterModelChild()).build());
+        new FeatureChangeBuilder().addChildForAppending(createFakeClusterModelChild()).build());
 
     InOrder inOrder = Mockito.inOrder(contentListener);
 
@@ -558,7 +558,7 @@ public class StreamDriverTest {
     // Causes StreamDriver to build a list of children based on the children from the cursor.
     streamDriver.getLeafFeatureDrivers();
     streamDriver.onChange(
-        new ChildChangeBuilder().addChildForRemoval(cursor.getChildAt(0)).build());
+        new FeatureChangeBuilder().addChildForRemoval(cursor.getChildAt(0)).build());
 
     assertThat(streamDriver.getLeafFeatureDrivers())
         .containsExactly(noContentDriver, continuationDriver);
@@ -585,7 +585,7 @@ public class StreamDriverTest {
     streamDriver.getLeafFeatureDrivers();
     // Remove card to trigger no content card.
     streamDriver.onChange(
-        new ChildChangeBuilder().addChildForRemoval(cursor.getChildAt(0)).build());
+        new FeatureChangeBuilder().addChildForRemoval(cursor.getChildAt(0)).build());
 
     assertThat(streamDriver.hasContent()).isFalse();
   }
@@ -710,57 +710,4 @@ public class StreamDriverTest {
     }
   }
 
-  /**
-   * Builds a {@link FeatureChange} representing the removal of given {@link FakeFeatureDriver}
-   * instances.
-   */
-  private static class ChildChangeBuilder {
-
-    private List<ModelChild> removedChildren = new ArrayList<>();
-    private List<ModelChild> appendedChildren = new ArrayList<>();
-
-    ChildChangeBuilder addChildForRemoval(ModelChild modelChild) {
-      removedChildren.add(modelChild);
-      return this;
-    }
-
-    ChildChangeBuilder addChildForAppending(ModelChild modelChild) {
-      appendedChildren.add(modelChild);
-      return this;
-    }
-
-    FeatureChange build() {
-      return new FeatureChange() {
-        @Override
-        public String getContentId() {
-          return null;
-        }
-
-        @Override
-        public boolean isFeatureChanged() {
-          return false;
-        }
-
-        @Override
-        public ModelFeature getModelFeature() {
-          return null;
-        }
-
-        @Override
-        public ChildChanges getChildChanges() {
-          return new ChildChanges() {
-            @Override
-            public List<ModelChild> getAppendedChildren() {
-              return appendedChildren;
-            }
-
-            @Override
-            public List<ModelChild> getRemovedChildren() {
-              return removedChildren;
-            }
-          };
-        }
-      };
-    }
-  }
 }

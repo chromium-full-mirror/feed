@@ -71,7 +71,10 @@ public class FakeModelCursor implements ModelCursor {
     }
 
     public Builder addChild(ModelFeature feature) {
-      ModelChild child = new FakeModelChild.Builder().setModelFeature(feature).build();
+      return addChild(new FakeModelChild.Builder().setModelFeature(feature).build());
+    }
+
+    public Builder addChild(ModelChild child) {
       cursorChildren.add(child);
       return this;
     }
