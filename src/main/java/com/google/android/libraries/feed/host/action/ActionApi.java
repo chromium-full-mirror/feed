@@ -14,59 +14,9 @@
 
 package com.google.android.libraries.feed.host.action;
 
-import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
-
 /**
- * The actions API allows the Feed to query the host as to what actions can be performed and
- * instruct the host to perform such actions. In the case that an action is triggered that is not
- * enabled the host has one of two options:
- *
- * <ol>
- *   <li>The host can ignore the action.
- *   <li>The host can throw an exception which the Stream will not catch, crashing the app.
- * </ol>
- *
- * <p>The host is free to log any incorrectly triggered actions.
+ * The ActionApi combines the {@link ActionPeformerApi} and the {@link ActionEnabledApi} to allow
+ * the Feed to query the host as to what actions can be performed and instruct the host to perform
+ * such actions.
  */
-public interface ActionApi {
-
-  /** Opens the given URL. */
-  void openUrl(String url);
-
-  /** Whether the host can open a URL. */
-  boolean canOpenUrl();
-
-  /** Opens the given URL in incognito mode. */
-  void openUrlInIncognitoMode(String url);
-
-  /** Whether the host can open a URL in incognito mode. */
-  boolean canOpenUrlInIncognitoMode();
-
-  /** Opens the given URL in a new tab. */
-  void openUrlInNewTab(String url);
-
-  /** Whether the host can open a URL in a new tab. */
-  boolean canOpenUrlInNewTab();
-
-  /** Opens the given URL in a new window. */
-  void openUrlInNewWindow(String url);
-
-  /** Whether the host can open a URL in a new window. */
-  boolean canOpenUrlInNewWindow();
-
-  /**
-   * Downloads the given url.
-   *
-   * @param contentMetadata The {@link ContentMetadata} defining the content to be downloaded.
-   */
-  void downloadUrl(ContentMetadata contentMetadata);
-
-  /** Whether the host can download a URL. */
-  boolean canDownloadUrl();
-
-  /** Opens the Google Product Help page for the Feed. */
-  void learnMore();
-
-  /** Whether the host can open the Google Product Help page. */
-  boolean canLearnMore();
-}
+public interface ActionApi extends ActionEnabledApi, ActionPeformerApi {}
