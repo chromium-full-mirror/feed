@@ -208,7 +208,7 @@ public class FeedStore extends Observable<StoreListener> implements Store, FeedL
             if (!clearSuccess) {
               persistentStore.clearAll();
             }
-            tracker.stop("clearPersistentStore completed");
+            tracker.stop("clearPersistentStore", "completed");
           });
 
       isEphemeralMode = true;
