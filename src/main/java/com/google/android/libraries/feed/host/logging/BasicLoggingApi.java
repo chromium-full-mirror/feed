@@ -34,6 +34,13 @@ public interface BasicLoggingApi {
    */
   void onContentDismissed(ContentLoggingData data);
 
+  /**
+   * Called when content has been swiped by a user.
+   *
+   * @param data data for content on which swipe was performed.
+   */
+  void onContentSwiped(ContentLoggingData data);
+
   /** Called when content is clicked/tapped. */
   void onContentClicked(ContentLoggingData data);
 
