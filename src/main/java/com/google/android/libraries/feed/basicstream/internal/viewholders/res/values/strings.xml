@@ -15,34 +15,10 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="no_suggestions"
-          description="Title text explaining there is no content.">
-    That’s all for now
-  </string>
-
   <string name="suggestions_section_empty"
           description="Text of a card explaining to the user that they can expect to see suggested
                        articles in this area in the future.">
     Your suggested articles appear here
-  </string>
-
-  <!-- String resources for zero state -->
-  <string name="zero_state_text_morning"
-          description="Body text shown in the morning on the New Tab Page when all suggested content
-                       has been dismissed.">
-    More articles will appear soon. Enjoy your morning!
-  </string>
-
-  <string name="zero_state_text_afternoon"
-          description="Body text shown in the afternoon on the New Tab Page when all suggested
-          content has been dismissed.">
-    More articles will appear soon. Enjoy your afternoon!
-  </string>
-
-  <string name="zero_state_text_evening"
-          description="Body text shown in the evening on the New Tab Page when all suggested content
-                       has been dismissed.">
-    More articles will appear soon. Enjoy your evening!
   </string>
 
   <!-- String resources for snackbar pagination errors -->
