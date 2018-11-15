@@ -958,6 +958,7 @@ public class BasicStreamTest {
         ActionParserFactory actionParserFactory,
         ModelProvider modelProvider,
         ThreadUtils threadUtils,
+        Clock clock,
         Configuration configuration,
         Context context,
         SnackbarApi snackbarApi,

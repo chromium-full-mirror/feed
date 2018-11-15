@@ -41,6 +41,8 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.common.testing.FakeClock;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -100,6 +102,7 @@ public class StreamDriverTest {
 
   private Configuration configuration = new Configuration.Builder().build();
   private Context context;
+  private Clock clock;
 
   private static FakeModelChild createFakeClusterModelChild() {
     return new FakeModelChild.Builder()
@@ -115,6 +118,7 @@ public class StreamDriverTest {
   public void setup() {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
+    clock = new FakeClock();
     ThreadUtils threadUtils = new ThreadUtils();
 
     when(continuationDriver.getLeafFeatureDriver()).thenReturn(continuationDriver);
@@ -650,6 +654,7 @@ public class StreamDriverTest {
           actionParserFactory,
           modelProvider,
           threadUtils,
+          clock,
           configuration,
           context,
           snackbarApi,

@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -59,6 +60,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final ModelProvider modelProvider;
   private final Map<ModelChild, FeatureDriver> modelChildFeatureDriverMap;
   private final List<FeatureDriver> featureDrivers;
+  private final Clock clock;
   private final Configuration configuration;
   private final Context context;
   private final SnackbarApi snackbarApi;
@@ -80,6 +82,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       ActionParserFactory actionParserFactory,
       ModelProvider modelProvider,
       ThreadUtils threadUtils,
+      Clock clock,
       Configuration configuration,
       Context context,
       SnackbarApi snackbarApi,
@@ -95,6 +98,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     this.actionParserFactory = actionParserFactory;
     this.threadUtils = threadUtils;
     this.modelProvider = modelProvider;
+    this.clock = clock;
     this.context = context;
     this.snackbarApi = snackbarApi;
     this.contextMenuManager = contextMenuManager;
