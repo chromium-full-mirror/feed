@@ -294,6 +294,7 @@ public class PietViewHolderTest {
 
     pietViewHolder.onSwiped();
 
+    verify(loggingListener).onContentSwiped();
     verify(actionParser)
         .parseFeedActionPayload(SWIPE_ACTION, streamActionApi, pietViewHolder.itemView);
   }

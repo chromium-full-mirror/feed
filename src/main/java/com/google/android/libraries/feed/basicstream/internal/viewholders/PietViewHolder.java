@@ -158,6 +158,12 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
       return;
     }
     actionParser.parseFeedActionPayload(swipeAction, getStreamActionApi(), itemView);
+
+    if (loggingListener == null) {
+      Logger.wtf(TAG, "Logging listener is null. Swipe perfomred on unbound ViewHolder.");
+      return;
+    }
+    loggingListener.onContentSwiped();
   }
 
   @VisibleForTesting

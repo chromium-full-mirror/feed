@@ -38,4 +38,9 @@ public class OneShotVisibilityLoggingListener implements LoggingListener {
   public void onContentClicked() {
     loggingListener.onContentClicked();
   }
+
+  @Override
+  public void onContentSwiped() {
+    loggingListener.onContentSwiped();
+  }
 }

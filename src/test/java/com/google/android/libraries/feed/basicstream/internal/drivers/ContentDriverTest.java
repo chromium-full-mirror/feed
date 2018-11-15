@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -249,16 +250,16 @@ public class ContentDriverTest {
 
     verify(pietViewHolder)
         .bind(
-            any(),
-            any(),
-            any(),
-            any(),
+            any(Frame.class),
+            anyListOf(PietSharedState.class),
+            any(StreamActionApi.class),
+            any(FeedActionPayload.class),
             visibilityListenerCaptor.capture(),
             any(ActionParser.class));
     LoggingListener listener = visibilityListenerCaptor.getValue();
     listener.onViewVisible();
 
-    verify(basicLoggingApi).onContentViewed(eq(CONTENT_LOGGING_DATA));
+    verify(basicLoggingApi).onContentViewed(CONTENT_LOGGING_DATA);
   }
 
   @Test
@@ -270,16 +271,37 @@ public class ContentDriverTest {
 
     verify(pietViewHolder)
         .bind(
-            any(),
-            any(),
-            any(),
-            any(),
+            any(Frame.class),
+            anyListOf(PietSharedState.class),
+            any(StreamActionApi.class),
+            any(FeedActionPayload.class),
             visibilityListenerCaptor.capture(),
             any(ActionParser.class));
     LoggingListener listener = visibilityListenerCaptor.getValue();
     listener.onContentClicked();
 
-    verify(basicLoggingApi).onContentClicked(eq(CONTENT_LOGGING_DATA));
+    verify(basicLoggingApi).onContentClicked(CONTENT_LOGGING_DATA);
+  }
+
+  @Test
+  public void testBind_visibilityListenerLogsContentSwiped() {
+    contentDriver.bind(pietViewHolder);
+
+    ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
+        ArgumentCaptor.forClass(LoggingListener.class);
+
+    verify(pietViewHolder)
+        .bind(
+            any(Frame.class),
+            anyListOf(PietSharedState.class),
+            any(StreamActionApi.class),
+            any(FeedActionPayload.class),
+            visibilityListenerCaptor.capture(),
+            any(ActionParser.class));
+    LoggingListener listener = visibilityListenerCaptor.getValue();
+    listener.onContentSwiped();
+
+    verify(basicLoggingApi).onContentSwiped(CONTENT_LOGGING_DATA);
   }
 
   @Test

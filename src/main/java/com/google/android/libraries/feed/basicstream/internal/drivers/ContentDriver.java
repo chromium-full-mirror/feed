@@ -241,6 +241,11 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
     basicLoggingApi.onContentClicked(contentLoggingData);
   }
 
+  @Override
+  public void onContentSwiped() {
+    basicLoggingApi.onContentSwiped(contentLoggingData);
+  }
+
   private ContentLoggingData createContentLoggingData(
       /*@UnderInitialization*/ ContentDriver this,
       BasicLoggingMetadata basicLoggingMetadata,

@@ -21,4 +21,6 @@ package com.google.android.libraries.feed.basicstream.internal.logging;
 public interface LoggingListener extends VisibilityListener {
 
   void onContentClicked();
+
+  void onContentSwiped();
 }

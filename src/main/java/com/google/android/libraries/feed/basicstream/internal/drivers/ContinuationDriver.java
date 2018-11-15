@@ -213,6 +213,9 @@ public class ContinuationDriver extends LeafFeatureDriver
     basicLoggingApi.onMoreButtonClicked(position);
   }
 
+  @Override
+  public void onContentSwiped() {}
+
   private List<ModelChild> extractModelChildrenFromCursor(ModelCursor cursor) {
     List<ModelChild> modelChildren = new ArrayList<>();
     ModelChild child;
