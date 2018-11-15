@@ -46,7 +46,8 @@ public class ContinuationViewHolder extends FeedViewHolder {
       FrameLayout frameLayout,
       CardConfiguration cardConfiguration) {
     super(frameLayout);
-    View containerView = LayoutInflater.from(context).inflate(R.layout.more_button, frameLayout);
+    View containerView =
+        LayoutInflater.from(context).inflate(R.layout.feed_more_button, frameLayout);
     actionButton = checkNotNull(frameLayout.findViewById(R.id.action_button));
     spinner = checkNotNull(frameLayout.findViewById(R.id.loading_spinner));
     visibilityMonitor = createVisibilityMonitor(containerView, configuration);

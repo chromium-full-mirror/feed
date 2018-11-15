@@ -15,11 +15,6 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label"
-          description="Generic label for a button to show more items or options. [CHAR LIMIT=20]">
-    More
-  </string>
-
   <string name="no_suggestions"
           description="Title text explaining there is no content.">
     That’s all for now

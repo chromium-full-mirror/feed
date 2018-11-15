@@ -20,8 +20,8 @@
     <item name="android:minWidth">88dp</item>
     <item name="android:minHeight">36dp</item>
     <item name="android:textSize">14sp</item>
-    <item name="android:paddingStart">20dp</item>
-    <item name="android:paddingEnd">20dp</item>
+    <item name="android:paddingLeft">20dp</item>
+    <item name="android:paddingRight">20dp</item>
     <item name="android:paddingTop">5dp</item>
     <item name="android:paddingBottom">5dp</item>
     <item name="android:textAllCaps">true</item>
@@ -30,7 +30,7 @@
     <item name="android:gravity">center_vertical|center_horizontal</item>
   </style>
   <style name="FeedButtonCompat" parent="FeedButtonCompatBase">
-    <item name="android:background">@drawable/button_compat_shape</item>
+    <item name="android:background">@drawable/feed_button_compat_shape</item>
     <item name="android:textStyle">bold</item>
   </style>
   <style name="FeedButtonCompatBorderless" parent="FeedButtonCompat">
