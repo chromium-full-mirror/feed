@@ -96,4 +96,12 @@ public interface BasicLoggingApi {
    * not complete, or failed.
    */
   void onOpenedWithNoContent();
+
+  /**
+   * Called when a loading spinner is shown in the Stream
+   *
+   * @param timeShownMs time in milliseconds that the spinner was shown.
+   * @param spinnerType type of spinner that was shown.
+   */
+  void onSpinnerShown(int timeShownMs, @SpinnerType int spinnerType);
 }
