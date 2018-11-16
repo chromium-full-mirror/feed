@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.sharedstream.offlinemonitor;
 
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
@@ -32,8 +33,10 @@ public class StreamOfflineMonitor implements OfflineStatusListener {
 
   private final Set<String> contentToRequestStatus = new HashSet<>();
   private final Set<String> offlineContent = new HashSet<>();
-  private final Map<String, List<Consumer<Boolean>>> offlineStatusConsumersMap = new HashMap<>();
   private final OfflineIndicatorApi offlineIndicatorApi;
+
+  @VisibleForTesting
+  protected final Map<String, List<Consumer<Boolean>>> offlineStatusConsumersMap = new HashMap<>();
 
   @SuppressWarnings("nullness:argument.type.incompatible")
   public StreamOfflineMonitor(OfflineIndicatorApi offlineIndicatorApi) {
