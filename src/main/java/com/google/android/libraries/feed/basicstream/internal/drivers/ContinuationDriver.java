@@ -31,11 +31,13 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.SpinnerLogger;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -56,6 +58,7 @@ public class ContinuationDriver extends LeafFeatureDriver
   private final ModelProvider modelProvider;
   private final int position;
   private final SnackbarApi snackbarApi;
+  private final SpinnerLogger spinnerLogger;
   private final ThreadUtils threadUtils;
   private final boolean consumeSyntheticTokens;
 
@@ -66,6 +69,7 @@ public class ContinuationDriver extends LeafFeatureDriver
 
   ContinuationDriver(
       BasicLoggingApi basicLoggingApi,
+      Clock clock,
       Configuration configuration,
       Context context,
       CursorChangedListener cursorChangedListener,
@@ -83,6 +87,7 @@ public class ContinuationDriver extends LeafFeatureDriver
     this.modelToken = modelChild.getModelToken();
     this.position = position;
     this.snackbarApi = snackbarApi;
+    this.spinnerLogger = createSpinnerLogger(basicLoggingApi, clock);
     this.threadUtils = threadUtils;
     this.showSpinner =
         configuration.getValueOrDefault(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false);
@@ -248,6 +253,12 @@ public class ContinuationDriver extends LeafFeatureDriver
   @VisibleForTesting
   boolean isBound() {
     return continuationViewHolder != null;
+  }
+
+  @VisibleForTesting
+  SpinnerLogger createSpinnerLogger(
+      /*@UnderInitialization*/ ContinuationDriver this, BasicLoggingApi basicLoggingApi, Clock clock) {
+    return new SpinnerLogger(basicLoggingApi, clock);
   }
 
   @Override

@@ -17,6 +17,22 @@ android_local_test(
 )
 
 android_local_test(
+    name = "SpinnerLoggerTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["SpinnerLoggerTest.java"],
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/logging",
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/logging",
+        "@bazel_android//:robolectric",
+        "@org_mockito_mockito_all//jar",
+    ],
+)
+
+android_local_test(
     name = "VisibilityMonitorTest",
     size = "small",
     timeout = "moderate",

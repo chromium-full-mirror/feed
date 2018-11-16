@@ -210,6 +210,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         ContinuationDriver continuationDriver =
             createContinuationDriver(
                 basicLoggingApi,
+                clock,
                 configuration,
                 context,
                 child,
@@ -463,6 +464,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   @VisibleForTesting
   ContinuationDriver createContinuationDriver(
       BasicLoggingApi basicLoggingApi,
+      Clock clock,
       Configuration configuration,
       Context context,
       ModelChild modelChild,
@@ -472,6 +474,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       boolean restoring) {
     return new ContinuationDriver(
         basicLoggingApi,
+        clock,
         configuration,
         context,
         this,
@@ -491,7 +494,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
   @VisibleForTesting
   ZeroStateDriver createZeroStateDriver(boolean showSpinner) {
-    return new ZeroStateDriver(modelProvider, contentChangedListener, showSpinner);
+    return new ZeroStateDriver(
+        basicLoggingApi, clock, modelProvider, contentChangedListener, showSpinner);
   }
 
   public void setStreamContentListener(/*@Nullable*/ StreamContentListener contentListener) {

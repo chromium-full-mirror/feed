@@ -32,6 +32,9 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
+import com.google.android.libraries.feed.common.testing.FakeClock;
+import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import java.util.Calendar;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,21 +49,29 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ZeroStateDriverTest {
 
+  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private ModelProvider modelProvider;
   @Mock private ZeroStateViewHolder zeroStateViewHolder;
 
   private static final int HOUR_OF_DAY = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
   private ZeroStateDriver zeroStateDriver;
+  private Clock clock;
   private Context context;
 
   @Before
   public void setup() {
     initMocks(this);
+    clock = new FakeClock();
     context = Robolectric.buildActivity(Activity.class).get();
 
     zeroStateDriver =
-        new ZeroStateDriver(modelProvider, contentChangedListener, /* spinnerShown= */ false) {
+        new ZeroStateDriver(
+            basicLoggingApi,
+            clock,
+            modelProvider,
+            contentChangedListener,
+            /* spinnerShown= */ false) {
           @Override
           int getHourOfDay() {
             return HOUR_OF_DAY;
@@ -81,7 +92,12 @@ public class ZeroStateDriverTest {
   @Test
   public void testBind_whenSpinnerShownTrue() {
     zeroStateDriver =
-        new ZeroStateDriver(modelProvider, contentChangedListener, /* spinnerShown= */ true) {
+        new ZeroStateDriver(
+            basicLoggingApi,
+            clock,
+            modelProvider,
+            contentChangedListener,
+            /* spinnerShown= */ true) {
           @Override
           int getHourOfDay() {
             return HOUR_OF_DAY;

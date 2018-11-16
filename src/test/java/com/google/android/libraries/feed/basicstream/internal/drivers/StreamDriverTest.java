@@ -671,6 +671,7 @@ public class StreamDriverTest {
     @Override
     ContinuationDriver createContinuationDriver(
         BasicLoggingApi basicLoggingApi,
+        Clock clock,
         Configuration configuration,
         Context context,
         ModelChild modelChild,

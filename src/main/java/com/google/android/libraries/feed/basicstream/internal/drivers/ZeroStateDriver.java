@@ -21,26 +21,34 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.SpinnerLogger;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import java.util.Calendar;
 
 /** {@link FeatureDriver} for the zero state. */
 public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListener {
   private static final String TAG = "ZeroStateDriver";
-  private final ModelProvider modelProvider;
+
   private final ContentChangedListener contentChangedListener;
+  private final ModelProvider modelProvider;
+  private final SpinnerLogger spinnerLogger;
   private boolean spinnerShown;
   /*@Nullable*/ private ZeroStateViewHolder zeroStateViewHolder;
 
   ZeroStateDriver(
+      BasicLoggingApi basicLoggingApi,
+      Clock clock,
       ModelProvider modelProvider,
       ContentChangedListener contentChangedListener,
       boolean spinnerShown) {
-    this.modelProvider = modelProvider;
     this.contentChangedListener = contentChangedListener;
+    this.modelProvider = modelProvider;
+    this.spinnerLogger = createSpinnerLogger(basicLoggingApi, clock);
     this.spinnerShown = spinnerShown;
   }
 
@@ -103,6 +111,12 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
   @VisibleForTesting
   int getHourOfDay() {
     return Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+  }
+
+  @VisibleForTesting
+  SpinnerLogger createSpinnerLogger(
+      /*@UnderInitialization*/ ZeroStateDriver this, BasicLoggingApi basicLoggingApi, Clock clock) {
+    return new SpinnerLogger(basicLoggingApi, clock);
   }
 
   @Override

@@ -42,6 +42,8 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.Continuati
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
+import com.google.android.libraries.feed.common.testing.FakeClock;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -72,6 +74,8 @@ public class ContinuationDriverTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private CursorChangedListener cursorChangedListener;
   @Mock private ContinuationViewHolder continuationViewHolder;
+
+  private Clock clock;
   private Context context;
   private ContinuationDriver continuationDriver;
   private Configuration configuration = new Configuration.Builder().build();
@@ -79,12 +83,14 @@ public class ContinuationDriverTest {
   @Before
   public void setup() {
     initMocks(this);
+    clock = new FakeClock();
     context = Robolectric.buildActivity(Activity.class).get();
     when(modelChild.getModelToken()).thenReturn(modelToken);
 
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             configuration,
             context,
             cursorChangedListener,
@@ -102,6 +108,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
@@ -118,6 +125,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             configuration,
             context,
             cursorChangedListener,
@@ -136,6 +144,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
@@ -157,6 +166,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder()
                 .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true)
                 .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, true)
@@ -188,6 +198,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder()
                 .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true)
                 .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, false)
@@ -219,6 +230,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder()
                 .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true)
                 .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, false)
@@ -252,6 +264,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
@@ -273,6 +286,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false).build(),
             context,
             cursorChangedListener,
@@ -294,6 +308,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false).build(),
             context,
             cursorChangedListener,
@@ -379,6 +394,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
@@ -472,6 +488,7 @@ public class ContinuationDriverTest {
     continuationDriver =
         new ContinuationDriver(
             basicLoggingApi,
+            clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
             context,
             cursorChangedListener,
