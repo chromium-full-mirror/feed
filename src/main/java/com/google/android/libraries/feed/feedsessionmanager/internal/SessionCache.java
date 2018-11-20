@@ -198,6 +198,7 @@ public class SessionCache implements Dumpable {
     }
     Result<List<StreamStructure>> results = store.getStreamStructures(head.getStreamSession());
     if (!results.isSuccessful()) {
+      Logger.w(TAG, "unable to get head stream structures");
       return false;
     }
     head.initializeSession(results.getValue());
@@ -231,12 +232,15 @@ public class SessionCache implements Dumpable {
   void initializePersistedSessions() {
     threadUtils.checkNotMainThread();
     StreamSessions persistedSessions = getPersistedSessions();
+    List<StreamSession> sessionList;
     if (persistedSessions == null) {
-      return;
+      Logger.w(TAG, "Persisted Sessions were not found, initializing without sessions");
+      sessionList = new ArrayList<>();
+    } else {
+      sessionList = persistedSessions.getStreamSessionsList();
     }
 
     boolean cleanupSessions = false;
-    List<StreamSession> sessionList = persistedSessions.getStreamSessionsList();
     for (StreamSession session : sessionList) {
       if (!isSessionAlive(session)) {
         Logger.i(
