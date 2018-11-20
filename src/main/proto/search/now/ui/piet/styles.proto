@@ -205,7 +205,7 @@ message Font {
   // turned on text scaling, the Host App should apply that scaling factor to
   // this numeric font size before rendering.
   // Note that other related metrics such as width and height are NOT
-  // automatically scaled.
+  // automatically scaled, but line height does scale.
   optional int32 size = 1;
 
   // Line height, expressed as a multiple of size (hence the `_ratio` suffix).
@@ -216,7 +216,20 @@ message Font {
   // For example, if the ratio is 2.0 and the text is 12pt tall, there will be
   // 12pt of space between each pair of lines, and 6pt of space above and below
   // the block of text.
-  optional float line_height_ratio = 2 [default = 1.2];
+  // This field is deprecated. Please use line_height instead.
+  // TODO Remove this field once the transition to line_height
+  // is complete.
+  optional float line_height_ratio = 2 [default = 1.2, deprecated = true];
+
+  // Line height, expressed as scale-independent pixels (sp), meaning that it
+  // scales with accessibility settings. If no line height is specified, the
+  // default spacing for that font will be used. This is usually
+  // approximately 1.2 times the height of the text, and should work well for
+  // most platforms. Using the default does not guarantee the same height across
+  // platforms; if that is needed, an explicit line height should be set.
+  // Because line_height_ratio is deprecated, if both are specified, only
+  // line_height will be used.
+  optional uint32 line_height = 7;
 
   // Material Design specifies six weights for a font, in order from thinnest
   // stroke to thickest stroke. Orthogonal to weight, a font can be either
