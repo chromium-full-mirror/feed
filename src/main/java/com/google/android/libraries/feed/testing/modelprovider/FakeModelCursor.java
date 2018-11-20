@@ -129,4 +129,8 @@ public class FakeModelCursor implements ModelCursor {
         .setModelCursor(cursor)
         .build();
   }
+
+  public static FakeModelFeature getModelFeatureWithEmptyCursor() {
+    return new FakeModelFeature.Builder().setModelCursor(new Builder().build()).build();
+  }
 }

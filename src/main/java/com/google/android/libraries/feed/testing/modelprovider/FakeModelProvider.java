@@ -128,6 +128,12 @@ public class FakeModelProvider implements ModelProvider {
     }
   }
 
+  public void triggerOnError(ModelError modelError) {
+    for (ModelProviderObserver observer : observers) {
+      observer.onError(modelError);
+    }
+  }
+
   public boolean wasRefreshTriggered() {
     return wasRefreshTriggered;
   }
