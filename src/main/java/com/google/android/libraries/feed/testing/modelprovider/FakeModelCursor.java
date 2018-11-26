@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
+import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,6 +91,11 @@ public class FakeModelCursor implements ModelCursor {
       return this;
     }
 
+    public Builder addContent(Content content) {
+      final FakeModelCursor cursor = new FakeModelCursor(new ArrayList<>());
+      return addChildWithModelFeature(getContentModelFeatureWithCursor(content, cursor));
+    }
+
     public Builder addToken(boolean isSynthetic) {
       return addToken(new FakeModelToken.Builder().setIsSynthetic(isSynthetic).build());
     }
@@ -126,6 +132,14 @@ public class FakeModelCursor implements ModelCursor {
     return new FakeModelFeature.Builder()
         .setStreamFeature(
             StreamFeature.newBuilder().setCluster(Cluster.getDefaultInstance()).build())
+        .setModelCursor(cursor)
+        .build();
+  }
+
+  public static FakeModelFeature getContentModelFeatureWithCursor(
+      Content content, ModelCursor cursor) {
+    return new FakeModelFeature.Builder()
+        .setStreamFeature(StreamFeature.newBuilder().setContent(content).build())
         .setModelCursor(cursor)
         .build();
   }
