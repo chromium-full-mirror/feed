@@ -58,4 +58,11 @@
     <item name="android:textColor">@color/black_alpha_87</item>
     <item name="android:textSize">@dimen/text_size_large</item>
   </style>
+
+  <!-- Menu Text Padding Styles -->
+  <style name="FeedMenuTextPaddingStyle">
+    <item name="android:paddingStart">?android:attr/listPreferredItemPaddingStart</item>
+    <item name="android:paddingEnd">?android:attr/listPreferredItemPaddingEnd</item>
+  </style>
+
 </resources>

@@ -182,7 +182,7 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
 
   private ListView createListView(List<String> items, Context context) {
     ArrayAdapter<String> adapter =
-        new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, items);
+        new ArrayAdapter<>(context, R.layout.feed_simple_list_item, items);
 
     ListView listView = new ListView(context);
     listView.setAdapter(adapter);
