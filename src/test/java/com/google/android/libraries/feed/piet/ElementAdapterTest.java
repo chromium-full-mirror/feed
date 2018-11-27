@@ -32,6 +32,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
@@ -158,6 +159,34 @@ public class ElementAdapterTest {
     assertThat(adapter.getView().getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
     assertThat(adapter.getBaseView().getLayoutParams().width).isEqualTo(LayoutParams.WRAP_CONTENT);
     assertThat(adapter.getBaseView().getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);
+  }
+
+  @Test
+  public void testSetLayoutParams_resetsMarginsWithOverlay() {
+    Element elementWithOverlays =
+        Element.newBuilder()
+            .addOverlays(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder().setElementList(ElementList.getDefaultInstance())))
+            .build();
+
+    adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
+
+    MarginLayoutParams paramsWithMargins = new MarginLayoutParams(123, 456);
+    paramsWithMargins.setMargins(1, 2, 3, 4);
+    adapter.getBaseView().setLayoutParams(paramsWithMargins);
+
+    adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));
+
+    assertThat(((MarginLayoutParams) adapter.getBaseView().getLayoutParams()).leftMargin)
+        .isEqualTo(0);
+    assertThat(((MarginLayoutParams) adapter.getBaseView().getLayoutParams()).rightMargin)
+        .isEqualTo(0);
+    assertThat(((MarginLayoutParams) adapter.getBaseView().getLayoutParams()).topMargin)
+        .isEqualTo(0);
+    assertThat(((MarginLayoutParams) adapter.getBaseView().getLayoutParams()).bottomMargin)
+        .isEqualTo(0);
   }
 
   @Test

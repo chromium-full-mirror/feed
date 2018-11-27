@@ -24,6 +24,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.os.Build.VERSION_CODES;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
@@ -629,6 +630,28 @@ public class StyleProviderTest {
     new StyleProvider(Style.getDefaultInstance(), mockAssetProvider).applyElementStyles(adapter);
 
     assertThat(baseView.getAlpha()).isEqualTo(1.0f);
+  }
+
+  @Test
+  public void testElementStyles_overlayResets() {
+    baseView.setBackground(new ShapeDrawable());
+    baseView.setElevation(12.3f);
+
+    new StyleProvider(
+            Style.newBuilder()
+                .setBackground(Fill.newBuilder().setColor(Color.BLUE))
+                .setShadow(
+                    Shadow.newBuilder()
+                        .setElevationShadow(ElevationShadow.newBuilder().setElevation(5)))
+                .build(),
+            mockAssetProvider)
+        .applyElementStyles(adapter);
+
+    assertThat(baseView.getElevation()).isWithin(0.1f).of(0.0f);
+    assertThat(view.getElevation()).isWithin(0.1f).of(5.0f);
+
+    assertThat(baseView.getBackground()).isNull();
+    assertThat(view.getBackground()).isInstanceOf(ColorDrawable.class);
   }
 
   private void verifyPadding(View view, EdgeWidths padding) {

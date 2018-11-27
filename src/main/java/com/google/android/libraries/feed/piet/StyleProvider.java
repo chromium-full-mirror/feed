@@ -200,7 +200,12 @@ class StyleProvider {
     } else {
       ViewCompat.setElevation(view, 0.0f);
     }
+    if (view != baseView) {
+      baseView.setBackground(null);
+      ViewCompat.setElevation(baseView, 0.0f);
+    }
 
+    // TODO: This won't work with backgrounds on adapters with overlays.
     baseView.setAlpha(style.getOpacity());
   }
 

@@ -411,16 +411,17 @@ abstract class ElementAdapter<V extends View, M> {
       return;
     }
     view.setLayoutParams(layoutParams);
-    V baseView = getBaseView();
+    View baseView = getBaseView();
     if (baseView != null && baseView != view) {
-      baseView.getLayoutParams().height =
+      int height =
           layoutParams.height == LayoutParams.WRAP_CONTENT
               ? LayoutParams.WRAP_CONTENT
               : LayoutParams.MATCH_PARENT;
-      baseView.getLayoutParams().width =
+      int width =
           layoutParams.width == LayoutParams.WRAP_CONTENT
               ? LayoutParams.WRAP_CONTENT
               : LayoutParams.MATCH_PARENT;
+      baseView.setLayoutParams(new FrameLayout.LayoutParams(width, height));
     }
   }
 

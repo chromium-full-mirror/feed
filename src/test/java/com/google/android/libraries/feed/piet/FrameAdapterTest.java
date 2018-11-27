@@ -32,6 +32,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
@@ -53,14 +54,23 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
+import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
+import com.google.search.now.ui.piet.GradientsProto.Fill;
+import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
 import com.google.search.now.ui.piet.PietProto.Template;
+import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
+import com.google.search.now.ui.piet.ShadowsProto.ElevationShadow;
+import com.google.search.now.ui.piet.ShadowsProto.Shadow;
+import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
+import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -295,6 +305,164 @@ public class FrameAdapterTest {
         Frame.newBuilder().addContents(content).build(), FRAME_WIDTH, null, pietSharedStates);
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
     frameAdapter.unbindModel();
+  }
+
+  /** This test sets up all real objects to ensure that real adapters are bound and unbound, etc. */
+  @Test
+  public void testBindAndUnbind_resetsStylesWhenWrapperViewIsAdded() {
+    AdapterParameters adapterParameters =
+        new AdapterParameters(
+            context, Suppliers.of(new LinearLayout(context)), hostProviders, new FakeClock());
+    PietSharedState pietSharedState =
+        PietSharedState.newBuilder()
+            .addStylesheets(
+                Stylesheet.newBuilder()
+                    .setStylesheetId("stylesheet")
+                    .addStyles(
+                        Style.newBuilder()
+                            .setStyleId("style1")
+                            .setBackground(Fill.newBuilder().setColor(0x11111111))
+                            .setPadding(EdgeWidths.newBuilder().setStart(1).setTop(1))
+                            .setMargins(EdgeWidths.newBuilder().setStart(1).setTop(1))
+                            .setColor(0x11111111)
+                            .setHeight(1)
+                            .setWidth(1)
+                            .setShadow(
+                                Shadow.newBuilder()
+                                    .setElevationShadow(
+                                        ElevationShadow.newBuilder().setElevation(1)))
+                            .setOpacity(0.5f))
+                    .addStyles(
+                        Style.newBuilder()
+                            .setStyleId("style2")
+                            .setBackground(Fill.newBuilder().setColor(0x22222222))
+                            .setPadding(EdgeWidths.newBuilder().setEnd(2).setTop(2))
+                            .setMargins(EdgeWidths.newBuilder().setEnd(2).setTop(2))
+                            .setColor(0x222222)
+                            .setHeight(2)
+                            .setWidth(2)
+                            .setShadow(
+                                Shadow.newBuilder()
+                                    .setElevationShadow(
+                                        ElevationShadow.newBuilder().setElevation(2)))
+                            .setOpacity(0.25f)
+                            // Rounded corners will introduce an overlay.
+                            .setRoundedCorners(
+                                RoundedCorners.newBuilder().setRadius(2).setBitmask(2))))
+            .build();
+    pietSharedStates.add(pietSharedState);
+
+    frameAdapter = new FrameAdapter(context, adapterParameters, actionHandler, debugBehavior);
+
+    ImageElement defaultImage =
+        ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build();
+    Content content1 =
+        Content.newBuilder()
+            .setElement(
+                Element.newBuilder()
+                    .setElementList(
+                        ElementList.newBuilder()
+                            .addContents(
+                                Content.newBuilder()
+                                    .setElement(
+                                        Element.newBuilder()
+                                            .setGravityHorizontal(GravityHorizontal.GRAVITY_START)
+                                            .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
+                                            .setImageElement(
+                                                defaultImage
+                                                    .toBuilder()
+                                                    .setStyleReferences(
+                                                        StyleIdsStack.newBuilder()
+                                                            .addStyleIds("style1")))))))
+            .build();
+    Content content2 =
+        Content.newBuilder()
+            .setElement(
+                Element.newBuilder()
+                    .setElementList(
+                        ElementList.newBuilder()
+                            .addContents(
+                                Content.newBuilder()
+                                    .setElement(
+                                        Element.newBuilder()
+                                            .setGravityHorizontal(GravityHorizontal.GRAVITY_END)
+                                            .setImageElement(
+                                                defaultImage
+                                                    .toBuilder()
+                                                    .setStyleReferences(
+                                                        StyleIdsStack.newBuilder()
+                                                            .addStyleIds("style2")))))))
+            .build();
+
+    // Bind to a Frame with no wrapper view
+    frameAdapter.bindModel(
+        Frame.newBuilder().setStylesheetId("stylesheet").addContents(content1).build(),
+        0,
+        null,
+        pietSharedStates);
+
+    ImageView imageView =
+        (ImageView) ((LinearLayout) frameAdapter.getView().getChildAt(0)).getChildAt(0);
+    LinearLayout.LayoutParams imageViewParams =
+        (LinearLayout.LayoutParams) imageView.getLayoutParams();
+    assertThat(imageViewParams.leftMargin).isEqualTo(1);
+    assertThat(imageViewParams.topMargin).isEqualTo(1);
+    assertThat(imageViewParams.rightMargin).isEqualTo(0);
+    assertThat(imageViewParams.bottomMargin).isEqualTo(0);
+    assertThat(imageView.getPaddingStart()).isEqualTo(1);
+    assertThat(imageView.getPaddingTop()).isEqualTo(1);
+    assertThat(imageView.getPaddingEnd()).isEqualTo(0);
+    assertThat(imageView.getPaddingBottom()).isEqualTo(0);
+    assertThat(imageViewParams.height).isEqualTo(1);
+    assertThat(imageViewParams.width).isEqualTo(1);
+    assertThat(imageView.getElevation()).isWithin(0.1f).of(1);
+    assertThat(imageView.getAlpha()).isWithin(0.1f).of(0.5f);
+
+    frameAdapter.unbindModel();
+
+    // Re-bind to a Frame with a wrapper view
+    // This will recycle the ImageView, but it will be within a wrapper view.
+    // Ensure that the properties on the ImageView get unset correctly.
+    frameAdapter.bindModel(
+        Frame.newBuilder().setStylesheetId("stylesheet").addContents(content2).build(),
+        0,
+        null,
+        Collections.singletonList(pietSharedState));
+
+    FrameLayout wrapperView =
+        (FrameLayout) ((LinearLayout) frameAdapter.getView().getChildAt(0)).getChildAt(0);
+    LinearLayout.LayoutParams wrapperViewParams =
+        (LinearLayout.LayoutParams) wrapperView.getLayoutParams();
+
+    // Exactly one of the wrapper view and the image view have the specified params set.
+    assertThat(wrapperViewParams.leftMargin).isEqualTo(0);
+    assertThat(wrapperViewParams.topMargin).isEqualTo(2);
+    assertThat(wrapperViewParams.rightMargin).isEqualTo(2);
+    assertThat(wrapperViewParams.bottomMargin).isEqualTo(0);
+    assertThat(wrapperView.getPaddingStart()).isEqualTo(0);
+    assertThat(wrapperView.getPaddingTop()).isEqualTo(0);
+    assertThat(wrapperView.getPaddingEnd()).isEqualTo(0);
+    assertThat(wrapperView.getPaddingBottom()).isEqualTo(0);
+    assertThat(wrapperViewParams.height).isEqualTo(2);
+    assertThat(wrapperViewParams.width).isEqualTo(2);
+    assertThat(wrapperView.getElevation()).isWithin(0.1f).of(2);
+    assertThat(wrapperView.getAlpha()).isWithin(0.1f).of(1.0f);
+
+    assertThat(wrapperView.getChildAt(0)).isSameAs(imageView);
+    FrameLayout.LayoutParams newImageViewParams =
+        (FrameLayout.LayoutParams) imageView.getLayoutParams();
+    assertThat(newImageViewParams.leftMargin).isEqualTo(0);
+    assertThat(newImageViewParams.topMargin).isEqualTo(0);
+    assertThat(newImageViewParams.rightMargin).isEqualTo(0);
+    assertThat(newImageViewParams.bottomMargin).isEqualTo(0);
+    assertThat(imageView.getPaddingStart()).isEqualTo(0);
+    assertThat(imageView.getPaddingTop()).isEqualTo(2);
+    assertThat(imageView.getPaddingEnd()).isEqualTo(2);
+    assertThat(imageView.getPaddingBottom()).isEqualTo(0);
+    assertThat(newImageViewParams.height).isEqualTo(LayoutParams.MATCH_PARENT);
+    assertThat(newImageViewParams.width).isEqualTo(LayoutParams.MATCH_PARENT);
+    assertThat(imageView.getElevation()).isWithin(0.1f).of(0);
+    assertThat(imageView.getAlpha()).isWithin(0.1f).of(0.25f);
   }
 
   @Test
