@@ -21,3 +21,8 @@ java_lite_proto_library(
     name = "feed_java_proto_lite",
     deps = [":feed_proto"],
 )
+
+jspb_proto_library(
+    name = "feed_jspb_proto",
+    deps = [":feed_proto"],
+)
