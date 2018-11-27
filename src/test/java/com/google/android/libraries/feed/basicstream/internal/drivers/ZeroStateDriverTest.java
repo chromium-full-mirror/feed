@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
@@ -31,10 +33,12 @@ import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.SpinnerLogger;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.SpinnerType;
 import java.util.Calendar;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,12 +53,14 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class ZeroStateDriverTest {
 
+  private static final int HOUR_OF_DAY = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private ModelProvider modelProvider;
+  @Mock private SpinnerLogger spinnerLogger;
   @Mock private ZeroStateViewHolder zeroStateViewHolder;
 
-  private static final int HOUR_OF_DAY = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
   private ZeroStateDriver zeroStateDriver;
   private Clock clock;
   private Context context;
@@ -66,17 +72,12 @@ public class ZeroStateDriverTest {
     context = Robolectric.buildActivity(Activity.class).get();
 
     zeroStateDriver =
-        new ZeroStateDriver(
+        new ZeroStateDriverForTest(
             basicLoggingApi,
             clock,
             modelProvider,
             contentChangedListener,
-            /* spinnerShown= */ false) {
-          @Override
-          int getHourOfDay() {
-            return HOUR_OF_DAY;
-          }
-        };
+            /* spinnerShown= */ false);
   }
 
   @Test
@@ -92,17 +93,12 @@ public class ZeroStateDriverTest {
   @Test
   public void testBind_whenSpinnerShownTrue() {
     zeroStateDriver =
-        new ZeroStateDriver(
+        new ZeroStateDriverForTest(
             basicLoggingApi,
             clock,
             modelProvider,
             contentChangedListener,
-            /* spinnerShown= */ true) {
-          @Override
-          int getHourOfDay() {
-            return HOUR_OF_DAY;
-          }
-        };
+            /* spinnerShown= */ true);
 
     zeroStateDriver.bind(zeroStateViewHolder);
     verify(zeroStateViewHolder).bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ true);
@@ -122,6 +118,44 @@ public class ZeroStateDriverTest {
     zeroStateDriver.bind(zeroStateViewHolder);
 
     inOrder.verify(zeroStateViewHolder).bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ true);
+  }
+
+  @Test
+  public void testBind_startsRecordingSpinner_ifSpinnerIsShownAndNotLogged() {
+    when(spinnerLogger.isSpinnerActive()).thenReturn(false);
+    zeroStateDriver =
+        new ZeroStateDriverForTest(
+            basicLoggingApi,
+            clock,
+            modelProvider,
+            contentChangedListener,
+            /* spinnerShown= */ true);
+    zeroStateDriver.bind(zeroStateViewHolder);
+
+    verify(spinnerLogger).spinnerStarted(SpinnerType.INITIAL_LOAD);
+  }
+
+  @Test
+  public void testBind_doesNotStartRecordingSpinner_ifSpinnerIsNotShownAndNotLogged() {
+    when(spinnerLogger.isSpinnerActive()).thenReturn(false);
+    zeroStateDriver.bind(zeroStateViewHolder);
+
+    verifyNoMoreInteractions(spinnerLogger);
+  }
+
+  @Test
+  public void testBind_doesNotStartRecordingSpinner_ifSpinnerIsShownAndAlreadyLogged() {
+    when(spinnerLogger.isSpinnerActive()).thenReturn(true);
+    zeroStateDriver =
+        new ZeroStateDriverForTest(
+            basicLoggingApi,
+            clock,
+            modelProvider,
+            contentChangedListener,
+            /* spinnerShown= */ true);
+    zeroStateDriver.bind(zeroStateViewHolder);
+
+    verify(spinnerLogger, never()).spinnerStarted(anyInt());
   }
 
   @Test
@@ -155,6 +189,59 @@ public class ZeroStateDriverTest {
   }
 
   @Test
+  public void testOnClick_startsRecordingSpinner_ifSpinnerNotActive() {
+    when(spinnerLogger.isSpinnerActive()).thenReturn(false);
+    zeroStateDriver.bind(zeroStateViewHolder);
+
+    zeroStateDriver.onClick(new FrameLayout(context));
+
+    verify(spinnerLogger).spinnerStarted(SpinnerType.ZERO_STATE_REFRESH);
+  }
+
+  @Test
+  public void testOnClick_throwsRuntimeException_ifSpinnerActive() {
+    when(spinnerLogger.isSpinnerActive()).thenReturn(true);
+    zeroStateDriver =
+        new ZeroStateDriverForTest(
+            basicLoggingApi,
+            clock,
+            modelProvider,
+            contentChangedListener,
+            /* spinnerShown= */ true);
+
+    zeroStateDriver.bind(zeroStateViewHolder);
+    reset(spinnerLogger);
+
+    assertThatRunnable(() -> zeroStateDriver.onClick(new FrameLayout(context)));
+  }
+
+  @Test
+  public void testOnDestroy_logsSpinnerFinished_ifSpinnerActive() {
+    when(spinnerLogger.isSpinnerActive()).thenReturn(true);
+    zeroStateDriver =
+        new ZeroStateDriverForTest(
+            basicLoggingApi,
+            clock,
+            modelProvider,
+            contentChangedListener,
+            /* spinnerShown= */ true);
+    zeroStateDriver.bind(zeroStateViewHolder);
+
+    zeroStateDriver.onDestroy();
+
+    verify(spinnerLogger).spinnerFinished();
+  }
+
+  @Test
+  public void testOnDestroy_doesNotLogSpinnerFinished_ifSpinnerNotActive() {
+    when(spinnerLogger.isSpinnerActive()).thenReturn(false);
+    zeroStateDriver.bind(zeroStateViewHolder);
+
+    zeroStateDriver.onDestroy();
+    verify(spinnerLogger, never()).spinnerFinished();
+  }
+
+  @Test
   public void testMaybeRebind() {
     zeroStateDriver.bind(zeroStateViewHolder);
     assertThat(zeroStateDriver.isBound()).isTrue();
@@ -176,5 +263,27 @@ public class ZeroStateDriverTest {
     assertThat(zeroStateDriver.isBound()).isFalse();
     verify(zeroStateViewHolder, never()).bind(any(OnClickListener.class), anyInt(), anyBoolean());
     verify(zeroStateViewHolder, never()).unbind();
+  }
+
+  private final class ZeroStateDriverForTest extends ZeroStateDriver {
+
+    ZeroStateDriverForTest(
+        BasicLoggingApi basicLoggingApi,
+        Clock clock,
+        ModelProvider modelProvider,
+        ContentChangedListener contentChangedListener,
+        boolean spinnerShown) {
+      super(basicLoggingApi, clock, modelProvider, contentChangedListener, spinnerShown);
+    }
+
+    @Override
+    int getHourOfDay() {
+      return HOUR_OF_DAY;
+    }
+
+    @Override
+    SpinnerLogger createSpinnerLogger(BasicLoggingApi basicLoggingApi, Clock clock) {
+      return spinnerLogger;
+    }
   }
 }

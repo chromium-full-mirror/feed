@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroSt
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.SpinnerType;
 import java.util.Calendar;
 
 /** {@link FeatureDriver} for the zero state. */
@@ -37,6 +38,7 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
   private final ContentChangedListener contentChangedListener;
   private final ModelProvider modelProvider;
   private final SpinnerLogger spinnerLogger;
+
   private boolean spinnerShown;
   /*@Nullable*/ private ZeroStateViewHolder zeroStateViewHolder;
 
@@ -61,6 +63,10 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
 
     zeroStateViewHolder = (ZeroStateViewHolder) viewHolder;
     zeroStateViewHolder.bind(this, getHourOfDay(), spinnerShown);
+    // Only log that spinner is being shown if it has not been logged before.
+    if (spinnerShown && !spinnerLogger.isSpinnerActive()) {
+      spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD);
+    }
   }
 
   @Override
@@ -101,6 +107,17 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
     zeroStateViewHolder.showSpinner(spinnerShown);
     contentChangedListener.onContentChanged();
     modelProvider.triggerRefresh();
+
+    spinnerLogger.spinnerStarted(SpinnerType.ZERO_STATE_REFRESH);
+  }
+
+  @Override
+  public void onDestroy() {
+    // If the spinner was being shown, it will only be removed when the ZeroStateDriver is
+    // destroyed. So spinner should be logged then.
+    if (spinnerLogger.isSpinnerActive()) {
+      spinnerLogger.spinnerFinished();
+    }
   }
 
   @VisibleForTesting
@@ -118,7 +135,4 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
       /*@UnderInitialization*/ ZeroStateDriver this, BasicLoggingApi basicLoggingApi, Clock clock) {
     return new SpinnerLogger(basicLoggingApi, clock);
   }
-
-  @Override
-  public void onDestroy() {}
 }

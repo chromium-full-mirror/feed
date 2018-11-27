@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.basicstream.internal.logging;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -69,5 +70,25 @@ public class SpinnerLoggerTest {
   public void spinnerFinished_throwsRuntimeException_ifSpinnerStartedNotCalledBefore() {
     assertThatRunnable(() -> spinnerLogger.spinnerFinished())
         .throwsAnExceptionOfType(RuntimeException.class);
+  }
+
+  @Test
+  public void isSpinnerActive_returnsTrue_ifSpinnerStartedCalledBefore() {
+    spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD);
+
+    assertThat(spinnerLogger.isSpinnerActive()).isTrue();
+  }
+
+  @Test
+  public void isSpinnerActive_returnsFalseInitially() {
+    assertThat(spinnerLogger.isSpinnerActive()).isFalse();
+  }
+
+  @Test
+  public void isSpinnerActive_returnsFalse_ifSpinnerFinishedCalledBefore() {
+    spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD);
+    spinnerLogger.spinnerFinished();
+
+    assertThat(spinnerLogger.isSpinnerActive()).isFalse();
   }
 }

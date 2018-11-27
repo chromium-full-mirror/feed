@@ -35,7 +35,7 @@ public class SpinnerLogger {
   }
 
   public void spinnerStarted(@SpinnerType int spinnerType) {
-    if (spinnerStartTime != -1) {
+    if (isSpinnerActive()) {
       Logger.wtf(
           TAG,
           "spinnerStarted should not be called if another spinner is currently being tracked.");
@@ -47,7 +47,7 @@ public class SpinnerLogger {
   }
 
   public void spinnerFinished() {
-    if (spinnerStartTime == -1) {
+    if (!isSpinnerActive()) {
       Logger.wtf(TAG, "spinnerFinished should only be called after spinnerStarted.");
       return;
     }
@@ -55,5 +55,9 @@ public class SpinnerLogger {
     long spinnerDuration = clock.currentTimeMillis() - spinnerStartTime;
     basicLoggingApi.onSpinnerShown((int) spinnerDuration, spinnerType);
     spinnerStartTime = -1;
+  }
+
+  public boolean isSpinnerActive() {
+    return spinnerStartTime != -1;
   }
 }
