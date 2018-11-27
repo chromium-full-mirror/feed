@@ -338,7 +338,28 @@ public class ContinuationDriverTest {
   }
 
   @Test
-  public void testOnDestroy() {
+  public void testOnDestroy_doesNotUnregisterTokenObserver_ifNotInitialized() {
+    continuationDriver =
+        new ContinuationDriver(
+            basicLoggingApi,
+            clock,
+            configuration,
+            context,
+            cursorChangedListener,
+            modelChild,
+            modelProvider,
+            POSITION,
+            snackbarApi,
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ false);
+
+    continuationDriver.onDestroy();
+
+    verify(modelToken, never()).unregisterObserver(any());
+  }
+
+  @Test
+  public void testOnDestroy_unregistersTokenObserver_ifAlreadyInitialized() {
     continuationDriver.onDestroy();
 
     verify(modelToken).unregisterObserver(continuationDriver);

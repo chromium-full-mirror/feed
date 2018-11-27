@@ -116,7 +116,9 @@ public class ContinuationDriver extends LeafFeatureDriver
 
   @Override
   public void onDestroy() {
-    modelToken.unregisterObserver(this);
+    if (initialized) {
+      modelToken.unregisterObserver(this);
+    }
   }
 
   // TODO: Instead of implementing an onClickListener, define a new interface with a method
