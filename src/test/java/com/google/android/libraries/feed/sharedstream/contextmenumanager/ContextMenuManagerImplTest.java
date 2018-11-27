@@ -150,6 +150,14 @@ public class ContextMenuManagerImplTest {
     assertThat(popupWindow.isShowing()).isFalse();
   }
 
+  @Test
+  public void testOpenContextMenu_hasShadow() {
+    contextMenuManager.openContextMenu(anchorView, adapterItems, clickHandler);
+
+    PopupWindow popupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
+    assertThat(popupWindow.getBackground()).isNotNull();
+  }
+
   private List<String> createAdapterItems() {
     List<String> adapter = new ArrayList<>();
     for (int i = 0; i < 3; i++) {

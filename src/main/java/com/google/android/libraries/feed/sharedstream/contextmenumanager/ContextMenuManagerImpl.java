@@ -18,6 +18,8 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.view.View;
@@ -91,17 +93,21 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
         menuMeasurer.measureAdapterContent(
             listView, adapter, /* windowPadding= */ 0, getStreamWidth(), getStreamHeight());
 
-    PopupWindow popupWindow = createPopupWindow(listView, measurements, context);
+    PopupWindowWithDimensions popupWindowWithDimensions =
+        createPopupWindow(listView, measurements, context);
 
     listView.setOnItemClickListener(
         (parent, view, position, id) -> {
           handler.handleClick(position);
-          popupWindow.dismiss();
+          popupWindowWithDimensions.getPopupWindow().dismiss();
         });
 
-    int yOffset = getYOffsetForContextMenu(anchorView, measurements.getHeight());
+    int yOffset =
+        getYOffsetForContextMenu(anchorView, popupWindowWithDimensions.getDimensions().getHeight());
 
-    popupWindow.showAsDropDown(anchorView, anchorView.getWidth() / FRACTION_FROM_EDGE, yOffset);
+    popupWindowWithDimensions
+        .getPopupWindow()
+        .showAsDropDown(anchorView, anchorView.getWidth() / FRACTION_FROM_EDGE, yOffset);
 
     // We want to prevent any more touch events from be used (if a user has yet to end their current
     // touch session). This prevents the possibility of scrolling after the context menu opens.
@@ -110,7 +116,7 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
       parent.requestDisallowInterceptTouchEvent(true);
     }
 
-    this.popupWindow = popupWindow;
+    this.popupWindow = popupWindowWithDimensions.getPopupWindow();
     return true;
   }
 
@@ -167,17 +173,47 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
         menuHeight, anchorViewYInWindow, anchorView.getHeight(), getStreamHeight());
   }
 
-  private PopupWindow createPopupWindow(ListView listView, Size measurements, Context context) {
+  private PopupWindowWithDimensions createPopupWindow(
+      ListView listView, Size measurements, Context context) {
+    // While using elevation to create shadows should work in lollipop+, the shadow was not
+    // appearing in versions below Android N, so we are using ninepatch below N.
+    if (VERSION.SDK_INT >= VERSION_CODES.N) {
+      return createPopupWindowWithElevation(listView, measurements, context);
+    } else {
+      return createPopupWindowWithNinepatch(listView, measurements, context);
+    }
+  }
+
+  private PopupWindowWithDimensions createPopupWindowWithElevation(
+      ListView listView, Size measurements, Context context) {
     PopupWindow popupWindow =
         new PopupWindow(listView, measurements.getWidth(), measurements.getHeight());
     popupWindow.setFocusable(true);
     popupWindow.setBackgroundDrawable(
         context.getResources().getDrawable(R.drawable.feed_popup_window_bg));
-    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-      popupWindow.setElevation(
-          context.getResources().getDimension(R.dimen.feed_popup_window_elevation));
-    }
-    return popupWindow;
+    popupWindow.setElevation(
+        context.getResources().getDimension(R.dimen.feed_popup_window_elevation));
+
+    return new PopupWindowWithDimensions(popupWindow, measurements);
+  }
+
+  private PopupWindowWithDimensions createPopupWindowWithNinepatch(
+      ListView listView, Size measurements, Context context) {
+    Drawable shadow = context.getResources().getDrawable(android.R.drawable.picture_frame);
+
+    Rect ninePatchPadding = new Rect();
+    shadow.getPadding(ninePatchPadding);
+
+    int widthWithPadding = measurements.getWidth() + ninePatchPadding.left + ninePatchPadding.right;
+    int heightWithPadding =
+        measurements.getHeight() + ninePatchPadding.top + ninePatchPadding.bottom;
+
+    PopupWindow popupWindow = new PopupWindow(listView, widthWithPadding, heightWithPadding);
+    popupWindow.setFocusable(true);
+    popupWindow.setBackgroundDrawable(shadow);
+
+    return new PopupWindowWithDimensions(
+        popupWindow, new Size(widthWithPadding, heightWithPadding));
   }
 
   private ListView createListView(List<String> items, Context context) {
@@ -228,5 +264,25 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
 
   public void onDimensionsChanged() {
     dismissPopup();
+  }
+
+  /** Represents a {@link PopupWindow} that accounts for padding caused by shadows. */
+  private static class PopupWindowWithDimensions {
+
+    private final PopupWindow popupWindow;
+    private final Size size;
+
+    PopupWindowWithDimensions(PopupWindow popupWindow, Size size) {
+      this.popupWindow = popupWindow;
+      this.size = size;
+    }
+
+    PopupWindow getPopupWindow() {
+      return popupWindow;
+    }
+
+    Size getDimensions() {
+      return size;
+    }
   }
 }
