@@ -19,44 +19,21 @@
   <style name="FeedButtonCompatBase">
     <item name="android:minWidth">88dp</item>
     <item name="android:minHeight">36dp</item>
-    <item name="android:textSize">14sp</item>
     <item name="android:paddingStart">20dp</item>
     <item name="android:paddingEnd">20dp</item>
     <item name="android:paddingTop">5dp</item>
     <item name="android:paddingBottom">5dp</item>
-    <item name="android:textAllCaps">true</item>
     <item name="android:focusable">true</item>
     <item name="android:clickable">true</item>
+    <item name="android:textAllCaps">false</item>
     <item name="android:gravity">center_vertical|center_horizontal</item>
   </style>
-  <style name="FeedButtonCompat" parent="FeedButtonCompatBase">
-    <item name="android:background">@drawable/feed_button_compat_shape</item>
-    <item name="android:textStyle">bold</item>
-  </style>
-  <style name="FeedButtonCompatBorderless" parent="FeedButtonCompat">
-    <item name="android:background">?android:attr/selectableItemBackground</item>
-  </style>
-  <style name="FeedSuggestionCardAction" parent="FeedButtonCompatBorderless">
-    <item name="android:textAppearance">@style/FeedBlueButtonText</item>
-    <item name="android:minHeight">48dp</item>
-  </style>
 
-  <!-- Used by Content -->
-  <style name="FeedRobotoMediumStyle">
-    <item name="android:fontFamily">sans-serif</item>
-    <item name="android:textStyle">bold</item>
-  </style>
-
-  <!-- Blue Text Styles -->
-  <style name="FeedBlueButtonText" parent="FeedRobotoMediumStyle">
-    <item name="android:textColor">@color/google_blue_500</item>
-    <item name="android:textSize">@dimen/text_size_medium</item>
-  </style>
-
-  <!-- Black Title Text Styles -->
-  <style name="FeedBlackTitle1">
-    <item name="android:textColor">@color/black_alpha_87</item>
-    <item name="android:textSize">@dimen/text_size_large</item>
+  <style name="FeedTextButton" parent="FeedButtonCompatBase">
+    <item name="android:paddingStart">8dp</item>
+    <item name="android:paddingEnd">8dp</item>
+    <item name="android:textAppearance">@style/FeedBlueButtonText2</item>
+    <item name="android:background">@drawable/feed_text_ripple_drawable</item>
   </style>
 
   <!-- Menu Text Padding Styles -->

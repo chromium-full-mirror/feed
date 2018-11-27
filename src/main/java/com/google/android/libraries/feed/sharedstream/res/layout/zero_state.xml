@@ -67,20 +67,17 @@
             android:gravity="center_horizontal"
             android:text="@string/zero_state_text_morning"
             android:textSize="@dimen/text_size_medium"
-            android:textColor="@color/snippets_text_color"/>
+            android:textColor="@color/feed_default_text_color_secondary"/>
 
         <Button
             android:id="@+id/action_button"
-            style="@style/FeedButtonCompatBorderless"
+            style="@style/FeedSuggestionCardAction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/body_text"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="@dimen/zero_state_button_margin_top"
-            android:text="@string/feed_refresh"
-            android:textAllCaps="true"
-            android:textColor="@color/google_blue_500"
-            android:textSize="@dimen/zero_state_button_text_size" />
+            android:text="@string/feed_refresh" />
 
     </RelativeLayout>
 </FrameLayout>
