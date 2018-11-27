@@ -77,6 +77,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.concurrent.GuardedBy;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
 public class FeedSessionManager
@@ -101,7 +102,11 @@ public class FeedSessionManager
 
   @VisibleForTesting final AtomicBoolean initialized = new AtomicBoolean(false);
 
+  private final Object lock = new Object();
+
   // Keep track of sessions being created which haven't been added to the SessionCache.
+  // This is accessed on the main thread and the background thread.
+  @GuardedBy("lock")
   private final List<InitializableSession> sessionsUnderConstruction = new ArrayList<>();
 
   // This captures the NO_CARDS_ERROR when a request fails. The request fails in one task and this
@@ -225,7 +230,9 @@ public class FeedSessionManager
     }
     InitializableSession session = sessionFactory.getSession();
     session.bindModelProvider(modelProvider);
-    sessionsUnderConstruction.add(session);
+    synchronized (lock) {
+      sessionsUnderConstruction.add(session);
+    }
 
     if (!sessionCache.isHeadInitialized()) {
       Logger.i(TAG, "Delaying populateSession until initialization is finished");
@@ -325,7 +332,9 @@ public class FeedSessionManager
           streamSession.toBuilder().setLastAccessed(clock.currentTimeMillis()).build();
       session.setStreamSession(recordedSession);
       sessionCache.put(session.getStreamSession().getStreamToken(), session);
-      sessionsUnderConstruction.remove(session);
+      synchronized (lock) {
+        sessionsUnderConstruction.remove(session);
+      }
 
       // Set the streamSession on the ModelProvider.
       ModelMutation mutation = modelProvider.edit();
@@ -647,13 +656,17 @@ public class FeedSessionManager
     invalidateHead();
     taskQueue.reset();
     // Invalidate all sessions currently under construction
-    for (InitializableSession session : sessionsUnderConstruction) {
+    List<InitializableSession> invalidateSessions;
+    synchronized (lock) {
+      invalidateSessions = new ArrayList<>(sessionsUnderConstruction);
+      sessionsUnderConstruction.clear();
+    }
+    for (InitializableSession session : invalidateSessions) {
       ModelProvider modelProvider = session.getModelProvider();
       if (modelProvider != null) {
         modelProvider.invalidate();
       }
     }
-    sessionsUnderConstruction.clear();
     sessionCache.reset();
     contentCache.reset();
     sharedStateCache.clear();
