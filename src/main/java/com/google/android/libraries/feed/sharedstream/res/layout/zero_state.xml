@@ -77,7 +77,7 @@
             android:layout_below="@id/body_text"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="@dimen/zero_state_button_margin_top"
-            android:text="Refresh"
+            android:text="@string/feed_refresh"
             android:textAllCaps="true"
             android:textColor="@color/google_blue_500"
             android:textSize="@dimen/zero_state_button_text_size" />

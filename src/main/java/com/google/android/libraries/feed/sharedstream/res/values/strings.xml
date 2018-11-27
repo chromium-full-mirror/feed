@@ -43,4 +43,9 @@
                        has been dismissed.">
     More articles will appear soon. Enjoy your evening!
   </string>
+
+  <string name="feed_refresh"
+      description="Text label for button to refresh suggested content. [CHAR-LIMIT=20]">
+    Refresh
+  </string>
 </resources>
