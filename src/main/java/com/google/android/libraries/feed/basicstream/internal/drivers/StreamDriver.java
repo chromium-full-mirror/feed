@@ -301,6 +301,10 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   @Override
   public void onNewChildren(ModelChild modelChild, List<ModelChild> modelChildren) {
     int continuationIndex = removeDriver(modelChild);
+    if (continuationIndex < 0) {
+      Logger.wtf(TAG, "Received an onNewChildren for an unknown child.");
+      return;
+    }
     List<FeatureDriver> newChildren =
         createAndInsertChildrenAtIndex(modelChildren, modelProvider, continuationIndex);
 

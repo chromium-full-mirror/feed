@@ -55,6 +55,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
@@ -449,6 +450,16 @@ public class ContinuationDriverTest {
     continuationDriver.onTokenCompleted(new TokenCompleted(new FakeModelCursor.Builder().build()));
 
     verify(threadUtils).checkMainThread();
+  }
+
+  @Test
+  public void testOnTokenCompleted_afterDestroy() {
+    continuationDriver.onDestroy();
+
+    continuationDriver.onTokenCompleted(new TokenCompleted(new FakeModelCursor.Builder().build()));
+
+    verify(cursorChangedListener, never())
+        .onNewChildren(any(ModelChild.class), Matchers.<List<ModelChild>>any());
   }
 
   @Test

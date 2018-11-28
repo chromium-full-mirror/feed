@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -331,6 +332,19 @@ public class StreamDriverTest {
             getLeafFeatureDriverFromCluster(3),
             getLeafFeatureDriverFromCard(4),
             getLeafFeatureDriverFromCluster(5));
+  }
+
+  @Test
+  public void testContinuationToken_tokenNotFound() {
+    FakeModelCursor initialCursor =
+        new FakeModelCursor.Builder().addCluster().addToken().addCluster().build();
+    FakeModelCursor badCursor = new FakeModelCursor.Builder().addCard().build();
+    when(streamFeature.getCursor()).thenReturn(initialCursor);
+
+    streamDriver.getLeafFeatureDrivers();
+    assertThatRunnable(
+            () -> streamDriver.onNewChildren(badCursor.getChildAt(0), badCursor.getModelChildren()))
+        .throwsAnExceptionOfType(RuntimeException.class);
   }
 
   @Test

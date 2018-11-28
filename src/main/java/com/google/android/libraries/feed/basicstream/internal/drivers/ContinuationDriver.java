@@ -65,6 +65,7 @@ public class ContinuationDriver extends LeafFeatureDriver
   private boolean showSpinner;
   private boolean initialized;
   private boolean viewLogged;
+  private boolean destroyed;
   /*@Nullable*/ private ContinuationViewHolder continuationViewHolder;
 
   ContinuationDriver(
@@ -116,6 +117,8 @@ public class ContinuationDriver extends LeafFeatureDriver
 
   @Override
   public void onDestroy() {
+    destroyed = true;
+
     if (initialized) {
       modelToken.unregisterObserver(this);
     }
@@ -177,6 +180,14 @@ public class ContinuationDriver extends LeafFeatureDriver
   @Override
   public void onTokenCompleted(TokenCompleted tokenCompleted) {
     threadUtils.checkMainThread();
+    if (destroyed) {
+      // Tokens are able to send onTokenCompleted even after unregistering.  This can happen due to
+      // thread switching.  This prevents tokens from being handled after the driver has been
+      // destroyed and should no longer be handled.
+      Logger.w(TAG, "Received onTokenCompleted after being destroyed.");
+      return;
+    }
+
     ModelCursor cursor = tokenCompleted.getCursor();
     List<ModelChild> modelChildren = extractModelChildrenFromCursor(cursor);
 
