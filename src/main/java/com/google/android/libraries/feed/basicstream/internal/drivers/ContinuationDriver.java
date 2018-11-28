@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +67,7 @@ public class ContinuationDriver extends LeafFeatureDriver
   private boolean initialized;
   private boolean viewLogged;
   private boolean destroyed;
+  @SpinnerType private int spinnerType = SpinnerType.INFINITE_FEED;
   /*@Nullable*/ private ContinuationViewHolder continuationViewHolder;
 
   ContinuationDriver(
@@ -111,6 +113,7 @@ public class ContinuationDriver extends LeafFeatureDriver
     if (modelToken.isSynthetic() && consumeSyntheticTokens) {
       Logger.d(TAG, "Handling synthetic token");
       showSpinner = true;
+      spinnerType = SpinnerType.SYNTHETIC_TOKEN;
       modelProvider.handleToken(modelToken);
     }
   }
@@ -121,6 +124,11 @@ public class ContinuationDriver extends LeafFeatureDriver
 
     if (initialized) {
       modelToken.unregisterObserver(this);
+    }
+    // If the spinner was being shown, it will only be removed when the ContinuationDriver is
+    // destroyed. So onSpinnerShown should be logged then.
+    if (spinnerLogger.isSpinnerActive()) {
+      spinnerLogger.spinnerFinished();
     }
   }
 
@@ -133,6 +141,7 @@ public class ContinuationDriver extends LeafFeatureDriver
       return;
     }
     showSpinner = true;
+    spinnerLogger.spinnerStarted(SpinnerType.MORE_BUTTON);
     checkNotNull(continuationViewHolder).setShowSpinner(true);
     modelProvider.handleToken(modelToken);
   }
@@ -148,6 +157,9 @@ public class ContinuationDriver extends LeafFeatureDriver
     continuationViewHolder = (ContinuationViewHolder) viewHolder;
     continuationViewHolder.bind(
         /* onClickListener= */ this, /* loggingListener= */ this, showSpinner);
+    if (showSpinner && !spinnerLogger.isSpinnerActive()) {
+      spinnerLogger.spinnerStarted(spinnerType);
+    }
   }
 
   @Override
@@ -207,6 +219,7 @@ public class ContinuationDriver extends LeafFeatureDriver
   @Override
   public void onError(ModelError modelError) {
     showSpinner = false;
+    spinnerLogger.spinnerFinished();
 
     if (continuationViewHolder != null) {
       continuationViewHolder.setShowSpinner(false);

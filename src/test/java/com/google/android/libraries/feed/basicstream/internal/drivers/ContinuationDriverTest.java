@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
+import com.google.android.libraries.feed.basicstream.internal.logging.SpinnerLogger;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
 import com.google.android.libraries.feed.common.testing.FakeClock;
@@ -47,6 +48,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import java.util.Collections;
@@ -72,6 +74,7 @@ public class ContinuationDriverTest {
   @Mock private ModelProvider modelProvider;
   @Mock private ModelToken modelToken;
   @Mock private SnackbarApi snackbarApi;
+  @Mock private SpinnerLogger spinnerLogger;
   @Mock private ThreadUtils threadUtils;
   @Mock private CursorChangedListener cursorChangedListener;
   @Mock private ContinuationViewHolder continuationViewHolder;
@@ -89,7 +92,7 @@ public class ContinuationDriverTest {
     when(modelChild.getModelToken()).thenReturn(modelToken);
 
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             configuration,
@@ -107,7 +110,7 @@ public class ContinuationDriverTest {
   @Test
   public void testIsSynthetic() {
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
@@ -124,7 +127,7 @@ public class ContinuationDriverTest {
 
     when(modelToken.isSynthetic()).thenReturn(true);
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             configuration,
@@ -143,7 +146,7 @@ public class ContinuationDriverTest {
   @Test
   public void testInitialize_nonSyntheticToken() {
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
@@ -165,7 +168,7 @@ public class ContinuationDriverTest {
   public void testInitialize_syntheticTokenConsume() {
     when(modelToken.isSynthetic()).thenReturn(true);
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder()
@@ -197,7 +200,7 @@ public class ContinuationDriverTest {
   public void testInitialize_syntheticTokenNotConsumed() {
     when(modelToken.isSynthetic()).thenReturn(true);
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder()
@@ -229,7 +232,7 @@ public class ContinuationDriverTest {
   public void testInitialize_autoConsumeSyntheticTokenOnRestore() {
     when(modelToken.isSynthetic()).thenReturn(true);
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder()
@@ -263,7 +266,7 @@ public class ContinuationDriverTest {
   @Test
   public void testBind_immediatePaginationOn() {
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
@@ -285,7 +288,7 @@ public class ContinuationDriverTest {
   @Test
   public void testBind_immediatePaginationOff() {
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false).build(),
@@ -307,7 +310,7 @@ public class ContinuationDriverTest {
   @Test
   public void testBind_noInitialization() {
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false).build(),
@@ -341,7 +344,7 @@ public class ContinuationDriverTest {
   @Test
   public void testOnDestroy_doesNotUnregisterTokenObserver_ifNotInitialized() {
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             configuration,
@@ -414,7 +417,7 @@ public class ContinuationDriverTest {
   public void testBind_listenerDoesNotLogViewIfSpinnerShown() {
     ArgumentCaptor<LoggingListener> captor = ArgumentCaptor.forClass(LoggingListener.class);
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
@@ -518,7 +521,7 @@ public class ContinuationDriverTest {
   @Test
   public void testOnError_hidesSpinnerAfterBeingBound() {
     continuationDriver =
-        new ContinuationDriver(
+        new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
             new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
@@ -546,6 +549,89 @@ public class ContinuationDriverTest {
   }
 
   @Test
+  public void testBind_logsSpinnerStarted_afterInitializeWithSyntheticToken() {
+    when(modelToken.isSynthetic()).thenReturn(true);
+    continuationDriver =
+        new ContinuationDriverForTest(
+            basicLoggingApi,
+            clock,
+            new Configuration.Builder().put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, true).build(),
+            context,
+            cursorChangedListener,
+            modelChild,
+            modelProvider,
+            POSITION,
+            snackbarApi,
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ true);
+    continuationDriver.initialize();
+
+    continuationDriver.bind(continuationViewHolder);
+
+    verify(spinnerLogger).spinnerStarted(SpinnerType.SYNTHETIC_TOKEN);
+  }
+
+  @Test
+  public void testBind_logsSpinnerStarted_ifTriggerImmediatePaginationEnabled() {
+    continuationDriver =
+        new ContinuationDriverForTest(
+            basicLoggingApi,
+            clock,
+            new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
+            context,
+            cursorChangedListener,
+            modelChild,
+            modelProvider,
+            POSITION,
+            snackbarApi,
+            threadUtils,
+            /* forceAutoConsumeSyntheticTokens= */ true);
+    continuationDriver.initialize();
+
+    continuationDriver.bind(continuationViewHolder);
+
+    verify(spinnerLogger).spinnerStarted(SpinnerType.INFINITE_FEED);
+  }
+
+  @Test
+  public void testOnClick_logsSpinnerStarted() {
+    continuationDriver.bind(continuationViewHolder);
+
+    continuationDriver.onClick(/* v= */ null);
+
+    verify(spinnerLogger).spinnerStarted(SpinnerType.MORE_BUTTON);
+  }
+
+  @Test
+  public void testOnError_logsSpinnerFinished() {
+    continuationDriver.bind(continuationViewHolder);
+
+    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+
+    verify(spinnerLogger).spinnerFinished();
+  }
+
+  @Test
+  public void testOnDestroy_logsSpinnerFinished_ifSpinnerActive() {
+    when(spinnerLogger.isSpinnerActive()).thenReturn(true);
+    continuationDriver.bind(continuationViewHolder);
+
+    continuationDriver.onDestroy();
+
+    verify(spinnerLogger).spinnerFinished();
+  }
+
+  @Test
+  public void testOnDestroy_doesNotLogSpinnerFinished_ifSpinnerNotActive() {
+    when(spinnerLogger.isSpinnerActive()).thenReturn(false);
+    continuationDriver.bind(continuationViewHolder);
+
+    continuationDriver.onDestroy();
+
+    verify(spinnerLogger, never()).spinnerFinished();
+  }
+
+  @Test
   public void testMaybeRebind() {
     continuationDriver.bind(continuationViewHolder);
     continuationDriver.maybeRebind();
@@ -566,5 +652,39 @@ public class ContinuationDriverTest {
     verify(continuationViewHolder, never()).unbind();
     verify(continuationViewHolder, never())
         .bind(any(OnClickListener.class), any(LoggingListener.class), anyBoolean());
+  }
+
+  private final class ContinuationDriverForTest extends ContinuationDriver {
+
+    ContinuationDriverForTest(
+        BasicLoggingApi basicLoggingApi,
+        Clock clock,
+        Configuration configuration,
+        Context context,
+        CursorChangedListener cursorChangedListener,
+        ModelChild modelChild,
+        ModelProvider modelProvider,
+        int position,
+        SnackbarApi snackbarApi,
+        ThreadUtils threadUtils,
+        boolean forceAutoConsumeSyntheticTokens) {
+      super(
+          basicLoggingApi,
+          clock,
+          configuration,
+          context,
+          cursorChangedListener,
+          modelChild,
+          modelProvider,
+          position,
+          snackbarApi,
+          threadUtils,
+          forceAutoConsumeSyntheticTokens);
+    }
+
+    @Override
+    SpinnerLogger createSpinnerLogger(BasicLoggingApi basicLoggingApi, Clock clock) {
+      return spinnerLogger;
+    }
   }
 }
