@@ -370,6 +370,9 @@ public class FeedSessionManager
         legacyHeadContent,
         viewDepthProvider);
     sessionCache.put(session.getStreamSession().getStreamToken(), session);
+    synchronized (lock) {
+      sessionsUnderConstruction.remove(session);
+    }
     newSessionCount++;
     Logger.i(
         TAG,
