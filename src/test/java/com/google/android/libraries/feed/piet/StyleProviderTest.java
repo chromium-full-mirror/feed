@@ -242,7 +242,7 @@ public class StyleProviderTest {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
-        .applyPadding(context, view, padding, 0);
+        .applyPadding(context, view, padding, TextElementAdapter.ExtraLineHeight.builder().build());
     verifyPadding(view, padding);
   }
 
@@ -257,118 +257,23 @@ public class StyleProviderTest {
   }
 
   @Test
-  public void testApplyPadding_lineSpacing() {
-    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
-    testApplyPadding_lineSpacing_LollipopAndUp(
-        /* lineSpacing= */ 1.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ 25);
-  }
-
-  @Config(sdk = VERSION_CODES.LOLLIPOP)
-  @Test
-  public void testApplyPadding_lineSpacing_L() {
-    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
-    testApplyPadding_lineSpacing_LollipopAndUp(
-        /* lineSpacing= */ 1.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ 25);
-  }
-
-  @Config(sdk = VERSION_CODES.KITKAT)
-  @Test
-  public void testApplyPadding_lineSpacing_KK() {
-    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
-    testApplyPadding_lineSpacing_KKandUnder(
-        /* lineSpacing= */ 1.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ 25);
-  }
-
-  @Config(sdk = VERSION_CODES.JELLY_BEAN)
-  @Test
-  public void testApplyPadding_lineSpacing_JB() {
-    // The line spacing is 150%. The extra 50% gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, there is an extra 25 at top and bottom.
-    testApplyPadding_lineSpacing_KKandUnder(
-        /* lineSpacing= */ 1.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ 25);
-  }
-
-  @Test
-  public void testApplyPadding_lineSpacingLessThanOne() {
-    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
-    // topAndBottomPadding negative.
-    testApplyPadding_lineSpacing_LollipopAndUp(
-        /* lineSpacing= */ 0.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ -25);
-  }
-
-  @Config(sdk = VERSION_CODES.LOLLIPOP)
-  @Test
-  public void testApplyPadding_lineSpacingLessThanOne_L() {
-    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
-    // topAndBottomPadding negative.
-    testApplyPadding_lineSpacing_LollipopAndUp(
-        /* lineSpacing= */ 0.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ -25);
-  }
-
-  @Config(sdk = VERSION_CODES.KITKAT)
-  @Test
-  public void testApplyPadding_lineSpacingLessThanOne_KK() {
-    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
-    // topAndBottomPadding negative.
-    testApplyPadding_lineSpacing_KKandUnder(
-        /* lineSpacing= */ 0.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ -25);
-  }
-
-  @Config(sdk = VERSION_CODES.JELLY_BEAN)
-  @Test
-  public void testApplyPadding_lineSpacingLessThanOne_JB() {
-    // The line spacing is 50%. The 50% deficit gets split between padding at the top and bottom of
-    // the view, so since the text size is 100, we take away an extra 25 at top and bottom, making
-    // topAndBottomPadding negative.
-    testApplyPadding_lineSpacing_KKandUnder(
-        /* lineSpacing= */ 0.5f, /* textHeight= */ 100.0f, /* topAndBottomPadding= */ -25);
-  }
-
-  private void testApplyPadding_lineSpacing_LollipopAndUp(
-      float lineSpacing, float textHeight, int topAndBottomPadding) {
+  public void testApplyPadding_lineHeight() {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
-    when(textAdapter.getTextHeightPx()).thenReturn(textHeight);
-    new StyleProvider(
-            Style.newBuilder()
-                .setFont(Font.newBuilder().setLineHeightRatio(lineSpacing))
-                .setPadding(padding)
-                .build(),
-            mockAssetProvider)
-        .applyElementStyles(textAdapter);
+    TextElementAdapter.ExtraLineHeight extraLineHeightPadding =
+        TextElementAdapter.ExtraLineHeight.builder()
+            .setTopPaddingPx(50)
+            .setBottomPaddingPx(60)
+            .build();
+    Style paddingStyle = Style.newBuilder().setPadding(padding).build();
+    StyleProvider styleProvider = new StyleProvider(paddingStyle, mockAssetProvider);
 
-    assertThat(textView.getPaddingTop())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) + topAndBottomPadding);
-    assertThat(textView.getPaddingBottom())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) + topAndBottomPadding);
-  }
+    styleProvider.applyPadding(context, view, padding, extraLineHeightPadding);
 
-  private void testApplyPadding_lineSpacing_KKandUnder(
-      float lineSpacing, float textHeight, int topAndBottomPadding) {
-    EdgeWidths padding =
-        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
-    when(textAdapter.getTextHeightPx()).thenReturn(textHeight);
-    new StyleProvider(
-            Style.newBuilder()
-                .setFont(Font.newBuilder().setLineHeightRatio(lineSpacing))
-                .setPadding(padding)
-                .build(),
-            mockAssetProvider)
-        .applyElementStyles(textAdapter);
-
-    // In KitKat and lower, extra line spacing equal to twice the topAndBottomPadding is already
-    // added to the bottom. That means topAndBottomPadding needs to be taken away from the bottom,
-    // to make bottom padding the same as top padding.
-    assertThat(textView.getPaddingTop())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context) + topAndBottomPadding);
-    assertThat(textView.getPaddingBottom())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context) - topAndBottomPadding);
+    // line height top padding (50) + regular top padding (1) = expected final top (51)
+    assertThat(view.getPaddingTop()).isEqualTo(51);
+    // line height bottom padding (60) + regular bottom padding (2) = expected final bottom (62)
+    assertThat(view.getPaddingBottom()).isEqualTo(62);
   }
 
   @Test
@@ -376,7 +281,8 @@ public class StyleProviderTest {
     EdgeWidths padding =
         EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
     Style bordersStyle = Style.newBuilder().setBorders(Borders.newBuilder().setWidth(5)).build();
-    new StyleProvider(bordersStyle, mockAssetProvider).applyPadding(context, view, padding, 0);
+    new StyleProvider(bordersStyle, mockAssetProvider)
+        .applyPadding(context, view, padding, TextElementAdapter.ExtraLineHeight.builder().build());
 
     assertThat(view.getPaddingTop()).isEqualTo((int) LayoutUtils.dpToPx(1 + 5, context));
     assertThat(view.getPaddingBottom()).isEqualTo((int) LayoutUtils.dpToPx(2 + 5, context));
@@ -396,7 +302,7 @@ public class StyleProviderTest {
                     .setBitmask(Edges.BOTTOM.getNumber() | Edges.END.getNumber()))
             .build();
     new StyleProvider(bordersBottomRight, mockAssetProvider)
-        .applyPadding(context, view, padding, 0);
+        .applyPadding(context, view, padding, TextElementAdapter.ExtraLineHeight.builder().build());
 
     assertThat(view.getPaddingTop()).isEqualTo((int) LayoutUtils.dpToPx(1, context));
     assertThat(view.getPaddingBottom()).isEqualTo((int) LayoutUtils.dpToPx(2 + 5, context));

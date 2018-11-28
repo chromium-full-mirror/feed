@@ -18,8 +18,6 @@ import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.Build.VERSION;
-import android.os.Build.VERSION_CODES;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.view.ViewCompat;
 import android.view.View;
@@ -176,16 +174,15 @@ class StyleProvider {
     // Apply layout styles
     EdgeWidths padding = getPadding();
 
-    // Adds padding to the top and bottom of text views to match the behavior of CSS when line
-    // spacing is not 1.0.  This value can be negative if line spacing is less than 1.0.
-    int extraPaddingForLineHeight = 0;
-    if (adapter instanceof TextElementAdapter && getFont().getLineHeightRatio() != 1.0f) {
-      float textSize = ((TextElementAdapter) adapter).getTextHeightPx();
-      float extraLineHeight = (getFont().getLineHeightRatio() - 1.0f) / 2;
-      extraPaddingForLineHeight = (int) (textSize * extraLineHeight);
+    // If this is a TextElementAdapter with line height set, extra padding needs to be added to the
+    // top and bottom to match the css line height behavior.
+    TextElementAdapter.ExtraLineHeight extraLineHeight =
+        TextElementAdapter.ExtraLineHeight.builder().build();
+    if (adapter instanceof TextElementAdapter) {
+      extraLineHeight = ((TextElementAdapter) adapter).getExtraLineHeight();
     }
 
-    applyPadding(context, baseView, padding, extraPaddingForLineHeight);
+    applyPadding(context, baseView, padding, extraLineHeight);
 
     if (getMinHeight() > 0) {
       baseView.setMinimumHeight((int) LayoutUtils.dpToPx(getMinHeight(), context));
@@ -209,26 +206,26 @@ class StyleProvider {
     baseView.setAlpha(style.getOpacity());
   }
 
-  /** Set the padding on a view. This includes adding extra padding for line spacing on TextView. */
+  /**
+   * Set the padding on a view. This includes adding extra padding for line spacing on TextView and
+   * extra padding for borders.
+   */
   void applyPadding(
-      Context context, View view, EdgeWidths padding, int extraTopAndBottomPaddingPx) {
+      Context context,
+      View view,
+      EdgeWidths padding,
+      TextElementAdapter.ExtraLineHeight extraLineHeight) {
     int startPadding =
         (int) LayoutUtils.dpToPx(padding.getStart() + getBorderWidth(Edges.START), context);
     int endPadding =
         (int) LayoutUtils.dpToPx(padding.getEnd() + getBorderWidth(Edges.END), context);
     int topPadding =
         (int) LayoutUtils.dpToPx(padding.getTop() + getBorderWidth(Edges.TOP), context)
-            + extraTopAndBottomPaddingPx;
+            + extraLineHeight.topPaddingPx();
     int bottomPadding =
-        (int) LayoutUtils.dpToPx(padding.getBottom() + getBorderWidth(Edges.BOTTOM), context);
-    // In API version 21 (Lollipop), the implementation of lineSpacingMultiplier() changed to add no
-    // extra space beneath a block of text. Before API 21, we need to subtract the extra padding (so
-    // that only half the padding is on the bottom). After API 21, extra padding needs to be added.
-    if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP) {
-      bottomPadding -= extraTopAndBottomPaddingPx;
-    } else {
-      bottomPadding += extraTopAndBottomPaddingPx;
-    }
+        (int) LayoutUtils.dpToPx(padding.getBottom() + getBorderWidth(Edges.BOTTOM), context)
+            + extraLineHeight.bottomPaddingPx();
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       view.setPaddingRelative(startPadding, topPadding, endPadding, bottomPadding);
     } else {

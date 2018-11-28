@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-
 import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Build;
@@ -25,6 +24,7 @@ import android.support.v4.widget.TextViewCompat;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
@@ -39,6 +39,7 @@ import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
  */
 abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> {
   private static final String TAG = "TextElementAdapter";
+  private ExtraLineHeight extraLineHeight = ExtraLineHeight.builder().build();
 
   TextElementAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, new TextView(context));
@@ -70,7 +71,17 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     TextView textView = getBaseView();
     StyleProvider textStyle = getElementStyle();
     textView.setTextColor(textStyle.getColor());
-    textView.setLineSpacing(/* add= */ 0, textStyle.getFont().getLineHeightRatio());
+
+    if (textStyle.getFont().hasLineHeight()) {
+      textView.setIncludeFontPadding(false);
+      textView.setLineSpacing(
+          /* add= */ getExtraLineHeight().betweenLinesExtraPx(), /* mult= */ 1.0f);
+    } else if (textStyle.getFont().hasLineHeightRatio()) {
+      // TODO Remove this code once transition to line height is complete.
+      textView.setIncludeFontPadding(false);
+      textView.setLineSpacing(/* add= */ 0, textStyle.getFont().getLineHeightRatio());
+    }
+
     // Letter spacing is currently untested due to lack of Robolectric support - don't delete this!
     if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
       textView.setLetterSpacing(textStyle.getFont().getLetterSpacing());
@@ -90,7 +101,6 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
 
   @Override
   void onBindModel(TextElement textLine, Element baseElement, FrameContext frameContext) {
-
     // Set the initial state for the TextView
     // No bindings found, so use the inlined value (or empty if not set)
     setTextOnView(frameContext, textLine);
@@ -110,15 +120,152 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   @Override
   void onUnbindModel() {
     TextView textView = getBaseView();
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       textView.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
     }
     textView.setText("");
   }
 
-  /** Return the height of the text in this view for line spacing calculations. */
-  float getTextHeightPx() {
-    return getBaseView().getTextSize();
+  @VisibleForTesting
+  float calculateOriginalAndExpectedLineHeightDifference() {
+    TextView textView = getBaseView();
+    StyleProvider textStyle = getElementStyle();
+
+    float lineHeightGoalSp = textStyle.getFont().getLineHeight();
+    float lineHeightGoalPx = LayoutUtils.spToPx(lineHeightGoalSp, textView.getContext());
+    float currentHeight = textView.getLineHeight();
+
+    return (lineHeightGoalPx - currentHeight);
+  }
+
+  /**
+   * Returns a line height object which contains the number of pixels that need to be added between
+   * each line, as well as the number of pixels that need to be added to the top and bottom padding
+   * of the element in order to match css line height behavior.
+   */
+  ExtraLineHeight getExtraLineHeight() {
+    Font font = getElementStyle().getFont();
+
+    // The line height cannot change in the same text element adapter, so there is no need to
+    // calculate this more than once. In fact, it should not be calculated more than once, because
+    // if calculateOriginalAndExpectedLineHeightDifference() is called again after adjusting line
+    // spacing, it will return 0, even though we still need the original calculation for padding. If
+    // it was already calculated or there is no line height set, return the saved object.
+    if (extraLineHeight.betweenLinesExtraPx() != 0
+        || (!font.hasLineHeight() && !font.hasLineHeightRatio())) {
+      return extraLineHeight;
+    }
+
+    float extraLineHeightBetweenLinesFloat = calculateOriginalAndExpectedLineHeightDifference();
+    int extraLineHeightBetweenLines = Math.round(extraLineHeightBetweenLinesFloat);
+
+    int totalExtraPadding = 0;
+    if (font.hasLineHeight()) {
+      // Adjust the rounding for the extra top and bottom padding, to make the total height of the
+      // text element a little more exact.
+      totalExtraPadding = adjustRounding(extraLineHeightBetweenLinesFloat);
+    } else if (font.hasLineHeightRatio()) {
+      // TODO Remove this code once transition to line height is complete.
+      float textSize = getBaseView().getTextSize();
+      float extraLineHeightRatio = (font.getLineHeightRatio() - 1.0f);
+      totalExtraPadding = (int) (textSize * extraLineHeightRatio);
+    }
+    int extraPaddingForLineHeightTop = totalExtraPadding / 2;
+    int extraPaddingForLineHeightBottom = totalExtraPadding - extraPaddingForLineHeightTop;
+    // In API version 21 (Lollipop), the implementation of lineSpacingMultiplier() changed to add
+    // no extra space beneath a block of text. Before API 21, we need to subtract the extra
+    // padding (so that only half the padding is on the bottom). That means
+    // extraPaddingForLineHeightBottom needs to be negative.
+    if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP) {
+      if (font.hasLineHeight()) {
+        int currentBottomPixelsAdded = extraLineHeightBetweenLines;
+        extraPaddingForLineHeightBottom =
+            -(currentBottomPixelsAdded - extraPaddingForLineHeightBottom);
+      } else if (font.hasLineHeightRatio()) {
+        // TODO Remove this code once transition to line height is complete.
+        extraPaddingForLineHeightBottom = -extraPaddingForLineHeightBottom;
+      }
+    }
+
+    extraLineHeight =
+        ExtraLineHeight.builder()
+            .setTopPaddingPx(extraPaddingForLineHeightTop)
+            .setBottomPaddingPx(extraPaddingForLineHeightBottom)
+            .setBetweenLinesExtraPx(extraLineHeightBetweenLines)
+            .build();
+
+    return extraLineHeight;
+  }
+
+  /**
+   * Rounds the float value away from the nearest integer, i.e. 4.75 rounds to 4, and 7.2 rounds to
+   * 8.
+   */
+  private int adjustRounding(float floatValueToRound) {
+    int intWithRegularRounding = Math.round(floatValueToRound);
+    // If the regular rounding rounded up, round down with adjusted rounding.
+    if (floatValueToRound - (float) intWithRegularRounding < 0) {
+      return intWithRegularRounding - 1;
+    }
+    // If the regular rounding rounded down, round up with adjusted rounding.
+    if (floatValueToRound - (float) intWithRegularRounding > 0) {
+      return intWithRegularRounding + 1;
+    }
+    return intWithRegularRounding;
+  }
+
+  static class ExtraLineHeight {
+    private final int topPaddingPx;
+    private final int bottomPaddingPx;
+    private final int betweenLinesExtraPx;
+
+    int topPaddingPx() {
+      return topPaddingPx;
+    }
+
+    int bottomPaddingPx() {
+      return bottomPaddingPx;
+    }
+
+    int betweenLinesExtraPx() {
+      return betweenLinesExtraPx;
+    }
+
+    private ExtraLineHeight(int topPadding, int bottomPadding, int betweenLines) {
+      this.topPaddingPx = topPadding;
+      this.bottomPaddingPx = bottomPadding;
+      this.betweenLinesExtraPx = betweenLines;
+    }
+
+    static Builder builder() {
+      return new ExtraLineHeight.Builder();
+    }
+
+    static class Builder {
+      private int topPaddingPx;
+      private int bottomPaddingPx;
+      private int betweenLinesExtraPx;
+
+      Builder setTopPaddingPx(int value) {
+        topPaddingPx = value;
+        return this;
+      }
+
+      Builder setBottomPaddingPx(int value) {
+        bottomPaddingPx = value;
+        return this;
+      }
+
+      Builder setBetweenLinesExtraPx(int value) {
+        betweenLinesExtraPx = value;
+        return this;
+      }
+
+      ExtraLineHeight build() {
+        return new ExtraLineHeight(topPaddingPx, bottomPaddingPx, betweenLinesExtraPx);
+      }
+    }
   }
 
   @VisibleForTesting

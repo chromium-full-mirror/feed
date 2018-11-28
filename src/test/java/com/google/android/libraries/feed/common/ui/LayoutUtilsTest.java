@@ -66,12 +66,24 @@ public class LayoutUtilsTest {
   @Test
   public void testDpToPx() {
     // TODO: Switch this to using @Config to set density to something different than 1.
-    assertThat(LayoutUtils.dpToPx(1000.0f, context)).isEqualTo(1000.0f);
+    assertThat(LayoutUtils.dpToPx(1000.0f, context)).isWithin(1.0e-04f).of(1000.0f);
   }
 
   @Test
   public void testPxToDp() {
     // TODO: Switch this to using @Config to set density to something different than 1.
-    assertThat(LayoutUtils.pxToDp(1000.0f, context)).isEqualTo(1000.0f);
+    assertThat(LayoutUtils.pxToDp(1000.0f, context)).isWithin(1.0e-04f).of(1000.0f);
+  }
+
+  @Test
+  public void testSpToPx() {
+    context.getResources().getDisplayMetrics().scaledDensity = 3.0f;
+    assertThat(LayoutUtils.spToPx(1000.0f, context)).isWithin(1.0e-03f).of(3000.0f);
+  }
+
+  @Test
+  public void testPxToSp() {
+    context.getResources().getDisplayMetrics().scaledDensity = 3.0f;
+    assertThat(LayoutUtils.pxToSp(3000.0f, context)).isWithin(1.0e-04f).of(1000.0f);
   }
 }

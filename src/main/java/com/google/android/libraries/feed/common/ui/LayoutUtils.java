@@ -37,16 +37,44 @@ public class LayoutUtils {
     }
   }
 
-  /** Convert DP to PX */
+  /**
+   * Converts DP to PX, where PX represents the actual number of pixels displayed, based on the
+   * density of the phone screen. DP represents density-independent pixels, which are always the
+   * same size, regardless of density.
+   */
   public static float dpToPx(float dp, Context context) {
     DisplayMetrics metrics = context.getResources().getDisplayMetrics();
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, metrics);
   }
 
-  /** Convert PX to DP */
+  /**
+   * Converts SP to PX, where SP represents scale-independent pixels (a value that scales with
+   * accessibility settings), and PX represents the actual number of pixels displayed, based on the
+   * density of the phone screen.
+   */
+  public static float spToPx(float sp, Context context) {
+    DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, metrics);
+  }
+
+  /**
+   * Converts PX to SP, where SP represents scale-independent pixels (a value that scales with
+   * accessibility settings), and PX represents the actual number of pixels displayed, based on the
+   * density of the phone screen.
+   */
+  public static float pxToSp(float px, Context context) {
+    DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+    return px / metrics.scaledDensity;
+  }
+
+  /**
+   * Converts PX to DP, where PX represents the actual number of pixels displayed, based on the
+   * density of the phone screen. DP represents density-independent pixels, which are always the
+   * same size, regardless of density.
+   */
   public static float pxToDp(float px, Context context) {
     DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, metrics);
+    return px / metrics.density;
   }
 
   /** Determines whether current locale is RTL. */
