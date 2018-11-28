@@ -257,8 +257,12 @@ message Font {
     // Black (extra-bold) font weight.
     BLACK = 6;
   }
+
   // The font weight (boldness) to apply to the text.
-  optional FontWeight weight = 3 [default = REGULAR];
+  // This field is deprecated. Please use a Typeface, and either choose a
+  // CommonFont, which has the weight built in, or include the weight as part of
+  // the style definition for a custom_font.
+  optional FontWeight weight = 3 [default = REGULAR, deprecated = true];
 
   // Apply the italic style to the Font.
   optional bool italic = 4;
@@ -277,7 +281,57 @@ message Font {
   // typefaces requested by the server are available on the client. Piet
   // provides no way to request that a particular font face be downloaded at
   // runtime; this should be done out-of-band if required.
-  repeated string typefaces = 6;
+  // This field is deprecated. Please use the typeface field that uses a
+  // Typeface message instead.
+  repeated string typefaces = 6 [deprecated = true];
+
+  // The typeface to use. Each typeface specified can either be a CommonTypeface
+  // or a string naming a custom typeface. The CommonTypeface actually pairs
+  // commonly-used typefaces with weights. The custom one can be used to
+  // identify any typeface. Multiple typefaces can be specified by the server,
+  // and the first one that is available on the client will be used. If none
+  // match, or if no typefaces are specified, then ERR_FONT_UNAVAILABLE is
+  // raised, and the system default typeface on each platform will be used. Piet
+  // provides no way to request that a particular font face be downloaded at
+  // runtime; this should be done out-of-band if required.
+  repeated Typeface typeface = 8;
+}
+
+message Typeface {
+  // Defines a commonly-used typeface, paired with a weight. "PLATFORM_DEFAULT_"
+  // uses the system default typeface on each platform, and sets the weight.
+  // Google Sans is a cross-platform typeface that should render well on all
+  // platforms. Note that Google Sans will only work if the client has bundled
+  // it in properly.
+  enum CommonTypeface {
+    // The same as PLATFORM_DEFAULT_REGULAR.
+    UNDEFINED = 0;
+
+    PLATFORM_DEFAULT_LIGHT = 1;
+
+    PLATFORM_DEFAULT_REGULAR = 2;
+
+    PLATFORM_DEFAULT_MEDIUM = 3;
+
+    GOOGLE_SANS_REGULAR = 4;
+
+    GOOGLE_SANS_MEDIUM = 5;
+  }
+
+  oneof typeface_specifier {
+    // Commonly used typefaces (with weights).
+    CommonTypeface common_typeface = 1;
+
+    // Any typeface needed that is not included in CommonTypeface should be
+    // specified as a string here. Piet does not provide these typefaces, or any
+    // way to download them at runtime. The host is meant to perform the lookup
+    // and provide the correct typeface to Piet for rendering. If
+    // platform-specific typefaces are needed, the string can be an identifier
+    // (i.e. "group_of_typefaces_for_feature"), and each platform can look up
+    // what that translates to. Piet will NOT parse the custom_typeface string
+    // to set attributes such as font weight.
+    string custom_typeface = 2;
+  }
 }
 
 // Definition of a Border.
