@@ -41,8 +41,12 @@ public class HeaderDriver extends LeafFeatureDriver {
   @Override
   public void bind(FeedViewHolder viewHolder) {
     if (isBound()) {
-      Logger.wtf(TAG, "Rebinding.");
-      return;
+      if (viewHolder == this.headerViewHolder) {
+        Logger.e(TAG, "Being rebound to the previously bound viewholder");
+        return;
+      }
+
+      throw new IllegalStateException("Being bound to a new ViewHolder without being unbound.");
     }
 
     checkState(viewHolder instanceof HeaderViewHolder);

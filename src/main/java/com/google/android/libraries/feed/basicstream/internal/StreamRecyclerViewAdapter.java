@@ -118,17 +118,23 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
 
   @Override
   public void onBindViewHolder(FeedViewHolder viewHolder, int index) {
+    Logger.d(TAG, "onBindViewHolder for index: %s", index);
     if (isHeader(index)) {
+
+      Logger.d(TAG, "Binding header at index %s", index);
       HeaderDriver headerDriver = headers.get(index);
       headerDriver.bind(viewHolder);
       boundViewHolderToLeafFeatureDriverMap.put(viewHolder, headerDriver);
       return;
     }
-    Logger.d(TAG, "onBindViewHolder %s", index);
-    LeafFeatureDriver leafFeatureDriver = leafFeatureDrivers.get(positionToStreamIndex(index));
+
+    int streamIndex = positionToStreamIndex(index);
+
+    Logger.d(TAG, "onBindViewHolder for stream index: %s", streamIndex);
+    LeafFeatureDriver leafFeatureDriver = leafFeatureDrivers.get(streamIndex);
 
     deepestContentTracker.updateDeepestContentTracker(
-        positionToStreamIndex(index), leafFeatureDriver.getContentId());
+        streamIndex, leafFeatureDriver.getContentId());
 
     leafFeatureDriver.bind(viewHolder);
     boundViewHolderToLeafFeatureDriverMap.put(viewHolder, leafFeatureDriver);

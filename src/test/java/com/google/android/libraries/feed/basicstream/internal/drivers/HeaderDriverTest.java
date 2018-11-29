@@ -14,7 +14,9 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
+import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -93,5 +95,26 @@ public class HeaderDriverTest {
     headerDriver.maybeRebind();
     verify(headerViewHolder, never()).bind(header, swipeNotifier);
     verify(headerViewHolder, never()).unbind();
+  }
+
+  @Test
+  public void testBind_rebindToSameViewHolder_bindsOnlyOnce() {
+    // Bind twice to the same viewholder.
+    headerDriver.bind(headerViewHolder);
+    headerDriver.bind(headerViewHolder);
+
+    // Only binds to the viewholder once, ignoring the second bind.
+    verify(headerViewHolder).bind(header, swipeNotifier);
+  }
+
+  @Test
+  public void testBind_bindWhileBoundToOtherViewHolder_unbindsOldViewHolderBindsNew() {
+    HeaderViewHolder initialViewHolder = mock(HeaderViewHolder.class);
+
+    // Bind to one ViewHolder then another.
+    headerDriver.bind(initialViewHolder);
+
+    assertThatRunnable(() -> headerDriver.bind(headerViewHolder))
+        .throwsAnExceptionOfType(IllegalStateException.class);
   }
 }

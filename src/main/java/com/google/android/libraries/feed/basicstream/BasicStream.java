@@ -365,6 +365,12 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @Override
   public void setHeaderViews(List<Header> headers) {
+    Logger.i(
+        TAG,
+        "Setting %s header views, currently have %s headers",
+        headers.size(),
+        this.headers.size());
+
     this.headers = headers;
     adapter.setHeaders(headers);
   }

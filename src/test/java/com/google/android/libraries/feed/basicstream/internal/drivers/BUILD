@@ -133,6 +133,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
+        "//src/main/java/com/google/android/libraries/feed/common/testing",
         "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
