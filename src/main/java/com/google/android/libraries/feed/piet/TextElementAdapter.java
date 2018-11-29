@@ -127,8 +127,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     textView.setText("");
   }
 
-  @VisibleForTesting
-  float calculateOriginalAndExpectedLineHeightDifference() {
+  private float calculateOriginalAndExpectedLineHeightDifference() {
     TextView textView = getBaseView();
     StyleProvider textStyle = getElementStyle();
 
@@ -232,10 +231,10 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       return betweenLinesExtraPx;
     }
 
-    private ExtraLineHeight(int topPadding, int bottomPadding, int betweenLines) {
-      this.topPaddingPx = topPadding;
-      this.bottomPaddingPx = bottomPadding;
-      this.betweenLinesExtraPx = betweenLines;
+    private ExtraLineHeight(Builder builder) {
+      this.topPaddingPx = builder.topPaddingPx;
+      this.bottomPaddingPx = builder.bottomPaddingPx;
+      this.betweenLinesExtraPx = builder.betweenLinesExtraPx;
     }
 
     static Builder builder() {
@@ -263,7 +262,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       }
 
       ExtraLineHeight build() {
-        return new ExtraLineHeight(topPaddingPx, bottomPaddingPx, betweenLinesExtraPx);
+        return new ExtraLineHeight(this);
       }
     }
   }
