@@ -27,10 +27,12 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 public class FakeModelProviderFactory implements ModelProviderFactory {
 
   private FakeModelProvider modelProvider;
+  private String createSessionToken;
 
   @Override
   public ModelProvider create(String sessionToken) {
     this.modelProvider = new FakeModelProvider();
+    this.createSessionToken = sessionToken;
     return modelProvider;
   }
 
@@ -50,5 +52,9 @@ public class FakeModelProviderFactory implements ModelProviderFactory {
 
   public FakeModelProvider getLatestModelProvider() {
     return modelProvider;
+  }
+
+  public String getLatestCreateSessionToken() {
+    return createSessionToken;
   }
 }

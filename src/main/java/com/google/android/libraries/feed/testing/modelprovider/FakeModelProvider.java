@@ -38,6 +38,7 @@ public class FakeModelProvider implements ModelProvider {
   private final Set<ModelProviderObserver> observers = new HashSet<>();
   private ModelFeature rootFeature;
   private boolean wasRefreshTriggered;
+  /*@Nullable*/ private String sessionToken = null;
 
   @Override
   public ModelMutation edit() {
@@ -87,7 +88,7 @@ public class FakeModelProvider implements ModelProvider {
   @Override
   /*@Nullable*/
   public String getSessionToken() {
-    return null;
+    return sessionToken;
   }
 
   @Override
@@ -140,5 +141,9 @@ public class FakeModelProvider implements ModelProvider {
 
   public Set<ModelProviderObserver> getObservers() {
     return observers;
+  }
+
+  public void setSessionToken(String sessionToken) {
+    this.sessionToken = sessionToken;
   }
 }
