@@ -17,6 +17,8 @@ package com.google.android.libraries.feed.piet;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,19 +35,23 @@ import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TextElementAdapter.TextElementKey;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.host.AssetProvider.GoogleSansTypeface;
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
 import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
+import com.google.search.now.ui.piet.StylesProto;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import com.google.search.now.ui.piet.StylesProto.Typeface.CommonTypeface;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -106,15 +112,130 @@ public class TextElementAdapterTest {
   }
 
   @Test
-  public void testSetFont_boldFont() {
-    Font font = Font.newBuilder().setWeight(FontWeight.BOLD).build();
+  public void testSetFont_usesCommonFont() {
+    Font font =
+        Font.newBuilder()
+            .addTypeface(
+                StylesProto.Typeface.newBuilder()
+                    .setCommonTypeface(CommonTypeface.PLATFORM_DEFAULT_MEDIUM))
+            .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("notused"))
+            .build();
+
     TextElementKey key = new TextElementKey(font);
 
-    adapter.setValuesUsedInRecyclerKey(key);
+    adapter.setValuesUsedInRecyclerKey(key, frameContext);
+
+    verify(mockAssetProvider, never()).getTypeface(any(), anyBoolean());
+  }
+
+  @Test
+  public void testSetFont_callsHost() {
+    Font font =
+        Font.newBuilder()
+            .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("goodfont"))
+            .build();
+    Typeface hostTypeface = Typeface.create("host", Typeface.BOLD_ITALIC);
+    when(mockAssetProvider.getTypeface("goodfont", false)).thenReturn(hostTypeface);
+
+    TextElementKey key = new TextElementKey(font);
+
+    adapter.setValuesUsedInRecyclerKey(key, frameContext);
     Typeface typeface = adapter.getBaseView().getTypeface();
-    // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
-    assertThat(typeface.getStyle() & Typeface.BOLD).isGreaterThan(0);
-    assertThat(typeface.getStyle() & Typeface.ITALIC).isEqualTo(0);
+
+    assertThat(typeface).isEqualTo(hostTypeface);
+  }
+
+  @Test
+  public void testSetFont_callsHostWithItalic() {
+    Font font =
+        Font.newBuilder()
+            .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("goodfont"))
+            .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("badfont"))
+            .setItalic(true)
+            .build();
+    Typeface hostTypeface = Typeface.create("host", Typeface.BOLD_ITALIC);
+    when(mockAssetProvider.getTypeface("goodfont", true)).thenReturn(hostTypeface);
+
+    TextElementKey key = new TextElementKey(font);
+
+    adapter.setValuesUsedInRecyclerKey(key, frameContext);
+    Typeface typeface = adapter.getBaseView().getTypeface();
+
+    assertThat(typeface).isEqualTo(hostTypeface);
+  }
+
+  @Test
+  public void testSetFont_callsHostWithFallback() {
+    Font font =
+        Font.newBuilder()
+            .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("badfont"))
+            .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("goodfont"))
+            .build();
+    Typeface hostTypeface = Typeface.create("host", Typeface.BOLD_ITALIC);
+    when(mockAssetProvider.getTypeface("goodfont", false)).thenReturn(hostTypeface);
+
+    TextElementKey key = new TextElementKey(font);
+
+    adapter.setValuesUsedInRecyclerKey(key, frameContext);
+    Typeface typeface = adapter.getBaseView().getTypeface();
+
+    assertThat(typeface).isEqualTo(hostTypeface);
+  }
+
+  @Test
+  public void testSetFont_hostReturnsNull() {
+    Font font =
+        Font.newBuilder()
+            .addTypeface(StylesProto.Typeface.newBuilder().setCustomTypeface("notvalid"))
+            .build();
+    when(mockAssetProvider.getTypeface(anyString(), anyBoolean())).thenReturn(null);
+
+    TextElementKey key = new TextElementKey(font);
+
+    adapter.setValuesUsedInRecyclerKey(key, frameContext);
+    Typeface typeface = adapter.getBaseView().getTypeface();
+
+    assertThat(typeface).isEqualTo(new TextView(context).getTypeface());
+  }
+
+  @Test
+  public void testSetFont_callsHostForGoogleSans() {
+    Font font =
+        Font.newBuilder()
+            .addTypeface(
+                StylesProto.Typeface.newBuilder()
+                    .setCommonTypeface(CommonTypeface.GOOGLE_SANS_MEDIUM))
+            .build();
+    Typeface hostTypeface = Typeface.create("fakegooglesans", Typeface.BOLD_ITALIC);
+    when(mockAssetProvider.getTypeface(GoogleSansTypeface.GOOGLE_SANS_MEDIUM, false))
+        .thenReturn(hostTypeface);
+
+    TextElementKey key = new TextElementKey(font);
+
+    adapter.setValuesUsedInRecyclerKey(key, frameContext);
+    Typeface typeface = adapter.getBaseView().getTypeface();
+
+    assertThat(typeface).isEqualTo(hostTypeface);
+  }
+
+  @Test
+  public void testSetFont_reportsFailureWithGoogleSans() {
+    Font font =
+        Font.newBuilder()
+            .addTypeface(
+                StylesProto.Typeface.newBuilder()
+                    .setCommonTypeface(CommonTypeface.GOOGLE_SANS_MEDIUM))
+            .build();
+    when(mockAssetProvider.getTypeface(GoogleSansTypeface.GOOGLE_SANS_MEDIUM, false))
+        .thenReturn(null);
+
+    TextElementKey key = new TextElementKey(font);
+
+    adapter.setValuesUsedInRecyclerKey(key, frameContext);
+
+    verify(frameContext)
+        .reportMessage(
+            MessageType.ERROR, ErrorCode.ERR_MISSING_FONTS, "Could not load Google Sans");
   }
 
   @Test
@@ -122,11 +243,21 @@ public class TextElementAdapterTest {
     Font font = Font.newBuilder().setItalic(true).build();
     TextElementKey key = new TextElementKey(font);
 
-    adapter.setValuesUsedInRecyclerKey(key);
+    adapter.setValuesUsedInRecyclerKey(key, frameContext);
     Typeface typeface = adapter.getBaseView().getTypeface();
     // Typeface.isBold and Typeface.isItalic don't work properly in roboelectric.
     assertThat(typeface.getStyle() & Typeface.BOLD).isEqualTo(0);
     assertThat(typeface.getStyle() & Typeface.ITALIC).isGreaterThan(0);
+  }
+
+  @Test
+  public void testGoogleSansEnumToStringDef() {
+    assertThat(TextElementAdapter.googleSansEnumToStringDef(CommonTypeface.GOOGLE_SANS_REGULAR))
+        .isEqualTo(GoogleSansTypeface.GOOGLE_SANS_REGULAR);
+    assertThat(TextElementAdapter.googleSansEnumToStringDef(CommonTypeface.GOOGLE_SANS_MEDIUM))
+        .isEqualTo(GoogleSansTypeface.GOOGLE_SANS_MEDIUM);
+    assertThat(TextElementAdapter.googleSansEnumToStringDef(CommonTypeface.PLATFORM_DEFAULT_MEDIUM))
+        .isEqualTo(GoogleSansTypeface.UNDEFINED);
   }
 
   // TODO Remove this test once transition to line height is complete.

@@ -14,7 +14,9 @@
 
 package com.google.android.libraries.feed.piet.host;
 
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.StringDef;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 
@@ -44,8 +46,8 @@ public interface AssetProvider {
 
   /**
    * Determines if Piet should try to resize BitmapDrawables retrieved via {@link #getImage(Image,
-   * Consumer)} to the drawn size. Hosts should return {@literal false} if they perform their own in
-   * memory bitmap cache.
+   * int, int, Consumer)} to the drawn size. Hosts should return {@literal false} if they perform
+   * their own in memory bitmap cache.
    */
   boolean shouldPietResizeBitmaps();
 
@@ -62,4 +64,33 @@ public interface AssetProvider {
    * Fade-in animation will only occur if image loading time takes more than this amount of time.
    */
   int getFadeImageThresholdMs();
+
+  /**
+   * Allows the host to return a typeface Piet would otherwise not be able to access (ex. from
+   * assets). Piet will call this when the typeface is not one Piet recognizes (as a default Android
+   * typeface). If host does not specially handle the specified typeface, host can return {@code
+   * null}, and Piet will proceed through its fallback typefaces.
+   *
+   * <p>Piet also expects the host to provide the Google Sans typeface, and will request it using
+   * the {@link GoogleSansTypeface} StringDef. Piet will report errors if Google Sans is requested
+   * and not found.
+   */
+  /*@Nullable*/
+  Typeface getTypeface(String typeface, boolean isItalic);
+
+  /**
+   * Strings the host can expect to receive to request Google Sans fonts. These are intentionally
+   * decoupled from the Piet CommonTypeface enum so we can change the proto enum names without
+   * breaking older hosts.
+   */
+  @StringDef({
+    GoogleSansTypeface.UNDEFINED,
+    GoogleSansTypeface.GOOGLE_SANS_REGULAR,
+    GoogleSansTypeface.GOOGLE_SANS_MEDIUM
+  })
+  @interface GoogleSansTypeface {
+    String UNDEFINED = "UNDEFINED";
+    String GOOGLE_SANS_REGULAR = "GOOGLE_SANS_REGULAR";
+    String GOOGLE_SANS_MEDIUM = "GOOGLE_SANS_MEDIUM";
+  }
 }

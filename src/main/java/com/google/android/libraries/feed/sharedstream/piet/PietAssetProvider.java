@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.sharedstream.piet;
 
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.text.format.DateUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -90,5 +91,11 @@ public class PietAssetProvider implements AssetProvider {
   @Override
   public int getFadeImageThresholdMs() {
     return fadeImageThresholdMs;
+  }
+
+  @Override
+  /*@Nullable*/
+  public Typeface getTypeface(String typeface, boolean isItalic) {
+    return null;
   }
 }

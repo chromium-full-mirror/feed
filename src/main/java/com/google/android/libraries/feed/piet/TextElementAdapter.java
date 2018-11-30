@@ -26,12 +26,16 @@ import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.android.libraries.feed.piet.host.AssetProvider.GoogleSansTypeface;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
+import com.google.search.now.ui.piet.StylesProto;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.Font.FontWeight;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import com.google.search.now.ui.piet.StylesProto.Typeface.CommonTypeface;
+import java.util.List;
 
 /**
  * Base {@link ElementAdapter} to extend to manage {@code ChunkedText} and {@code ParameterizedText}
@@ -60,7 +64,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     if (getKey() == null) {
       TextElementKey key = createKey(getElementStyle().getFont());
       setKey(key);
-      setValuesUsedInRecyclerKey(key);
+      setValuesUsedInRecyclerKey(key, frameContext);
     }
 
     // Setup the layout of the text lines, including all properties not in the recycler key.
@@ -269,49 +273,123 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
 
   @VisibleForTesting
   // LINT.IfChange
-  void setValuesUsedInRecyclerKey(TextElementKey fontKey) {
+  void setValuesUsedInRecyclerKey(TextElementKey fontKey, FrameContext frameContext) {
     // TODO: Implement typefaces
     TextView textView = getBaseView();
     textView.setTextSize(fontKey.getSize());
-    boolean bold = false;
-    switch (fontKey.getFontWeight()) {
-      case REGULAR:
-        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
-        break;
-      case THIN:
-        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_thin);
-        break;
-      case LIGHT:
+
+    for (StylesProto.Typeface typeface : fontKey.typefaces) {
+      switch (typeface.getTypefaceSpecifierCase()) {
+        case COMMON_TYPEFACE:
+          if (loadCommonTypeface(
+              typeface.getCommonTypeface(), textView, fontKey.isItalic(), frameContext)) {
+            return;
+          }
+          break;
+        case CUSTOM_TYPEFACE:
+          if (loadCustomTypeface(typeface.getCustomTypeface(), textView, fontKey.isItalic())) {
+            return;
+          }
+          break;
+        default:
+          // do nothing
+      }
+    }
+    // We didn't load a font, but we can at least respect italicization.
+    makeFontItalic(textView, fontKey.isItalic());
+  }
+
+  /**
+   * Load one of the typefaces from the {@link CommonTypeface} enum.
+   *
+   * @return true for success, false for failure
+   */
+  private boolean loadCommonTypeface(
+      CommonTypeface commonTypeface,
+      TextView textView,
+      boolean isItalic,
+      FrameContext frameContext) {
+    switch (commonTypeface) {
+      case PLATFORM_DEFAULT_LIGHT:
         TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_light);
         break;
-      case MEDIUM:
+      case PLATFORM_DEFAULT_REGULAR:
+        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
+        break;
+      case PLATFORM_DEFAULT_MEDIUM:
         TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_medium);
         break;
-      case BOLD:
-        bold = true;
-        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
-        break;
-      case BLACK:
-        bold = true;
-        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_black);
-        break;
+      case GOOGLE_SANS_MEDIUM:
+      case GOOGLE_SANS_REGULAR:
+        return loadGoogleSans(commonTypeface, textView, isItalic, frameContext);
       default:
-        TextViewCompat.setTextAppearance(textView, R.style.gm_font_weight_regular);
-        break;
+        return false;
     }
-    if (bold || fontKey.isItalic()) {
-      if (bold && fontKey.isItalic()) {
-        textView.setTypeface(textView.getTypeface(), Typeface.BOLD_ITALIC);
-      } else if (bold) {
-        textView.setTypeface(textView.getTypeface(), Typeface.BOLD);
-      } else if (fontKey.isItalic()) {
-        textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
-      }
+
+    makeFontItalic(textView, isItalic);
+    return true;
+  }
+
+  /**
+   * Ask the host to load a typeface by string identifier.
+   *
+   * @return true for success, false for failure
+   */
+  private boolean loadCustomTypeface(String customTypeface, TextView textView, boolean isItalic) {
+    Typeface hostTypeface =
+        getParameters().hostProviders.getAssetProvider().getTypeface(customTypeface, isItalic);
+    if (hostTypeface != null) {
+      textView.setTypeface(hostTypeface);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Ask the host to load a Google Sans variant. These typefaces are expected to be present, but
+   * can't be included in the Piet library.
+   *
+   * @return true for success, false for failure
+   */
+  private boolean loadGoogleSans(
+      CommonTypeface googleSansType,
+      TextView textView,
+      boolean isItalic,
+      FrameContext frameContext) {
+    boolean success =
+        loadCustomTypeface(googleSansEnumToStringDef(googleSansType), textView, isItalic);
+    if (!success) {
+      frameContext.reportMessage(
+          MessageType.ERROR, ErrorCode.ERR_MISSING_FONTS, "Could not load Google Sans");
+    }
+    return success;
+  }
+  // LINT.ThenChange
+
+  /**
+   * Conversion method to avoid version skew issues if we would ever change the enum names in the
+   * CommonTypeface proto, so we don't need to change all the hosts or old clients.
+   */
+  @VisibleForTesting
+  @GoogleSansTypeface
+  static String googleSansEnumToStringDef(CommonTypeface googleSansType) {
+    switch (googleSansType) {
+      case GOOGLE_SANS_MEDIUM:
+        return GoogleSansTypeface.GOOGLE_SANS_MEDIUM;
+      case GOOGLE_SANS_REGULAR:
+        return GoogleSansTypeface.GOOGLE_SANS_REGULAR;
+      default:
+        return GoogleSansTypeface.UNDEFINED;
+    }
+  }
+
+  private static void makeFontItalic(TextView textView, boolean isItalic) {
+    if (isItalic) {
+      textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
     } else {
       textView.setTypeface(Typeface.create(textView.getTypeface(), Typeface.NORMAL));
     }
   }
-  // LINT.ThenChange
 
   TextElementKey createKey(Font font) {
     return new TextElementKey(font);
@@ -330,21 +408,17 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   // LINT.IfChange
   static class TextElementKey extends RecyclerKey {
     private final int size;
-    private final FontWeight fontWeight;
     private final boolean italic;
+    private final List<StylesProto.Typeface> typefaces;
 
     TextElementKey(Font font) {
       size = font.getSize();
-      fontWeight = font.getWeight();
       italic = font.getItalic();
+      typefaces = font.getTypefaceList();
     }
 
     public int getSize() {
       return size;
-    }
-
-    public FontWeight getFontWeight() {
-      return fontWeight;
     }
 
     public boolean isItalic() {
@@ -355,8 +429,8 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     public int hashCode() {
       // Can't use Objects.hash() as it is only available in KK+ and can't use Guava's impl either.
       int result = size;
-      result = 31 * result + fontWeight.getNumber();
       result = 31 * result + (italic ? 1 : 0);
+      result = 31 * result + typefaces.hashCode();
       return result;
     }
 
@@ -375,7 +449,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       }
 
       TextElementKey key = (TextElementKey) obj;
-      return key.size == size && key.fontWeight == fontWeight && key.italic == italic;
+      return key.size == size && key.italic == italic && typefaces.equals(key.typefaces);
     }
   }
   // LINT.ThenChange
