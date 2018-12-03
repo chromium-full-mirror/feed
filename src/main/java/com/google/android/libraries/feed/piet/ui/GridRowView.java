@@ -187,7 +187,8 @@ public class GridRowView extends LinearLayout {
         }
       }
       // We should not need to resize the cells because they were all already smaller than this.
-      rowHeight = Math.min(rowHeight, maxCellHeight + gridRowVerticalPadding);
+      rowHeight =
+          Math.min(rowHeight, Math.max(maxCellHeight + gridRowVerticalPadding, getMinimumHeight()));
     }
 
     setMeasuredDimension(maxWidth, rowHeight);

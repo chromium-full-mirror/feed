@@ -455,6 +455,60 @@ public class GridRowViewTest {
   }
 
   @Test
+  public void testOnMeasure_respectsMinHeight() {
+    // Several different sizes of cells; ensure that height of GridRowView is the min height.
+
+    TestView square1 = new TestView(context, 20, 20);
+    square1.setLayoutParams(new LayoutParams(20, 20, 0.0f, true));
+    TestView square2 = new TestView(context, 40, 40);
+    square1.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
+    TestView square3 = new TestView(context, 30, 30);
+    square1.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
+
+    gridRowView.addView(square1);
+    gridRowView.addView(square2);
+    gridRowView.addView(square3);
+
+    gridRowView.setLayoutParams(
+        new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+
+    gridRowView.setMinimumHeight(95);
+
+    int sizeSpec = MeasureSpec.makeMeasureSpec(100, MeasureSpec.AT_MOST);
+    gridRowView.measure(sizeSpec, sizeSpec);
+
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(100);
+    assertThat(gridRowView.getMeasuredHeight()).isEqualTo(95);
+  }
+
+  @Test
+  public void testOnMeasure_respectsMinHeightUpToAtMost() {
+    // Several different sizes of cells; ensure that height of GridRowView is the min height.
+
+    TestView square1 = new TestView(context, 20, 20);
+    square1.setLayoutParams(new LayoutParams(20, 20, 0.0f, true));
+    TestView square2 = new TestView(context, 40, 40);
+    square1.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
+    TestView square3 = new TestView(context, 30, 30);
+    square1.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
+
+    gridRowView.addView(square1);
+    gridRowView.addView(square2);
+    gridRowView.addView(square3);
+
+    gridRowView.setLayoutParams(
+        new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+
+    gridRowView.setMinimumHeight(1234);
+
+    int sizeSpec = MeasureSpec.makeMeasureSpec(100, MeasureSpec.AT_MOST);
+    gridRowView.measure(sizeSpec, sizeSpec);
+
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(100);
+    assertThat(gridRowView.getMeasuredHeight()).isEqualTo(100);
+  }
+
+  @Test
   public void testOnMeasure_respectsChildLayoutParams_height() {
     // Several different sizes of cells; ensure that height of GridRowView is same as tallest cell.
 
