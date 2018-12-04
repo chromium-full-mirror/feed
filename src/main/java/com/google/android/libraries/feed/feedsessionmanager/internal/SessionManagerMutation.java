@@ -258,7 +258,7 @@ public class SessionManagerMutation implements Dumpable {
         taskType = clearedHead ? TaskType.HEAD_RESET : TaskType.USER_FACING;
       }
       taskQueue.execute(
-          "MutationCommitter(task "
+          "SessionMutation(task "
               + task
               + ", size "
               + dataOperations.size()

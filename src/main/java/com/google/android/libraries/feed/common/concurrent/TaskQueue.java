@@ -109,6 +109,11 @@ public class TaskQueue implements Dumpable {
   @GuardedBy("lock")
   private boolean initialized = false;
 
+  // Tracks the current task running on the executor
+  /*@Nullable*/ private TaskWrapper currentTask;
+
+  private boolean debugMode = false;
+
   /** Track the time the last task finished. Used for Starvation checks. */
   private final AtomicLong lastTaskFinished = new AtomicLong();
 
@@ -142,6 +147,11 @@ public class TaskQueue implements Dumpable {
     mainThreadHandler = new Handler(Looper.getMainLooper());
   }
 
+  @VisibleForTesting
+  public void setDebugMode(boolean debugMode) {
+    this.debugMode = debugMode;
+  }
+
   /** Returns {@code true} if we are delaying for a request */
   public boolean isMakingRequest() {
     synchronized (lock) {
@@ -160,6 +170,12 @@ public class TaskQueue implements Dumpable {
       initialized = false;
 
       // clear all delayed tasks
+      Logger.i(
+          TAG,
+          " - Reset i: %s, u: %s, b: %s",
+          immediateTasks.size(),
+          userTasks.size(),
+          backgroundTasks.size());
       immediateTasks.clear();
       userTasks.clear();
       backgroundTasks.clear();
@@ -191,23 +207,15 @@ public class TaskQueue implements Dumpable {
       /*@Nullable*/ Runnable timeOutRunnable,
       long timeoutMillis) {
 
-    Logger.i(
-        TAG,
-        " - task[%s - d: %s, b: %s, t: %s]: %s",
-        taskType,
-        isDelayed(),
-        hasBacklog(),
-        timeOutRunnable != null,
-        task);
     countTask(taskType);
-    boolean queueTask = isDelayed();
     TaskWrapper taskWrapper = getTaskWrapper(task, taskType, runnable);
     if (timeOutRunnable != null) {
       taskWrapper =
           new TimeoutTaskWrapper(task, taskType, taskWrapper, timeOutRunnable)
               .startTimeout(timeoutMillis);
     }
-    scheduleTask(queueTask, taskWrapper, taskType);
+    Logger.i(TAG, " - task [%s - d: %s, b: %s]: %s", taskType, isDelayed(), hasBacklog(), task);
+    scheduleTask(taskWrapper, taskType);
   }
 
   @VisibleForTesting
@@ -250,8 +258,8 @@ public class TaskQueue implements Dumpable {
     }
   }
 
-  private void scheduleTask(boolean queueTask, TaskWrapper taskWrapper, @TaskType int taskType) {
-    if (queueTask || hasBacklog()) {
+  private void scheduleTask(TaskWrapper taskWrapper, @TaskType int taskType) {
+    if (isDelayed() || hasBacklog()) {
       delayedRunCount++;
       queueTask(taskWrapper, taskType);
     } else {
@@ -277,9 +285,10 @@ public class TaskQueue implements Dumpable {
           || taskType == TaskType.IMMEDIATE) {
         immediateTasks.add(taskWrapper);
         maxImmediateTasks = Math.max(immediateTasks.size(), maxImmediateTasks);
-        if (taskType == TaskType.HEAD_RESET || initialized) {
-          // HEAD_RESET is executed immediately, HEAD_INVALIDATE and IMMEDIATE are executed after
-          // initialization has completed
+        // An immediate could be created in a delayed state (invalidate head), so we check to
+        // see if we need to run tasks
+        if (initialized && (currentTask == null || debugMode)) {
+          Logger.i(TAG, " - queueTask starting immediate task");
           executeNextTask();
         }
       } else if (taskType == TaskType.USER_FACING) {
@@ -356,16 +365,31 @@ public class TaskQueue implements Dumpable {
 
     /** This will run the task on the {@link Executor}. */
     void runTask() {
-      Logger.i(TAG, "Execute task [%s - d: %s]: %s", taskType, isDelayed(), task);
       executor.execute(this);
     }
 
-    /** Run the task (Runnable) then trigger execution of the next task. */
+    /**
+     * Run the task (Runnable) then trigger execution of the next task. Prevent subclasses from
+     * overriding this method because it tracks state of tasks on the Executor. Protected methods
+     * allow subclasses to customize the {@code run} behavior.
+     */
     @Override
-    public void run() {
+    public final void run() {
+      Logger.i(
+          TAG, "Execute task [%s - d: %s, b: %s]: %s", taskType, isDelayed(), hasBacklog(), task);
+      // maintain the currentTask on the stack encase we queue multiple tasks to the Executor
+      TaskWrapper saveTask = currentTask;
+      currentTask = this;
+
       runnable.run();
+      postRunnableRun();
+
+      currentTask = saveTask;
       executeNextTask();
     }
+
+    /** This allows subclasses to run code post execution of the Task itself. */
+    protected void postRunnableRun() {}
   }
 
   /**
@@ -378,12 +402,10 @@ public class TaskQueue implements Dumpable {
     }
 
     @Override
-    public void run() {
-      runnable.run();
+    protected void postRunnableRun() {
       synchronized (lock) {
         initialized = true;
       }
-      executeNextTask();
     }
   }
 
@@ -396,12 +418,10 @@ public class TaskQueue implements Dumpable {
     }
 
     @Override
-    public void run() {
-      runnable.run();
+    protected void postRunnableRun() {
       synchronized (lock) {
         waitingForHeadReset = false;
       }
-      executeNextTask();
     }
   }
 
@@ -419,10 +439,8 @@ public class TaskQueue implements Dumpable {
     }
 
     @Override
-    public void run() {
-      runnable.run();
+    protected void postRunnableRun() {
       startStarvationCheck();
-      executeNextTask();
     }
   }
 
@@ -436,7 +454,7 @@ public class TaskQueue implements Dumpable {
 
     TimeoutTaskWrapper(
         String task, @TaskType int taskType, Runnable taskRunnable, Runnable timeoutRunnable) {
-      super(task, taskType, taskRunnable);
+      super("timeoutWrapper:" + task, taskType, taskRunnable);
       this.timeoutRunnable = timeoutRunnable;
     }
 
@@ -451,7 +469,6 @@ public class TaskQueue implements Dumpable {
 
     @Override
     void runTask() {
-      Logger.i(TAG, "Execute task [%s - %s]: %s", taskType, isDelayed(), task);
       started.set(true);
       super.runTask();
     }
@@ -460,7 +477,7 @@ public class TaskQueue implements Dumpable {
       if (started.get()) {
         return;
       }
-      Logger.i(TAG, "Execute Timeout [%s]: %s", taskType, task);
+      Logger.w(TAG, "Execute Timeout [%s]: %s", taskType, task);
       executor.execute(timeoutRunnable);
     }
   }

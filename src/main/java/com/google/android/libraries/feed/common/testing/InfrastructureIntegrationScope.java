@@ -105,6 +105,7 @@ public class InfrastructureIntegrationScope {
     ContentStorageDirect contentStorage = new InMemoryContentStorage();
     JournalStorageDirect journalStorage = new InMemoryJournalStorage();
     taskQueue = new TaskQueue(executorService, clock, false);
+    taskQueue.setDebugMode(true);
     store =
         new FeedStore(
             timingUtils,

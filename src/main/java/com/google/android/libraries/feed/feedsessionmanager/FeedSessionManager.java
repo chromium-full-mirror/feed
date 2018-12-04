@@ -657,6 +657,7 @@ public class FeedSessionManager
 
     // Clear the task queue first, preventing any tasks from running until initialization
     invalidateHead();
+    sessionCache.reset();
     taskQueue.reset();
     // Invalidate all sessions currently under construction
     List<InitializableSession> invalidateSessions;
@@ -670,7 +671,6 @@ public class FeedSessionManager
         modelProvider.invalidate();
       }
     }
-    sessionCache.reset();
     contentCache.reset();
     sharedStateCache.clear();
     // Initialize the TaskQueue so new tasks will start running
