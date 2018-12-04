@@ -11,9 +11,7 @@ proto_library(
     srcs = glob(
         ["*.proto"],
     ),
-    deps = [
-        "@com_google_protobuf//:descriptor_proto",
-    ],
+    deps = ["@com_google_protobuf//:descriptor_proto"],
 )
 
 java_proto_library(
