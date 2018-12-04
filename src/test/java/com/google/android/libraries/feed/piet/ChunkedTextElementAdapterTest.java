@@ -514,8 +514,10 @@ public class ChunkedTextElementAdapterTest {
   @Test
   public void testAddTextChunk_setsStyles() {
     int color = 314159;
-    Font font = Font.newBuilder().setItalic(true).setWeight(FontWeight.BOLD).setSize(271).build();
-    int textSize = (int) LayoutUtils.dpToPx(271, context);
+    context.getResources().getDisplayMetrics().scaledDensity = 1.5f;
+    Font font = Font.newBuilder().setItalic(true).setWeight(FontWeight.BOLD).setSize(20).build();
+    // The text scales with accessibility settings: size (20) x scaledDensity (1.5) = final size 30
+    int expectedTextSize = 30;
 
     when(mockStyleProvider.hasColor()).thenReturn(true);
     when(mockStyleProvider.getColor()).thenReturn(color);
@@ -531,7 +533,7 @@ public class ChunkedTextElementAdapterTest {
 
     AbsoluteSizeSpan[] sizeSpans =
         spannable.getSpans(0, PROCESSED_TEXT.length(), AbsoluteSizeSpan.class);
-    assertThat(sizeSpans[0].getSize()).isEqualTo(textSize);
+    assertThat(sizeSpans[0].getSize()).isEqualTo(expectedTextSize);
 
     StyleSpan[] styleSpans = spannable.getSpans(0, PROCESSED_TEXT.length(), StyleSpan.class);
     assertThat(styleSpans[0].getStyle()).isEqualTo(Typeface.ITALIC);

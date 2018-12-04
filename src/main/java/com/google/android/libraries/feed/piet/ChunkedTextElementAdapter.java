@@ -248,7 +248,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     if (chunkStyle.getFont().hasSize()) {
       spannable.setSpan(
           new AbsoluteSizeSpan(
-              (int) LayoutUtils.dpToPx(chunkStyle.getFont().getSize(), getContext())),
+              (int) LayoutUtils.spToPx(chunkStyle.getFont().getSize(), getContext())),
           start,
           spannable.length(),
           Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
