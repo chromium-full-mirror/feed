@@ -59,6 +59,20 @@ android_local_test(
 )
 
 android_local_test(
+    name = "InMemoryContentStorageDirectTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["InMemoryContentStorageDirectTest.java"],
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
+        "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
+        "@bazel_android//:robolectric",
+    ],
+)
+
+android_local_test(
     name = "PersistentContentStorageTest",
     size = "small",
     timeout = "moderate",
@@ -76,6 +90,23 @@ android_local_test(
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_guava_guava//jar",
         "@com_google_truth_truth//jar",
+        "@org_mockito_mockito_all//jar",
+    ],
+)
+
+android_local_test(
+    name = "PersistentContentStorageDirectTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["PersistentContentStorageDirectTest.java"],
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/api/common",
+        "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
+        "//src/main/java/com/google/android/libraries/feed/testing/conformance/storage",
+        "@bazel_android//:robolectric",
+        "@com_google_guava_guava//jar",
         "@org_mockito_mockito_all//jar",
     ],
 )
