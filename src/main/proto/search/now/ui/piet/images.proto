@@ -24,10 +24,7 @@ option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "ImagesProto";
 option cc_enable_arenas = true;
 
-// An image, photo, or icon asset. All three types are represented using the
-// same proto message, with properties specific to each type as optional fields.
-// Specific features like tinting might only be applicable to specific types
-// of Images, e.g. icons only.
+// An image asset.
 message Image {
   // Image sources are `repeated` so that a feature author can specify multiple
   // image sources in the order that they should be attempted to be fetched.
@@ -84,6 +81,8 @@ message Image {
 //     }
 // This enables clients to choose which image to fetch based on the expected
 // width and height, without actually having to fetch it first.
+// These dimensions also allow clients to pre-size the view for the image before
+// it loads so that the view's size doesn't change once the image is loaded.
 message ImageSource {
   // URLs can be "https://" or "asset://".
   // HTTPS URLs can be fetched by a regular network communication library.
@@ -100,11 +99,13 @@ message ImageSource {
 
   // The intrinsic width of this image, expressed in raw pixels. This may be
   // different from the width of the container in which this image should be
-  // displayed.
+  // displayed. This can be used for pre-allocating space for the image before
+  // it loads. It is expected that the server will usually provide this field.
   optional int32 width_px = 4;
 
   // The intrinsic height of this image, expressed in raw pixels. This may be
   // different from the height of the container in which this image should be
-  // displayed.
+  // displayed. This can be used for pre-allocating space for the image before
+  // it loads. It is expected that the server will usually provide this field.
   optional int32 height_px = 5;
 }
