@@ -205,10 +205,12 @@ message Element {
   repeated Content overlays = 22;
 
   // Horizontal gravity of this element's content within the parent container
-  optional GravityHorizontal gravity_horizontal = 12;
+  // Deprecated: use gravity_horizontal on Style instead
+  optional GravityHorizontal gravity_horizontal = 12 [deprecated = true];
 
   // Vertical gravity of this element's content within the parent container
-  optional GravityVertical gravity_vertical = 18;
+  // Deprecated: use gravity_vertical on Style instead
+  optional GravityVertical gravity_vertical = 18 [deprecated = true];
 
   // Defines the overflow behavior for contents that are wider than this
   // Element.
@@ -707,34 +709,6 @@ enum Visibility {
   // removed from the view hierarchy. It is not used to compute layout. This
   // is the equivalent of Android’s visibility:GONE.
   GONE = 3;
-}
-
-// Specifies gravity on the horizontal axis.
-enum GravityHorizontal {
-  GRAVITY_HORIZONTAL_UNSPECIFIED = 0;
-
-  // Align with the start side (left in LTR layouts)
-  GRAVITY_START = 1;
-
-  // Align with the end side (right in LTR layouts)
-  GRAVITY_END = 2;
-
-  // Align centered
-  GRAVITY_CENTER = 3;
-}
-
-// Specifies gravity on the vertical axis.
-enum GravityVertical {
-  GRAVITY_VERTICAL_UNSPECIFIED = 0;
-
-  // Align with the top side
-  GRAVITY_TOP = 1;
-
-  // Align vertically centered
-  GRAVITY_MIDDLE = 2;
-
-  // Align with the bottom side
-  GRAVITY_BOTTOM = 3;
 }
 
 // Defines the behavior for elements that don't fit in the view

@@ -24,9 +24,9 @@ import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
-import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
-import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.PietProto.Frame;
+import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
+import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import java.util.Set;
 
 /** Utility class, providing useful methods to interact with Views. */

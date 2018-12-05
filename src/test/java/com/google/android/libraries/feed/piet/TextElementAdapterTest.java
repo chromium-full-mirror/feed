@@ -42,13 +42,13 @@ import com.google.android.libraries.feed.piet.host.AssetProvider.GoogleSansTypef
 import com.google.search.now.ui.piet.BindingRefsProto.StyleBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
-import com.google.search.now.ui.piet.ElementsProto.GravityHorizontal;
-import com.google.search.now.ui.piet.ElementsProto.GravityVertical;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto;
 import com.google.search.now.ui.piet.StylesProto.Font;
+import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
+import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import com.google.search.now.ui.piet.StylesProto.Typeface.CommonTypeface;

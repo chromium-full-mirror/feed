@@ -60,7 +60,7 @@ message StyleIdsStack {
 }
 
 // A collection of attributes describing an element’s visual properties.
-// NextId: 22
+// NextId: 21
 message Style {
   // Every style must have a name that is unique within the StyleSheet. But
   // don’t go overboard in naming these with namespaced constructs because
@@ -150,6 +150,14 @@ message Style {
   // Scale type for images
   // This may not be supported for images in ChunkedText for all platforms.
   optional Image.ScaleType scale_type = 18 [default = CENTER_INSIDE];
+
+  // Horizontal gravity of this element's content within the parent container
+  // Not respected in GridRow
+  optional GravityHorizontal gravity_horizontal = 19;
+
+  // Vertical gravity of this element's content within the parent container
+  // Not respected in ElementList
+  optional GravityVertical gravity_vertical = 20;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -432,4 +440,32 @@ message EdgeWidths {
 
   // Boundary for trailing edge (right for LTR languages; left for RTL).
   optional uint32 end = 4;
+}
+
+// Specifies gravity on the horizontal axis.
+enum GravityHorizontal {
+  GRAVITY_HORIZONTAL_UNSPECIFIED = 0;
+
+  // Align with the start side (left in LTR layouts)
+  GRAVITY_START = 1;
+
+  // Align with the end side (right in LTR layouts)
+  GRAVITY_END = 2;
+
+  // Align centered
+  GRAVITY_CENTER = 3;
+}
+
+// Specifies gravity on the vertical axis.
+enum GravityVertical {
+  GRAVITY_VERTICAL_UNSPECIFIED = 0;
+
+  // Align with the top side
+  GRAVITY_TOP = 1;
+
+  // Align vertically centered
+  GRAVITY_MIDDLE = 2;
+
+  // Align with the bottom side
+  GRAVITY_BOTTOM = 3;
 }
