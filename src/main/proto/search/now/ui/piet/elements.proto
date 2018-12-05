@@ -269,7 +269,8 @@ message ImageElement {
 
   // Styles applied to this ImageElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
-  optional StyleIdsStack style_references = 1;
+  // Deprecated: use the StyleIdsStack on Element instead.
+  optional StyleIdsStack style_references = 1 [ deprecated = true ];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -284,7 +285,8 @@ message SpacerElement {
 
   // Styles applied to this SpacerElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
-  optional StyleIdsStack style_references = 1;
+  // Deprecated: use the StyleIdsStack on Element instead.
+  optional StyleIdsStack style_references = 1 [ deprecated = true ];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -313,7 +315,8 @@ message TextElement {
 
   // Styles applied to this TextElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
-  optional StyleIdsStack style_references = 1;
+  // Deprecated: use the StyleIdsStack on Element instead.
+  optional StyleIdsStack style_references = 1 [ deprecated = true ];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -331,7 +334,8 @@ message GridRow {
   repeated GridCell cells = 2;
 
   // Styles applied to this GridRow.
-  optional StyleIdsStack style_references = 1;
+  // Deprecated: use the StyleIdsStack on Element instead.
+  optional StyleIdsStack style_references = 1 [ deprecated = true ];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -412,7 +416,8 @@ message ElementList {
   repeated Content contents = 6;
 
   // Styles applied to this ElementList.
-  optional StyleIdsStack style_references = 3;
+  // Deprecated: use the StyleIdsStack on Element instead.
+  optional StyleIdsStack style_references = 3 [ deprecated = true ];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -445,7 +450,8 @@ message CustomElement {
 
   // Styles applied to this CustomElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
-  optional StyleIdsStack style_references = 1;
+  // Deprecated: use the StyleIdsStack on Element instead.
+  optional StyleIdsStack style_references = 1 [ deprecated = true ];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
