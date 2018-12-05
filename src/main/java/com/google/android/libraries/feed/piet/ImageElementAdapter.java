@@ -30,6 +30,7 @@ import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
+import com.google.search.now.ui.piet.ImagesProto.ImageSource;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** An {@link ElementAdapter} for {@code ImageElement} elements. */
@@ -112,6 +113,8 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
 
     image = frameContext.filterImageSourcesByMediaQueryCondition(image);
 
+    getBaseView().setDefaultAspectRatio(getAspectRatio(image));
+
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
     // TODO: Remove the fallback for Image.getScaleType()
     Image.ScaleType scaleType =
@@ -150,6 +153,16 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
             ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
             String.format("Unsupported ScaleType: %s", pietScaleType));
     }
+  }
+
+  @VisibleForTesting
+  static float getAspectRatio(Image image) {
+    for (ImageSource source : image.getSourcesList()) {
+      if (source.getHeightPx() > 0 && source.getWidthPx() > 0) {
+        return ((float) source.getWidthPx()) / source.getHeightPx();
+      }
+    }
+    return 0.0f;
   }
 
   @Override

@@ -32,6 +32,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
+import android.view.View.MeasureSpec;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.testing.FakeClock;
@@ -428,6 +429,36 @@ public class ImageElementAdapterTest {
   }
 
   @Test
+  public void testBindModel_setsAspectRatio() {
+    StyleIdsStack styles = StyleIdsStack.newBuilder().addStyleIds("stylecat").build();
+    setStyle(null, null);
+    Element model =
+        asElement(
+            ImageElement.newBuilder()
+                .setImage(
+                    Image.newBuilder()
+                        .addSources(
+                            ImageSource.newBuilder()
+                                .setWidthPx(100)
+                                .setHeightPx(20) // Aspect ratio of 5.0
+                                .setUrl("http://whatever")))
+                .setStyleReferences(styles)
+                .build());
+
+    adapter.createAdapter(model, frameContext);
+    adapter.bindModel(model, frameContext);
+
+    imageView = adapter.getBaseView();
+
+    imageView.measure(
+        MeasureSpec.makeMeasureSpec(10, MeasureSpec.EXACTLY),
+        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+
+    assertThat(imageView.getMeasuredWidth()).isEqualTo(10);
+    assertThat(imageView.getMeasuredHeight()).isEqualTo(2);
+  }
+
+  @Test
   public void testUnbind() {
     setStyle(HEIGHT_DP, WIDTH_DP);
     adapter.createAdapter(DEFAULT_MODEL, frameContext);
@@ -479,6 +510,32 @@ public class ImageElementAdapterTest {
 
     assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
     assertThat(adapter.getComputedWidthPx()).isEqualTo(widthPx);
+  }
+
+  @Test
+  public void testGetAspectRatio_succeeds() {
+    Image image =
+        Image.newBuilder()
+            .addSources(ImageSource.getDefaultInstance())
+            .addSources(ImageSource.newBuilder().setHeightPx(123))
+            .addSources(ImageSource.newBuilder().setWidthPx(456))
+            .addSources(
+                ImageSource.newBuilder().setWidthPx(99).setHeightPx(33)) // This one gets picked
+            .addSources(ImageSource.newBuilder().setWidthPx(100).setHeightPx(50))
+            .build();
+    assertThat(ImageElementAdapter.getAspectRatio(image)).isWithin(0.01f).of(3.0f);
+  }
+
+  @Test
+  public void testGetAspectRatio_fails() {
+    Image image =
+        Image.newBuilder()
+            .addSources(ImageSource.getDefaultInstance())
+            .addSources(ImageSource.newBuilder().setHeightPx(123))
+            .addSources(ImageSource.newBuilder().setWidthPx(456))
+            .build();
+    assertThat(ImageElementAdapter.getAspectRatio(image)).isZero();
+    assertThat(ImageElementAdapter.getAspectRatio(Image.getDefaultInstance())).isZero();
   }
 
   @Test

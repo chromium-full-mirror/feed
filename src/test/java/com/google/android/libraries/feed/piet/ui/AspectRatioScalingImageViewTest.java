@@ -18,7 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.view.View.MeasureSpec;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +41,7 @@ public class AspectRatioScalingImageViewTest {
   private static final int CONTAINER_HEIGHT = 30;
 
   private AspectRatioScalingImageView view;
-  private BitmapDrawable drawable;
+  private Drawable drawable;
 
   @Before
   public void setUp() {
@@ -68,6 +71,37 @@ public class AspectRatioScalingImageViewTest {
 
     assertThat(view.getMeasuredHeight()).isEqualTo(0);
     assertThat(view.getMeasuredWidth()).isEqualTo(0);
+  }
+
+  @Test
+  public void testScaling_noDrawable_defaultAspectRatio() {
+    int heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+    int widthSpec = MeasureSpec.makeMeasureSpec(CONTAINER_WIDTH, MeasureSpec.EXACTLY);
+    float aspectRatio = 2.0f;
+
+    view.setDefaultAspectRatio(aspectRatio);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo((int) (CONTAINER_WIDTH / aspectRatio));
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_WIDTH);
+  }
+
+  @Test
+  public void testScaling_drawableBadDims_defaultAspectRatio() {
+    int heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+    int widthSpec = MeasureSpec.makeMeasureSpec(CONTAINER_WIDTH, MeasureSpec.EXACTLY);
+    float aspectRatio = 2.0f;
+
+    drawable = new ColorDrawable(Color.RED);
+
+    view.setDefaultAspectRatio(aspectRatio);
+    view.setImageDrawable(drawable);
+
+    view.measure(widthSpec, heightSpec);
+
+    assertThat(view.getMeasuredHeight()).isEqualTo((int) (CONTAINER_WIDTH / aspectRatio));
+    assertThat(view.getMeasuredWidth()).isEqualTo(CONTAINER_WIDTH);
   }
 
   @Test
