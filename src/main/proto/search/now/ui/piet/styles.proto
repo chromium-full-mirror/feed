@@ -60,7 +60,7 @@ message StyleIdsStack {
 }
 
 // A collection of attributes describing an element’s visual properties.
-// NextId: 19
+// NextId: 22
 message Style {
   // Every style must have a name that is unique within the StyleSheet. But
   // don’t go overboard in naming these with namespaced constructs because
@@ -83,6 +83,10 @@ message Style {
 
   // Font information applicable to text elements.
   optional Font font = 4;
+
+  // Text alignment
+  optional TextAlignmentHorizontal text_alignment_horizontal = 21
+      [default = TEXT_ALIGNMENT_START];
 
   // Margins (if given) are outside the specified width/height.
   // The background fills all the area up to the margin, excluding the margin.
@@ -192,6 +196,21 @@ message BoundStyle {
   optional Image.ScaleType scale_type = 5;
 }
 // LINT.ThenChange
+
+// Horizontal alignment of text within a TextElement.
+enum TextAlignmentHorizontal {
+  // This value should never be used.
+  TEXT_ALIGNMENT_HORIZONTAL_UNSPECIFIED = 0;
+
+  // Align with the start side (left in LTR layouts)
+  TEXT_ALIGNMENT_START = 1;
+
+  // Align with the end side (right in LTR layouts)
+  TEXT_ALIGNMENT_END = 2;
+
+  // Align centered
+  TEXT_ALIGNMENT_CENTER = 3;
+}
 
 // Font definitions for text elements. In the interest of preserving
 // consistency, feature authors are highly encouraged to use Fonts as part of a
