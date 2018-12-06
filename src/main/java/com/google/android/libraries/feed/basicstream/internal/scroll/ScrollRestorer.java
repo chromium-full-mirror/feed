@@ -20,10 +20,10 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 
 /**
  * Class which is able to save a scroll position for a RecyclerView and restore to that scroll

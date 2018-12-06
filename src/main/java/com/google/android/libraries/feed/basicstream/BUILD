@@ -40,6 +40,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contextmenumanager",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/offlinemonitor",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/proto:scroll_state_java_proto_lite",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",
         "//src/main/proto/com/google/android/libraries/feed/basicstream/internal/proto:stream_saved_instance_state_java_proto_lite",
         "@androidsdk//com.android.support:recyclerview-v7-25.3.1",

@@ -48,7 +48,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamContentChang
 import com.google.android.libraries.feed.basicstream.internal.StreamItemAnimator;
 import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCallbacks;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
-import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.ScrollState;
+import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;

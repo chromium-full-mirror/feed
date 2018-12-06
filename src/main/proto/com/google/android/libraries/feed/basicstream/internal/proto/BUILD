@@ -5,7 +5,9 @@ licenses(["notice"])  # Apache 2
 proto_library(
     name = "stream_saved_instance_state",
     srcs = ["stream_saved_instance_state.proto"],
-    deps = [],
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/proto:scroll_state",
+    ],
 )
 
 java_lite_proto_library(
