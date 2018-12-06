@@ -48,4 +48,17 @@
       description="Text label for button to refresh suggested content. [CHAR-LIMIT=20]">
     Refresh
   </string>
+
+  <!-- String resources for snackbar pagination errors -->
+  <string name="snackbar_fetch_failed"
+      description="Snackbar text shown when the user presses the More button to get more
+                       suggested articles, but this fails (eg, no internet connectivity).">
+    Can’t get suggestions
+  </string>
+
+  <string name="snackbar_fetch_no_new_suggestions"
+      description="Snackbar text shown when the user presses the More button to get more
+                       suggested articles, the fetch succeeds but provides no new suggestions.">
+    No new suggestions
+  </string>
 </resources>
