@@ -30,6 +30,7 @@ import android.widget.PopupWindow;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
 import java.util.List;
+import com.google.android.libraries.feed.common.logging.Logger;
 
 /** Implementation of {@link ContextMenuManager}. */
 public class ContextMenuManagerImpl implements ContextMenuManager {
@@ -85,9 +86,9 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     checkNotNull(view, "Must set view before attempting to open context menu");
 
     ArrayAdapter<String> adapter =
-        new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, items);
+        new ArrayAdapter<>(context, R.layout.feed_simple_list_item, items);
 
-    ListView listView = createListView(items, context);
+    ListView listView = createListView(adapter, context);
 
     Size measurements =
         menuMeasurer.measureAdapterContent(
@@ -131,6 +132,15 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
   // TODO: Add tests for each case here.
   private int getYOffsetForContextMenu(
       int menuHeight, int anchorViewYInWindow, int anchorViewHeight, int windowHeight) {
+    Logger.i(
+        TAG,
+        "Getting Y offset for context menu. menuHeight: %s, anchorViewYInWindow: %s, "
+            + "anchorViewHeight: %s, windowHeight: %s",
+        menuHeight,
+        anchorViewYInWindow,
+        anchorViewHeight,
+        windowHeight);
+
     // Check if the menu can fit below the card.
     if (menuHeight + anchorViewYInWindow + anchorViewHeight / FRACTION_FROM_EDGE < windowHeight) {
       // Check if 1/FRACTION_FROM_EDGE of the way down the card is visible.
@@ -216,10 +226,7 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
         popupWindow, new Size(widthWithPadding, heightWithPadding));
   }
 
-  private ListView createListView(List<String> items, Context context) {
-    ArrayAdapter<String> adapter =
-        new ArrayAdapter<>(context, R.layout.feed_simple_list_item, items);
-
+  private ListView createListView(ArrayAdapter<String> adapter, Context context) {
     ListView listView = new ListView(context);
     listView.setAdapter(adapter);
     listView.setBackgroundColor(Color.WHITE);
