@@ -27,6 +27,7 @@ import com.google.search.now.ui.piet.ElementsProto.CustomElementData;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
+import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 
 /** Adapter that manages a custom view created by the host. */
 class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
@@ -88,6 +89,11 @@ class CustomElementAdapter extends ElementAdapter<FrameLayout, CustomElement> {
             .getCustomElementProvider()
             .createCustomElement(boundCustomElementData);
     getBaseView().addView(v);
+  }
+
+  @Override
+  StyleIdsStack getSubElementStyleIdsStack() {
+    return getModel().getStyleReferences();
   }
 
   @Override

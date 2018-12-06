@@ -292,15 +292,26 @@ abstract class ElementAdapter<V extends View, M> {
     return elementStyle;
   }
 
-  /**
-   * Returns any styles associated with the bound Element.
-   *
-   * <p>Element doesn't have any styles, but most sub-elements do, so should be overridden wherever
-   * possible.
-   */
+  /** Returns any styles associated with the bound Element. */
   StyleIdsStack getElementStyleIdsStack() {
-    return StyleIdsStack.getDefaultInstance();
+    if (baseElement.hasStyleReferences()) {
+      return baseElement.getStyleReferences();
+    } else {
+      // TODO: Remove this branch.
+      return getSubElementStyleIdsStack();
+    }
   }
+
+  /**
+   * Returns any styles associated with the bound sub-Element.
+   *
+   * <p>To be overridden by sub-Elements.
+   *
+   * @deprecated We are removing the sub-Element style.
+   */
+  // TODO: Remove this method.
+  @Deprecated
+  abstract StyleIdsStack getSubElementStyleIdsStack();
 
   /**
    * Unbinds the current Model from the Adapter. The Adapter will unbind all contained Adapters

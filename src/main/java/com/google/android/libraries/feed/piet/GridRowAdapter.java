@@ -87,7 +87,7 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
   }
 
   @Override
-  StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getSubElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 

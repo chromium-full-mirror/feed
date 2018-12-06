@@ -178,7 +178,7 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
   }
 
   @Override
-  StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getSubElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 

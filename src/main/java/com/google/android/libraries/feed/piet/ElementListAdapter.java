@@ -67,7 +67,7 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   }
 
   @Override
-  StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getSubElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 

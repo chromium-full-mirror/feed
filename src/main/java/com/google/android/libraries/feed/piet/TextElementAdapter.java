@@ -115,7 +115,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   }
 
   @Override
-  StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getSubElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 

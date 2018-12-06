@@ -70,7 +70,7 @@ class SpacerElementAdapter extends ElementAdapter<DividerView, SpacerElement> {
   }
 
   @Override
-  StyleIdsStack getElementStyleIdsStack() {
+  StyleIdsStack getSubElementStyleIdsStack() {
     return getModel().getStyleReferences();
   }
 

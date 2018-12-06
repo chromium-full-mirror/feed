@@ -21,6 +21,7 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
+import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.List;
 
 /** Container adapter that stacks its children in a FrameLayout. */
@@ -37,6 +38,11 @@ class StackedElementAdapter extends ElementContainerAdapter<FrameLayout, List<Co
     for (ElementAdapter<?, ?> childAdapter : childAdapters) {
       updateChildLayoutParams(childAdapter);
     }
+  }
+
+  @Override
+  StyleIdsStack getSubElementStyleIdsStack() {
+    return StyleIdsStack.getDefaultInstance();
   }
 
   private void updateChildLayoutParams(ElementAdapter<? extends View, ?> adapter) {

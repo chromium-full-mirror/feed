@@ -763,5 +763,10 @@ public class ElementContainerAdapterTest {
     List<Content> getModelFromElement(Element baseElement) {
       throw new UnsupportedOperationException("Not used in this test");
     }
+
+    @Override
+    StyleIdsStack getSubElementStyleIdsStack() {
+      return StyleIdsStack.getDefaultInstance();
+    }
   }
 }

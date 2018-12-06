@@ -121,7 +121,7 @@ public class ElementAdapterTest {
     assertThat(adapter.getParameters()).isSameAs(parameters);
     assertThat(adapter.getTemplatedStringEvaluator()).isSameAs(parameters.templatedStringEvaluator);
     assertThat(adapter.getElementStyle()).isSameAs(styleProvider);
-    assertThat(adapter.getElementStyleIdsStack()).isEqualTo(StyleIdsStack.getDefaultInstance());
+    assertThat(adapter.getElementStyleIdsStack()).isEqualTo(TestElementAdapter.SUB_ELEMENT_STYLE);
   }
 
   @Test
@@ -1106,9 +1106,27 @@ public class ElementAdapterTest {
     assertThat(adapter.getView()).isSameAs(roundedCornerWrapperView);
   }
 
+  @Test
+  public void testGetStyleIdsStack() {
+    StyleIdsStack style = StyleIdsStack.newBuilder().addStyleIds("style").build();
+    Element elementWithStyle = Element.newBuilder().setStyleReferences(style).build();
+
+    adapter.createAdapter(elementWithStyle, frameContext);
+
+    assertThat(adapter.getElementStyleIdsStack()).isSameAs(style);
+
+    Element elementWithNoStyle = Element.getDefaultInstance();
+
+    adapter.createAdapter(elementWithNoStyle, frameContext);
+
+    assertThat(adapter.getElementStyleIdsStack()).isEqualTo(TestElementAdapter.SUB_ELEMENT_STYLE);
+  }
+
   // Dummy implementation
   static class TestElementAdapter extends ElementAdapter<View, Object> {
     static final String DEFAULT_MODEL = "MODEL";
+    static final StyleIdsStack SUB_ELEMENT_STYLE =
+        StyleIdsStack.newBuilder().addStyleIds("deprecated").build();
 
     boolean testAdapterCreated = false;
     boolean testAdapterBound = false;
@@ -1133,6 +1151,11 @@ public class ElementAdapterTest {
     @Override
     protected void onBindModel(Object model, Element baseElement, FrameContext frameContext) {
       testAdapterBound = true;
+    }
+
+    @Override
+    StyleIdsStack getSubElementStyleIdsStack() {
+      return SUB_ELEMENT_STYLE;
     }
 
     @Override
