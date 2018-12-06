@@ -214,7 +214,7 @@ public class TaskQueue implements Dumpable {
           new TimeoutTaskWrapper(task, taskType, taskWrapper, timeOutRunnable)
               .startTimeout(timeoutMillis);
     }
-    Logger.i(TAG, " - task [%s - d: %s, b: %s]: %s", taskType, isDelayed(), hasBacklog(), task);
+    Logger.i(TAG, " - task [%s - d: %s, b: %s]: %s", taskType, isDelayed(), backlogSize(), task);
     scheduleTask(taskWrapper, taskType);
   }
 
@@ -331,6 +331,12 @@ public class TaskQueue implements Dumpable {
     }
   }
 
+  private int backlogSize() {
+    synchronized (lock) {
+      return backgroundTasks.size() + userTasks.size() + immediateTasks.size();
+    }
+  }
+
   private void executeNextTask() {
     lastTaskFinished.set(clock.currentTimeMillis());
     synchronized (lock) {
@@ -375,8 +381,9 @@ public class TaskQueue implements Dumpable {
      */
     @Override
     public final void run() {
+      long start = System.nanoTime();
       Logger.i(
-          TAG, "Execute task [%s - d: %s, b: %s]: %s", taskType, isDelayed(), hasBacklog(), task);
+          TAG, "Execute task [%s - d: %s, b: %s]: %s", taskType, isDelayed(), backlogSize(), task);
       // maintain the currentTask on the stack encase we queue multiple tasks to the Executor
       TaskWrapper saveTask = currentTask;
       currentTask = this;
@@ -385,6 +392,7 @@ public class TaskQueue implements Dumpable {
       postRunnableRun();
 
       currentTask = saveTask;
+      Logger.i(TAG, " - Finished %s, time %s ms", task, (System.nanoTime() - start) / 1000000);
       executeNextTask();
     }
 
