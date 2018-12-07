@@ -127,7 +127,9 @@ public class StreamDriverTest {
     when(modelProvider.getRootFeature()).thenReturn(streamFeature);
     when(modelProvider.getCurrentState()).thenReturn(State.READY);
 
-    streamDriver = new StreamDriverForTest(modelProvider, threadUtils, /* restoring= */ false);
+    streamDriver =
+        new StreamDriverForTest(
+            modelProvider, threadUtils, /* restoring= */ false, /* isInitialLoad= */ false);
 
     streamDriver.setStreamContentListener(contentListener);
   }
@@ -398,15 +400,31 @@ public class StreamDriverTest {
   }
 
   @Test
-  public void testGetLeafFeatureDrivers_doesNotAddZeroState_ifRestoring() {
-    streamDriver = new StreamDriverForTest(modelProvider, new ThreadUtils(), /* restoring= */ true);
+  public void testGetLeafFeatureDrivers_doesNotAddZeroState_ifInitialLoad() {
+    streamDriver =
+        new StreamDriverForTest(
+            modelProvider, new ThreadUtils(), /* restoring= */ false, /* isInitialLoad= */ true);
     FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
 
-    assertThat(leafFeatureDrivers).hasSize(0);
+    assertThat(leafFeatureDrivers).isEmpty();
+  }
+
+  @Test
+  public void testGetLeafFeatureDrivers_doesNotAddZeroState_ifRestoring() {
+    streamDriver =
+        new StreamDriverForTest(
+            modelProvider, new ThreadUtils(), /* restoring= */ true, /* isInitialLoad= */ false);
+    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().build();
+
+    when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
+
+    List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
+
+    assertThat(leafFeatureDrivers).isEmpty();
   }
 
   @Test
@@ -624,7 +642,9 @@ public class StreamDriverTest {
 
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
-    streamDriver = new StreamDriverForTest(modelProvider, new ThreadUtils(), /* restoring= */ true);
+    streamDriver =
+        new StreamDriverForTest(
+            modelProvider, new ThreadUtils(), /* restoring= */ true, /* isInitialLoad= */ false);
 
     streamDriver.getLeafFeatureDrivers();
 
@@ -661,7 +681,11 @@ public class StreamDriverTest {
     private List<FeatureDriver> childrenCreated;
     private boolean wasRestoringDuringLastContinuationDriver;
 
-    StreamDriverForTest(ModelProvider modelProvider, ThreadUtils threadUtils, boolean restoring) {
+    StreamDriverForTest(
+        ModelProvider modelProvider,
+        ThreadUtils threadUtils,
+        boolean restoring,
+        boolean isInitialLoad) {
       super(
           actionApi,
           actionManager,
@@ -678,7 +702,8 @@ public class StreamDriverTest {
           streamOfflineMonitor,
           knownContentApi,
           mock(ContextMenuManager.class),
-          restoring);
+          restoring,
+          isInitialLoad);
       childrenCreated = new ArrayList<>();
     }
 

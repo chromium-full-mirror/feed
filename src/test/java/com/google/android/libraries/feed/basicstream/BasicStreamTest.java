@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.basicstream;
 
 import static com.google.android.libraries.feed.api.stream.Stream.POSITION_NOT_KNOWN;
 import static com.google.android.libraries.feed.basicstream.BasicStream.KEY_STREAM_STATE;
+import static com.google.android.libraries.feed.basicstream.BasicStream.MINIMUM_SPINNER_SHOW_TIME;
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -56,7 +57,6 @@ import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.basicstream.internal.DeepestContentTracker;
 import com.google.android.libraries.feed.basicstream.internal.StreamContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
-import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
@@ -81,6 +81,7 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManagerImpl;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -550,6 +551,7 @@ public class BasicStreamTest {
   @Test
   public void testRestore_showsZeroStateIfNoSessionToRestore() {
     basicStream.onShow();
+    mainThreadRunner.runAllTasks();
 
     basicStream.onHide();
     basicStream.onDestroy();
@@ -559,6 +561,7 @@ public class BasicStreamTest {
     basicStream.onCreate(Bundle.EMPTY);
 
     basicStream.onShow();
+    mainThreadRunner.runAllTasks();
 
     verify(streamDriver).showZeroState(/*showSpinner= */ true);
   }
@@ -842,6 +845,68 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testOnSessionStart_showsContentImmediately_ifNotInitialLoad() {
+    basicStream.onShow();
+    basicStream.onSessionStart();
+    reset(adapter);
+
+    basicStream.onSessionStart();
+    verify(adapter).setDriver(streamDriver);
+  }
+
+  @Test
+  public void testOnSessionStart_showsContentImmediately_ifSpinnerTimeElapsed() {
+    clock.set(10);
+    basicStream.onShow();
+    mainThreadRunner.runAllTasks();
+    reset(adapter);
+    clock.set(10 + MINIMUM_SPINNER_SHOW_TIME);
+
+    basicStream.onSessionStart();
+    verify(adapter).setDriver(streamDriver);
+  }
+
+  @Test
+  public void testOnSessionStart_showsContentWithDelay_ifSpinnerTimeNotElapsed() {
+    clock.set(10);
+
+    basicStream.onShow();
+    mainThreadRunner.runAllTasks();
+    reset(adapter);
+
+    basicStream.onSessionStart();
+    verify(adapter, never()).setDriver(any(StreamDriver.class));
+
+    mainThreadRunner.runAllTasks();
+    verify(adapter).setDriver(streamDriver);
+  }
+
+  @Test
+  public void testOnSessionStart_doesNotShowContent_ifSessionFinishesBeforeSpinnerTimeElapsed() {
+    clock.set(10);
+
+    basicStream.onShow();
+    mainThreadRunner.runAllTasks();
+    reset(adapter);
+
+    basicStream.onSessionStart();
+    basicStream.onSessionFinished();
+
+    mainThreadRunner.runAllTasks();
+    verify(adapter, never()).setDriver(streamDriver);
+  }
+
+  @Test
+  public void testOnShow_delaysShowingZeroState_onInitialLoad() {
+    basicStream.onShow();
+
+    verify(streamDriver, never()).showZeroState(/* showSpinner= */ anyBoolean());
+    mainThreadRunner.runAllTasks();
+
+    verify(streamDriver).showZeroState(/* showSpinner= */ true);
+  }
+
+  @Test
   public void testOnHide_setShown() {
     basicStream.onShow();
     reset(adapter);
@@ -968,7 +1033,8 @@ public class BasicStreamTest {
         StreamOfflineMonitor streamOfflineMonitor,
         KnownContentApi knownContentApi,
         ContextMenuManager contextMenuManager,
-        boolean restoring) {
+        boolean restoring,
+        boolean isInitialLoad) {
       streamDriverScrollRestorer = scrollRestorer;
       streamDriverRestoring = restoring;
       return streamDriver;

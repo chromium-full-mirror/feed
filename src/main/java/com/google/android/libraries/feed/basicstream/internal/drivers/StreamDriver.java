@@ -69,6 +69,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   private final BasicLoggingApi basicLoggingApi;
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final ContextMenuManager contextMenuManager;
+  private final boolean isInitialLoad;
 
   private boolean restoring;
   private boolean rootFeatureConsumed;
@@ -92,7 +93,8 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       StreamOfflineMonitor streamOfflineMonitor,
       KnownContentApi knownContentApi,
       ContextMenuManager contextMenuManager,
-      boolean restoring) {
+      boolean restoring,
+      boolean isInitialLoad) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -110,6 +112,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
     this.basicLoggingApi = basicLoggingApi;
     this.streamOfflineMonitor = streamOfflineMonitor;
     this.restoring = restoring;
+    this.isInitialLoad = isInitialLoad;
 
     modelProvider.enableRemoveTracking(
         new StreamRemoveTrackingFactory(modelProvider, knownContentApi));
@@ -132,7 +135,9 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       }
     }
 
-    addNoContentCardOrZeroStateIfNecessary();
+    if (!isInitialLoad) {
+      addNoContentCardOrZeroStateIfNecessary();
+    }
 
     return buildLeafFeatureDrivers(featureDrivers);
   }

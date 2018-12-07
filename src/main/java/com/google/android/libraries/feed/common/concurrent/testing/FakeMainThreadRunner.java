@@ -16,13 +16,18 @@ package com.google.android.libraries.feed.common.concurrent.testing;
 
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /** {@link MainThreadRunner} used for tests which is able to queue up tasks. */
 public class FakeMainThreadRunner extends MainThreadRunner {
 
   private final boolean runTasksImmediately;
-  private final List<Runnable> tasks = new ArrayList<>();
+  private final Set<DelayedRunnable> delayedTasks =
+      new TreeSet<>(Comparator.comparingLong(DelayedRunnable::getDelayMs));
+  private final List<Runnable> immediateTasks = new ArrayList<>();
   private final List<Runnable> completedTasks = new ArrayList<>();
 
   public static FakeMainThreadRunner runTasksImmediately() {
@@ -39,7 +44,16 @@ public class FakeMainThreadRunner extends MainThreadRunner {
 
   @Override
   public void execute(String name, Runnable runnable) {
-    tasks.add(runnable);
+    immediateTasks.add(runnable);
+
+    if (runTasksImmediately) {
+      runAllTasks();
+    }
+  }
+
+  @Override
+  public void executeWithDelay(String name, Runnable runnable, long delayMs) {
+    delayedTasks.add(new DelayedRunnable(runnable, delayMs));
 
     if (runTasksImmediately) {
       runAllTasks();
@@ -47,18 +61,43 @@ public class FakeMainThreadRunner extends MainThreadRunner {
   }
 
   public void runAllTasks() {
-    for (Runnable task : tasks) {
+    for (Runnable task : immediateTasks) {
       task.run();
       completedTasks.add(task);
     }
-    tasks.clear();
+    for (DelayedRunnable task : delayedTasks) {
+      task.getRunnable().run();
+      completedTasks.add(task.getRunnable());
+    }
+
+    immediateTasks.clear();
+    delayedTasks.clear();
   }
 
   public boolean hasTasks() {
-    return !tasks.isEmpty();
+    return !immediateTasks.isEmpty() || !completedTasks.isEmpty();
   }
 
   public int getCompletedTaskCount() {
     return completedTasks.size();
+  }
+
+  private static final class DelayedRunnable {
+
+    private final Runnable runnable;
+    private final long delayMs;
+
+    private DelayedRunnable(Runnable runnable, long delayMs) {
+      this.runnable = runnable;
+      this.delayMs = delayMs;
+    }
+
+    Runnable getRunnable() {
+      return runnable;
+    }
+
+    long getDelayMs() {
+      return delayMs;
+    }
   }
 }

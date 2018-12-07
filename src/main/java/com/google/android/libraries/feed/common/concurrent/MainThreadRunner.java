@@ -36,4 +36,10 @@ public class MainThreadRunner {
     Logger.i(TAG, "Running task [%s] on the Main Thread", name);
     executor.execute(runnable);
   }
+
+  public void executeWithDelay(String name, Runnable runnable, long delayMs) {
+    Logger.i(
+        TAG, "Running task [%s] on the Main Thread with a delay of %d milliseconds", name, delayMs);
+    handler.postDelayed(runnable, delayMs);
+  }
 }

@@ -48,7 +48,6 @@ import com.google.android.libraries.feed.basicstream.internal.StreamContentChang
 import com.google.android.libraries.feed.basicstream.internal.StreamItemAnimator;
 import com.google.android.libraries.feed.basicstream.internal.StreamItemTouchCallbacks;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
-import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
@@ -75,6 +74,7 @@ import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOffli
 import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvider;
+import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.List;
@@ -89,6 +89,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @VisibleForTesting static final String KEY_STREAM_STATE = "stream-state";
   @VisibleForTesting static final long DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = 1000;
+  @VisibleForTesting static final long MINIMUM_SPINNER_SHOW_TIME = 500;
+  @VisibleForTesting static final long MINIMUM_TIME_BEFORE_SHOWING_SPINNER = 500;
 
   private final CardConfiguration cardConfiguration;
   private final Clock clock;
@@ -117,6 +119,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private StreamScrollMonitor streamScrollMonitor;
   private ScrollRestorer scrollRestorer;
   private long sessionStartTimestamp;
+  private long initialLoadingSpinnerStartTime;
+  private boolean isInitialLoad = true;
   private boolean isRestoring;
 
   @LoggingState private int loggingState = LoggingState.STARTING;
@@ -295,11 +299,22 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               streamOfflineMonitor,
               knownContentApi,
               contextMenuManager,
-              isRestoring);
-      adapter.setDriver(streamDriver);
-      if (!isRestoring) {
+              isRestoring,
+              isInitialLoad);
+      if (isInitialLoad && !isRestoring) {
+        mainThreadRunner.executeWithDelay(
+            TAG + " onShow",
+            () -> {
+              if (isInitialLoad) {
+                checkNotNull(streamDriver).showZeroState(/* showSpinner= */ true);
+                initialLoadingSpinnerStartTime = clock.currentTimeMillis();
+              }
+            },
+            MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+      } else if (!isRestoring) {
         streamDriver.showZeroState(/* showSpinner= */ true);
       }
+      adapter.setDriver(streamDriver);
     }
     adapter.setShown(true);
   }
@@ -543,7 +558,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             streamOfflineMonitor,
             knownContentApi,
             contextMenuManager,
-            isRestoring);
+            isRestoring,
+            /* isInitialLoad= */ false);
 
     adapter.setDriver(streamDriver);
     if (loggingState == LoggingState.STARTING
@@ -561,7 +577,37 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     threadUtils.checkMainThread();
     ModelProvider localModelProvider =
         checkNotNull(modelProvider, "Model Provider must be set if a session is active");
-    updateAdapter(localModelProvider);
+    // On initial load, if a loading spinner is currently being shown, the spinner must be shown for
+    // at least the time specified in MINIMUM_SPINNER_SHOW_TIME.
+    if (isInitialLoad && initialLoadingSpinnerStartTime != 0L) {
+      long spinnerDisplayTime = clock.currentTimeMillis() - initialLoadingSpinnerStartTime;
+      // If MINIMUM_SPINNER_SHOW_TIME has elapsed, the new content can be shown immediately.
+      if (spinnerDisplayTime >= MINIMUM_SPINNER_SHOW_TIME) {
+        updateAdapter(localModelProvider);
+        logContent();
+      } else {
+        // If MINIMUM_SPINNER_SHOW_TIME has not elapsed, the new content should only be shown once
+        // the remaining time has been fulfilled.
+        mainThreadRunner.executeWithDelay(
+            TAG + " onSessionStart",
+            () -> {
+              // Only show content if model providers are the same. If they are different, this
+              // indicates that the session finished before the spinner show time elapsed.
+              if (modelProvider == localModelProvider) {
+                updateAdapter(localModelProvider);
+                logContent();
+              }
+            },
+            MINIMUM_SPINNER_SHOW_TIME - spinnerDisplayTime);
+      }
+    } else {
+      updateAdapter(localModelProvider);
+      logContent();
+    }
+    isInitialLoad = false;
+  }
+
+  private void logContent() {
     if (loggingState == LoggingState.STARTING) {
       if (!checkNotNull(streamDriver).hasContent()
           && clock.currentTimeMillis() - sessionStartTimestamp > immediateContentThreshold) {
@@ -635,7 +681,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       StreamOfflineMonitor streamOfflineMonitor,
       KnownContentApi knownContentApi,
       ContextMenuManager contextMenuManager,
-      boolean restoring) {
+      boolean restoring,
+      boolean isInitialLoad) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -652,7 +699,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         streamOfflineMonitor,
         knownContentApi,
         contextMenuManager,
-        restoring);
+        restoring,
+        isInitialLoad);
   }
 
   @VisibleForTesting
