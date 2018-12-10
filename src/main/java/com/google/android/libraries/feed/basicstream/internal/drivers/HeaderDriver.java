@@ -46,7 +46,8 @@ public class HeaderDriver extends LeafFeatureDriver {
         return;
       }
 
-      throw new IllegalStateException("Being bound to a new ViewHolder without being unbound.");
+      Logger.wtf(TAG, "Being bound to a new ViewHolder without being unbound.");
+      return;
     }
 
     checkState(viewHolder instanceof HeaderViewHolder);

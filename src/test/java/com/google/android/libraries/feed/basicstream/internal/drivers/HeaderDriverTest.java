@@ -115,6 +115,6 @@ public class HeaderDriverTest {
     headerDriver.bind(initialViewHolder);
 
     assertThatRunnable(() -> headerDriver.bind(headerViewHolder))
-        .throwsAnExceptionOfType(IllegalStateException.class);
+        .throwsAnExceptionOfType(RuntimeException.class);
   }
 }
