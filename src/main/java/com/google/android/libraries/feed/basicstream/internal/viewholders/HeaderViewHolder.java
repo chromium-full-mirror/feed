@@ -16,10 +16,10 @@ package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
+import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.stream.Header;
-import com.google.android.libraries.feed.common.logging.Logger;
 
 /** {@link FeedViewHolder} for headers. */
 public class HeaderViewHolder extends FeedViewHolder implements SwipeableViewHolder {
@@ -39,14 +39,15 @@ public class HeaderViewHolder extends FeedViewHolder implements SwipeableViewHol
     this.header = header;
     this.swipeNotifier = swipeNotifier;
     ViewParent parent = header.getView().getParent();
-    if (parent == null) {
-      frameLayout.addView(header.getView());
-    } else if (parent != frameLayout) {
-      Logger.wtf(
-          TAG,
-          "Header already has a parent which is not the view holder's FrameLayout. "
-              + "This should not happen.");
+    if (parent == frameLayout) {
+      return;
     }
+    // If header was bound to another HeaderViewHolder but not unbound properly, remove it from its
+    // parent view.
+    if (parent != null) {
+      ((ViewGroup) parent).removeView(header.getView());
+    }
+    frameLayout.addView(header.getView());
   }
 
   @Override

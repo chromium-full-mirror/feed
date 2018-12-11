@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
-import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -114,7 +113,9 @@ public class HeaderDriverTest {
     // Bind to one ViewHolder then another.
     headerDriver.bind(initialViewHolder);
 
-    assertThatRunnable(() -> headerDriver.bind(headerViewHolder))
-        .throwsAnExceptionOfType(RuntimeException.class);
+    headerDriver.bind(headerViewHolder);
+
+    verify(initialViewHolder).unbind();
+    verify(headerViewHolder).bind(header, swipeNotifier);
   }
 }

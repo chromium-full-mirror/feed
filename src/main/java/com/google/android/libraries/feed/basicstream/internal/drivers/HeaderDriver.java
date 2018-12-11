@@ -45,9 +45,7 @@ public class HeaderDriver extends LeafFeatureDriver {
         Logger.e(TAG, "Being rebound to the previously bound viewholder");
         return;
       }
-
-      Logger.wtf(TAG, "Being bound to a new ViewHolder without being unbound.");
-      return;
+      unbind();
     }
 
     checkState(viewHolder instanceof HeaderViewHolder);

@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
-import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -61,12 +60,14 @@ public class HeaderViewHolderTest {
   }
 
   @Test
-  public void testBind_headerViewHasParent() {
+  public void testBind_removesHeaderFromPreviousView_ifHeaderViewAlreadyHasParent() {
     FrameLayout parentView = new FrameLayout(context);
     parentView.addView(headerView);
 
-    assertThatRunnable(() -> headerViewHolder.bind(header, swipeNotifier))
-        .throwsAnExceptionOfType(RuntimeException.class);
+    headerViewHolder.bind(header, swipeNotifier);
+
+    assertThat(parentView.getChildCount()).isEqualTo(0);
+    assertThat(frameLayout.getChildAt(0)).isSameAs(headerView);
   }
 
   @Test
