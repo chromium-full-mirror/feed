@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
@@ -135,7 +136,11 @@ public class FrameContextTest {
     context = Robolectric.buildActivity(Activity.class).get();
     hostBindingProvider = new HostBindingProvider();
     hostProviders =
-        new HostProviders(assetProvider, mock(CustomElementProvider.class), hostBindingProvider);
+        new HostProviders(
+            assetProvider,
+            mock(CustomElementProvider.class),
+            hostBindingProvider,
+            mock(EventLogger.class));
     defaultStyleProvider = new StyleProvider(DEFAULT_STYLE, assetProvider);
 
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);

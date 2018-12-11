@@ -136,4 +136,21 @@ public class DebugLoggerTest {
     assertThat(warningView.getChildCount()).isEqualTo(2);
     assertThat(((TextView) warningView.getChildAt(1)).getText().toString()).isEqualTo(WARNING_TEXT);
   }
+
+  @Test
+  public void testGetErrorCodes() {
+    debugLogger.recordMessage(MessageType.ERROR, ErrorCode.ERR_MISSING_FONTS, ERROR_TEXT_1);
+    debugLogger.recordMessage(MessageType.ERROR, ErrorCode.ERR_MISSING_FONTS, ERROR_TEXT_2);
+    debugLogger.recordMessage(MessageType.ERROR, ErrorCode.ERR_DUPLICATE_STYLE, ERROR_TEXT_1);
+    debugLogger.recordMessage(MessageType.WARNING, ErrorCode.ERR_MISSING_FONTS, WARNING_TEXT);
+    debugLogger.recordMessage(MessageType.WARNING, ErrorCode.ERR_DUPLICATE_TEMPLATE, WARNING_TEXT);
+
+    assertThat(debugLogger.getErrorCodes())
+        .containsExactly(
+            ErrorCode.ERR_MISSING_FONTS,
+            ErrorCode.ERR_MISSING_FONTS,
+            ErrorCode.ERR_DUPLICATE_STYLE,
+            ErrorCode.ERR_MISSING_FONTS,
+            ErrorCode.ERR_DUPLICATE_TEMPLATE);
+  }
 }

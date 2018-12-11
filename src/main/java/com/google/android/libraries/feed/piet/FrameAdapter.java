@@ -147,6 +147,10 @@ public class FrameAdapter {
         frameView.addView(warningView);
       }
     }
+    parameters
+        .hostProviders
+        .getEventLogger()
+        .logEvents(localFrameContext.getDebugLogger().getErrorCodes());
   }
 
   public void unbindModel() {

@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.EventLogger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,9 +64,7 @@ public class PietManagerTest {
     viewGroup2 = new FrameLayout(context);
     pietManager =
         new PietManager(
-            DebugBehavior.VERBOSE,
-            assetProvider,
-            customElementProvider);
+            DebugBehavior.VERBOSE, assetProvider, customElementProvider, mock(EventLogger.class));
   }
 
   @Test

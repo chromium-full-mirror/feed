@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterMode
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
@@ -54,6 +55,7 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
@@ -107,6 +109,7 @@ public class FrameAdapterTest {
   @Mock private CustomElementProvider customElementProvider;
   @Mock private ActionHandler actionHandler;
   @Mock private HostProviders hostProviders;
+  @Mock private EventLogger eventLogger;
 
   @Captor private ArgumentCaptor<LayoutParams> layoutParamsCaptor;
 
@@ -142,6 +145,7 @@ public class FrameAdapterTest {
     when(templateAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
     when(templateAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(hostProviders.getEventLogger()).thenReturn(eventLogger);
     when(frameContext.reportMessage(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
             invocationOnMock -> {
@@ -271,7 +275,8 @@ public class FrameAdapterTest {
             debugBehavior,
             new DebugLogger(),
             actionHandler,
-            new HostProviders(assetProvider, customElementProvider, new HostBindingProvider()),
+            new HostProviders(
+                assetProvider, customElementProvider, new HostBindingProvider(), eventLogger),
             context,
             new FrameLayout(context));
 
@@ -671,5 +676,37 @@ public class FrameAdapterTest {
     frameAdapter.bindModel(frame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
 
     assertThat(frameAdapter.getView().getChildCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testEventLoggerReporting() {
+    List<ErrorCode> errorCodes = new ArrayList<>();
+    errorCodes.add(ErrorCode.ERR_DUPLICATE_STYLE);
+    errorCodes.add(ErrorCode.ERR_POOR_FRAME_RATE);
+    when(debugLogger.getErrorCodes()).thenReturn(errorCodes);
+
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
+
+    frameAdapter.bindModel(frame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
+
+    verify(eventLogger).logEvents(errorCodes);
+  }
+
+  @Test
+  public void testEventLoggerReporting_withFatalError() {
+    List<ErrorCode> errorCodes = new ArrayList<>();
+    errorCodes.add(ErrorCode.ERR_DUPLICATE_STYLE);
+    errorCodes.add(ErrorCode.ERR_POOR_FRAME_RATE);
+    when(debugLogger.getErrorCodes()).thenReturn(errorCodes);
+
+    when(frameContext.makeStyleFor(any()))
+        .thenThrow(new PietFatalException(ErrorCode.ERR_UNSPECIFIED, "test exception"));
+
+    Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
+
+    frameAdapter.bindModel(frame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
+
+    verify(frameContext).makeStyleFor(any()); // Ensure an exception was thrown
+    verify(eventLogger).logEvents(errorCodes);
   }
 }

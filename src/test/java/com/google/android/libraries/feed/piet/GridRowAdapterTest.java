@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.GridRowAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.ui.GridRowView;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.GridCellWidthBindingRef;
@@ -959,6 +960,8 @@ public class GridRowAdapterTest {
                                             .setElement(
                                                 Element.newBuilder().setGridRow(gridRow))))))
             .build();
+    EventLogger mockEventLogger = mock(EventLogger.class);
+    when(hostProviders.getEventLogger()).thenReturn(mockEventLogger);
     FrameAdapter frameAdapter =
         new FrameAdapter(context, adapterParameters, actionHandler, DebugBehavior.SILENT);
     frameAdapter.bindModel(frame, 0, null, Collections.emptyList());

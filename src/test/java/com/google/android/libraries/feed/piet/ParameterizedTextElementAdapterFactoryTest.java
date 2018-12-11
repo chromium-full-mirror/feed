@@ -27,6 +27,7 @@ import android.content.Context;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.piet.TextElementAdapter.TextElementKey;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
+import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.StylesProto.Font;
@@ -61,7 +62,10 @@ public class ParameterizedTextElementAdapterFactoryTest {
     context = Robolectric.buildActivity(Activity.class).get();
     adapterParameters =
         new AdapterParameters(
-            null, null, new HostProviders(mock(AssetProvider.class), null, null), new FakeClock());
+            null,
+            null,
+            new HostProviders(mock(AssetProvider.class), null, null, mock(EventLogger.class)),
+            new FakeClock());
     when(keySupplier.getAdapter(context, adapterParameters))
         .thenReturn(adapter)
         .thenReturn(adapter2);

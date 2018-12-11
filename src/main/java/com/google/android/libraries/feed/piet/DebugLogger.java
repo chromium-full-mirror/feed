@@ -95,6 +95,16 @@ class DebugLogger {
     return messages.get(messageType);
   }
 
+  List<ErrorCode> getErrorCodes() {
+    List<ErrorCode> errorCodes = new ArrayList<>();
+    for (int i = 0; i < messages.size(); i++) {
+      for (ErrorCodeAndMessage errorCodeAndMessage : messages.valueAt(i)) {
+        errorCodes.add(errorCodeAndMessage.errorCode);
+      }
+    }
+    return errorCodes;
+  }
+
   private View getDivider(Context context) {
     View v = new View(context);
     LayoutParams layoutParams =
