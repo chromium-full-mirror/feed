@@ -297,7 +297,13 @@ message Font {
   // Sets text letter-spacing in em units. Typical values for slight expansion
   // will be around 0.05. Negative values tighten text. Also known as “tracking”
   // in typography, or “character spacing” in image editing tools.
-  optional float letter_spacing = 5;
+  optional float letter_spacing = 5 [deprecated = true];
+
+  // Sets text letter spacing in dp. This indicates how much space will be
+  // added between characters. Negative values tighten text, whereas positive
+  // values increase space between letters. Also known as “tracking” in
+  // typography, or “character spacing” in image editing tools.
+  optional float letter_spacing_dp = 9;
 
   // The typeface to use, e.g. "roboto", "open-sans", or "product-sans".
   // Multiple typefaces can be specified by the server, and the first one that
