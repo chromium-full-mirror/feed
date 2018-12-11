@@ -606,6 +606,19 @@ public class StreamDriverTest {
   }
 
   @Test
+  public void testOnDestroy_clearsFeatureDrivers() {
+    streamDriver =
+        new StreamDriverForTest(
+            modelProvider, new ThreadUtils(), /* restoring= */ false, /* isInitialLoad= */ true);
+    when(streamFeature.getCursor()).thenReturn(new FakeModelCursor.Builder().addCard().build());
+
+    assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
+    streamDriver.onDestroy();
+
+    assertThat(streamDriver.getLeafFeatureDrivers()).isEmpty();
+  }
+
+  @Test
   public void testHasContent_returnsTrue() {
     FakeModelCursor cursor = new FakeModelCursor.Builder().addCard().addToken().build();
     when(streamFeature.getCursor()).thenReturn(cursor);

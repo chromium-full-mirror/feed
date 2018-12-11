@@ -338,6 +338,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
       modelFeature.unregisterObserver(this);
       modelFeatureChangeObserverRegistered = false;
     }
+    featureDrivers.clear();
     modelChildFeatureDriverMap.clear();
   }
 
