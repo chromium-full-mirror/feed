@@ -126,7 +126,7 @@ message VisibilityState {
 // Element size expands to fill its container, unless the content is taller than
 // the container, and the container height is not specified explicitly. In that
 // case, the Element and the container both get the height of the content.
-// Next available ID: 24
+// Next Id: 25
 message Element {
   // The specific content represented by this Element.
   oneof elements {
@@ -145,11 +145,14 @@ message Element {
 
     /*** CONTAINER ELEMENTS ***/
 
-    // A GridRow contains a set of Cells.
+    // A horizontal layout of multiple items.
     GridRow grid_row = 5;
 
-    // A list of Elements.
+    // A vertical layout of multiple items.
     ElementList element_list = 6;
+
+    // Multiple items stacked on top of each other (overlay).
+    ElementStack element_stack = 24;
 
     /*** END CONTAINER ELEMENTS ***/
 
@@ -202,7 +205,9 @@ message Element {
   // gravity settings. The index of the item inside the repeated field
   // determines the order in which views will be laid out. Later items will
   // appear above the earlier ones.
-  repeated Content overlays = 22;
+  // Deprecated: To make an overlay on an Element, wrap the Element in an
+  // ElementStack.
+  repeated Content overlays = 22 [deprecated = true];
 
   // Horizontal gravity of this element's content within the parent container
   // Deprecated: use gravity_horizontal on Style instead
@@ -330,7 +335,9 @@ message TextElement {
 /*
  *** CONTAINER ELEMENTS ***
  */
-// A GridRow is a grid structure forming a horizontal slice.
+// A horizontally-oriented left-to-right list of Contents with specified widths.
+// Without explicit dimensions or constraints by the parent, this container is
+// as tall as its tallest child, and as wide as the sum of its cells.
 message GridRow {
   // A list of cells defining the content of the grid.
   repeated GridCell cells = 2;
@@ -344,8 +351,13 @@ message GridRow {
 }
 
 // The Grid Cell represents the contents within a GridRow.
-// The Content within each cell expands to fill the cell.
-// Next available ID: 8
+// The content within each cell is always the same width as the cell (minus
+// margins) - width on the content's style is ignored. If the cell has extra
+// vertical space (the GridRow is taller than the content), the content can
+// float vertically with gravity.
+// If the child's style does not specify a height, it defaults to matching the
+// height of the GridRow.
+// Next Id: 8
 message GridCell {
   // The content of the GridCell.
   optional Content content = 7;
@@ -413,6 +425,10 @@ message GridCellWidth {
 }
 
 // A vertically-oriented top-to-bottom list of Contents.
+// Without explicit dimensions or constraints by the parent, this container is
+// as wide as its largest child, and as tall as the sum of its children.
+// Cell height is always the size of the child Element, and vertical gravity is
+// ignored. Cell width defaults to the width of the ElementList.
 message ElementList {
   // The list items to be laid out vertically.
   repeated Content contents = 6;
@@ -427,6 +443,21 @@ message ElementList {
   // Deprecated field IDs.
   reserved 1, 2, 4, 5;
 }
+
+// A stacked (overlaid) bottom-to-top list of Contents.
+// Children can be smaller than the ElementStack and float around within it
+// subject to their horizontal and vertical gravity.
+// Without explicit dimensions or constraints by the parent, this container is
+// as large as its largest child.
+// By default, children are the size of their content.
+message ElementStack {
+  // The items to be stacked from bottom to top.
+  repeated Content contents = 1;
+
+  // Please use CL numbers you own for extension numbers.
+  extensions 10000 to max;
+}
+
 /*
  *** END CONTAINER ELEMENTS ***
  */
@@ -535,7 +566,7 @@ message BindingContext {
 
 // A BindingValue is a name/value pair which provides a value to be substituted
 // wherever the specified `binding_id` is defined in the Template.
-// Next available ID: 17
+// Next Id: 17
 message BindingValue {
   // The name of the binding within the Template where this BindingValue should
   // be substituted. Must be unique within a binding context.
