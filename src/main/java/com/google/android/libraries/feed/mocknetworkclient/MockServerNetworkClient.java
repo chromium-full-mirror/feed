@@ -106,6 +106,8 @@ public class MockServerNetworkClient implements NetworkClient {
         .postDelayed(() -> responseConsumer.accept(httpResponse), responseDelay);
   }
 
+  // TODO Fix nullness violation: incompatible types in argument.
+  @SuppressWarnings("nullness:argument.type.incompatible")
   private Request getRequest(HttpRequest httpRequest) throws IOException {
     byte[] rawRequest = new byte[0];
     if (httpRequest.getMethod().equals(HttpMethod.GET)) {
