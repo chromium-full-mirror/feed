@@ -124,6 +124,32 @@ public class ElementAdapterTest {
     assertThat(adapter.getElementStyleIdsStack()).isEqualTo(TestElementAdapter.SUB_ELEMENT_STYLE);
   }
 
+  // TODO: remove Element gravity and roll this test into the above testGetters
+  @Test
+  public void testGravityGetter() {
+    // Pre-creation
+    assertThat(adapter.getHorizontalGravity())
+        .isEqualTo(GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED);
+    assertThat(adapter.getVerticalGravity())
+        .isEqualTo(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED);
+
+    when(styleProvider.hasGravityHorizontal()).thenReturn(true);
+    when(styleProvider.hasGravityVertical()).thenReturn(true);
+    when(styleProvider.getGravityHorizontal()).thenReturn(GravityHorizontal.GRAVITY_END);
+    when(styleProvider.getGravityVertical()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
+
+    Element defaultElement =
+        Element.newBuilder()
+            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)
+            .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
+            .build();
+
+    adapter.createAdapter(defaultElement, defaultElement, frameContext);
+
+    assertThat(adapter.getHorizontalGravity()).isEqualTo(GravityHorizontal.GRAVITY_END);
+    assertThat(adapter.getVerticalGravity()).isEqualTo(GravityVertical.GRAVITY_BOTTOM);
+  }
+
   @Test
   public void testSetLayoutParams() {
     adapter.setLayoutParams(new LayoutParams(WIDTH, HEIGHT));

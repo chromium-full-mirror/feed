@@ -35,6 +35,8 @@ import com.google.search.now.ui.piet.StylesProto.Borders;
 import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
+import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
+import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.Style;
 
 /**
@@ -163,6 +165,26 @@ class StyleProvider {
   /** Whether a width is explicitly specified */
   public boolean hasWidth() {
     return style.hasWidth();
+  }
+
+  /** Whether the style has a horizontal gravity specified */
+  public boolean hasGravityHorizontal() {
+    return style.hasGravityHorizontal();
+  }
+
+  /** Horizontal gravity specified on the style */
+  public GravityHorizontal getGravityHorizontal() {
+    return style.getGravityHorizontal();
+  }
+
+  /** Whether the style has a vertical gravity specified */
+  public boolean hasGravityVertical() {
+    return style.hasGravityVertical();
+  }
+
+  /** Vertical gravity specified on the style */
+  public GravityVertical getGravityVertical() {
+    return style.getGravityVertical();
   }
 
   /** Sets the Padding and Background Color on the view. */

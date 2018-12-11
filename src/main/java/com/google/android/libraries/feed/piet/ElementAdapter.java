@@ -450,11 +450,25 @@ abstract class ElementAdapter<V extends View, M> {
   }
 
   GravityVertical getVerticalGravity() {
-    return baseElement.getGravityVertical();
+    if (model == null) {
+      return GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED;
+    } else if (getElementStyle().hasGravityVertical()) {
+      return getElementStyle().getGravityVertical();
+    } else {
+      // TODO: remove this branch
+      return baseElement.getGravityVertical();
+    }
   }
 
   GravityHorizontal getHorizontalGravity() {
-    return baseElement.getGravityHorizontal();
+    if (model == null) {
+      return GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED;
+    } else if (getElementStyle().hasGravityHorizontal()) {
+      return getElementStyle().getGravityHorizontal();
+    } else {
+      // TODO: remove this branch
+      return baseElement.getGravityHorizontal();
+    }
   }
 
   /** Returns the {@code model}, this is to support testing, it can be called at any time */

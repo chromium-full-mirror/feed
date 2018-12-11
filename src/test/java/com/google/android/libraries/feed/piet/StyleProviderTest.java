@@ -44,6 +44,8 @@ import com.google.search.now.ui.piet.StylesProto.Borders;
 import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
+import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
+import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.ImageLoadingSettings;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import org.junit.Before;
@@ -101,6 +103,8 @@ public class StyleProviderTest {
             .setHeight(7)
             .setWidth(8)
             .setScaleType(ScaleType.CENTER_CROP)
+            .setGravityHorizontal(GravityHorizontal.GRAVITY_END)
+            .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
             .build();
 
     StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
@@ -121,6 +125,10 @@ public class StyleProviderTest {
     assertThat(styleProvider.hasHeight()).isTrue();
     assertThat(styleProvider.hasWidth()).isTrue();
     assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
+    assertThat(styleProvider.hasGravityHorizontal()).isTrue();
+    assertThat(styleProvider.getGravityHorizontal()).isEqualTo(GravityHorizontal.GRAVITY_END);
+    assertThat(styleProvider.hasGravityVertical()).isTrue();
+    assertThat(styleProvider.getGravityVertical()).isEqualTo(GravityVertical.GRAVITY_BOTTOM);
   }
 
   @Test
@@ -143,6 +151,12 @@ public class StyleProviderTest {
     assertThat(styleProvider.hasHeight()).isFalse();
     assertThat(styleProvider.hasWidth()).isFalse();
     assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_INSIDE);
+    assertThat(styleProvider.hasGravityHorizontal()).isFalse();
+    assertThat(styleProvider.getGravityHorizontal())
+        .isEqualTo(GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED);
+    assertThat(styleProvider.hasGravityVertical()).isFalse();
+    assertThat(styleProvider.getGravityVertical())
+        .isEqualTo(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED);
   }
 
   @Test
