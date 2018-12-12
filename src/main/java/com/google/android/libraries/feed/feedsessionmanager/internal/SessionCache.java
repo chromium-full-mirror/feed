@@ -146,7 +146,7 @@ public class SessionCache implements Dumpable {
       }
     }
 
-    initializableSession.bindModelProvider(null);
+    initializableSession.bindModelProvider(null, null);
     detachedSessionCount++;
   }
 
@@ -285,7 +285,7 @@ public class SessionCache implements Dumpable {
                 store.getStreamStructures(session);
             if (streamStructuresResult.isSuccessful()) {
               unboundSession.populateModelProvider(
-                  session, streamStructuresResult.getValue(), false, false, null);
+                  session, streamStructuresResult.getValue(), false, false);
             } else {
               Logger.e(TAG, "Failed to read unbound session state, ignored");
             }

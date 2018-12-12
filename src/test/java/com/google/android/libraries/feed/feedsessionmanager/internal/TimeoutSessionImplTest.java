@@ -59,7 +59,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
   @Test
   public void testClearHead() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true, null);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true);
     int featureCnt = 3;
     int featureId = 5;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
@@ -83,7 +83,8 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     assertThat(session.viewDepthProvider).isNull();
 
     ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true, mockDepthProvider);
+    session.bindModelProvider(modelProvider, mockDepthProvider);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true);
     assertThat(session.legacyHeadContent).isTrue();
     assertThat(session.viewDepthProvider).isEqualTo(mockDepthProvider);
   }
@@ -158,7 +159,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     taskQueue.initialize(() -> {});
     TimeoutSessionImpl session =
         new TimeoutSessionImpl(store, false, taskQueue, timingUtils, threadUtils);
-    session.bindModelProvider(modelProvider);
+    session.bindModelProvider(modelProvider, null);
     return session;
   }
 }

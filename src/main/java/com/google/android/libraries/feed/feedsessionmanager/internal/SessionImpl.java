@@ -50,7 +50,10 @@ public class SessionImpl implements InitializableSession, Dumpable {
   private final boolean limitPagingUpdates;
 
   // Allow creation of the session without a model provider, this becomes an unbound session
-  protected /*@Nullable*/ ModelProvider modelProvider;
+  /*@Nullable*/ protected ModelProvider modelProvider;
+  /*@Nullable*/ protected ViewDepthProvider viewDepthProvider;
+  protected boolean legacyHeadContent = false;
+
   protected StreamSession streamSession;
 
   @VisibleForTesting public final Set<String> contentInSession = new HashSet<>();
@@ -72,8 +75,10 @@ public class SessionImpl implements InitializableSession, Dumpable {
   }
 
   @Override
-  public void bindModelProvider(/*@Nullable*/ ModelProvider modelProvider) {
+  public void bindModelProvider(
+      /*@Nullable*/ ModelProvider modelProvider, /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
     this.modelProvider = modelProvider;
+    this.viewDepthProvider = viewDepthProvider;
   }
 
   @Override
@@ -92,9 +97,9 @@ public class SessionImpl implements InitializableSession, Dumpable {
       StreamSession streamSession,
       List<StreamStructure> head,
       boolean cachedBindings,
-      boolean legacyHeadContent,
-      /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+      boolean legacyHeadContent) {
     Logger.i(TAG, "PopulateModelProvider %s items", head.size());
+    this.legacyHeadContent = legacyHeadContent;
     this.streamSession = streamSession;
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);

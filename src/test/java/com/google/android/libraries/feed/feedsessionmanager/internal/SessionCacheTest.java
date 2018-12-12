@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
@@ -385,8 +386,8 @@ public class SessionCacheTest {
               .setParentContentId(rootId)
               .build());
     }
-    session.bindModelProvider(mock(ModelProvider.class));
-    session.populateModelProvider(streamSession, head, true, false, null);
+    session.bindModelProvider(mock(ModelProvider.class), mock(ViewDepthProvider.class));
+    session.populateModelProvider(streamSession, head, true, false);
     return session;
   }
 

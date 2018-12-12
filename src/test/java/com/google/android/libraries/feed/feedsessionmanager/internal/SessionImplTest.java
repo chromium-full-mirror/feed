@@ -15,9 +15,11 @@
 package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
+import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -55,7 +57,7 @@ public class SessionImplTest extends AbstractSessionImplTest {
   @Test
   public void testClearHead() {
     SessionImpl session = getSessionImpl();
-    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false, null);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
     int featureCnt = 3;
     InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
     addFeatures(protocolBuilder, featureCnt, 1);
@@ -69,12 +71,25 @@ public class SessionImplTest extends AbstractSessionImplTest {
     assertThat(session.contentInSession).hasSize(0);
   }
 
+  @Test
+  public void testModelProviderBinding_withDetach() {
+    SessionImpl session = getSessionImpl();
+    ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
+    session.bindModelProvider(modelProvider, mockDepthProvider);
+    assertThat(session.modelProvider).isEqualTo(modelProvider);
+    assertThat(session.viewDepthProvider).isEqualTo(mockDepthProvider);
+
+    session.bindModelProvider(null, null);
+    assertThat(session.viewDepthProvider).isNull();
+    assertThat(session.modelProvider).isNull();
+  }
+
   @Override
   protected SessionImpl getSessionImpl() {
     TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
     taskQueue.initialize(() -> {});
     SessionImpl session = new SessionImpl(store, false, taskQueue, timingUtils, threadUtils);
-    session.bindModelProvider(modelProvider);
+    session.bindModelProvider(modelProvider, null);
     return session;
   }
 }

@@ -20,7 +20,6 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
-import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -37,10 +36,6 @@ import java.util.List;
 public class TimeoutSessionImpl extends SessionImpl {
   private static final String TAG = "TimeoutSessionImpl";
 
-  @VisibleForTesting boolean legacyHeadContent = false;
-
-  @VisibleForTesting /*@Nullable*/ ViewDepthProvider viewDepthProvider;
-
   TimeoutSessionImpl(
       Store store,
       boolean limitPagingUpdates,
@@ -56,13 +51,9 @@ public class TimeoutSessionImpl extends SessionImpl {
       StreamSession streamSession,
       List<StreamStructure> head,
       boolean cachedBindings,
-      boolean legacyHeadContent,
-      /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+      boolean legacyHeadContent) {
     Logger.i(TAG, "TimeoutSession.populateModelProvider, legacyHeadContent %s", legacyHeadContent);
-    this.legacyHeadContent = legacyHeadContent;
-    this.viewDepthProvider = viewDepthProvider;
-    super.populateModelProvider(
-        streamSession, head, cachedBindings, legacyHeadContent, viewDepthProvider);
+    super.populateModelProvider(streamSession, head, cachedBindings, legacyHeadContent);
   }
 
   @Override

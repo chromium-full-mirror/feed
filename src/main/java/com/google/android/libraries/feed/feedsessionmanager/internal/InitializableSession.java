@@ -27,7 +27,8 @@ public interface InitializableSession extends Session {
    * Bind a ModelProvider to an existing, unbound session. If {@code null} is passed, this will
    * unbind the Session, removing all references to the ModelProvider.
    */
-  void bindModelProvider(/*@Nullable*/ ModelProvider modelProvider);
+  void bindModelProvider(
+      /*@Nullable*/ ModelProvider modelProvider, /*@Nullable*/ ViewDepthProvider viewDepthProvider);
 
   /**
    * Set the StreamSession on the Sessions, this is often done in the populateModelProvider method.
@@ -39,6 +40,5 @@ public interface InitializableSession extends Session {
       StreamSession streamSession,
       List<StreamStructure> session,
       boolean cachedBindings,
-      boolean legacyHeadContent,
-      /*@Nullable*/ ViewDepthProvider viewDepthProvider);
+      boolean legacyHeadContent);
 }

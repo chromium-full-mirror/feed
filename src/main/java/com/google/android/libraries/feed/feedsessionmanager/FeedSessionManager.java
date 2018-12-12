@@ -229,7 +229,7 @@ public class FeedSessionManager
       initialize();
     }
     InitializableSession session = sessionFactory.getSession();
-    session.bindModelProvider(modelProvider);
+    session.bindModelProvider(modelProvider, viewDepthProvider);
     synchronized (lock) {
       sessionsUnderConstruction.add(session);
     }
@@ -237,19 +237,16 @@ public class FeedSessionManager
     if (!sessionCache.isHeadInitialized()) {
       Logger.i(TAG, "Delaying populateSession until initialization is finished");
       taskQueue.execute(
-          "postInitialization/populateSession",
-          TaskType.IMMEDIATE,
-          () -> populateSession(session, viewDepthProvider));
+          "postInitialization/populateSession", TaskType.IMMEDIATE, () -> populateSession(session));
     } else {
-      populateSession(session, viewDepthProvider);
+      populateSession(session);
     }
   }
 
   // This method can be run either on the main thread or on the background thread. It calls the
   // SchedulerApi to determine how the session is created. It creates a new task to populate the
   // new session.
-  private void populateSession(
-      InitializableSession session, /*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+  private void populateSession(InitializableSession session) {
     HeadSessionImpl headSession = sessionCache.getHead();
     SessionManagerState sessionManagerState =
         new SessionManagerState(
@@ -260,7 +257,7 @@ public class FeedSessionManager
 
     Runnable timeoutTask = null;
     if (behavior == REQUEST_WITH_TIMEOUT || behavior == NO_REQUEST_WITH_TIMEOUT) {
-      timeoutTask = () -> populateSessionTask(session, viewDepthProvider, true);
+      timeoutTask = () -> populateSessionTask(session, true);
     }
     boolean legacyHeadContent =
         behavior == REQUEST_WITH_CONTENT || behavior == REQUEST_WITH_TIMEOUT;
@@ -294,7 +291,7 @@ public class FeedSessionManager
     taskQueue.execute(
         "populateNewSession",
         taskType,
-        () -> populateSessionTask(session, viewDepthProvider, legacyHeadContent),
+        () -> populateSessionTask(session, legacyHeadContent),
         timeoutTask,
         sessionPopulationTimeoutMs);
     if (makeRequest && behavior == REQUEST_WITH_CONTENT) {
@@ -302,10 +299,7 @@ public class FeedSessionManager
     }
   }
 
-  private void populateSessionTask(
-      InitializableSession session,
-      /*@Nullable*/ ViewDepthProvider viewDepthProvider,
-      boolean legacyHeadContent) {
+  private void populateSessionTask(InitializableSession session, boolean legacyHeadContent) {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
 
@@ -364,11 +358,7 @@ public class FeedSessionManager
     boolean cachedBindings;
     cachedBindings = contentCache.size() > 0;
     session.populateModelProvider(
-        recordedSession,
-        streamStructuresResult.getValue(),
-        cachedBindings,
-        legacyHeadContent,
-        viewDepthProvider);
+        recordedSession, streamStructuresResult.getValue(), cachedBindings, legacyHeadContent);
     sessionCache.put(session.getStreamSession().getStreamToken(), session);
     synchronized (lock) {
       sessionsUnderConstruction.remove(session);
@@ -423,7 +413,7 @@ public class FeedSessionManager
       initialize();
     }
     InitializableSession session = sessionFactory.getSession();
-    session.bindModelProvider(modelProvider);
+    session.bindModelProvider(modelProvider, null);
 
     // Task which populates the newly created session.  This must be done
     // on the Session Manager thread so it atomic with the mutations.
@@ -449,7 +439,7 @@ public class FeedSessionManager
               store.getStreamStructures(streamSession);
           if (streamStructuresResult.isSuccessful()) {
             session.populateModelProvider(
-                streamSession, streamStructuresResult.getValue(), false, false, null);
+                streamSession, streamStructuresResult.getValue(), false, false);
             sessionCache.put(session.getStreamSession().getStreamToken(), session);
             existingSessionCount++;
           } else {
