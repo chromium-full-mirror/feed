@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
@@ -34,6 +33,7 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
+import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
@@ -48,10 +48,9 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests of the {@link StackedElementAdapter} */
+/** Tests of the {@link ElementStackAdapter} */
 @RunWith(RobolectricTestRunner.class)
-public class StackedElementAdapterTest {
-  private static final Element DUMMY_BASE_ELEMENT = Element.getDefaultInstance();
+public class ElementStackAdapterTest {
   private static final Content INLINE_CONTENT =
       Content.newBuilder()
           .setElement(Element.newBuilder().setElementList(ElementList.getDefaultInstance()))
@@ -74,7 +73,7 @@ public class StackedElementAdapterTest {
   private Context context;
   private AdapterParameters adapterParameters;
 
-  private StackedElementAdapter adapter;
+  private ElementStackAdapter adapter;
 
   @Before
   public void setUp() throws Exception {
@@ -91,14 +90,14 @@ public class StackedElementAdapterTest {
     adapterParameters =
         new AdapterParameters(context, Suppliers.of(null), mockHostProviders, new FakeClock());
 
-    adapter = new StackedElementAdapter.KeySupplier().getAdapter(context, adapterParameters);
+    adapter = new ElementStackAdapter.KeySupplier().getAdapter(context, adapterParameters);
   }
 
   @Test
   public void testCreatesInlineAdaptersInOnCreate() {
-    List<Content> contents = asList(INLINE_CONTENT, BOUND_CONTENT);
+    Element element = asElement(asList(INLINE_CONTENT, BOUND_CONTENT));
 
-    adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
+    adapter.createAdapter(element, frameContext);
 
     assertThat(adapter.childAdapters).hasSize(1);
     assertThat(adapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
@@ -109,10 +108,10 @@ public class StackedElementAdapterTest {
 
   @Test
   public void testCreatesBoundAdaptersInOnBind() {
-    List<Content> contents = asList(INLINE_CONTENT, BOUND_CONTENT);
+    Element element = asElement(asList(INLINE_CONTENT, BOUND_CONTENT));
 
-    adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
-    adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
+    adapter.createAdapter(element, frameContext);
+    adapter.bindModel(element, frameContext);
 
     assertThat(adapter.childAdapters).hasSize(2);
     assertThat(adapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
@@ -133,7 +132,7 @@ public class StackedElementAdapterTest {
                     .setImageElement(
                         ImageElement.newBuilder().setImage(Image.getDefaultInstance())))
             .build();
-    List<Content> contents = Collections.singletonList(imageContent);
+    Element element = asElement(Collections.singletonList(imageContent));
 
     when(mockStyleProvider.hasWidth()).thenReturn(true);
     when(mockStyleProvider.hasHeight()).thenReturn(true);
@@ -141,8 +140,8 @@ public class StackedElementAdapterTest {
     when(mockStyleProvider.getHeight()).thenReturn(456);
     when(mockStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
-    adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
-    adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
+    adapter.createAdapter(element, frameContext);
+    adapter.bindModel(element, frameContext);
 
     LayoutParams inlineAdapterLayoutParams =
         adapter.childAdapters.get(0).getView().getLayoutParams();
@@ -162,8 +161,9 @@ public class StackedElementAdapterTest {
                         ImageElement.newBuilder().setImage(Image.getDefaultInstance())))
             .build();
     when(frameContext.getElementBindingValue(imageBinding)).thenReturn(imageBindingValue);
-    List<Content> contents =
-        Collections.singletonList(Content.newBuilder().setBoundElement(imageBinding).build());
+    Element element =
+        asElement(
+            Collections.singletonList(Content.newBuilder().setBoundElement(imageBinding).build()));
 
     when(mockStyleProvider.hasWidth()).thenReturn(true);
     when(mockStyleProvider.hasHeight()).thenReturn(true);
@@ -171,8 +171,8 @@ public class StackedElementAdapterTest {
     when(mockStyleProvider.getHeight()).thenReturn(456);
     when(mockStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
-    adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
-    adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
+    adapter.createAdapter(element, frameContext);
+    adapter.bindModel(element, frameContext);
 
     LayoutParams boundAdapterLayoutParams =
         adapter.childAdapters.get(0).getView().getLayoutParams();
@@ -183,10 +183,10 @@ public class StackedElementAdapterTest {
 
   @Test
   public void testSetsMarginsOnChild() {
-    List<Content> contents = Collections.singletonList(INLINE_CONTENT);
+    Element element = asElement(Collections.singletonList(INLINE_CONTENT));
 
-    adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
-    adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
+    adapter.createAdapter(element, frameContext);
+    adapter.bindModel(element, frameContext);
 
     MarginLayoutParams childAdapterLayoutParams =
         (MarginLayoutParams) adapter.childAdapters.get(0).getView().getLayoutParams();
@@ -195,18 +195,23 @@ public class StackedElementAdapterTest {
   }
 
   @Test
-  public void testGetContentsFromModelReturnsModel() {
-    List<Content> contents = asList(Content.newBuilder().build(), INLINE_CONTENT, BOUND_CONTENT);
+  public void testGetContentsFromModel() {
+    ElementStack model =
+        ElementStack.newBuilder().addAllContents(asList(INLINE_CONTENT, BOUND_CONTENT)).build();
 
-    assertThat(adapter.getContentsFromModel(contents)).isSameAs(contents);
+    assertThat(adapter.getContentsFromModel(model)).isSameAs(model.getContentsList());
   }
 
   @Test
-  public void testGetModelFromElementFails() {
-    assertThatRunnable(() -> adapter.getModelFromElement(Element.getDefaultInstance()))
-        .throwsAnExceptionOfType(UnsupportedOperationException.class)
-        .that()
-        .hasMessageThat()
-        .contains("StackedElementAdapters don't have a base Element");
+  public void testGetModelFromElement() {
+    Element element = asElement(asList(INLINE_CONTENT, BOUND_CONTENT));
+
+    assertThat(adapter.getModelFromElement(element)).isSameAs(element.getElementStack());
+  }
+
+  private Element asElement(List<Content> contents) {
+    return Element.newBuilder()
+        .setElementStack(ElementStack.newBuilder().addAllContents(contents))
+        .build();
   }
 }

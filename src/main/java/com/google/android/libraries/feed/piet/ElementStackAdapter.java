@@ -21,20 +21,21 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
+import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.List;
 
 /** Container adapter that stacks its children in a FrameLayout. */
-class StackedElementAdapter extends ElementContainerAdapter<FrameLayout, List<Content>> {
-  private static final String TAG = "StackedElementAdapter";
+class ElementStackAdapter extends ElementContainerAdapter<FrameLayout, ElementStack> {
+  private static final String TAG = "ElementStackAdapter";
 
-  private StackedElementAdapter(Context context, AdapterParameters parameters) {
+  private ElementStackAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, createView(context));
   }
 
   @Override
-  public void onBindModel(List<Content> contents, Element baseElement, FrameContext frameContext) {
-    super.onBindModel(contents, baseElement, frameContext);
+  public void onBindModel(ElementStack stack, Element baseElement, FrameContext frameContext) {
+    super.onBindModel(stack, baseElement, frameContext);
     for (ElementAdapter<?, ?> childAdapter : childAdapters) {
       updateChildLayoutParams(childAdapter);
     }
@@ -60,13 +61,13 @@ class StackedElementAdapter extends ElementContainerAdapter<FrameLayout, List<Co
   }
 
   @Override
-  List<Content> getContentsFromModel(List<Content> model) {
-    return model;
+  List<Content> getContentsFromModel(ElementStack model) {
+    return model.getContentsList();
   }
 
   @Override
-  List<Content> getModelFromElement(Element baseElement) {
-    throw new UnsupportedOperationException("StackedElementAdapters don't have a base Element");
+  ElementStack getModelFromElement(Element baseElement) {
+    return baseElement.getElementStack();
   }
 
   private static FrameLayout createView(Context context) {
@@ -76,15 +77,15 @@ class StackedElementAdapter extends ElementContainerAdapter<FrameLayout, List<Co
     return view;
   }
 
-  static class KeySupplier extends SingletonKeySupplier<StackedElementAdapter, List<Content>> {
+  static class KeySupplier extends SingletonKeySupplier<ElementStackAdapter, ElementStack> {
     @Override
     public String getAdapterTag() {
       return TAG;
     }
 
     @Override
-    public StackedElementAdapter getAdapter(Context context, AdapterParameters parameters) {
-      return new StackedElementAdapter(context, parameters);
+    public ElementStackAdapter getAdapter(Context context, AdapterParameters parameters) {
+      return new ElementStackAdapter(context, parameters);
     }
   }
 }

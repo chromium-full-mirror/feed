@@ -51,6 +51,7 @@ import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
+import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.PietProto.Frame;
@@ -273,10 +274,9 @@ public class ElementAdapterTest {
     Element elementWithOverlays = Element.newBuilder().addOverlays(overlayContent).build();
 
     ElementAdapterFactory mockFactory = mock(ElementAdapterFactory.class);
-    StackedElementAdapter mockOverlayAdapter = mock(StackedElementAdapter.class);
+    ElementStackAdapter mockOverlayAdapter = mock(ElementStackAdapter.class);
     View overlayView = new View(context);
-    when(mockFactory.createStackedElementAdapter(
-            elementWithOverlays.getOverlaysList(), frameContext))
+    when(mockFactory.createOverlayAdapter(elementWithOverlays.getOverlaysList(), frameContext))
         .thenReturn(mockOverlayAdapter);
     when(mockOverlayAdapter.getView()).thenReturn(overlayView);
     when(mockOverlayAdapter.getElementStyle()).thenReturn(styleProvider);
@@ -476,13 +476,17 @@ public class ElementAdapterTest {
     adapter.createAdapter(elementWithOverlays, elementWithOverlays, frameContext);
     assertThat(adapter.overlayAdapter).isNotNull();
 
-    StackedElementAdapter mockOverlayAdapter = mock(StackedElementAdapter.class);
+    ElementStackAdapter mockOverlayAdapter = mock(ElementStackAdapter.class);
     adapter.overlayAdapter = mockOverlayAdapter;
 
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
     verify(mockOverlayAdapter)
         .bindModel(
-            elementWithOverlays.getOverlaysList(), Element.getDefaultInstance(), frameContext);
+            Element.newBuilder()
+                .setElementStack(
+                    ElementStack.newBuilder().addAllContents(elementWithOverlays.getOverlaysList()))
+                .build(),
+            frameContext);
   }
 
   @Test
@@ -821,7 +825,7 @@ public class ElementAdapterTest {
 
     adapter.bindModel(elementWithOverlays, elementWithOverlays, frameContext);
     assertThat(adapter.overlayAdapter).isNotNull();
-    StackedElementAdapter overlayAdapter = adapter.overlayAdapter;
+    ElementStackAdapter overlayAdapter = adapter.overlayAdapter;
     assertThat(overlayAdapter.childAdapters).hasSize(1);
     assertThat(overlayAdapter.childAdapters.get(0)).isInstanceOf(ElementListAdapter.class);
     ElementListAdapter mockOverlayAdapter = mock(ElementListAdapter.class);
@@ -885,7 +889,7 @@ public class ElementAdapterTest {
     View adapterView = adapter.getBaseView();
     FrameLayout overlayView = (FrameLayout) adapter.getView();
 
-    StackedElementAdapter mockOverlayAdapter = mock(StackedElementAdapter.class);
+    ElementStackAdapter mockOverlayAdapter = mock(ElementStackAdapter.class);
     when(mockOverlayAdapter.getKey()).thenReturn(SingletonKeySupplier.SINGLETON_KEY);
     adapter.overlayAdapter = mockOverlayAdapter;
 

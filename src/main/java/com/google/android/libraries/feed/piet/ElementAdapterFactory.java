@@ -23,6 +23,7 @@ import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
+import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
@@ -42,7 +43,7 @@ class ElementAdapterFactory {
   private final AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory;
   private final AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
   private final AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
-  private final AdapterFactory<StackedElementAdapter, List<Content>> stackedElementFactory;
+  private final AdapterFactory<ElementStackAdapter, ElementStack> elementStackFactory;
   private final List<AdapterFactory<?, ?>> factories;
 
   private final KeyedRecyclerPool<ElementAdapter<? extends View, ?>> templateRecyclerPool;
@@ -60,7 +61,7 @@ class ElementAdapterFactory {
         new AdapterFactory<>(context, parameters, new SpacerElementAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new GridRowAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new ElementListAdapter.KeySupplier()),
-        new AdapterFactory<>(context, parameters, new StackedElementAdapter.KeySupplier()),
+        new AdapterFactory<>(context, parameters, new ElementStackAdapter.KeySupplier()),
         templateRecyclerPool);
   }
 
@@ -74,7 +75,7 @@ class ElementAdapterFactory {
       AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory,
       AdapterFactory<GridRowAdapter, GridRow> gridRowFactory,
       AdapterFactory<ElementListAdapter, ElementList> elementListFactory,
-      AdapterFactory<StackedElementAdapter, List<Content>> stackedElementFactory,
+      AdapterFactory<ElementStackAdapter, ElementStack> elementStackFactory,
       KeyedRecyclerPool<ElementAdapter<? extends View, ?>> templateRecyclerPool) {
     this.customElementFactory = customElementFactory;
     this.chunkedTextElementFactory = chunkedTextElementFactory;
@@ -83,7 +84,7 @@ class ElementAdapterFactory {
     this.spacerElementFactory = spacerElementFactory;
     this.gridRowFactory = gridRowFactory;
     this.elementListFactory = elementListFactory;
-    this.stackedElementFactory = stackedElementFactory;
+    this.elementStackFactory = elementStackFactory;
     factories =
         Collections.unmodifiableList(
             Arrays.asList(
@@ -94,7 +95,7 @@ class ElementAdapterFactory {
                 spacerElementFactory,
                 gridRowFactory,
                 elementListFactory,
-                stackedElementFactory));
+                elementStackFactory));
     this.templateRecyclerPool = templateRecyclerPool;
   }
 
@@ -139,6 +140,9 @@ class ElementAdapterFactory {
       case ELEMENT_LIST:
         returnAdapter = elementListFactory.get(element.getElementList(), frameContext);
         break;
+      case ELEMENT_STACK:
+        returnAdapter = elementStackFactory.get(element.getElementStack(), frameContext);
+        break;
       case ELEMENTS_NOT_SET:
       default:
         throw new PietFatalException(
@@ -152,11 +156,12 @@ class ElementAdapterFactory {
     return returnAdapter;
   }
 
-  StackedElementAdapter createStackedElementAdapter(
-      List<Content> overlays, FrameContext frameContext) {
-    StackedElementAdapter returnAdapter = stackedElementFactory.get(overlays, frameContext);
-    // Overlays have no base Element, so we pass the default instance as a dummy here.
-    returnAdapter.createAdapter(overlays, Element.getDefaultInstance(), frameContext);
+  // TODO: Remove this hacky method when overlays are transitioned to ElementStack.
+  @Deprecated
+  ElementStackAdapter createOverlayAdapter(List<Content> overlays, FrameContext frameContext) {
+    ElementStack model = ElementStack.newBuilder().addAllContents(overlays).build();
+    ElementStackAdapter returnAdapter = elementStackFactory.get(model, frameContext);
+    returnAdapter.createAdapter(Element.newBuilder().setElementStack(model).build(), frameContext);
     return returnAdapter;
   }
 
@@ -183,8 +188,8 @@ class ElementAdapterFactory {
       gridRowFactory.release((GridRowAdapter) adapter);
     } else if (adapter instanceof ElementListAdapter) {
       elementListFactory.release((ElementListAdapter) adapter);
-    } else if (adapter instanceof StackedElementAdapter) {
-      stackedElementFactory.release((StackedElementAdapter) adapter);
+    } else if (adapter instanceof ElementStackAdapter) {
+      elementStackFactory.release((ElementStackAdapter) adapter);
     }
   }
 

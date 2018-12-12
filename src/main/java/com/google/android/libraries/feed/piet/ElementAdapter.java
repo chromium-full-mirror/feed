@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.Element;
+import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
@@ -65,7 +66,9 @@ abstract class ElementAdapter<V extends View, M> {
   private boolean binding = false;
 
   /*@Nullable*/ private FrameLayout wrapperView = null;
-  @VisibleForTesting /*@Nullable*/ StackedElementAdapter overlayAdapter = null;
+
+  // TODO: Remove support for overlays on Element
+  @Deprecated @VisibleForTesting /*@Nullable*/ ElementStackAdapter overlayAdapter = null;
 
   Actions actions = Actions.getDefaultInstance();
   /** Set of actions that are currently active / triggered so they only get called once. */
@@ -166,7 +169,7 @@ abstract class ElementAdapter<V extends View, M> {
       overlayAdapter =
           getParameters()
               .elementAdapterFactory
-              .createStackedElementAdapter(baseElement.getOverlaysList(), frameContext);
+              .createOverlayAdapter(baseElement.getOverlaysList(), frameContext);
       overlayAdapter.setLayoutParams(
           new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
       wrapper.addView(overlayAdapter.getView());
@@ -237,10 +240,16 @@ abstract class ElementAdapter<V extends View, M> {
   /** Performs child-adapter-specific binding logic; to be overridden. */
   void onBindModel(M model, Element baseElement, FrameContext frameContext) {}
 
+  // TODO: Remove this hacky method when overlays are transitioned to ElementStack.
   private void bindOverlays(FrameContext frameContext) {
     if (baseElement.getOverlaysCount() > 0) {
       checkNotNull(overlayAdapter, "Overlays not initialized")
-          .bindModel(baseElement.getOverlaysList(), Element.getDefaultInstance(), frameContext);
+          .bindModel(
+              Element.newBuilder()
+                  .setElementStack(
+                      ElementStack.newBuilder().addAllContents(baseElement.getOverlaysList()))
+                  .build(),
+              frameContext);
     }
   }
 
