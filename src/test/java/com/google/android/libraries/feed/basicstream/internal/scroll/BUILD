@@ -13,6 +13,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/scroll",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/proto:scroll_state_java_proto_lite",
+        "//src/main/java/com/google/android/libraries/feed/testing/android",
         "@androidsdk//com.android.support:recyclerview-v7-25.3.1",
         "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",

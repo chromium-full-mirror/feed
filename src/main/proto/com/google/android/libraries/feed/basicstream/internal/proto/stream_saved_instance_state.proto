@@ -27,5 +27,6 @@ option cc_enable_arenas = true;
 // Object representing the state of the Stream.
 message StreamSavedInstanceState {
   optional string session_token = 1;
-  optional com.google.android.libraries.feed.sharedstream.proto.ScrollState scroll_state = 2;
+  optional com.google.android.libraries.feed.sharedstream.proto.ScrollState
+      scroll_state = 2;
 }

@@ -25,12 +25,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
-import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
+import com.google.android.libraries.feed.testing.android.LinearLayoutManagerForTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -174,50 +173,5 @@ public class ScrollRestorerTest {
 
   private ScrollState createScrollState(int position, int offset) {
     return ScrollState.newBuilder().setPosition(position).setOffset(offset).build();
-  }
-
-  private class LinearLayoutManagerForTest extends LinearLayoutManager {
-
-    private final Context context;
-
-    private int firstVisibleItemPosition = RecyclerView.NO_POSITION;
-    private int firstVisibleViewOffset;
-
-    private int lastVisibleItemPosition = RecyclerView.NO_POSITION;
-
-    private int scrolledPosition;
-    private int scrolledOffset;
-
-    public LinearLayoutManagerForTest(Context context) {
-      super(context);
-      this.context = context;
-    }
-
-    @Override
-    public int findFirstVisibleItemPosition() {
-      return firstVisibleItemPosition;
-    }
-
-    @Override
-    public int findLastVisibleItemPosition() {
-      return lastVisibleItemPosition;
-    }
-
-    @Override
-    public View findViewByPosition(int position) {
-      if (position == firstVisibleItemPosition) {
-        View view = new View(context);
-        view.setTop(firstVisibleViewOffset);
-        return view;
-      }
-
-      return super.findViewByPosition(position);
-    }
-
-    @Override
-    public void scrollToPositionWithOffset(int scrollPosition, int scrollOffset) {
-      scrolledPosition = scrollPosition;
-      scrolledOffset = scrollOffset;
-    }
   }
 }

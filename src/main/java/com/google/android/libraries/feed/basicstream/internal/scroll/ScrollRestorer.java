@@ -19,11 +19,10 @@ import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
+import com.google.android.libraries.feed.sharedstream.scroll.ScrollRestoreHelper;
 
 /**
  * Class which is able to save a scroll position for a RecyclerView and restore to that scroll
@@ -32,9 +31,6 @@ import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.Scr
 public class ScrollRestorer {
 
   private static final String TAG = "ScrollRestorer";
-
-  private static final boolean ABANDON_RESTORE_BELOW_FOLD_DEFAULT = true;
-  private static final int ABANDON_RESTORE_BELOW_FOLD_THRESHOLD_DEFAULT = 10;
 
   private final Configuration configuration;
   private final RecyclerView recyclerView;
@@ -116,41 +112,8 @@ public class ScrollRestorer {
    */
   /*@Nullable*/
   public ScrollState getScrollStateForScrollRestore(int currentHeaderCount) {
-    LinearLayoutManager layoutManager = getLayoutManager();
-
-    int scrollPosition = layoutManager.findFirstVisibleItemPosition();
-    if (scrollPosition == RecyclerView.NO_POSITION) {
-      return null;
-    }
-
-    View view = layoutManager.findViewByPosition(scrollPosition);
-    if (view == null) {
-      return null;
-    }
-
-    // Determine if we can restore past the fold.
-    if (configuration.getValueOrDefault(
-        ConfigKey.ABANDON_RESTORE_BELOW_FOLD, ABANDON_RESTORE_BELOW_FOLD_DEFAULT)) {
-      int bottomScrollPosition = layoutManager.findLastVisibleItemPosition();
-      int threshold =
-          configuration.getValueOrDefault(
-              ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD,
-              ABANDON_RESTORE_BELOW_FOLD_THRESHOLD_DEFAULT);
-
-      if (bottomScrollPosition == RecyclerView.NO_POSITION
-          || bottomScrollPosition - currentHeaderCount > threshold) {
-        Logger.w(
-            TAG,
-            "Abandoning scroll due to fold threshold.  Bottom scroll index: %d, Header "
-                + "count: %d, Configured Threshold: %d",
-            bottomScrollPosition,
-            currentHeaderCount,
-            threshold);
-        return null;
-      }
-    }
-
-    return ScrollState.newBuilder().setPosition(scrollPosition).setOffset(view.getTop()).build();
+    return ScrollRestoreHelper.getScrollStateForScrollRestore(
+        getLayoutManager(), configuration, currentHeaderCount);
   }
 
   private LinearLayoutManager getLayoutManager() {
