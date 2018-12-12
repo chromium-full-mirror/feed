@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Daugiau</string>
-  <string name="no_suggestions">Kol kas tiek</string>
   <string name="suggestions_section_empty">Jūsų pasiūlyti straipsniai rodomi čia</string>
-  <string name="zero_state_text_morning">Netrukus bus rodoma daugiau straipsnių. Gero ryto!</string>
-  <string name="zero_state_text_afternoon">Netrukus bus rodoma daugiau straipsnių. Geros popietės!</string>
-  <string name="zero_state_text_evening">Netrukus bus rodoma daugiau straipsnių. Gero vakaro!</string>
-  <string name="snackbar_fetch_failed">Nepavyko gauti pasiūlymų</string>
-  <string name="snackbar_fetch_no_new_suggestions">Nėra jokių naujų pasiūlymų</string>
 </resources>

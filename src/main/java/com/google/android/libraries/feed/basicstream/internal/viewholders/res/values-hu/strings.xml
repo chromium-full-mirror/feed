@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Továbbiak</string>
-  <string name="no_suggestions">Egyelőre ennyi</string>
   <string name="suggestions_section_empty">Itt jelennek meg a javasolt cikkek</string>
-  <string name="zero_state_text_morning">Hamarosan további cikkek jelennek meg. Kellemes délelőttöt kívánunk!</string>
-  <string name="zero_state_text_afternoon">Hamarosan további cikkek jelennek meg. Kellemes délutánt kívánunk!</string>
-  <string name="zero_state_text_evening">Hamarosan további cikkek jelennek meg. Kellemes estét kívánunk!</string>
-  <string name="snackbar_fetch_failed">Nem sikerült lekérni a javaslatokat</string>
-  <string name="snackbar_fetch_no_new_suggestions">Nincsenek új javaslatok</string>
 </resources>

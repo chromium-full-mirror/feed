@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Vairāk</string>
-  <string name="no_suggestions">Pagaidām tas arī viss!</string>
   <string name="suggestions_section_empty">Šeit tiks parādīti ieteiktie raksti.</string>
-  <string name="zero_state_text_morning">Drīzumā būs pieejami citi raksti. Jauku rītu!</string>
-  <string name="zero_state_text_afternoon">Drīzumā būs pieejami citi raksti. Jauku pēcpusdienu!</string>
-  <string name="zero_state_text_evening">Drīzumā būs pieejami citi raksti. Jauku vakaru!</string>
-  <string name="snackbar_fetch_failed">Nevar iegūt ieteikumus</string>
-  <string name="snackbar_fetch_no_new_suggestions">Nav jaunu ieteikumu</string>
 </resources>

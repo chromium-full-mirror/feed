@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Higit Pa</string>
-  <string name="no_suggestions">Iyon lang sa ngayon</string>
   <string name="suggestions_section_empty">Lalabas dito ang mga iminungkahi mong artikulo</string>
-  <string name="zero_state_text_morning">Marami pang artikulo ang malapit nang lumabas. I-enjoy ang iyong umaga!</string>
-  <string name="zero_state_text_afternoon">Marami pang artikulo ang malapit nang lumabas. I-enjoy ang iyong hapon!</string>
-  <string name="zero_state_text_evening">Marami pang artikulo ang malapit nang lumabas. I-enjoy ang iyong gabi!</string>
-  <string name="snackbar_fetch_failed">Hindi makakuha ng mga suhestyon</string>
-  <string name="snackbar_fetch_no_new_suggestions">Walang bagong suhestyon</string>
 </resources>

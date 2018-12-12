@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Mai mult</string>
-  <string name="no_suggestions">Asta este tot</string>
   <string name="suggestions_section_empty">Articolele sugerate apar aici</string>
-  <string name="zero_state_text_morning">În curând vor apărea mai multe articole. O dimineață plăcută!</string>
-  <string name="zero_state_text_afternoon">În curând vor apărea mai multe articole. O după-amiază plăcută!</string>
-  <string name="zero_state_text_evening">În curând vor apărea mai multe articole. O seară plăcută!</string>
-  <string name="snackbar_fetch_failed">Nu se pot obține sugestii</string>
-  <string name="snackbar_fetch_no_new_suggestions">Nicio sugestie nouă</string>
 </resources>

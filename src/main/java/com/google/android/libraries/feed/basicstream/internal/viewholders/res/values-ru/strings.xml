@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Ещё</string>
-  <string name="no_suggestions">На этом пока всё</string>
   <string name="suggestions_section_empty">Здесь появятся рекомендуемые статьи.</string>
-  <string name="zero_state_text_morning">Другие статьи скоро появятся. Хорошего утра!</string>
-  <string name="zero_state_text_afternoon">Другие статьи скоро появятся. Хорошего дня!</string>
-  <string name="zero_state_text_evening">Другие статьи скоро появятся. Хорошего вечера!</string>
-  <string name="snackbar_fetch_failed">Не удалось получить рекомендации</string>
-  <string name="snackbar_fetch_no_new_suggestions">Нет новых рекомендаций</string>
 </resources>

@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Meer</string>
-  <string name="no_suggestions">Dat is voorlopig alles</string>
   <string name="suggestions_section_empty">Je voorgestelde artikelen worden hier weergegeven</string>
-  <string name="zero_state_text_morning">Er worden binnenkort meer artikelen weergegeven. Geniet van je ochtend.</string>
-  <string name="zero_state_text_afternoon">Er worden binnenkort meer artikelen weergegeven. Geniet van je middag.</string>
-  <string name="zero_state_text_evening">Er worden binnenkort meer artikelen weergegeven. Geniet van je avond.</string>
-  <string name="snackbar_fetch_failed">Kan suggesties niet ophalen</string>
-  <string name="snackbar_fetch_no_new_suggestions">Geen nieuwe suggesties</string>
 </resources>

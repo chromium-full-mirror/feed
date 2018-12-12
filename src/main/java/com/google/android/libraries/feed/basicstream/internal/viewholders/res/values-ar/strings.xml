@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">المزيد</string>
-  <string name="no_suggestions">هذا كل شيء الآن</string>
   <string name="suggestions_section_empty">تظهر مقالاتك المقترحة هنا.</string>
-  <string name="zero_state_text_morning">سيظهر المزيد من المقالات قريبًا. استمتع بصباحك!</string>
-  <string name="zero_state_text_afternoon">سيظهر المزيد من المقالات قريبًا. استمتع بقضاء وقت الظهيرة!</string>
-  <string name="zero_state_text_evening">سيظهر المزيد من المقالات قريبًا. استمتع بليلتك!</string>
-  <string name="snackbar_fetch_failed">يتعذر الحصول على الاقتراحات</string>
-  <string name="snackbar_fetch_no_new_suggestions">ليس هناك اقتراحات جديدة.</string>
 </resources>

@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Diğer</string>
-  <string name="no_suggestions">Şimdilik hepsi bu</string>
   <string name="suggestions_section_empty">Önerilen makaleler burada görünür</string>
-  <string name="zero_state_text_morning">Yakında daha fazla seçenek gösterilecek. Güzel bir sabah geçirmenizi dileriz.</string>
-  <string name="zero_state_text_afternoon">Yakında daha fazla seçenek gösterilecek. Güzel bir öğleden sonra geçirmenizi dileriz.</string>
-  <string name="zero_state_text_evening">Yakında daha fazla seçenek gösterilecek. Güzel bir akşam geçirmenizi dileriz.</string>
-  <string name="snackbar_fetch_failed">Öneriler alınamıyor</string>
-  <string name="snackbar_fetch_no_new_suggestions">Yeni öneri yok</string>
 </resources>

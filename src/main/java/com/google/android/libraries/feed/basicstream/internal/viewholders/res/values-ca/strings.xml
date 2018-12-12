@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Més</string>
-  <string name="no_suggestions">De moment, això és tot</string>
   <string name="suggestions_section_empty">Els suggeriments d\'articles es mostren aquí</string>
-  <string name="zero_state_text_morning">Aviat es mostraran més articles. Que tinguis un bon matí.</string>
-  <string name="zero_state_text_afternoon">Aviat es mostraran més articles. Que tinguis una bona tarda.</string>
-  <string name="zero_state_text_evening">Aviat es mostraran més articles. Que tinguis un bon vespre.</string>
-  <string name="snackbar_fetch_failed">No es poden obtenir suggeriments</string>
-  <string name="snackbar_fetch_no_new_suggestions">No hi ha cap suggeriment nou</string>
 </resources>

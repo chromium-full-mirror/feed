@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Mehr</string>
-  <string name="no_suggestions">Das ist im Moment alles</string>
   <string name="suggestions_section_empty">Hier werden deine vorgeschlagenen Artikel angezeigt</string>
-  <string name="zero_state_text_morning">Weitere Artikel erscheinen bald. Schönen Tag noch!</string>
-  <string name="zero_state_text_afternoon">Weitere Artikel erscheinen bald. Schönen Tag noch!</string>
-  <string name="zero_state_text_evening">Weitere Artikel erscheinen bald. Schönen Abend!</string>
-  <string name="snackbar_fetch_failed">Vorschläge können nicht abgerufen werden</string>
-  <string name="snackbar_fetch_no_new_suggestions">Keine neuen Vorschläge</string>
 </resources>

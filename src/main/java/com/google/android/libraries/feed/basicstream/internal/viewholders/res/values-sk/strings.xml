@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Viac</string>
-  <string name="no_suggestions">To je zatiaľ všetko</string>
   <string name="suggestions_section_empty">Tu sa zobrazia vaše navrhované články</string>
-  <string name="zero_state_text_morning">Čoskoro sa zobrazia ďalšie články. Dobré ráno!</string>
-  <string name="zero_state_text_afternoon">Čoskoro sa zobrazia ďalšie články. Príjemné popoludnie!</string>
-  <string name="zero_state_text_evening">Čoskoro sa zobrazia ďalšie články. Príjemný večer!</string>
-  <string name="snackbar_fetch_failed">Návrhy sa nedajú získať</string>
-  <string name="snackbar_fetch_no_new_suggestions">Žiadne nové návrhy</string>
 </resources>

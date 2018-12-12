@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Više</string>
-  <string name="no_suggestions">To je zasad sve</string>
   <string name="suggestions_section_empty">Ovdje će se prikazivati predloženi članci</string>
-  <string name="zero_state_text_morning">Uskoro će se prikazati više članaka. Želimo vam ugodno prijepodne!</string>
-  <string name="zero_state_text_afternoon">Uskoro će se prikazati više članaka. Želimo vam ugodno poslijepodne!</string>
-  <string name="zero_state_text_evening">Uskoro će se prikazati više članaka. Želimo vam ugodnu večer!</string>
-  <string name="snackbar_fetch_failed">Prijedlozi se ne mogu dohvatiti</string>
-  <string name="snackbar_fetch_no_new_suggestions">Nema novih prijedloga</string>
 </resources>

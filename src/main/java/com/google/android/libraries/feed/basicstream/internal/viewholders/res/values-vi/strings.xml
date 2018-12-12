@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Thêm</string>
-  <string name="no_suggestions">Hiện đã hoàn tất</string>
   <string name="suggestions_section_empty">Bài viết được đề xuất của bạn sẽ xuất hiện ở đây</string>
-  <string name="zero_state_text_morning">Các bài viết khác sẽ sớm xuất hiện. Chúc bạn buổi sáng vui vẻ!</string>
-  <string name="zero_state_text_afternoon">Các bài viết khác sẽ sớm xuất hiện. Chúc bạn buổi chiều vui vẻ!</string>
-  <string name="zero_state_text_evening">Các bài viết khác sẽ sớm xuất hiện. Chúc bạn buổi tối vui vẻ!</string>
-  <string name="snackbar_fetch_failed">Không thể nhận nội dung đề xuất</string>
-  <string name="snackbar_fetch_no_new_suggestions">Không có nội dung đề xuất mới</string>
 </resources>

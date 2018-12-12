@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Lainnya</string>
-  <string name="no_suggestions">Itu saja untuk sekarang</string>
   <string name="suggestions_section_empty">Artikel yang disarankan ditampilkan di sini</string>
-  <string name="zero_state_text_morning">Artikel lainnya akan segera muncul. Selamat beraktivitas pagi!</string>
-  <string name="zero_state_text_afternoon">Artikel lainnya akan segera muncul. Selamat beraktivitas siang!</string>
-  <string name="zero_state_text_evening">Artikel lainnya akan segera muncul. Nikmati malam Anda!</string>
-  <string name="snackbar_fetch_failed">Tidak bisa mendapatkan saran</string>
-  <string name="snackbar_fetch_no_new_suggestions">Tidak ada saran baru</string>
 </resources>

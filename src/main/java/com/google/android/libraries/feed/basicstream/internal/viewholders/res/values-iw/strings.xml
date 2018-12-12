@@ -15,12 +15,5 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">עוד</string>
-  <string name="no_suggestions">זה הכול בינתיים</string>
   <string name="suggestions_section_empty">הצעות של מאמרים עבורך מופיעות כאן</string>
-  <string name="zero_state_text_morning">בקרוב יופיעו מאמרים נוספים. שיהיה לך בוקר נפלא!</string>
-  <string name="zero_state_text_afternoon">בקרוב יופיעו מאמרים נוספים. שיהיה לך המשך יום נפלא!</string>
-  <string name="zero_state_text_evening">בקרוב יופיעו מאמרים נוספים. שיהיה לך ערב נפלא!</string>
-  <string name="snackbar_fetch_failed">לא ניתן לקבל הצעות</string>
-  <string name="snackbar_fetch_no_new_suggestions">אין הצעות חדשות</string>
 </resources>
