@@ -22,15 +22,16 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewParent;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
 import java.util.List;
-import com.google.android.libraries.feed.common.logging.Logger;
 
 /** Implementation of {@link ContextMenuManager}. */
 public class ContextMenuManagerImpl implements ContextMenuManager {
@@ -83,7 +84,8 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
       return false;
     }
 
-    checkNotNull(view, "Must set view before attempting to open context menu");
+    View localView =
+        checkNotNull(this.view, "Must set view before attempting to open context menu");
 
     ArrayAdapter<String> adapter =
         new ArrayAdapter<>(context, R.layout.feed_simple_list_item, items);
@@ -106,9 +108,16 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     int yOffset =
         getYOffsetForContextMenu(anchorView, popupWindowWithDimensions.getDimensions().getHeight());
 
+    // There is a bug in some versions of android with PopupWindow.showAsDropDown that causes the
+    // Popup window to appear off screen. This is fixed by converting the relative offsets from the
+    // anchorView to absolute location on the screen so that showAtLocation can be used.
+    int absoluteOffsetX =
+        convertToAbsoluteHorizontalLocation(anchorView, anchorView.getWidth() / FRACTION_FROM_EDGE);
+    int absoluteOffsetY = convertToAbsoluteVerticalLocation(anchorView, yOffset);
+
     popupWindowWithDimensions
         .getPopupWindow()
-        .showAsDropDown(anchorView, anchorView.getWidth() / FRACTION_FROM_EDGE, yOffset);
+        .showAtLocation(localView, Gravity.NO_GRAVITY, absoluteOffsetX, absoluteOffsetY);
 
     // We want to prevent any more touch events from be used (if a user has yet to end their current
     // touch session). This prevents the possibility of scrolling after the context menu opens.
@@ -119,6 +128,26 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
 
     this.popupWindow = popupWindowWithDimensions.getPopupWindow();
     return true;
+  }
+
+  /**
+   * Converts the relative horizontal offset from the left of a view to the absolute location on
+   * screen.
+   */
+  private int convertToAbsoluteHorizontalLocation(View anchorView, int xOffsetFromAnchorView) {
+    int anchorViewX = getXPosition(anchorView);
+
+    return xOffsetFromAnchorView + anchorViewX;
+  }
+
+  /**
+   * Converts the relative vertical offset from the bottom of a view to the absolute location on
+   * screen.
+   */
+  private int convertToAbsoluteVerticalLocation(View anchorView, int yOffsetFromAnchorView) {
+    int anchorViewY = getYPosition(anchorView);
+
+    return yOffsetFromAnchorView + anchorViewY + anchorView.getHeight();
   }
 
   /**
@@ -175,9 +204,8 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
   }
 
   private int getYOffsetForContextMenu(View anchorView, int menuHeight) {
-    int[] anchorViewLocation = new int[2];
-    anchorView.getLocationInWindow(anchorViewLocation);
-    int anchorViewYInWindow = anchorViewLocation[1] - getStreamYPosition();
+    int anchorViewY = getYPosition(anchorView);
+    int anchorViewYInWindow = anchorViewY - getStreamYPosition();
 
     return getYOffsetForContextMenu(
         menuHeight, anchorViewYInWindow, anchorView.getHeight(), getStreamHeight());
@@ -250,9 +278,7 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
 
   /** Gets the Y coordinate of the position of the Stream. */
   private int getStreamYPosition() {
-    int[] position = new int[2];
-    checkNotNull(view).getLocationInWindow(position);
-    return position[1];
+    return getYPosition(checkNotNull(view));
   }
 
   private boolean menuShowing() {
@@ -264,13 +290,27 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     if (popupWindow == null) {
       return;
     }
-    
+
     popupWindow.dismiss();
     popupWindow = null;
   }
 
   public void onDimensionsChanged() {
     dismissPopup();
+  }
+
+  private int getXPosition(View view) {
+    int[] viewLocation = new int[2];
+    view.getLocationInWindow(viewLocation);
+
+    return viewLocation[0];
+  }
+
+  private int getYPosition(View view) {
+    int[] viewLocation = new int[2];
+    view.getLocationInWindow(viewLocation);
+
+    return viewLocation[1];
   }
 
   /** Represents a {@link PopupWindow} that accounts for padding caused by shadows. */
