@@ -60,7 +60,7 @@ message StyleIdsStack {
 }
 
 // A collection of attributes describing an element’s visual properties.
-// NextId: 21
+// NextId: 23
 message Style {
   // Every style must have a name that is unique within the StyleSheet. But
   // don’t go overboard in naming these with namespaced constructs because
@@ -87,6 +87,8 @@ message Style {
   // Text alignment
   optional TextAlignmentHorizontal text_alignment_horizontal = 21
       [default = TEXT_ALIGNMENT_START];
+  optional TextAlignmentVertical text_alignment_vertical = 22
+      [default = TEXT_ALIGNMENT_TOP];
 
   // Margins (if given) are outside the specified width/height.
   // The background fills all the area up to the margin, excluding the margin.
@@ -218,6 +220,21 @@ enum TextAlignmentHorizontal {
 
   // Align centered
   TEXT_ALIGNMENT_CENTER = 3;
+}
+
+// Vertical alignment of text within a TextElement.
+enum TextAlignmentVertical {
+  // This value should never be used.
+  TEXT_ALIGNMENT_VERTICAL_UNSPECIFIED = 0;
+
+  // Align top edge of text to top edge of element
+  TEXT_ALIGNMENT_TOP = 1;
+
+  // Align bottom edge of text to bottom edge of element
+  TEXT_ALIGNMENT_BOTTOM = 2;
+
+  // Align centered vertically
+  TEXT_ALIGNMENT_MIDDLE = 3;
 }
 
 // Font definitions for text elements. In the interest of preserving
