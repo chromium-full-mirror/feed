@@ -61,4 +61,12 @@
                        suggested articles, the fetch succeeds but provides no new suggestions.">
     No new suggestions
   </string>
+
+  <!-- String resources for no content card -->
+  <string name="suggestions_section_empty"
+      description="Text of a card explaining to the user that they can expect to see suggested
+                       articles in this area in the future.">
+    Your suggested articles appear here
+  </string>
+
 </resources>

@@ -23,6 +23,12 @@
   <!-- More button dimensions -->
   <dimen name="more_button_padding">8dp</dimen>
 
+  <!-- No content dimensions -->
+  <dimen name="no_content_text_size">16sp</dimen>
+  <dimen name="no_content_padding">16dp</dimen>
+  <dimen name="no_content_text_padding">8dp</dimen>
+  <dimen name="no_content_corner_radius">10dp</dimen>
+
   <!-- Zero state dimensions -->
   <dimen name="snippets_padding">16dp</dimen>
   <dimen name="zero_state_button_margin_top">24dp</dimen>
