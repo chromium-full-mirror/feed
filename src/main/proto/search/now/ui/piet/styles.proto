@@ -60,7 +60,7 @@ message StyleIdsStack {
 }
 
 // A collection of attributes describing an element’s visual properties.
-// NextId: 23
+// NextId: 25
 message Style {
   // Every style must have a name that is unique within the StyleSheet. But
   // don’t go overboard in naming these with namespaced constructs because
@@ -123,11 +123,25 @@ message Style {
   // Padding around the item
   optional EdgeWidths padding = 7;
 
-  // Width of an element.
-  optional uint32 width = 8;
+  // This Element's requested width.
+  // If this is not set, use the parent container's default child width.
+  oneof width_spec {
+    // Width of an element.
+    uint32 width = 8;
 
-  // Height of an element.
-  optional uint32 height = 9;
+    // Width relative to content or parent Element
+    RelativeSize relative_width = 23;
+  }
+
+  // This Element's requested height.
+  // If this is not set, use the parent container's default child height.
+  oneof height_spec {
+    // Constant height in DP
+    uint32 height = 9;
+
+    // Height relative to content or parent Element
+    RelativeSize relative_height = 24;
+  }
 
   // Minimum height for an element.
   optional uint32 min_height = 10;
@@ -206,6 +220,22 @@ message BoundStyle {
   optional Image.ScaleType scale_type = 5;
 }
 // LINT.ThenChange
+
+// Set a dimension relative to content or parent.
+// If a parent's size is set to FIT_CONTENT, and the child's size is
+// set to FILL_PARENT, the resulting size of the child should be the size of
+// the child's content.
+enum RelativeSize {
+  // Undefined behavior; use the default dimensions specified by the parent
+  // container.
+  RELATIVE_SIZE_UNDEFINED = 0;
+
+  // Make this Element request just as much space as its content requires.
+  FIT_CONTENT = 1;
+
+  // Make this Element request to fill whatever space is allocated to it.
+  FILL_PARENT = 2;
+}
 
 // Horizontal alignment of text within a TextElement.
 enum TextAlignmentHorizontal {
