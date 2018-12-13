@@ -17,21 +17,6 @@ android_local_test(
 )
 
 android_local_test(
-    name = "StreamContentChangedListenerTest",
-    size = "small",
-    timeout = "moderate",
-    srcs = ["StreamContentChangedListenerTest.java"],
-    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
-    deps = [
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "//src/main/java/com/google/android/libraries/feed/api/stream",
-        "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
-        "@bazel_android//:robolectric",
-        "@org_mockito_mockito_all//jar",
-    ],
-)
-
-android_local_test(
     name = "StreamItemAnimatorTest",
     size = "small",
     timeout = "moderate",

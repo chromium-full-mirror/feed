@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal;
+package com.google.android.libraries.feed.sharedstream.contentchanged;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -25,7 +25,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link StreamContentChangedListener}. */
+/**
+ * Tests for {@link StreamContentChangedListener}.
+ */
 @RunWith(RobolectricTestRunner.class)
 public class StreamContentChangedListenerTest {
   @Mock ContentChangedListener contentChangedListener;

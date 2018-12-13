@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal;
+package com.google.android.libraries.feed.sharedstream.contentchanged;
 
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import java.util.HashSet;
