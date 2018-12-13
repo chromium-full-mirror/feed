@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.Space;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
@@ -45,12 +44,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
           String.format("Missing ElementList; has %s", baseElement.getElementsCase()));
     }
     return baseElement.getElementList();
-  }
-
-  @Override
-  void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
-    super.onCreateAdapter(model, baseElement, frameContext);
-    setupGravityViews();
   }
 
   @Override
@@ -82,42 +75,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
     super.setLayoutParams(layoutParams);
     for (ElementAdapter<? extends View, ?> adapter : childAdapters) {
       updateChildLayoutParams(adapter);
-    }
-  }
-
-  /**
-   * Creates spacer views on top and/or bottom to make gravity work in a GridCell. These will be
-   * destroyed on releaseAdapter.
-   */
-  void setupGravityViews() {
-    LinearLayout listView = getBaseView();
-    // Based on gravity, we may need to add empty cells above or below the content that fill the
-    // parent cell, to ensure that backgrounds and actions apply to the entire cell.
-    View topView;
-    View bottomView;
-    switch (getVerticalGravity()) {
-      case GRAVITY_BOTTOM:
-        topView = new Space(getContext());
-        listView.addView(topView, 0);
-        ((LayoutParams) topView.getLayoutParams()).weight = 1.0f;
-        setFirstAdapterViewOffset(1);
-        break;
-      case GRAVITY_MIDDLE:
-        topView = new Space(getContext());
-        listView.addView(topView, 0);
-        ((LayoutParams) topView.getLayoutParams()).weight = 1.0f;
-        bottomView = new Space(getContext());
-        listView.addView(bottomView);
-        ((LayoutParams) bottomView.getLayoutParams()).weight = 1.0f;
-        setFirstAdapterViewOffset(1);
-        break;
-      case GRAVITY_TOP:
-        bottomView = new Space(getContext());
-        listView.addView(bottomView);
-        ((LayoutParams) bottomView.getLayoutParams()).weight = 1.0f;
-        break;
-      default:
-        // do nothing
     }
   }
 

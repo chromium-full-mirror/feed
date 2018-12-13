@@ -42,9 +42,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
   @VisibleForTesting final List<ElementAdapter<? extends View, ?>> childAdapters;
   @VisibleForTesting int[] adaptersPerContent = new int[0];
 
-  /** How many views come in the base view before the first adapter's view; used for gravity. */
-  private int firstAdapterViewOffset = 0;
-
   /** Cached reference to the factory for convenience. */
   private final ElementAdapterFactory factory;
 
@@ -92,7 +89,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
       factory.releaseAdapter(childAdapter);
     }
     childAdapters.clear();
-    setFirstAdapterViewOffset(0);
   }
 
   /** Creates and adds adapters for all inline Content items. */
@@ -171,18 +167,6 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
   }
 
   /**
-   * Tells this adapter that there exist (non-adapter) views in the ViewGroup that come before the
-   * first adapter view. (ex. spacer views to allow filling parent + gravity in LinearLayouts)
-   */
-  void setFirstAdapterViewOffset(int firstAdapterViewOffset) {
-    this.firstAdapterViewOffset = firstAdapterViewOffset;
-  }
-
-  int getFirstAdapterViewOffset() {
-    return firstAdapterViewOffset;
-  }
-
-  /**
    * Binds all static adapters, and creates+binds+adds adapters for Content bindings.
    *
    * <p>There are a few inefficient O(N^2) mid-list inserts in this method, but since we're dealing
@@ -195,7 +179,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
         adaptersPerContent.length,
         contents.size());
     int adapterIndex = 0;
-    int viewIndex = firstAdapterViewOffset;
+    int viewIndex = 0;
     for (int contentIndex = 0; contentIndex < contents.size(); contentIndex++) {
       Content content = contents.get(contentIndex);
       switch (content.getContentTypeCase()) {
@@ -284,7 +268,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
   /** Unbind all inline adapters, and destroy all bound adapters. */
   private void unbindChildAdapters(List<Content> contents) {
     int adapterIndex = 0;
-    int viewIndex = firstAdapterViewOffset;
+    int viewIndex = 0;
     for (int contentIndex = 0; contentIndex < contents.size(); contentIndex++) {
       Content content = contents.get(contentIndex);
       switch (content.getContentTypeCase()) {

@@ -31,7 +31,6 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.Space;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.ElementListAdapter.KeySupplier;
@@ -424,74 +423,6 @@ public class ElementListAdapterTest {
     adapter.releaseAdapter();
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
     assertThat(adapter.childAdapters).isEmpty();
-  }
-
-  // Tests creation of the vertical gravity spacers, and ensures they are destroyed appropriately.
-  @Test
-  public void testVerticalGravity() {
-    Element listWithStyles =
-        Element.newBuilder()
-            .setGravityVertical(GravityVertical.GRAVITY_MIDDLE)
-            .setElementList(DEFAULT_LIST)
-            .build();
-
-    adapter.createAdapter(listWithStyles, frameContext);
-
-    assertThat(adapter.getVerticalGravity()).isEqualTo(GravityVertical.GRAVITY_MIDDLE);
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
-    assertThat(adapter.getBaseView().getChildAt(0)).isInstanceOf(Space.class);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).weight)
-        .isEqualTo(1.0f);
-    assertThat(adapter.getBaseView().getChildAt(2)).isInstanceOf(Space.class);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(2).getLayoutParams()).weight)
-        .isEqualTo(1.0f);
-
-    adapter.releaseAdapter();
-
-    listWithStyles =
-        Element.newBuilder()
-            .setGravityVertical(GravityVertical.GRAVITY_TOP)
-            .setElementList(DEFAULT_LIST)
-            .build();
-
-    adapter.createAdapter(listWithStyles, frameContext);
-
-    assertThat(adapter.getVerticalGravity()).isEqualTo(GravityVertical.GRAVITY_TOP);
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
-    assertThat(adapter.getBaseView().getChildAt(1)).isInstanceOf(Space.class);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(1).getLayoutParams()).weight)
-        .isEqualTo(1.0f);
-
-    adapter.releaseAdapter();
-
-    listWithStyles =
-        Element.newBuilder()
-            .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
-            .setElementList(DEFAULT_LIST)
-            .build();
-
-    adapter.createAdapter(listWithStyles, frameContext);
-
-    assertThat(adapter.getVerticalGravity()).isEqualTo(GravityVertical.GRAVITY_BOTTOM);
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(2);
-    assertThat(adapter.getBaseView().getChildAt(0)).isInstanceOf(Space.class);
-    assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).weight)
-        .isEqualTo(1.0f);
-
-    adapter.releaseAdapter();
-
-    listWithStyles =
-        Element.newBuilder().clearGravityVertical().setElementList(DEFAULT_LIST).build();
-
-    adapter.createAdapter(listWithStyles, frameContext);
-
-    assertThat(adapter.getVerticalGravity())
-        .isEqualTo(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED);
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
   }
 
   @Test

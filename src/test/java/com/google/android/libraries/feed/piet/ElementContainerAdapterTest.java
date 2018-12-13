@@ -405,31 +405,6 @@ public class ElementContainerAdapterTest {
   }
 
   @Test
-  public void testBindChildAdapters_withExtraViews() {
-    List<Content> contents =
-        Collections.singletonList(Content.newBuilder().setElement(DEFAULT_ELEMENT).build());
-    View paddingViewL = new View(context);
-    View paddingViewR = new View(context);
-    adapter.getBaseView().addView(paddingViewL);
-    adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
-    adapter.getBaseView().addView(paddingViewR);
-
-    adapter.setFirstAdapterViewOffset(1);
-    adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(3);
-    assertThat(adapter.getBaseView().getChildAt(0)).isSameAs(paddingViewL);
-    assertThat(adapter.getBaseView().getChildAt(1))
-        .isSameAs(adapter.childAdapters.get(0).getView());
-    assertThat(adapter.getBaseView().getChildAt(2)).isSameAs(paddingViewR);
-
-    // Assert the child has been bound.
-    assertThat(adapter.childAdapters.get(0).getModel()).isSameAs(DEFAULT_ELEMENT.getElementList());
-
-    assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {1});
-  }
-
-  @Test
   public void testBindChildAdapters_boundElement() {
     List<Content> contents =
         Collections.singletonList(
@@ -461,33 +436,6 @@ public class ElementContainerAdapterTest {
         .isSameAs(adapter.childAdapters.get(1).getView());
     assertThat(adapter.getBaseView().getChildAt(2))
         .isSameAs(adapter.childAdapters.get(2).getView());
-
-    assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {3});
-  }
-
-  @Test
-  public void testBindChildAdapters_boundTemplate_withExtraViews() {
-    List<Content> contents =
-        Collections.singletonList(
-            Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build());
-    View paddingViewL = new View(context);
-    View paddingViewR = new View(context);
-    adapter.getBaseView().addView(paddingViewL);
-    adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
-    adapter.getBaseView().addView(paddingViewR);
-
-    adapter.setFirstAdapterViewOffset(1);
-    adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(5);
-    assertThat(adapter.getBaseView().getChildAt(0)).isSameAs(paddingViewL);
-    assertThat(adapter.getBaseView().getChildAt(1))
-        .isSameAs(adapter.childAdapters.get(0).getView());
-    assertThat(adapter.getBaseView().getChildAt(2))
-        .isSameAs(adapter.childAdapters.get(1).getView());
-    assertThat(adapter.getBaseView().getChildAt(3))
-        .isSameAs(adapter.childAdapters.get(2).getView());
-    assertThat(adapter.getBaseView().getChildAt(4)).isSameAs(paddingViewR);
 
     assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {3});
   }
@@ -665,33 +613,6 @@ public class ElementContainerAdapterTest {
 
     verify(mockTemplateAdapter).unbindModel();
     verify(mockTemplateAdapter).releaseAdapter();
-  }
-
-  @Test
-  public void testUnbindChildAdapters_withExtraViews() {
-    List<Content> contents = new ArrayList<>();
-    contents.add(Content.newBuilder().setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION).build());
-    contents.add(Content.newBuilder().setTemplateBinding(DEFAULT_TEMPLATE_BINDING).build());
-    contents.add(Content.newBuilder().setElement(DEFAULT_ELEMENT).build());
-
-    View paddingView = new View(context);
-    adapter.getBaseView().addView(paddingView);
-    adapter.setFirstAdapterViewOffset(1);
-    adapter.createAdapter(contents, DUMMY_BASE_ELEMENT, frameContext);
-    adapter.bindModel(contents, DUMMY_BASE_ELEMENT, frameContext);
-
-    assertThat(adapter.childAdapters).hasSize(6);
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(7);
-
-    adapter.unbindModel();
-
-    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(4);
-    for (int i = 0; i < 3; i++) {
-      assertThat(adapter.getBaseView().getChildAt(i + 1))
-          .isSameAs(adapter.childAdapters.get(i).getView());
-    }
-
-    assertThat(adapter.adaptersPerContent).isEqualTo(new int[] {2, 0, 1});
   }
 
   @Test
