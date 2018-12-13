@@ -541,6 +541,24 @@ public class StyleProviderTest {
   }
 
   @Test
+  @Config(sdk = VERSION_CODES.KITKAT)
+  public void testElementStyles_shadowDoesNotError_KK() {
+    Style shadowStyle =
+        Style.newBuilder()
+            .setShadow(
+                Shadow.newBuilder()
+                    .setElevationShadow(ElevationShadow.newBuilder().setElevation(5280)))
+            .build();
+    Style noShadowStyle = Style.getDefaultInstance();
+
+    new StyleProvider(shadowStyle, mockAssetProvider).applyElementStyles(adapter);
+
+    new StyleProvider(noShadowStyle, mockAssetProvider).applyElementStyles(adapter);
+
+    // Assert nothing failed.
+  }
+
+  @Test
   public void testElementStyles_opacity() {
     new StyleProvider(Style.newBuilder().setOpacity(0.5f).build(), mockAssetProvider)
         .applyElementStyles(adapter);
