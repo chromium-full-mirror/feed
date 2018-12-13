@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.sharedstream.scroll.ScrollRestoreHelper;
+import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 
 /**
  * Class which is able to save a scroll position for a RecyclerView and restore to that scroll

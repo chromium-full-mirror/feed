@@ -29,6 +29,7 @@ import android.support.v7.widget.RecyclerView;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
+import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.android.libraries.feed.testing.android.LinearLayoutManagerForTest;
 import org.junit.Before;
 import org.junit.Test;
