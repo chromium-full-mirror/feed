@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 /** Implementation of a {@link Session}. */
+// TODO: Tiktok doesn't allow HeadSessionImpl to extend SessionImpl
 public class SessionImpl implements InitializableSession, Dumpable {
   private static final String TAG = "SessionImpl";
 

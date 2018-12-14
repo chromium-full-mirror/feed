@@ -22,7 +22,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 
 /** */
-public class UpdatableModelChild implements ModelChild {
+public final class UpdatableModelChild implements ModelChild {
   private static final String TAG = "UpdatableModelChild";
 
   private final String contentId;

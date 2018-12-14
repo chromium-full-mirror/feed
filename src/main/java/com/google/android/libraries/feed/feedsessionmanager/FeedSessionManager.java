@@ -80,7 +80,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.GuardedBy;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
-public class FeedSessionManager
+public final class FeedSessionManager
     implements SessionManager, StoreListener, FeedLifecycleListener, Dumpable {
 
   private static final String TAG = "FeedSessionManager";

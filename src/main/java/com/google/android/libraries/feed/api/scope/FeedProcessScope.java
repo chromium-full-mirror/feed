@@ -171,7 +171,7 @@ public class FeedProcessScope implements Dumpable {
       }
     }
 
-    public Builder setProtocolAdapter(FeedProtocolAdapter protocolAdapter) {
+    public Builder setProtocolAdapter(ProtocolAdapter protocolAdapter) {
       this.protocolAdapter = protocolAdapter;
       return this;
     }
@@ -343,7 +343,7 @@ public class FeedProcessScope implements Dumpable {
     // Optional fields - if they are not provided, we will use default implementations.
     /*@MonotonicNonNull*/ private RequestManager requestManager = null;
     /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
-    /*@MonotonicNonNull*/ private FeedProtocolAdapter protocolAdapter = null;
+    /*@MonotonicNonNull*/ private ProtocolAdapter protocolAdapter = null;
     /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
     /*@MonotonicNonNull*/ private ContentStorageDirect contentStorage = null;
     /*@MonotonicNonNull*/ private JournalStorageDirect journalStorage = null;
@@ -357,7 +357,7 @@ public class FeedProcessScope implements Dumpable {
   private FeedProcessScope(
       LoggingApi loggingApi,
       NetworkClient networkClient,
-      FeedProtocolAdapter protocolAdapter,
+      ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
       SessionManager sessionManager,
       Store store,

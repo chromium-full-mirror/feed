@@ -30,7 +30,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
  * Factory for creating instances of {@link ModelProviderFactory} using the {@link
  * FeedModelProvider}.
  */
-public class FeedModelProviderFactory implements ModelProviderFactory {
+public final class FeedModelProviderFactory implements ModelProviderFactory {
   private final SessionManager sessionManager;
   private final ThreadUtils threadUtils;
   private final TimingUtils timingUtils;

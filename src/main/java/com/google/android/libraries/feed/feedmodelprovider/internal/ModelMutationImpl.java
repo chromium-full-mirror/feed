@@ -26,10 +26,10 @@ import java.util.List;
 /**
  * Implementation of the {@link ModelMutation}. When the mutation is committed updating the Model
  */
-public class ModelMutationImpl implements ModelMutation {
+public final class ModelMutationImpl implements ModelMutation {
 
   /** The data representing the Change to the model. */
-  public static class Change {
+  public static final class Change {
     public final List<StreamStructure> structureChanges = new ArrayList<>();
     public final List<StreamStructure> updateChanges = new ArrayList<>();
     /*@Nullable*/ public MutationContext mutationContext;

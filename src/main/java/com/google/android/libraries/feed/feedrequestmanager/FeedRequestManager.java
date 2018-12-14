@@ -73,7 +73,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /** Default implementation of RequestManager. */
-public class FeedRequestManager implements RequestManager {
+public final class FeedRequestManager implements RequestManager {
   private static final String TAG = "FeedRequestManager";
 
   public static final String MOTHERSHIP_PARAM_PAYLOAD = "reqpld";
@@ -279,7 +279,7 @@ public class FeedRequestManager implements RequestManager {
     }
   }
 
-  private static class RequestBuilder {
+  private static final class RequestBuilder {
 
     private ByteString token;
     private List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties;

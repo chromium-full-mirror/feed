@@ -27,7 +27,7 @@ import com.google.search.now.wire.feed.FeedResponseProto.FeedResponseMetadata;
  * {@link DataOperationTransformer} for {@link Content} that adds {@link
  * ClientBasicLoggingMetadata}.
  */
-public class ContentDataOperationTransformer implements DataOperationTransformer {
+public final class ContentDataOperationTransformer implements DataOperationTransformer {
 
   @Override
   public StreamDataOperation.Builder transform(

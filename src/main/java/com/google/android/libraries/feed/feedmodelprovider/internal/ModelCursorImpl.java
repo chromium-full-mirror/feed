@@ -32,7 +32,7 @@ import java.util.NoSuchElementException;
 import javax.annotation.concurrent.GuardedBy;
 
 /** Implementation of {@link ModelCursor}. */
-public class ModelCursorImpl implements ModelCursor, Dumpable {
+public final class ModelCursorImpl implements ModelCursor, Dumpable {
   private static final String TAG = "ModelCursorImpl";
 
   private final Object lock = new Object();
@@ -167,7 +167,7 @@ public class ModelCursorImpl implements ModelCursor, Dumpable {
   }
 
   @VisibleForTesting
-  class CursorIterator implements Iterator<UpdatableModelChild> {
+  final class CursorIterator implements Iterator<UpdatableModelChild> {
     private int cursor = 0;
 
     @Override

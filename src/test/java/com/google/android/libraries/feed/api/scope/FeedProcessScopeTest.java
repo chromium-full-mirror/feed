@@ -20,11 +20,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
-import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
@@ -54,7 +54,7 @@ public class FeedProcessScopeTest {
   @Mock private ApplicationInfo applicationInfo;
 
   // Mocks for optional fields
-  @Mock private FeedProtocolAdapter protocolAdapter;
+  @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
   @Mock private SessionManager sessionManager;
   @Mock private ThreadUtils threadUtils;

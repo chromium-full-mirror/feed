@@ -24,7 +24,7 @@ import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponseMetadata;
 
 /** {@link DataOperationTransformer} to populate {@link StreamFeature}. */
-public class FeatureDataOperationTransformer implements DataOperationTransformer {
+public final class FeatureDataOperationTransformer implements DataOperationTransformer {
 
   private static final String TAG = "FeatureDataOperationTra";
 

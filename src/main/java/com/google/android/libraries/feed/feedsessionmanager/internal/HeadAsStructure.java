@@ -38,7 +38,7 @@ import javax.annotation.concurrent.GuardedBy;
  * structure. Currently, the only supported access is filtering the tree in a pre-order traversal of
  * the structure, {@see #filter}.
  */
-public class HeadAsStructure {
+public final class HeadAsStructure {
   private static final String TAG = "HeadFilter";
 
   private final Store store;
@@ -58,7 +58,7 @@ public class HeadAsStructure {
    * Define a Node within the tree formed by $HEAD. This contains both the structure and content.
    * Allowing filtering of either the structure or content.
    */
-  public static class TreeNode {
+  public static final class TreeNode {
     final StreamStructure streamStructure;
     StreamPayload streamPayload;
 
@@ -154,7 +154,7 @@ public class HeadAsStructure {
     }
     T data = filterPredicate.apply(node);
     if (data != null) {
-        results.add(data);
+      results.add(data);
     }
     List<TreeNode> children = tree.get(node.streamStructure.getContentId());
     if (children != null) {

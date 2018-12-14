@@ -18,7 +18,6 @@ import static com.google.android.libraries.feed.api.store.Store.HEAD;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -28,6 +27,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.api.common.PayloadWithId;
+import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
@@ -39,13 +40,17 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
+import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -63,6 +68,7 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
+import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -379,12 +385,10 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testSwitchToEphemeralMode() {
-    FeedStore spyFeedStore = getSpyFeedStore();
-    FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
-
-    spySessionManager.switchToEphemeralMode("An Error Message");
-    verify(spyFeedStore).switchToEphemeralMode();
-    verify(spySessionManager).onSwitchToEphemeralMode();
+    Store store = mock(Store.class);
+    FeedSessionManager sessionManager = getUninitializedSessionManager(store);
+    sessionManager.switchToEphemeralMode("An Error Message");
+    verify(store).switchToEphemeralMode();
   }
 
   @Test
@@ -418,63 +422,54 @@ public class FeedSessionManagerTest {
 
   @Test
   public void testErrors_initializationSharedStateError() {
-    Store errorStore = mock(Store.class);
-    when(errorStore.getSharedStates()).thenReturn(Result.failure());
-    FeedSessionManager spySessionManager = getInitializedSpySessionManager(errorStore);
-
-    verify(spySessionManager).switchToEphemeralMode(anyString());
-    verify(errorStore).switchToEphemeralMode();
+    Store store = mock(Store.class);
+    when(store.getSharedStates()).thenReturn(Result.failure());
+    FeedSessionManager spySessionManager = getUninitializedSessionManager(store);
+    spySessionManager.initialize();
+    verify(store).switchToEphemeralMode();
   }
 
   @Test
   public void testErrors_initializationStreamStructureError() {
-    Store errorStore = mock(Store.class);
-    when(errorStore.getHeadSession()).thenReturn(HEAD);
-    when(errorStore.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
-    when(errorStore.getStreamStructures(any(StreamSession.class))).thenReturn(Result.failure());
-    FeedSessionManager spySessionManager = getInitializedSpySessionManager(errorStore);
-
-    verify(spySessionManager).switchToEphemeralMode(anyString());
+    Store store = mock(Store.class);
+    when(store.getHeadSession()).thenReturn(HEAD);
+    when(store.getSharedStates()).thenReturn(Result.success(new ArrayList<>()));
+    when(store.getStreamStructures(any(StreamSession.class))).thenReturn(Result.failure());
+    FeedSessionManager spySessionManager = getUninitializedSessionManager(store);
+    spySessionManager.initialize();
+    verify(store).switchToEphemeralMode();
   }
 
   @Test
   public void testErrors_createNewSessionError() {
-    FeedStore spyFeedStore = getSpyFeedStore();
+    Store spyFeedStore = getSpyFeedStore();
     doReturn(Result.failure()).when(spyFeedStore).createNewSession();
-    FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
-    populateSession(spySessionManager, 5, 1, true, null);
+    FeedSessionManager sessionManager = getUninitializedSessionManager(spyFeedStore);
+    sessionManager.initialize();
+    populateSession(sessionManager, 5, 1, true, null);
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            spySessionManager,
-            threadUtils,
-            timingUtils,
-            taskQueue,
-            mainThreadRunner,
-            configuration);
+            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
     modelProviderFactory.createNew(null);
-    verify(spySessionManager).switchToEphemeralMode(anyString());
+    verify(spyFeedStore).switchToEphemeralMode();
   }
 
   @Test
   public void testErrors_getStreamStructuresError() {
-    FeedStore spyFeedStore = getSpyFeedStore();
+    Store spyFeedStore = getSpyFeedStore();
     doReturn(Result.failure())
         .when(spyFeedStore)
         .getStreamStructures(AdditionalMatchers.not(eq(Store.HEAD)));
-    FeedSessionManager spySessionManager = getInitializedSpySessionManager(spyFeedStore);
-    populateSession(spySessionManager, 5, 1, true, null);
+    FeedSessionManager sessionManager = getUninitializedSessionManager(spyFeedStore);
+    sessionManager.initialize();
+    populateSession(sessionManager, 5, 1, true, null);
 
     ModelProviderFactory modelProviderFactory =
         new FeedModelProviderFactory(
-            spySessionManager,
-            threadUtils,
-            timingUtils,
-            taskQueue,
-            mainThreadRunner,
-            configuration);
+            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
     modelProviderFactory.createNew(null);
-    verify(spySessionManager).switchToEphemeralMode(anyString());
+    verify(spyFeedStore).switchToEphemeralMode();
   }
 
   private int populateSession(
@@ -536,34 +531,140 @@ public class FeedSessionManagerTest {
     return fsm;
   }
 
-  private FeedStore getSpyFeedStore() {
+  private Store getSpyFeedStore() {
     return spy(
-        new FeedStore(
-            timingUtils,
-            extensionRegistry,
-            new InMemoryContentStorage(),
-            new InMemoryJournalStorage(),
-            threadUtils,
-            taskQueue,
-            clock));
+        new DelegatingStore(
+            new FeedStore(
+                timingUtils,
+                extensionRegistry,
+                new InMemoryContentStorage(),
+                new InMemoryJournalStorage(),
+                threadUtils,
+                taskQueue,
+                clock)));
   }
 
-  private FeedSessionManager getInitializedSpySessionManager(Store feedStore) {
-    FeedSessionManager spySessionManager =
-        spy(
-            new FeedSessionManagerFactory(
-                    taskQueue,
-                    feedStore,
-                    timingUtils,
-                    threadUtils,
-                    protocolAdapter,
-                    requestManager,
-                    schedulerApi,
-                    configuration,
-                    clock,
-                    appLifecycleListener)
-                .create());
-    spySessionManager.initialize();
-    return spySessionManager;
+  private FeedSessionManager getUninitializedSessionManager(Store feedStore) {
+    return new FeedSessionManagerFactory(
+            taskQueue,
+            feedStore,
+            timingUtils,
+            threadUtils,
+            protocolAdapter,
+            requestManager,
+            schedulerApi,
+            configuration,
+            clock,
+            appLifecycleListener)
+        .create();
+  }
+
+  static class DelegatingStore implements Store {
+    private final Store store;
+
+    DelegatingStore(Store store) {
+      this.store = store;
+    }
+
+    @Override
+    public Result<List<PayloadWithId>> getPayloads(List<String> contentIds) {
+      return store.getPayloads(contentIds);
+    }
+
+    @Override
+    public Result<List<StreamSharedState>> getSharedStates() {
+      return store.getSharedStates();
+    }
+
+    @Override
+    public Result<List<StreamStructure>> getStreamStructures(StreamSession session) {
+      return store.getStreamStructures(session);
+    }
+
+    @Override
+    public Result<List<StreamSession>> getAllSessions() {
+      return store.getAllSessions();
+    }
+
+    @Override
+    public Result<List<SemanticPropertiesWithId>> getSemanticProperties(List<String> contentIds) {
+      return store.getSemanticProperties(contentIds);
+    }
+
+    @Override
+    public Result<List<StreamAction>> getAllDismissActions() {
+      return store.getAllDismissActions();
+    }
+
+    @Override
+    public Result<StreamSession> createNewSession() {
+      return store.createNewSession();
+    }
+
+    @Override
+    public StreamSession getHeadSession() {
+      return store.getHeadSession();
+    }
+
+    @Override
+    public void removeSession(StreamSession session) {
+      store.removeSession(session);
+    }
+
+    @Override
+    public void clearHead() {
+      store.clearHead();
+    }
+
+    @Override
+    public ContentMutation editContent() {
+      return store.editContent();
+    }
+
+    @Override
+    public SessionMutation editSession(StreamSession streamSession) {
+      return store.editSession(streamSession);
+    }
+
+    @Override
+    public SemanticPropertiesMutation editSemanticProperties() {
+      return store.editSemanticProperties();
+    }
+
+    @Override
+    public ActionMutation editActions() {
+      return store.editActions();
+    }
+
+    @Override
+    public Runnable triggerContentGc(
+        Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
+      return store.triggerContentGc(reservedContentIds, accessibleContent);
+    }
+
+    @Override
+    public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
+      return store.triggerActionGc(actions, validContentIds);
+    }
+
+    @Override
+    public void switchToEphemeralMode() {
+      store.switchToEphemeralMode();
+    }
+
+    @Override
+    public boolean isEphemeralMode() {
+      return store.isEphemeralMode();
+    }
+
+    @Override
+    public void registerObserver(StoreListener observer) {
+      store.registerObserver(observer);
+    }
+
+    @Override
+    public void unregisterObserver(StoreListener observer) {
+      store.unregisterObserver(observer);
+    }
   }
 }

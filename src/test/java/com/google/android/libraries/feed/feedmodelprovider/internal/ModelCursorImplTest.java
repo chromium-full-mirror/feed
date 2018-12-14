@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.feedmodelprovider.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
@@ -51,7 +50,7 @@ public class ModelCursorImplTest {
 
   @Test
   public void testReleaseCursor() {
-    modelChildren.add(mock(UpdatableModelChild.class));
+    modelChildren.add(new UpdatableModelChild("contentId", "parentId"));
     ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren);
     assertThat(cursor.isAtEnd()).isFalse();
 
@@ -65,7 +64,7 @@ public class ModelCursorImplTest {
   public void testIteration() {
     int childrenToAdd = 3;
     for (int i = 0; i < childrenToAdd; i++) {
-      modelChildren.add(mock(UpdatableModelChild.class));
+      modelChildren.add(new UpdatableModelChild("contentId", "parentId"));
     }
     ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren);
     int childCount = 0;
@@ -82,12 +81,12 @@ public class ModelCursorImplTest {
   public void testUpdateIterator_append() {
     int childrenToAdd = 3;
     for (int i = 0; i < childrenToAdd; i++) {
-      modelChildren.add(mock(UpdatableModelChild.class));
+      modelChildren.add(new UpdatableModelChild("contentId", "parentId"));
     }
     ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren);
     ModelFeature modelFeature = mock(ModelFeature.class);
     FeatureChangeImpl featureChange = new FeatureChangeImpl(modelFeature);
-    UpdatableModelChild newChild = mock(UpdatableModelChild.class);
+    UpdatableModelChild newChild = new UpdatableModelChild("contentId", "parentId");
     featureChange.getChildChangesImpl().addAppendChild(newChild);
     cursor.updateIterator(featureChange);
     List<UpdatableModelChild> children = cursor.getChildListForTesting();
@@ -99,9 +98,8 @@ public class ModelCursorImplTest {
   public void testUpdateIterator_remove() {
     int childrenToAdd = 3;
     for (int i = 0; i < childrenToAdd; i++) {
-      UpdatableModelChild child = mock(UpdatableModelChild.class);
       String contentId = contentIdGenerators.createFeatureContentId(i);
-      when(child.getContentId()).thenReturn(contentId);
+      UpdatableModelChild child = new UpdatableModelChild(contentId, "parentId");
       modelChildren.add(child);
     }
     ModelCursorImpl cursor = new ModelCursorImpl(parentContentId, modelChildren);
@@ -117,7 +115,7 @@ public class ModelCursorImplTest {
   public void testCursorIterator() {
     int childrenToAdd = 3;
     for (int i = 0; i < childrenToAdd; i++) {
-      modelChildren.add(mock(UpdatableModelChild.class));
+      modelChildren.add(new UpdatableModelChild("contentId", "parentId"));
     }
     CursorIterator cursorIterator =
         new ModelCursorImpl(parentContentId, modelChildren).new CursorIterator();

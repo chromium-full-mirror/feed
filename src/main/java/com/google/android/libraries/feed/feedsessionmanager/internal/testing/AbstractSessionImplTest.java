@@ -180,7 +180,7 @@ public abstract class AbstractSessionImplTest {
   }
 
   /** Fake ModelMutation for tests. */
-  protected static class FakeModelMutation implements ModelMutation {
+  protected static final class FakeModelMutation implements ModelMutation {
     public final List<StreamStructure> addedChildren = new ArrayList<>();
     final List<StreamStructure> removedChildren = new ArrayList<>();
     final List<StreamStructure> updateChildren = new ArrayList<>();
@@ -232,7 +232,7 @@ public abstract class AbstractSessionImplTest {
   }
 
   /** Fake SessionMutation for tests. */
-  protected class FakeSessionMutation implements SessionMutation {
+  protected final class FakeSessionMutation implements SessionMutation {
 
     public final List<StreamStructure> streamStructures = new ArrayList<>();
 

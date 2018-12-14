@@ -47,7 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** A ProtocolAdapter which converts from the wire protocol to the internal protocol. */
-public class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
+public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
 
   private static final String TAG = "FeedProtocolAdapter";
   static final String CONTENT_ID_DELIMITER = "::";

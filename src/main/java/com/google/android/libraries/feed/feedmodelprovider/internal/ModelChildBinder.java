@@ -34,7 +34,7 @@ import java.util.Map;
  * UNBOUND, we will bind the initial type. For FEATURE model child instances we will update the
  * data.
  */
-public class ModelChildBinder {
+public final class ModelChildBinder {
   private static final String TAG = "ModelChildBinder";
 
   private final SessionManager sessionManager;

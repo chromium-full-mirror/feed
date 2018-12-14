@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Implementation of the {@link ModelFeature} */
-public class UpdatableModelFeature extends Observable<FeatureChangeObserver>
+public final class UpdatableModelFeature extends Observable<FeatureChangeObserver>
     implements ModelFeature {
 
   private StreamFeature streamFeature;

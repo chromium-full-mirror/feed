@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.scope.FeedStreamScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
@@ -37,7 +38,6 @@ import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
-import com.google.android.libraries.feed.feedprotocoladapter.FeedProtocolAdapter;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -68,7 +68,7 @@ public class FeedStreamScopeTest {
   @Mock private LoggingApi loggingApi;
 
   // Mocks for optional fields
-  @Mock private FeedProtocolAdapter protocolAdapter;
+  @Mock private ProtocolAdapter protocolAdapter;
   @Mock private SessionManager sessionManager;
   @Mock private ActionParserFactory actionParserFactory;
   @Mock private Stream stream;

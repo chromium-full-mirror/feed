@@ -78,7 +78,7 @@ import java.util.UUID;
 import javax.annotation.concurrent.GuardedBy;
 
 /** An implementation of {@link ModelProvider}. This will represent the Stream tree in memory. */
-public class FeedModelProvider extends Observable<ModelProviderObserver>
+public final class FeedModelProvider extends Observable<ModelProviderObserver>
     implements ModelProvider, Dumpable {
 
   private static final String TAG = "FeedModelProvider";
@@ -106,6 +106,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
   @GuardedBy("lock")
   private final Map<String, SyntheticTokenTracker> syntheticTokens = new HashMap<>();
 
+  // TODO: Tiktok doesn't like WeakReference and will report uses as conformance errors
   @GuardedBy("lock")
   private final List<WeakReference<ModelCursorImpl>> cursors = new ArrayList<>();
 
@@ -766,7 +767,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   /** Class which handles Synthetic tokens within the root children list. */
   @VisibleForTesting
-  class SyntheticTokenTracker {
+  final class SyntheticTokenTracker {
     private final List<UpdatableModelChild> childrenToBind = new ArrayList<>();
     private final UpdatableModelChild pagingChild;
     private final int startingPosition;
@@ -994,7 +995,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
    * events are triggered. When the model is updated, we trigger a Session Started event.
    */
   @VisibleForTesting
-  class InitializeModel extends MutationHandler {
+  final class InitializeModel extends MutationHandler {
     @Override
     public void postMutation() {
       Logger.i(
@@ -1021,7 +1022,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
    * appended and a {@link TokenCompleted} will be triggered.
    */
   @VisibleForTesting
-  class TokenMutation extends MutationHandler {
+  final class TokenMutation extends MutationHandler {
     private final StreamToken mutationSourceToken;
     /*@Nullable*/ TokenTracking token = null;
     int newCursorStart = -1;
@@ -1077,7 +1078,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
    * are two types of changes, the content and changes to the children (structure).
    */
   @VisibleForTesting
-  class UpdateMutation extends MutationHandler {
+  final class UpdateMutation extends MutationHandler {
 
     private final List<StreamStructure> updates;
     private final Map<String, FeatureChangeImpl> changes = new HashMap<>();
@@ -1238,7 +1239,7 @@ public class FeedModelProvider extends Observable<ModelProviderObserver>
 
   /** Track the continuation token location and model */
   @VisibleForTesting
-  static class TokenTracking {
+  static final class TokenTracking {
     final UpdatableModelToken tokenChild;
     final String parentContentId;
     final ArrayList<UpdatableModelChild> location;

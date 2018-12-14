@@ -25,7 +25,7 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
  * Factory for creating a {@link InitializableSession} instance used in the {@link
  * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}.
  */
-public class SessionFactory {
+public final class SessionFactory {
   private final Store store;
   private final TaskQueue taskQueue;
   private final TimingUtils timingUtils;

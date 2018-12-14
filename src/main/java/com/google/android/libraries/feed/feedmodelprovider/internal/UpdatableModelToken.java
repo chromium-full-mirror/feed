@@ -22,7 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Implementation of the {@link ModelToken}. */
-public class UpdatableModelToken extends Observable<TokenCompletedObserver> implements ModelToken {
+public final class UpdatableModelToken extends Observable<TokenCompletedObserver>
+    implements ModelToken {
   private final StreamToken token;
   private final boolean isSynthetic;
 

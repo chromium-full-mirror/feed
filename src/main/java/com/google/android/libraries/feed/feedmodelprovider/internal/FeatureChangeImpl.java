@@ -31,7 +31,7 @@ import java.util.List;
  *       removed from a parent
  * </ol>
  */
-public class FeatureChangeImpl implements FeatureChange {
+public final class FeatureChangeImpl implements FeatureChange {
   private final ModelFeature modelFeature;
   private final ChildChangesImpl childChanges;
   private boolean featureChanged = false;
@@ -72,7 +72,7 @@ public class FeatureChangeImpl implements FeatureChange {
   }
 
   /** Structure used to define the children changes. */
-  public static class ChildChangesImpl implements ChildChanges {
+  public static final class ChildChangesImpl implements ChildChanges {
     private final List<ModelChild> appendChildren;
     private final List<ModelChild> removedChildren;
 

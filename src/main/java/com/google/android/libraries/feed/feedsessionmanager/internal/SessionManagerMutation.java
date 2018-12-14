@@ -58,7 +58,7 @@ import java.util.concurrent.CountDownLatch;
  * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager} to commit a mutation
  * defined as a List of {@link StreamDataOperation}.
  */
-public class SessionManagerMutation implements Dumpable {
+public final class SessionManagerMutation implements Dumpable {
   private static final String TAG = "SessionManagerMutation";
 
   private final Store store;
@@ -111,11 +111,7 @@ public class SessionManagerMutation implements Dumpable {
       /*@Nullable*/ KnownContentListener knownContentListener) {
     createCount++;
     return new MutationCommitter(
-        task,
-        mutationContext,
-        modelErrorObserver,
-        sharedStateCache,
-        knownContentListener);
+        task, mutationContext, modelErrorObserver, sharedStateCache, knownContentListener);
   }
 
   public void resetHead() {
@@ -131,6 +127,7 @@ public class SessionManagerMutation implements Dumpable {
     dumper.forKey("errorCount").value(errorCount).compactPrevious();
   }
 
+  // TODO: Tiktok doesn't allow MutationCommitter to extend HeadMutationCommitter
   class HeadMutationCommitter {
     /** This runs as a task on the executor thread and also as part of a SessionMutation commit. */
     @VisibleForTesting

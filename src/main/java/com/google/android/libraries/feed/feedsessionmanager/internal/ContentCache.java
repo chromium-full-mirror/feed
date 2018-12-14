@@ -29,7 +29,7 @@ import java.util.Map;
  * This cache assumes that we update all ModelProviders within the life of a single mutation. This
  * is the current behavior of FeedModelProvider.
  */
-public class ContentCache implements Dumpable {
+public final class ContentCache implements Dumpable {
   private static final String TAG = "ContentCache";
 
   private final Map<String, StreamPayload> mutationCache;

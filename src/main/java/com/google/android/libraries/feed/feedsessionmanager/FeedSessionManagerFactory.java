@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * creating the FeedSessionManager instead of creating the support objects inside the class
  * constructor.
  */
-public class FeedSessionManagerFactory {
+public final class FeedSessionManagerFactory {
   private static final long DEFAULT_LIFETIME_MS = TimeUnit.HOURS.toMillis(1);
 
   private final TaskQueue taskQueue;

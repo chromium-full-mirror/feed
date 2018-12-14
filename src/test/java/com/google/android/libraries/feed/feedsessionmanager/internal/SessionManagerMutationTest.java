@@ -77,7 +77,6 @@ import org.robolectric.RobolectricTestRunner;
  */
 @RunWith(RobolectricTestRunner.class)
 public class SessionManagerMutationTest {
-  @Mock private ContentCache contentCache;
   @Mock private ThreadUtils threadUtils;
   @Mock private SchedulerApi schedulerApi;
   @Mock private Clock clock;
@@ -89,6 +88,7 @@ public class SessionManagerMutationTest {
   private final Configuration configuration = new Configuration.Builder().build();
   private final Map<String, StreamSharedState> sharedStateCache = new HashMap<>();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
+  private ContentCache contentCache;
 
   private final String rootContentId = idGenerators.createRootContentId(0);
 
@@ -340,6 +340,7 @@ public class SessionManagerMutationTest {
   }
 
   private MutationCommitter getMutationCommitter(MutationContext mutationContext) {
+    contentCache = new ContentCache();
     SessionManagerMutation mutation =
         new SessionManagerMutation(
             storeSpy,

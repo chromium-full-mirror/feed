@@ -239,7 +239,8 @@ public class FeedModelProviderTest {
 
   @Test
   public void testTokenTracking() {
-    UpdatableModelToken continuationToken = mock(UpdatableModelToken.class);
+    UpdatableModelToken continuationToken =
+        new UpdatableModelToken(StreamToken.getDefaultInstance(), false);
     ArrayList<UpdatableModelChild> location = new ArrayList<>();
     String parentContentId = "parent.content.id";
     TokenTracking tokenTracking = new TokenTracking(continuationToken, parentContentId, location);
