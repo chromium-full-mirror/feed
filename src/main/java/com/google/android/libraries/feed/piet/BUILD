@@ -32,6 +32,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/imageloader",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/piet/ui",
+        "//src/main/proto/search/now/ui/piet:piet_errors_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
         gmaven_artifact("com.android.support:support_annotations:jar:28.0.0"),  # build_cleaner: keep
         gmaven_artifact("com.android.support:support_compat:aar:28.0.0"),
