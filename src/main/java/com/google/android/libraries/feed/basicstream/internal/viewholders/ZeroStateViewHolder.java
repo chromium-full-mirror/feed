@@ -18,7 +18,6 @@ import android.content.Context;
 import android.support.annotation.StringRes;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.LayoutParams;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,7 +28,7 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
-/** {@link ViewHolder} for zero state. */
+/** {@link android.support.v7.widget.RecyclerView.ViewHolder} for zero state. */
 public class ZeroStateViewHolder extends FeedViewHolder {
   @VisibleForTesting static final int MORNING_HOUR_START = 0;
   @VisibleForTesting static final int AFTERNOON_HOUR_START = 12;

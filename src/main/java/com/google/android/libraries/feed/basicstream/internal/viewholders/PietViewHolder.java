@@ -19,7 +19,6 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.LayoutParams;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
@@ -42,7 +41,8 @@ import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import java.util.List;
 
 /**
- * {@link ViewHolder} for {@link com.google.search.now.ui.stream.StreamStructureProto.PietContent}.
+ * {@link android.support.v7.widget.RecyclerView.ViewHolder} for {@link
+ * com.google.search.now.ui.stream.StreamStructureProto.PietContent}.
  */
 public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolder {
 

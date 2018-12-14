@@ -1,3 +1,4 @@
+load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
 load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:android_local_test.bzl", "DEFAULT_ANDROID_LOCAL_TEST_MANIFEST")
 
 licenses(["notice"])  # Apache 2
@@ -40,8 +41,8 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "//src/main/java/com/google/android/libraries/feed/testing/shadows",
         "//src/main/proto/com/google/android/libraries/feed/basicstream/internal/proto:stream_saved_instance_state_java_proto_lite",
-        "@androidsdk//com.android.support:recyclerview-v7-25.3.1",
         "@bazel_android//:robolectric",
+        gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",

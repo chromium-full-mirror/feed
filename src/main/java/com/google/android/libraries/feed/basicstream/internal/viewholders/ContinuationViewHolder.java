@@ -19,7 +19,6 @@ import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.widget.RecyclerView.LayoutParams;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,7 +31,7 @@ import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
-/** {@link ViewHolder} for the more button. */
+/** {@link android.support.v7.widget.RecyclerView.ViewHolder} for the more button. */
 public class ContinuationViewHolder extends FeedViewHolder {
 
   private final View actionButton;

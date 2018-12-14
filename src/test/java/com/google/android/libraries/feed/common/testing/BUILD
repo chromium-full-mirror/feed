@@ -1,3 +1,5 @@
+load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
+
 licenses(["notice"])  # Apache 2
 
 java_test(

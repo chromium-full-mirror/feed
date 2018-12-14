@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView.LayoutParams;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +24,7 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
-/** {@link ViewHolder} for no content card. */
+/** {@link android.support.v7.widget.RecyclerView.ViewHolder} for no content card. */
 public class NoContentViewHolder extends FeedViewHolder {
   private final CardConfiguration cardConfiguration;
   private final View view;

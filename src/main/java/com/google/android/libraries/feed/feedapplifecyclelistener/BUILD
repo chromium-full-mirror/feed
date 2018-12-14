@@ -1,3 +1,5 @@
+load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2
@@ -9,6 +11,6 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/lifecycle",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
-        "@androidsdk//com.android.support:support-annotations-25.3.1",
+        gmaven_artifact("com.android.support:support_annotations:jar:28.0.0"),
     ],
 )

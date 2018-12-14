@@ -2,6 +2,18 @@ android_sdk_repository(
     name = "androidsdk"
 )
 
+# Google Maven Repository
+GMAVEN_TAG = "20181206-1"
+
+http_archive(
+    name = "gmaven_rules",
+    strip_prefix = "gmaven_rules-%s" % GMAVEN_TAG,
+    url = "https://github.com/bazelbuild/gmaven_rules/archive/%s.tar.gz" % GMAVEN_TAG,
+)
+
+load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
+gmaven_rules()
+
 http_archive(
     name = "com_google_protobuf",
     sha256 = "cef7f1b5a7c5fba672bec2a319246e8feba471f04dcebfe362d55930ee7c1c30",
