@@ -17,6 +17,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet",
         gmaven_artifact("com.android.support:support_annotations:jar:28.0.0"),  # buildcleaner: keep
+        gmaven_artifact("com.android.support:interpolator:aar:28.0.0"),
         gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
         "@com_google_code_findbugs_jsr305//jar",
     ],

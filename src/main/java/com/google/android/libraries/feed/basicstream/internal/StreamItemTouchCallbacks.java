@@ -14,13 +14,18 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
+import android.graphics.Canvas;
+import android.support.v4.view.animation.FastOutLinearInInterpolator;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.animation.Interpolator;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.SwipeableViewHolder;
 
 /** {@link ItemTouchHelper.Callback} to allow dismissing cards via swiping. */
 public final class StreamItemTouchCallbacks extends ItemTouchHelper.Callback {
+
+  private static final Interpolator DISMISS_INTERPOLATOR = new FastOutLinearInInterpolator();
 
   @Override
   public int getMovementFlags(RecyclerView recyclerView, ViewHolder viewHolder) {
@@ -43,5 +48,21 @@ public final class StreamItemTouchCallbacks extends ItemTouchHelper.Callback {
     // Only PietViewHolders support swipe to dismiss. If new ViewHolders support swipe to dismiss,
     // this should instead use an interface.
     ((SwipeableViewHolder) viewHolder).onSwiped();
+  }
+
+  @Override
+  public void onChildDraw(
+      Canvas canvas,
+      RecyclerView recyclerView,
+      ViewHolder viewHolder,
+      float dX,
+      float dY,
+      int i,
+      boolean b) {
+    float input = Math.abs(dX) / viewHolder.itemView.getMeasuredWidth();
+    float alpha = 1 - DISMISS_INTERPOLATOR.getInterpolation(input);
+
+    viewHolder.itemView.setTranslationX(dX);
+    viewHolder.itemView.setAlpha(alpha);
   }
 }

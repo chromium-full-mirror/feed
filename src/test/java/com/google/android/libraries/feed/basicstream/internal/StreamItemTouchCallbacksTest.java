@@ -19,10 +19,12 @@ import static org.mockito.Mockito.mock;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
+import android.view.View.MeasureSpec;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.SwipeableViewHolder;
 import org.junit.Before;
@@ -89,6 +91,27 @@ public final class StreamItemTouchCallbacksTest {
     callbacks.onSwiped(dismissibleViewHolder, 0);
 
     assertThat(dismissibleViewHolder.isOnSwipedCalled()).isTrue();
+  }
+
+  @Test
+  public void testOnChildDraw() {
+    float translationX = 65;
+    frameLayout.measure(
+        MeasureSpec.makeMeasureSpec(100, MeasureSpec.EXACTLY),
+        MeasureSpec.makeMeasureSpec(200, MeasureSpec.EXACTLY));
+    dismissibleViewHolder = new DismissibleViewHolder(frameLayout, /* isDismissible= */ false);
+
+    callbacks.onChildDraw(
+        new Canvas(),
+        recyclerView,
+        dismissibleViewHolder,
+        translationX,
+        /* dY= */ 0,
+        /* i= */ 1,
+        /* b= */ true);
+
+    assertThat(dismissibleViewHolder.itemView.getTranslationX()).isEqualTo(translationX);
+    assertThat(dismissibleViewHolder.itemView.getAlpha()).isEqualTo(.5f);
   }
 
   private static class DismissibleViewHolder extends ViewHolder implements SwipeableViewHolder {
