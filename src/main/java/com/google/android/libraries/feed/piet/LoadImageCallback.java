@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -25,7 +24,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.piet.ui.DrawableScalingHelper;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,11 +39,8 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
   private final ImageView imageView;
   private final ScaleType scaleType;
   private final long initialTime;
-  private final int widthPx;
-  private final int heightPx;
   private final boolean fadeImage;
   private final AdapterParameters parameters;
-  private final Context context;
   private final FrameContext frameContext;
 
   private boolean cancelled;
@@ -57,19 +52,13 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
   LoadImageCallback(
       ImageView imageView,
       ScaleType scaleType,
-      int widthPx,
-      int heightPx,
       boolean fadeImage,
-      Context context,
       AdapterParameters parameters,
       FrameContext frameContext) {
     this.imageView = imageView;
     this.scaleType = scaleType;
-    this.widthPx = widthPx;
-    this.heightPx = heightPx;
     this.fadeImage = fadeImage;
     this.parameters = parameters;
-    this.context = context;
     this.initialTime = parameters.clock.elapsedRealtime();
     this.frameContext = frameContext;
   }
@@ -80,12 +69,6 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
       return;
     }
 
-    // Only perform image rescaling if both width/height are known as parameters.
-    if (widthPx > 0 && heightPx > 0) {
-      drawable =
-          DrawableScalingHelper.maybeScaleDrawable(
-              context, parameters.hostProviders.getAssetProvider(), drawable, widthPx, heightPx);
-    }
     imageView.setScaleType(scaleType);
 
     this.finalDrawable = drawable;

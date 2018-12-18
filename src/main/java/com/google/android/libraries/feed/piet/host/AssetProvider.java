@@ -44,13 +44,6 @@ public interface AssetProvider {
    */
   void getImage(Image image, int widthPx, int heightPx, Consumer</*@Nullable*/ Drawable> consumer);
 
-  /**
-   * Determines if Piet should try to resize BitmapDrawables retrieved via {@link #getImage(Image,
-   * int, int, Consumer)} to the drawn size. Hosts should return {@literal false} if they perform
-   * their own in memory bitmap cache.
-   */
-  boolean shouldPietResizeBitmaps();
-
   /** Return a relative elapsed time string such as "8 minutes ago" or "1 day ago". */
   String getRelativeElapsedString(long elapsedTimeMillis);
 

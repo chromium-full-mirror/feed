@@ -45,7 +45,6 @@ import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
-import com.google.android.libraries.feed.piet.ui.DrawableScalingHelper;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.BindingRefsProto.ImageBindingRef;
@@ -367,24 +366,6 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
         margin, spannable.length() - 1, spannable.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
   }
 
-  private Drawable maybeResizeDrawable(Drawable imageDrawable, StyleProvider imageStyle) {
-    if (imageStyle.hasWidth() && imageStyle.hasHeight()) {
-      int styleHeight = (int) LayoutUtils.dpToPx(imageStyle.getHeight(), getContext());
-      int styleWidth = (int) LayoutUtils.dpToPx(imageStyle.getWidth(), getContext());
-
-      // Both image dimens are known.  Try to resize image down to appropriate size.
-      imageDrawable =
-          DrawableScalingHelper.maybeScaleDrawable(
-              getContext(),
-              getParameters().hostProviders.getAssetProvider(),
-              imageDrawable,
-              styleWidth,
-              styleHeight);
-    }
-
-    return imageDrawable;
-  }
-
   /**
    * Sets the width and height of the drawable based on the {@code imageStyle}, preserving aspect
    * ratio. If no dimensions are set in the style, defaults to matching the line height of the
@@ -509,7 +490,6 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
       if (cancelled || imageDrawable == null) {
         return;
       }
-      imageDrawable = maybeResizeDrawable(imageDrawable, imageStyle);
       checkState(
           wrapper.setDrawableByLayerId(SINGLE_LAYER_ID, imageDrawable),
           "Failed to set drawable on chunked text");

@@ -22,10 +22,7 @@ import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
@@ -48,8 +45,6 @@ import org.robolectric.shadows.ShadowLooper;
 public class LoadImageCallbackTest {
 
   private static final int FADE_IMAGE_THRESHOLD_MS = 682;
-  private static final int WIDTH_PX = 10;
-  private static final int HEIGHT_PX = 20;
 
   @Mock private HostProviders hostProviders;
   @Mock private AssetProvider assetProvider;
@@ -90,10 +85,7 @@ public class LoadImageCallbackTest {
         new LoadImageCallback(
             imageView,
             ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
             true,
-            context,
             parameters,
             frameContext);
 
@@ -116,10 +108,7 @@ public class LoadImageCallbackTest {
         new LoadImageCallback(
             imageView,
             ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
             true,
-            context,
             parameters,
             frameContext);
 
@@ -141,10 +130,7 @@ public class LoadImageCallbackTest {
         new LoadImageCallback(
             imageView,
             ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
             false,
-            context,
             parameters,
             frameContext);
 
@@ -162,10 +148,7 @@ public class LoadImageCallbackTest {
         new LoadImageCallback(
             imageView,
             ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
             true,
-            context,
             parameters,
             frameContext);
 
@@ -181,10 +164,7 @@ public class LoadImageCallbackTest {
         new LoadImageCallback(
             new ImageView(context),
             ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
             true,
-            context,
             parameters,
             frameContext);
     clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
@@ -207,10 +187,7 @@ public class LoadImageCallbackTest {
         new LoadImageCallback(
             imageView,
             ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
             true,
-            context,
             parameters,
             frameContext);
     clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
@@ -231,62 +208,13 @@ public class LoadImageCallbackTest {
   }
 
   @Test
-  public void testScalingImage() {
-    when(assetProvider.shouldPietResizeBitmaps()).thenReturn(true);
-
-    Bitmap bitmap = Bitmap.createBitmap(123, 321, Config.ALPHA_8);
-
-    ImageView imageView = new ImageView(context);
-
-    new LoadImageCallback(
-            imageView,
-            ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
-            false,
-            context,
-            parameters,
-            frameContext)
-        .accept(new BitmapDrawable(context.getResources(), bitmap));
-    BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
-    assertThat(bitmapDrawable.getBitmap().getWidth()).isEqualTo(WIDTH_PX);
-    assertThat(bitmapDrawable.getBitmap().getHeight()).isEqualTo(HEIGHT_PX);
-  }
-
-  @Test
-  public void testScalingImage_onlyScaleIfHostSupports() {
-    when(assetProvider.shouldPietResizeBitmaps()).thenReturn(false);
-
-    Bitmap bitmap = Bitmap.createBitmap(123, 321, Config.ALPHA_8);
-
-    ImageView imageView = new ImageView(context);
-
-    new LoadImageCallback(
-            imageView,
-            ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
-            false,
-            context,
-            parameters,
-            frameContext)
-        .accept(new BitmapDrawable(context.getResources(), bitmap));
-    BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
-    assertThat(bitmapDrawable.getBitmap().getWidth()).isEqualTo(123);
-    assertThat(bitmapDrawable.getBitmap().getHeight()).isEqualTo(321);
-  }
-
-  @Test
   public void testSetsScaleType() {
     ImageView imageView = new ImageView(context);
     LoadImageCallback callback =
         new LoadImageCallback(
             imageView,
             ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
             false,
-            context,
             parameters,
             frameContext);
     callback.accept(finalDrawable);
@@ -310,10 +238,7 @@ public class LoadImageCallbackTest {
         new LoadImageCallback(
             imageView,
             ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
             true,
-            context,
             parameters,
             frameContext);
 
@@ -347,10 +272,7 @@ public class LoadImageCallbackTest {
         new LoadImageCallback(
             imageView,
             ScaleType.CENTER,
-            WIDTH_PX,
-            HEIGHT_PX,
             true,
-            context,
             parameters,
             frameContext);
 

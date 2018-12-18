@@ -63,12 +63,6 @@ public class PietAssetProvider implements AssetProvider {
   }
 
   @Override
-  public boolean shouldPietResizeBitmaps() {
-    // No hosts currently keep in-memory bitmaps caches.  Allow Piet to resize them.
-    return true;
-  }
-
-  @Override
   public String getRelativeElapsedString(long elapsedTimeMillis) {
     return DateUtils.getRelativeTimeSpanString(
             clock.currentTimeMillis() - elapsedTimeMillis,

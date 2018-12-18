@@ -31,11 +31,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -609,94 +607,6 @@ public class ChunkedTextElementAdapterTest {
 
     int widthPx = (int) LayoutUtils.dpToPx(STYLE_WIDTH_DP, context);
     int heightPx = (int) LayoutUtils.dpToPx(STYLE_HEIGHT_DP, context);
-    assertThat(imageDrawable.getBounds()).isEqualTo(new Rect(0, 0, widthPx, heightPx));
-  }
-
-  @Test
-  public void testAddImageChunk_setsImageAndDims_adjustsBitmap() {
-    when(mockAssetProvider.shouldPietResizeBitmaps()).thenReturn(true);
-
-    when(mockStyleProvider.hasWidth()).thenReturn(true);
-    when(mockStyleProvider.getWidth()).thenReturn(STYLE_WIDTH_DP);
-    when(mockStyleProvider.hasHeight()).thenReturn(true);
-    when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
-
-    // Required to set up the local frameContext member var.
-    adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
-
-    adapter.addImageChunk(frameContext, textView, spannable, IMAGE_CHUNK);
-
-    assertThat(spannable.toString()).isEqualTo(" ");
-
-    ImageSpan[] imageSpans = spannable.getSpans(0, 1, ImageSpan.class);
-    LayerDrawable containerDrawable = (LayerDrawable) imageSpans[0].getDrawable();
-
-    ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
-        ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
-    verify(mockAssetProvider)
-        .getImage(
-            eq(IMAGE_CHUNK_IMAGE),
-            eq(STYLE_WIDTH_DP),
-            eq(STYLE_HEIGHT_DP),
-            imageCallbackCaptor.capture());
-
-    // Activate the image loading callback
-    Bitmap bitmap = Bitmap.createBitmap(100, 150, Bitmap.Config.ALPHA_8);
-    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
-    imageCallbackCaptor.getValue().accept(specifiedBitmapDrawable);
-
-    int widthPx = (int) LayoutUtils.dpToPx(STYLE_WIDTH_DP, context);
-    int heightPx = (int) LayoutUtils.dpToPx(STYLE_HEIGHT_DP, context);
-
-    // Assert that we set the image on the span
-    Drawable imageDrawable = containerDrawable.getDrawable(0);
-    assertThat(imageDrawable).isInstanceOf(BitmapDrawable.class);
-
-    Bitmap createdBitmap = ((BitmapDrawable) imageDrawable).getBitmap();
-    assertThat(createdBitmap.getWidth()).isEqualTo(widthPx);
-    assertThat(createdBitmap.getHeight()).isEqualTo(heightPx);
-
-    assertThat(imageDrawable.getBounds()).isEqualTo(new Rect(0, 0, widthPx, heightPx));
-  }
-
-  @Test
-  public void testAddImageChunk_setsImageAndDims_doesNotAdjustsBitmapDueToHost() {
-    when(mockStyleProvider.hasWidth()).thenReturn(true);
-    when(mockStyleProvider.getWidth()).thenReturn(STYLE_WIDTH_DP);
-    when(mockStyleProvider.hasHeight()).thenReturn(true);
-    when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
-
-    // Required to set up the local frameContext member var.
-    adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
-
-    adapter.addImageChunk(frameContext, textView, spannable, IMAGE_CHUNK);
-
-    assertThat(spannable.toString()).isEqualTo(" ");
-
-    ImageSpan[] imageSpans = spannable.getSpans(0, 1, ImageSpan.class);
-    LayerDrawable containerDrawable = (LayerDrawable) imageSpans[0].getDrawable();
-
-    ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
-        ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
-    verify(mockAssetProvider)
-        .getImage(
-            eq(IMAGE_CHUNK_IMAGE),
-            eq(STYLE_WIDTH_DP),
-            eq(STYLE_HEIGHT_DP),
-            imageCallbackCaptor.capture());
-
-    // Activate the image loading callback
-    Bitmap bitmap = Bitmap.createBitmap(100, 150, Bitmap.Config.ALPHA_8);
-    BitmapDrawable specifiedBitmapDrawable = new BitmapDrawable(context.getResources(), bitmap);
-    imageCallbackCaptor.getValue().accept(specifiedBitmapDrawable);
-
-    int widthPx = (int) LayoutUtils.dpToPx(STYLE_WIDTH_DP, context);
-    int heightPx = (int) LayoutUtils.dpToPx(STYLE_HEIGHT_DP, context);
-
-    // Assert that we set the image on the span
-    Drawable imageDrawable = containerDrawable.getDrawable(0);
-
-    assertThat(imageDrawable).isEqualTo(specifiedBitmapDrawable);
     assertThat(imageDrawable.getBounds()).isEqualTo(new Rect(0, 0, widthPx, heightPx));
   }
 
