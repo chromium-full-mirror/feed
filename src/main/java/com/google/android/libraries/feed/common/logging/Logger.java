@@ -613,13 +613,7 @@ public final class Logger {
     if (tag.length() > 23) {
       cappedTag = tag.substring(0, 23);
       internalLog(
-          WARN,
-          cappedTag,
-          null,
-          "Tag [%s] is too long; truncated to [%s]",
-          false,
-          tag,
-          cappedTag);
+          WARN, cappedTag, null, "Tag [%s] is too long; truncated to [%s]", false, tag, cappedTag);
       return cappedTag;
     }
     return tag;
@@ -733,7 +727,7 @@ public final class Logger {
     }
   }
 
-  protected static String buildMessage(/*@Nullable*/ String message, /*@Nullable*/ Object[] args) {
+  static String buildMessage(/*@Nullable*/ String message, /*@Nullable*/ Object[] args) {
     // If the message is null, ignore the args and return "null";
     if (message == null) {
       return STRING_MEANING_NULL;

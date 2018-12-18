@@ -25,8 +25,11 @@ import java.util.TreeSet;
 public class FakeMainThreadRunner extends MainThreadRunner {
 
   private final boolean runTasksImmediately;
+
+  @SuppressWarnings("AndroidJdkLibsChecker")
   private final Set<DelayedRunnable> delayedTasks =
       new TreeSet<>(Comparator.comparingLong(DelayedRunnable::getDelayMs));
+
   private final List<Runnable> immediateTasks = new ArrayList<>();
   private final List<Runnable> completedTasks = new ArrayList<>();
 

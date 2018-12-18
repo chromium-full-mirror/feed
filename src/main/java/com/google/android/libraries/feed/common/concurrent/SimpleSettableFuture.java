@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /** Simple future that allows for setting a value from another thread */
-public class SimpleSettableFuture<V> implements Future<V> {
+public final class SimpleSettableFuture<V> implements Future<V> {
 
   private final CountDownLatch latch = new CountDownLatch(1);
   private boolean cancelled = false;

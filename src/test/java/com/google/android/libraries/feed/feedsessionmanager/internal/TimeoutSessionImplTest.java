@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuil
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
@@ -155,7 +156,12 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
 
   @Override
   protected TimeoutSessionImpl getSessionImpl() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
+    TaskQueue taskQueue =
+        new TaskQueue(
+            MoreExecutors.directExecutor(),
+            FakeMainThreadRunner.runTasksImmediately(),
+            clock,
+            false);
     taskQueue.initialize(() -> {});
     TimeoutSessionImpl session =
         new TimeoutSessionImpl(store, false, taskQueue, timingUtils, threadUtils);

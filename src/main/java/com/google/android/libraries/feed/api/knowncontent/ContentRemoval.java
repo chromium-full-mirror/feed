@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.api.knowncontent;
 
 /** Information on the removal of a piece of content. */
-public class ContentRemoval {
+public final class ContentRemoval {
 
   private final String url;
   private final boolean requestedByUser;

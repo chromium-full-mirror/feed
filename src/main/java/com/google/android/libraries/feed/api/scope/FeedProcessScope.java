@@ -76,7 +76,7 @@ import java.util.concurrent.ExecutorService;
  * <p>It's the host's responsibility to make sure there's only one instance of this per process, per
  * user.
  */
-public class FeedProcessScope implements Dumpable {
+public final class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
   // This is called by hosts so it must be public
@@ -136,7 +136,7 @@ public class FeedProcessScope implements Dumpable {
   }
 
   /** A builder that creates a {@link FeedProcessScope}. */
-  public static class Builder {
+  public static final class Builder {
 
     /** The APIs are all required to construct the scope. */
     public Builder(
@@ -253,7 +253,7 @@ public class FeedProcessScope implements Dumpable {
         clock = new SystemClockImpl();
       }
       TimingUtils timingUtils = new TimingUtils();
-      TaskQueue taskQueue = new TaskQueue(singleThreadExecutor, clock, true);
+      TaskQueue taskQueue = new TaskQueue(singleThreadExecutor, mainThreadRunner, clock, true);
       FeedStore store =
           new FeedStore(
               timingUtils,

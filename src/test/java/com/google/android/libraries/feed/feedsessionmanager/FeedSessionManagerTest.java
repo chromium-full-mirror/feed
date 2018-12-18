@@ -49,6 +49,7 @@ import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -142,7 +143,12 @@ public class FeedSessionManagerTest {
     when(store.getAllSessions()).thenReturn(Result.success(new ArrayList<>()));
     when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
         .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
-    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
+    taskQueue =
+        new TaskQueue(
+            MoreExecutors.directExecutor(),
+            FakeMainThreadRunner.runTasksImmediately(),
+            clock,
+            false);
   }
 
   @Test

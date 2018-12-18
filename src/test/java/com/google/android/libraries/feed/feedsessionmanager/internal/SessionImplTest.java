@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
@@ -86,7 +87,12 @@ public class SessionImplTest extends AbstractSessionImplTest {
 
   @Override
   protected SessionImpl getSessionImpl() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
+    TaskQueue taskQueue =
+        new TaskQueue(
+            MoreExecutors.directExecutor(),
+            FakeMainThreadRunner.runTasksImmediately(),
+            clock,
+            false);
     taskQueue.initialize(() -> {});
     SessionImpl session = new SessionImpl(store, false, taskQueue, timingUtils, threadUtils);
     session.bindModelProvider(modelProvider, null);

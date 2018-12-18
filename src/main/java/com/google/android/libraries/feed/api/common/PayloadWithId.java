@@ -20,7 +20,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
  * Structure style class which binds a String contentId with a {@link StreamPayload}. The class is
  * immutable and provides access to the fields directly.
  */
-public class PayloadWithId {
+public final class PayloadWithId {
   public final String contentId;
   public final StreamPayload payload;
 

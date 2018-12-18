@@ -19,7 +19,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /** Date-formatting static methods. */
-public class StringFormattingUtils {
+public final class StringFormattingUtils {
 
   // Do not instantiate
   private StringFormattingUtils() {}
@@ -27,7 +27,7 @@ public class StringFormattingUtils {
   private static SimpleDateFormat logDateFormat;
 
   /** Formats {@code date} in the same format as used by logcat. */
-  public static synchronized String formatLogDate(Date date) {
+  static synchronized String formatLogDate(Date date) {
     if (logDateFormat == null) {
       // Getting the date format is mildly expensive, so don't do it unless we need it.
       logDateFormat = new SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US);

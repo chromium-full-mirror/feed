@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -350,7 +351,12 @@ public class SessionCacheTest {
   }
 
   private SessionCache getSessionCache() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
+    TaskQueue taskQueue =
+        new TaskQueue(
+            MoreExecutors.directExecutor(),
+            FakeMainThreadRunner.runTasksImmediately(),
+            clock,
+            false);
     taskQueue.initialize(() -> {});
     Store store =
         new FeedStore(

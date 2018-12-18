@@ -19,9 +19,9 @@ import com.google.search.now.ui.stream.StreamStructureProto.OfflineMetadata;
 import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 
 /** Metadata for content. */
-public class ContentMetadata {
+public final class ContentMetadata {
 
-  public static final long UNKNOWN_TIME_PUBLISHED = -1L;
+  static final long UNKNOWN_TIME_PUBLISHED = -1L;
 
   private static final String TAG = "ContentMetadata";
 

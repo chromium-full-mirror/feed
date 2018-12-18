@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -282,7 +283,12 @@ public class FeedActionReaderTest {
   }
 
   private TaskQueue getTaskQueue() {
-    TaskQueue taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
+    TaskQueue taskQueue =
+        new TaskQueue(
+            MoreExecutors.directExecutor(),
+            FakeMainThreadRunner.runTasksImmediately(),
+            clock,
+            false);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }

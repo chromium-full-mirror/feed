@@ -31,7 +31,7 @@ import java.util.List;
  * <p>The {@code Consumer} will be called on the main thread and called once per mutation. In
  * addition, the {@code Consumer} is called before the change operation.
  */
-public class RemoveTracking<T> {
+public final class RemoveTracking<T> {
   private final Function<StreamFeature, /*@Nullable*/ T> filterPredicate;
   private final Consumer<List<T>> consumer;
   private final List<T> matchingItems = new ArrayList<>();

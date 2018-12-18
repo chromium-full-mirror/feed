@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
@@ -92,7 +93,12 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   public void setUp() throws Exception {
     initMocks(this);
     when(configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false)).thenReturn(false);
-    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), taskQueueClock, false);
+    taskQueue =
+        new TaskQueue(
+            MoreExecutors.directExecutor(),
+            FakeMainThreadRunner.runTasksImmediately(),
+            taskQueueClock,
+            false);
     taskQueue.initialize(() -> {});
   }
 

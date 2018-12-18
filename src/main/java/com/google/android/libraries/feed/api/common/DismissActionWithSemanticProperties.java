@@ -21,7 +21,7 @@ import java.util.Arrays;
  * Represents the content needed for a dismiss action internally. Holds the content ID of the
  * dismissed content, and any semantic properties associated with it.
  */
-public class DismissActionWithSemanticProperties {
+public final class DismissActionWithSemanticProperties {
   private final ContentId contentId;
   private final byte /*@Nullable*/ [] semanticProperties;
 

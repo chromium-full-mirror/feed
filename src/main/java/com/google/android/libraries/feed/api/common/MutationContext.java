@@ -22,7 +22,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
  * This tracks the context of a mutation. When a request is made, this will track the reason for the
  * request and pass this information back with the response.
  */
-public class MutationContext {
+public final class MutationContext {
   /*@Nullable*/ private final StreamToken continuationToken;
   /*@Nullable*/ private final StreamSession requestingSession;
   /*@Nullable*/ private final Consumer<Boolean> mutationCompleteConsumer;
@@ -65,7 +65,7 @@ public class MutationContext {
   }
 
   /** Builder for creating a {@link com.google.android.libraries.feed.api.common.MutationContext */
-  public static class Builder {
+  public static final class Builder {
     /*@MonotonicNonNull*/ private StreamToken continuationToken;
     /*@MonotonicNonNull*/ private StreamSession requestingSession;
     /*@MonotonicNonNull*/ private Consumer<Boolean> mutationCompleteConsumer;

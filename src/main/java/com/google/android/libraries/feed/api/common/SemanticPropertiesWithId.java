@@ -20,7 +20,7 @@ import java.util.Arrays;
  * Structure style class which binds a String contentId with the semantic properties data for that
  * contentId. The class is immutable and provides access to the fields directly.
  */
-public class SemanticPropertiesWithId {
+public final class SemanticPropertiesWithId {
 
   public final String contentId;
   public final byte[] semanticData;

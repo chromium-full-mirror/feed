@@ -46,7 +46,7 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import java.util.ArrayList;
 
 /** Per-stream instance of the feed library. */
-public class FeedStreamScope {
+public final class FeedStreamScope {
 
   public Stream getStream() {
     return stream;
@@ -57,7 +57,7 @@ public class FeedStreamScope {
   }
 
   /** A builder that creates a {@link FeedStreamScope}. */
-  public static class Builder {
+  public static final class Builder {
     /** Construct this builder using {@link FeedProcessScope#createFeedStreamScopeBuilder} */
     Builder(
         Context context,

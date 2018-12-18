@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.api.modelprovider;
 
 /** Defines completion of a continuation token initiated request. */
-public class TokenCompleted {
+public final class TokenCompleted {
   private final ModelCursor modelCursor;
 
   public TokenCompleted(ModelCursor modelCursor) {

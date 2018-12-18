@@ -38,6 +38,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -104,7 +105,12 @@ public class SessionManagerMutationTest {
     storeSpy = null;
     sharedStateCache.clear();
     notifySession = null;
-    taskQueue = new TaskQueue(MoreExecutors.newDirectExecutorService(), clock, false);
+    taskQueue =
+        new TaskQueue(
+            MoreExecutors.directExecutor(),
+            FakeMainThreadRunner.runTasksImmediately(),
+            clock,
+            false);
     taskQueue.initialize(() -> {});
     Store store =
         new FeedStore(

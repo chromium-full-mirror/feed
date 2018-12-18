@@ -22,7 +22,7 @@ import com.google.protobuf.ByteString;
  * com.google.android.libraries.feed.api.stream.Stream} about errors which may occur in the
  * infrastructure.
  */
-public class ModelError {
+public final class ModelError {
 
   /** Defines errors are exposed through the ModelProvider to the Stream. */
   @IntDef({ErrorType.UNKNOWN, ErrorType.NO_CARDS_ERROR, ErrorType.PAGINATION_ERROR})

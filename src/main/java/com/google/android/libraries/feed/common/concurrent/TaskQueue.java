@@ -14,8 +14,6 @@
 
 package com.google.android.libraries.feed.common.concurrent;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -53,6 +51,7 @@ import javax.annotation.concurrent.GuardedBy;
  * USER_FACING tasks followed by the BACKGROUND tasks. Once all of these tasks have run, we will run
  * tasks immediately until we either have a task which is of type HEAD_INVALIDATE or HEAD_RESET.
  */
+// TODO: This class should be final for Tiktok conformance
 public class TaskQueue implements Dumpable {
   private static final String TAG = "TaskQueue";
 
@@ -120,7 +119,7 @@ public class TaskQueue implements Dumpable {
   private final Executor executor;
   private final Clock clock;
   private final boolean checkStarvation;
-  private final Handler mainThreadHandler;
+  private final MainThreadRunner mainThreadRunner;
 
   // counters used for dump
   private int taskCount = 0;
@@ -140,11 +139,12 @@ public class TaskQueue implements Dumpable {
    *     checks during tests. Starvation checks on the Main Thread Executor (used by tests) will
    *     result in an infinite loop if the queue is ever delayed.
    */
-  public TaskQueue(Executor executor, Clock clock, boolean checkStarvation) {
+  public TaskQueue(
+      Executor executor, MainThreadRunner mainThreadRunner, Clock clock, boolean checkStarvation) {
     this.executor = executor;
+    this.mainThreadRunner = mainThreadRunner;
     this.clock = clock;
     this.checkStarvation = checkStarvation;
-    mainThreadHandler = new Handler(Looper.getMainLooper());
   }
 
   @VisibleForTesting
@@ -225,11 +225,11 @@ public class TaskQueue implements Dumpable {
     }
     if (isDelayed()) {
       Logger.i(TAG, " * Starting starvation checks");
-      mainThreadHandler.postDelayed(new StarvationChecker(), STARVATION_CHECK_MS);
+      mainThreadRunner.executeWithDelay(TAG, new StarvationChecker(), STARVATION_CHECK_MS);
     }
   }
 
-  private class StarvationChecker implements Runnable {
+  private final class StarvationChecker implements Runnable {
     @Override
     public void run() {
       if (!isDelayed()) {
@@ -253,7 +253,7 @@ public class TaskQueue implements Dumpable {
         }
         executeNextTask();
       } else {
-        mainThreadHandler.postDelayed(this, STARVATION_CHECK_MS);
+        mainThreadRunner.executeWithDelay(TAG, this, STARVATION_CHECK_MS);
       }
     }
   }
@@ -404,7 +404,7 @@ public class TaskQueue implements Dumpable {
    * Initialization will flip the {@link #initialized} state to {@code true} when the initialization
    * task completes.
    */
-  private class InitializationTaskWrapper extends TaskWrapper {
+  private final class InitializationTaskWrapper extends TaskWrapper {
     InitializationTaskWrapper(Runnable runnable) {
       super("initializationTask", TaskType.IMMEDIATE, runnable);
     }
@@ -420,7 +420,7 @@ public class TaskQueue implements Dumpable {
   /**
    * HeadReset will run a task which resets $HEAD. It clears the {@link #waitingForHeadReset} state.
    */
-  private class HeadResetTaskWrapper extends TaskWrapper {
+  private final class HeadResetTaskWrapper extends TaskWrapper {
     HeadResetTaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
       super(task, taskType, runnable);
     }
@@ -438,7 +438,7 @@ public class TaskQueue implements Dumpable {
    * delayed until {@link HeadResetTaskWrapper} has completed. This will set the {@link
    * #waitingForHeadReset}. In addition starvation checks will be started.
    */
-  private class HeadInvalidateTaskWrapper extends TaskWrapper {
+  private final class HeadInvalidateTaskWrapper extends TaskWrapper {
     HeadInvalidateTaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
       super(task, taskType, runnable);
       synchronized (lock) {
@@ -456,7 +456,7 @@ public class TaskQueue implements Dumpable {
    * Runs a Task which has a timeout. The timeout task (Runnable) will run if the primary task is
    * not started before the timeout millis.
    */
-  private class TimeoutTaskWrapper extends TaskWrapper {
+  private final class TimeoutTaskWrapper extends TaskWrapper {
     private final Runnable timeoutRunnable;
     private final AtomicBoolean started = new AtomicBoolean(false);
 
@@ -471,7 +471,7 @@ public class TaskQueue implements Dumpable {
      * #timeoutRunnable} will run.
      */
     private TimeoutTaskWrapper startTimeout(long timeoutMillis) {
-      mainThreadHandler.postDelayed(this::runTimeoutCallback, timeoutMillis);
+      mainThreadRunner.executeWithDelay(TAG, this::runTimeoutCallback, timeoutMillis);
       return this;
     }
 

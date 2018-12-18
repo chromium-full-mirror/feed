@@ -17,6 +17,8 @@ package com.google.android.libraries.feed.api.common;
 import android.os.Looper;
 
 /** Thread utilities. */
+// TODO: Need to make this class file for Tiktok compliance.  This is mocked in a bunch
+// of tests which run on the main thread.
 public class ThreadUtils {
   public ThreadUtils() {}
 

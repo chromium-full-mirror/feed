@@ -27,7 +27,7 @@ import java.util.Locale;
  * Simple Dumper modelled after the AGSA Dumper. This will dump a tree of objects which implement
  * the {@link Dumpable} interface.
  */
-public class Dumper {
+public final class Dumper {
   private static final String TAG = "Dumper";
   private static final String SINGLE_INDENT = "  ";
 
@@ -154,7 +154,7 @@ public class Dumper {
    * level for content appearing on a new line. Multiple DumperValues may be compacted into a single
    * line in the output.
    */
-  public static class DumperValue {
+  public static final class DumperValue {
     @VisibleForTesting static final String REDACTED = "[REDACTED]";
     @VisibleForTesting final String name;
     @VisibleForTesting final StringBuilder content;
