@@ -21,11 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Implementation of the {@link SessionMutation}. */
-public class FeedSessionMutation implements SessionMutation {
+public final class FeedSessionMutation implements SessionMutation {
   private final List<StreamStructure> streamStructures = new ArrayList<>();
   private final Committer<Boolean, List<StreamStructure>> committer;
 
-  public FeedSessionMutation(Committer<Boolean, List<StreamStructure>> committer) {
+  FeedSessionMutation(Committer<Boolean, List<StreamStructure>> committer) {
     this.committer = committer;
   }
 

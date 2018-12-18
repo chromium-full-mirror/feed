@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.Map;
 
 /** Implementation of {@link ActionMutation} */
-public class FeedActionMutation implements ActionMutation {
+public final class FeedActionMutation implements ActionMutation {
   private static final String TAG = "FeedActionMutation";
 
   private final Map<Integer, List<String>> actions = new HashMap<>();
   private final Committer<CommitResult, Map<Integer, List<String>>> committer;
 
-  public FeedActionMutation(Committer<CommitResult, Map<Integer, List<String>>> committer) {
+  FeedActionMutation(Committer<CommitResult, Map<Integer, List<String>>> committer) {
     this.committer = committer;
   }
 

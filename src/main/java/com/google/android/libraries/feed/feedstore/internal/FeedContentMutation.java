@@ -23,12 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** This class will mutate the Content stored in the FeedStore. */
-public class FeedContentMutation implements ContentMutation {
+public final class FeedContentMutation implements ContentMutation {
 
   private final List<PayloadWithId> mutations = new ArrayList<>();
   private final Committer<CommitResult, List<PayloadWithId>> committer;
 
-  public FeedContentMutation(Committer<CommitResult, List<PayloadWithId>> committer) {
+  FeedContentMutation(Committer<CommitResult, List<PayloadWithId>> committer) {
     this.committer = committer;
   }
 

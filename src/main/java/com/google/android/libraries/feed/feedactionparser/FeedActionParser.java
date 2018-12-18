@@ -45,7 +45,7 @@ import java.util.List;
  * Action parser which is able to parse Feed actions and notify clients about which action needs to
  * be performed.
  */
-public class FeedActionParser implements ActionParser {
+public final class FeedActionParser implements ActionParser {
 
   private static final String TAG = "FeedActionParser";
 

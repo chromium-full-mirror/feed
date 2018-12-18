@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Garbage collector for {@link StreamAction}s stored in a journal */
-public class ActionGc {
+public final class ActionGc {
 
   private static final String TAG = "ActionGc";
 

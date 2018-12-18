@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedstore.FeedStore;
+import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
@@ -359,14 +360,15 @@ public class SessionCacheTest {
             false);
     taskQueue.initialize(() -> {});
     Store store =
-        new FeedStore(
-            timingUtils,
-            extensionRegistry,
-            contentStorage,
-            new InMemoryJournalStorage(),
-            threadUtils,
-            taskQueue,
-            clock);
+        new DelegatingStore(
+            new FeedStore(
+                timingUtils,
+                extensionRegistry,
+                contentStorage,
+                new InMemoryJournalStorage(),
+                threadUtils,
+                taskQueue,
+                clock));
     storeSpy = spy(store);
     sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);

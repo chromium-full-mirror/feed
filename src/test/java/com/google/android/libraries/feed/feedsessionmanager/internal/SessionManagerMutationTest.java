@@ -46,6 +46,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionManagerMutation.MutationCommitter;
 import com.google.android.libraries.feed.feedstore.FeedStore;
+import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
@@ -89,7 +90,6 @@ public class SessionManagerMutationTest {
   private final Configuration configuration = new Configuration.Builder().build();
   private final Map<String, StreamSharedState> sharedStateCache = new HashMap<>();
   private final ContentIdGenerators idGenerators = new ContentIdGenerators();
-  private ContentCache contentCache;
 
   private final String rootContentId = idGenerators.createRootContentId(0);
 
@@ -121,7 +121,7 @@ public class SessionManagerMutationTest {
             threadUtils,
             taskQueue,
             clock);
-    storeSpy = spy(store);
+    storeSpy = spy(new DelegatingStore(store));
     SessionFactory sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
     sessionCache =
@@ -346,7 +346,7 @@ public class SessionManagerMutationTest {
   }
 
   private MutationCommitter getMutationCommitter(MutationContext mutationContext) {
-    contentCache = new ContentCache();
+    ContentCache contentCache = new ContentCache();
     SessionManagerMutation mutation =
         new SessionManagerMutation(
             storeSpy,

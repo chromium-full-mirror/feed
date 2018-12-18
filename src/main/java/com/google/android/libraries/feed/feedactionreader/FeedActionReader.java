@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /** Feed implementation of {@link ActionReader} */
-public class FeedActionReader implements ActionReader {
+public final class FeedActionReader implements ActionReader {
   private static final String TAG = "FeedActionReader";
 
   private final Store store;

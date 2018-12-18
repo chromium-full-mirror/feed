@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 /** Storage Content Garbage Collector. */
-public class ContentGc {
+public final class ContentGc {
   private static final String TAG = "ContentGc";
 
   private final Supplier<Set<String>> accessibleContentSupplier;

@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /** {@link MainThreadRunner} used for tests which is able to queue up tasks. */
-public class FakeMainThreadRunner extends MainThreadRunner {
+public final class FakeMainThreadRunner extends MainThreadRunner {
 
   private final boolean runTasksImmediately;
 

@@ -28,6 +28,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager",
         "//src/main/java/com/google/android/libraries/feed/feedsessionmanager/internal",
         "//src/main/java/com/google/android/libraries/feed/feedstore",
+        "//src/main/java/com/google/android/libraries/feed/feedstore/testing",
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",

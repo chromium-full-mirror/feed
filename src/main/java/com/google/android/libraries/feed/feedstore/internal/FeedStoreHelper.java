@@ -20,7 +20,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import java.util.UUID;
 
 /** Helper class for shared FeedStore methods */
-public class FeedStoreHelper {
+public final class FeedStoreHelper {
   /** Get a new, unique stream session */
   StreamSession getNewStreamSession() {
     String sessionName = SESSION_NAME_PREFIX + UUID.randomUUID();

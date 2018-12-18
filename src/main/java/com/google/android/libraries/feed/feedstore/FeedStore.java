@@ -60,7 +60,8 @@ import java.util.Set;
  * independent of what delegate is actually running. The delegates currently throw a
  * IllegalStateException if the register/unregister methods are called.
  */
-public class FeedStore extends Observable<StoreListener> implements Store, FeedLifecycleListener {
+public final class FeedStore extends Observable<StoreListener>
+    implements Store, FeedLifecycleListener {
   private static final String TAG = "FeedStore";
 
   // Permanent reference to the persistent store (used for setting off cleanup)

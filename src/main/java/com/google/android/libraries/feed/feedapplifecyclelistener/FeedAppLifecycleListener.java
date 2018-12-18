@@ -21,7 +21,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 
 /** Default implementation of {@link AppLifecycleListener} */
-public class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
+public final class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
     implements AppLifecycleListener {
   private static final String TAG = "FeedAppLifecycleLstnr";
 

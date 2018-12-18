@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 /** Default implementation of the {@link KnownContentApi}. */
-public class FeedKnownContentApi implements KnownContentApi {
+public final class FeedKnownContentApi implements KnownContentApi {
 
   private static final String TAG = "FeedKnownContentApi";
   private final SessionManager sessionManager;

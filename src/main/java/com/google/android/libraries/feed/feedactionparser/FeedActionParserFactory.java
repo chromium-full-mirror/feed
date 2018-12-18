@@ -22,7 +22,7 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 
 /** Default factory for the default {@link ActionParser} implementation. */
-public class FeedActionParserFactory implements ActionParserFactory {
+public final class FeedActionParserFactory implements ActionParserFactory {
 
   private final ProtocolAdapter protocolAdapter;
   private final PietFeedActionPayloadRetriever pietFeedActionPayloadRetriever;

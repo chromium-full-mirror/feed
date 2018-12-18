@@ -27,8 +27,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
-import com.google.android.libraries.feed.api.common.PayloadWithId;
-import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
@@ -40,18 +38,14 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
-import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
-import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
-import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -61,6 +55,7 @@ import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFact
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
+import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
@@ -69,7 +64,6 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -563,114 +557,5 @@ public class FeedSessionManagerTest {
             clock,
             appLifecycleListener)
         .create();
-  }
-
-  static class DelegatingStore implements Store {
-    private final Store store;
-
-    DelegatingStore(Store store) {
-      this.store = store;
-    }
-
-    @Override
-    public Result<List<PayloadWithId>> getPayloads(List<String> contentIds) {
-      return store.getPayloads(contentIds);
-    }
-
-    @Override
-    public Result<List<StreamSharedState>> getSharedStates() {
-      return store.getSharedStates();
-    }
-
-    @Override
-    public Result<List<StreamStructure>> getStreamStructures(StreamSession session) {
-      return store.getStreamStructures(session);
-    }
-
-    @Override
-    public Result<List<StreamSession>> getAllSessions() {
-      return store.getAllSessions();
-    }
-
-    @Override
-    public Result<List<SemanticPropertiesWithId>> getSemanticProperties(List<String> contentIds) {
-      return store.getSemanticProperties(contentIds);
-    }
-
-    @Override
-    public Result<List<StreamAction>> getAllDismissActions() {
-      return store.getAllDismissActions();
-    }
-
-    @Override
-    public Result<StreamSession> createNewSession() {
-      return store.createNewSession();
-    }
-
-    @Override
-    public StreamSession getHeadSession() {
-      return store.getHeadSession();
-    }
-
-    @Override
-    public void removeSession(StreamSession session) {
-      store.removeSession(session);
-    }
-
-    @Override
-    public void clearHead() {
-      store.clearHead();
-    }
-
-    @Override
-    public ContentMutation editContent() {
-      return store.editContent();
-    }
-
-    @Override
-    public SessionMutation editSession(StreamSession streamSession) {
-      return store.editSession(streamSession);
-    }
-
-    @Override
-    public SemanticPropertiesMutation editSemanticProperties() {
-      return store.editSemanticProperties();
-    }
-
-    @Override
-    public ActionMutation editActions() {
-      return store.editActions();
-    }
-
-    @Override
-    public Runnable triggerContentGc(
-        Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
-      return store.triggerContentGc(reservedContentIds, accessibleContent);
-    }
-
-    @Override
-    public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
-      return store.triggerActionGc(actions, validContentIds);
-    }
-
-    @Override
-    public void switchToEphemeralMode() {
-      store.switchToEphemeralMode();
-    }
-
-    @Override
-    public boolean isEphemeralMode() {
-      return store.isEphemeralMode();
-    }
-
-    @Override
-    public void registerObserver(StoreListener observer) {
-      store.registerObserver(observer);
-    }
-
-    @Override
-    public void unregisterObserver(StoreListener observer) {
-      store.unregisterObserver(observer);
-    }
   }
 }

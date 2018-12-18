@@ -65,7 +65,7 @@ import java.util.concurrent.TimeUnit;
  * Implementation of the Store. The PersistentFeedStore will call the host APIs {@link
  * ContentStorage} and {@link JournalStorage} to make persistent changes.
  */
-public class PersistentFeedStore implements ClearableStore, Dumpable {
+public final class PersistentFeedStore implements ClearableStore, Dumpable {
 
   private static final String TAG = "PersistentFeedStore";
 

@@ -29,7 +29,8 @@ import java.util.List;
  * consumer calling on the main thread and waiting on a Future to complete to return the consumer
  * results.
  */
-public class JournalStorageDirectImpl extends MainThreadCaller implements JournalStorageDirect {
+public final class JournalStorageDirectImpl extends MainThreadCaller
+    implements JournalStorageDirect {
   private static final String LOCATION = "JournalStorage.";
   private final JournalStorage journalStorage;
 

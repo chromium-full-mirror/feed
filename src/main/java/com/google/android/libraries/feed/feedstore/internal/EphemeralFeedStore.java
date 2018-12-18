@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /** Ephemeral version of Store */
-public class EphemeralFeedStore implements ClearableStore {
+public final class EphemeralFeedStore implements ClearableStore {
 
   private static final String TAG = "EphemeralFeedStore";
   private static final Runnable EMPTY_RUNNABLE = () -> {};

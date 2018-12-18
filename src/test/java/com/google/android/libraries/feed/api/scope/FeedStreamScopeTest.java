@@ -37,7 +37,6 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
-import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -83,7 +82,6 @@ public class FeedStreamScopeTest {
   @Mock private OfflineIndicatorApi offlineIndicatorApi;
   @Mock private KnownContentApi knownContentApi;
   @Mock private TaskQueue taskQueue;
-  @Mock private FeedAppLifecycleListener lifecycleListener;
 
   private Context context;
   private MainThreadRunner mainThreadRunner;

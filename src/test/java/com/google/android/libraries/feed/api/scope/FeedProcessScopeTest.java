@@ -28,7 +28,6 @@ import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecyc
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
-import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
@@ -46,11 +45,9 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class FeedProcessScopeTest {
   // Mocks for required fields
-  @Mock private ImageLoaderApi imageLoaderApi;
   @Mock private LoggingApi loggingApi;
   @Mock private NetworkClient networkClient;
   @Mock private SchedulerApi schedulerApi;
-  @Mock private FeedAppLifecycleListener appLifecycleListener;
   @Mock private ApplicationInfo applicationInfo;
 
   // Mocks for optional fields
@@ -61,12 +58,14 @@ public class FeedProcessScopeTest {
 
   private final ProtoExtensionProvider protoExtensionProvider = ArrayList::new;
   private final Configuration configuration = new Configuration.Builder().build();
+  private FeedAppLifecycleListener appLifecycleListener;
   private Context context;
 
   @Before
   public void setUp() {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
+    appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
   }
 
   @Test

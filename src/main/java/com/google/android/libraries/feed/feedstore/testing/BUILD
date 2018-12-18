@@ -5,15 +5,13 @@ licenses(["notice"])  # Apache 2
 android_library(
     name = "testing",
     testonly = 1,
-    srcs = [
-        "AbstractClearableFeedStoreTest.java",
-        "AbstractFeedStoreTest.java",
-    ],
+    srcs = glob(["*.java"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/common/testing",
         "//src/main/java/com/google/android/libraries/feed/api/store",
         "//src/main/java/com/google/android/libraries/feed/common",
+        "//src/main/java/com/google/android/libraries/feed/common/functional",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal",

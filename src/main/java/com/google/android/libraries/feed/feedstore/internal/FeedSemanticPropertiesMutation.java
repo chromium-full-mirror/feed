@@ -22,12 +22,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /** Implementation of the {@link SemanticPropertiesMutation}. */
-public class FeedSemanticPropertiesMutation implements SemanticPropertiesMutation {
+public final class FeedSemanticPropertiesMutation implements SemanticPropertiesMutation {
   private final Map<String, ByteString> semanticPropertiesMap = new HashMap<>();
   private final Committer<CommitResult, Map<String, ByteString>> committer;
 
-  public FeedSemanticPropertiesMutation(
-      Committer<CommitResult, Map<String, ByteString>> committer) {
+  FeedSemanticPropertiesMutation(Committer<CommitResult, Map<String, ByteString>> committer) {
     this.committer = committer;
   }
 

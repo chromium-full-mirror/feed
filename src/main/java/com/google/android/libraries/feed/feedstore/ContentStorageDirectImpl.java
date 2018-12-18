@@ -30,7 +30,8 @@ import java.util.Map;
  * consumer calling on the main thread and waiting on a Future to complete to return the consumer
  * results.
  */
-public class ContentStorageDirectImpl extends MainThreadCaller implements ContentStorageDirect {
+public final class ContentStorageDirectImpl extends MainThreadCaller
+    implements ContentStorageDirect {
   private static final String LOCATION = "ContentStorage.";
   private final ContentStorage contentStorage;
 

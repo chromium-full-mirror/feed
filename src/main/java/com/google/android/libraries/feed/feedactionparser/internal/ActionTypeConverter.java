@@ -18,7 +18,8 @@ import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 
 /** Utility class to convert a {@link Type} to {@link ActionType}. */
-public class ActionTypeConverter {
+public final class ActionTypeConverter {
+  private ActionTypeConverter() {}
 
   @ActionType
   public static int convert(Type type) {
