@@ -16,9 +16,9 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
-        "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )
 
@@ -36,9 +36,9 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal",
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
-        "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )
 
@@ -53,8 +53,8 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/store",
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal",
         "//src/main/java/com/google/android/libraries/feed/feedstore/testing",
-        "@bazel_android//:robolectric",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )
 
@@ -77,8 +77,8 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/storage",
         "//src/main/java/com/google/android/libraries/feed/hostimpl/storage",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
-        "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )

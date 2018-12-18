@@ -17,6 +17,6 @@ android_library(
     srcs = glob(["*.java"]),
     deps = [
         gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
-        "@bazel_android//:robolectric",
+        "@robolectric//bazel:robolectric",
     ],
 )

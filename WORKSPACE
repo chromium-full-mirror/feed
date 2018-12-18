@@ -31,12 +31,12 @@ http_archive(
 )
 
 http_archive(
-    name = "bazel_android",
-    strip_prefix = "bazel_android-a4f491fdaea9efdbfc32f867dc7f5ff1ba548ceb",
-    urls = ["https://github.com/dkelmer/bazel_android/archive/a4f491fdaea9efdbfc32f867dc7f5ff1ba548ceb.zip"],
+    name = "robolectric",
+    urls = ["https://github.com/robolectric/robolectric-bazel/archive/7020b9a7a4796d2dc5392d6385d83e384a01f9fd.tar.gz"],
+    strip_prefix = "robolectric-bazel-7020b9a7a4796d2dc5392d6385d83e384a01f9fd",
 )
-load("@bazel_android//:setup_robolectric.bzl", "setup_robolectric")
-setup_robolectric()
+load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
+robolectric_repositories()
 
 maven_jar(
     name = "com_google_code_findbugs_jsr305",

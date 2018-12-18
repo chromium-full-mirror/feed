@@ -12,8 +12,8 @@ android_local_test(
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/logging",
-        "@bazel_android//:robolectric",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )
 
@@ -28,9 +28,9 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/logging",
         "//src/main/java/com/google/android/libraries/feed/common/testing",
         "//src/main/java/com/google/android/libraries/feed/host/logging",
-        "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )
 
@@ -44,7 +44,7 @@ android_local_test(
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/logging",
         "//src/main/java/com/google/android/libraries/feed/host/config",
-        "@bazel_android//:robolectric",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )

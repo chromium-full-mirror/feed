@@ -13,7 +13,7 @@ android_local_test(
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
-        "@bazel_android//:robolectric",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )

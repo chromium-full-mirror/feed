@@ -24,10 +24,10 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/network",
         "//src/main/java/com/google/android/libraries/feed/host/proto",
         "//src/main/java/com/google/android/libraries/feed/host/scheduler",
-        "@bazel_android//:robolectric",
         "@com_google_guava_guava//jar",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )
 
@@ -60,8 +60,8 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/offlineindicator",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
-        "@bazel_android//:robolectric",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )

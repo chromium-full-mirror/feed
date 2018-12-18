@@ -16,7 +16,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/proto:scroll_state_java_proto_lite",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "//src/main/java/com/google/android/libraries/feed/testing/android",
-        "@bazel_android//:robolectric",
+        "@robolectric//bazel:robolectric",
         gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",

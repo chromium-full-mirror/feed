@@ -21,9 +21,9 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/feedactionmanager",
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
-        "@bazel_android//:robolectric",
         "@com_google_guava_guava//jar",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
     ],
 )
