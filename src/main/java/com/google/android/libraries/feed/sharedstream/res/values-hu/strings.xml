@@ -23,4 +23,5 @@
   <string name="feed_refresh">Frissítés</string>
   <string name="snackbar_fetch_failed">Nem sikerült lekérni a javaslatokat</string>
   <string name="snackbar_fetch_no_new_suggestions">Nincsenek új javaslatok</string>
+  <string name="suggestions_section_empty">Itt jelennek meg a javasolt cikkek</string>
 </resources>

@@ -23,4 +23,5 @@
   <string name="feed_refresh">रीफ़्रेश करें</string>
   <string name="snackbar_fetch_failed">सुझाव नहीं मिल पा रहे हैं</string>
   <string name="snackbar_fetch_no_new_suggestions">कोई नया सुझाव नहीं है</string>
+  <string name="suggestions_section_empty">आपके सुझाए गए लेख यहां दिखाई देते हैं</string>
 </resources>

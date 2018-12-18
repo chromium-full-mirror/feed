@@ -23,4 +23,5 @@
   <string name="feed_refresh">새로고침</string>
   <string name="snackbar_fetch_failed">추천을 받을 수 없음</string>
   <string name="snackbar_fetch_no_new_suggestions">새 추천 없음</string>
+  <string name="suggestions_section_empty">추천 기사가 여기에 표시됩니다.</string>
 </resources>

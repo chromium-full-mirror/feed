@@ -23,4 +23,5 @@
   <string name="feed_refresh">Обновить</string>
   <string name="snackbar_fetch_failed">Не удалось получить рекомендации</string>
   <string name="snackbar_fetch_no_new_suggestions">Нет новых рекомендаций</string>
+  <string name="suggestions_section_empty">Здесь появятся рекомендуемые статьи.</string>
 </resources>

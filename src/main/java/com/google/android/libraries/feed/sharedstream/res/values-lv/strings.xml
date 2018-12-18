@@ -23,4 +23,5 @@
   <string name="feed_refresh">Atsvaidzināt</string>
   <string name="snackbar_fetch_failed">Nevar iegūt ieteikumus</string>
   <string name="snackbar_fetch_no_new_suggestions">Nav jaunu ieteikumu</string>
+  <string name="suggestions_section_empty">Šeit tiks parādīti ieteiktie raksti.</string>
 </resources>

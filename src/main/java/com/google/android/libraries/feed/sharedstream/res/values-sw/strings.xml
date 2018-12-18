@@ -23,4 +23,5 @@
   <string name="feed_refresh">Onyesha upya</string>
   <string name="snackbar_fetch_failed">Imeshindwa kupata mapendekezo</string>
   <string name="snackbar_fetch_no_new_suggestions">Hakuna mapendekezo mapya</string>
+  <string name="suggestions_section_empty">Makala unayopendekezewa yataonekana hapa</string>
 </resources>

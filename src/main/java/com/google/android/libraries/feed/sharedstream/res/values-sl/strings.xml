@@ -23,4 +23,5 @@
   <string name="feed_refresh">Osveži</string>
   <string name="snackbar_fetch_failed">Prejemanje predlogov ni mogoče</string>
   <string name="snackbar_fetch_no_new_suggestions">Ni novih predlogov</string>
+  <string name="suggestions_section_empty">Tu so prikazani predlagani članki</string>
 </resources>

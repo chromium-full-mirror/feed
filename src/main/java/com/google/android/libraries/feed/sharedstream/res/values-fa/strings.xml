@@ -23,4 +23,5 @@
   <string name="feed_refresh">بازخوانی</string>
   <string name="snackbar_fetch_failed">دریافت پیشنهادها امکان‌پذیر نیست</string>
   <string name="snackbar_fetch_no_new_suggestions">پیشنهاد جدیدی وجود ندارد</string>
+  <string name="suggestions_section_empty">مقاله‌های پیشنهادی برای شما اینجا نشان داده می‌شود</string>
 </resources>

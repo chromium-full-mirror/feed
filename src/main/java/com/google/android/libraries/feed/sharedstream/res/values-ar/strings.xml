@@ -23,4 +23,5 @@
   <string name="feed_refresh">إعادة التحميل</string>
   <string name="snackbar_fetch_failed">يتعذر الحصول على الاقتراحات</string>
   <string name="snackbar_fetch_no_new_suggestions">ليس هناك اقتراحات جديدة.</string>
+  <string name="suggestions_section_empty">تظهر مقالاتك المقترحة هنا.</string>
 </resources>

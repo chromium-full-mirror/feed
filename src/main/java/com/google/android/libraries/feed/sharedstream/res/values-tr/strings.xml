@@ -23,4 +23,5 @@
   <string name="feed_refresh">Yenile</string>
   <string name="snackbar_fetch_failed">Öneriler alınamıyor</string>
   <string name="snackbar_fetch_no_new_suggestions">Yeni öneri yok</string>
+  <string name="suggestions_section_empty">Önerilen makaleler burada görünür</string>
 </resources>

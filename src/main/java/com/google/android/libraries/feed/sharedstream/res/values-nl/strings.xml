@@ -23,4 +23,5 @@
   <string name="feed_refresh">Vernieuwen</string>
   <string name="snackbar_fetch_failed">Kan suggesties niet ophalen</string>
   <string name="snackbar_fetch_no_new_suggestions">Geen nieuwe suggesties</string>
+  <string name="suggestions_section_empty">Je voorgestelde artikelen worden hier weergegeven</string>
 </resources>

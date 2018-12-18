@@ -23,4 +23,5 @@
   <string name="feed_refresh">Atnaujinti</string>
   <string name="snackbar_fetch_failed">Nepavyko gauti pasiūlymų</string>
   <string name="snackbar_fetch_no_new_suggestions">Nėra jokių naujų pasiūlymų</string>
+  <string name="suggestions_section_empty">Jūsų pasiūlyti straipsniai rodomi čia</string>
 </resources>

@@ -23,4 +23,5 @@
   <string name="feed_refresh">Aggiorna</string>
   <string name="snackbar_fetch_failed">Impossibile ricevere suggerimenti</string>
   <string name="snackbar_fetch_no_new_suggestions">Nessun nuovo suggerimento</string>
+  <string name="suggestions_section_empty">Gli articoli suggeriti vengono visualizzati qui</string>
 </resources>

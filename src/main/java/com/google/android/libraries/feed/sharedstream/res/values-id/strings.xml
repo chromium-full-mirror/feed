@@ -23,4 +23,5 @@
   <string name="feed_refresh">Perbarui</string>
   <string name="snackbar_fetch_failed">Tidak bisa mendapatkan saran</string>
   <string name="snackbar_fetch_no_new_suggestions">Tidak ada saran baru</string>
+  <string name="suggestions_section_empty">Artikel yang disarankan ditampilkan di sini</string>
 </resources>
