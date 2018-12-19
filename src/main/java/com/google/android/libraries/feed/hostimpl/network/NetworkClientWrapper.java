@@ -22,7 +22,7 @@ import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 
 /** A {@link NetworkClient} which wraps a NetworkClient to make calls on the Main thread. */
-public class NetworkClientWrapper implements NetworkClient {
+public final class NetworkClientWrapper implements NetworkClient {
   private static final String TAG = "NetworkClientWrapper";
 
   private final NetworkClient directNetworkClient;

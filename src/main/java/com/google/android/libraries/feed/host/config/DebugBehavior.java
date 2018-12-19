@@ -20,6 +20,7 @@ package com.google.android.libraries.feed.host.config;
  * <p>Member booleans should control _behavior_ (turning debug features on or off), rather than
  * reporting a build state (like dev or release).
  */
+// TODO: This can't be final because we mock it
 public class DebugBehavior {
   /** Convenience constant for configuration that enables all debug behavior. */
   public static final DebugBehavior VERBOSE = new DebugBehavior(true);
@@ -29,7 +30,7 @@ public class DebugBehavior {
 
   private final boolean showDebugViews;
 
-  DebugBehavior(boolean showDebugViews) {
+  private DebugBehavior(boolean showDebugViews) {
     this.showDebugViews = showDebugViews;
   }
 

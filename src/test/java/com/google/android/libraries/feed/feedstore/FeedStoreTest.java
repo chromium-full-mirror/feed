@@ -34,6 +34,8 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
+import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStorage;
+import com.google.android.libraries.feed.feedstore.testing.DelegatingJournalStorage;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
@@ -136,8 +138,9 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
 
   @Test
   public void testDumpEphemeralActions_notEphemeralMode() {
-    JournalStorageDirect journalStorageSpy = spy(new InMemoryJournalStorage());
-    ContentStorageDirect contentStorageSpy = spy(this.contentStorage);
+    JournalStorageDirect journalStorageSpy =
+        spy(new DelegatingJournalStorage(new InMemoryJournalStorage()));
+    ContentStorageDirect contentStorageSpy = spy(new DelegatingContentStorage(this.contentStorage));
     FeedStore store =
         new FeedStore(
             timingUtils,
@@ -153,8 +156,9 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
 
   @Test
   public void testDumpEphemeralActions_ephemeralMode() throws InvalidProtocolBufferException {
-    JournalStorageDirect journalStorageSpy = spy(new InMemoryJournalStorage());
-    ContentStorageDirect contentStorageSpy = spy(this.contentStorage);
+    JournalStorageDirect journalStorageSpy =
+        spy(new DelegatingJournalStorage(new InMemoryJournalStorage()));
+    ContentStorageDirect contentStorageSpy = spy(new DelegatingContentStorage(this.contentStorage));
     FeedStore store =
         new FeedStore(
             timingUtils,

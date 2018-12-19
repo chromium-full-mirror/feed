@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /** A {@link ContentStorage} that holds data in memory. */
-public class InMemoryContentStorage implements ContentStorageDirect, Dumpable {
+public final class InMemoryContentStorage implements ContentStorageDirect, Dumpable {
 
   private static final String TAG = "InMemoryContentStorage";
 

@@ -21,6 +21,7 @@ import android.support.annotation.IntDef;
 import com.google.android.libraries.feed.common.logging.Logger;
 
 /** API to allow the Feed to get information about the host application. */
+// TODO: This can't be final because we mock it
 public class ApplicationInfo {
 
   @IntDef({AppType.UNKNOWN_APP, AppType.SEARCH_APP, AppType.CHROME, AppType.TEST_APP})
@@ -97,7 +98,7 @@ public class ApplicationInfo {
   }
 
   /** Builder class used to create {@link ApplicationInfo} objects. */
-  public static class Builder {
+  public static final class Builder {
     private static final String TAG = "Builder";
 
     private final Context context;

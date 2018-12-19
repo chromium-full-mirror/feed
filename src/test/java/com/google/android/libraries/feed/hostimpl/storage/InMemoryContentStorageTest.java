@@ -14,14 +14,8 @@
 
 package com.google.android.libraries.feed.hostimpl.storage;
 
-import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.host.storage.ContentMutation;
-import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStorage;
 import com.google.android.libraries.feed.testing.conformance.storage.ContentStorageConformanceTest;
-import java.util.List;
-import java.util.Map;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -32,29 +26,6 @@ public class InMemoryContentStorageTest extends ContentStorageConformanceTest {
 
   @Before
   public void setUp() {
-    storage = new FakeContentStorage();
-  }
-
-  private static class FakeContentStorage extends InMemoryContentStorage implements ContentStorage {
-
-    @Override
-    public void get(List<String> keys, Consumer<Result<Map<String, byte[]>>> consumer) {
-      consumer.accept(get(keys));
-    }
-
-    @Override
-    public void getAll(String prefix, Consumer<Result<Map<String, byte[]>>> consumer) {
-      consumer.accept(getAll(prefix));
-    }
-
-    @Override
-    public void commit(ContentMutation mutation, Consumer<CommitResult> consumer) {
-      consumer.accept(commit(mutation));
-    }
-
-    @Override
-    public void getAllKeys(Consumer<Result<List<String>>> consumer) {
-      consumer.accept(getAllKeys());
-    }
+    storage = new DelegatingContentStorage(new InMemoryContentStorage());
   }
 }

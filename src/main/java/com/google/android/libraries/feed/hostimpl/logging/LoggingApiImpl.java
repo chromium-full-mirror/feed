@@ -17,6 +17,6 @@ package com.google.android.libraries.feed.hostimpl.logging;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 
 /** Concrete impl for {@link LoggingApi} */
-public class LoggingApiImpl implements LoggingApi {
+public final class LoggingApiImpl implements LoggingApi {
   // TODO: define the implementation
 }

@@ -41,7 +41,7 @@ import java.io.IOException;
 import java.util.List;
 
 /** A network client that returns mock responses provided via a config proto */
-public class MockServerNetworkClient implements NetworkClient {
+public final class MockServerNetworkClient implements NetworkClient {
   private static final String TAG = "MockServerNetworkClient";
 
   private final Context context;

@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Concrete impl of {@link SchedulerApi}. The implementation will timeout session creation when a
  * request is running too long and will show existing content.
  */
-public class TimeoutScheduler implements SchedulerApi, DirectHostSupported {
+public final class TimeoutScheduler implements SchedulerApi, DirectHostSupported {
   private static final String TAG = "TimeoutScheduler";
 
   private static final long TIMEOUT_STORIES_ARE_CURRENT = TimeUnit.HOURS.toMillis(1);

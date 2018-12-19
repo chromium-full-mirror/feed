@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /** A {@link JournalStorage} implementation that holds the data in memory. */
-public class InMemoryJournalStorage implements JournalStorageDirect, Dumpable {
+public final class InMemoryJournalStorage implements JournalStorageDirect, Dumpable {
   private static final String TAG = "InMemoryJournalStorage";
 
   private final Map<String, List<byte[]>> journals;

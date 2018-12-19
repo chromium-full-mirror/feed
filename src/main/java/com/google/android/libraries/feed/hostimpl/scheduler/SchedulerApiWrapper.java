@@ -22,7 +22,7 @@ import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import java.util.concurrent.ExecutionException;
 
 /** Wrapper class which will call the {@link SchedulerApi} on the main thread. */
-public class SchedulerApiWrapper implements SchedulerApi {
+public final class SchedulerApiWrapper implements SchedulerApi {
   private static final String TAG = "SchedulerApiWrapper";
   private final SchedulerApi directSchedulerApi;
   private final ThreadUtils threadUtils;

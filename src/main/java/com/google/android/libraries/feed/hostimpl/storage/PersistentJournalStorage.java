@@ -54,7 +54,7 @@ import java.util.concurrent.Executor;
  * will be written: the 4 bytes representing the integer 4 (size), followed by the 4 bytes for the
  * append.
  */
-public class PersistentJournalStorage implements JournalStorage, JournalStorageDirect {
+public final class PersistentJournalStorage implements JournalStorage, JournalStorageDirect {
 
   private static final String TAG = "PersistentJournal";
   /** The schema version currently in use. */
@@ -86,6 +86,7 @@ public class PersistentJournalStorage implements JournalStorage, JournalStorageD
     this.context = context;
     this.executor = executorService;
     this.threadUtils = threadUtils;
+    // TODO: See https://goto.google.com/tiktok-conformance-violations/SHARED_PREFS
     this.existingSchema =
         context
             .getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE)

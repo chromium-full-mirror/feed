@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 /** Implementation of {@link ContentStorage} that persists data to disk. */
-public class PersistentContentStorage implements ContentStorage, ContentStorageDirect {
+public final class PersistentContentStorage implements ContentStorage, ContentStorageDirect {
 
   private static final String TAG = "PersistentContent";
   private static final String CONTENT_DIR = "content";

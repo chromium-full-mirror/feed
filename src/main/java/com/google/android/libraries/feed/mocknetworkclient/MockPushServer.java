@@ -31,7 +31,8 @@ import com.google.search.now.wire.feed.mockserver.MockServerProto.MockUpdate;
 import java.util.List;
 
 /** This is a mock server client which will push responses through the session manager. */
-public class MockPushServer {
+// TODO: This violates a bunch of Tiktok rules, uses Handler and thread primitives
+public final class MockPushServer {
   private static final String TAG = "MockPushServer";
 
   private final SessionManager sessionManager;
@@ -73,7 +74,7 @@ public class MockPushServer {
   }
 
   @VisibleForTesting
-  static class MockServerLooper {
+  static final class MockServerLooper {
     private final HandlerThread updateThread;
     private final Handler handler;
 

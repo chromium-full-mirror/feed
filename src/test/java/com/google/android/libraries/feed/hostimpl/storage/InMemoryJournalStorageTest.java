@@ -16,13 +16,8 @@ package com.google.android.libraries.feed.hostimpl.storage;
 
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.host.storage.CommitResult;
-import com.google.android.libraries.feed.host.storage.JournalMutation;
-import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.feedstore.testing.DelegatingJournalStorage;
 import com.google.android.libraries.feed.testing.conformance.storage.JournalStorageConformanceTest;
-import java.util.List;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -34,34 +29,6 @@ public class InMemoryJournalStorageTest extends JournalStorageConformanceTest {
   @Before
   public void setUp() {
     initMocks(this);
-    journalStorage = new FakeJournalStorage();
-  }
-
-  private static class FakeJournalStorage extends InMemoryJournalStorage implements JournalStorage {
-
-    @Override
-    public void read(String journalName, Consumer<Result<List<byte[]>>> consumer) {
-      consumer.accept(read(journalName));
-    }
-
-    @Override
-    public void commit(JournalMutation mutation, Consumer<CommitResult> consumer) {
-      consumer.accept(commit(mutation));
-    }
-
-    @Override
-    public void exists(String journalName, Consumer<Result<Boolean>> consumer) {
-      consumer.accept(exists(journalName));
-    }
-
-    @Override
-    public void getAllJournals(Consumer<Result<List<String>>> consumer) {
-      consumer.accept(getAllJournals());
-    }
-
-    @Override
-    public void deleteAll(Consumer<CommitResult> consumer) {
-      consumer.accept(deleteAll());
-    }
+    journalStorage = new DelegatingJournalStorage(new InMemoryJournalStorage());
   }
 }

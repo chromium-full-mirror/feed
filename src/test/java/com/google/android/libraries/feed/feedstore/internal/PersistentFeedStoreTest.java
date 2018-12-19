@@ -30,6 +30,8 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
+import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStorage;
+import com.google.android.libraries.feed.feedstore.testing.DelegatingJournalStorage;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
@@ -82,7 +84,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void clearStorage_contentStorage_failure_getAllContent() {
-    ContentStorageDirect contentStorageSpy = spy(contentStorage);
+    ContentStorageDirect contentStorageSpy = spy(new DelegatingContentStorage(contentStorage));
     PersistentFeedStore store =
         new PersistentFeedStore(
             timingUtils,
@@ -100,7 +102,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void clearStorage_contentStorage_failure_commit() {
-    ContentStorageDirect contentStorageSpy = spy(contentStorage);
+    ContentStorageDirect contentStorageSpy = spy(new DelegatingContentStorage(contentStorage));
     PersistentFeedStore store =
         new PersistentFeedStore(
             timingUtils,
@@ -130,7 +132,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void clearStorage_journalStorage_failure_getAllJournals() {
-    JournalStorageDirect journalStorageSpy = spy(journalStorage);
+    JournalStorageDirect journalStorageSpy = spy(new DelegatingJournalStorage(journalStorage));
     PersistentFeedStore store =
         new PersistentFeedStore(
             timingUtils,
@@ -163,7 +165,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void clearStorage_journalStorage_failure_deleteJournal() {
-    JournalStorageDirect journalStorageSpy = spy(journalStorage);
+    JournalStorageDirect journalStorageSpy = spy(new DelegatingJournalStorage(journalStorage));
     PersistentFeedStore store =
         new PersistentFeedStore(
             timingUtils,
