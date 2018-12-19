@@ -20,6 +20,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.view.ViewCompat;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
@@ -185,6 +186,38 @@ class StyleProvider {
   /** Vertical gravity specified on the style */
   public GravityVertical getGravityVertical() {
     return style.getGravityVertical();
+  }
+
+  /** Horizontal and vertical alignment of text, as an Android view Gravity */
+  public int getTextAlignment() {
+    int horizontalGravity;
+    int verticalGravity;
+
+    switch (style.getTextAlignmentHorizontal()) {
+      case TEXT_ALIGNMENT_CENTER:
+        horizontalGravity = Gravity.CENTER_HORIZONTAL;
+        break;
+      case TEXT_ALIGNMENT_END:
+        horizontalGravity = Gravity.END;
+        break;
+      case TEXT_ALIGNMENT_START:
+      default:
+        horizontalGravity = Gravity.START;
+    }
+
+    switch (style.getTextAlignmentVertical()) {
+      case TEXT_ALIGNMENT_MIDDLE:
+        verticalGravity = Gravity.CENTER_VERTICAL;
+        break;
+      case TEXT_ALIGNMENT_BOTTOM:
+        verticalGravity = Gravity.BOTTOM;
+        break;
+      case TEXT_ALIGNMENT_TOP:
+      default:
+        verticalGravity = Gravity.TOP;
+    }
+
+    return horizontalGravity | verticalGravity;
   }
 
   /** Sets the Padding and Background Color on the view. */

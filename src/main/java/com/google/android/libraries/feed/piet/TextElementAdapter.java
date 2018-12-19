@@ -22,6 +22,7 @@ import android.os.Build.VERSION_CODES;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.widget.TextViewCompat;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
@@ -99,8 +100,19 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       // MAX_VALUE is the value used in the Android implementation for the default
       textView.setMaxLines(Integer.MAX_VALUE);
     }
-    textView.setGravity(
-        ViewUtils.pietGravityToGravity(getHorizontalGravity(), getVerticalGravity()));
+
+    // TODO: Remove this if statement and always call this first method.
+    if (textStyle.getTextAlignment() != (Gravity.START | Gravity.TOP)) {
+      getBaseView().setGravity(textStyle.getTextAlignment());
+    } else {
+      // TODO: Remove this branch
+      Integer legacyGravity = getElementGravityForTextAlignment();
+      if (legacyGravity != null) {
+        getBaseView().setGravity(legacyGravity);
+      } else {
+        getBaseView().setGravity(textStyle.getTextAlignment());
+      }
+    }
   }
 
   @Override

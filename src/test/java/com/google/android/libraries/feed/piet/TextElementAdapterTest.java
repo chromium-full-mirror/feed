@@ -47,10 +47,10 @@ import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
-import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import com.google.search.now.ui.piet.StylesProto.TextAlignmentHorizontal;
+import com.google.search.now.ui.piet.StylesProto.TextAlignmentVertical;
 import com.google.search.now.ui.piet.StylesProto.Typeface.CommonTypeface;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,6 +90,7 @@ public class TextElementAdapterTest {
             new FakeClock());
     when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
     when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+    when(mockStyleProvider.getTextAlignment()).thenReturn(Gravity.START | Gravity.TOP);
 
     adapter = new TestTextElementAdapter(context, adapterParameters);
   }
@@ -501,6 +502,62 @@ public class TextElementAdapterTest {
   }
 
   @Test
+  public void testBind_setsTextAlignment_horizontal() {
+    Style style =
+        Style.newBuilder()
+            .setTextAlignmentHorizontal(TextAlignmentHorizontal.TEXT_ALIGNMENT_CENTER)
+            .build();
+    StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
+    Element textElement = getBaseTextElement(styleProvider);
+    adapter.createAdapter(textElement, frameContext);
+    adapter.bindModel(textElement, frameContext);
+
+    assertThat(adapter.getBaseView().getGravity())
+        .isEqualTo(Gravity.CENTER_HORIZONTAL | Gravity.TOP);
+  }
+
+  @Test
+  public void testBind_setsTextAlignment_vertical() {
+    Style style =
+        Style.newBuilder()
+            .setTextAlignmentVertical(TextAlignmentVertical.TEXT_ALIGNMENT_BOTTOM)
+            .build();
+    StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
+    Element textElement = getBaseTextElement(styleProvider);
+    adapter.createAdapter(textElement, frameContext);
+    adapter.bindModel(textElement, frameContext);
+
+    assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.START | Gravity.BOTTOM);
+  }
+
+  @Test
+  public void testBind_setsTextAlignment_both() {
+    Style style =
+        Style.newBuilder()
+            .setTextAlignmentHorizontal(TextAlignmentHorizontal.TEXT_ALIGNMENT_END)
+            .setTextAlignmentVertical(TextAlignmentVertical.TEXT_ALIGNMENT_MIDDLE)
+            .build();
+    StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
+    Element textElement = getBaseTextElement(styleProvider);
+    adapter.createAdapter(textElement, frameContext);
+    adapter.bindModel(textElement, frameContext);
+
+    assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.END | Gravity.CENTER_VERTICAL);
+  }
+
+  @Test
+  public void testBind_setsTextAlignment_default() {
+    Style style = Style.getDefaultInstance();
+    StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
+    Element textElement = getBaseTextElement(styleProvider);
+    adapter.getBaseView().setGravity(Gravity.BOTTOM | Gravity.RIGHT);
+    adapter.createAdapter(textElement, frameContext);
+    adapter.bindModel(textElement, frameContext);
+
+    assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.START | Gravity.TOP);
+  }
+
+  @Test
   public void testBind_setsStylesOnlyIfBindingIsDefined() {
     int maxLines = 2;
     Style style = Style.newBuilder().setMaxLines(maxLines).build();
@@ -595,64 +652,6 @@ public class TextElementAdapterTest {
         .that()
         .hasMessageThat()
         .contains("Missing TextElement");
-  }
-
-  @Test
-  public void testHorizontalAlignment_start() {
-    Element startElement =
-        getBaseTextElement()
-            .toBuilder()
-            .setGravityHorizontal(GravityHorizontal.GRAVITY_START)
-            .build();
-    adapter.createAdapter(startElement, frameContext);
-    assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.START);
-  }
-
-  @Test
-  public void testHorizontalAlignment_center() {
-    Element startElement =
-        getBaseTextElement()
-            .toBuilder()
-            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)
-            .build();
-    adapter.createAdapter(startElement, frameContext);
-    assertThat(adapter.getBaseView().getGravity())
-        .isEqualTo(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-  }
-
-  @Test
-  public void testHorizontalAlignment_end() {
-    Element startElement =
-        getBaseTextElement()
-            .toBuilder()
-            .setGravityHorizontal(GravityHorizontal.GRAVITY_END)
-            .build();
-    adapter.createAdapter(startElement, frameContext);
-    assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.END);
-  }
-
-  @Test
-  public void testHorizontalAlignment_unspecified() {
-    Element startElement =
-        getBaseTextElement()
-            .toBuilder()
-            .setGravityHorizontal(GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED)
-            .build();
-    adapter.createAdapter(startElement, frameContext);
-    assertThat(adapter.getBaseView().getGravity()).isEqualTo(Gravity.TOP | Gravity.START);
-  }
-
-  @Test
-  public void testHorizontalAndVerticalAlignment() {
-    Element startElement =
-        getBaseTextElement()
-            .toBuilder()
-            .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)
-            .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
-            .build();
-    adapter.createAdapter(startElement, frameContext);
-    assertThat(adapter.getBaseView().getGravity())
-        .isEqualTo(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
   }
 
   private Element getBaseTextElement() {

@@ -23,6 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.Gravity;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
@@ -82,6 +83,7 @@ public class ParameterizedTextElementAdapterTest {
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(adapterParameters.defaultStyleProvider);
     when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+    when(mockStyleProvider.getTextAlignment()).thenReturn(Gravity.START | Gravity.TOP);
 
     adapter =
         new ParameterizedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);

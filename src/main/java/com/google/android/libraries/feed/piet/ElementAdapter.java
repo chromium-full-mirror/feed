@@ -480,6 +480,26 @@ abstract class ElementAdapter<V extends View, M> {
     }
   }
 
+  /**
+   * In a previous implementation, TextElement used the Element gravity for text alignment; this was
+   * messy as Element gravity was used for both text positioning and Element positioning. The
+   * Element gravity is now deprecated, but we're going to use it for backwards-compatibility on
+   * text to avoid breaking teams that currently rely on the old behavior. Going forward, no one
+   * will look at Element gravity - this is replaced by gravity on Style and text alignment on
+   * Style.
+   */
+  // TODO: Remove this method
+  @Deprecated
+  /*@Nullable*/
+  Integer getElementGravityForTextAlignment() {
+    // Only return something if there's actually gravity on the Element.
+    if (!baseElement.hasGravityHorizontal() && !baseElement.hasGravityVertical()) {
+      return null;
+    }
+    return ViewUtils.pietGravityToGravity(
+        baseElement.getGravityHorizontal(), baseElement.getGravityVertical());
+  }
+
   /** Returns the {@code model}, this is to support testing, it can be called at any time */
   @VisibleForTesting
   /*@Nullable*/

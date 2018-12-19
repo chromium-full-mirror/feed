@@ -26,6 +26,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.os.Build.VERSION_CODES;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
@@ -48,6 +49,8 @@ import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
 import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.ImageLoadingSettings;
 import com.google.search.now.ui.piet.StylesProto.Style;
+import com.google.search.now.ui.piet.StylesProto.TextAlignmentHorizontal;
+import com.google.search.now.ui.piet.StylesProto.TextAlignmentVertical;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -105,6 +108,8 @@ public class StyleProviderTest {
             .setScaleType(ScaleType.CENTER_CROP)
             .setGravityHorizontal(GravityHorizontal.GRAVITY_END)
             .setGravityVertical(GravityVertical.GRAVITY_BOTTOM)
+            .setTextAlignmentHorizontal(TextAlignmentHorizontal.TEXT_ALIGNMENT_CENTER)
+            .setTextAlignmentVertical(TextAlignmentVertical.TEXT_ALIGNMENT_BOTTOM)
             .build();
 
     StyleProvider styleProvider = new StyleProvider(style, mockAssetProvider);
@@ -129,6 +134,8 @@ public class StyleProviderTest {
     assertThat(styleProvider.getGravityHorizontal()).isEqualTo(GravityHorizontal.GRAVITY_END);
     assertThat(styleProvider.hasGravityVertical()).isTrue();
     assertThat(styleProvider.getGravityVertical()).isEqualTo(GravityVertical.GRAVITY_BOTTOM);
+    assertThat(styleProvider.getTextAlignment())
+        .isEqualTo(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
   }
 
   @Test
@@ -157,6 +164,7 @@ public class StyleProviderTest {
     assertThat(styleProvider.hasGravityVertical()).isFalse();
     assertThat(styleProvider.getGravityVertical())
         .isEqualTo(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED);
+    assertThat(styleProvider.getTextAlignment()).isEqualTo(Gravity.START | Gravity.TOP);
   }
 
   @Test
