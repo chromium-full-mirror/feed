@@ -62,8 +62,7 @@ public class GridRowView extends LinearLayout {
 
   @Override
   public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    if (!hasCollapsibleCells()
-        || MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED
+    if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED
         || MeasureSpec.getSize(widthMeasureSpec) == 0) {
       super.onMeasure(widthMeasureSpec, heightMeasureSpec);
       return;
