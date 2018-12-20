@@ -134,6 +134,7 @@ public final class FeedProcessScope implements Dumpable {
     try {
       networkClient.close();
       taskQueue.reset();
+      taskQueue.completeReset();
     } catch (Exception ignored) {
       // Ignore exception when closing.
     }
