@@ -25,6 +25,7 @@ import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
@@ -86,13 +87,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       textView.setIncludeFontPadding(false);
       textView.setLineSpacing(/* add= */ 0, textStyle.getFont().getLineHeightRatio());
     }
-
-    // Letter spacing is currently untested due to lack of Robolectric support - don't delete this!
-    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-      textView.setLetterSpacing(textStyle.getFont().getLetterSpacing());
-    } else {
-      textView.setTextScaleX(1.0f + textStyle.getFont().getLetterSpacing());
-    }
+    setLetterSpacing(textView, textStyle);
     if (textStyle.getMaxLines() > 0) {
       textView.setMaxLines(textStyle.getMaxLines());
       textView.setEllipsize(TextUtils.TruncateAt.END);
@@ -111,6 +106,53 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
         getBaseView().setGravity(legacyGravity);
       } else {
         getBaseView().setGravity(textStyle.getTextAlignment());
+      }
+    }
+  }
+
+  private void setLetterSpacing(TextView textView, StyleProvider textStyle) {
+    if (textStyle.getFont().hasLetterSpacingDp()) {
+      float textSize;
+      if (textStyle.getFont().hasSize()) {
+        textSize = textStyle.getFont().getSize();
+      } else {
+        textSize = LayoutUtils.pxToSp(textView.getTextSize(), textView.getContext());
+      }
+      float letterSpacingDp = textStyle.getFont().getLetterSpacingDp();
+      float letterSpacingEm = letterSpacingDp / textSize;
+      if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+        textView.setLetterSpacing(letterSpacingEm);
+        Logger.e(TAG, "got letter spacing: %s", textView.getLetterSpacing());
+      } else {
+        // Letter spacing wasn't supported before L. We substitute SetTextScaleX, which actually
+        // stretches the letters, rather than just adding space between them. It won't look exactly
+        // the same, but we can use it to get close to the same width for a set of characters.
+        float extraLetterSpaceDp = letterSpacingEm * textSize;
+        // It can vary by font and character, but typically letter width is about half of height.
+        float approximateLetterwidth = textSize / 2;
+        float textScale = (approximateLetterwidth + extraLetterSpaceDp) / approximateLetterwidth;
+        textView.setTextScaleX(textScale);
+      }
+    } else if (textStyle.getFont().hasLetterSpacing()) {
+      // TODO Remove this code after Android Piet Gestalt experiment finishes.
+      float letterSpacingEm = textStyle.getFont().getLetterSpacing();
+      if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+        textView.setLetterSpacing(letterSpacingEm);
+      } else {
+        // Letter spacing wasn't supported before L. We substitute SetTextScaleX, which actually
+        // stretches the letters, rather than just adding space between them. It won't look exactly
+        // the same, but we can use it to get close to the same width for a set of characters.
+        float textHeight;
+        if (textStyle.getFont().hasSize()) {
+          textHeight = textStyle.getFont().getSize();
+        } else {
+          textHeight = LayoutUtils.pxToSp(textView.getTextSize(), textView.getContext());
+        }
+        float extraLetterSpaceDp = letterSpacingEm * textHeight;
+        // It can vary by font and character, but typically letter width is about half of height.
+        float approximateLetterwidth = textHeight / 2;
+        float textScale = (approximateLetterwidth + extraLetterSpaceDp) / approximateLetterwidth;
+        textView.setTextScaleX(textScale);
       }
     }
   }
