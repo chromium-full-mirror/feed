@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.api.scope;
 
 import android.content.Context;
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -354,8 +355,8 @@ public final class FeedProcessScope implements Dumpable {
     /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
     /*@MonotonicNonNull*/ private ProtocolAdapter protocolAdapter = null;
     /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
-    /*@MonotonicNonNull*/ private ContentStorageDirect contentStorage = null;
-    /*@MonotonicNonNull*/ private JournalStorageDirect journalStorage = null;
+    /*@MonotonicNonNull*/ @VisibleForTesting ContentStorageDirect contentStorage = null;
+    /*@MonotonicNonNull*/ @VisibleForTesting JournalStorageDirect journalStorage = null;
     /*@MonotonicNonNull*/ private Clock clock;
     /*@MonotonicNonNull*/ private KnownContentApi knownContentApi;
 

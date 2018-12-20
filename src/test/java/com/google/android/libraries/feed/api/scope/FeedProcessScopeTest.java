@@ -15,6 +15,9 @@
 package com.google.android.libraries.feed.api.scope;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.withSettings;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
@@ -24,14 +27,20 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.storage.ContentStorage;
+import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
+import com.google.android.libraries.feed.host.storage.JournalStorage;
+import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.ArrayList;
 import org.junit.Before;
@@ -57,7 +66,7 @@ public class FeedProcessScopeTest {
   @Mock private ThreadUtils threadUtils;
 
   private final ProtoExtensionProvider protoExtensionProvider = ArrayList::new;
-  private final Configuration configuration = new Configuration.Builder().build();
+  private Configuration configuration = new Configuration.Builder().build();
   private FeedAppLifecycleListener appLifecycleListener;
   private Context context;
 
@@ -90,10 +99,18 @@ public class FeedProcessScopeTest {
     assertThat(processScope.getSessionManager()).isNotNull();
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
     assertThat(processScope.getActionManager()).isNotNull();
+    assertThat(processScope.getClock()).isNotNull();
+    assertThat(processScope.getTimingUtils()).isNotNull();
+    assertThat(processScope.getMainThreadRunner()).isNotNull();
+    assertThat(processScope.getTaskQueue()).isNotNull();
+    assertThat(processScope.getStore()).isNotNull();
+    assertThat(processScope.getKnownContentApi()).isNotNull();
+    assertThat(processScope.getFeedExtensionRegistry()).isNotNull();
   }
 
   @Test
   public void testComplexBuild() {
+    Clock mockClock = mock(Clock.class);
     // No crash should happen.
     FeedProcessScope processScope =
         new FeedProcessScope.Builder(
@@ -110,12 +127,102 @@ public class FeedProcessScopeTest {
             .setRequestManager(requestManager)
             .setSessionManager(sessionManager)
             .setProtoExtensionProvider(protoExtensionProvider)
+            .setClock(mockClock)
             .build();
 
     assertThat(processScope.getProtocolAdapter()).isEqualTo(protocolAdapter);
     assertThat(processScope.getRequestManager()).isEqualTo(requestManager);
     assertThat(processScope.getSessionManager()).isEqualTo(sessionManager);
+    assertThat(processScope.getClock()).isEqualTo(mockClock);
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
     assertThat(processScope.getActionManager()).isNotNull();
+  }
+
+  @Test
+  public void testDirectStorage() {
+    ContentStorageDirect contentStorageDirect = mock(ContentStorageDirect.class);
+    JournalStorageDirect journalStorageDirect = mock(JournalStorageDirect.class);
+    FeedProcessScope.Builder builder =
+        new FeedProcessScope.Builder(
+                configuration,
+                MoreExecutors.newDirectExecutorService(),
+                loggingApi,
+                networkClient,
+                schedulerApi,
+                appLifecycleListener,
+                DebugBehavior.VERBOSE,
+                context,
+                applicationInfo)
+            .setContentStorageDirect(contentStorageDirect)
+            .setJournalStorageDirect(journalStorageDirect);
+    assertThat(builder.contentStorage).isEqualTo(contentStorageDirect);
+    assertThat(builder.journalStorage).isEqualTo(journalStorageDirect);
+  }
+
+  @Test
+  public void testStorage_direct() {
+    configuration = new Configuration.Builder().put(ConfigKey.USE_DIRECT_STORAGE, true).build();
+    ContentStorage contentStorageDirect =
+        mock(ContentStorage.class, withSettings().extraInterfaces(ContentStorageDirect.class));
+    JournalStorage journalStorageDirect =
+        mock(JournalStorage.class, withSettings().extraInterfaces(JournalStorageDirect.class));
+    FeedProcessScope.Builder builder =
+        new FeedProcessScope.Builder(
+                configuration,
+                MoreExecutors.newDirectExecutorService(),
+                loggingApi,
+                networkClient,
+                schedulerApi,
+                appLifecycleListener,
+                DebugBehavior.VERBOSE,
+                context,
+                applicationInfo)
+            .setContentStorage(contentStorageDirect)
+            .setJournalStorage(journalStorageDirect);
+    assertThat(builder.contentStorage).isEqualTo(contentStorageDirect);
+    assertThat(builder.journalStorage).isEqualTo(journalStorageDirect);
+  }
+
+  @Test
+  public void testStorage_wrapped() {
+    configuration = new Configuration.Builder().put(ConfigKey.USE_DIRECT_STORAGE, false).build();
+    ContentStorage contentStorageDirect =
+        mock(ContentStorage.class, withSettings().extraInterfaces(ContentStorageDirect.class));
+    JournalStorage journalStorageDirect =
+        mock(JournalStorage.class, withSettings().extraInterfaces(JournalStorageDirect.class));
+    FeedProcessScope.Builder builder =
+        new FeedProcessScope.Builder(
+                configuration,
+                MoreExecutors.newDirectExecutorService(),
+                loggingApi,
+                networkClient,
+                schedulerApi,
+                appLifecycleListener,
+                DebugBehavior.VERBOSE,
+                context,
+                applicationInfo)
+            .setContentStorage(contentStorageDirect)
+            .setJournalStorage(journalStorageDirect);
+    assertThat(builder.contentStorage).isNotEqualTo(contentStorageDirect);
+    assertThat(builder.journalStorage).isNotEqualTo(journalStorageDirect);
+  }
+
+  @Test
+  public void testDestroy() throws Exception {
+    FeedProcessScope processScope =
+        new Builder(
+                configuration,
+                MoreExecutors.newDirectExecutorService(),
+                loggingApi,
+                networkClient,
+                schedulerApi,
+                appLifecycleListener,
+                DebugBehavior.VERBOSE,
+                context,
+                applicationInfo)
+            .setThreadUtils(threadUtils)
+            .build();
+    processScope.onDestroy();
+    verify(networkClient).close();
   }
 }
