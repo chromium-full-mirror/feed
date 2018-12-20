@@ -116,6 +116,9 @@ public class TaskQueue implements Dumpable {
   /** Track the time the last task finished. Used for Starvation checks. */
   private final AtomicLong lastTaskFinished = new AtomicLong();
 
+  /** Track if starvation checking is running */
+  private final AtomicBoolean starvationChecks = new AtomicBoolean(false);
+
   private final Executor executor;
   private final Clock clock;
   private final boolean checkStarvation;
@@ -227,11 +230,15 @@ public class TaskQueue implements Dumpable {
 
   @VisibleForTesting
   void startStarvationCheck() {
-    if (!checkStarvation) {
+    if (starvationChecks.get()) {
+      Logger.i(TAG, "Starvation Checks are already running");
+    }
+    if (!checkStarvation || starvationChecks.get()) {
       return;
     }
     if (isDelayed()) {
       Logger.i(TAG, " * Starting starvation checks");
+      starvationChecks.set(true);
       mainThreadRunner.executeWithDelay(
           "starvationChecks", new StarvationChecker(), STARVATION_CHECK_MS);
     }
@@ -243,6 +250,7 @@ public class TaskQueue implements Dumpable {
       if (!isDelayed()) {
         // Quick out, we are not delaying things, this stops starvation checking
         Logger.i(TAG, " * Starvation checks being turned off");
+        starvationChecks.set(false);
         return;
       }
       long lastTask = lastTaskFinished.get();
@@ -259,6 +267,7 @@ public class TaskQueue implements Dumpable {
             initialized = true;
           }
         }
+        starvationChecks.set(false);
         executeNextTask();
       } else {
         mainThreadRunner.executeWithDelay("StarvationChecks", this, STARVATION_CHECK_MS);
