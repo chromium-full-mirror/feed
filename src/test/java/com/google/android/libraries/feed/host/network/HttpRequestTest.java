@@ -36,7 +36,8 @@ public class HttpRequestTest {
   public void testConstructor() throws Exception {
     Uri uri = Uri.EMPTY;
     String httpMethod = HttpMethod.GET;
-    HttpRequest httpRequest = new HttpRequest(uri, httpMethod);
+    HttpRequest httpRequest =
+        new HttpRequest(uri, httpMethod, Collections.emptyList(), new byte[] {});
 
     assertThat(httpRequest.getUri()).isEqualTo(uri);
     assertThat(httpRequest.getMethod()).isEqualTo(httpMethod);
@@ -49,7 +50,7 @@ public class HttpRequestTest {
     List<HttpHeader> headers =
         Collections.singletonList(
             new HttpHeader(HttpHeaderName.X_PROTOBUFFER_REQUEST_PAYLOAD, HELLO_WORLD));
-    HttpRequest httpRequest = new HttpRequest(uri, httpMethod, headers);
+    HttpRequest httpRequest = new HttpRequest(uri, httpMethod, headers, new byte[] {});
 
     assertThat(httpRequest.getUri()).isEqualTo(uri);
     assertThat(httpRequest.getMethod()).isEqualTo(httpMethod);
@@ -61,7 +62,7 @@ public class HttpRequestTest {
     Uri uri = Uri.EMPTY;
     byte[] bytes = new byte[] {};
     String httpMethod = HttpMethod.POST;
-    HttpRequest httpRequest = new HttpRequest(uri, httpMethod, bytes);
+    HttpRequest httpRequest = new HttpRequest(uri, httpMethod, Collections.emptyList(), bytes);
 
     assertThat(httpRequest.getUri()).isEqualTo(uri);
     assertThat(httpRequest.getBody()).isEqualTo(bytes);

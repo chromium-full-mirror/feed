@@ -43,7 +43,7 @@ public abstract class JournalOperation {
   /**
    * A {@link JournalOperation} created by calling {@link JournalMutation.Builder#append(byte[])}.
    */
-  public static class Append extends JournalOperation {
+  public static final class Append extends JournalOperation {
     private final byte[] value;
 
     Append(byte[] value) {
@@ -57,7 +57,7 @@ public abstract class JournalOperation {
   }
 
   /** A {@link JournalOperation} created by calling {@link JournalMutation.Builder#copy(String)}. */
-  public static class Copy extends JournalOperation {
+  public static final class Copy extends JournalOperation {
     private final String toJournalName;
 
     Copy(String toJournalName) {
@@ -71,7 +71,7 @@ public abstract class JournalOperation {
   }
 
   /** A {@link JournalOperation} created by calling {@link JournalMutation.Builder#delete()}. */
-  public static class Delete extends JournalOperation {
+  public static final class Delete extends JournalOperation {
     Delete() {
       super(Type.DELETE);
     }

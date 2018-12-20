@@ -67,6 +67,7 @@ import com.google.search.now.wire.feed.VersionProto.Version.BuildType;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -201,7 +202,8 @@ public final class FeedRequestManager implements RequestManager {
     @HttpMethod
     String httpMethod =
         configuration.getValueOrDefault(ConfigKey.FEED_SERVER_METHOD, HttpMethod.GET);
-    HttpRequest httpRequest = new HttpRequest(uriBuilder.build(), httpMethod);
+    HttpRequest httpRequest =
+        new HttpRequest(uriBuilder.build(), httpMethod, Collections.emptyList(), new byte[] {});
     Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
     networkClient.send(
         httpRequest,

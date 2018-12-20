@@ -25,7 +25,7 @@ import java.util.List;
  * A mutation described by a journal name and a sequence of {@link JournalOperation} instances. This
  * class is used to commit changes to a journal in {@link JournalStorage}.
  */
-public class JournalMutation {
+public final class JournalMutation {
   private final String journalName;
   private final List<JournalOperation> operations;
 
@@ -48,7 +48,7 @@ public class JournalMutation {
    * Creates a {@link JournalMutation}, which can be used to apply mutations to a journal in the
    * underlying {@link JournalStorage}.
    */
-  public static class Builder {
+  public static final class Builder {
     private final ArrayList<JournalOperation> operations = new ArrayList<>();
     private final String journalName;
 

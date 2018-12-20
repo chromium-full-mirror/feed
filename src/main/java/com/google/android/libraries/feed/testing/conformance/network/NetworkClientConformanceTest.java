@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
+import java.util.Collections;
 import org.junit.Test;
 
 public abstract class NetworkClientConformanceTest {
@@ -39,7 +40,8 @@ public abstract class NetworkClientConformanceTest {
   @Test
   public void send_get() {
     @HttpMethod String method = HttpMethod.GET;
-    HttpRequest request = new HttpRequest(getValidUri(method), method);
+    HttpRequest request =
+        new HttpRequest(getValidUri(method), method, Collections.emptyList(), new byte[] {});
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {
@@ -55,7 +57,9 @@ public abstract class NetworkClientConformanceTest {
   @Test
   public void send_post() {
     @HttpMethod String method = HttpMethod.POST;
-    HttpRequest request = new HttpRequest(getValidUri(method), method, "helloWorld".getBytes());
+    HttpRequest request =
+        new HttpRequest(
+            getValidUri(method), method, Collections.emptyList(), "helloWorld".getBytes());
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {
@@ -71,7 +75,9 @@ public abstract class NetworkClientConformanceTest {
   @Test
   public void send_put() {
     @HttpMethod String method = HttpMethod.PUT;
-    HttpRequest request = new HttpRequest(getValidUri(method), method, "helloWorld".getBytes());
+    HttpRequest request =
+        new HttpRequest(
+            getValidUri(method), method, Collections.emptyList(), "helloWorld".getBytes());
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {
@@ -87,7 +93,8 @@ public abstract class NetworkClientConformanceTest {
   @Test
   public void send_delete() {
     @HttpMethod String method = HttpMethod.DELETE;
-    HttpRequest request = new HttpRequest(getValidUri(method), method);
+    HttpRequest request =
+        new HttpRequest(getValidUri(method), method, Collections.emptyList(), new byte[] {});
     RequiredConsumer<HttpResponse> responseConsumer =
         new RequiredConsumer<>(
             response -> {

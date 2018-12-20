@@ -20,7 +20,7 @@ import java.util.List;
  * Simplifies a {@link List<ContentOperation>} by combining and removing Operations according to the
  * methods in {@link ContentMutation.Builder}.
  */
-class ContentOperationListSimplifier {
+final class ContentOperationListSimplifier {
   /**
    * Returns a new {@link List<ContentOperation>}, which is a simplification of {@code
    * contentOperations}.

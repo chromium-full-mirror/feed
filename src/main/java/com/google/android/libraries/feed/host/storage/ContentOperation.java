@@ -47,7 +47,7 @@ public abstract class ContentOperation {
    * A {@link ContentOperation} created by calling {@link ContentMutation.Builder#upsert(String,
    * byte[])}.
    */
-  public static class Upsert extends ContentOperation {
+  public static final class Upsert extends ContentOperation {
     private final String key;
     private final byte[] value;
 
@@ -90,7 +90,7 @@ public abstract class ContentOperation {
   /**
    * A {@link ContentOperation} created by calling {@link ContentMutation.Builder#delete(String)}.
    */
-  public static class Delete extends ContentOperation {
+  public static final class Delete extends ContentOperation {
     private final String key;
 
     Delete(String key) {
@@ -126,7 +126,7 @@ public abstract class ContentOperation {
    * A {@link ContentOperation} created by calling {@link
    * ContentMutation.Builder#deleteByPrefix(String)}.
    */
-  public static class DeleteByPrefix extends ContentOperation {
+  public static final class DeleteByPrefix extends ContentOperation {
     private final String prefix;
 
     DeleteByPrefix(String prefix) {
@@ -160,7 +160,7 @@ public abstract class ContentOperation {
 
   // TODO: replace these comments with better details
   /** A {@link ContentOperation} created by calling {@link ContentMutation.Builder#deleteAll()} */
-  public static class DeleteAll extends ContentOperation {
+  public static final class DeleteAll extends ContentOperation {
     DeleteAll() {
       super(Type.DELETE_ALL);
     }
@@ -181,7 +181,7 @@ public abstract class ContentOperation {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof ContentOperation)) {
       return false;
     }
 

@@ -120,7 +120,9 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             throw new RuntimeException(e);
           }
         };
-    networkClient.send(new HttpRequest(Uri.EMPTY, HttpMethod.POST), responseConsumer);
+    networkClient.send(
+        new HttpRequest(Uri.EMPTY, HttpMethod.POST, Collections.emptyList(), new byte[] {}),
+        responseConsumer);
   }
 
   @Test
@@ -143,7 +145,9 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             throw new RuntimeException(e);
           }
         };
-    networkClient.send(new HttpRequest(Uri.EMPTY, HttpMethod.POST), responseConsumer);
+    networkClient.send(
+        new HttpRequest(Uri.EMPTY, HttpMethod.POST, Collections.emptyList(), new byte[] {}),
+        responseConsumer);
   }
 
   @Test

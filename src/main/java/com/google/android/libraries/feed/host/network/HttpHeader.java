@@ -16,7 +16,7 @@ package com.google.android.libraries.feed.host.network;
 
 import android.support.annotation.StringDef;
 
-public class HttpHeader {
+public final class HttpHeader {
 
   /** These string values correspond with the actual header name. */
   @StringDef({

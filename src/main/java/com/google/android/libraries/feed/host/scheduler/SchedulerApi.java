@@ -60,7 +60,7 @@ public interface SchedulerApi {
   }
 
   /** Object which contains the current state of the SessionManager. */
-  class SessionManagerState {
+  final class SessionManagerState {
     /** Does the SessionManager have content? */
     public final boolean hasContent;
     /**

@@ -19,12 +19,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.net.Uri;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.host.network.HttpRequest;
+import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
+import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,13 +40,14 @@ import org.robolectric.RobolectricTestRunner;
 public class NetworkClientWrapperTest {
   @Mock private ThreadUtils threadUtils;
   @Mock private NetworkClient networkClient;
-  @Mock private HttpRequest request;
   @Mock private Consumer<HttpResponse> responseConsumer;
 
+  private HttpRequest request;
   private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
 
   @Before
   public void setup() {
+    request = new HttpRequest(Uri.EMPTY, HttpMethod.GET, Collections.emptyList(), new byte[] {});
     initMocks(this);
   }
 

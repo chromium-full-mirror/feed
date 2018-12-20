@@ -37,12 +37,13 @@ public class SchedulerApiWrapperTest {
 
   @Mock private ThreadUtils threadUtils;
   @Mock private SchedulerApi schedulerApi;
-  @Mock private SessionManagerState sessionManagerState;
+  private SessionManagerState sessionManagerState;
 
   private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
   @Before
   public void setup() {
+    sessionManagerState = new SessionManagerState(false, 0L, false);
     initMocks(this);
   }
 

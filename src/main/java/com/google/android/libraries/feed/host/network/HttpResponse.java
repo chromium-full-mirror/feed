@@ -24,10 +24,6 @@ public final class HttpResponse {
     this.responseBody = responseBody;
   }
 
-  public HttpResponse(int responseCode) {
-    this(responseCode, new byte[] {});
-  }
-
   /**
    * Gets the response code for the response.
    *

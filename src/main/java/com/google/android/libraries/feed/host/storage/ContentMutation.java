@@ -26,7 +26,7 @@ import java.util.List;
  * A sequence of {@link ContentOperation} instances. This class is used to commit changes to {@link
  * ContentStorage}.
  */
-public class ContentMutation {
+public final class ContentMutation {
   private final List<ContentOperation> operations;
 
   private ContentMutation(List<ContentOperation> operations) {
@@ -42,7 +42,7 @@ public class ContentMutation {
    * Creates a {@link ContentMutation}, which can be used to apply mutations to the underlying
    * {@link ContentStorage}.
    */
-  public static class Builder {
+  public static final class Builder {
     private final ArrayList<ContentOperation> operations = new ArrayList<>();
     private final ContentOperationListSimplifier simplifier = new ContentOperationListSimplifier();
 
