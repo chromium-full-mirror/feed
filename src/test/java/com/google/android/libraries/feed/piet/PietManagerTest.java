@@ -44,6 +44,7 @@ import org.robolectric.RobolectricTestRunner;
 public class PietManagerTest {
 
   @Mock private ActionHandler actionHandler;
+  @Mock private EventLogger eventLogger;
   @Mock private AssetProvider assetProvider;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private Supplier<ViewGroup> cardViewSupplier;
@@ -62,15 +63,13 @@ public class PietManagerTest {
     context = Robolectric.buildActivity(Activity.class).get();
     viewGroup1 = new LinearLayout(context);
     viewGroup2 = new FrameLayout(context);
-    pietManager =
-        new PietManager(
-            DebugBehavior.VERBOSE, assetProvider, customElementProvider, mock(EventLogger.class));
+    pietManager = new PietManager(DebugBehavior.VERBOSE, assetProvider, customElementProvider);
   }
 
   @Test
   public void testCreatePietFrameAdapter() {
     FrameAdapter frameAdapter =
-        pietManager.createPietFrameAdapter(cardViewSupplier, actionHandler, context);
+        pietManager.createPietFrameAdapter(cardViewSupplier, actionHandler, eventLogger, context);
     assertThat(frameAdapter.getParameters().parentViewSupplier).isEqualTo(cardViewSupplier);
   }
 

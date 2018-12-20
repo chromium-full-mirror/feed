@@ -28,6 +28,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
@@ -49,6 +50,7 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.Collections;
@@ -94,7 +96,6 @@ public class StreamRecyclerViewAdapterTest {
   private List<Header> headers;
   private StreamAdapterObserver streamAdapterObserver;
 
-  @SuppressWarnings("unchecked") // Needed for templated captures.
   @Before
   public void setUp() {
     initMocks(this);
@@ -103,7 +104,10 @@ public class StreamRecyclerViewAdapterTest {
     frameContainer = new LinearLayout(context);
 
     when(pietManager.createPietFrameAdapter(
-            any(Supplier.class), any(ActionHandler.class), eq(context)))
+            Mockito.<Supplier<ViewGroup>>any(),
+            any(ActionHandler.class),
+            any(EventLogger.class),
+            eq(context)))
         .thenReturn(frameAdapter);
     when(frameAdapter.getFrameContainer()).thenReturn(frameContainer);
 

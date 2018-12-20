@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.piet;
 
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
-import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 
 /** Wrapper class to hold all host-related objects. */
@@ -24,17 +23,14 @@ public class HostProviders {
   private final AssetProvider assetProvider;
   private final CustomElementProvider customElementProvider;
   private final HostBindingProvider hostBindingProvider;
-  private final EventLogger eventLogger;
 
   public HostProviders(
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider,
-      EventLogger eventLogger) {
+      HostBindingProvider hostBindingProvider) {
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
     this.hostBindingProvider = hostBindingProvider;
-    this.eventLogger = eventLogger;
   }
 
   public AssetProvider getAssetProvider() {
@@ -47,9 +43,5 @@ public class HostProviders {
 
   public HostBindingProvider getHostBindingProvider() {
     return hostBindingProvider;
-  }
-
-  public EventLogger getEventLogger() {
-    return eventLogger;
   }
 }

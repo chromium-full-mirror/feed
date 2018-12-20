@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.Content;
@@ -60,6 +61,7 @@ public class FrameAdapter {
   private final Context context;
   private final AdapterParameters parameters;
   private final ActionHandler actionHandler;
+  private final EventLogger eventLogger;
   private final DebugBehavior debugBehavior;
   private final Set<VisibilityAction> activeActions = new HashSet<>();
   /*@Nullable*/ private LinearLayout view = null;
@@ -69,10 +71,12 @@ public class FrameAdapter {
       Context context,
       AdapterParameters parameters,
       ActionHandler actionHandler,
+      EventLogger eventLogger,
       DebugBehavior debugBehavior) {
     this.context = context;
     this.parameters = parameters;
     this.actionHandler = actionHandler;
+    this.eventLogger = eventLogger;
     this.debugBehavior = debugBehavior;
     childAdapters = new HashSet<>();
   }
@@ -147,10 +151,7 @@ public class FrameAdapter {
         frameView.addView(warningView);
       }
     }
-    parameters
-        .hostProviders
-        .getEventLogger()
-        .logEvents(localFrameContext.getDebugLogger().getErrorCodes());
+    eventLogger.logEvents(localFrameContext.getDebugLogger().getErrorCodes());
   }
 
   public void unbindModel() {

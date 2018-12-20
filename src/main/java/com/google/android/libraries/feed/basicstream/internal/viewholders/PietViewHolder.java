@@ -82,6 +82,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
               }
               getActionParser().parseAction(action, getStreamActionApi(), view, veLoggingToken);
             },
+            errorCodes -> {},
             context);
     visibilityMonitor = createVisibilityMonitor(cardView, configuration);
     cardView.addView(frameAdapter.getFrameContainer());

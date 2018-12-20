@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -42,6 +43,7 @@ import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
+import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.testing.host.stream.FakeCardConfiguration;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -96,7 +98,10 @@ public class PietViewHolderTest {
     frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     view = new TextView(context);
     when(pietManager.createPietFrameAdapter(
-            any(Supplier.class), any(ActionHandler.class), eq(context)))
+            Mockito.<Supplier<ViewGroup>>any(),
+            any(ActionHandler.class),
+            any(EventLogger.class),
+            eq(context)))
         .thenReturn(frameAdapter);
     when(frameAdapter.getFrameContainer()).thenReturn(new LinearLayout(context));
 
@@ -111,7 +116,11 @@ public class PietViewHolderTest {
 
     ArgumentCaptor<ActionHandler> captor = ArgumentCaptor.forClass(ActionHandler.class);
     verify(pietManager)
-        .createPietFrameAdapter(any(Supplier.class), captor.capture(), any(Context.class));
+        .createPietFrameAdapter(
+            Mockito.<Supplier<ViewGroup>>any(),
+            captor.capture(),
+            any(EventLogger.class),
+            any(Context.class));
     actionHandler = captor.getValue();
   }
 

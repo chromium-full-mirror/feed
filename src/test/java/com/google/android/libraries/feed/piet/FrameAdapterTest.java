@@ -145,7 +145,6 @@ public class FrameAdapterTest {
     when(templateAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
     when(templateAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
-    when(hostProviders.getEventLogger()).thenReturn(eventLogger);
     when(frameContext.reportMessage(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
             invocationOnMock -> {
@@ -157,7 +156,7 @@ public class FrameAdapterTest {
 
     pietSharedStates = new ArrayList<>();
     frameAdapter =
-        new FrameAdapter(context, adapterParameters, actionHandler, debugBehavior) {
+        new FrameAdapter(context, adapterParameters, actionHandler, eventLogger, debugBehavior) {
           @Override
           FrameContext createFrameContext(
               Frame frame, int frameWidthPx, List<PietSharedState> pietSharedStates, View view) {
@@ -275,12 +274,12 @@ public class FrameAdapterTest {
             debugBehavior,
             new DebugLogger(),
             actionHandler,
-            new HostProviders(
-                assetProvider, customElementProvider, new HostBindingProvider(), eventLogger),
+            new HostProviders(assetProvider, customElementProvider, new HostBindingProvider()),
             context,
             new FrameLayout(context));
 
-    frameAdapter = new FrameAdapter(context, adapterParameters, actionHandler, debugBehavior);
+    frameAdapter =
+        new FrameAdapter(context, adapterParameters, actionHandler, eventLogger, debugBehavior);
 
     Content content =
         Content.newBuilder().setElement(Element.newBuilder().setElementList(defaultList)).build();
@@ -357,7 +356,8 @@ public class FrameAdapterTest {
             .build();
     pietSharedStates.add(pietSharedState);
 
-    frameAdapter = new FrameAdapter(context, adapterParameters, actionHandler, debugBehavior);
+    frameAdapter =
+        new FrameAdapter(context, adapterParameters, actionHandler, eventLogger, debugBehavior);
 
     ImageElement defaultImage =
         ImageElement.newBuilder().setImage(Image.getDefaultInstance()).build();
@@ -550,7 +550,8 @@ public class FrameAdapterTest {
 
     AdapterParameters parameters =
         new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
-    FrameAdapter frameAdapter = new FrameAdapter(context, parameters, actionHandler, debugBehavior);
+    FrameAdapter frameAdapter =
+        new FrameAdapter(context, parameters, actionHandler, eventLogger, debugBehavior);
 
     frameAdapter.bindModel(frame, FRAME_WIDTH, null, pietSharedStates);
 

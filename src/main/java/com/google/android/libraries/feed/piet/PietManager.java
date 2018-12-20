@@ -35,21 +35,18 @@ public class PietManager {
   private final CustomElementProvider customElementProvider;
   private final HostBindingProvider hostBindingProvider;
   private final Clock clock;
-  private final EventLogger eventLogger;
   @VisibleForTesting /*@Nullable*/ AdapterParameters adapterParameters = null;
 
   public PietManager(
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
-      CustomElementProvider customElementProvider,
-      EventLogger eventLogger) {
+      CustomElementProvider customElementProvider) {
     this(
         debugBehavior,
         assetProvider,
         customElementProvider,
         new HostBindingProvider(),
-        new SystemClockImpl(),
-        eventLogger);
+        new SystemClockImpl());
   }
 
   public PietManager(
@@ -57,23 +54,22 @@ public class PietManager {
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider,
       HostBindingProvider hostBindingProvider,
-      Clock clock,
-      EventLogger eventLogger) {
+      Clock clock) {
     this.debugBehavior = debugBehavior;
     this.assetProvider = assetProvider;
     this.customElementProvider = customElementProvider;
     this.hostBindingProvider = hostBindingProvider;
     this.clock = clock;
-    this.eventLogger = eventLogger;
   }
 
   public FrameAdapter createPietFrameAdapter(
       Supplier</*@Nullable*/ ViewGroup> cardViewProducer,
       ActionHandler actionHandler,
+      EventLogger eventLogger,
       Context context) {
     AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
 
-    return new FrameAdapter(context, parameters, actionHandler, debugBehavior);
+    return new FrameAdapter(context, parameters, actionHandler, eventLogger, debugBehavior);
   }
 
   /**
@@ -88,8 +84,7 @@ public class PietManager {
           new AdapterParameters(
               context,
               cardViewProducer,
-              new HostProviders(
-                  assetProvider, customElementProvider, hostBindingProvider, eventLogger),
+              new HostProviders(assetProvider, customElementProvider, hostBindingProvider),
               clock);
     }
     return adapterParameters;
