@@ -127,7 +127,7 @@ public class TimeoutSchedulerTest extends SchedulerConformanceTest {
     assertThat(scheduler.clearAllTriggered.get()).isTrue();
     SessionManagerState state = new SessionManagerState(true, 1L, false);
     assertThat(scheduler.shouldSessionRequestData(state))
-        .isEqualTo(RequestBehavior.NO_REQUEST_WITH_CONTENT);
+        .isEqualTo(RequestBehavior.NO_REQUEST_WITH_TIMEOUT);
     assertThat(scheduler.clearAllTriggered.get()).isFalse();
   }
 

@@ -119,6 +119,11 @@ public final class SessionManagerMutation implements Dumpable {
     taskQueue.execute("invalidateHead", TaskType.HEAD_INVALIDATE, () -> mutation.resetHead(null));
   }
 
+  public void forceResetHead() {
+    HeadMutationCommitter mutation = new HeadMutationCommitter();
+    mutation.resetHead(null);
+  }
+
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);

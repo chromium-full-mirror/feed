@@ -18,6 +18,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
+import com.google.android.libraries.feed.api.scope.ClearAllListener;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -132,6 +133,7 @@ public class InfrastructureIntegrationScope {
                 clock,
                 appLifecycleListener)
             .create();
+    new ClearAllListener(taskQueue, feedSessionManager, store, threadUtils, appLifecycleListener);
     feedSessionManager.initialize();
     modelProviderFactory =
         new FeedModelProviderFactory(

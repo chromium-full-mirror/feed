@@ -76,16 +76,16 @@ public final class TimeoutScheduler implements SchedulerApi, DirectHostSupported
       Logger.i(TAG, "TimeoutScheduler is Disabled: NO_REQUEST_WITH_CONTENT");
       return RequestBehavior.NO_REQUEST_WITH_WAIT;
     }
-    if (clearAllTriggered.get()) {
-      clearAllTriggered.set(false);
-      return RequestBehavior.NO_REQUEST_WITH_CONTENT;
-    }
     Logger.i(
         TAG,
         "shouldSessionRequestData, content %s, contentCreationMs %s, request %s",
         sessionManagerState.hasContent,
         StringFormattingUtils.formatLogDate(sessionManagerState.contentCreationDateTimeMs),
         sessionManagerState.hasOutstandingRequest);
+    if (clearAllTriggered.get()) {
+      clearAllTriggered.set(false);
+      return RequestBehavior.NO_REQUEST_WITH_TIMEOUT;
+    }
     if (sessionManagerState.hasOutstandingRequest) {
       if (sessionManagerState.hasContent) {
         Logger.i(TAG, "Outstanding Request: NO_REQUEST_WITH_TIMEOUT");

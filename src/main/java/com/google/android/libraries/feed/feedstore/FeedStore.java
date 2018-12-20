@@ -18,6 +18,7 @@ import android.database.Observable;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
@@ -61,7 +62,7 @@ import java.util.Set;
  * IllegalStateException if the register/unregister methods are called.
  */
 public final class FeedStore extends Observable<StoreListener>
-    implements Store, FeedLifecycleListener {
+    implements Store, Resettable, FeedLifecycleListener {
   private static final String TAG = "FeedStore";
 
   // Permanent reference to the persistent store (used for setting off cleanup)
@@ -222,6 +223,11 @@ public final class FeedStore extends Observable<StoreListener>
   }
 
   @Override
+  public void reset() {
+    persistentStore.clearNonActionContent();
+  }
+
+  @Override
   public void onLifecycleEvent(@LifecycleEvent String event) {
     switch (event) {
       case LifecycleEvent.ENTER_BACKGROUND:
@@ -229,9 +235,6 @@ public final class FeedStore extends Observable<StoreListener>
           taskQueue.execute(
               "dumpEphemeralActions", TaskType.BACKGROUND, this::dumpEphemeralActions);
         }
-        break;
-      case LifecycleEvent.CLEAR_ALL:
-        taskQueue.execute("clearAll", TaskType.IMMEDIATE, persistentStore::clearNonActionContent);
         break;
       default:
         // Do nothing

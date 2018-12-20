@@ -20,6 +20,7 @@ import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
+import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -125,11 +126,13 @@ public final class FeedProcessScope implements Dumpable {
     if (store instanceof Dumpable) {
       dumper.dump((Dumpable) store);
     }
+    dumper.dump(clearAllListener);
   }
 
   public void onDestroy() {
     try {
       networkClient.close();
+      taskQueue.reset();
     } catch (Exception ignored) {
       // Ignore exception when closing.
     }
@@ -308,6 +311,11 @@ public final class FeedProcessScope implements Dumpable {
         knownContentApi = new FeedKnownContentApi(sessionManager, mainThreadRunner, threadUtils);
       }
 
+      Resettable resettableSessionManager =
+          sessionManager instanceof Resettable ? (Resettable) sessionManager : null;
+      ClearAllListener clearAllListener =
+          new ClearAllListener(
+              taskQueue, resettableSessionManager, store, threadUtils, lifecycleListener);
       return new FeedProcessScope(
           loggingApi,
           networkClient,
@@ -325,7 +333,8 @@ public final class FeedProcessScope implements Dumpable {
           actionManager,
           configuration,
           knownContentApi,
-          extensionRegistry);
+          extensionRegistry,
+          clearAllListener);
     }
 
     // Required fields.
@@ -371,7 +380,8 @@ public final class FeedProcessScope implements Dumpable {
       ActionManager actionManager,
       Configuration configuration,
       KnownContentApi knownContentApi,
-      FeedExtensionRegistry feedExtensionRegistry) {
+      FeedExtensionRegistry feedExtensionRegistry,
+      ClearAllListener clearAllListener) {
     this.loggingApi = loggingApi;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -389,6 +399,7 @@ public final class FeedProcessScope implements Dumpable {
     this.configuration = configuration;
     this.knownContentApi = knownContentApi;
     this.feedExtensionRegistry = feedExtensionRegistry;
+    this.clearAllListener = clearAllListener;
   }
 
   private final LoggingApi loggingApi;
@@ -408,6 +419,7 @@ public final class FeedProcessScope implements Dumpable {
   private final Configuration configuration;
   private final KnownContentApi knownContentApi;
   private final FeedExtensionRegistry feedExtensionRegistry;
+  private final ClearAllListener clearAllListener;
 
   public Clock getClock() {
     return clock;

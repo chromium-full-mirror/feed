@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
+import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
@@ -81,7 +82,7 @@ import javax.annotation.concurrent.GuardedBy;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
 public final class FeedSessionManager
-    implements SessionManager, StoreListener, FeedLifecycleListener, Dumpable {
+    implements SessionManager, StoreListener, FeedLifecycleListener, Resettable, Dumpable {
 
   private static final String TAG = "FeedSessionManager";
 
@@ -281,7 +282,9 @@ public final class FeedSessionManager
     }
 
     int taskType = TaskType.USER_FACING;
-    if (behavior == RequestBehavior.NO_REQUEST_WITH_CONTENT && taskQueue.isMakingRequest()) {
+    if (behavior == RequestBehavior.NO_REQUEST_WITH_CONTENT
+        && taskQueue.isMakingRequest()
+        && !taskQueue.isDelayed()) {
       // don't wait for the request to finish, go ahead and show the content
       taskType = TaskType.IMMEDIATE;
     }
@@ -642,13 +645,12 @@ public final class FeedSessionManager
         knownContentListener);
   }
 
-  private void reset() {
+  @Override
+  public void reset() {
     threadUtils.checkNotMainThread();
 
-    // Clear the task queue first, preventing any tasks from running until initialization
-    invalidateHead();
+    sessionManagerMutation.forceResetHead();
     sessionCache.reset();
-    taskQueue.reset();
     // Invalidate all sessions currently under construction
     List<InitializableSession> invalidateSessions;
     synchronized (lock) {
@@ -663,8 +665,6 @@ public final class FeedSessionManager
     }
     contentCache.reset();
     sharedStateCache.clear();
-    // Initialize the TaskQueue so new tasks will start running
-    taskQueue.initialize(() -> {});
   }
 
   @Override
@@ -706,9 +706,6 @@ public final class FeedSessionManager
   public void onLifecycleEvent(@LifecycleEvent String event) {
     Logger.i(TAG, "onLifecycleEvent %s", event);
     switch (event) {
-      case LifecycleEvent.CLEAR_ALL:
-        taskQueue.execute("reset", TaskType.IMMEDIATE, this::reset);
-        break;
       case LifecycleEvent.INITIALIZE:
         initialize();
         break;

@@ -185,6 +185,13 @@ public class TaskQueue implements Dumpable {
     }
   }
 
+  /** this is called post reset to clear the initialized flag. */
+  public void completeReset() {
+    synchronized (lock) {
+      initialized = true;
+    }
+  }
+
   /**
    * Called to initialize the {@link
    * com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager}. This needs to be the
@@ -225,7 +232,8 @@ public class TaskQueue implements Dumpable {
     }
     if (isDelayed()) {
       Logger.i(TAG, " * Starting starvation checks");
-      mainThreadRunner.executeWithDelay(TAG, new StarvationChecker(), STARVATION_CHECK_MS);
+      mainThreadRunner.executeWithDelay(
+          "starvationChecks", new StarvationChecker(), STARVATION_CHECK_MS);
     }
   }
 
@@ -233,8 +241,8 @@ public class TaskQueue implements Dumpable {
     @Override
     public void run() {
       if (!isDelayed()) {
-        Logger.i(TAG, " * Starvation checks being turned off");
         // Quick out, we are not delaying things, this stops starvation checking
+        Logger.i(TAG, " * Starvation checks being turned off");
         return;
       }
       long lastTask = lastTaskFinished.get();
@@ -253,7 +261,7 @@ public class TaskQueue implements Dumpable {
         }
         executeNextTask();
       } else {
-        mainThreadRunner.executeWithDelay(TAG, this, STARVATION_CHECK_MS);
+        mainThreadRunner.executeWithDelay("StarvationChecks", this, STARVATION_CHECK_MS);
       }
     }
   }
@@ -387,7 +395,6 @@ public class TaskQueue implements Dumpable {
       // maintain the currentTask on the stack encase we queue multiple tasks to the Executor
       TaskWrapper saveTask = currentTask;
       currentTask = this;
-
       runnable.run();
       postRunnableRun();
 
@@ -441,9 +448,14 @@ public class TaskQueue implements Dumpable {
   private final class HeadInvalidateTaskWrapper extends TaskWrapper {
     HeadInvalidateTaskWrapper(String task, @TaskType int taskType, Runnable runnable) {
       super(task, taskType, runnable);
+    }
+
+    @Override
+    void runTask() {
       synchronized (lock) {
         waitingForHeadReset = true;
       }
+      super.runTask();
     }
 
     @Override
@@ -471,7 +483,7 @@ public class TaskQueue implements Dumpable {
      * #timeoutRunnable} will run.
      */
     private TimeoutTaskWrapper startTimeout(long timeoutMillis) {
-      mainThreadRunner.executeWithDelay(TAG, this::runTimeoutCallback, timeoutMillis);
+      mainThreadRunner.executeWithDelay("taskTimeout", this::runTimeoutCallback, timeoutMillis);
       return this;
     }
 
