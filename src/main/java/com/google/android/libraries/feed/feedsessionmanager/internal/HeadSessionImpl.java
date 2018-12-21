@@ -59,7 +59,7 @@ public class HeadSessionImpl implements Session, Dumpable {
 
   /** Initialize head from the stored stream structures. */
   void initializeSession(List<StreamStructure> streamStructures) {
-    Logger.i(TAG, "Initialize HEAD %s", streamStructures.size());
+    Logger.i(TAG, "Initialize HEAD %s items", streamStructures.size());
     for (StreamStructure streamStructure : streamStructures) {
       contentInSession.add(streamStructure.getContentId());
     }

@@ -480,6 +480,7 @@ public class TaskQueue implements Dumpable {
   private final class TimeoutTaskWrapper extends TaskWrapper {
     private final Runnable timeoutRunnable;
     private final AtomicBoolean started = new AtomicBoolean(false);
+    private final AtomicBoolean ranTimeoutTask = new AtomicBoolean(false);
 
     TimeoutTaskWrapper(
         String task, @TaskType int taskType, Runnable taskRunnable, Runnable timeoutRunnable) {
@@ -499,6 +500,10 @@ public class TaskQueue implements Dumpable {
     @Override
     void runTask() {
       started.set(true);
+      if (ranTimeoutTask.get()) {
+        Logger.w(TAG, "We ran the TimeoutTask already");
+        return;
+      }
       super.runTask();
     }
 
@@ -507,6 +512,7 @@ public class TaskQueue implements Dumpable {
         return;
       }
       Logger.w(TAG, "Execute Timeout [%s]: %s", taskType, task);
+      ranTimeoutTask.set(true);
       executor.execute(timeoutRunnable);
     }
   }

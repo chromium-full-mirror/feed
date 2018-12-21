@@ -959,8 +959,21 @@ public final class FeedModelProvider extends Observable<ModelProviderObserver>
       String childKey = removeChild.getContentId();
       UpdatableModelChild targetChild = contents.get(childKey);
       if (targetChild == null) {
-        Logger.e(TAG, "Child %s not found in the ModelProvider contents", childKey);
-        return;
+        if (childKey.startsWith(SYNTHETIC_TOKEN_PREFIX)) {
+          Logger.i(TAG, "Remove Synthetic Token");
+          SyntheticTokenTracker token = syntheticTokens.get(childKey);
+          if (token != null) {
+            targetChild = token.getTokenChild();
+            mutationHandler.removeChild(parentKey, targetChild);
+            syntheticTokens.remove(childKey);
+          } else {
+            Logger.e(TAG, "Unable to find synthetic token %s", childKey);
+            return;
+          }
+        } else {
+          Logger.e(TAG, "Child %s not found in the ModelProvider contents", childKey);
+          return;
+        }
       }
       if (targetChild.getType() == Type.FEATURE) {
         mutationHandler.removeChild(parentKey, targetChild);
