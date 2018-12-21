@@ -21,7 +21,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
-import com.google.android.libraries.feed.basicstream.internal.logging.SpinnerLogger;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
@@ -29,6 +28,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
+import com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger;
 import java.util.Calendar;
 
 /** {@link FeatureDriver} for the zero state. */

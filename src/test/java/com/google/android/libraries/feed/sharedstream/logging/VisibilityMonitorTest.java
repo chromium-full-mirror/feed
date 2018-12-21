@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal.logging;
+package com.google.android.libraries.feed.sharedstream.logging;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -35,7 +35,7 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link VisibilityMonitor}. */
+/** Tests for {@link com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor}. */
 @RunWith(RobolectricTestRunner.class)
 public class VisibilityMonitorTest {
 

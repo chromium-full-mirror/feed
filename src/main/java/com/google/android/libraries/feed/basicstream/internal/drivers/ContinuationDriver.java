@@ -30,8 +30,6 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
-import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
-import com.google.android.libraries.feed.basicstream.internal.logging.SpinnerLogger;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
@@ -43,6 +41,8 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
+import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
+import com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger;
 import java.util.ArrayList;
 import java.util.List;
 

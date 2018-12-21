@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal.logging;
+package com.google.android.libraries.feed.sharedstream.logging;
 
 /** Interface that can be implemented to listen to view visibility events. */
 public interface VisibilityListener {

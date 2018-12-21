@@ -25,11 +25,11 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import com.google.android.libraries.feed.basicstream.internal.logging.LoggingListener;
-import com.google.android.libraries.feed.basicstream.internal.logging.VisibilityMonitor;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
+import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
+import com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor;
 
 /** {@link android.support.v7.widget.RecyclerView.ViewHolder} for the more button. */
 public class ContinuationViewHolder extends FeedViewHolder {

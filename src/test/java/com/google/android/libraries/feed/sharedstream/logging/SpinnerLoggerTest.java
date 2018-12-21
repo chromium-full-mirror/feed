@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal.logging;
+package com.google.android.libraries.feed.sharedstream.logging;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link SpinnerLogger}. */
+/** Tests for {@link com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger}. */
 @RunWith(RobolectricTestRunner.class)
 public class SpinnerLoggerTest {
 

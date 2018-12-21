@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal.logging;
+package com.google.android.libraries.feed.sharedstream.logging;
 
 /** Implementation of a {@link LoggingListener} that only notifies a listener of the first view. */
 public class OneShotVisibilityLoggingListener implements LoggingListener {
