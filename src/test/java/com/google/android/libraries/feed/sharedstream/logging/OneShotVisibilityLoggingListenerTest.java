@@ -25,10 +25,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/**
- * Tests for {@link
- * com.google.android.libraries.feed.sharedstream.logging.OneShotVisibilityLoggingListener}.
- */
+/** Tests for {@link OneShotVisibilityLoggingListener}. */
 @RunWith(RobolectricTestRunner.class)
 public class OneShotVisibilityLoggingListenerTest {
 

@@ -35,7 +35,7 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor}. */
+/** Tests for {@link VisibilityMonitor}. */
 @RunWith(RobolectricTestRunner.class)
 public class VisibilityMonitorTest {
 

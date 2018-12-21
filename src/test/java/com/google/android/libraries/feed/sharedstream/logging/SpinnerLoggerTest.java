@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger}. */
+/** Tests for {@link SpinnerLogger}. */
 @RunWith(RobolectricTestRunner.class)
 public class SpinnerLoggerTest {
 
