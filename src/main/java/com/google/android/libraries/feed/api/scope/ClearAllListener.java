@@ -28,7 +28,7 @@ import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleL
  * This class will implements Clear All in Jardin. It will run all of the clear operations on a
  * single background thread.
  */
-public class ClearAllListener implements FeedLifecycleListener, Dumpable {
+public final class ClearAllListener implements FeedLifecycleListener, Dumpable {
   private static final String TAG = "ClearAllListener";
 
   private final TaskQueue taskQueue;

@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 
 /** SessionImpl which implements the TimeoutScheduler specific behaviors need within the session. */
-public class TimeoutSessionImpl extends SessionImpl {
+public final class TimeoutSessionImpl extends SessionImpl {
   private static final String TAG = "TimeoutSessionImpl";
 
   TimeoutSessionImpl(

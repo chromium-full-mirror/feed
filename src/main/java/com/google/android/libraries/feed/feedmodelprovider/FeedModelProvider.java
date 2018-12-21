@@ -508,6 +508,7 @@ public final class FeedModelProvider extends Observable<ModelProviderObserver>
    * update mutation. The default implementation is a no-op.
    */
   abstract static class MutationHandler {
+    private MutationHandler() {}
 
     /**
      * Called before processing the children of the mutation. This allows the model to be cleaned up
