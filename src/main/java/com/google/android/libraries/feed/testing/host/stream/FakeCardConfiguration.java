@@ -19,8 +19,10 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
-/** Created by danrand on 7/25/18. */
+/** Fake for {@link CardConfiguration}. */
 public class FakeCardConfiguration implements CardConfiguration {
+
+  private static final ColorDrawable COLOR_DRAWABLE = new ColorDrawable(Color.RED);
 
   @Override
   public int getDefaultCornerRadius() {
@@ -29,7 +31,7 @@ public class FakeCardConfiguration implements CardConfiguration {
 
   @Override
   public Drawable getCardBackground() {
-    return new ColorDrawable(Color.RED);
+    return COLOR_DRAWABLE;
   }
 
   @Override
