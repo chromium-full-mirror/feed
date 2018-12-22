@@ -602,6 +602,49 @@ public class GridRowViewTest {
     assertThat(gridRowView.getMeasuredHeight()).isEqualTo(250);
   }
 
+  @Test
+  public void testOnMeasure_fillParentCellsWithFitContentRow() {
+    TestView tallView = new TestView(context, 11, 100);
+    tallView.setLayoutParams(new LayoutParams(11, ViewGroup.LayoutParams.MATCH_PARENT));
+    TestView shortView = new TestView(context, 12, 20);
+    shortView.setLayoutParams(new LayoutParams(12, ViewGroup.LayoutParams.MATCH_PARENT));
+
+    gridRowView.addView(tallView);
+    gridRowView.addView(shortView);
+
+    gridRowView.setLayoutParams(new LayoutParams(50, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(500, MeasureSpec.AT_MOST);
+    int heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+
+    gridRowView.measure(widthSpec, heightSpec);
+
+    assertThat(tallView.requestedHeight).isEqualTo(100);
+    assertThat(shortView.requestedHeight).isEqualTo(100);
+  }
+
+  @Test
+  public void testOnMeasure_fitContentCellsWithFitContentRow_minHeight() {
+    TestView tallView = new TestView(context, 11, 50);
+    tallView.setLayoutParams(new LayoutParams(11, ViewGroup.LayoutParams.WRAP_CONTENT));
+    TestView shortView = new TestView(context, 12, 20);
+    shortView.setLayoutParams(new LayoutParams(12, ViewGroup.LayoutParams.WRAP_CONTENT));
+    shortView.setMinimumHeight(30);
+
+    gridRowView.addView(tallView);
+    gridRowView.addView(shortView);
+
+    gridRowView.setLayoutParams(new LayoutParams(50, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(500, MeasureSpec.AT_MOST);
+    int heightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+
+    gridRowView.measure(widthSpec, heightSpec);
+
+    assertThat(tallView.requestedHeight).isEqualTo(50);
+    assertThat(shortView.requestedHeight).isEqualTo(30);
+  }
+
   private static class TestView extends View {
     private final int desiredWidth;
     private final int desiredHeight;

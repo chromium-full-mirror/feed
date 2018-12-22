@@ -171,7 +171,8 @@ public class GridRowView extends LinearLayout {
     }
 
     // Set height of the GridRowView based on the max cell height
-    int rowHeight = Integer.MAX_VALUE;
+    // Divided by 2 so we can create a MeasureSpec out of it (needs some free bits).
+    int rowHeight = Integer.MAX_VALUE / 2;
     if (heightMode == MeasureSpec.EXACTLY) {
       rowHeight = heightSize;
     } else {
@@ -188,6 +189,23 @@ public class GridRowView extends LinearLayout {
       // We should not need to resize the cells because they were all already smaller than this.
       rowHeight =
           Math.min(rowHeight, Math.max(maxCellHeight + gridRowVerticalPadding, getMinimumHeight()));
+    }
+
+    // Resize any cells that are MATCH_PARENT or have a min height on them.
+    for (int i = 0; i < getChildCount(); i++) {
+      View view = getChildAt(i);
+      LayoutParams params = ((LayoutParams) view.getLayoutParams());
+      if (params.height == LayoutParams.MATCH_PARENT) {
+        view.measure(
+            MeasureSpec.makeMeasureSpec(view.getMeasuredWidth(), MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(rowHeight, MeasureSpec.EXACTLY));
+      } else if (params.height == LayoutParams.WRAP_CONTENT
+          && view.getMinimumHeight() > view.getMeasuredHeight()
+          && view.getMinimumHeight() < rowHeight) {
+        view.measure(
+            MeasureSpec.makeMeasureSpec(view.getMeasuredWidth(), MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(view.getMinimumHeight(), MeasureSpec.EXACTLY));
+      }
     }
 
     setMeasuredDimension(maxWidth, rowHeight);
