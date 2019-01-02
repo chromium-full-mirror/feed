@@ -26,7 +26,7 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 public class VisibilityMonitor
     implements ViewTreeObserver.OnPreDrawListener, View.OnAttachStateChangeListener {
 
-  private static final double DEFAULT_VIEW_LOG_THRESHOLD = .66;
+  public static final double DEFAULT_VIEW_LOG_THRESHOLD = .66;
 
   private final View view;
   private final double viewLogThreshold;
@@ -37,6 +37,11 @@ public class VisibilityMonitor
     this.view = view;
     this.viewLogThreshold =
         configuration.getValueOrDefault(ConfigKey.VIEW_LOG_THRESHOLD, DEFAULT_VIEW_LOG_THRESHOLD);
+  }
+
+  public VisibilityMonitor(View view, double viewLogThreshold) {
+    this.view = view;
+    this.viewLogThreshold = viewLogThreshold;
   }
 
   @Override
