@@ -37,8 +37,6 @@ import com.google.search.now.ui.piet.StylesProto.Borders;
 import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.Font;
-import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
-import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.Style.HeightSpecCase;
 
@@ -221,8 +219,18 @@ class StyleProvider {
   }
 
   /** Horizontal gravity specified on the style */
-  public GravityHorizontal getGravityHorizontal() {
-    return style.getGravityHorizontal();
+  public int getGravityHorizontal(int defaultGravity) {
+    switch (style.getGravityHorizontal()) {
+      case GRAVITY_START:
+        return Gravity.START;
+      case GRAVITY_CENTER:
+        return Gravity.CENTER_HORIZONTAL;
+      case GRAVITY_END:
+        return Gravity.END;
+      case GRAVITY_HORIZONTAL_UNSPECIFIED:
+        // fall out
+    }
+    return defaultGravity;
   }
 
   /** Whether the style has a vertical gravity specified */
@@ -231,8 +239,23 @@ class StyleProvider {
   }
 
   /** Vertical gravity specified on the style */
-  public GravityVertical getGravityVertical() {
-    return style.getGravityVertical();
+  public int getGravityVertical(int defaultGravity) {
+    switch (style.getGravityVertical()) {
+      case GRAVITY_TOP:
+        return Gravity.TOP;
+      case GRAVITY_MIDDLE:
+        return Gravity.CENTER_VERTICAL;
+      case GRAVITY_BOTTOM:
+        return Gravity.BOTTOM;
+      case GRAVITY_VERTICAL_UNSPECIFIED:
+        // fall out
+    }
+    return defaultGravity;
+  }
+
+  /** Gravity (horizontal and vertical) as specified on the style */
+  public int getGravity(int defaultGravity) {
+    return getGravityHorizontal(defaultGravity) | getGravityVertical(defaultGravity);
   }
 
   /** Horizontal and vertical alignment of text, as an Android view Gravity */

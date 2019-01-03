@@ -20,6 +20,7 @@ import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_POOR_FRAME
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -172,9 +173,7 @@ public class FrameAdapter {
 
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
 
-    params.gravity =
-        ViewUtils.pietGravityToGravity(
-            childAdapter.getHorizontalGravity(), childAdapter.getVerticalGravity());
+    params.gravity = childAdapter.getGravity(Gravity.TOP | Gravity.START);
 
     childAdapter.setLayoutParams(params);
   }

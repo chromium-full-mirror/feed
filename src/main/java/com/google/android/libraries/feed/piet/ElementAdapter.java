@@ -31,8 +31,6 @@ import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
-import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
-import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.HashSet;
 import java.util.Set;
@@ -444,26 +442,46 @@ abstract class ElementAdapter<V extends View, M> {
     return checkNotNull(model);
   }
 
-  GravityVertical getVerticalGravity() {
+  /** Return the Element's desired vertical placement within its container. */
+  int getVerticalGravity(int defaultGravity) {
     if (model == null) {
-      return GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED;
-    } else if (getElementStyle().hasGravityVertical()) {
-      return getElementStyle().getGravityVertical();
-    } else {
-      // TODO: remove this branch
-      return baseElement.getGravityVertical();
+      return defaultGravity;
     }
+    int gravity = getElementStyle().getGravityVertical(defaultGravity);
+    // TODO: Remove this fallback to legacy behavior
+    if (!getElementStyle().hasGravityVertical() && baseElement.hasGravityVertical()) {
+      gravity = ViewUtils.gravityVerticalToGravity(baseElement.getGravityVertical());
+    }
+    return gravity;
   }
 
-  GravityHorizontal getHorizontalGravity() {
+  /** Return the Element's desired horizontal placement within its container. */
+  int getHorizontalGravity(int defaultGravity) {
     if (model == null) {
-      return GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED;
-    } else if (getElementStyle().hasGravityHorizontal()) {
-      return getElementStyle().getGravityHorizontal();
-    } else {
-      // TODO: remove this branch
-      return baseElement.getGravityHorizontal();
+      return defaultGravity;
     }
+    int gravity = getElementStyle().getGravityHorizontal(defaultGravity);
+    // TODO: Remove this fallback to legacy behavior
+    if (!getElementStyle().hasGravityHorizontal() && baseElement.hasGravityHorizontal()) {
+      gravity = ViewUtils.gravityHorizontalToGravity(baseElement.getGravityHorizontal());
+    }
+    return gravity;
+  }
+
+  /** Return the Element's desired horizontal and vertical placement within its container. */
+  int getGravity(int defaultGravity) {
+    if (model == null) {
+      return defaultGravity;
+    }
+    int gravity = getElementStyle().getGravity(defaultGravity);
+    // TODO: Remove this fallback to legacy behavior
+    if (!getElementStyle().hasGravityHorizontal() && !getElementStyle().hasGravityVertical()) {
+      Integer deprecatedGravity = getDeprecatedElementGravity();
+      if (deprecatedGravity != null) {
+        gravity = deprecatedGravity;
+      }
+    }
+    return gravity;
   }
 
   /**
@@ -477,7 +495,7 @@ abstract class ElementAdapter<V extends View, M> {
   // TODO: Remove this method
   @Deprecated
   /*@Nullable*/
-  Integer getElementGravityForTextAlignment() {
+  Integer getDeprecatedElementGravity() {
     // Only return something if there's actually gravity on the Element.
     if (!baseElement.hasGravityHorizontal() && !baseElement.hasGravityVertical()) {
       return null;

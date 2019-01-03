@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -51,7 +52,6 @@ import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
 import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
-import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import org.junit.Before;
 import org.junit.Test;
@@ -427,8 +427,7 @@ public class ElementListAdapterTest {
 
   @Test
   public void testGetVerticalGravity_noModel() {
-    assertThat(adapter.getVerticalGravity())
-        .isEqualTo(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED);
+    assertThat(adapter.getVerticalGravity(Gravity.CLIP_VERTICAL)).isEqualTo(Gravity.CLIP_VERTICAL);
   }
 
   @Test
@@ -510,7 +509,8 @@ public class ElementListAdapterTest {
     ImageElementAdapter mockChildAdapter = mock(ImageElementAdapter.class);
     when(mockChildAdapter.getComputedWidthPx()).thenReturn(childWidth);
     when(mockChildAdapter.getElementStyle()).thenReturn(childStyleProvider);
-    when(mockChildAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
+    when(mockChildAdapter.getHorizontalGravity(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
+    when(mockChildAdapter.getElementStyle().hasGravityHorizontal()).thenReturn(true);
     adapter.childAdapters.set(0, mockChildAdapter);
 
     LinearLayout.LayoutParams params =

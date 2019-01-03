@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -85,7 +86,7 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
 
     adapter.getElementStyle().applyMargins(getContext(), childParams);
 
-    childParams.gravity = ViewUtils.gravityHorizontalToGravity(adapter.getHorizontalGravity());
+    childParams.gravity = adapter.getHorizontalGravity(Gravity.START);
 
     adapter.setLayoutParams(childParams);
   }

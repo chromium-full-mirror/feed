@@ -20,6 +20,7 @@ import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_EL
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
@@ -160,7 +161,7 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
 
     cellAdapter.getElementStyle().applyMargins(getContext(), params);
 
-    params.gravity = ViewUtils.gravityVerticalToGravity(cellAdapter.getVerticalGravity());
+    params.gravity = cellAdapter.getVerticalGravity(Gravity.TOP);
 
     cellAdapter.setLayoutParams(params);
   }

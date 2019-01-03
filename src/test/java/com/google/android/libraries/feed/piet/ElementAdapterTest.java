@@ -18,6 +18,7 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
@@ -29,6 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -112,13 +114,16 @@ public class ElementAdapterTest {
             .build();
     Frame frame = Frame.newBuilder().setTag("FRAME").build();
     when(frameContext.getFrame()).thenReturn(frame);
+    when(styleProvider.getGravityHorizontal(Gravity.CLIP_HORIZONTAL))
+        .thenReturn(Gravity.CENTER_HORIZONTAL);
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
 
     assertThat(adapter.getContext()).isSameAs(context);
     assertThat(adapter.getModel()).isSameAs(defaultElement);
     assertThat(adapter.getRawModel()).isSameAs(defaultElement);
-    assertThat(adapter.getHorizontalGravity()).isEqualTo(GravityHorizontal.GRAVITY_CENTER);
+    assertThat(adapter.getHorizontalGravity(Gravity.CLIP_HORIZONTAL))
+        .isEqualTo(Gravity.CENTER_HORIZONTAL);
     assertThat(adapter.getParameters()).isSameAs(parameters);
     assertThat(adapter.getTemplatedStringEvaluator()).isSameAs(parameters.templatedStringEvaluator);
     assertThat(adapter.getElementStyle()).isSameAs(styleProvider);
@@ -129,15 +134,18 @@ public class ElementAdapterTest {
   @Test
   public void testGravityGetter() {
     // Pre-creation
-    assertThat(adapter.getHorizontalGravity())
-        .isEqualTo(GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED);
-    assertThat(adapter.getVerticalGravity())
-        .isEqualTo(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED);
+    assertThat(adapter.getHorizontalGravity(Gravity.CLIP_HORIZONTAL))
+        .isEqualTo(Gravity.CLIP_HORIZONTAL);
+    assertThat(adapter.getVerticalGravity(Gravity.CLIP_VERTICAL)).isEqualTo(Gravity.CLIP_VERTICAL);
+    assertThat(adapter.getGravity(Gravity.AXIS_Y_SHIFT)).isEqualTo(Gravity.AXIS_Y_SHIFT);
 
     when(styleProvider.hasGravityHorizontal()).thenReturn(true);
     when(styleProvider.hasGravityVertical()).thenReturn(true);
-    when(styleProvider.getGravityHorizontal()).thenReturn(GravityHorizontal.GRAVITY_END);
-    when(styleProvider.getGravityVertical()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
+    when(styleProvider.getGravityHorizontal(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
+    when(styleProvider.getGravityVertical(anyInt())).thenReturn(Gravity.CENTER_VERTICAL);
+    // This should typically be CENTER_HORIZONTAL | CENTER_VERTICAL but I want to make sure that
+    // ElementAdapter is calling this method instead of OR'ing the H/V gravities itself.
+    when(styleProvider.getGravity(anyInt())).thenReturn(Gravity.FILL);
 
     Element defaultElement =
         Element.newBuilder()
@@ -147,8 +155,11 @@ public class ElementAdapterTest {
 
     adapter.createAdapter(defaultElement, defaultElement, frameContext);
 
-    assertThat(adapter.getHorizontalGravity()).isEqualTo(GravityHorizontal.GRAVITY_END);
-    assertThat(adapter.getVerticalGravity()).isEqualTo(GravityVertical.GRAVITY_BOTTOM);
+    assertThat(adapter.getHorizontalGravity(Gravity.CLIP_VERTICAL))
+        .isEqualTo(Gravity.CENTER_HORIZONTAL);
+    assertThat(adapter.getVerticalGravity(Gravity.CLIP_HORIZONTAL))
+        .isEqualTo(Gravity.CENTER_VERTICAL);
+    assertThat(adapter.getGravity(Gravity.CLIP_VERTICAL)).isEqualTo(Gravity.FILL);
   }
 
   @Test

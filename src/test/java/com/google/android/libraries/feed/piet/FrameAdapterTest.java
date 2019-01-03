@@ -140,10 +140,10 @@ public class FrameAdapterTest {
     doReturn(templateAdapter)
         .when(templateBinder)
         .createAndBindTemplateAdapter(any(TemplateAdapterModel.class), eq(frameContext));
-    when(elementAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
-    when(elementAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
-    when(templateAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
-    when(templateAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
+    when(elementAdapter.getHorizontalGravity(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
+    when(elementAdapter.getVerticalGravity(anyInt())).thenReturn(Gravity.BOTTOM);
+    when(templateAdapter.getHorizontalGravity(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
+    when(templateAdapter.getVerticalGravity(anyInt())).thenReturn(Gravity.BOTTOM);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(frameContext.reportMessage(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
@@ -505,8 +505,10 @@ public class FrameAdapterTest {
   @Test
   public void testBindModel_gravity() {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
-    when(elementAdapter.getHorizontalGravity()).thenReturn(GravityHorizontal.GRAVITY_CENTER);
-    when(elementAdapter.getVerticalGravity()).thenReturn(GravityVertical.GRAVITY_BOTTOM);
+    when(elementAdapter.getHorizontalGravity(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
+    when(elementAdapter.getVerticalGravity(anyInt())).thenReturn(Gravity.BOTTOM);
+    when(elementAdapter.getGravity(anyInt()))
+        .thenReturn(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
 
     frameAdapter.bindModel(frame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
 

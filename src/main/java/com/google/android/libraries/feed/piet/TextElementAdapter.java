@@ -101,7 +101,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
       getBaseView().setGravity(textStyle.getTextAlignment());
     } else {
       // TODO: Remove this branch
-      Integer legacyGravity = getElementGravityForTextAlignment();
+      Integer legacyGravity = getDeprecatedElementGravity();
       if (legacyGravity != null) {
         getBaseView().setGravity(legacyGravity);
       } else {

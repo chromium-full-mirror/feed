@@ -136,9 +136,10 @@ public class StyleProviderTest {
     assertThat(styleProvider.hasWidth()).isTrue();
     assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
     assertThat(styleProvider.hasGravityHorizontal()).isTrue();
-    assertThat(styleProvider.getGravityHorizontal()).isEqualTo(GravityHorizontal.GRAVITY_END);
+    assertThat(styleProvider.getGravityHorizontal(Gravity.CLIP_VERTICAL)).isEqualTo(Gravity.END);
     assertThat(styleProvider.hasGravityVertical()).isTrue();
-    assertThat(styleProvider.getGravityVertical()).isEqualTo(GravityVertical.GRAVITY_BOTTOM);
+    assertThat(styleProvider.getGravityVertical(Gravity.CLIP_HORIZONTAL)).isEqualTo(Gravity.BOTTOM);
+    assertThat(styleProvider.getGravity(Gravity.FILL)).isEqualTo(Gravity.END | Gravity.BOTTOM);
     assertThat(styleProvider.getTextAlignment())
         .isEqualTo(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
   }
@@ -164,11 +165,12 @@ public class StyleProviderTest {
     assertThat(styleProvider.hasWidth()).isFalse();
     assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_INSIDE);
     assertThat(styleProvider.hasGravityHorizontal()).isFalse();
-    assertThat(styleProvider.getGravityHorizontal())
-        .isEqualTo(GravityHorizontal.GRAVITY_HORIZONTAL_UNSPECIFIED);
+    assertThat(styleProvider.getGravityHorizontal(Gravity.CLIP_VERTICAL))
+        .isEqualTo(Gravity.CLIP_VERTICAL);
     assertThat(styleProvider.hasGravityVertical()).isFalse();
-    assertThat(styleProvider.getGravityVertical())
-        .isEqualTo(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED);
+    assertThat(styleProvider.getGravityVertical(Gravity.CLIP_HORIZONTAL))
+        .isEqualTo(Gravity.CLIP_HORIZONTAL);
+    assertThat(styleProvider.getGravity(Gravity.FILL)).isEqualTo(Gravity.FILL);
     assertThat(styleProvider.getTextAlignment()).isEqualTo(Gravity.START | Gravity.TOP);
   }
 

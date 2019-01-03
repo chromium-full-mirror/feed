@@ -33,12 +33,18 @@ import java.util.Set;
 public class ViewUtils {
   private static final String TAG = "ViewUtils";
 
+  // TODO: Remove this method; it is only used by
+  // ElementAdapter.getDeprecatedElementGravity
+  @Deprecated
   static int pietGravityToGravity(
       GravityHorizontal gravityHorizontal, GravityVertical gravityVertical) {
     return gravityHorizontalToGravity(gravityHorizontal)
         | gravityVerticalToGravity(gravityVertical);
   }
 
+  // TODO: Remove this method; it is only used by
+  // ElementAdapter.getDeprecatedElementGravity
+  @Deprecated
   @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
   static int gravityHorizontalToGravity(GravityHorizontal gravityHorizontal) {
     switch (gravityHorizontal) {
@@ -54,6 +60,9 @@ public class ViewUtils {
     }
   }
 
+  // TODO: Remove this method; it is only used by
+  // ElementAdapter.getDeprecatedElementGravity
+  @Deprecated
   @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
   static int gravityVerticalToGravity(GravityVertical gravityVertical) {
     switch (gravityVertical) {

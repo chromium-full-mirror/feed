@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
@@ -53,9 +54,7 @@ class ElementStackAdapter extends ElementContainerAdapter<FrameLayout, ElementSt
 
     adapter.getElementStyle().applyMargins(getContext(), childParams);
 
-    childParams.gravity =
-        ViewUtils.pietGravityToGravity(
-            adapter.getHorizontalGravity(), adapter.getVerticalGravity());
+    childParams.gravity = adapter.getGravity(Gravity.CENTER);
 
     adapter.setLayoutParams(childParams);
   }
