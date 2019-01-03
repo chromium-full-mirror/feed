@@ -222,10 +222,18 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     }
   }
 
+  // TODO: Remove the nullness suppression.
+  @SuppressWarnings("nullness:argument.type.incompatible")
   private PopupWindowWithDimensions createPopupWindowWithElevation(
       ListView listView, Size measurements, Context context) {
-    PopupWindow popupWindow =
-        new PopupWindow(listView, measurements.getWidth(), measurements.getHeight());
+    // Note: We are intentionally using contextPopupMenuStyle, which allows hosts to modify the
+    // style of context menus. This should not be changed without speaking with host teams.
+    PopupWindow popupWindow = new PopupWindow(context, null, android.R.attr.contextPopupMenuStyle);
+
+    popupWindow.setContentView(listView);
+    popupWindow.setWidth(measurements.getWidth());
+    popupWindow.setHeight(measurements.getHeight());
+
     popupWindow.setFocusable(true);
     popupWindow.setBackgroundDrawable(
         context.getResources().getDrawable(R.drawable.feed_popup_window_bg));
