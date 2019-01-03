@@ -111,7 +111,7 @@ public class GridRowView extends LinearLayout {
       } else if (params.weight > 0) {
         totalWeight += params.weight;
       }
-      totalReservedWidth += params.getMarginStart() + params.getMarginEnd();
+      totalReservedWidth += params.leftMargin + params.rightMargin;
     }
     totalReservedWidth += gridRowHorizontalPadding;
 
