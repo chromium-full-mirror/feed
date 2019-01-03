@@ -322,10 +322,10 @@ public final class FeedModelProvider extends Observable<ModelProviderObserver>
     }
 
     // Always run the observers on the UI Thread
-    List<ModelProviderObserver> observers = getObserversToNotify();
     mainThreadRunner.execute(
         TAG + " onSessionFinished",
         () -> {
+          List<ModelProviderObserver> observers = getObserversToNotify();
           for (ModelProviderObserver observer : observers) {
             observer.onSessionFinished();
           }

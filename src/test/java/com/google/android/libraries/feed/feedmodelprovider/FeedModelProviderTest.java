@@ -44,8 +44,8 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.Result;
-import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProvider.InitializeModel;
@@ -89,6 +89,7 @@ public class FeedModelProviderTest {
 
   private ModelChild continuationToken = null;
   private TimingUtils timingUtils = new TimingUtils();
+  private FakeMainThreadRunner fakeMainThreadRunner;
 
   private List<PayloadWithId> childBindings = new ArrayList<>();
 
@@ -106,6 +107,7 @@ public class FeedModelProviderTest {
             })
         .when(sessionManager)
         .getStreamFeatures(any(), any());
+    fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
   }
 
   @Test
@@ -298,6 +300,20 @@ public class FeedModelProviderTest {
     modelProvider.invalidate();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
     assertThat(modelCursor.isAtEnd()).isTrue();
+  }
+
+  @Test
+  public void testInvalidate_unregister() {
+    fakeMainThreadRunner = FakeMainThreadRunner.queueAllTasks();
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    fakeMainThreadRunner.runAllTasks();
+
+    ModelProviderObserver observer = mock(ModelProviderObserver.class);
+    modelProvider.registerObserver(observer);
+    modelProvider.invalidate();
+    modelProvider.unregisterObserver(observer);
+    fakeMainThreadRunner.runAllTasks();
+    verify(observer, never()).onSessionFinished();
   }
 
   @Test
@@ -632,7 +648,7 @@ public class FeedModelProviderTest {
 
   private FeedModelProvider createFeedModelProvider() {
     return new FeedModelProvider(
-        sessionManager, threadUtils, timingUtils, taskQueue, new MainThreadRunner(), null, config);
+        sessionManager, threadUtils, timingUtils, taskQueue, fakeMainThreadRunner, null, config);
   }
 
   private StreamFeature createFeature(int i, String parentContentId) {
