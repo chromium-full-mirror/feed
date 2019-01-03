@@ -22,6 +22,7 @@ import java.util.HashMap;
  *
  * <p>Note: this class should not be mocked. Use the {@link Builder} instead.
  */
+// TODO: This can't be final because we mock it
 public class Configuration {
   /** A unique string identifier for a config value */
   @StringDef({
@@ -85,6 +86,7 @@ public class Configuration {
     String LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = "logging_immediate_content_threshold_ms";
     String VIEW_LOG_THRESHOLD = "view_log_threshold";
     String USE_DIRECT_STORAGE = "use_direct_storage";
+    String USE_SQLITE_CONTENT = "use_sqlite_content";
     String FADE_IMAGE_THRESHOLD_MS = "fade_image_threshold_ms";
     String LIMIT_PAGE_UPDATES = "limit_page_updates";
   }
@@ -117,7 +119,7 @@ public class Configuration {
   }
 
   /** Builder class used to create {@link Configuration} objects. */
-  public static class Builder {
+  public static final class Builder {
     private final HashMap<String, Object> values = new HashMap<>();
 
     public Builder put(@ConfigKey String key, Object value) {
