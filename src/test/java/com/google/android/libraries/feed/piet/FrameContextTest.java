@@ -24,6 +24,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.ErrorCodeAndMessage;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
@@ -297,7 +298,8 @@ public class FrameContextTest {
         frameContext.createTemplateContext(template, BindingContext.getDefaultInstance());
 
     StyleIdsStack styleRef = StyleIdsStack.newBuilder().addStyleIds(styleId).build();
-    assertThat(templateContext.makeStyleFor(styleRef).getWidth()).isEqualTo(width);
+    assertThat(templateContext.makeStyleFor(styleRef).getWidthSpecPx(context))
+        .isEqualTo((int) LayoutUtils.dpToPx(width, context));
   }
 
   /** Bind a template with a child default style that is defined by the Template. */
@@ -1065,7 +1067,8 @@ public class FrameContextTest {
     // Make a style for something that doesn't override color, and check that the base color is a
     // default, not the frame color.
     assertThat(baseStyleWithHeight.getColor()).isEqualTo(DEFAULT_STYLE.getColor());
-    assertThat(baseStyleWithHeight.getHeight()).isEqualTo(styleHeight);
+    assertThat(baseStyleWithHeight.getHeightSpecPx(context))
+        .isEqualTo((int) LayoutUtils.dpToPx(styleHeight, context));
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
   }
 

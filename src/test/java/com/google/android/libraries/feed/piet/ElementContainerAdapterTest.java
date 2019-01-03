@@ -621,8 +621,8 @@ public class ElementContainerAdapterTest {
     adapter.setLayoutParams(parentParams);
 
     ElementAdapter<?, ?> childAdapter = mock(ElementAdapter.class);
-    when(childAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
-    when(childAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+    when(childAdapter.getComputedWidthPx()).thenReturn(StyleProvider.DIMENSION_NOT_SET);
+    when(childAdapter.getComputedHeightPx()).thenReturn(StyleProvider.DIMENSION_NOT_SET);
 
     FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(0, 0);
 
@@ -639,8 +639,8 @@ public class ElementContainerAdapterTest {
     adapter.setLayoutParams(parentParams);
 
     ElementAdapter<?, ?> childAdapter = mock(ElementAdapter.class);
-    when(childAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
-    when(childAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+    when(childAdapter.getComputedWidthPx()).thenReturn(StyleProvider.DIMENSION_NOT_SET);
+    when(childAdapter.getComputedHeightPx()).thenReturn(StyleProvider.DIMENSION_NOT_SET);
 
     FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(0, 0);
 

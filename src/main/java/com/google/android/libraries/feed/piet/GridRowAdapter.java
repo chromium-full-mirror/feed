@@ -124,7 +124,7 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
           params.width = LayoutParams.WRAP_CONTENT;
           switch (gridCellWidth.getContentWidth()) {
             case CONTENT_WIDTH:
-              if (cellAdapter.getComputedWidthPx() != DIMENSION_NOT_SET) {
+              if (cellAdapter.getComputedWidthPx() != StyleProvider.DIMENSION_NOT_SET) {
                 params.width = cellAdapter.getComputedWidthPx();
               }
               break;
@@ -154,7 +154,7 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
     }
 
     int height = cellAdapter.getComputedHeightPx();
-    if (height != ElementAdapter.DIMENSION_NOT_SET) {
+    if (height != StyleProvider.DIMENSION_NOT_SET) {
       params.height = height;
     }
 

@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -28,6 +29,7 @@ import android.graphics.drawable.ShapeDrawable;
 import android.os.Build.VERSION_CODES;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -48,6 +50,7 @@ import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
 import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.ImageLoadingSettings;
+import com.google.search.now.ui.piet.StylesProto.RelativeSize;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.TextAlignmentHorizontal;
 import com.google.search.now.ui.piet.StylesProto.TextAlignmentVertical;
@@ -125,8 +128,10 @@ public class StyleProviderTest {
     assertThat(styleProvider.hasRoundedCorners(context)).isTrue();
     assertThat(styleProvider.getFont()).isEqualTo(style.getFont());
     assertThat(styleProvider.getMaxLines()).isEqualTo(style.getMaxLines());
-    assertThat(styleProvider.getHeight()).isEqualTo(style.getHeight());
-    assertThat(styleProvider.getWidth()).isEqualTo(style.getWidth());
+    assertThat(styleProvider.getHeightSpecPx(context))
+        .isEqualTo((int) LayoutUtils.dpToPx(style.getHeight(), context));
+    assertThat(styleProvider.getWidthSpecPx(context))
+        .isEqualTo((int) LayoutUtils.dpToPx(style.getWidth(), context));
     assertThat(styleProvider.hasHeight()).isTrue();
     assertThat(styleProvider.hasWidth()).isTrue();
     assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
@@ -153,8 +158,8 @@ public class StyleProviderTest {
     assertThat(styleProvider.getRoundedCorners()).isEqualTo(RoundedCorners.getDefaultInstance());
     assertThat(styleProvider.getFont()).isEqualTo(Font.getDefaultInstance());
     assertThat(styleProvider.getMaxLines()).isEqualTo(style.getMaxLines());
-    assertThat(styleProvider.getHeight()).isEqualTo(0);
-    assertThat(styleProvider.getWidth()).isEqualTo(0);
+    assertThat(styleProvider.getHeightSpecPx(context)).isEqualTo(DIMENSION_NOT_SET);
+    assertThat(styleProvider.getWidthSpecPx(context)).isEqualTo(DIMENSION_NOT_SET);
     assertThat(styleProvider.hasHeight()).isFalse();
     assertThat(styleProvider.hasWidth()).isFalse();
     assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_INSIDE);
@@ -165,6 +170,81 @@ public class StyleProviderTest {
     assertThat(styleProvider.getGravityVertical())
         .isEqualTo(GravityVertical.GRAVITY_VERTICAL_UNSPECIFIED);
     assertThat(styleProvider.getTextAlignment()).isEqualTo(Gravity.START | Gravity.TOP);
+  }
+
+  @Test
+  public void testNoOverlapWithAndroidConstants() {
+    assertThat(DIMENSION_NOT_SET).isNotEqualTo(LayoutParams.MATCH_PARENT);
+    assertThat(DIMENSION_NOT_SET).isNotEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(DIMENSION_NOT_SET).isLessThan(0);
+  }
+
+  @Test
+  public void testGetHeightSpecPx() {
+    assertThat(
+            new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
+                .getHeightSpecPx(context))
+        .isEqualTo(DIMENSION_NOT_SET);
+
+    assertThat(
+            new StyleProvider(Style.newBuilder().setHeight(123).build(), mockAssetProvider)
+                .getHeightSpecPx(context))
+        .isEqualTo(123);
+
+    assertThat(
+            new StyleProvider(
+                    Style.newBuilder().setRelativeHeight(RelativeSize.FILL_PARENT).build(),
+                    mockAssetProvider)
+                .getHeightSpecPx(context))
+        .isEqualTo(LayoutParams.MATCH_PARENT);
+    assertThat(
+            new StyleProvider(
+                    Style.newBuilder().setRelativeHeight(RelativeSize.FIT_CONTENT).build(),
+                    mockAssetProvider)
+                .getHeightSpecPx(context))
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(
+            new StyleProvider(
+                    Style.newBuilder()
+                        .setRelativeHeight(RelativeSize.RELATIVE_SIZE_UNDEFINED)
+                        .build(),
+                    mockAssetProvider)
+                .getHeightSpecPx(context))
+        .isEqualTo(DIMENSION_NOT_SET);
+  }
+
+  @Test
+  public void testGetWidthSpecPx() {
+    assertThat(
+            new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
+                .getWidthSpecPx(context))
+        .isEqualTo(DIMENSION_NOT_SET);
+
+    assertThat(
+            new StyleProvider(Style.newBuilder().setWidth(123).build(), mockAssetProvider)
+                .getWidthSpecPx(context))
+        .isEqualTo(123);
+
+    assertThat(
+            new StyleProvider(
+                    Style.newBuilder().setRelativeWidth(RelativeSize.FILL_PARENT).build(),
+                    mockAssetProvider)
+                .getWidthSpecPx(context))
+        .isEqualTo(LayoutParams.MATCH_PARENT);
+    assertThat(
+            new StyleProvider(
+                    Style.newBuilder().setRelativeWidth(RelativeSize.FIT_CONTENT).build(),
+                    mockAssetProvider)
+                .getWidthSpecPx(context))
+        .isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(
+            new StyleProvider(
+                    Style.newBuilder()
+                        .setRelativeWidth(RelativeSize.RELATIVE_SIZE_UNDEFINED)
+                        .build(),
+                    mockAssetProvider)
+                .getWidthSpecPx(context))
+        .isEqualTo(DIMENSION_NOT_SET);
   }
 
   @Test

@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.ElementAdapter.DIMENSION_NOT_SET;
+import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -322,7 +322,7 @@ public class GridRowAdapterTest {
 
     StyleProvider childStyleProvider = mock(StyleProvider.class);
     when(childStyleProvider.hasWidth()).thenReturn(true);
-    when(childStyleProvider.getWidth()).thenReturn(456);
+    when(childStyleProvider.getWidthSpecPx(context)).thenReturn(456);
     when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
     when(childStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
@@ -358,7 +358,7 @@ public class GridRowAdapterTest {
 
     StyleProvider childStyleProvider = mock(StyleProvider.class);
     when(childStyleProvider.hasHeight()).thenReturn(true);
-    when(childStyleProvider.getHeight()).thenReturn(123);
+    when(childStyleProvider.getHeightSpecPx(context)).thenReturn(123);
     when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
     when(childStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
@@ -392,7 +392,7 @@ public class GridRowAdapterTest {
 
     StyleProvider childStyleProvider = mock(StyleProvider.class);
     when(childStyleProvider.hasHeight()).thenReturn(false);
-    when(childStyleProvider.getHeight()).thenReturn(DIMENSION_NOT_SET);
+    when(childStyleProvider.getHeightSpecPx(context)).thenReturn(DIMENSION_NOT_SET);
     when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);

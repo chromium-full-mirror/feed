@@ -21,7 +21,6 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
-import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
 import com.google.android.libraries.feed.piet.ui.AspectRatioScalingImageView;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -57,25 +56,16 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
   @Override
   void onCreateAdapter(ImageElement model, Element baseElement, FrameContext frameContext) {
     StyleProvider style = getElementStyle();
+    Context context = getContext();
 
-    if (style.hasWidth() || style.hasHeight()) {
-      Context context = getContext();
+    widthPx = style.getWidthSpecPx(context);
 
-      if (style.hasWidth()) {
-        widthPx = (int) LayoutUtils.dpToPx(style.getWidth(), context);
-      } else {
-        widthPx = DIMENSION_NOT_SET;
-      }
-
-      if (style.hasHeight()) {
-        heightPx = (int) LayoutUtils.dpToPx(style.getHeight(), context);
-      } else {
-        // Defaults to a square when only the width is defined.
-        heightPx = style.hasWidth() ? widthPx : DIMENSION_NOT_SET;
-      }
+    if (style.hasHeight()) {
+      heightPx = style.getHeightSpecPx(context);
     } else {
-      widthPx = DIMENSION_NOT_SET;
-      heightPx = DIMENSION_NOT_SET;
+      // Defaults to a square when only the width is defined.
+      // TODO: This is not cross-platform standard; should probably get rid of this.
+      heightPx = widthPx > 0 ? widthPx : StyleProvider.DIMENSION_NOT_SET;
     }
   }
 
@@ -133,11 +123,7 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
   }
 
   private int convertDimensionForImageLoader(int dimension) {
-    if (dimension == DIMENSION_NOT_SET) {
-      return DIMENSION_UNKNOWN;
-    }
-
-    return dimension;
+    return dimension < 0 ? DIMENSION_UNKNOWN : dimension;
   }
 
   @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")

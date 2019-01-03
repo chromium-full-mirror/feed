@@ -126,9 +126,12 @@ public class ChunkedTextElementAdapterTest {
   private static final ChunkedTextBindingRef CHUNKED_TEXT_BINDING_REF =
       ChunkedTextBindingRef.newBuilder().setBindingId(BINDING_ID).build();
 
-  private static final int STYLE_HEIGHT_DP = 6;
+  private static final int STYLE_HEIGHT_PX = 6;
   private static final int STYLE_ASPECT_RATIO = 2;
-  private static final int STYLE_WIDTH_DP = STYLE_HEIGHT_DP * STYLE_ASPECT_RATIO;
+  private static final int STYLE_WIDTH_PX = STYLE_HEIGHT_PX * STYLE_ASPECT_RATIO;
+
+  private static final int HEIGHT_DP = 6;
+  private static final int WIDTH_DP = HEIGHT_DP * STYLE_ASPECT_RATIO;
 
   private static final int IMAGE_HEIGHT_PX = 60;
   private static final int IMAGE_ASPECT_RATIO = 3;
@@ -182,6 +185,8 @@ public class ChunkedTextElementAdapterTest {
     when(frameContext.getActionHandler()).thenReturn(mockActionHandler);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
     when(mockStyleProvider.getMargins()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(DIMENSION_UNKNOWN);
+    when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(DIMENSION_UNKNOWN);
 
     adapter = new ChunkedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);
   }
@@ -541,9 +546,9 @@ public class ChunkedTextElementAdapterTest {
   @Test
   public void testAddTextChunk_addsMargins() {
     when(mockStyleProvider.hasWidth()).thenReturn(true);
-    when(mockStyleProvider.getWidth()).thenReturn(STYLE_WIDTH_DP);
+    when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(STYLE_WIDTH_PX);
     when(mockStyleProvider.hasHeight()).thenReturn(true);
-    when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
+    when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(STYLE_HEIGHT_PX);
 
     when(mockStyleProvider.getMargins())
         .thenReturn(EdgeWidths.newBuilder().setStart(11).setEnd(22).build());
@@ -569,9 +574,9 @@ public class ChunkedTextElementAdapterTest {
   @Test
   public void testAddImageChunk_setsImageAndDims() {
     when(mockStyleProvider.hasWidth()).thenReturn(true);
-    when(mockStyleProvider.getWidth()).thenReturn(STYLE_WIDTH_DP);
+    when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(STYLE_WIDTH_PX);
     when(mockStyleProvider.hasHeight()).thenReturn(true);
-    when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
+    when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(STYLE_HEIGHT_PX);
     when(mockStyleProvider.hasPreLoadFill()).thenReturn(true);
     Drawable preLoadFill = new ColorDrawable(Color.CYAN);
     when(mockStyleProvider.createPreLoadFill()).thenReturn(preLoadFill);
@@ -591,8 +596,8 @@ public class ChunkedTextElementAdapterTest {
     verify(mockAssetProvider)
         .getImage(
             eq(IMAGE_CHUNK_IMAGE),
-            eq(STYLE_WIDTH_DP),
-            eq(STYLE_HEIGHT_DP),
+            eq(STYLE_WIDTH_PX),
+            eq(STYLE_HEIGHT_PX),
             imageCallbackCaptor.capture());
 
     // Check for the pre-load fill
@@ -605,17 +610,16 @@ public class ChunkedTextElementAdapterTest {
     // Assert that we set the image on the span
     assertThat(containerDrawable.getDrawable(0)).isSameAs(imageDrawable);
 
-    int widthPx = (int) LayoutUtils.dpToPx(STYLE_WIDTH_DP, context);
-    int heightPx = (int) LayoutUtils.dpToPx(STYLE_HEIGHT_DP, context);
-    assertThat(imageDrawable.getBounds()).isEqualTo(new Rect(0, 0, widthPx, heightPx));
+    assertThat(imageDrawable.getBounds())
+        .isEqualTo(new Rect(0, 0, STYLE_WIDTH_PX, STYLE_HEIGHT_PX));
   }
 
   @Test
   public void testAddImageChunk_addsMargins() {
     when(mockStyleProvider.hasWidth()).thenReturn(true);
-    when(mockStyleProvider.getWidth()).thenReturn(STYLE_WIDTH_DP);
+    when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(STYLE_WIDTH_PX);
     when(mockStyleProvider.hasHeight()).thenReturn(true);
-    when(mockStyleProvider.getHeight()).thenReturn(STYLE_HEIGHT_DP);
+    when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(STYLE_HEIGHT_PX);
 
     when(mockStyleProvider.getMargins())
         .thenReturn(EdgeWidths.newBuilder().setStart(11).setEnd(22).build());
@@ -763,15 +767,16 @@ public class ChunkedTextElementAdapterTest {
 
   @Test
   public void testSetBounds_heightAndWidth_setsBoth() {
+    int widthDp = 123;
+    int heightDp = 456;
     adapter.setBounds(
         drawable,
         new StyleProvider(
-            Style.newBuilder().setHeight(STYLE_HEIGHT_DP).setWidth(STYLE_WIDTH_DP).build(),
-            mockAssetProvider),
+            Style.newBuilder().setHeight(heightDp).setWidth(widthDp).build(), mockAssetProvider),
         textView);
 
-    int widthPx = (int) LayoutUtils.dpToPx(STYLE_WIDTH_DP, context);
-    int heightPx = (int) LayoutUtils.dpToPx(STYLE_HEIGHT_DP, context);
+    int widthPx = (int) LayoutUtils.dpToPx(widthDp, context);
+    int heightPx = (int) LayoutUtils.dpToPx(heightDp, context);
     assertThat(drawable.getBounds()).isEqualTo(new Rect(0, 0, widthPx, heightPx));
   }
 
@@ -779,10 +784,10 @@ public class ChunkedTextElementAdapterTest {
   public void testSetBounds_heightOnly_aspectRatioScaled() {
     adapter.setBounds(
         drawable,
-        new StyleProvider(Style.newBuilder().setHeight(STYLE_HEIGHT_DP).build(), mockAssetProvider),
+        new StyleProvider(Style.newBuilder().setHeight(HEIGHT_DP).build(), mockAssetProvider),
         textView);
 
-    int heightPx = (int) LayoutUtils.dpToPx(STYLE_HEIGHT_DP, context);
+    int heightPx = (int) LayoutUtils.dpToPx(HEIGHT_DP, context);
     assertThat(drawable.getBounds())
         .isEqualTo(new Rect(0, 0, heightPx * IMAGE_ASPECT_RATIO, heightPx));
   }
@@ -791,10 +796,10 @@ public class ChunkedTextElementAdapterTest {
   public void testSetBounds_widthOnly_aspectRatioScaled() {
     adapter.setBounds(
         drawable,
-        new StyleProvider(Style.newBuilder().setWidth(STYLE_WIDTH_DP).build(), mockAssetProvider),
+        new StyleProvider(Style.newBuilder().setWidth(WIDTH_DP).build(), mockAssetProvider),
         textView);
 
-    int widthPx = (int) LayoutUtils.dpToPx(STYLE_WIDTH_DP, context);
+    int widthPx = (int) LayoutUtils.dpToPx(WIDTH_DP, context);
     assertThat(drawable.getBounds())
         .isEqualTo(new Rect(0, 0, widthPx, widthPx / IMAGE_ASPECT_RATIO));
   }

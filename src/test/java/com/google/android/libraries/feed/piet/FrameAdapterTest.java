@@ -473,8 +473,8 @@ public class FrameAdapterTest {
   @Test
   public void testBindModel_defaultDimensions() {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
-    when(elementAdapter.getComputedWidthPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
-    when(elementAdapter.getComputedHeightPx()).thenReturn(ElementAdapter.DIMENSION_NOT_SET);
+    when(elementAdapter.getComputedWidthPx()).thenReturn(StyleProvider.DIMENSION_NOT_SET);
+    when(elementAdapter.getComputedHeightPx()).thenReturn(StyleProvider.DIMENSION_NOT_SET);
 
     frameAdapter.bindModel(frame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
 

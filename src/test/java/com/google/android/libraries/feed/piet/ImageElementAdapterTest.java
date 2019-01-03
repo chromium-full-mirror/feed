@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
 import static com.google.android.libraries.feed.host.imageloader.ImageLoaderApi.DIMENSION_UNKNOWN;
+import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -114,6 +115,7 @@ public class ImageElementAdapterTest {
     when(styleProvider.createWrapperView(context))
         .thenReturn(
             new RoundedCornerWrapperView(context, CORNERS.getBitmask(), CORNERS.getRadius()));
+    setStyle(null, null);
 
     adapter = new ImageElementAdapterForTest(context, parameters);
   }
@@ -147,8 +149,8 @@ public class ImageElementAdapterTest {
     assertThat(adapter.getView()).isNotNull();
 
     // Assert that width and height are set to the defaults
-    assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
-    assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(DIMENSION_NOT_SET);
   }
 
   @Test
@@ -162,7 +164,7 @@ public class ImageElementAdapterTest {
 
     // Width defaults to MATCH_PARENT
     assertThat(adapter.getComputedHeightPx()).isEqualTo(heightPx);
-    assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(DIMENSION_NOT_SET);
   }
 
   @Test
@@ -493,14 +495,14 @@ public class ImageElementAdapterTest {
     adapter.unbindModel();
     adapter.releaseAdapter();
 
-    assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
-    assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(DIMENSION_NOT_SET);
   }
 
   @Test
   public void testComputedDimensions_unbound() {
-    assertThat(adapter.getComputedHeightPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
-    assertThat(adapter.getComputedWidthPx()).isEqualTo(ElementAdapter.DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedHeightPx()).isEqualTo(DIMENSION_NOT_SET);
+    assertThat(adapter.getComputedWidthPx()).isEqualTo(DIMENSION_NOT_SET);
   }
 
   @Test
@@ -567,17 +569,17 @@ public class ImageElementAdapterTest {
   private void setStyle(/*@Nullable*/ Integer height, /*@Nullable*/ Integer width) {
     if (height != null) {
       when(styleProvider.hasHeight()).thenReturn(true);
-      when(styleProvider.getHeight()).thenReturn(height);
+      when(styleProvider.getHeightSpecPx(context)).thenReturn(height);
     } else {
       when(styleProvider.hasHeight()).thenReturn(false);
-      when(styleProvider.getHeight()).thenReturn(0);
+      when(styleProvider.getHeightSpecPx(context)).thenReturn(DIMENSION_NOT_SET);
     }
     if (width != null) {
       when(styleProvider.hasWidth()).thenReturn(true);
-      when(styleProvider.getWidth()).thenReturn(width);
+      when(styleProvider.getWidthSpecPx(context)).thenReturn(width);
     } else {
       when(styleProvider.hasWidth()).thenReturn(false);
-      when(styleProvider.getWidth()).thenReturn(0);
+      when(styleProvider.getWidthSpecPx(context)).thenReturn(DIMENSION_NOT_SET);
     }
   }
 

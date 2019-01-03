@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -22,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
@@ -49,12 +49,6 @@ import java.util.Set;
 abstract class ElementAdapter<V extends View, M> {
   private static final String TAG = "ElementAdapter";
 
-  /**
-   * Value returned by getComputed[Height/Width]Px when an explicit value for the dimension has not
-   * been computed, and it should be set by the parent instead.
-   */
-  public static final int DIMENSION_NOT_SET = -1;
-
   private final Context context;
   private final AdapterParameters parameters;
   private final V view;
@@ -75,13 +69,13 @@ abstract class ElementAdapter<V extends View, M> {
   private final Set<VisibilityAction> activeVisibilityActions = new HashSet<>();
 
   /**
-   * Desired width of this element. {@link #DIMENSION_NOT_SET} indicates no explicit width; let the
-   * parent view decide.
+   * Desired width of this element. {@link StyleProvider#DIMENSION_NOT_SET} indicates no explicit
+   * width; let the parent view decide.
    */
   int widthPx = DIMENSION_NOT_SET;
   /**
-   * Desired height of this element. {@link #DIMENSION_NOT_SET} indicates no explicit height; let
-   * the parent view decide.
+   * Desired height of this element. {@link StyleProvider#DIMENSION_NOT_SET} indicates no explicit
+   * height; let the parent view decide.
    */
   int heightPx = DIMENSION_NOT_SET;
 
@@ -396,7 +390,7 @@ abstract class ElementAdapter<V extends View, M> {
 
   /**
    * Returns the desired width of the adapter, computed from the model at bind time, or {@link
-   * #DIMENSION_NOT_SET} which implies that the parent can choose the width.
+   * StyleProvider#DIMENSION_NOT_SET} which implies that the parent can choose the width.
    */
   int getComputedWidthPx() {
     return widthPx;
@@ -404,7 +398,7 @@ abstract class ElementAdapter<V extends View, M> {
 
   /**
    * Returns the desired height of the adapter, computed from the model at bind time, or {@link
-   * #DIMENSION_NOT_SET} which implies that the parent can choose the height.
+   * StyleProvider#DIMENSION_NOT_SET} which implies that the parent can choose the height.
    */
   int getComputedHeightPx() {
     return heightPx;
@@ -412,16 +406,8 @@ abstract class ElementAdapter<V extends View, M> {
 
   /** Sets the adapter's desired dimensions based on the style. */
   private void setDesiredDimensions() {
-    if (elementStyle.hasWidth()) {
-      widthPx = (int) LayoutUtils.dpToPx(elementStyle.getWidth(), context);
-    } else {
-      widthPx = DIMENSION_NOT_SET;
-    }
-    if (elementStyle.hasHeight()) {
-      heightPx = (int) LayoutUtils.dpToPx(elementStyle.getHeight(), context);
-    } else {
-      heightPx = DIMENSION_NOT_SET;
-    }
+    widthPx = elementStyle.getWidthSpecPx(context);
+    heightPx = elementStyle.getHeightSpecPx(context);
   }
 
   /** Sets the layout parameters on this adapter's view. */

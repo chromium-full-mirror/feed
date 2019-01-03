@@ -308,7 +308,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
     int width = childAdapter.getComputedWidthPx();
 
     // If a child doesn't have a computed width then we update to match the list.
-    if (width == ElementAdapter.DIMENSION_NOT_SET) {
+    if (width == StyleProvider.DIMENSION_NOT_SET) {
 
       // If the adapter is set to WRAP_CONTENT then we will need to make sure that children are set
       // to also WRAP_CONTENT otherwise the list can't determine the actual size.
@@ -321,7 +321,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
 
     int height = childAdapter.getComputedHeightPx();
     height =
-        height == ElementAdapter.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
+        height == StyleProvider.DIMENSION_NOT_SET ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
 
     childLayoutParams.width = width;
     childLayoutParams.height = height;

@@ -333,14 +333,8 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     ImageSpanDrawableCallback imageSpanLoader =
         new ImageSpanDrawableCallback(wrapper, chunkStyle, textView);
     loadingImages.add(imageSpanLoader);
-    int styleWidth =
-        chunkStyle.hasWidth()
-            ? (int) LayoutUtils.dpToPx(chunkStyle.getWidth(), getContext())
-            : DIMENSION_UNKNOWN;
-    int styleHeight =
-        chunkStyle.hasHeight()
-            ? (int) LayoutUtils.dpToPx(chunkStyle.getHeight(), getContext())
-            : DIMENSION_UNKNOWN;
+    int styleWidth = styleToImageDim(chunkStyle.getWidthSpecPx(getContext()));
+    int styleHeight = styleToImageDim(chunkStyle.getHeightSpecPx(getContext()));
     getParameters()
         .hostProviders
         .getAssetProvider()
@@ -375,16 +369,16 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
   void setBounds(Drawable imageDrawable, StyleProvider imageStyle, TextView textView) {
     int lineHeight = textView.getLineHeight();
 
-    int styleHeight = (int) LayoutUtils.dpToPx(imageStyle.getHeight(), getContext());
-    int styleWidth = (int) LayoutUtils.dpToPx(imageStyle.getWidth(), getContext());
+    int styleHeight = styleToImageDim(imageStyle.getHeightSpecPx(getContext()));
+    int styleWidth = styleToImageDim(imageStyle.getWidthSpecPx(getContext()));
 
     int height;
     int width;
-    if (imageStyle.hasWidth() && imageStyle.hasHeight()) {
+    if (styleHeight >= 0 && styleWidth >= 0) {
       // Scale the image to exactly this size.
       height = styleHeight;
       width = styleWidth;
-    } else if (imageStyle.hasWidth()) {
+    } else if (styleWidth >= 0) {
       // Set the width, and preserve aspect ratio.
       width = styleWidth;
       height =
@@ -393,7 +387,7 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
                   * ((float) width / imageDrawable.getIntrinsicWidth()));
     } else {
       // Default to making the image the same height as the text, preserving aspect ratio.
-      height = imageStyle.hasHeight() ? styleHeight : lineHeight;
+      height = styleHeight >= 0 ? styleHeight : lineHeight;
       width =
           (int)
               (imageDrawable.getIntrinsicWidth()
@@ -401,6 +395,10 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     }
 
     imageDrawable.setBounds(0, 0, width, height);
+  }
+
+  private int styleToImageDim(int styleDimensionInPx) {
+    return styleDimensionInPx < 0 ? DIMENSION_UNKNOWN : styleDimensionInPx;
   }
 
   static class ActionsClickableSpan extends ClickableSpan {

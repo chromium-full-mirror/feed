@@ -166,9 +166,9 @@ public class FrameAdapter {
 
   private void setLayoutParamsOnChild(ElementAdapter<?, ?> childAdapter) {
     int width = childAdapter.getComputedWidthPx();
-    width = width == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
+    width = width == StyleProvider.DIMENSION_NOT_SET ? LayoutParams.MATCH_PARENT : width;
     int height = childAdapter.getComputedHeightPx();
-    height = height == ElementAdapter.DIMENSION_NOT_SET ? LayoutParams.WRAP_CONTENT : height;
+    height = height == StyleProvider.DIMENSION_NOT_SET ? LayoutParams.WRAP_CONTENT : height;
 
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
 

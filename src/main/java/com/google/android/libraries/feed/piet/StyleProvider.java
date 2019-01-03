@@ -22,6 +22,7 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v4.view.ViewCompat;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
@@ -39,13 +40,21 @@ import com.google.search.now.ui.piet.StylesProto.Font;
 import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
 import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.Style;
+import com.google.search.now.ui.piet.StylesProto.Style.HeightSpecCase;
 
 /**
- * Class which understands how to create the current styles.
+ * Class which understands how to create the current styles, converting from Piet to Android values
+ * as desired (ex. Piet gravity to Android gravity).
  *
  * <p>Feel free to add "has..." methods for any of the fields if needed.
  */
 class StyleProvider {
+
+  /**
+   * Value returned by get(Height|Width)SpecPx when an explicit value for the dimension has not been
+   * computed, and it should be set by the parent instead.
+   */
+  public static final int DIMENSION_NOT_SET = -3;
 
   @VisibleForTesting
   static final Style DEFAULT_STYLE =
@@ -148,24 +157,62 @@ class StyleProvider {
     return style.getMinHeight();
   }
 
-  /** Height of a view in dp */
-  public int getHeight() {
-    return style.getHeight();
+  /**
+   * Height of a view in px, or {@link LayoutParams#WRAP_CONTENT} or {@link
+   * LayoutParams#MATCH_PARENT}, or {@link StyleProvider#DIMENSION_NOT_SET} when not defined.
+   */
+  public int getHeightSpecPx(Context context) {
+    switch (style.getHeightSpecCase()) {
+      case HEIGHT:
+        return (int) LayoutUtils.dpToPx(style.getHeight(), context);
+      case RELATIVE_HEIGHT:
+        switch (style.getRelativeHeight()) {
+          case FILL_PARENT:
+            return LayoutParams.MATCH_PARENT;
+          case FIT_CONTENT:
+            return LayoutParams.WRAP_CONTENT;
+          case RELATIVE_SIZE_UNDEFINED:
+            // fall through
+        }
+        // fall through
+      case HEIGHTSPEC_NOT_SET:
+        // fall out
+    }
+    return DIMENSION_NOT_SET;
   }
 
-  /** Width of a view in dp */
-  public int getWidth() {
-    return style.getWidth();
+  /**
+   * Width of a view in px, or {@link LayoutParams#WRAP_CONTENT} or {@link
+   * LayoutParams#MATCH_PARENT}, or {@link StyleProvider#DIMENSION_NOT_SET} when not defined.
+   */
+  public int getWidthSpecPx(Context context) {
+    switch (style.getWidthSpecCase()) {
+      case WIDTH:
+        return (int) LayoutUtils.dpToPx(style.getWidth(), context);
+      case RELATIVE_WIDTH:
+        switch (style.getRelativeWidth()) {
+          case FILL_PARENT:
+            return LayoutParams.MATCH_PARENT;
+          case FIT_CONTENT:
+            return LayoutParams.WRAP_CONTENT;
+          case RELATIVE_SIZE_UNDEFINED:
+            // fall through
+        }
+        // fall through
+      case WIDTHSPEC_NOT_SET:
+        // fall out
+    }
+    return DIMENSION_NOT_SET;
   }
 
   /** Whether a height is explicitly specified */
   public boolean hasHeight() {
-    return style.hasHeight();
+    return style.getHeightSpecCase() != HeightSpecCase.HEIGHTSPEC_NOT_SET;
   }
 
   /** Whether a width is explicitly specified */
   public boolean hasWidth() {
-    return style.hasWidth();
+    return style.getHeightSpecCase() != HeightSpecCase.HEIGHTSPEC_NOT_SET;
   }
 
   /** Whether the style has a horizontal gravity specified */

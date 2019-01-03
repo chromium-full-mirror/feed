@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.ElementAdapter.DIMENSION_NOT_SET;
+import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -379,9 +379,9 @@ public class ElementAdapterTest {
     int height = 20;
 
     when(styleProvider.hasWidth()).thenReturn(true);
-    when(styleProvider.getWidth()).thenReturn(width);
     when(styleProvider.hasHeight()).thenReturn(true);
-    when(styleProvider.getHeight()).thenReturn(height);
+    when(styleProvider.getWidthSpecPx(context)).thenReturn(width);
+    when(styleProvider.getHeightSpecPx(context)).thenReturn(height);
 
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
 
@@ -396,18 +396,18 @@ public class ElementAdapterTest {
     int height = 20;
 
     when(styleProvider.hasWidth()).thenReturn(true);
-    when(styleProvider.getWidth()).thenReturn(width);
     when(styleProvider.hasHeight()).thenReturn(true);
-    when(styleProvider.getHeight()).thenReturn(height);
+    when(styleProvider.getWidthSpecPx(context)).thenReturn(width);
+    when(styleProvider.getHeightSpecPx(context)).thenReturn(height);
 
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
     adapter.releaseAdapter();
 
     // Recreate with new style that unsets the dimensions
     when(styleProvider.hasWidth()).thenReturn(false);
-    when(styleProvider.getWidth()).thenReturn(999);
     when(styleProvider.hasHeight()).thenReturn(false);
-    when(styleProvider.getHeight()).thenReturn(999);
+    when(styleProvider.getWidthSpecPx(context)).thenReturn(DIMENSION_NOT_SET);
+    when(styleProvider.getHeightSpecPx(context)).thenReturn(DIMENSION_NOT_SET);
 
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
 
@@ -434,9 +434,9 @@ public class ElementAdapterTest {
         };
 
     when(styleProvider.hasWidth()).thenReturn(true);
-    when(styleProvider.getWidth()).thenReturn(width);
     when(styleProvider.hasHeight()).thenReturn(true);
-    when(styleProvider.getHeight()).thenReturn(height);
+    when(styleProvider.getWidthSpecPx(context)).thenReturn(width);
+    when(styleProvider.getHeightSpecPx(context)).thenReturn(height);
 
     adapter.createAdapter(Element.getDefaultInstance(), frameContext);
 

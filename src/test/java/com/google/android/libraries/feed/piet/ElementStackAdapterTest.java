@@ -136,8 +136,8 @@ public class ElementStackAdapterTest {
 
     when(mockStyleProvider.hasWidth()).thenReturn(true);
     when(mockStyleProvider.hasHeight()).thenReturn(true);
-    when(mockStyleProvider.getWidth()).thenReturn(123);
-    when(mockStyleProvider.getHeight()).thenReturn(456);
+    when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(123);
+    when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(456);
     when(mockStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
     adapter.createAdapter(element, frameContext);
@@ -167,8 +167,8 @@ public class ElementStackAdapterTest {
 
     when(mockStyleProvider.hasWidth()).thenReturn(true);
     when(mockStyleProvider.hasHeight()).thenReturn(true);
-    when(mockStyleProvider.getWidth()).thenReturn(123);
-    when(mockStyleProvider.getHeight()).thenReturn(456);
+    when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(123);
+    when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(456);
     when(mockStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
 
     adapter.createAdapter(element, frameContext);
