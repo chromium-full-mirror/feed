@@ -122,6 +122,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private long initialLoadingSpinnerStartTime;
   private boolean isInitialLoad = true;
   private boolean isRestoring;
+  private boolean isDestroyed;
 
   @LoggingState private int loggingState = LoggingState.STARTING;
 
@@ -333,6 +334,10 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @Override
   public void onDestroy() {
+    if (isDestroyed) {
+      Logger.e(TAG, "onDestroy() called multiple times.");
+      return;
+    }
     adapter.onDestroy();
     recyclerView.removeOnLayoutChangeListener(this);
     if (modelProvider != null) {
@@ -342,6 +347,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     if (streamDriver != null) {
       streamDriver.onDestroy();
     }
+
+    isDestroyed = true;
   }
 
   @Override
@@ -624,6 +631,13 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @Override
   public void onSessionFinished() {
+    if (isDestroyed) {
+      // This seems to be getting called after onDestroy(), resulting in unregistering from the
+      // ModelProvider twice, which causes a crash.
+      Logger.e(TAG, "onSessionFinished called after onDestroy()");
+      return;
+    }
+
     // Our previous session isn't valid anymore.  There are some circumstances we could probably
     // restore our scroll (say if scroll was in headers), other times, if we were to restore scroll
     // it would be to a card which is no longer present.  For simplicity just abandon scroll

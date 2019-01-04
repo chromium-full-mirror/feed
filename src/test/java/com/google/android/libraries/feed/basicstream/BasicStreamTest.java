@@ -922,6 +922,28 @@ public class BasicStreamTest {
     verify(contextMenuManager).dismissPopup();
   }
 
+  @Test
+  public void onSessionFinished_afterOnDestroy_unregistersOnce() {
+    basicStream.onShow();
+
+    basicStream.onDestroy();
+    basicStream.onSessionFinished();
+
+    // Should only occur once between onDestroy() and onSessionFinished()
+    verify(initialModelProvider).unregisterObserver(basicStream);
+  }
+
+  @Test
+  public void onDestroyTwice_unregistersOnce() {
+    basicStream.onShow();
+
+    basicStream.onDestroy();
+    basicStream.onDestroy();
+
+    // Should only occur once between multiple onDestroy() calls
+    verify(initialModelProvider).unregisterObserver(basicStream);
+  }
+
   private byte[] decodeSavedInstanceStateString(String savedInstanceState) {
     return Base64.decode(savedInstanceState, Base64.DEFAULT);
   }
