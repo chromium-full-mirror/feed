@@ -24,6 +24,10 @@ public class FakeCardConfiguration implements CardConfiguration {
 
   private static final ColorDrawable COLOR_DRAWABLE = new ColorDrawable(Color.RED);
 
+  private int bottomMargin = 1;
+  private int startMargin = 2;
+  private int endMargin = 3;
+
   @Override
   public int getDefaultCornerRadius() {
     return 0;
@@ -36,16 +40,28 @@ public class FakeCardConfiguration implements CardConfiguration {
 
   @Override
   public int getCardBottomMargin() {
-    return 1;
+    return bottomMargin;
   }
 
   @Override
   public int getCardStartMargin() {
-    return 2;
+    return startMargin;
   }
 
   @Override
   public int getCardEndMargin() {
-    return 3;
+    return endMargin;
+  }
+
+  public void setCardStartMargin(int cardStartMargin) {
+    this.startMargin = cardStartMargin;
+  }
+
+  public void setCardEndMargin(int cardEndMargin) {
+    this.endMargin = cardEndMargin;
+  }
+
+  public void setCardBottomMargin(int cardBottomMargin) {
+    this.bottomMargin = cardBottomMargin;
   }
 }
