@@ -44,6 +44,10 @@ maven_jar(
 )
 
 maven_jar(
+    name = "com_google_dagger_dagger",
+    artifact = "com.google.dagger:dagger:2.0",
+)
+maven_jar(
     name = "com_google_truth_truth",
     artifact = "com.google.truth:truth:0.39",
 )
@@ -57,3 +61,14 @@ maven_jar(
     name = "org_mockito_mockito_all",
     artifact = "org.mockito:mockito-all:1.9.5",
 )
+
+maven_jar(
+    name = "com_squareup_javapoet",
+    artifact = "com.squareup:javapoet:1.8.0",
+)
+
+maven_jar(
+    name = "javax_inject_javax_inject",
+    artifact = "javax.inject:javax.inject:1",
+)
+
