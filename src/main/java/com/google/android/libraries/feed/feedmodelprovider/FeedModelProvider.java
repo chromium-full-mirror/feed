@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedmodelprovider;
 
-import android.database.Observable;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -38,6 +37,7 @@ import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
+import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Predicate;
@@ -78,7 +78,7 @@ import java.util.UUID;
 import javax.annotation.concurrent.GuardedBy;
 
 /** An implementation of {@link ModelProvider}. This will represent the Stream tree in memory. */
-public final class FeedModelProvider extends Observable<ModelProviderObserver>
+public final class FeedModelProvider extends FeedObservable<ModelProviderObserver>
     implements ModelProvider, Dumpable {
 
   private static final String TAG = "FeedModelProvider";
@@ -432,7 +432,7 @@ public final class FeedModelProvider extends Observable<ModelProviderObserver>
       dumper.forKey("containers").value(containers.size()).compactPrevious();
       dumper.forKey("tokens").value(tokens.size()).compactPrevious();
       dumper.forKey("syntheticTokens").value(syntheticTokens.size()).compactPrevious();
-      dumper.forKey("observers").value(mObservers.size()).compactPrevious();
+      dumper.forKey("observers").value(observers.size()).compactPrevious();
       dumper.forKey("commitCount").value(commitCount);
       dumper.forKey("commitTokenCount").value(commitTokenCount).compactPrevious();
       dumper.forKey("commitUpdateCount").value(commitUpdateCount).compactPrevious();
@@ -496,8 +496,8 @@ public final class FeedModelProvider extends Observable<ModelProviderObserver>
     // Make a copy of the observers, so the observers are not mutated while invoking callbacks.
     // mObservers is locked when adding or removing observers. Also, release the lock before
     // invoking callbacks to avoid deadlocks. ([INTERNAL LINK])
-    synchronized (mObservers) {
-      return new ArrayList<>(mObservers);
+    synchronized (observers) {
+      return new ArrayList<>(observers);
     }
   }
 

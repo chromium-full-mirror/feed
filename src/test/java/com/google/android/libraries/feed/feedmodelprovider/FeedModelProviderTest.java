@@ -67,6 +67,7 @@ import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.junit.Before;
@@ -370,9 +371,9 @@ public class FeedModelProviderTest {
     ModelProviderObserver observer = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer);
 
-    List<ModelProviderObserver> observers = modelProvider.getObserversToNotify();
+    Collection<ModelProviderObserver> observers = modelProvider.getObserversToNotify();
     assertThat(observers.size()).isEqualTo(1);
-    assertThat(observers.get(0)).isEqualTo(observer);
+    assertThat(observers).contains(observer);
   }
 
   @Test
