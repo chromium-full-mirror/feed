@@ -68,7 +68,11 @@ maven_jar(
 )
 
 maven_jar(
+    name = "javax_annotation_jsr250_api",
+    artifact = "javax.annotation:jsr250-api:1.0",
+)
+
+maven_jar(
     name = "javax_inject_javax_inject",
     artifact = "javax.inject:javax.inject:1",
 )
-
