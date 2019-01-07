@@ -63,6 +63,12 @@ public class Configuration {
     ConfigKey.FADE_IMAGE_THRESHOLD_MS,
     // Only update HEAD and the session making a page request
     ConfigKey.LIMIT_PAGE_UPDATES,
+    // This is a host specific flag currently not used in the Jardin libraries.
+    ConfigKey.USE_SQLITE_CONTENT,
+    // A content directly on the device file system where the files/directories are created
+    // for the file based persistent storage.
+    // TODO: The persistent content storage doesn't currently use this
+    ConfigKey.CONTENT_DIR,
   })
   public @interface ConfigKey {
     String ABANDON_RESTORE_BELOW_FOLD = "abandon_restore_below_fold";
@@ -87,6 +93,7 @@ public class Configuration {
     String VIEW_LOG_THRESHOLD = "view_log_threshold";
     String USE_DIRECT_STORAGE = "use_direct_storage";
     String USE_SQLITE_CONTENT = "use_sqlite_content";
+    String CONTENT_DIR = "content_directory";
     String FADE_IMAGE_THRESHOLD_MS = "fade_image_threshold_ms";
     String LIMIT_PAGE_UPDATES = "limit_page_updates";
   }

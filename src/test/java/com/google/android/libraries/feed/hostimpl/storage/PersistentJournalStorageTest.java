@@ -41,17 +41,16 @@ public class PersistentJournalStorageTest extends JournalStorageConformanceTest 
     initMocks(this);
     context = RuntimeEnvironment.application;
     journalStorage =
-        new PersistentJournalStorage(
-            context, MoreExecutors.newDirectExecutorService(), threadUtils);
+        new PersistentJournalStorage(context, MoreExecutors.directExecutor(), threadUtils, null);
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     context.getFilesDir().delete();
   }
 
   @Test
-  public void sanitize_and_desanitize() throws Exception {
+  public void sanitize_and_desanitize() {
     String[] reservedChars = {"|", "\\", "?", "*", "<", "\"", ":", ">"};
     for (String c : reservedChars) {
       String test = "test" + c;

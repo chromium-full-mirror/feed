@@ -63,6 +63,7 @@ public final class PersistentJournalStorage implements JournalStorage, JournalSt
   private static final String SHARED_PREFERENCES = "JOURNAL_SP";
   private static final String SCHEMA_KEY = "JOURNAL_SCHEMA";
 
+  // Optional Content directory - By default this is not used
   private static final String JOURNAL_DIR = "journal";
   private static final String ENCODING = "UTF-8";
   private static final int INTEGER_BYTE_SIZE = 4;
@@ -72,6 +73,7 @@ public final class PersistentJournalStorage implements JournalStorage, JournalSt
   private final Context context;
   private final ThreadUtils threadUtils;
   private final Executor executor;
+  /*@Nullable*/ private final String persistenceDir;
   private File journalDir;
 
   /**
@@ -82,7 +84,10 @@ public final class PersistentJournalStorage implements JournalStorage, JournalSt
   private int existingSchema;
 
   public PersistentJournalStorage(
-      Context context, Executor executorService, ThreadUtils threadUtils) {
+      Context context,
+      Executor executorService,
+      ThreadUtils threadUtils,
+      /*@Nullable*/ String persistenceDir) {
     this.context = context;
     this.executor = executorService;
     this.threadUtils = threadUtils;
@@ -91,6 +96,7 @@ public final class PersistentJournalStorage implements JournalStorage, JournalSt
         context
             .getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE)
             .getInt(SCHEMA_KEY, 0);
+    this.persistenceDir = persistenceDir;
   }
 
   @Override
@@ -353,9 +359,26 @@ public final class PersistentJournalStorage implements JournalStorage, JournalSt
   }
 
   private void initializeJournalDir() {
-    threadUtils.checkNotMainThread();
+    // if we've set the journalDir then just verify that it exists
+    if (journalDir != null) {
+      if (!journalDir.exists()) {
+        if (!journalDir.mkdir()) {
+          Logger.w(TAG, "Jardin journal directory already exists");
+        }
+      }
+      return;
+    }
 
-    if (journalDir == null) {
+    // Create the root directory persistent files
+    if (persistenceDir != null) {
+      File persistenceRoot = context.getDir(persistenceDir, Context.MODE_PRIVATE);
+      if (!persistenceRoot.exists()) {
+        if (!persistenceRoot.mkdir()) {
+          Logger.w(TAG, "persistenceDir directory already exists");
+        }
+      }
+      journalDir = new File(persistenceRoot, JOURNAL_DIR);
+    } else {
       journalDir = context.getDir(JOURNAL_DIR, Context.MODE_PRIVATE);
     }
     if (existingSchema != SCHEMA_VERSION) {
@@ -371,7 +394,9 @@ public final class PersistentJournalStorage implements JournalStorage, JournalSt
       }
     }
     if (!journalDir.exists()) {
-      journalDir.mkdir();
+      if (!journalDir.mkdir()) {
+        Logger.w(TAG, "journal directory already exists");
+      }
     }
   }
 
