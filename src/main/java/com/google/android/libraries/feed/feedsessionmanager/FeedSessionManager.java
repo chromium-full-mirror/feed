@@ -19,7 +19,6 @@ import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.Requ
 import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_TIMEOUT;
 import static com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior.REQUEST_WITH_WAIT;
 
-import android.database.Observable;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
@@ -40,6 +39,7 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.Validators;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
+import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -147,7 +147,7 @@ public final class FeedSessionManager
       SchedulerApi schedulerApi,
       Configuration configuration,
       Clock clock,
-      Observable<FeedLifecycleListener> lifecycleListenerObservable) {
+      FeedObservable<FeedLifecycleListener> lifecycleListenerObservable) {
     this.taskQueue = taskQueue;
     this.sessionFactory = sessionFactory;
     this.sessionCache = sessionCache;

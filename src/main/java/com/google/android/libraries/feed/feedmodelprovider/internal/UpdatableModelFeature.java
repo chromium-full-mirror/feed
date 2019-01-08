@@ -14,16 +14,16 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
-import android.database.Observable;
 import com.google.android.libraries.feed.api.modelprovider.FeatureChangeObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
+import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import java.util.ArrayList;
 import java.util.List;
 
 /** Implementation of the {@link ModelFeature} */
-public final class UpdatableModelFeature extends Observable<FeatureChangeObserver>
+public final class UpdatableModelFeature extends FeedObservable<FeatureChangeObserver>
     implements ModelFeature {
 
   private StreamFeature streamFeature;
@@ -51,8 +51,8 @@ public final class UpdatableModelFeature extends Observable<FeatureChangeObserve
   }
 
   public List<FeatureChangeObserver> getObserversToNotify() {
-    synchronized (mObservers) {
-      return new ArrayList<>(mObservers);
+    synchronized (observers) {
+      return new ArrayList<>(observers);
     }
   }
 

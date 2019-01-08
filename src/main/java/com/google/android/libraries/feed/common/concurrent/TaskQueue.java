@@ -334,7 +334,6 @@ public class TaskQueue implements Dumpable {
   }
 
   /** Indicates that tasks are being delayed until a response is processed */
-  @VisibleForTesting
   public boolean isDelayed() {
     synchronized (lock) {
       return !initialized || waitingForHeadReset;

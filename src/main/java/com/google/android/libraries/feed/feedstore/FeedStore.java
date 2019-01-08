@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedstore;
 
-import android.database.Observable;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -28,6 +27,7 @@ import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
+import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -61,7 +61,7 @@ import java.util.Set;
  * independent of what delegate is actually running. The delegates currently throw a
  * IllegalStateException if the register/unregister methods are called.
  */
-public final class FeedStore extends Observable<StoreListener>
+public final class FeedStore extends FeedObservable<StoreListener>
     implements Store, Resettable, FeedLifecycleListener {
   private static final String TAG = "FeedStore";
 
@@ -214,8 +214,8 @@ public final class FeedStore extends Observable<StoreListener>
           });
 
       isEphemeralMode = true;
-      synchronized (mObservers) {
-        for (StoreListener listener : mObservers) {
+      synchronized (observers) {
+        for (StoreListener listener : observers) {
           listener.onSwitchToEphemeralMode();
         }
       }

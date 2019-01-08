@@ -14,11 +14,11 @@
 
 package com.google.android.libraries.feed.api.scope;
 
-import android.database.Observable;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
+import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -43,7 +43,7 @@ public final class ClearAllListener implements FeedLifecycleListener, Dumpable {
       /*@Nullable*/ Resettable sessionManager,
       /*@Nullable*/ Resettable store,
       ThreadUtils threadUtils,
-      Observable<FeedLifecycleListener> lifecycleListenerObservable) {
+      FeedObservable<FeedLifecycleListener> lifecycleListenerObservable) {
     this.taskQueue = taskQueue;
     this.sessionManager = sessionManager;
     this.store = store;

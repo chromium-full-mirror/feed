@@ -14,12 +14,12 @@
 
 package com.google.android.libraries.feed.feedsessionmanager;
 
-import android.database.Observable;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
+import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
@@ -49,7 +49,7 @@ public final class FeedSessionManagerFactory {
   private final SchedulerApi schedulerApi;
   private final Configuration configuration;
   private final Clock clock;
-  private final Observable<FeedLifecycleListener> lifecycleListenerObservable;
+  private final FeedObservable<FeedLifecycleListener> lifecycleListenerObservable;
 
   public FeedSessionManagerFactory(
       TaskQueue taskQueue,
@@ -61,7 +61,7 @@ public final class FeedSessionManagerFactory {
       SchedulerApi schedulerApi,
       Configuration configuration,
       Clock clock,
-      Observable<FeedLifecycleListener> lifecycleListenerObservable) {
+      FeedObservable<FeedLifecycleListener> lifecycleListenerObservable) {
     this.taskQueue = taskQueue;
     this.store = store;
     this.timingUtils = timingUtils;

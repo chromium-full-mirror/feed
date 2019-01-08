@@ -325,8 +325,8 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     mainThreadRunner.execute(
         TAG + " onSessionFinished",
         () -> {
-          List<ModelProviderObserver> observers = getObserversToNotify();
-          for (ModelProviderObserver observer : observers) {
+          List<ModelProviderObserver> observerList = getObserversToNotify();
+          for (ModelProviderObserver observer : observerList) {
             observer.onSessionFinished();
           }
         });
@@ -360,11 +360,11 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   @Override
   public void raiseError(ModelError error) {
     if (error.getErrorType() == ErrorType.NO_CARDS_ERROR) {
-      List<ModelProviderObserver> observers = getObserversToNotify();
       mainThreadRunner.execute(
           TAG + " onError",
           () -> {
-            for (ModelProviderObserver observer : observers) {
+            List<ModelProviderObserver> observerList = getObserversToNotify();
+            for (ModelProviderObserver observer : observerList) {
               observer.onError(error);
             }
           });
@@ -375,11 +375,11 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         token = tokens.get(error.getContinuationToken());
       }
       if (token != null) {
-        List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
         mainThreadRunner.execute(
             TAG + " onTokenChange",
             () -> {
-              for (TokenCompletedObserver observer : observers) {
+              List<TokenCompletedObserver> observerList = token.tokenChild.getObserversToNotify();
+              for (TokenCompletedObserver observer : observerList) {
                 observer.onError(error);
               }
             });
@@ -694,11 +694,11 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
                             ? streamSession.getStreamToken()
                             : "No streamSession");
                     currentState = State.INVALIDATED;
-                    List<ModelProviderObserver> observers = getObserversToNotify();
                     mainThreadRunner.execute(
                         TAG + " multipleRootInvalidation",
                         () -> {
-                          for (ModelProviderObserver observer : observers) {
+                          List<ModelProviderObserver> observerList = getObserversToNotify();
+                          for (ModelProviderObserver observer : observerList) {
                             observer.onSessionFinished();
                           }
                         });
@@ -879,11 +879,11 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
                       new ModelCursorImpl(streamToken.getParentId(), cursorSublist);
 
                   TokenCompleted tokenCompleted = new TokenCompleted(cursor);
-                  List<TokenCompletedObserver> observers = token.getObserversToNotify();
                   mainThreadRunner.execute(
                       TAG + " onTokenChange",
                       () -> {
-                        for (TokenCompletedObserver observer : observers) {
+                        List<TokenCompletedObserver> observerList = token.getObserversToNotify();
+                        for (TokenCompletedObserver observer : observerList) {
                           observer.onTokenCompleted(tokenCompleted);
                         }
                       });
@@ -1019,11 +1019,11 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       synchronized (lock) {
         currentState = State.READY;
       }
-      List<ModelProviderObserver> observers = getObserversToNotify();
       mainThreadRunner.execute(
           TAG + " onSessionStart",
           () -> {
-            for (ModelProviderObserver observer : observers) {
+            List<ModelProviderObserver> observerList = getObserversToNotify();
+            for (ModelProviderObserver observer : observerList) {
               observer.onSessionStart();
             }
           });
@@ -1075,12 +1075,14 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
           new ModelCursorImpl(
               token.parentContentId, token.location.subList(newCursorStart, token.location.size()));
       TokenCompleted tokenCompleted = new TokenCompleted(cursor);
-      List<TokenCompletedObserver> observers = token.tokenChild.getObserversToNotify();
       mainThreadRunner.execute(
           TAG + " onTokenChange",
           () -> {
-            for (TokenCompletedObserver observer : observers) {
-              observer.onTokenCompleted(tokenCompleted);
+            if (token != null) {
+              List<TokenCompletedObserver> observerList = token.tokenChild.getObserversToNotify();
+              for (TokenCompletedObserver observer : observerList) {
+                observer.onTokenCompleted(tokenCompleted);
+              }
             }
           });
     }
@@ -1165,9 +1167,9 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
           TAG + " onFeatureChange",
           () -> {
             for (FeatureChangeImpl change : changes.values()) {
-              List<FeatureChangeObserver> observers =
+              List<FeatureChangeObserver> observerList =
                   ((UpdatableModelFeature) change.getModelFeature()).getObserversToNotify();
-              for (FeatureChangeObserver observer : observers) {
+              for (FeatureChangeObserver observer : observerList) {
                 observer.onChange(change);
               }
             }

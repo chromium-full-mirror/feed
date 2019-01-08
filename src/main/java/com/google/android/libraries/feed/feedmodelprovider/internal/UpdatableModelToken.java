@@ -14,15 +14,15 @@
 
 package com.google.android.libraries.feed.feedmodelprovider.internal;
 
-import android.database.Observable;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
+import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
 import java.util.List;
 
 /** Implementation of the {@link ModelToken}. */
-public final class UpdatableModelToken extends Observable<TokenCompletedObserver>
+public final class UpdatableModelToken extends FeedObservable<TokenCompletedObserver>
     implements ModelToken {
   private final StreamToken token;
   private final boolean isSynthetic;
@@ -43,8 +43,8 @@ public final class UpdatableModelToken extends Observable<TokenCompletedObserver
   }
 
   public List<TokenCompletedObserver> getObserversToNotify() {
-    synchronized (mObservers) {
-      return new ArrayList<>(mObservers);
+    synchronized (observers) {
+      return new ArrayList<>(observers);
     }
   }
 }

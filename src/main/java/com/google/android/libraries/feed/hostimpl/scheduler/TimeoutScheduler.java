@@ -14,9 +14,9 @@
 
 package com.google.android.libraries.feed.hostimpl.scheduler;
 
-import android.database.Observable;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.concurrent.DirectHostSupported;
+import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.logging.StringFormattingUtils;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -47,7 +47,7 @@ public final class TimeoutScheduler implements SchedulerApi, DirectHostSupported
   public TimeoutScheduler(
       Clock clock,
       Configuration configuration,
-      Observable<FeedLifecycleListener> lifecycleListenerObservable) {
+      FeedObservable<FeedLifecycleListener> lifecycleListenerObservable) {
     this.clock = clock;
     useTimeScheduler = configuration.getValueOrDefault(ConfigKey.USE_TIMEOUT_SCHEDULER, false);
     storiesAreCurrentMs =

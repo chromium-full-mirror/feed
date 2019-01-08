@@ -10,6 +10,7 @@ android_library(
     deps = [
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/lifecycle",
+        "//src/main/java/com/google/android/libraries/feed/common/feedobservable",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
         gmaven_artifact("com.android.support:support_annotations:jar:28.0.0"),
     ],

@@ -14,14 +14,14 @@
 
 package com.google.android.libraries.feed.feedapplifecyclelistener;
 
-import android.database.Observable;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
+import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 
 /** Default implementation of {@link AppLifecycleListener} */
-public final class FeedAppLifecycleListener extends Observable<FeedLifecycleListener>
+public final class FeedAppLifecycleListener extends FeedObservable<FeedLifecycleListener>
     implements AppLifecycleListener {
   private static final String TAG = "FeedAppLifecycleLstnr";
 
@@ -60,8 +60,8 @@ public final class FeedAppLifecycleListener extends Observable<FeedLifecycleList
   }
 
   private void dispatchLifecycleEvent(@LifecycleEvent String event) {
-    synchronized (mObservers) {
-      for (FeedLifecycleListener listener : mObservers) {
+    synchronized (observers) {
+      for (FeedLifecycleListener listener : observers) {
         listener.onLifecycleEvent(event);
       }
     }
