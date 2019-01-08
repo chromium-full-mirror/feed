@@ -15,8 +15,6 @@
 package com.google.android.libraries.feed.sharedstream.piet;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -24,8 +22,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.graphics.drawable.Drawable;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.FakeClock;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.search.now.ui.piet.ImagesProto.Image;
@@ -50,7 +46,6 @@ public class PietAssetProviderTest {
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private ImageLoaderApi imageLoaderApi;
-  @Mock private Configuration config;
 
   private FakeClock clock;
   private PietAssetProvider pietAssetProvider;
@@ -60,12 +55,11 @@ public class PietAssetProviderTest {
     initMocks(this);
 
     when(cardConfiguration.getDefaultCornerRadius()).thenReturn(DEFAULT_CORNER_RADIUS);
-    when(config.getValueOrDefault(eq(ConfigKey.FADE_IMAGE_THRESHOLD_MS), anyInt()))
-        .thenReturn(FADE_THRESHOLD_MS);
 
     clock = new FakeClock();
     clock.set(TimeUnit.MINUTES.toMillis(1));
-    pietAssetProvider = new PietAssetProvider(imageLoaderApi, cardConfiguration, clock, config);
+    pietAssetProvider =
+        new PietAssetProvider(imageLoaderApi, cardConfiguration, clock, FADE_THRESHOLD_MS);
   }
 
   @Test

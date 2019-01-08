@@ -202,7 +202,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       Configuration configuration) {
     return new PietManager(
         debugBehavior,
-        new PietAssetProvider(imageLoaderApi, cardConfiguration, clock, configuration),
+        new PietAssetProvider(
+            imageLoaderApi,
+            cardConfiguration,
+            clock,
+            configuration.getValueOrDefault(ConfigKey.FADE_IMAGE_THRESHOLD_MS, 80)),
         new PietCustomElementProvider(context, customElementProvider),
         new PietHostBindingProvider(hostBindingProvider, streamOfflineMonitor),
         clock);

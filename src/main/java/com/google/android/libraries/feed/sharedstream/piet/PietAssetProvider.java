@@ -19,8 +19,6 @@ import android.graphics.drawable.Drawable;
 import android.text.format.DateUtils;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -44,11 +42,11 @@ public class PietAssetProvider implements AssetProvider {
       ImageLoaderApi imageLoaderApi,
       CardConfiguration cardConfiguration,
       Clock clock,
-      Configuration config) {
+      int fadeImageThresholdMs) {
     this.imageLoaderApi = imageLoaderApi;
     this.cardConfiguration = cardConfiguration;
     this.clock = clock;
-    this.fadeImageThresholdMs = config.getValueOrDefault(ConfigKey.FADE_IMAGE_THRESHOLD_MS, 80);
+    this.fadeImageThresholdMs = fadeImageThresholdMs;
   }
 
   @Override
