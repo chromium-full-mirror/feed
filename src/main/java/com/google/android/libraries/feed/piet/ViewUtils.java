@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.support.v4.view.ViewCompat;
@@ -22,11 +23,14 @@ import android.view.Gravity;
 import android.view.View;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
+import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
 import com.google.search.now.ui.piet.StylesProto.GravityVertical;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /** Utility class, providing useful methods to interact with Views. */
@@ -78,8 +82,17 @@ public class ViewUtils {
     }
   }
 
-  /** Attaches the onClick action from actions to the view, executed by the handler. */
-  static void setOnClickActions(Actions actions, View view, FrameContext frameContext) {
+  /**
+   * Attaches the onClick action from actions to the view, executed by the handler. In Android M+, a
+   * RippleDrawable is added to the foreground of the view, so that a ripple animation happens on
+   * each click.
+   *
+   * @return an {@link ActionBinding} that stores a reference to the view and the callback set on
+   *     the foreground, if that callback exists. This allows the callback, which is a weak
+   *     reference when set on a Drawable, to be saved on the adapter, and allows the element
+   *     adapter to unbind the callback and foreground through the {@link ActionBinding} object.
+   */
+  static ActionBinding setOnClickActions(Actions actions, View view, FrameContext frameContext) {
     ActionHandler handler = frameContext.getActionHandler();
     if (actions.hasOnLongClickAction()) {
       view.setOnLongClickListener(
@@ -107,12 +120,43 @@ public class ViewUtils {
     // TODO: Implement alternative support for older versions
     if (Build.VERSION.SDK_INT >= VERSION_CODES.M) {
       if (actions.hasOnClickAction() || actions.hasOnLongClickAction()) {
-        // CAUTION: this is only available in L+
+        // CAUTION: View.setForeground() is only available in L+
         view.setForeground(view.getContext().getDrawable(R.drawable.piet_clickable_ripple));
+        Drawable.Callback originalCallback = view.getForeground().getCallback();
+
+        Drawable.Callback callback =
+            createInvalidateRoundedCornerViewsCallback(view, frameContext, originalCallback);
+        view.getForeground().setCallback(callback);
+        return new ActionBinding(view, callback);
       } else {
         view.setForeground(null);
       }
     }
+    return new ActionBinding(view, null);
+  }
+
+  static Drawable.Callback createInvalidateRoundedCornerViewsCallback(
+      View view, FrameContext frameContext, Drawable./*@Nullable*/ Callback originalCallback) {
+    return new Drawable.Callback() {
+      @Override
+      public void invalidateDrawable(Drawable who) {
+        invalidateBelowRoundedCorners(view, frameContext);
+      }
+
+      @Override
+      public void scheduleDrawable(Drawable who, Runnable what, long when) {
+        if (originalCallback != null) {
+          originalCallback.scheduleDrawable(who, what, when);
+        }
+      }
+
+      @Override
+      public void unscheduleDrawable(Drawable who, Runnable what) {
+        if (originalCallback != null) {
+          originalCallback.unscheduleDrawable(who, what);
+        }
+      }
+    };
   }
 
   static void clearOnLongClickActions(View view) {
@@ -208,6 +252,33 @@ public class ViewUtils {
         viewLocation[1],
         viewLocation[0] + view.getWidth(),
         viewLocation[1] + view.getHeight());
+  }
+
+  /**
+   * Invalidates all views between the base view and a {@link RoundedCornerWrapperView}, which is
+   * required for animations to succeed. This is necessary as the RoundedCornerWrapperView masks the
+   * view under it and only redraws when explicitly told it needs to. While invalidating the child
+   * view should result in the parent being invalidated, that is not working in this context for
+   * some reason.
+   */
+  static void invalidateBelowRoundedCorners(View baseView, FrameContext frameContext) {
+    // Always invalidate the base view.
+    baseView.invalidate();
+    View view = baseView;
+    List<View> viewsToMaybeInvalidate = new ArrayList<>();
+    while (view != null && view != frameContext.getFrameView()) {
+      viewsToMaybeInvalidate.add(view);
+
+      if (view instanceof RoundedCornerWrapperView
+          && ((RoundedCornerWrapperView) view).hasRoundedCorners()) {
+        for (View viewToInvalidate : viewsToMaybeInvalidate) {
+          viewToInvalidate.invalidate();
+        }
+        viewsToMaybeInvalidate.clear();
+      }
+
+      view = view.getParent() instanceof View ? (View) view.getParent() : null;
+    }
   }
 
   /** Private constructor to prevent instantiation. */

@@ -15,6 +15,9 @@
   limitations under the License.
 -->
 <resources>
-  <!-- This is a Lambda which will release a view using the AdapterFactory -->
-  <item name="gm_factory_release" type="id"/>
+<!--
+  This identifies Element Adapters so they can be paired with their views,
+  which stops element adapters from being garbage collected while their view still exists.
+-->
+  <item name="element_adapter" type="id"/>
 </resources>

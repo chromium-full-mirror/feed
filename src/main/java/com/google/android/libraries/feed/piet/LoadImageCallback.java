@@ -20,13 +20,9 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Drawable.Callback;
 import android.graphics.drawable.TransitionDrawable;
 import android.support.annotation.VisibleForTesting;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Handles loading images from the host. In particular, handles the resizing of images as well as
@@ -96,18 +92,8 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
     // Storing callback so it won't be garbage collected by Drawable which holds it in a
     // WeakReference
     transitionCallback =
-        new Callback() {
-          @Override
-          public void invalidateDrawable(Drawable who) {
-            invalidateBelowRoundedCorners();
-          }
-
-          @Override
-          public void scheduleDrawable(Drawable who, Runnable what, long when) {}
-
-          @Override
-          public void unscheduleDrawable(Drawable who, Runnable what) {}
-        };
+        ViewUtils.createInvalidateRoundedCornerViewsCallback(
+            imageView, frameContext, transitionDrawable.getCallback());
     transitionDrawable.setCallback(transitionCallback);
 
     imageView.postDelayed(
@@ -120,37 +106,10 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
           // fixes the issue where the transition sometimes doesn't occur, which would
           // result in blank images.
           imageView.setImageDrawable(finalDrawable);
-          invalidateBelowRoundedCorners();
+          ViewUtils.invalidateBelowRoundedCorners(imageView, frameContext);
           transitionCallback = null;
         },
         FADE_IN_ANIMATION_TIME_MS);
-  }
-
-  /**
-   * s Invalidates all views between the base view and a {@link RoundedCornerWrapperView}, which is
-   * required for the animations to succeed. This is necessary as the {@link
-   * RoundedCornerWrapperView} masks its image and only redraws when explicitly told it needs to.
-   * While invalidating the child view should result in the parent being invalidated, that is not
-   * working in this context for some reason.
-   */
-  private void invalidateBelowRoundedCorners() {
-    View view = imageView;
-    // Always invalidate the base view.
-    view.invalidate();
-    List<View> viewsToMaybeInvalidate = new ArrayList<>();
-    while (view != null && view != frameContext.getFrameView()) {
-      viewsToMaybeInvalidate.add(view);
-
-      if (view instanceof RoundedCornerWrapperView
-          && ((RoundedCornerWrapperView) view).hasRoundedCorners()) {
-        for (View viewToInvalidate : viewsToMaybeInvalidate) {
-          viewToInvalidate.invalidate();
-        }
-        viewsToMaybeInvalidate.clear();
-      }
-
-      view = view.getParent() instanceof View ? (View) view.getParent() : null;
-    }
   }
 
   private boolean shouldFadeInImage() {

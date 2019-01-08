@@ -166,6 +166,7 @@ public class ViewUtilsTest {
     view.performLongClick();
     verify(mockActionHandler)
         .handleAction(DEFAULT_ACTION, ActionType.LONG_CLICK, DEFAULT_FRAME, view, null);
+    assertThat(view.getForeground()).isInstanceOf(RippleDrawable.class);
   }
 
   @Test
