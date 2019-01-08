@@ -47,6 +47,7 @@ maven_jar(
     name = "com_google_dagger_dagger",
     artifact = "com.google.dagger:dagger:2.0",
 )
+
 maven_jar(
     name = "com_google_truth_truth",
     artifact = "com.google.truth:truth:0.39",
