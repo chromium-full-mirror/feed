@@ -245,6 +245,12 @@ public final class PersistentJournalStorage implements JournalStorage, JournalSt
     threadUtils.checkNotMainThread();
 
     try {
+      if (!journal.exists()) {
+        Logger.w(TAG, "Journal file %s does not exist, creating empty version", journal.getName());
+        if (!journal.createNewFile()) {
+          Logger.e(TAG, "Journal file %s exists while trying to create it", journal.getName());
+        }
+      }
       String sanitizedDestJournalName = sanitize(operation.getToJournalName());
       if (!sanitizedDestJournalName.isEmpty()) {
         copyFile(journal, sanitizedDestJournalName);
