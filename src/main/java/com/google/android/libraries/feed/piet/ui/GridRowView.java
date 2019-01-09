@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.piet.ui;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
+import android.support.v4.view.MarginLayoutParamsCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,8 +63,7 @@ public class GridRowView extends LinearLayout {
 
   @Override
   public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    if (!hasCollapsibleCells()
-        || MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED
+    if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED
         || MeasureSpec.getSize(widthMeasureSpec) == 0) {
       super.onMeasure(widthMeasureSpec, heightMeasureSpec);
       return;
@@ -111,7 +111,9 @@ public class GridRowView extends LinearLayout {
       } else if (params.weight > 0) {
         totalWeight += params.weight;
       }
-      totalReservedWidth += params.leftMargin + params.rightMargin;
+      totalReservedWidth +=
+          MarginLayoutParamsCompat.getMarginStart(params)
+              + MarginLayoutParamsCompat.getMarginEnd(params);
     }
     totalReservedWidth += gridRowHorizontalPadding;
 
@@ -143,6 +145,7 @@ public class GridRowView extends LinearLayout {
           MeasureSpec.makeMeasureSpec(Math.min(availableWidth, desiredWidth), MeasureSpec.EXACTLY),
           viewMaxHeight);
 
+      totalReservedWidth += view.getMeasuredWidth();
       availableWidth = Math.max(0, availableWidth - view.getMeasuredWidth());
     }
 
@@ -161,14 +164,21 @@ public class GridRowView extends LinearLayout {
     }
 
     // Truncate remaining cells if we ran out of room.
-    availableWidth = maxWidth;
+    availableWidth = maxWidth - gridRowHorizontalPadding;
     for (int i = 0; i < getChildCount(); i++) {
       View view = getChildAt(i);
+      LayoutParams params = ((LayoutParams) view.getLayoutParams());
+      availableWidth -= MarginLayoutParamsCompat.getMarginStart(params);
       if (view.getMeasuredWidth() > availableWidth) {
         view.measure(
             MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.EXACTLY), maxHeightSpec);
       }
-      availableWidth = Math.max(0, availableWidth - view.getMeasuredWidth());
+      availableWidth =
+          Math.max(
+              0,
+              availableWidth
+                  - view.getMeasuredWidth()
+                  - MarginLayoutParamsCompat.getMarginEnd(params));
     }
 
     // Set height of the GridRowView based on the max cell height
@@ -207,6 +217,14 @@ public class GridRowView extends LinearLayout {
             MeasureSpec.makeMeasureSpec(view.getMeasuredWidth(), MeasureSpec.EXACTLY),
             MeasureSpec.makeMeasureSpec(view.getMinimumHeight(), MeasureSpec.EXACTLY));
       }
+    }
+
+    // Handle WRAP_CONTENT on the GridRowView - width of the row is the sum of the cell widths.
+    // This does not make sense when there are weight cells, since they take up all available space.
+    if (getLayoutParams() != null
+        && getLayoutParams().width == LayoutParams.WRAP_CONTENT
+        && totalWeight == 0) {
+      maxWidth = Math.min(maxWidth, totalReservedWidth);
     }
 
     setMeasuredDimension(maxWidth, rowHeight);

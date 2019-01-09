@@ -25,7 +25,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.piet.ui.GridRowView.LayoutParams;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -624,7 +623,6 @@ public class GridRowViewTest {
     assertThat(shortView.requestedHeight).isEqualTo(100);
   }
 
-  @Ignore("This test should be ignored to enable green presubmit for [INTERNAL LINK]")
   @Test
   public void testOnMeasure_fitContentCellsWithFitContentRow_minHeight() {
     TestView tallView = new TestView(context, 11, 50);
@@ -645,6 +643,132 @@ public class GridRowViewTest {
 
     assertThat(tallView.requestedHeight).isEqualTo(50);
     assertThat(shortView.requestedHeight).isEqualTo(30);
+  }
+
+  @Test
+  public void testOnMeasure_fitContentWidthRowIsTotalOfCells() {
+    TestView view1 = new TestView(context, 11, 100);
+    view1.setLayoutParams(new LayoutParams(11, 100));
+    TestView view2 = new TestView(context, 22, 100);
+    view2.setLayoutParams(new LayoutParams(22, 100));
+
+    gridRowView.addView(view1);
+    gridRowView.addView(view2);
+    gridRowView.setLayoutParams(
+        new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(400, MeasureSpec.AT_MOST);
+    gridRowView.measure(widthSpec, unspecifiedSpec);
+
+    assertThat(view1.requestedWidth).isEqualTo(11);
+    assertThat(view2.requestedWidth).isEqualTo(22);
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(33);
+  }
+
+  @Test
+  public void testOnMeasure_fitContentWidthRowWithWeightCellsTakesAllSpace() {
+    gridRowView.addView(widthView);
+    gridRowView.addView(weightView);
+    gridRowView.setLayoutParams(
+        new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(400, MeasureSpec.AT_MOST);
+    gridRowView.measure(widthSpec, unspecifiedSpec);
+
+    assertThat(widthView.requestedWidth).isEqualTo(WIDTH);
+    assertThat(weightView.requestedWidth).isEqualTo(400 - WIDTH);
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(400);
+  }
+
+  @Test
+  public void testOnMeasure_fitContentWidthRowWithMargins() {
+    TestView view1 = new TestView(context, 11, 100);
+    LayoutParams view1Params = new LayoutParams(11, 100);
+    view1Params.leftMargin = 2;
+    view1Params.rightMargin = 3;
+    view1.setLayoutParams(view1Params);
+
+    TestView view2 = new TestView(context, 22, 100);
+    LayoutParams view2Params = new LayoutParams(22, 100);
+    view2Params.leftMargin = 4;
+    view2Params.rightMargin = 5;
+    view2.setLayoutParams(view2Params);
+
+    gridRowView.addView(view1);
+    gridRowView.addView(view2);
+    gridRowView.setLayoutParams(
+        new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(400, MeasureSpec.AT_MOST);
+    gridRowView.measure(widthSpec, unspecifiedSpec);
+
+    assertThat(view1.requestedWidth).isEqualTo(11);
+    assertThat(view2.requestedWidth).isEqualTo(22);
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(33 + 14);
+  }
+
+  @Test
+  public void testOnMeasure_fitContentWidthRowIsTotalOfCells_collapsibleAndMargins() {
+    TestView view1 = new TestView(context, 11, 100);
+    LayoutParams view1Params = new LayoutParams(11, 100);
+    view1Params.leftMargin = 2;
+    view1Params.rightMargin = 3;
+    view1.setLayoutParams(view1Params);
+
+    TestView view2 = new TestView(context, 22, 100);
+    LayoutParams view2Params = new LayoutParams(22, 100);
+    view2Params.leftMargin = 4;
+    view2Params.rightMargin = 5;
+    view2.setLayoutParams(view2Params);
+
+    TestView view3 = new TestView(context, 33, 100);
+    LayoutParams view3Params = new LayoutParams(LayoutParams.WRAP_CONTENT, 100, 0.0f, true);
+    view3Params.leftMargin = 6;
+    view3Params.rightMargin = 7;
+    view3.setLayoutParams(view3Params);
+
+    gridRowView.addView(view1);
+    gridRowView.addView(view2);
+    gridRowView.addView(view3);
+    gridRowView.setLayoutParams(
+        new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(400, MeasureSpec.AT_MOST);
+    gridRowView.measure(widthSpec, unspecifiedSpec);
+
+    assertThat(view1.requestedWidth).isEqualTo(11);
+    assertThat(view2.requestedWidth).isEqualTo(22);
+    assertThat(view3.requestedWidth).isEqualTo(33);
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(11 + 22 + 33 + 2 + 3 + 4 + 5 + 6 + 7);
+  }
+
+  @Test
+  public void testOnMeasure_truncatesCellsWithMarginsAndPadding() {
+    // Cells will fit in the space, but margins push the second cell outside the row
+
+    TestView view1 = new TestView(context, 11, 100);
+    LayoutParams view1Params = new LayoutParams(11, 100);
+    view1Params.leftMargin = 2;
+    view1Params.rightMargin = 3;
+    view1.setLayoutParams(view1Params);
+
+    TestView view2 = new TestView(context, 22, 100);
+    LayoutParams view2Params = new LayoutParams(22, 100);
+    view2Params.leftMargin = 4;
+    view2Params.rightMargin = 5;
+    view2.setLayoutParams(view2Params);
+
+    gridRowView.addView(view1);
+    gridRowView.addView(view2);
+
+    gridRowView.setPadding(1, 0, 1, 0);
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(33, MeasureSpec.AT_MOST);
+    gridRowView.measure(widthSpec, unspecifiedSpec);
+
+    assertThat(view1.requestedWidth).isEqualTo(11);
+    assertThat(view2.requestedWidth).isEqualTo(33 - 11 - 1 - 1 - 2 - 3 - 4); // 11
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(33);
   }
 
   private static class TestView extends View {
