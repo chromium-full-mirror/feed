@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
+import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
@@ -81,7 +82,30 @@ import java.util.concurrent.ExecutorService;
 public final class FeedProcessScope implements Dumpable {
   private static final String TAG = "FeedProcessScope";
 
-  // This is called by hosts so it must be public
+  private final LoggingApi loggingApi;
+  private final NetworkClient networkClient;
+  private final ProtocolAdapter protocolAdapter;
+  private final RequestManager requestManager;
+  private final SessionManager sessionManager;
+  private final Store store;
+  private final TimingUtils timingUtils;
+  private final ThreadUtils threadUtils;
+  private final TaskQueue taskQueue;
+  private final MainThreadRunner mainThreadRunner;
+  private final AppLifecycleListener appLifecycleListener;
+  private final Clock clock;
+  private final DebugBehavior debugBehavior;
+  private final ActionManager actionManager;
+  private final Configuration configuration;
+  private final KnownContentApi knownContentApi;
+  private final FeedExtensionRegistry feedExtensionRegistry;
+  private final ClearAllListener clearAllListener;
+
+  /**
+   * Return a {@link Builder} to create a FeedProcessScope
+   *
+   * <p>This is called by hosts so it must be public
+   */
   public FeedStreamScope.Builder createFeedStreamScopeBuilder(
       Context context,
       ImageLoaderApi imageLoaderApi,
@@ -114,6 +138,46 @@ public final class FeedProcessScope implements Dumpable {
         knownContentApi);
   }
 
+  /** Created through the {@link Builder}. */
+  private FeedProcessScope(
+      LoggingApi loggingApi,
+      NetworkClient networkClient,
+      ProtocolAdapter protocolAdapter,
+      RequestManager requestManager,
+      SessionManager sessionManager,
+      Store store,
+      TimingUtils timingUtils,
+      ThreadUtils threadUtils,
+      TaskQueue taskQueue,
+      MainThreadRunner mainThreadRunner,
+      AppLifecycleListener appLifecycleListener,
+      Clock clock,
+      DebugBehavior debugBehavior,
+      ActionManager actionManager,
+      Configuration configuration,
+      KnownContentApi knownContentApi,
+      FeedExtensionRegistry feedExtensionRegistry,
+      ClearAllListener clearAllListener) {
+    this.loggingApi = loggingApi;
+    this.networkClient = networkClient;
+    this.protocolAdapter = protocolAdapter;
+    this.requestManager = requestManager;
+    this.sessionManager = sessionManager;
+    this.store = store;
+    this.timingUtils = timingUtils;
+    this.threadUtils = threadUtils;
+    this.taskQueue = taskQueue;
+    this.mainThreadRunner = mainThreadRunner;
+    this.appLifecycleListener = appLifecycleListener;
+    this.clock = clock;
+    this.debugBehavior = debugBehavior;
+    this.actionManager = actionManager;
+    this.configuration = configuration;
+    this.knownContentApi = knownContentApi;
+    this.feedExtensionRegistry = feedExtensionRegistry;
+    this.clearAllListener = clearAllListener;
+  }
+
   @Override
   public void dump(Dumper dumper) {
     dumper.title(TAG);
@@ -132,6 +196,7 @@ public final class FeedProcessScope implements Dumpable {
 
   public void onDestroy() {
     try {
+      Logger.i(TAG, "FeedProcessScope onDestroy called");
       networkClient.close();
       taskQueue.reset();
       taskQueue.completeReset();
@@ -140,8 +205,81 @@ public final class FeedProcessScope implements Dumpable {
     }
   }
 
+  public Clock getClock() {
+    return clock;
+  }
+
+  public ProtocolAdapter getProtocolAdapter() {
+    return protocolAdapter;
+  }
+
+  public RequestManager getRequestManager() {
+    return requestManager;
+  }
+
+  public SessionManager getSessionManager() {
+    return sessionManager;
+  }
+
+  public TimingUtils getTimingUtils() {
+    return timingUtils;
+  }
+
+  public MainThreadRunner getMainThreadRunner() {
+    return mainThreadRunner;
+  }
+
+  public TaskQueue getTaskQueue() {
+    return taskQueue;
+  }
+
+  public AppLifecycleListener getAppLifecycleListener() {
+    return appLifecycleListener;
+  }
+
+  public ActionManager getActionManager() {
+    return actionManager;
+  }
+
+  public Store getStore() {
+    return store;
+  }
+
+  public KnownContentApi getKnownContentApi() {
+    return knownContentApi;
+  }
+
+  public FeedExtensionRegistry getFeedExtensionRegistry() {
+    return feedExtensionRegistry;
+  }
+
   /** A builder that creates a {@link FeedProcessScope}. */
   public static final class Builder {
+
+    // Required fields.
+    private final Configuration configuration;
+    ExecutorService singleThreadExecutor;
+    private final LoggingApi loggingApi;
+    private final NetworkClient networkClient;
+    private final SchedulerApi schedulerApi;
+    private final FeedAppLifecycleListener lifecycleListener;
+    private final DebugBehavior debugBehavior;
+    private final Context context;
+    private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
+    private final ApplicationInfo applicationInfo;
+
+    // Optional fields - if they are not provided, we will use default implementations.
+    /*@MonotonicNonNull*/ private RequestManager requestManager = null;
+    /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
+    /*@MonotonicNonNull*/ private ProtocolAdapter protocolAdapter = null;
+    /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
+    /*@MonotonicNonNull*/ @VisibleForTesting ContentStorageDirect contentStorage = null;
+    /*@MonotonicNonNull*/ @VisibleForTesting JournalStorageDirect journalStorage = null;
+    /*@MonotonicNonNull*/ private Clock clock;
+    /*@MonotonicNonNull*/ private KnownContentApi knownContentApi;
+
+    // This will be overridden in tests.
+    private ThreadUtils threadUtils = new ThreadUtils();
 
     /** The APIs are all required to construct the scope. */
     public Builder(
@@ -338,136 +476,5 @@ public final class FeedProcessScope implements Dumpable {
           extensionRegistry,
           clearAllListener);
     }
-
-    // Required fields.
-    private final Configuration configuration;
-    ExecutorService singleThreadExecutor;
-    private final LoggingApi loggingApi;
-    private final NetworkClient networkClient;
-    private final SchedulerApi schedulerApi;
-    private final FeedAppLifecycleListener lifecycleListener;
-    private final DebugBehavior debugBehavior;
-    private final Context context;
-    private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
-    private final ApplicationInfo applicationInfo;
-
-    // Optional fields - if they are not provided, we will use default implementations.
-    /*@MonotonicNonNull*/ private RequestManager requestManager = null;
-    /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
-    /*@MonotonicNonNull*/ private ProtocolAdapter protocolAdapter = null;
-    /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
-    /*@MonotonicNonNull*/ @VisibleForTesting ContentStorageDirect contentStorage = null;
-    /*@MonotonicNonNull*/ @VisibleForTesting JournalStorageDirect journalStorage = null;
-    /*@MonotonicNonNull*/ private Clock clock;
-    /*@MonotonicNonNull*/ private KnownContentApi knownContentApi;
-
-    // This will be overridden in tests.
-    private ThreadUtils threadUtils = new ThreadUtils();
-  }
-
-  private FeedProcessScope(
-      LoggingApi loggingApi,
-      NetworkClient networkClient,
-      ProtocolAdapter protocolAdapter,
-      RequestManager requestManager,
-      SessionManager sessionManager,
-      Store store,
-      TimingUtils timingUtils,
-      ThreadUtils threadUtils,
-      TaskQueue taskQueue,
-      MainThreadRunner mainThreadRunner,
-      AppLifecycleListener appLifecycleListener,
-      Clock clock,
-      DebugBehavior debugBehavior,
-      ActionManager actionManager,
-      Configuration configuration,
-      KnownContentApi knownContentApi,
-      FeedExtensionRegistry feedExtensionRegistry,
-      ClearAllListener clearAllListener) {
-    this.loggingApi = loggingApi;
-    this.networkClient = networkClient;
-    this.protocolAdapter = protocolAdapter;
-    this.requestManager = requestManager;
-    this.sessionManager = sessionManager;
-    this.store = store;
-    this.timingUtils = timingUtils;
-    this.threadUtils = threadUtils;
-    this.taskQueue = taskQueue;
-    this.mainThreadRunner = mainThreadRunner;
-    this.appLifecycleListener = appLifecycleListener;
-    this.clock = clock;
-    this.debugBehavior = debugBehavior;
-    this.actionManager = actionManager;
-    this.configuration = configuration;
-    this.knownContentApi = knownContentApi;
-    this.feedExtensionRegistry = feedExtensionRegistry;
-    this.clearAllListener = clearAllListener;
-  }
-
-  private final LoggingApi loggingApi;
-  private final NetworkClient networkClient;
-  private final ProtocolAdapter protocolAdapter;
-  private final RequestManager requestManager;
-  private final SessionManager sessionManager;
-  private final Store store;
-  private final TimingUtils timingUtils;
-  private final ThreadUtils threadUtils;
-  private final TaskQueue taskQueue;
-  private final MainThreadRunner mainThreadRunner;
-  private final AppLifecycleListener appLifecycleListener;
-  private final Clock clock;
-  private final DebugBehavior debugBehavior;
-  private final ActionManager actionManager;
-  private final Configuration configuration;
-  private final KnownContentApi knownContentApi;
-  private final FeedExtensionRegistry feedExtensionRegistry;
-  private final ClearAllListener clearAllListener;
-
-  public Clock getClock() {
-    return clock;
-  }
-
-  public ProtocolAdapter getProtocolAdapter() {
-    return protocolAdapter;
-  }
-
-  public RequestManager getRequestManager() {
-    return requestManager;
-  }
-
-  public SessionManager getSessionManager() {
-    return sessionManager;
-  }
-
-  public TimingUtils getTimingUtils() {
-    return timingUtils;
-  }
-
-  public MainThreadRunner getMainThreadRunner() {
-    return mainThreadRunner;
-  }
-
-  public TaskQueue getTaskQueue() {
-    return taskQueue;
-  }
-
-  public AppLifecycleListener getAppLifecycleListener() {
-    return appLifecycleListener;
-  }
-
-  public ActionManager getActionManager() {
-    return actionManager;
-  }
-
-  public Store getStore() {
-    return store;
-  }
-
-  public KnownContentApi getKnownContentApi() {
-    return knownContentApi;
-  }
-
-  public FeedExtensionRegistry getFeedExtensionRegistry() {
-    return feedExtensionRegistry;
   }
 }
