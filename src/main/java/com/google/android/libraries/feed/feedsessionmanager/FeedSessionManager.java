@@ -165,6 +165,7 @@ public final class FeedSessionManager
     sessionPopulationTimeoutMs =
         configuration.getValueOrDefault(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS);
     lifecycleListenerObservable.registerObserver(this);
+    Logger.i(TAG, "FeedSessionManager has been created");
   }
 
   /**
@@ -174,11 +175,11 @@ public final class FeedSessionManager
    * executor task.
    */
   public void initialize() {
-    if (initialized.get()) {
-      Logger.i(TAG, "FeedSessionManager has previously been initialized");
+    boolean init = initialized.getAndSet(true);
+    if (init) {
+      Logger.w(TAG, "FeedSessionManager has previously been initialized");
       return;
     }
-    initialized.set(true);
     store.registerObserver(this);
     taskQueue.initialize(this::initializationTask);
     requestManager.setDefaultTriggerRefreshConsumerSupplier(
@@ -588,7 +589,7 @@ public final class FeedSessionManager
   public Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(
       MutationContext mutationContext) {
     if (!initialized.get()) {
-      Logger.i(TAG, "Lazy initialization triggered, triggerRefresh");
+      Logger.i(TAG, "Lazy initialization triggered, getUpdateConsumer");
       initialize();
     }
     return sessionManagerMutation.createCommitter(

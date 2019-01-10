@@ -201,6 +201,11 @@ public class TaskQueue implements Dumpable {
    * first task run, all other tasks are delayed until initialization finishes.
    */
   public void initialize(Runnable runnable) {
+    synchronized (lock) {
+      if (initialized) {
+        Logger.w(TAG, " - Calling initialize on an initialized TaskQueue");
+      }
+    }
     new InitializationTaskWrapper(runnable).runTask();
   }
 
