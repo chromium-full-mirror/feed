@@ -125,6 +125,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
       Logger.w(
           TAG,
           "Can't use radius of %s px, instead using %s. Width: %s, height: %s",
+          desiredRadius,
           radius,
           width,
           height);
