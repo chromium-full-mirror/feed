@@ -490,7 +490,7 @@ public class ElementListAdapterTest {
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).gravity)
         .isEqualTo(Gravity.CENTER_HORIZONTAL);
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
-        .isEqualTo(ViewGroup.LayoutParams.WRAP_CONTENT);
+        .isEqualTo(ViewGroup.LayoutParams.MATCH_PARENT);
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
         .isEqualTo(0);
   }

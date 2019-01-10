@@ -456,6 +456,12 @@ abstract class ElementAdapter<V extends View, M> {
     return checkNotNull(model);
   }
 
+  /** Returns the {@code model}, or null if the adapter is not bound. */
+  /*@Nullable*/
+  M getRawModel() {
+    return model;
+  }
+
   /** Return the Element's desired vertical placement within its container. */
   int getVerticalGravity(int defaultGravity) {
     if (model == null) {
@@ -516,13 +522,6 @@ abstract class ElementAdapter<V extends View, M> {
     }
     return ViewUtils.pietGravityToGravity(
         baseElement.getGravityHorizontal(), baseElement.getGravityVertical());
-  }
-
-  /** Returns the {@code model}, this is to support testing, it can be called at any time */
-  @VisibleForTesting
-  /*@Nullable*/
-  M getRawModel() {
-    return model;
   }
 
   ParameterizedTextEvaluator getTemplatedStringEvaluator() {

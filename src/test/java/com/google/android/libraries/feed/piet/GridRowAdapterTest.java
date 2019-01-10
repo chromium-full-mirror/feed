@@ -404,7 +404,7 @@ public class GridRowAdapterTest {
         .isInstanceOf(LinearLayout.LayoutParams.class);
     LayoutParams params =
         (LinearLayout.LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams();
-    assertThat(params.height).isEqualTo(LayoutParams.WRAP_CONTENT);
+    assertThat(params.height).isEqualTo(LayoutParams.MATCH_PARENT);
   }
 
   @Test
@@ -438,7 +438,7 @@ public class GridRowAdapterTest {
   }
 
   @Test
-  public void testOnBindModel_setsLayoutParamsOnCell_verticalGravityTop() {
+  public void testOnBindModel_setsLayoutParamsOnCell_verticalGravityCenter() {
     GridRow gridRowTop =
         GridRow.newBuilder()
             .addCells(
@@ -448,7 +448,7 @@ public class GridRowAdapterTest {
                             .setElement(
                                 DEFAULT_ELEMENT
                                     .toBuilder()
-                                    .setGravityVertical(GravityVertical.GRAVITY_TOP))))
+                                    .setGravityVertical(GravityVertical.GRAVITY_MIDDLE))))
             .build();
 
     adapter.createAdapter(asElement(gridRowTop), frameContext);
@@ -456,7 +456,7 @@ public class GridRowAdapterTest {
 
     SpacerElementAdapter cellAdapter = (SpacerElementAdapter) adapter.childAdapters.get(0);
     LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
-    assertThat(params.gravity).isEqualTo(Gravity.TOP);
+    assertThat(params.gravity).isEqualTo(Gravity.CENTER_VERTICAL);
   }
 
   @Test

@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
+
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
@@ -50,7 +52,14 @@ class ElementStackAdapter extends ElementContainerAdapter<FrameLayout, ElementSt
   private void updateChildLayoutParams(ElementAdapter<? extends View, ?> adapter) {
     FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(0, 0);
 
-    setChildWidthAndHeightOnParams(adapter, childParams);
+    childParams.width =
+        adapter.getComputedWidthPx() == DIMENSION_NOT_SET
+            ? LayoutParams.WRAP_CONTENT
+            : adapter.getComputedWidthPx();
+    childParams.height =
+        adapter.getComputedHeightPx() == DIMENSION_NOT_SET
+            ? LayoutParams.WRAP_CONTENT
+            : adapter.getComputedHeightPx();
 
     adapter.getElementStyle().applyMargins(getContext(), childParams);
 

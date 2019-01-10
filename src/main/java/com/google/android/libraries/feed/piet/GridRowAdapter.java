@@ -15,8 +15,10 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.Validators.checkState;
+import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_GRID_CELL_WIDTH_WITHOUT_CONTENTS;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_MISSING_ELEMENT_CONTENTS;
+import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_UNSUPPORTED_FEATURE;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -125,7 +127,12 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
           params.width = LayoutParams.WRAP_CONTENT;
           switch (gridCellWidth.getContentWidth()) {
             case CONTENT_WIDTH:
-              if (cellAdapter.getComputedWidthPx() != StyleProvider.DIMENSION_NOT_SET) {
+              if (cellAdapter.getComputedWidthPx() == LayoutParams.MATCH_PARENT) {
+                frameContext.reportMessage(
+                    MessageType.WARNING,
+                    ERR_UNSUPPORTED_FEATURE,
+                    "FIT_PARENT width is invalid for CONTENT_WIDTH cell contents.");
+              } else if (cellAdapter.getComputedWidthPx() != DIMENSION_NOT_SET) {
                 params.width = cellAdapter.getComputedWidthPx();
               }
               break;
@@ -154,10 +161,10 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
       }
     }
 
-    int height = cellAdapter.getComputedHeightPx();
-    if (height != StyleProvider.DIMENSION_NOT_SET) {
-      params.height = height;
-    }
+    params.height =
+        cellAdapter.getComputedHeightPx() == DIMENSION_NOT_SET
+            ? LayoutParams.MATCH_PARENT
+            : cellAdapter.getComputedHeightPx();
 
     cellAdapter.getElementStyle().applyMargins(getContext(), params);
 

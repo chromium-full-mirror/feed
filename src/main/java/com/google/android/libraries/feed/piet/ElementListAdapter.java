@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.piet;
 
+import static com.google.android.libraries.feed.piet.StyleProvider.DIMENSION_NOT_SET;
+
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.Gravity;
@@ -22,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
+import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
@@ -32,6 +35,10 @@ import java.util.List;
 /** An {@link ElementContainerAdapter} which manages vertical lists of elements. */
 class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementList> {
   private static final String TAG = "ElementListAdapter";
+
+  // Only needed for reporting errors during updateChildLayoutParams.
+  /*@Nullable*/ private FrameContext frameContextForDebugLogsFromCreate = null;
+  /*@Nullable*/ private FrameContext frameContextForDebugLogsFromBind = null;
 
   private ElementListAdapter(Context context, AdapterParameters parameters) {
     super(context, parameters, createView(context), KeySupplier.SINGLETON_KEY);
@@ -48,7 +55,14 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   }
 
   @Override
+  void onCreateAdapter(ElementList model, Element baseElement, FrameContext frameContext) {
+    this.frameContextForDebugLogsFromCreate = frameContext;
+    super.onCreateAdapter(model, baseElement, frameContext);
+  }
+
+  @Override
   void onBindModel(ElementList model, Element baseElement, FrameContext frameContext) {
+    this.frameContextForDebugLogsFromBind = frameContext;
     super.onBindModel(model, baseElement, frameContext);
     for (ElementAdapter<? extends View, ?> adapter : childAdapters) {
       updateChildLayoutParams(adapter);
@@ -69,6 +83,13 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
   void onUnbindModel() {
     ViewUtils.clearOnClickActions(getView());
     super.onUnbindModel();
+    this.frameContextForDebugLogsFromBind = null;
+  }
+
+  @Override
+  void onReleaseAdapter() {
+    super.onReleaseAdapter();
+    this.frameContextForDebugLogsFromCreate = null;
   }
 
   @Override
@@ -79,10 +100,35 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
     }
   }
 
+  /*@Nullable*/
+  private FrameContext getLoggingFrameContext() {
+    return frameContextForDebugLogsFromBind != null
+        ? frameContextForDebugLogsFromBind
+        : frameContextForDebugLogsFromCreate;
+  }
+
   private void updateChildLayoutParams(ElementAdapter<? extends View, ?> adapter) {
     LayoutParams childParams = new LayoutParams(0, 0);
 
-    setChildWidthAndHeightOnParams(adapter, childParams);
+    int childHeight = adapter.getComputedHeightPx();
+    if (childHeight == DIMENSION_NOT_SET) {
+      childHeight = LayoutParams.WRAP_CONTENT;
+    } else if (childHeight == LayoutParams.MATCH_PARENT) {
+      FrameContext loggingFrameContext = getLoggingFrameContext();
+      if (loggingFrameContext != null) {
+        loggingFrameContext.reportMessage(
+            MessageType.WARNING,
+            ErrorCode.ERR_UNSUPPORTED_FEATURE,
+            "FILL_PARENT not supported for height on ElementList contents.");
+      }
+      childHeight = LayoutParams.WRAP_CONTENT;
+    }
+
+    childParams.width =
+        adapter.getComputedWidthPx() == DIMENSION_NOT_SET
+            ? LayoutParams.MATCH_PARENT
+            : adapter.getComputedWidthPx();
+    childParams.height = childHeight;
 
     adapter.getElementStyle().applyMargins(getContext(), childParams);
 
