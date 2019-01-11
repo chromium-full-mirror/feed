@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Context;
@@ -31,7 +30,6 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.testing.FakeClock;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
-import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -159,28 +157,6 @@ public class LoadImageCallbackTest {
   }
 
   @Test
-  public void testStoresCallback_removeOnCancel() {
-    LoadImageCallback callback =
-        new LoadImageCallback(
-            new ImageView(context),
-            ScaleType.CENTER,
-            true,
-            parameters,
-            frameContext);
-    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
-    callback.accept(finalDrawable);
-
-    // The callback needs to be stored so that it isn't garbage collected, which is possible as
-    // Drawable stores the callback in a WeakReference.
-    assertThat(callback.transitionCallback).isNotNull();
-
-    callback.cancel();
-
-    // Cancelling should null out the callback so it can be garbage collected.
-    assertThat(callback.transitionCallback).isNull();
-  }
-
-  @Test
   public void testDelayedTask() {
     ImageView imageView = new ImageView(context);
     LoadImageCallback callback =
@@ -202,9 +178,6 @@ public class LoadImageCallbackTest {
     // TransitionDrawable to allow for garbage collection of the TransitionDrawable and
     // initialDrawable.
     assertThat(imageView.getDrawable()).isSameAs(finalDrawable);
-
-    // Clears out the callback to allow it to be garbage collected.
-    assertThat(callback.transitionCallback).isNull();
   }
 
   @Test
@@ -220,71 +193,5 @@ public class LoadImageCallbackTest {
     callback.accept(finalDrawable);
 
     assertThat(imageView.getScaleType()).isEqualTo(ScaleType.CENTER);
-  }
-
-  @Test
-  public void testInvalidatesBelowRoundedCornerFrameLayout() {
-    FrameLayout frameLayout1 = new FrameLayout(context);
-    RoundedCornerWrapperView roundedCornerWrapperView =
-        new RoundedCornerWrapperView(context, 0, 16);
-    FrameLayout frameLayout2 = new FrameLayout(context);
-
-    ImageView imageView = new ImageView(context);
-    frameLayout1.addView(roundedCornerWrapperView);
-    roundedCornerWrapperView.addView(frameLayout2);
-    frameLayout2.addView(imageView);
-
-    LoadImageCallback callback =
-        new LoadImageCallback(
-            imageView,
-            ScaleType.CENTER,
-            true,
-            parameters,
-            frameContext);
-
-    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
-    callback.accept(finalDrawable);
-
-    // The drawable in question here doesn't matter.
-    callback.transitionCallback.invalidateDrawable(new ColorDrawable(Color.BLUE));
-
-    assertThat(shadowOf(frameLayout1).wasInvalidated()).isFalse();
-    assertThat(shadowOf(roundedCornerWrapperView).wasInvalidated()).isTrue();
-    assertThat(shadowOf(frameLayout2).wasInvalidated()).isTrue();
-    assertThat(shadowOf(imageView).wasInvalidated()).isTrue();
-  }
-
-  @Test
-  public void testInvalidatesBelowRoundedCornerFrameLayout_notAboveFrameView() {
-    RoundedCornerWrapperView roundedCornerAboveFrameView =
-        new RoundedCornerWrapperView(context, 0, 34);
-    FrameLayout frameView = new FrameLayout(context);
-    RoundedCornerWrapperView roundedCornerBelowFrameView =
-        new RoundedCornerWrapperView(context, 0, 32);
-    ImageView imageView = new ImageView(context);
-
-    roundedCornerAboveFrameView.addView(frameView);
-    frameView.addView(roundedCornerBelowFrameView);
-    roundedCornerBelowFrameView.addView(imageView);
-    when(frameContext.getFrameView()).thenReturn(frameView);
-
-    LoadImageCallback callback =
-        new LoadImageCallback(
-            imageView,
-            ScaleType.CENTER,
-            true,
-            parameters,
-            frameContext);
-
-    clock.advance(FADE_IMAGE_THRESHOLD_MS + 1);
-    callback.accept(finalDrawable);
-
-    // The drawable in question here doesn't matter.
-    callback.transitionCallback.invalidateDrawable(new ColorDrawable(Color.BLUE));
-
-    assertThat(shadowOf(roundedCornerAboveFrameView).wasInvalidated()).isFalse();
-    assertThat(shadowOf(frameView).wasInvalidated()).isFalse();
-    assertThat(shadowOf(roundedCornerBelowFrameView).wasInvalidated()).isTrue();
-    assertThat(shadowOf(imageView).wasInvalidated()).isTrue();
   }
 }

@@ -81,7 +81,6 @@ class ElementListAdapter extends ElementContainerAdapter<LinearLayout, ElementLi
 
   @Override
   void onUnbindModel() {
-    ViewUtils.clearOnClickActions(getView());
     super.onUnbindModel();
     this.frameContextForDebugLogsFromBind = null;
   }

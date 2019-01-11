@@ -46,8 +46,6 @@ import java.util.Set;
  */
 abstract class ElementAdapter<V extends View, M> {
   private static final String TAG = "ElementAdapter";
-  /*@Nullable*/ private ActionBinding actionBinding;
-
   private final Context context;
   private final AdapterParameters parameters;
   private final V view;
@@ -124,10 +122,6 @@ abstract class ElementAdapter<V extends View, M> {
    * #onCreateAdapter} instead.
    */
   public void createAdapter(M model, Element baseElement, FrameContext frameContext) {
-    // The view and Element Adapter are conceptually a pair; tying them together by setting the
-    // Element Adapter as a tag ensures that the adapter won't be garbage collected while the view
-    // still exists.
-    this.view.setTag(R.id.element_adapter, this);
     this.model = model;
     this.baseElement = baseElement;
 
@@ -257,19 +251,12 @@ abstract class ElementAdapter<V extends View, M> {
     switch (baseElement.getActionsDataCase()) {
       case ACTIONS:
         actions = baseElement.getActions();
-        // This actionBinding refers to the class that encapsulates the complexities of binding and
-        // unbinding actions, saves the data needed for unbind, and prevents premature garbage
-        // collection of that data.
-        actionBinding = ViewUtils.setOnClickActions(actions, getBaseView(), frameContext);
+        ViewUtils.setOnClickActions(actions, getBaseView(), frameContext);
         break;
       case ACTIONS_BINDING:
         // Get the actions from the actions_binding in the template
         actions = frameContext.getActionsFromBinding(baseElement.getActionsBinding());
-        // This actionBinding refers to the class that encapsulates the complexities of binding and
-        // unbinding actions, saves the data needed for unbind, and prevents premature garbage
-        // collection of that data. It is not related to the actions_binding that was just used to
-        // retrieve the action.
-        actionBinding = ViewUtils.setOnClickActions(actions, getBaseView(), frameContext);
+        ViewUtils.setOnClickActions(actions, getBaseView(), frameContext);
         break;
       default: // No actions defined.
         actions = Actions.getDefaultInstance();
@@ -340,9 +327,9 @@ abstract class ElementAdapter<V extends View, M> {
     baseElement = Element.getDefaultInstance();
     binding = false;
 
-    if (actionBinding != null) {
-      actionBinding.unbind();
-    }
+    // Unset actions
+    ViewUtils.clearOnLongClickActions(getBaseView());
+    ViewUtils.clearOnClickActions(getBaseView());
 
     if (overlayAdapter != null) {
       overlayAdapter.unbindModel();

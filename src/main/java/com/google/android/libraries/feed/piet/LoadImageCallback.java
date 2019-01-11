@@ -17,9 +17,7 @@ package com.google.android.libraries.feed.piet;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Drawable.Callback;
 import android.graphics.drawable.TransitionDrawable;
-import android.support.annotation.VisibleForTesting;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -37,11 +35,8 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
   private final long initialTime;
   private final boolean fadeImage;
   private final AdapterParameters parameters;
-  private final FrameContext frameContext;
 
   private boolean cancelled;
-
-  @VisibleForTesting /*@Nullable*/ Callback transitionCallback;
 
   /*@Nullable*/ private Drawable finalDrawable;
 
@@ -56,7 +51,6 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
     this.fadeImage = fadeImage;
     this.parameters = parameters;
     this.initialTime = parameters.clock.elapsedRealtime();
-    this.frameContext = frameContext;
   }
 
   @Override
@@ -89,25 +83,15 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
     transitionDrawable.setCrossFadeEnabled(true);
     transitionDrawable.startTransition(FADE_IN_ANIMATION_TIME_MS);
 
-    // Storing callback so it won't be garbage collected by Drawable which holds it in a
-    // WeakReference
-    transitionCallback =
-        ViewUtils.createInvalidateRoundedCornerViewsCallback(
-            imageView, frameContext, transitionDrawable.getCallback());
-    transitionDrawable.setCallback(transitionCallback);
-
     imageView.postDelayed(
         () -> {
           if (cancelled) {
             return;
           }
-
           // Allows GC of the initial drawable and the transition drawable. Additionally
           // fixes the issue where the transition sometimes doesn't occur, which would
           // result in blank images.
           imageView.setImageDrawable(finalDrawable);
-          ViewUtils.invalidateBelowRoundedCorners(imageView, frameContext);
-          transitionCallback = null;
         },
         FADE_IN_ANIMATION_TIME_MS);
   }
@@ -120,6 +104,5 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
 
   void cancel() {
     this.cancelled = true;
-    transitionCallback = null;
   }
 }
