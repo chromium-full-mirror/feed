@@ -73,8 +73,10 @@ import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.GuardedBy;
@@ -124,6 +126,8 @@ public final class FeedSessionManager
   private final TaskQueue taskQueue;
   private final Clock clock;
   private final long sessionPopulationTimeoutMs;
+
+  @VisibleForTesting final Set<SessionMutationTracker> outstandingMutations = new HashSet<>();
 
   // operation counts for the dumper
   private int newSessionCount = 0;
@@ -591,12 +595,36 @@ public final class FeedSessionManager
       Logger.i(TAG, "Lazy initialization triggered, getUpdateConsumer");
       initialize();
     }
-    return sessionManagerMutation.createCommitter(
-        "updateConsumer",
-        mutationContext,
-        this::modelErrorObserver,
-        sharedStateCache,
-        knownContentListener);
+    return new SessionMutationTracker(mutationContext, "updateConsumer");
+  }
+
+  @VisibleForTesting
+  class SessionMutationTracker implements Consumer<Result<List<StreamDataOperation>>> {
+    private final MutationContext mutationContext;
+    private final String taskName;
+
+    @SuppressWarnings("argument.type.incompatible") // ok to add this to the map
+    private SessionMutationTracker(MutationContext mutationContext, String taskName) {
+      this.mutationContext = mutationContext;
+      this.taskName = taskName;
+      outstandingMutations.add(this);
+    }
+
+    @Override
+    public void accept(Result<List<StreamDataOperation>> input) {
+      if (outstandingMutations.remove(this)) {
+        sessionManagerMutation
+            .createCommitter(
+                taskName,
+                mutationContext,
+                FeedSessionManager.this::modelErrorObserver,
+                sharedStateCache,
+                knownContentListener)
+            .accept(input);
+      } else {
+        Logger.w(TAG, "SessionMutationTracker dropping response due to clear");
+      }
+    }
   }
 
   @Override
@@ -637,18 +665,12 @@ public final class FeedSessionManager
 
   private Consumer<Result<List<StreamDataOperation>>> getCommitter(
       String taskName, MutationContext mutationContext) {
-    return sessionManagerMutation.createCommitter(
-        taskName,
-        mutationContext,
-        this::modelErrorObserver,
-        sharedStateCache,
-        knownContentListener);
+    return new SessionMutationTracker(mutationContext, taskName);
   }
 
   @Override
   public void reset() {
     threadUtils.checkNotMainThread();
-
     sessionManagerMutation.forceResetHead();
     sessionCache.reset();
     // Invalidate all sessions currently under construction
@@ -708,6 +730,15 @@ public final class FeedSessionManager
     switch (event) {
       case LifecycleEvent.INITIALIZE:
         initialize();
+        break;
+      case LifecycleEvent.CLEAR_ALL:
+        Logger.i(TAG, "CLEAR_ALL will cancel %s mutations", outstandingMutations.size());
+        outstandingMutations.clear();
+        break;
+      case LifecycleEvent.CLEAR_ALL_WITH_REFRESH:
+        Logger.i(
+            TAG, "CLEAR_ALL_WITH_REFRESH will cancel %s mutations", outstandingMutations.size());
+        outstandingMutations.clear();
         break;
       default:
         // Do nothing

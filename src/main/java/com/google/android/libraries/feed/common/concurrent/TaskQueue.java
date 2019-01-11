@@ -252,7 +252,7 @@ public class TaskQueue implements Dumpable {
   private final class StarvationChecker implements Runnable {
     @Override
     public void run() {
-      if (!isDelayed()) {
+      if (!isDelayed() && !hasBacklog()) {
         // Quick out, we are not delaying things, this stops starvation checking
         Logger.i(TAG, " * Starvation checks being turned off");
         starvationChecks.set(false);
@@ -262,7 +262,7 @@ public class TaskQueue implements Dumpable {
       Logger.i(
           TAG, " * Starvation Check, last task %s", StringFormattingUtils.formatLogDate(lastTask));
       if (clock.currentTimeMillis() > lastTask + STARVATION_TIMEOUT_MS) {
-        Logger.e(TAG, "Starvation check failed, stopping the delay and running tasks");
+        Logger.e(TAG, " - Starvation check failed, stopping the delay and running tasks");
         // Reset the delay since things aren't being run
         synchronized (lock) {
           if (waitingForHeadReset) {
@@ -520,7 +520,7 @@ public class TaskQueue implements Dumpable {
     void runTask() {
       started.set(true);
       if (ranTimeoutTask.get()) {
-        Logger.w(TAG, "We ran the TimeoutTask already");
+        Logger.w(TAG, " - We ran the TimeoutTask already");
         return;
       }
       super.runTask();

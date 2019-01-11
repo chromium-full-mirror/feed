@@ -52,6 +52,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener.LifecycleEvent;
 import com.google.android.libraries.feed.feedmodelprovider.FeedModelProviderFactory;
+import com.google.android.libraries.feed.feedsessionmanager.FeedSessionManager.SessionMutationTracker;
 import com.google.android.libraries.feed.feedsessionmanager.internal.HeadSessionImpl;
 import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
@@ -334,6 +335,49 @@ public class FeedSessionManagerTest {
     when(protocolAdapter.getStreamContentId(undefinedSharedStateId))
         .thenReturn(undefinedStreamSharedStateId);
     assertThat(sessionManager.getSharedState(undefinedSharedStateId)).isNull();
+  }
+
+  @Test
+  public void testUpdateConsumer() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    assertThat(sessionManager.outstandingMutations).isEmpty();
+    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
+        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    assertThat(updateConsumer).isInstanceOf(SessionMutationTracker.class);
+    assertThat(sessionManager.outstandingMutations).hasSize(1);
+    assertThat(sessionManager.outstandingMutations).contains(updateConsumer);
+    updateConsumer.accept(Result.success(new ArrayList<>()));
+    assertThat(sessionManager.outstandingMutations).isEmpty();
+  }
+
+  @Test
+  public void testUpdateConsumer_clearAll() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    assertThat(sessionManager.outstandingMutations).isEmpty();
+    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
+        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    assertThat(sessionManager.outstandingMutations).hasSize(1);
+    appLifecycleListener.onClearAll();
+    assertThat(sessionManager.outstandingMutations).isEmpty();
+
+    // verify this still runs (as a noop)
+    updateConsumer.accept(Result.success(new ArrayList<>()));
+    assertThat(sessionManager.outstandingMutations).isEmpty();
+  }
+
+  @Test
+  public void testUpdateConsumer_clearAllWithRefresh() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    assertThat(sessionManager.outstandingMutations).isEmpty();
+    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
+        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    assertThat(sessionManager.outstandingMutations).hasSize(1);
+    appLifecycleListener.onClearAllWithRefresh();
+    assertThat(sessionManager.outstandingMutations).isEmpty();
+
+    // verify this still runs (as a noop)
+    updateConsumer.accept(Result.success(new ArrayList<>()));
+    assertThat(sessionManager.outstandingMutations).isEmpty();
   }
 
   @Test
