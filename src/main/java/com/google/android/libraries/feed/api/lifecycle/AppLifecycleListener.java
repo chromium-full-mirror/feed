@@ -32,6 +32,9 @@ public interface AppLifecycleListener {
    */
   void onClearAll();
 
+  /** Called to clear all data then initiate a refresh. */
+  void onClearAllWithRefresh();
+
   /**
    * Called when the host wants the Feed to perform any heavyweight initialization it might need to
    * do. This is the only trigger for the initialization process; if it’s not called, the host

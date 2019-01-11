@@ -305,6 +305,10 @@ public class TaskQueue implements Dumpable {
       if (taskType == TaskType.HEAD_INVALIDATE
           || taskType == TaskType.HEAD_RESET
           || taskType == TaskType.IMMEDIATE) {
+        if (taskType == TaskType.HEAD_INVALIDATE && haveHeadInvalidate()) {
+          Logger.w(TAG, " - Duplicate HeadInvalidate Task Found, ignoring new one");
+          return;
+        }
         immediateTasks.add(taskWrapper);
         maxImmediateTasks = Math.max(immediateTasks.size(), maxImmediateTasks);
         // An immediate could be created in a delayed state (invalidate head), so we check to
@@ -321,6 +325,17 @@ public class TaskQueue implements Dumpable {
         maxBackgroundTasks = Math.max(backgroundTasks.size(), maxBackgroundTasks);
       }
     }
+  }
+
+  private boolean haveHeadInvalidate() {
+    synchronized (lock) {
+      for (TaskWrapper taskWrapper : immediateTasks) {
+        if (taskWrapper.taskType == TaskType.HEAD_INVALIDATE) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private void countTask(@TaskType int taskType) {

@@ -103,6 +103,22 @@ public class TaskQueueTest {
   }
 
   @Test
+  public void testHeadInvalidateDropMultiple() {
+    Runnable invalidate = () -> runnable(1);
+    Runnable invalidateNotRun = () -> runnable(2);
+    Runnable init = () -> runnable(3);
+
+    TaskQueue taskQueue = getTaskQueue();
+    taskQueue.execute("headInvalidate", TaskType.HEAD_INVALIDATE, invalidate);
+    taskQueue.execute("headInvalidateDropped", TaskType.HEAD_INVALIDATE, invalidateNotRun);
+    assertThat(taskQueue.hasBacklog()).isTrue();
+    taskQueue.initialize(init);
+
+    assertThat(taskQueue.hasBacklog()).isFalse();
+    assertOrder(3, 1);
+  }
+
+  @Test
   public void testHeadInvalidateCallOrder() {
     TaskQueue taskQueue = getTaskQueue();
     taskQueue.initialize(this::noOp);

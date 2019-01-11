@@ -21,7 +21,6 @@ import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.lifecycle.AppLifecycleListener;
-import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
@@ -451,11 +450,8 @@ public final class FeedProcessScope implements Dumpable {
         knownContentApi = new FeedKnownContentApi(sessionManager, mainThreadRunner, threadUtils);
       }
 
-      Resettable resettableSessionManager =
-          sessionManager instanceof Resettable ? (Resettable) sessionManager : null;
       ClearAllListener clearAllListener =
-          new ClearAllListener(
-              taskQueue, resettableSessionManager, store, threadUtils, lifecycleListener);
+          new ClearAllListener(taskQueue, sessionManager, store, threadUtils, lifecycleListener);
       return new FeedProcessScope(
           loggingApi,
           networkClient,

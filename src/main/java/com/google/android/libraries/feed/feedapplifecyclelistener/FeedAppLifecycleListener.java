@@ -53,6 +53,13 @@ public final class FeedAppLifecycleListener extends FeedObservable<FeedLifecycle
   }
 
   @Override
+  public void onClearAllWithRefresh() {
+    threadUtils.checkMainThread();
+    Logger.i(TAG, "onClearAllWithRefresh called");
+    dispatchLifecycleEvent(LifecycleEvent.CLEAR_ALL_WITH_REFRESH);
+  }
+
+  @Override
   public void initialize() {
     threadUtils.checkMainThread();
     Logger.i(TAG, "checkMainThread called");

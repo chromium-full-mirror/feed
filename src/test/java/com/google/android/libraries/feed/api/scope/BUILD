@@ -4,6 +4,28 @@ load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:andro
 licenses(["notice"])  # Apache 2
 
 android_local_test(
+    name = "ClearAllListenerTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["ClearAllListenerTest.java"],
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "//src/main/java/com/google/android/libraries/feed/api/common",
+        "//src/main/java/com/google/android/libraries/feed/api/lifecycle",
+        "//src/main/java/com/google/android/libraries/feed/api/scope",
+        "//src/main/java/com/google/android/libraries/feed/api/sessionmanager",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent",
+        "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
+        "//src/main/java/com/google/android/libraries/feed/common/time",
+        "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
+        "@com_google_guava_guava//jar",
+        "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
+    ],
+)
+
+android_local_test(
     name = "FeedProcessScopeTest",
     size = "small",
     timeout = "moderate",

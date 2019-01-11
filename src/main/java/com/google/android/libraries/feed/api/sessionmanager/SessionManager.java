@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.api.sessionmanager;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
+import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
 import com.google.android.libraries.feed.common.Result;
@@ -35,7 +36,7 @@ import java.util.List;
  * relationship with a ModelProvider. The SessionManager implements the session functionality and
  * management.
  */
-public interface SessionManager {
+public interface SessionManager extends Resettable {
 
   /**
    * This is called by the UI to get a new session. The life of the session is controlled by the

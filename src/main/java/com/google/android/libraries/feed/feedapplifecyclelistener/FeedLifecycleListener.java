@@ -26,12 +26,14 @@ public interface FeedLifecycleListener {
     LifecycleEvent.ENTER_FOREGROUND,
     LifecycleEvent.ENTER_BACKGROUND,
     LifecycleEvent.CLEAR_ALL,
+    LifecycleEvent.CLEAR_ALL_WITH_REFRESH,
     LifecycleEvent.INITIALIZE
   })
   @interface LifecycleEvent {
     String ENTER_FOREGROUND = "foreground";
     String ENTER_BACKGROUND = "background";
     String CLEAR_ALL = "clearAll";
+    String CLEAR_ALL_WITH_REFRESH = "clearAllWithRefresh";
     String INITIALIZE = "initialize";
   }
 

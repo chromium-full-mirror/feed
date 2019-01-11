@@ -24,7 +24,6 @@ import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi.KnownContentListener;
-import com.google.android.libraries.feed.api.lifecycle.Resettable;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
@@ -82,7 +81,7 @@ import javax.annotation.concurrent.GuardedBy;
 
 /** Prototype implementation of the SessionManager. All state is kept in memory. */
 public final class FeedSessionManager
-    implements SessionManager, StoreListener, FeedLifecycleListener, Resettable, Dumpable {
+    implements SessionManager, StoreListener, FeedLifecycleListener, Dumpable {
 
   private static final String TAG = "FeedSessionManager";
 
@@ -510,7 +509,7 @@ public final class FeedSessionManager
       initialize();
     }
     taskQueue.execute(
-        "triggerRefresh(Invalidate,Request)",
+        "triggerRefresh(FeedSessionManager)",
         TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
         () -> triggerRefreshTask(streamSession));
   }
