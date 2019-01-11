@@ -28,6 +28,7 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
+import com.google.android.libraries.feed.piet.ui.GradientDrawable;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerViewHelper;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
@@ -454,10 +455,14 @@ class StyleProvider {
    */
   /*@Nullable*/
   private Drawable createBackgroundForFill(Fill background) {
-    if (!background.hasColor()) {
-      return null;
+    switch (background.getFillTypeCase()) {
+      case COLOR:
+        return new ColorDrawable(background.getColor());
+      case LINEAR_GRADIENT:
+        return new GradientDrawable(background.getLinearGradient());
+      default:
+        return null;
     }
-    return new ColorDrawable(background.getColor());
   }
 
   @Override

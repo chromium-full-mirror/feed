@@ -36,8 +36,11 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
+import com.google.android.libraries.feed.piet.ui.GradientDrawable;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
+import com.google.search.now.ui.piet.GradientsProto.ColorStop;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
+import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
 import com.google.search.now.ui.piet.ImagesProto.Image.ScaleType;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
@@ -558,6 +561,87 @@ public class StyleProviderTest {
     new StyleProvider(style, mockAssetProvider).applyElementStyles(adapter);
 
     assertThat(view.getBackground()).isNull();
+  }
+
+  @Test
+  public void testElementStyles_gradientBackground() {
+    view.setBackground(new ColorDrawable(0xffff0000));
+
+    Style style =
+        Style.newBuilder()
+            .setBackground(
+                Fill.newBuilder()
+                    .setLinearGradient(
+                        LinearGradient.newBuilder()
+                            .setDirectionDeg(25)
+                            .addStops(
+                                ColorStop.newBuilder().setColor(Color.RED).setPositionPercent(0))
+                            .addStops(
+                                ColorStop.newBuilder().setColor(Color.WHITE).setPositionPercent(25))
+                            .addStops(
+                                ColorStop.newBuilder().setColor(Color.GREEN).setPositionPercent(50))
+                            .addStops(
+                                ColorStop.newBuilder().setColor(Color.WHITE).setPositionPercent(75))
+                            .addStops(
+                                ColorStop.newBuilder()
+                                    .setColor(Color.BLUE)
+                                    .setPositionPercent(100))))
+            .build();
+
+    new StyleProvider(style, mockAssetProvider).applyElementStyles(adapter);
+
+    Drawable background = view.getBackground();
+    assertThat(background).isInstanceOf(GradientDrawable.class);
+  }
+
+  @Test
+  public void testElementStyles_gradientBackground_badAngle_doesntCrash() {
+    view.setBackground(new ColorDrawable(0xffff0000));
+
+    Style style =
+        Style.newBuilder()
+            .setBackground(
+                Fill.newBuilder()
+                    .setLinearGradient(
+                        LinearGradient.newBuilder()
+                            .setDirectionDeg(999)
+                            .addStops(
+                                ColorStop.newBuilder().setColor(Color.RED).setPositionPercent(0))
+                            .addStops(
+                                ColorStop.newBuilder()
+                                    .setColor(Color.BLUE)
+                                    .setPositionPercent(100))))
+            .build();
+
+    new StyleProvider(style, mockAssetProvider).applyElementStyles(adapter);
+
+    Drawable background = view.getBackground();
+    assertThat(background).isInstanceOf(GradientDrawable.class);
+  }
+
+  @Test
+  public void testElementStyles_gradientBackground_badPercent_doesntCrash() {
+    view.setBackground(new ColorDrawable(0xffff0000));
+
+    Style style =
+        Style.newBuilder()
+            .setBackground(
+                Fill.newBuilder()
+                    .setLinearGradient(
+                        LinearGradient.newBuilder()
+                            .setDirectionDeg(45)
+                            .addStops(
+                                ColorStop.newBuilder().setColor(Color.RED).setPositionPercent(200))
+                            .addStops(
+                                ColorStop.newBuilder()
+                                    .setColor(Color.BLUE)
+                                    .setPositionPercent(25))))
+            .build();
+
+    new StyleProvider(style, mockAssetProvider).applyElementStyles(adapter);
+
+    Drawable background = view.getBackground();
+    assertThat(background).isInstanceOf(GradientDrawable.class);
   }
 
   @Test
