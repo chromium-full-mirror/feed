@@ -1,13 +1,5 @@
 package(default_visibility = ["//visibility:public"])
 
-package_group(
-    name = "feedknowncontent_pkgs",
-    packages = [
-        "//src/main/java/com/google/android/libraries/feed/feedknowncontent/...",
-        "//src/test/java/com/google/android/libraries/feed/feedknowncontent/...",
-    ],
-)
-
 licenses(["notice"])  # Apache 2
 
 java_library(

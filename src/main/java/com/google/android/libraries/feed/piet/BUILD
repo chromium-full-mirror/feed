@@ -4,19 +4,6 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2
 
-package_group(
-    name = "framework",
-    packages = ["//src/main/java/com/google/android/libraries/feed/piet/..."],
-)
-
-package_group(
-    name = "framework_and_users",
-    includes = [
-        ":framework",
-    ],
-    packages = ["//..."],
-)
-
 android_library(
     name = "piet",
     srcs = glob(["*.java"]),

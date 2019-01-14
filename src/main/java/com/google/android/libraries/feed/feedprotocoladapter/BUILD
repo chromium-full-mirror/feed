@@ -2,14 +2,6 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2
 
-package_group(
-    name = "feedprotocoladapter_pkgs",
-    packages = [
-        "//src/main/java/com/google/android/libraries/feed/feedprotocoladapter/...",
-        "//src/test/java/com/google/android/libraries/feed/feedprotocoladapter/...",
-    ],
-)
-
 android_library(
     name = "feedprotocoladapter",
     srcs = glob(["*.java"]),

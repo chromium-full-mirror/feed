@@ -4,14 +4,6 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2
 
-package_group(
-    name = "basicstream_pkgs",
-    packages = [
-        "//src/main/java/com/google/android/libraries/feed/basicstream/...",
-        "//src/test/java/com/google/android/libraries/feed/basicstream/...",
-    ],
-)
-
 android_library(
     name = "basicstream",
     srcs = glob(["*.java"]),
