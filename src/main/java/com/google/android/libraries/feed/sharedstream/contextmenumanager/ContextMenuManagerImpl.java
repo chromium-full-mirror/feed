@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.sharedstream.contextmenumanager;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION;
@@ -235,10 +234,6 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     popupWindow.setHeight(measurements.getHeight());
 
     popupWindow.setFocusable(true);
-    popupWindow.setBackgroundDrawable(
-        context.getResources().getDrawable(R.drawable.feed_popup_window_bg));
-    popupWindow.setElevation(
-        context.getResources().getDimension(R.dimen.feed_popup_window_elevation));
 
     return new PopupWindowWithDimensions(popupWindow, measurements);
   }
@@ -265,7 +260,6 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
   private ListView createListView(ArrayAdapter<String> adapter, Context context) {
     ListView listView = new ListView(context);
     listView.setAdapter(adapter);
-    listView.setBackgroundColor(Color.WHITE);
     listView.setDivider(null);
     listView.setDividerHeight(0);
     return listView;
