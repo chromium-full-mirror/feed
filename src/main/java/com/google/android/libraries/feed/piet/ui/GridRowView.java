@@ -96,6 +96,9 @@ public class GridRowView extends LinearLayout {
     float totalWeight = 0;
     for (int i = 0; i < getChildCount(); i++) {
       View view = getChildAt(i);
+      if (view.getVisibility() == View.GONE) {
+        continue;
+      }
       LayoutParams params = ((LayoutParams) view.getLayoutParams());
       if (params.weight == 0
           && (params.width > 0 || params.width == LayoutParams.WRAP_CONTENT)
@@ -125,6 +128,10 @@ public class GridRowView extends LinearLayout {
     // cells will get whatever's left.
     for (int i = 0; i < getChildCount(); i++) {
       View view = getChildAt(i);
+      if (view.getVisibility() == View.GONE) {
+        continue;
+      }
+
       LayoutParams params = ((LayoutParams) view.getLayoutParams());
       if (!params.isCollapsible) {
         continue;
@@ -153,6 +160,9 @@ public class GridRowView extends LinearLayout {
     if (totalWeight > 0) {
       for (int i = 0; i < getChildCount(); i++) {
         View view = getChildAt(i);
+        if (view.getVisibility() == View.GONE) {
+          continue;
+        }
         LayoutParams params = ((LayoutParams) view.getLayoutParams());
         if (params.weight > 0) {
           view.measure(
@@ -167,6 +177,9 @@ public class GridRowView extends LinearLayout {
     availableWidth = maxWidth - gridRowHorizontalPadding;
     for (int i = 0; i < getChildCount(); i++) {
       View view = getChildAt(i);
+      if (view.getVisibility() == View.GONE) {
+        continue;
+      }
       LayoutParams params = ((LayoutParams) view.getLayoutParams());
       availableWidth -= MarginLayoutParamsCompat.getMarginStart(params);
       if (view.getMeasuredWidth() > availableWidth) {
@@ -193,6 +206,9 @@ public class GridRowView extends LinearLayout {
       int maxCellHeight = 0;
       for (int i = 0; i < getChildCount(); i++) {
         View view = getChildAt(i);
+        if (view.getVisibility() == View.GONE) {
+          continue;
+        }
         if (view.getMeasuredHeight() > maxCellHeight) {
           maxCellHeight = view.getMeasuredHeight();
         }
@@ -205,6 +221,9 @@ public class GridRowView extends LinearLayout {
     // Resize any cells that are MATCH_PARENT or have a min height on them.
     for (int i = 0; i < getChildCount(); i++) {
       View view = getChildAt(i);
+      if (view.getVisibility() == View.GONE) {
+        continue;
+      }
       LayoutParams params = ((LayoutParams) view.getLayoutParams());
       if (params.height == LayoutParams.MATCH_PARENT) {
         view.measure(

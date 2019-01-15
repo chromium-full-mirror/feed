@@ -37,6 +37,7 @@ public class GridRowViewTest {
   private static final int WRAP_CONTENT_WIDTH = 75;
   private static final int COLLAPSIBLE_WIDTH = 80;
   private static final int HEIGHT = 1234;
+  private static final int LARGE_HEIGHT = 10000;
 
   private int unspecifiedSpec;
 
@@ -48,6 +49,7 @@ public class GridRowViewTest {
   private TestView widthView;
   private TestView weightView;
   private TestView weightView2;
+  private TestView goneView;
 
   private GridRowView gridRowView;
 
@@ -80,6 +82,11 @@ public class GridRowViewTest {
 
     weightView2 = new TestView(context, 0, HEIGHT);
     weightView2.setLayoutParams(new LayoutParams(0, HEIGHT, 1.0f, false));
+
+    goneView = new TestView(context, WIDTH, LARGE_HEIGHT);
+    goneView.setMinimumHeight(LARGE_HEIGHT);
+    goneView.setMinimumWidth(WIDTH);
+    goneView.setVisibility(View.GONE);
   }
 
   @Test
@@ -163,6 +170,8 @@ public class GridRowViewTest {
     gridRowView.addView(widthView);
     gridRowView.addView(weightView);
     gridRowView.addView(weightView2);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(400, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -180,6 +189,8 @@ public class GridRowViewTest {
     gridRowView.addView(widthView);
     gridRowView.addView(collapsibleView);
     gridRowView.addView(wrapContentView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.measure(unspecifiedSpec, unspecifiedSpec);
 
@@ -197,6 +208,8 @@ public class GridRowViewTest {
     gridRowView.addView(widthView);
     gridRowView.addView(collapsibleView);
     gridRowView.addView(wrapContentView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(400, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -215,6 +228,8 @@ public class GridRowViewTest {
     gridRowView.addView(widthView);
     gridRowView.addView(collapsibleView);
     gridRowView.addView(wrapContentView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(200, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -233,6 +248,8 @@ public class GridRowViewTest {
     gridRowView.addView(widthView);
     gridRowView.addView(collapsibleView);
     gridRowView.addView(wrapContentView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(160, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -249,6 +266,8 @@ public class GridRowViewTest {
 
     gridRowView.addView(collapsibleView);
     gridRowView.addView(collapsibleView2);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(200, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -264,6 +283,8 @@ public class GridRowViewTest {
 
     gridRowView.addView(collapsibleView);
     gridRowView.addView(collapsibleView2);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(100, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -279,6 +300,8 @@ public class GridRowViewTest {
 
     gridRowView.addView(collapsibleView);
     gridRowView.addView(collapsibleView2);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(50, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -295,6 +318,8 @@ public class GridRowViewTest {
     gridRowView.addView(collapsibleView);
     gridRowView.addView(weightView);
     gridRowView.addView(weightView2);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(100, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -311,6 +336,8 @@ public class GridRowViewTest {
 
     gridRowView.addView(collapsibleView);
     gridRowView.addView(weightView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(50, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -330,6 +357,8 @@ public class GridRowViewTest {
     gridRowView.addView(widthView);
     gridRowView.addView(collapsibleView);
     gridRowView.addView(wrapContentView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(400, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -350,6 +379,8 @@ public class GridRowViewTest {
     gridRowView.addView(widthView);
     gridRowView.addView(collapsibleView);
     gridRowView.addView(wrapContentView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int widthSpec = MeasureSpec.makeMeasureSpec(200, MeasureSpec.EXACTLY);
     gridRowView.measure(widthSpec, unspecifiedSpec);
@@ -372,6 +403,8 @@ public class GridRowViewTest {
 
     gridRowView.addView(collapsibleView);
     gridRowView.addView(squareView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(
         new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -401,6 +434,8 @@ public class GridRowViewTest {
     gridRowView.addView(square1);
     gridRowView.addView(square2);
     gridRowView.addView(square3);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(
         new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -426,6 +461,8 @@ public class GridRowViewTest {
     gridRowView.addView(square1);
     gridRowView.addView(square2);
     gridRowView.addView(square3);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, 100));
 
@@ -468,6 +505,8 @@ public class GridRowViewTest {
     gridRowView.addView(square1);
     gridRowView.addView(square2);
     gridRowView.addView(square3);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(
         new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -495,6 +534,8 @@ public class GridRowViewTest {
     gridRowView.addView(square1);
     gridRowView.addView(square2);
     gridRowView.addView(square3);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(
         new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -525,6 +566,8 @@ public class GridRowViewTest {
     gridRowView.addView(square1);
     gridRowView.addView(square2);
     gridRowView.addView(square3);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(
         new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -557,6 +600,8 @@ public class GridRowViewTest {
     gridRowView.addView(square1);
     gridRowView.addView(square2);
     gridRowView.addView(square3);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(
         new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -579,6 +624,8 @@ public class GridRowViewTest {
     gridRowView.addView(widthView);
     gridRowView.addView(collapsibleView);
     gridRowView.addView(wrapContentView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     int paddingLeft = 10;
     int paddingTop = 20;
@@ -611,6 +658,8 @@ public class GridRowViewTest {
 
     gridRowView.addView(tallView);
     gridRowView.addView(shortView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(new LayoutParams(50, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -633,6 +682,8 @@ public class GridRowViewTest {
 
     gridRowView.addView(tallView);
     gridRowView.addView(shortView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(new LayoutParams(50, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -654,6 +705,9 @@ public class GridRowViewTest {
 
     gridRowView.addView(view1);
     gridRowView.addView(view2);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
+
     gridRowView.setLayoutParams(
         new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
@@ -669,6 +723,9 @@ public class GridRowViewTest {
   public void testOnMeasure_fitContentWidthRowWithWeightCellsTakesAllSpace() {
     gridRowView.addView(widthView);
     gridRowView.addView(weightView);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
+
     gridRowView.setLayoutParams(
         new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
@@ -696,6 +753,9 @@ public class GridRowViewTest {
 
     gridRowView.addView(view1);
     gridRowView.addView(view2);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
+
     gridRowView.setLayoutParams(
         new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
