@@ -102,6 +102,10 @@ public class RoundedCornerWrapperView extends FrameLayout {
       super.draw(canvas);
       return;
     }
+    if (getWidth() == 0 || getHeight() == 0) {
+      // Bitmap creation will fail in these cases
+      return;
+    }
 
     Bitmap offscreenBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
     Canvas offscreenCanvas = new Canvas(offscreenBitmap);
