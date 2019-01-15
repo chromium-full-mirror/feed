@@ -131,9 +131,9 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   /*@Nullable*/ private final Predicate<StreamStructure> filterPredicate;
   /*@Nullable*/ private RemoveTrackingFactory<?> removeTrackingFactory;
 
-  private final int nonCacheInitialPageSize;
-  private final int nonCachePageSize;
-  private final int nonCacheMinPageSize;
+  private final int initialPageSize;
+  private final int pageSize;
+  private final int minPageSize;
 
   /*@Nullable*/ @VisibleForTesting StreamSession streamSession;
 
@@ -153,10 +153,9 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     this.timingUtils = timingUtils;
     this.taskQueue = taskQueue;
     this.mainThreadRunner = mainThreadRunner;
-    this.nonCacheInitialPageSize =
-        config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0);
-    this.nonCachePageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0);
-    this.nonCacheMinPageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0);
+    this.initialPageSize = config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0);
+    this.pageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_PAGE_SIZE, 0);
+    this.minPageSize = config.getValueOrDefault(ConfigKey.NON_CACHED_MIN_PAGE_SIZE, 0);
     this.filterPredicate = filterPredicate;
 
     CursorProvider cursorProvider =
@@ -553,6 +552,18 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
             }
           }
 
+          int tokenStart = 0;
+          int tokenPageSize = initialPageSize;
+          synchronized (lock) {
+            if (root != null) {
+              ArrayList<UpdatableModelChild> rootChildren = containers.get(root.getContentId());
+              if (rootChildren != null) {
+                tokenStart = rootChildren.size() - 1;
+                tokenPageSize = pageSize;
+              }
+            }
+          }
+
           // All appends and updates are considered unbound (childrenToBind) and will need to be
           // sent to the ModelChildBinder.
           Map<String, UpdatableModelChild> appendedChildren = new HashMap<>();
@@ -603,10 +614,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
           }
 
           synchronized (lock) {
-            if (shouldInsertSyntheticToken(change)) {
+            if (shouldInsertSyntheticToken()) {
               SyntheticTokenTracker tokenTracker =
                   new SyntheticTokenTracker(
-                      Validators.checkNotNull(root), 0, nonCacheInitialPageSize);
+                      Validators.checkNotNull(root), tokenStart, tokenPageSize);
               childrenToBind = tokenTracker.insertToken();
             }
           }
@@ -760,9 +771,9 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     }
   }
 
-  private boolean shouldInsertSyntheticToken(Change change) {
+  private boolean shouldInsertSyntheticToken() {
     synchronized (lock) {
-      return (root != null && !change.cachedBindings && nonCacheInitialPageSize > 0);
+      return (root != null && initialPageSize > 0);
     }
   }
 
@@ -800,7 +811,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         start = 0;
         end = children.size();
       } else if (start + pageSize > children.size()
-          || start + pageSize + nonCacheMinPageSize > children.size()) {
+          || start + pageSize + minPageSize > children.size()) {
         end = children.size();
       }
       this.startingPosition = start;
@@ -866,7 +877,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
           if (pos > 0) {
             rootChildren.remove(pos);
             SyntheticTokenTracker tokenTracker =
-                new SyntheticTokenTracker(currentRoot, pos, nonCachePageSize);
+                new SyntheticTokenTracker(currentRoot, pos, pageSize);
             List<UpdatableModelChild> childrenToBind = tokenTracker.insertToken();
             List<UpdatableModelChild> cursorSublist =
                 rootChildren.subList(pos, rootChildren.size());

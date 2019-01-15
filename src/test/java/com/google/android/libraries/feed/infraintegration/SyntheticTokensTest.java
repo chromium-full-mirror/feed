@@ -22,18 +22,21 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
 import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
+import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
+import com.google.android.libraries.feed.common.testing.PagingState;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -61,6 +64,7 @@ public class SyntheticTokensTest {
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
+  private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
 
   @Before
   public void setUp() {
@@ -131,7 +135,10 @@ public class SyntheticTokensTest {
     ModelFeature root = modelProvider.getRootFeature();
     assertThat(root).isNotNull();
     ModelCursor cursor = root.getCursor();
-    modelValidator.assertCursorContents(cursor, cards);
+    ModelChild token =
+        modelValidator.assertCursorContentsWithToken(
+            cursor, Arrays.copyOf(cards, INITIAL_PAGE_SIZE));
+    assertThat(token.getModelToken().isSynthetic()).isTrue();
 
     // clear the ContentCache
     clearSessionManagerContentCache();
@@ -143,9 +150,107 @@ public class SyntheticTokensTest {
     root = modelProvider.getRootFeature();
     assertThat(root).isNotNull();
     cursor = root.getCursor();
+    token =
+        modelValidator.assertCursorContentsWithToken(
+            cursor, Arrays.copyOf(cards, INITIAL_PAGE_SIZE));
+
+    // Register observer, handle token, verify the full cursor and the observer's cursor
+    // This should be the second page (PAGE_SIZE) and there will still be a new synthetic token
+    TokenCompletedObserver tokenCompletedObserver = mock(TokenCompletedObserver.class);
+    token.getModelToken().registerObserver(tokenCompletedObserver);
+    modelProvider.handleToken(token.getModelToken());
+    ArgumentCaptor<TokenCompleted> completedArgumentCaptor =
+        ArgumentCaptor.forClass(TokenCompleted.class);
+    verify(tokenCompletedObserver).onTokenCompleted(completedArgumentCaptor.capture());
+    ModelCursor pageCursor = completedArgumentCaptor.getValue().getCursor();
+    assertThat(pageCursor).isNotNull();
+    modelValidator.assertCursorContentsWithToken(
+        cursor, Arrays.copyOfRange(cards, INITIAL_PAGE_SIZE, INITIAL_PAGE_SIZE + PAGE_SIZE));
+    cursor = root.getCursor();
+    token =
+        modelValidator.assertCursorContentsWithToken(
+            cursor, Arrays.copyOf(cards, INITIAL_PAGE_SIZE + PAGE_SIZE));
+
+    // Register observer, handle token, verify that we pick up PAGE_SIZE + slop, verify
+    // observer cursor and full cursor, no further token will be in the cursor.
+    tokenCompletedObserver = mock(TokenCompletedObserver.class);
+    token.getModelToken().registerObserver(tokenCompletedObserver);
+    modelProvider.handleToken(token.getModelToken());
+    completedArgumentCaptor = ArgumentCaptor.forClass(TokenCompleted.class);
+    verify(tokenCompletedObserver).onTokenCompleted(completedArgumentCaptor.capture());
+    pageCursor = completedArgumentCaptor.getValue().getCursor();
+    assertThat(pageCursor).isNotNull();
+    modelValidator.assertCursorContents(
+        pageCursor, Arrays.copyOfRange(cards, INITIAL_PAGE_SIZE + PAGE_SIZE, cards.length));
+    modelProvider.handleToken(token.getModelToken());
+    cursor = root.getCursor();
+    modelValidator.assertCursorContents(cursor, cards);
+  }
+
+  /**
+   * This test will test the creation of synthetic tokens.
+   *
+   * <ol>
+   *   <li>Create an initial $HEAD with 13 items
+   *   <li>Clear the FeedSessionManager ContentCache to simulate non-cached mode
+   *   <li>Create a new session which will have a synthetic token at INITIAL_PAGE_SIZE
+   *   <li>SessionManager.handleToken on the synthetic token, verify full cursor and partial page
+   *       cursor
+   *   <li>SessionManager.handleToken on the next synthetic token, verify we get PAGE_SIZE + slop.
+   *       Verify both the full cursor and the partial page cursor. No further tokens will be in the
+   *       cursor.
+   * </ol>
+   */
+  @Test
+  public void syntheticTokenPaging_withCache() {
+    ContentId[] cards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(1),
+          WireProtocolResponseBuilder.createFeatureContentId(2),
+          WireProtocolResponseBuilder.createFeatureContentId(3),
+          WireProtocolResponseBuilder.createFeatureContentId(4),
+          WireProtocolResponseBuilder.createFeatureContentId(5),
+          WireProtocolResponseBuilder.createFeatureContentId(6),
+          WireProtocolResponseBuilder.createFeatureContentId(7),
+          WireProtocolResponseBuilder.createFeatureContentId(9),
+          WireProtocolResponseBuilder.createFeatureContentId(10),
+          WireProtocolResponseBuilder.createFeatureContentId(11),
+          WireProtocolResponseBuilder.createFeatureContentId(12),
+          WireProtocolResponseBuilder.createFeatureContentId(13)
+        };
+
+    // Create 13 cards (initial page size + page size + page size and slope of 1)
+    // Initial model will have all the cards
+    WireProtocolResponseBuilder responseBuilder =
+        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    for (ContentId contentId : cards) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+
+    ModelFeature root = modelProvider.getRootFeature();
+    assertThat(root).isNotNull();
+    ModelCursor cursor = root.getCursor();
     ModelChild token =
         modelValidator.assertCursorContentsWithToken(
             cursor, Arrays.copyOfRange(cards, 0, INITIAL_PAGE_SIZE));
+    assertThat(token.getModelToken().isSynthetic()).isTrue();
+
+    // Create a new ModelProvider and verify the first page size is INITIAL_PAGE_SIZE (4)
+    modelProvider = modelProviderFactory.createNew(null);
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+
+    root = modelProvider.getRootFeature();
+    assertThat(root).isNotNull();
+    cursor = root.getCursor();
+    token =
+        modelValidator.assertCursorContentsWithToken(
+            cursor, Arrays.copyOf(cards, INITIAL_PAGE_SIZE));
 
     // Register observer, handle token, verify the full cursor and the observer's cursor
     // This should be the second page (PAGE_SIZE) and there will still be a new synthetic token
@@ -178,6 +283,75 @@ public class SyntheticTokensTest {
     modelProvider.handleToken(token.getModelToken());
     cursor = root.getCursor();
     modelValidator.assertCursorContents(cursor, cards);
+  }
+
+  /**
+   * This test will test the creation of synthetic tokens.
+   *
+   * <ol>
+   *   <li>Create an initial $HEAD with 13 items
+   *   <li>Clear the FeedSessionManager ContentCache to simulate non-cached mode
+   *   <li>Create a new session which will have a synthetic token at INITIAL_PAGE_SIZE
+   *   <li>SessionManager.handleToken on the synthetic token, verify full cursor and partial page
+   *       cursor
+   *   <li>SessionManager.handleToken on the next synthetic token, verify we get PAGE_SIZE + slop.
+   *       Verify both the full cursor and the partial page cursor. No further tokens will be in the
+   *       cursor.
+   * </ol>
+   */
+  @Test
+  public void syntheticTokenPaging_paging() {
+    ContentId[] cards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(1),
+          WireProtocolResponseBuilder.createFeatureContentId(2),
+          WireProtocolResponseBuilder.createFeatureContentId(3),
+          WireProtocolResponseBuilder.createFeatureContentId(4),
+        };
+    ContentId[] pageCards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(5),
+          WireProtocolResponseBuilder.createFeatureContentId(6),
+          WireProtocolResponseBuilder.createFeatureContentId(7),
+          WireProtocolResponseBuilder.createFeatureContentId(8),
+          WireProtocolResponseBuilder.createFeatureContentId(9),
+          WireProtocolResponseBuilder.createFeatureContentId(10),
+          WireProtocolResponseBuilder.createFeatureContentId(11),
+          WireProtocolResponseBuilder.createFeatureContentId(12)
+        };
+
+    PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
+    requestManager.queueResponse(state.initialResponse);
+    requestManager.queueResponse(state.pageResponse);
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+
+    ModelFeature root = modelProvider.getRootFeature();
+    assertThat(root).isNotNull();
+    ModelCursor cursor = root.getCursor();
+    ModelChild tokenFeature = modelValidator.assertCursorContentsWithToken(cursor, cards);
+    assertThat(tokenFeature).isNotNull();
+    assertThat(tokenFeature.getModelToken().isSynthetic()).isFalse();
+
+    ModelToken modelToken = tokenFeature.getModelToken();
+    modelProvider.handleToken(modelToken);
+    cursor = root.getCursor();
+    tokenFeature =
+        modelValidator.assertCursorContentsWithToken(
+            cursor,
+            cards[0],
+            cards[1],
+            cards[2],
+            cards[3],
+            pageCards[0],
+            pageCards[1],
+            pageCards[2],
+            pageCards[3]);
+    assertThat(tokenFeature).isNotNull();
+    assertThat(tokenFeature.getModelToken().isSynthetic()).isTrue();
   }
 
   private void clearSessionManagerContentCache() {
