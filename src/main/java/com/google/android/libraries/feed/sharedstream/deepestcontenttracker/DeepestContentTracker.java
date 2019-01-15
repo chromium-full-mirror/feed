@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.basicstream.internal;
+package com.google.android.libraries.feed.sharedstream.deepestcontenttracker;
 
 import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDepthProvider;
@@ -26,7 +26,7 @@ public class DeepestContentTracker implements ViewDepthProvider {
 
   private final List</*@Nullable*/ String> contentIds = new ArrayList<>();
 
-  void updateDeepestContentTracker(int contentPosition, /*@Nullable*/ String contentId) {
+  public void updateDeepestContentTracker(int contentPosition, /*@Nullable*/ String contentId) {
 
     // Fill content ids to size of content position. This is needed in-case we programmatically set
     // scroll position of the recycler view.
@@ -39,7 +39,7 @@ public class DeepestContentTracker implements ViewDepthProvider {
     contentIds.set(contentPosition, contentId);
   }
 
-  void removeContentId(int contentPosition) {
+  public void removeContentId(int contentPosition) {
     if (contentPosition >= contentIds.size()) {
       return;
     }

@@ -8,7 +8,6 @@ android_library(
     name = "internal",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
@@ -16,6 +15,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/host/config",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/deepestcontenttracker",
         gmaven_artifact("com.android.support:support_annotations:jar:28.0.0"),  # buildcleaner: keep
         gmaven_artifact("com.android.support:interpolator:aar:28.0.0"),
         gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),

@@ -4,20 +4,6 @@ load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:andro
 licenses(["notice"])  # Apache 2
 
 android_local_test(
-    name = "DeepestContentTrackerTest",
-    size = "small",
-    timeout = "moderate",
-    srcs = ["DeepestContentTrackerTest.java"],
-    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
-    deps = [
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
-        "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
-        "@com_google_truth_truth//jar",
-        "@robolectric//bazel:robolectric",
-    ],
-)
-
-android_local_test(
     name = "StreamItemAnimatorTest",
     size = "small",
     timeout = "moderate",
@@ -67,6 +53,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/deepestcontenttracker",
         "@robolectric//bazel:robolectric",
         gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
         "@com_google_guava_guava//jar",

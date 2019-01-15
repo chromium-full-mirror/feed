@@ -35,6 +35,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contentchanged",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contextmenumanager",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/deepestcontenttracker",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/offlinemonitor",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/proto:scroll_state_java_proto_lite",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",
