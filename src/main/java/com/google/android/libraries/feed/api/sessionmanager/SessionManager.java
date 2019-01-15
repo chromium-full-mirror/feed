@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider.ViewDep
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -93,6 +94,12 @@ public interface SessionManager extends Resettable {
    * the context which is initiating the update operation.
    */
   Consumer<Result<List<StreamDataOperation>>> getUpdateConsumer(MutationContext mutationContext);
+
+  /**
+   * Returns a consumer that can be used as the default consumer for doing a TriggerRefresh on the
+   * {@link com.google.android.libraries.feed.api.requestmanager.RequestManager}.
+   */
+  Supplier<Consumer<Result<List<StreamDataOperation>>>> getTriggerRefreshConsumer();
 
   /**
    * Create a filtered {@link List} of {@code T} objects and return it through the {@link Consumer}.

@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -185,8 +186,11 @@ public final class FeedSessionManager
     }
     store.registerObserver(this);
     taskQueue.initialize(this::initializationTask);
-    requestManager.setDefaultTriggerRefreshConsumerSupplier(
-        () -> getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+  }
+
+  @Override
+  public Supplier<Consumer<Result<List<StreamDataOperation>>>> getTriggerRefreshConsumer() {
+    return () -> getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT);
   }
 
   // Task which initializes the Session Manager.  This must be the first task run on the

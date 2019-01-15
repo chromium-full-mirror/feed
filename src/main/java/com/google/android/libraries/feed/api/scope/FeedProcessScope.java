@@ -443,6 +443,8 @@ public final class FeedProcessScope implements Dumpable {
                 lifecycleListener);
         sessionManager = fsmFactory.create();
       }
+      requestManager.setDefaultTriggerRefreshConsumerSupplier(
+          sessionManager.getTriggerRefreshConsumer());
       ActionManager actionManager =
           new FeedActionManagerImpl(sessionManager, store, threadUtils, taskQueue);
 
