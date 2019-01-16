@@ -28,6 +28,7 @@ public class FakeModelProviderFactory implements ModelProviderFactory {
 
   private FakeModelProvider modelProvider;
   private String createSessionToken;
+  /*@Nullable*/ private ViewDepthProvider viewDepthProvider;
 
   @Override
   public ModelProvider create(String sessionToken) {
@@ -38,6 +39,7 @@ public class FakeModelProviderFactory implements ModelProviderFactory {
 
   @Override
   public ModelProvider createNew(/*@Nullable*/ ViewDepthProvider viewDepthProvider) {
+    this.viewDepthProvider = viewDepthProvider;
     this.modelProvider = new FakeModelProvider();
     return modelProvider;
   }
@@ -46,6 +48,7 @@ public class FakeModelProviderFactory implements ModelProviderFactory {
   public ModelProvider createNew(
       /*@Nullable*/ ViewDepthProvider viewDepthProvider,
       /*@Nullable*/ Predicate<StreamStructure> filterPredicate) {
+    this.viewDepthProvider = viewDepthProvider;
     this.modelProvider = new FakeModelProvider();
     return modelProvider;
   }
@@ -56,5 +59,10 @@ public class FakeModelProviderFactory implements ModelProviderFactory {
 
   public String getLatestCreateSessionToken() {
     return createSessionToken;
+  }
+
+  /*@Nullable*/
+  public ViewDepthProvider getViewDepthProvider() {
+    return viewDepthProvider;
   }
 }

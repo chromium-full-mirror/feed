@@ -91,9 +91,26 @@ public class FakeModelCursor implements ModelCursor {
       return this;
     }
 
+    public Builder addChildWithModelFeatureAndContentId(
+        FakeModelFeature modelFeature, String contentId) {
+      ModelChild cardChild =
+          new FakeModelChild.Builder()
+              .setModelFeature(modelFeature)
+              .setContentId(contentId)
+              .build();
+      cursorChildren.add(cardChild);
+      return this;
+    }
+
     public Builder addContent(Content content) {
       final FakeModelCursor cursor = new FakeModelCursor(new ArrayList<>());
       return addChildWithModelFeature(getContentModelFeatureWithCursor(content, cursor));
+    }
+
+    public Builder addContent(Content content, String contentId) {
+      final FakeModelCursor cursor = new FakeModelCursor(new ArrayList<>());
+      return addChildWithModelFeatureAndContentId(
+          getContentModelFeatureWithCursor(content, cursor), contentId);
     }
 
     public Builder addToken(boolean isSynthetic) {
