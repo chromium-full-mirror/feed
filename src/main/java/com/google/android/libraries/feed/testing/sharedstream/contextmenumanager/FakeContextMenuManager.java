@@ -48,6 +48,9 @@ public class FakeContextMenuManager implements ContextMenuManager {
     handler = null;
   }
 
+  @Override
+  public void setView(View view) {}
+
   public void performClick(int position) {
     if (!isMenuOpened) {
       throw new IllegalStateException("Cannot perform click with no menu opened.");

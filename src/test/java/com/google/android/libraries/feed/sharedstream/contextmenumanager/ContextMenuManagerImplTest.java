@@ -145,7 +145,7 @@ public class ContextMenuManagerImplTest {
     PopupWindow popupWindow = shadowOf(RuntimeEnvironment.application).getLatestPopupWindow();
     assertThat(popupWindow.isShowing()).isTrue();
 
-    contextMenuManager.onDimensionsChanged();
+    contextMenuManager.dismissPopup();
 
     assertThat(popupWindow.isShowing()).isFalse();
   }

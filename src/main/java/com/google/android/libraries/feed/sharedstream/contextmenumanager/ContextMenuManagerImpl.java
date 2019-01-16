@@ -32,7 +32,10 @@ import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Men
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Size;
 import java.util.List;
 
-/** Implementation of {@link ContextMenuManager}. */
+/**
+ * Implementation of {@link ContextMenuManager} that shows the context menu anchored by a view. This
+ * is only supported for N+
+ */
 public class ContextMenuManagerImpl implements ContextMenuManager {
 
   private static final String TAG = "ContextMenuManager";
@@ -56,15 +59,7 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     this.context = context;
   }
 
-  /**
-   * Sets the root view of the window that the context menu is opening in. This, as well as the
-   * anchor view that the click happens on, determines where the context menu opens.
-   *
-   * <p>Note: this is being changed to be settable after the fact for a future version of this
-   * library that will use dependency injection.
-   *
-   * @param view
-   */
+  @Override
   public void setView(View view) {
     this.view = view;
   }
@@ -295,10 +290,6 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
 
     popupWindow.dismiss();
     popupWindow = null;
-  }
-
-  public void onDimensionsChanged() {
-    dismissPopup();
   }
 
   private int getXPosition(View view) {

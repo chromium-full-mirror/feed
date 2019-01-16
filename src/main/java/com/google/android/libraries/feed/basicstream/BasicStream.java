@@ -68,6 +68,7 @@ import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.contentchanged.StreamContentChangedListener;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManagerImpl;
+import com.google.android.libraries.feed.sharedstream.contextmenumanager.FloatingContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
@@ -111,7 +112,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final KnownContentApi knownContentApi;
 
   private RecyclerView recyclerView;
-  private ContextMenuManagerImpl contextMenuManager;
+  private ContextMenuManager contextMenuManager;
   private Context context;
   private List<Header> headers;
   private StreamConfiguration streamConfiguration;
@@ -509,7 +510,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       checkNotNull(adapter, "onCreate must be called before so that adapter is set.").rebind();
     }
 
-    contextMenuManager.onDimensionsChanged();
+    contextMenuManager.dismissPopup();
   }
 
   private void setupRecyclerView() {
@@ -775,9 +776,14 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   }
 
   @VisibleForTesting
-  ContextMenuManagerImpl createContextMenuManager(
+  ContextMenuManager createContextMenuManager(
       RecyclerView recyclerView, MenuMeasurer menuMeasurer) {
-    ContextMenuManagerImpl manager = new ContextMenuManagerImpl(menuMeasurer, context);
+    ContextMenuManager manager;
+    if (VERSION.SDK_INT > VERSION_CODES.M) {
+      manager = new ContextMenuManagerImpl(menuMeasurer, context);
+    } else {
+      manager = new FloatingContextMenuManager(context);
+    }
     manager.setView(recyclerView);
     return manager;
   }

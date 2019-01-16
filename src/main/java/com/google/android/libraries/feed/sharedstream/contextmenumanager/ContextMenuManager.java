@@ -32,6 +32,16 @@ public interface ContextMenuManager {
   /** Dismiss a popup if one is showing. */
   void dismissPopup();
 
+  /**
+   * Sets the root view of the window that the context menu is opening in. This, as well as the
+   * anchor view that the click happens on, determines where the context menu opens if the context
+   * menu is anchored.
+   *
+   * <p>Note: this is being changed to be settable after the fact for a future version of this
+   * library that will use dependency injection.
+   */
+  void setView(View view);
+
   /** Notifies creator of the menu that a click has occurred. */
   interface ContextMenuClickHandler {
     void handleClick(int position);
