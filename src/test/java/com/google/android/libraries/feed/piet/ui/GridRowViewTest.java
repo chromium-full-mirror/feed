@@ -427,9 +427,9 @@ public class GridRowViewTest {
     TestView square1 = new TestView(context, 20, 20);
     square1.setLayoutParams(new LayoutParams(20, 20, 0.0f, true));
     TestView square2 = new TestView(context, 40, 40);
-    square1.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
+    square2.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
     TestView square3 = new TestView(context, 30, 30);
-    square1.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
+    square3.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
 
     gridRowView.addView(square1);
     gridRowView.addView(square2);
@@ -454,9 +454,9 @@ public class GridRowViewTest {
     TestView square1 = new TestView(context, 20, 20);
     square1.setLayoutParams(new LayoutParams(20, 20, 0.0f, true));
     TestView square2 = new TestView(context, 40, 40);
-    square1.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
+    square2.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
     TestView square3 = new TestView(context, 30, 30);
-    square1.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
+    square3.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
 
     gridRowView.addView(square1);
     gridRowView.addView(square2);
@@ -498,9 +498,9 @@ public class GridRowViewTest {
     TestView square1 = new TestView(context, 20, 20);
     square1.setLayoutParams(new LayoutParams(20, 20, 0.0f, true));
     TestView square2 = new TestView(context, 40, 40);
-    square1.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
+    square2.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
     TestView square3 = new TestView(context, 30, 30);
-    square1.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
+    square3.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
 
     gridRowView.addView(square1);
     gridRowView.addView(square2);
@@ -527,9 +527,9 @@ public class GridRowViewTest {
     TestView square1 = new TestView(context, 20, 20);
     square1.setLayoutParams(new LayoutParams(20, 20, 0.0f, true));
     TestView square2 = new TestView(context, 40, 40);
-    square1.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
+    square2.setLayoutParams(new LayoutParams(40, 40, 0.0f, true));
     TestView square3 = new TestView(context, 30, 30);
-    square1.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
+    square3.setLayoutParams(new LayoutParams(30, 30, 0.0f, true));
 
     gridRowView.addView(square1);
     gridRowView.addView(square2);
@@ -547,6 +547,39 @@ public class GridRowViewTest {
 
     assertThat(gridRowView.getMeasuredWidth()).isEqualTo(100);
     assertThat(gridRowView.getMeasuredHeight()).isEqualTo(100);
+  }
+
+  @Test
+  public void testOnMeasure_respectsChildLayoutParams_weight() {
+    // Several different sizes of cells; ensure that width of each cell is set by the style
+
+    int styleWidth = 30;
+    LayoutParams cellLayoutParams =
+        new LayoutParams(styleWidth, LayoutParams.WRAP_CONTENT, 0.0f, true);
+    TestView square1 = new TestView(context, 20, 20);
+    square1.setLayoutParams(cellLayoutParams);
+    TestView square2 = new TestView(context, 40, 40);
+    square2.setLayoutParams(cellLayoutParams);
+    TestView square3 = new TestView(context, 30, 30);
+    square3.setLayoutParams(cellLayoutParams);
+
+    gridRowView.addView(square1);
+    gridRowView.addView(square2);
+    gridRowView.addView(square3);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
+
+    gridRowView.setLayoutParams(
+        new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+
+    int sizeSpec = MeasureSpec.makeMeasureSpec(200, MeasureSpec.AT_MOST);
+    gridRowView.measure(sizeSpec, sizeSpec);
+
+    assertThat(square1.requestedWidth).isEqualTo(styleWidth);
+    assertThat(square2.requestedWidth).isEqualTo(styleWidth);
+    assertThat(square3.requestedWidth).isEqualTo(styleWidth);
+
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(200);
   }
 
   @Test
@@ -584,36 +617,53 @@ public class GridRowViewTest {
   }
 
   @Test
-  public void testOnMeasure_respectsChildLayoutParams_weight() {
-    // Several different sizes of cells; ensure that width of each cell is set by the style
+  public void testOnMeasure_rowHeightIsMaxCellHeightWithMargins() {
+    // Several different sizes of cells; ensure that height of GridRowView is same as tallest cell.
 
-    int styleWidth = 30;
-    LayoutParams cellLayoutParams =
-        new LayoutParams(styleWidth, LayoutParams.WRAP_CONTENT, 0.0f, true);
-    TestView square1 = new TestView(context, 20, 20);
-    square1.setLayoutParams(cellLayoutParams);
-    TestView square2 = new TestView(context, 40, 40);
-    square2.setLayoutParams(cellLayoutParams);
-    TestView square3 = new TestView(context, 30, 30);
-    square3.setLayoutParams(cellLayoutParams);
+    TestView view1 = new TestView(context, 40, 40);
+    view1.setLayoutParams(new LayoutParams(40, 40));
 
-    gridRowView.addView(square1);
-    gridRowView.addView(square2);
-    gridRowView.addView(square3);
+    TestView view2 = new TestView(context, 30, 30);
+    LayoutParams params = new LayoutParams(30, 30);
+    params.topMargin = 5;
+    params.bottomMargin = 15;
+    view2.setLayoutParams(params);
+
+    gridRowView.addView(view1);
+    gridRowView.addView(view2);
     // Verify views which are gone are not considered in the layout.
     gridRowView.addView(goneView);
 
     gridRowView.setLayoutParams(
         new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
-    int sizeSpec = MeasureSpec.makeMeasureSpec(200, MeasureSpec.AT_MOST);
+    int sizeSpec = MeasureSpec.makeMeasureSpec(100, MeasureSpec.AT_MOST);
     gridRowView.measure(sizeSpec, sizeSpec);
 
-    assertThat(square1.requestedWidth).isEqualTo(styleWidth);
-    assertThat(square2.requestedWidth).isEqualTo(styleWidth);
-    assertThat(square3.requestedWidth).isEqualTo(styleWidth);
+    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(100);
+    assertThat(gridRowView.getMeasuredHeight()).isEqualTo(50);
+  }
 
-    assertThat(gridRowView.getMeasuredWidth()).isEqualTo(200);
+  @Test
+  public void testOnMeasure_cellWithMarginsClippedByHeightConstraint() {
+    // Row is 100 high, cell is set to 90 high, but has 5 + 15 margins, so cell is only 80 high.
+
+    TestView view = new TestView(context, 123, 90);
+    LayoutParams params = new LayoutParams(123, 90);
+    params.topMargin = 5;
+    params.bottomMargin = 15;
+    view.setLayoutParams(params);
+
+    gridRowView.addView(view);
+    // Verify views which are gone are not considered in the layout.
+    gridRowView.addView(goneView);
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(500, MeasureSpec.AT_MOST);
+    int heightSpec = MeasureSpec.makeMeasureSpec(100, MeasureSpec.AT_MOST);
+
+    gridRowView.measure(widthSpec, heightSpec);
+
+    assertThat(view.requestedHeight).isEqualTo(80);
   }
 
   @Test

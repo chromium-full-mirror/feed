@@ -209,9 +209,9 @@ public class GridRowView extends LinearLayout {
         if (view.getVisibility() == View.GONE) {
           continue;
         }
-        if (view.getMeasuredHeight() > maxCellHeight) {
-          maxCellHeight = view.getMeasuredHeight();
-        }
+        LayoutParams params = ((LayoutParams) view.getLayoutParams());
+        int cellHeight = view.getMeasuredHeight() + params.topMargin + params.bottomMargin;
+        maxCellHeight = Math.max(cellHeight, maxCellHeight);
       }
       // We should not need to resize the cells because they were all already smaller than this.
       rowHeight =
@@ -251,9 +251,15 @@ public class GridRowView extends LinearLayout {
 
   /** Find either the height specified by LayoutParams, or the height constrained by the parent. */
   private int getMaxHeightSpecForView(LayoutParams viewLayoutParams, int parentMaxHeightSpec) {
+    int marginHeight = viewLayoutParams.topMargin + viewLayoutParams.bottomMargin;
+    if (MeasureSpec.getMode(parentMaxHeightSpec) != MeasureSpec.UNSPECIFIED) {
+      int maxHeight = Math.max(0, MeasureSpec.getSize(parentMaxHeightSpec) - marginHeight);
+      parentMaxHeightSpec =
+          MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.getMode(parentMaxHeightSpec));
+    }
     if (viewLayoutParams.height > 0) {
       if (MeasureSpec.getMode(parentMaxHeightSpec) == MeasureSpec.UNSPECIFIED
-          || MeasureSpec.getSize(parentMaxHeightSpec) > viewLayoutParams.height) {
+          || MeasureSpec.getSize(parentMaxHeightSpec) > (viewLayoutParams.height + marginHeight)) {
         return MeasureSpec.makeMeasureSpec(viewLayoutParams.height, MeasureSpec.EXACTLY);
       }
       return parentMaxHeightSpec;
