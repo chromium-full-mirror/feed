@@ -14,6 +14,7 @@
 
 syntax = "proto2";
 
+import "src/main/proto/search/now/wire/feed/capability.proto";
 import "src/main/proto/search/now/wire/feed/client_info.proto";
 import "src/main/proto/search/now/wire/feed/feed_action_query_data.proto";
 import "src/main/proto/search/now/wire/feed/feed_query.proto";
@@ -39,4 +40,12 @@ message FeedRequest {
 
   // Data related to actions performed on the client.
   repeated FeedActionQueryData feed_action_query_data = 3;
+
+  // The list of client supported capabilities.
+  repeated Capability client_capability = 4;
+
+  // The list of server supported capabilities from the previous call so
+  // the server can invalidate the feed if the new capabilities differ
+  // from the previous capabilities.
+  repeated Capability previous_server_capabilities = 5;
 }

@@ -14,6 +14,7 @@
 
 syntax = "proto2";
 
+import "src/main/proto/search/now/wire/feed/capability.proto";
 import "src/main/proto/search/now/wire/feed/data_operation.proto";
 import "src/main/proto/search/now/wire/feed/response.proto";
 
@@ -36,6 +37,9 @@ message FeedResponse {
   repeated DataOperation data_operation = 1;
   // Metadata for the entire FeedResponse.
   optional FeedResponseMetadata feed_response_metadata = 2;
+
+  // The list of server-response supported capabilities.
+  repeated Capability server_capabilities = 3;
 }
 
 // Data which is relevant for the whole response made by the server.
