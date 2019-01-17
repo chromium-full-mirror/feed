@@ -286,17 +286,15 @@ public class SyntheticTokensTest {
   }
 
   /**
-   * This test will test the creation of synthetic tokens.
+   * Test Synthetic tokens on paged results.
    *
    * <ol>
-   *   <li>Create an initial $HEAD with 13 items
-   *   <li>Clear the FeedSessionManager ContentCache to simulate non-cached mode
-   *   <li>Create a new session which will have a synthetic token at INITIAL_PAGE_SIZE
-   *   <li>SessionManager.handleToken on the synthetic token, verify full cursor and partial page
-   *       cursor
-   *   <li>SessionManager.handleToken on the next synthetic token, verify we get PAGE_SIZE + slop.
-   *       Verify both the full cursor and the partial page cursor. No further tokens will be in the
-   *       cursor.
+   *   <li>Create an initial $HEAD with 4 items and a second page of 8 additional items
+   *   <li>Create a new session and validate the expected cards and a real next page token.
+   *   <li>Handle the token to bring in the second page of items
+   *   <li>Validate that we have 8 total items, plus a synthetic token
+   *   <li>Handle the synthetic token
+   *   <li>Validate that we have all 12 total items with no token
    * </ol>
    */
   @Test
@@ -340,18 +338,112 @@ public class SyntheticTokensTest {
     modelProvider.handleToken(modelToken);
     cursor = root.getCursor();
     tokenFeature =
-        modelValidator.assertCursorContentsWithToken(
-            cursor,
-            cards[0],
-            cards[1],
-            cards[2],
-            cards[3],
-            pageCards[0],
-            pageCards[1],
-            pageCards[2],
-            pageCards[3]);
+        modelValidator.assertCursorContentsWithToken(cursor, getExpectedCards(cards, pageCards, 4));
     assertThat(tokenFeature).isNotNull();
     assertThat(tokenFeature.getModelToken().isSynthetic()).isTrue();
+
+    modelProvider.handleToken(tokenFeature.getModelToken());
+    cursor = root.getCursor();
+    tokenFeature =
+        modelValidator.assertCursorContentsWithToken(
+            cursor, getExpectedCards(cards, pageCards, -1));
+    assertThat(tokenFeature).isNull();
+  }
+
+  /**
+   * Test Synthetic tokens on paged results when creating an existing session.
+   *
+   * <ol>
+   *   <li>Create an initial $HEAD with 4 items and a second page of 8 additional items
+   *   <li>Create a new session and validate the expected cards and a real next page token.
+   *   <li>Handle the token to bring in the second page of items
+   *   <li>Validate that we have 8 total items, plus a synthetic token
+   *   <li>Recreate the session (invalidating the first version)
+   *   <li>Validate that we have 4 cards and a synthetic token
+   *   <li>Handle the synthetic token
+   *   <li>Validate that we have 8 total items, plus a synthetic token
+   *   <li>Handle the synthetic token
+   *   <li>Validate that we have all 12 total items with no token
+   * </ol>
+   */
+  @Test
+  public void syntheticTokenPaging_pagingRestoredSession() {
+    ContentId[] cards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(1),
+          WireProtocolResponseBuilder.createFeatureContentId(2),
+          WireProtocolResponseBuilder.createFeatureContentId(3),
+          WireProtocolResponseBuilder.createFeatureContentId(4),
+        };
+    ContentId[] pageCards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(5),
+          WireProtocolResponseBuilder.createFeatureContentId(6),
+          WireProtocolResponseBuilder.createFeatureContentId(7),
+          WireProtocolResponseBuilder.createFeatureContentId(8),
+          WireProtocolResponseBuilder.createFeatureContentId(9),
+          WireProtocolResponseBuilder.createFeatureContentId(10),
+          WireProtocolResponseBuilder.createFeatureContentId(11),
+          WireProtocolResponseBuilder.createFeatureContentId(12)
+        };
+
+    PagingState state = new PagingState(cards, pageCards, 1, contentIdGenerators);
+    requestManager.queueResponse(state.initialResponse);
+    requestManager.queueResponse(state.pageResponse);
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+    String sessionToken = modelProvider.getSessionToken();
+
+    ModelFeature root = modelProvider.getRootFeature();
+    assertThat(root).isNotNull();
+    ModelCursor cursor = root.getCursor();
+    ModelChild tokenFeature = modelValidator.assertCursorContentsWithToken(cursor, cards);
+    assertThat(tokenFeature).isNotNull();
+    assertThat(tokenFeature.getModelToken().isSynthetic()).isFalse();
+
+    ModelToken modelToken = tokenFeature.getModelToken();
+    modelProvider.handleToken(modelToken);
+    cursor = root.getCursor();
+    tokenFeature =
+        modelValidator.assertCursorContentsWithToken(cursor, getExpectedCards(cards, pageCards, 4));
+    assertThat(tokenFeature).isNotNull();
+    assertThat(tokenFeature.getModelToken().isSynthetic()).isTrue();
+
+    // now restore the session and see what we have
+    modelProvider = modelProviderFactory.create(sessionToken);
+    root = modelProvider.getRootFeature();
+    assertThat(root).isNotNull();
+    cursor = root.getCursor();
+    tokenFeature = modelValidator.assertCursorContentsWithToken(cursor, cards);
+    assertThat(tokenFeature).isNotNull();
+    assertThat(tokenFeature.getModelToken().isSynthetic()).isTrue();
+
+    modelProvider.handleToken(tokenFeature.getModelToken());
+    cursor = root.getCursor();
+    tokenFeature =
+        modelValidator.assertCursorContentsWithToken(cursor, getExpectedCards(cards, pageCards, 4));
+    assertThat(tokenFeature).isNotNull();
+    assertThat(tokenFeature.getModelToken().isSynthetic()).isTrue();
+
+    modelProvider.handleToken(tokenFeature.getModelToken());
+    cursor = root.getCursor();
+    tokenFeature =
+        modelValidator.assertCursorContentsWithToken(
+            cursor, getExpectedCards(cards, pageCards, -1));
+    assertThat(tokenFeature).isNull();
+  }
+
+  private ContentId[] getExpectedCards(ContentId[] first, ContentId[] second, int length) {
+    if (length == -1) {
+      length = second.length;
+    }
+    ContentId[] results = new ContentId[first.length + length];
+    System.arraycopy(first, 0, results, 0, first.length);
+    System.arraycopy(second, 0, results, first.length, length);
+    return results;
   }
 
   private void clearSessionManagerContentCache() {
