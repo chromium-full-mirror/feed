@@ -17,11 +17,6 @@ package com.google.android.libraries.feed.sharedstream.contextmenumanager;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.os.Build.VERSION;
-import android.os.Build.VERSION_CODES;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewParent;
 import android.widget.ArrayAdapter;
@@ -78,9 +73,6 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
       return false;
     }
 
-    View localView =
-        checkNotNull(this.view, "Must set view before attempting to open context menu");
-
     ArrayAdapter<String> adapter =
         new ArrayAdapter<>(context, R.layout.feed_simple_list_item, items);
 
@@ -102,16 +94,14 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     int yOffset =
         getYOffsetForContextMenu(anchorView, popupWindowWithDimensions.getDimensions().getHeight());
 
-    // There is a bug in some versions of android with PopupWindow.showAsDropDown that causes the
-    // Popup window to appear off screen. This is fixed by converting the relative offsets from the
-    // anchorView to absolute location on the screen so that showAtLocation can be used.
-    int absoluteOffsetX =
-        convertToAbsoluteHorizontalLocation(anchorView, anchorView.getWidth() / FRACTION_FROM_EDGE);
-    int absoluteOffsetY = convertToAbsoluteVerticalLocation(anchorView, yOffset);
-
+    // Note: PopupWindow#showAsDropDown is bugged for android versions below N and should not be
+    // used in that context. Instead, showAtLocation should be used, and the menu should be set at
+    // an absolute location. However, to get enter animations to properly work, showAsDropDown needs
+    // to be used so that Android knows whether the menu is opening above or below the anchor view.
+    // This is possible as this class is only used for N+.
     popupWindowWithDimensions
         .getPopupWindow()
-        .showAtLocation(localView, Gravity.NO_GRAVITY, absoluteOffsetX, absoluteOffsetY);
+        .showAsDropDown(anchorView, anchorView.getWidth() / FRACTION_FROM_EDGE, yOffset);
 
     // We want to prevent any more touch events from be used (if a user has yet to end their current
     // touch session). This prevents the possibility of scrolling after the context menu opens.
@@ -122,26 +112,6 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
 
     this.popupWindow = popupWindowWithDimensions.getPopupWindow();
     return true;
-  }
-
-  /**
-   * Converts the relative horizontal offset from the left of a view to the absolute location on
-   * screen.
-   */
-  private int convertToAbsoluteHorizontalLocation(View anchorView, int xOffsetFromAnchorView) {
-    int anchorViewX = getXPosition(anchorView);
-
-    return xOffsetFromAnchorView + anchorViewX;
-  }
-
-  /**
-   * Converts the relative vertical offset from the bottom of a view to the absolute location on
-   * screen.
-   */
-  private int convertToAbsoluteVerticalLocation(View anchorView, int yOffsetFromAnchorView) {
-    int anchorViewY = getYPosition(anchorView);
-
-    return yOffsetFromAnchorView + anchorViewY + anchorView.getHeight();
   }
 
   /**
@@ -209,11 +179,7 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
       ListView listView, Size measurements, Context context) {
     // While using elevation to create shadows should work in lollipop+, the shadow was not
     // appearing in versions below Android N, so we are using ninepatch below N.
-    if (VERSION.SDK_INT >= VERSION_CODES.N) {
-      return createPopupWindowWithElevation(listView, measurements, context);
-    } else {
-      return createPopupWindowWithNinepatch(listView, measurements, context);
-    }
+    return createPopupWindowWithElevation(listView, measurements, context);
   }
 
   // TODO: Remove the nullness suppression.
@@ -227,29 +193,18 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     popupWindow.setContentView(listView);
     popupWindow.setWidth(measurements.getWidth());
     popupWindow.setHeight(measurements.getHeight());
-
     popupWindow.setFocusable(true);
+
+    // So this is weird. In our situation, the menu does overlap with the anchor. Setting this to
+    // false doesn't actually make it impossible to overlap with the anchor, it just changes the
+    // default behavior of PopupWindow#showAsDropDown. All of the positioning logic written to this
+    // point has assumed that the default position of a drop down menu is with the top left of the
+    // menu touching the bottom right of the anchor view. Setting overlap anchor to true changes the
+    // default behavior so that the top left corner of the menu is over the top left corner of the
+    // anchor view. As the logic has been written assuming overlap anchor is false, we set it false.
+    popupWindow.setOverlapAnchor(false);
 
     return new PopupWindowWithDimensions(popupWindow, measurements);
-  }
-
-  private PopupWindowWithDimensions createPopupWindowWithNinepatch(
-      ListView listView, Size measurements, Context context) {
-    Drawable shadow = context.getResources().getDrawable(android.R.drawable.picture_frame);
-
-    Rect ninePatchPadding = new Rect();
-    shadow.getPadding(ninePatchPadding);
-
-    int widthWithPadding = measurements.getWidth() + ninePatchPadding.left + ninePatchPadding.right;
-    int heightWithPadding =
-        measurements.getHeight() + ninePatchPadding.top + ninePatchPadding.bottom;
-
-    PopupWindow popupWindow = new PopupWindow(listView, widthWithPadding, heightWithPadding);
-    popupWindow.setFocusable(true);
-    popupWindow.setBackgroundDrawable(shadow);
-
-    return new PopupWindowWithDimensions(
-        popupWindow, new Size(widthWithPadding, heightWithPadding));
   }
 
   private ListView createListView(ArrayAdapter<String> adapter, Context context) {
@@ -290,13 +245,6 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
 
     popupWindow.dismiss();
     popupWindow = null;
-  }
-
-  private int getXPosition(View view) {
-    int[] viewLocation = new int[2];
-    view.getLocationInWindow(viewLocation);
-
-    return viewLocation[0];
   }
 
   private int getYPosition(View view) {
