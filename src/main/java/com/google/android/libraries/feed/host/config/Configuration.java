@@ -69,6 +69,8 @@ public class Configuration {
     // for the file based persistent storage.
     // TODO: The persistent content storage doesn't currently use this
     ConfigKey.CONTENT_DIR,
+    // Boolean which if true, will ask the server for the feed ui response.
+    ConfigKey.FEED_UI_ENABLED,
   })
   public @interface ConfigKey {
     String ABANDON_RESTORE_BELOW_FOLD = "abandon_restore_below_fold";
@@ -96,6 +98,7 @@ public class Configuration {
     String CONTENT_DIR = "content_directory";
     String FADE_IMAGE_THRESHOLD_MS = "fade_image_threshold_ms";
     String LIMIT_PAGE_UPDATES = "limit_page_updates";
+    String FEED_UI_ENABLED = "feed_ui_enabled";
   }
 
   private final HashMap<String, Object> values;
