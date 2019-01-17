@@ -143,6 +143,10 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
   }
 
   public void maybeRestoreScroll() {
+    if (!restoring) {
+      return;
+    }
+
     // TODO: Handle continuation driver. This needs to handle synthetic tokens.
     if (isLastDriverContinuationDriver()) {
       ContinuationDriver continuationDriver =

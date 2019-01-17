@@ -104,6 +104,7 @@ public class StreamDriverTest {
   private Configuration configuration = new Configuration.Builder().build();
   private Context context;
   private Clock clock;
+  private ThreadUtils threadUtils;
 
   private static FakeModelChild createFakeClusterModelChild() {
     return new FakeModelChild.Builder()
@@ -120,16 +121,14 @@ public class StreamDriverTest {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
     clock = new FakeClock();
-    ThreadUtils threadUtils = new ThreadUtils();
 
     when(continuationDriver.getLeafFeatureDriver()).thenReturn(continuationDriver);
     when(noContentDriver.getLeafFeatureDriver()).thenReturn(noContentDriver);
     when(modelProvider.getRootFeature()).thenReturn(streamFeature);
     when(modelProvider.getCurrentState()).thenReturn(State.READY);
+    threadUtils = new ThreadUtils();
 
-    streamDriver =
-        new StreamDriverForTest(
-            modelProvider, threadUtils, /* restoring= */ false, /* isInitialLoad= */ false);
+    streamDriver = createNonRestoringStreamDriver();
 
     streamDriver.setStreamContentListener(contentListener);
   }
@@ -186,6 +185,8 @@ public class StreamDriverTest {
 
   @Test
   public void testMaybeRestoreScroll() {
+    streamDriver = createRestoringStreamDriver();
+
     when(streamFeature.getCursor()).thenReturn(new FakeModelCursor.Builder().addCard().build());
 
     streamDriver.getLeafFeatureDrivers();
@@ -197,6 +198,8 @@ public class StreamDriverTest {
 
   @Test
   public void testMaybeRestoreScroll_withToken() {
+    streamDriver = createRestoringStreamDriver();
+
     when(streamFeature.getCursor())
         .thenReturn(new FakeModelCursor.Builder().addCard().addCluster().addToken().build());
 
@@ -210,6 +213,8 @@ public class StreamDriverTest {
 
   @Test
   public void testMaybeRestoreScroll_withSyntheticToken() {
+    streamDriver = createRestoringStreamDriver();
+
     when(streamFeature.getCursor())
         .thenReturn(
             new FakeModelCursor.Builder().addCard().addCluster().addSyntheticToken().build());
@@ -220,6 +225,22 @@ public class StreamDriverTest {
     streamDriver.maybeRestoreScroll();
 
     // Should never restore scroll if a synthetic token is last
+    verify(scrollRestorer, never()).maybeRestoreScroll();
+  }
+
+  @Test
+  public void testMaybeRestoreScroll_notRestoring_doesNotScroll() {
+    streamDriver = createNonRestoringStreamDriver();
+
+    when(streamFeature.getCursor())
+        .thenReturn(
+            new FakeModelCursor.Builder().addCard().addCluster().addSyntheticToken().build());
+
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.maybeRestoreScroll();
+
+    // Should never restore scroll if created in a non-restoring state.
     verify(scrollRestorer, never()).maybeRestoreScroll();
   }
 
@@ -235,6 +256,8 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_tokenHandling() {
+    streamDriver = createStreamDriver(/* restoring= */ true, /* isInitialLoad= */ false);
+
     FakeModelCursor initialCursor = new FakeModelCursor.Builder().addToken().build();
     FakeModelCursor newCursor = new FakeModelCursor.Builder().addCluster().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
@@ -401,9 +424,7 @@ public class StreamDriverTest {
 
   @Test
   public void testGetLeafFeatureDrivers_doesNotAddZeroState_ifInitialLoad() {
-    streamDriver =
-        new StreamDriverForTest(
-            modelProvider, new ThreadUtils(), /* restoring= */ false, /* isInitialLoad= */ true);
+    streamDriver = createStreamDriver(/* restoring= */ false, /* isInitialLoad= */ true);
     FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
@@ -415,9 +436,7 @@ public class StreamDriverTest {
 
   @Test
   public void testGetLeafFeatureDrivers_doesNotAddZeroState_ifRestoring() {
-    streamDriver =
-        new StreamDriverForTest(
-            modelProvider, new ThreadUtils(), /* restoring= */ true, /* isInitialLoad= */ false);
+    streamDriver = createStreamDriver(/* restoring= */ true, /* isInitialLoad= */ false);
     FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
@@ -607,9 +626,7 @@ public class StreamDriverTest {
 
   @Test
   public void testOnDestroy_clearsFeatureDrivers() {
-    streamDriver =
-        new StreamDriverForTest(
-            modelProvider, new ThreadUtils(), /* restoring= */ false, /* isInitialLoad= */ true);
+    streamDriver = createStreamDriver(false, true);
     when(streamFeature.getCursor()).thenReturn(new FakeModelCursor.Builder().addCard().build());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
@@ -655,9 +672,7 @@ public class StreamDriverTest {
 
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
-    streamDriver =
-        new StreamDriverForTest(
-            modelProvider, new ThreadUtils(), /* restoring= */ true, /* isInitialLoad= */ false);
+    streamDriver = createStreamDriver(/* restoring= */ true, /* isInitialLoad= */ false);
 
     streamDriver.getLeafFeatureDrivers();
 
@@ -670,6 +685,18 @@ public class StreamDriverTest {
     streamDriver.onNewChildren(initialCursor.getChildAt(1), newCursor.getModelChildren());
 
     assertThat(streamDriver.wasRestoringDuringLastContinuationDriver).isFalse();
+  }
+
+  private StreamDriverForTest createNonRestoringStreamDriver() {
+    return createStreamDriver(/* restoring= */ false, /* isInitialLoad= */ false);
+  }
+
+  private StreamDriverForTest createRestoringStreamDriver() {
+    return createStreamDriver(/* restoring= */ true, /* isInitialLoad= */ true);
+  }
+
+  private StreamDriverForTest createStreamDriver(boolean restoring, boolean isInitialLoad) {
+    return new StreamDriverForTest(modelProvider, threadUtils, restoring, isInitialLoad);
   }
 
   // TODO: Instead of just checking that the ModelFeature is of the correct type, check
