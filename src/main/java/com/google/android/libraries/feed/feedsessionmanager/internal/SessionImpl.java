@@ -205,7 +205,6 @@ public class SessionImpl implements InitializableSession, Dumpable {
         if (contentInSession.contains(contentKey)) {
           if (modelMutation != null) {
             // this is an update operation so we can ignore it
-            Logger.i(TAG, "Found update to content in session");
             modelMutation.updateChild(streamStructure);
             updateCnt++;
           }

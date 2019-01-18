@@ -142,7 +142,7 @@ public final class ModelCursorImpl implements ModelCursor, Dumpable {
         if (token instanceof UpdatableModelToken) {
           UpdatableModelToken updatableModelToken = (UpdatableModelToken) token;
           if (updatableModelToken.isSynthetic()) {
-            Logger.i(TAG, "Releasing token due to synthetic");
+            Logger.i(TAG, "Releasing Cursor due to hitting a synthetic token");
             release();
           }
         }
