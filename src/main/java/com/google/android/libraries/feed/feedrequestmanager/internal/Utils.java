@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.feedrequestmanager.internal;
 
-import android.os.Build;
 import android.text.TextUtils;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.config.ApplicationInfo.AppType;
@@ -52,11 +51,10 @@ public final class Utils {
           }
         }
       } catch (ParseException e) {
-        Logger.w(
-            TAG, e, "Invalid int value while parsing string version: %s", Build.VERSION.RELEASE);
+        Logger.w(TAG, e, "Invalid int value while parsing string version: %s", versionString);
       }
     } else {
-      Logger.w(TAG, "Invalid format while parsing string version: %s" + Build.VERSION.RELEASE);
+      Logger.w(TAG, "Invalid format while parsing string version: %s" + versionString);
     }
   }
 
