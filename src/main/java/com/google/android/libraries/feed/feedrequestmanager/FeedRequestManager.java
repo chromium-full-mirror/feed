@@ -47,6 +47,7 @@ import com.google.protobuf.CodedInputStream;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ActionTypeProto;
+import com.google.search.now.wire.feed.CapabilityProto.Capability;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -175,7 +176,7 @@ public final class FeedRequestManager implements RequestManager {
   }
 
   private RequestBuilder newDefaultRequest() {
-    return new RequestBuilder().setApplicationInfo(applicationInfo).setLocale(getLocale());
+    return new RequestBuilder(getLocale(), applicationInfo, configuration);
   }
 
   private void executeRequest(
@@ -287,6 +288,13 @@ public final class FeedRequestManager implements RequestManager {
     private List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties;
     private Locale locale;
     private ApplicationInfo applicationInfo;
+    private Configuration configuration;
+
+    RequestBuilder(Locale locale, ApplicationInfo applicationInfo, Configuration configuration) {
+      this.locale = locale;
+      this.applicationInfo = applicationInfo;
+      this.configuration = configuration;
+    }
 
     /**
      * Sets the token used to tell the server which page of results we want in the response.
@@ -308,16 +316,6 @@ public final class FeedRequestManager implements RequestManager {
       return this;
     }
 
-    RequestBuilder setLocale(Locale locale) {
-      this.locale = locale;
-      return this;
-    }
-
-    RequestBuilder setApplicationInfo(ApplicationInfo applicationInfo) {
-      this.applicationInfo = applicationInfo;
-      return this;
-    }
-
     public Request build() {
       Request.Builder requestBuilder =
           Request.newBuilder().setRequestVersion(RequestVersion.FEED_QUERY);
@@ -332,6 +330,9 @@ public final class FeedRequestManager implements RequestManager {
         feedRequestBuilder.addFeedActionQueryData(buildFeedActionQueryData());
       }
       feedRequestBuilder.setClientInfo(buildClientInfo());
+      if (configuration.getValueOrDefault(ConfigKey.FEED_UI_ENABLED, false)) {
+        feedRequestBuilder.addClientCapability(Capability.FEED_UI);
+      }
       requestBuilder.setExtension(FeedRequest.feedRequest, feedRequestBuilder.build());
 
       return requestBuilder.build();

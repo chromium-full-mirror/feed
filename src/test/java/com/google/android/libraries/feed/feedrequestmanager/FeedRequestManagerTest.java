@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -53,6 +54,7 @@ import com.google.protobuf.ExtensionRegistryLite;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ActionTypeProto.ActionType;
+import com.google.search.now.wire.feed.CapabilityProto.Capability;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.AppType;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
@@ -176,6 +178,49 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
+            .build();
+    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+  }
+
+  @Test
+  public void testTriggerRefresh_FeedUiCapabilityAddedWhenFlagIsOn() throws Exception {
+    Configuration configuration =
+        new Configuration.Builder().put(ConfigKey.FEED_UI_ENABLED, true).build();
+    requestManager =
+        new FeedRequestManager(
+            configuration,
+            networkClient,
+            protocolAdapter,
+            new FeedExtensionRegistry(ArrayList::new),
+            scheduler,
+            getTaskQueue(),
+            timingUtils,
+            threadUtils,
+            actionReader,
+            context,
+            applicationInfo);
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+
+    HttpRequest httpRequest = requestCaptor.getValue();
+    assertHttpRequestFormattedCorrectly(httpRequest);
+
+    Request request =
+        Request.parseFrom(
+            Base64.decode(
+                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
+                Base64.URL_SAFE),
+            registry);
+    Request expectedRequest =
+        Request.newBuilder()
+            .setRequestVersion(RequestVersion.FEED_QUERY)
+            .setExtension(
+                FeedRequest.feedRequest,
+                getTestFeedRequestBuilder()
+                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .addClientCapability(Capability.FEED_UI)
+                    .build())
             .build();
     LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
   }
