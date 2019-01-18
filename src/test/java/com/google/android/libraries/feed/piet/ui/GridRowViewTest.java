@@ -881,6 +881,56 @@ public class GridRowViewTest {
     assertThat(gridRowView.getMeasuredWidth()).isEqualTo(33);
   }
 
+  @Test
+  public void testCalculatesTotalWidth_noWeightCells() {
+    TestView view1 = new TestView(context, 11, 100);
+    LayoutParams view1Params = new LayoutParams(11, 100);
+    view1Params.leftMargin = 2;
+    view1Params.rightMargin = 3;
+    view1.setLayoutParams(view1Params);
+
+    TestView view2 = new TestView(context, 22, 100);
+    LayoutParams view2Params = new LayoutParams(22, 100);
+    view2Params.leftMargin = 4;
+    view2Params.rightMargin = 5;
+    view2.setLayoutParams(view2Params);
+
+    gridRowView.addView(view1);
+    gridRowView.addView(view2);
+
+    gridRowView.setPadding(6, 0, 7, 0);
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(100, MeasureSpec.AT_MOST);
+    gridRowView.measure(widthSpec, unspecifiedSpec);
+
+    assertThat(gridRowView.totalContentWidth).isEqualTo(11 + 2 + 3 + 22 + 4 + 5 + 6 + 7);
+  }
+
+  @Test
+  public void testCalculatesTotalWidth_weightCells() {
+    TestView view1 = new TestView(context, 11, 100);
+    LayoutParams view1Params = new LayoutParams(11, 100);
+    view1Params.leftMargin = 2;
+    view1Params.rightMargin = 3;
+    view1.setLayoutParams(view1Params);
+
+    TestView view2 = new TestView(context, 22, 100);
+    LayoutParams view2Params = new LayoutParams(0, 100, 1);
+    view2Params.leftMargin = 4;
+    view2Params.rightMargin = 5;
+    view2.setLayoutParams(view2Params);
+
+    gridRowView.addView(view1);
+    gridRowView.addView(view2);
+
+    gridRowView.setPadding(6, 0, 7, 0);
+
+    int widthSpec = MeasureSpec.makeMeasureSpec(100, MeasureSpec.AT_MOST);
+    gridRowView.measure(widthSpec, unspecifiedSpec);
+
+    assertThat(gridRowView.totalContentWidth).isEqualTo(100);
+  }
+
   private static class TestView extends View {
     private final int desiredWidth;
     private final int desiredHeight;

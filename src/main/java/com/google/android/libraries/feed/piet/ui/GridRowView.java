@@ -18,14 +18,25 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 
 /** LinearLayout with special measuring code for GridRow */
 public class GridRowView extends LinearLayout {
   private static final String TAG = "GridRowView";
+
+  // Total width of the GridRowView's internal padding, child widths, and child margins.
+  // This will not equal getMeasuredWidth() when the GridRowView is MATCH_PARENT width and the
+  // parent is wider than the space required by the GridRowView.
+  // This is the analogue of LinearLayout.mTotalLength
+  @VisibleForTesting int totalContentWidth = 0;
+
+  // Copied from LinearLayout.
+  private int viewGravity = Gravity.START | Gravity.TOP;
 
   // TODO: call to setOrientation(int) not allowed on the given receiver.
   @SuppressWarnings("nullness:method.invocation.invalid")
@@ -246,6 +257,20 @@ public class GridRowView extends LinearLayout {
       maxWidth = Math.min(maxWidth, totalReservedWidth);
     }
 
+    // Calculate totalContentWidth
+    totalContentWidth = gridRowHorizontalPadding;
+    for (int i = 0; i < getChildCount(); i++) {
+      View view = getChildAt(i);
+      if (view.getVisibility() == View.GONE) {
+        continue;
+      }
+      totalContentWidth += view.getMeasuredWidth();
+      LayoutParams params = ((LayoutParams) view.getLayoutParams());
+      totalContentWidth +=
+          MarginLayoutParamsCompat.getMarginStart(params)
+              + MarginLayoutParamsCompat.getMarginEnd(params);
+    }
+
     setMeasuredDimension(maxWidth, rowHeight);
   }
 
@@ -265,6 +290,156 @@ public class GridRowView extends LinearLayout {
       return parentMaxHeightSpec;
     } else {
       return parentMaxHeightSpec;
+    }
+  }
+
+  // (Copied from LinearLayout.java API 27, removed references to private members, and simplified
+  // slightly (ex. remove divider width))
+  // THIS METHOD IS UNTESTED: PROCEED WITH CAUTION!
+  @Override
+  protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+    final boolean isLayoutRtl = LayoutUtils.isDefaultLocaleRtl();
+    final int paddingTop = getPaddingTop();
+
+    int childTop;
+    int childLeft;
+
+    // Where bottom of child should go
+    final int height = bottom - top;
+    int childBottom = height - getPaddingBottom();
+
+    // Space available for child
+    int childSpace = height - paddingTop - getPaddingBottom();
+
+    final int count = getChildCount();
+
+    final int majorGravity = getGravity() & Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK;
+    final int minorGravity = getGravity() & Gravity.VERTICAL_GRAVITY_MASK;
+
+    final int layoutDirection = getLayoutDirection();
+    switch (Gravity.getAbsoluteGravity(majorGravity, layoutDirection)) {
+      case Gravity.RIGHT:
+        // totalContentWidth contains the padding already
+        childLeft = getPaddingLeft() + right - left - totalContentWidth;
+        break;
+
+      case Gravity.CENTER_HORIZONTAL:
+        // totalContentWidth contains the padding already
+        childLeft = getPaddingLeft() + (right - left - totalContentWidth) / 2;
+        break;
+
+      case Gravity.LEFT:
+      default:
+        childLeft = getPaddingLeft();
+        break;
+    }
+
+    int start = 0;
+    int dir = 1;
+
+    // In case of RTL, start drawing from the last child.
+    if (isLayoutRtl) {
+      start = count - 1;
+      dir = -1;
+    }
+
+    for (int i = 0; i < count; i++) {
+      final int childIndex = start + dir * i;
+      final View child = getChildAt(childIndex);
+      if (child.getVisibility() != GONE) {
+        final int childWidth = child.getMeasuredWidth();
+        final int childHeight = child.getMeasuredHeight();
+
+        final LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) child.getLayoutParams();
+
+        int gravity = lp.gravity;
+        if (gravity < 0) {
+          gravity = minorGravity;
+        }
+
+        switch (gravity & Gravity.VERTICAL_GRAVITY_MASK) {
+          case Gravity.TOP:
+            childTop = paddingTop + lp.topMargin;
+            break;
+
+          case Gravity.CENTER_VERTICAL:
+            childTop =
+                paddingTop + ((childSpace - childHeight) / 2) + lp.topMargin - lp.bottomMargin;
+            break;
+
+          case Gravity.BOTTOM:
+            childTop = childBottom - childHeight - lp.bottomMargin;
+            break;
+          default:
+            childTop = paddingTop;
+            break;
+        }
+
+        childLeft += lp.leftMargin;
+        setChildFrame(child, childLeft, childTop, childWidth, childHeight);
+        childLeft += childWidth + lp.rightMargin;
+      }
+    }
+  }
+
+  // (Copied from LinearLayout.java API 27)
+  private void setChildFrame(View child, int left, int top, int width, int height) {
+    child.layout(left, top, left + width, top + height);
+  }
+
+  /**
+   * (Copied from LinearLayout.java API 27) Describes how the child views are positioned. Defaults
+   * to GRAVITY_TOP. If this layout has a HORIZONTAL orientation, this controls the alignment of the
+   * children.
+   *
+   * @param gravity See {@link android.view.Gravity}
+   * @attr ref android.R.styleable#LinearLayout_gravity
+   */
+  @Override
+  public void setGravity(int gravity) {
+    if (viewGravity != gravity) {
+      if ((gravity & Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK) == 0) {
+        gravity |= Gravity.START;
+      }
+
+      if ((gravity & Gravity.VERTICAL_GRAVITY_MASK) == 0) {
+        gravity |= Gravity.TOP;
+      }
+
+      viewGravity = gravity;
+      requestLayout();
+    }
+  }
+
+  /**
+   * (Copied from LinearLayout.java API 27) Returns the current gravity. See {@link
+   * android.view.Gravity}
+   *
+   * @return the current gravity.
+   * @see #setGravity
+   */
+  @Override
+  public int getGravity() {
+    return viewGravity;
+  }
+
+  // (Copied from LinearLayout.java API 27)
+  @Override
+  public void setHorizontalGravity(int horizontalGravity) {
+    final int gravity = horizontalGravity & Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK;
+    if ((viewGravity & Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK) != gravity) {
+      viewGravity = (viewGravity & ~Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK) | gravity;
+      requestLayout();
+    }
+  }
+
+  // (Copied from LinearLayout.java API 27)
+  @Override
+  public void setVerticalGravity(int verticalGravity) {
+    final int gravity = verticalGravity & Gravity.VERTICAL_GRAVITY_MASK;
+    if ((viewGravity & Gravity.VERTICAL_GRAVITY_MASK) != gravity) {
+      viewGravity = (viewGravity & ~Gravity.VERTICAL_GRAVITY_MASK) | gravity;
+      requestLayout();
     }
   }
 
