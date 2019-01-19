@@ -39,6 +39,11 @@ load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 robolectric_repositories()
 
 maven_jar(
+    name = "com_google_android_android",
+    artifact = "com.google.android:android:4.1.1.4",
+)
+
+maven_jar(
     name = "com_google_code_findbugs_jsr305",
     artifact = "com.google.code.findbugs:jsr305:3.0.2",
 )
