@@ -17,8 +17,10 @@ package com.google.android.libraries.feed.sharedstream.contextmenumanager;
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewParent;
+import android.view.WindowManager.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
@@ -190,9 +192,19 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     // style of context menus. This should not be changed without speaking with host teams.
     PopupWindow popupWindow = new PopupWindow(context, null, android.R.attr.contextPopupMenuStyle);
 
+    Rect backgroundPadding = new Rect();
+    popupWindow.getBackground().getPadding(backgroundPadding);
+
     popupWindow.setContentView(listView);
-    popupWindow.setWidth(measurements.getWidth());
-    popupWindow.setHeight(measurements.getHeight());
+
+    // Using measurements.getHeight() + backgroundPadding.height() results in a scroll bar, so we
+    // just wrap content here.
+    popupWindow.setHeight(LayoutParams.WRAP_CONTENT);
+
+    // Material design specifies the width of a menu, so we set it specifically, instead of wrapping
+    // content.
+    popupWindow.setWidth(measurements.getWidth() + backgroundPadding.width());
+
     popupWindow.setFocusable(true);
 
     // So this is weird. In our situation, the menu does overlap with the anchor. Setting this to
@@ -204,7 +216,11 @@ public class ContextMenuManagerImpl implements ContextMenuManager {
     // anchor view. As the logic has been written assuming overlap anchor is false, we set it false.
     popupWindow.setOverlapAnchor(false);
 
-    return new PopupWindowWithDimensions(popupWindow, measurements);
+    return new PopupWindowWithDimensions(
+        popupWindow,
+        new Size(
+            measurements.getWidth() + backgroundPadding.width(),
+            measurements.getHeight() + backgroundPadding.height()));
   }
 
   private ListView createListView(ArrayAdapter<String> adapter, Context context) {
