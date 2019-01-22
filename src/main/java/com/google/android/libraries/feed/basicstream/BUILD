@@ -36,10 +36,10 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/deepestcontenttracker",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/offlinemonitor",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
-        "//src/main/java/com/google/android/libraries/feed/sharedstream/proto:scroll_state_java_proto_lite",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "//src/main/proto/com/google/android/libraries/feed/basicstream/internal/proto:stream_saved_instance_state_java_proto_lite",
+        "//src/main/proto/com/google/android/libraries/feed/sharedstream/proto:scroll_state_java_proto_lite",
         gmaven_artifact("com.android.support:support_annotations:jar:28.0.0"),  # buildcleaner: keep
         gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
         "@com_google_code_findbugs_jsr305//jar",

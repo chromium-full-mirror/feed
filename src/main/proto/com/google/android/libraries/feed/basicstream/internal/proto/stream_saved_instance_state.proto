@@ -14,7 +14,7 @@
 
 syntax = "proto2";
 
-import "src/main/java/com/google/android/libraries/feed/sharedstream/proto/scroll_state.proto";
+import "src/main/proto/com/google/android/libraries/feed/sharedstream/proto/scroll_state.proto";
 
 package com.google.android.libraries.feed.basicstream.internal;
 

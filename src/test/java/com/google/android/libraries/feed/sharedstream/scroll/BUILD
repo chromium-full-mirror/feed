@@ -12,9 +12,9 @@ android_local_test(
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/host/config",
-        "//src/main/java/com/google/android/libraries/feed/sharedstream/proto:scroll_state_java_proto_lite",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "//src/main/java/com/google/android/libraries/feed/testing/android",
+        "//src/main/proto/com/google/android/libraries/feed/sharedstream/proto:scroll_state_java_proto_lite",
         "@robolectric//bazel:robolectric",
         gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
         "@com_google_truth_truth//jar",
