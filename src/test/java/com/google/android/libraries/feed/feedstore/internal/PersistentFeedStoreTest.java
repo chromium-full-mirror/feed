@@ -94,7 +94,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
             threadUtils,
             clock,
             new FeedStoreHelper());
-    doAnswer(ans -> Result.failure()).when(contentStorageSpy).getAll(eq(""));
+    doAnswer(ans -> Result.failure()).when(contentStorageSpy).getAllKeys();
 
     boolean clearSuccess = store.clearNonActionContent();
     assertThat(clearSuccess).isFalse();

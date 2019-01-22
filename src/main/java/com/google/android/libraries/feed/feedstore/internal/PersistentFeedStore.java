@@ -549,14 +549,13 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
    * @return whether the clear succeeded
    */
   private boolean clearContentStorage() {
-    // TODO: replace with getAllKeys call
-    Result<Map<String, byte[]>> allContentMapResult = contentStorageDirect.getAll("");
-    if (!allContentMapResult.isSuccessful()) {
+    Result<List<String>> results = contentStorageDirect.getAllKeys();
+    if (!results.isSuccessful()) {
       Logger.e(TAG, "Error clearing all contents. Could not fetch all content.");
       return false;
     }
     Builder contentMutationBuilder = new Builder();
-    for (String key : allContentMapResult.getValue().keySet()) {
+    for (String key : results.getValue()) {
       if (key.contains(SEMANTIC_PROPERTIES_PREFIX)) {
         continue;
       }
