@@ -27,6 +27,7 @@ import android.graphics.drawable.shapes.RoundRectShape;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewOutlineProvider;
+import android.view.ViewParent;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
@@ -86,6 +87,10 @@ public class RoundedCornerWrapperView extends FrameLayout {
     setWillNotDraw(false);
   }
 
+  /**
+   * Ensures that the wrapper view is invalidated when child views are invalidated. This method only
+   * exists in Android O+.
+   */
   @Override
   public void onDescendantInvalidated(View child, View target) {
     super.onDescendantInvalidated(child, target);
@@ -94,6 +99,19 @@ public class RoundedCornerWrapperView extends FrameLayout {
       target.getDrawingRect(targetRect);
       invalidate(targetRect);
     }
+  }
+
+  /**
+   * Using as an indicator that the child view was invalidated. By overriding this method, we ensure
+   * that the wrapper view is invalidated when the child view is. This is only used in Android N-
+   * and is deprecated, but we must use it because onDescendantInvalidated only exists in O+.
+   */
+  @Override
+  public ViewParent invalidateChildInParent(final int[] location, final Rect dirty) {
+    if (hasRoundedCorners()) {
+      invalidate(dirty);
+    }
+    return super.invalidateChildInParent(location, dirty);
   }
 
   @Override
