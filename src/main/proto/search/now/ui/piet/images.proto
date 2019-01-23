@@ -56,9 +56,11 @@ message Image {
   optional ScaleType scale_type = 2
       [default = CENTER_INSIDE, deprecated = true];
 
-  // The tint to be applied to this icon. If this optional field is not
-  // provided, then no tint will be applied. See [INTERNAL LINK]
-  optional fixed32 tint_color = 3;
+  // Replace all non-transparent pixels of this image with the specified color.
+  // This is used for changing the color of icons which are provided as a
+  // monochrome bitmap. If this optional field is not provided, the image will
+  // not be modified. See [INTERNAL LINK]
+  optional fixed32 overlay_color = 3;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
