@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Class which implements factory to create the task which commits a mutation to the SessionManager
@@ -204,7 +203,6 @@ public final class SessionManagerMutation implements Dumpable {
 
     @VisibleForTesting boolean clearedHead = false;
     private List<StreamDataOperation> dataOperations;
-    private CountDownLatch mutationComplete;
 
     private MutationCommitter(
         String task,
@@ -334,25 +332,20 @@ public final class SessionManagerMutation implements Dumpable {
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
       contentCache.finishMutation();
-      mutationComplete = new CountDownLatch(2);
       taskQueue.execute(
-          "contentMutation", TaskType.BACKGROUND, () -> countDownTask(contentMutation::commit));
-      taskQueue.execute(
-          "semanticPropertiesMutation",
+          "persistMutation",
           TaskType.BACKGROUND,
-          () -> countDownTask(semanticPropertiesMutation::commit));
+          () -> {
+            contentMutation.commit();
+            semanticPropertiesMutation.commit();
+            if (mutationContext != null) {
+              Consumer<Boolean> completionConsumer = mutationContext.getMutationCompleteConsumer();
+              if (completionConsumer != null) {
+                completionConsumer.accept(true);
+              }
+            }
+          });
       timeTracker.stop("", "contentUpdate", "items", dataOperations.size());
-    }
-
-    private void countDownTask(Runnable runnable) {
-      runnable.run();
-      mutationComplete.countDown();
-      if (mutationComplete.getCount() == 0) {
-        Consumer<Boolean> completionConsumer = mutationContext.getMutationCompleteConsumer();
-        if (completionConsumer != null) {
-          completionConsumer.accept(true);
-        }
-      }
     }
 
     private void commitSessionUpdates() {
