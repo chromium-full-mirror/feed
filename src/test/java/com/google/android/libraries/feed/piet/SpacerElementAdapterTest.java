@@ -26,7 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-import com.google.android.libraries.feed.common.testing.FakeClock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
 import com.google.android.libraries.feed.piet.SpacerElementAdapter.KeySupplier;
 import com.google.android.libraries.feed.piet.host.AssetProvider;

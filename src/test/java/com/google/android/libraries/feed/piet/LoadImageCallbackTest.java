@@ -28,7 +28,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
-import com.google.android.libraries.feed.common.testing.FakeClock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import org.junit.Before;
 import org.junit.Test;
