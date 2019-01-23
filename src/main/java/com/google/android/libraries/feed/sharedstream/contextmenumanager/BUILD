@@ -6,7 +6,6 @@ android_library(
     name = "contextmenumanager",
     srcs = glob(["*.java"]),
     manifest = "AndroidManifest.xml",
-    resource_files = glob(["res/**"]),
     deps = [
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
