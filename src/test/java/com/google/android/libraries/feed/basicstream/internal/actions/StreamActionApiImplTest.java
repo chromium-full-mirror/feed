@@ -161,7 +161,7 @@ public class StreamActionApiImplTest {
 
     verify(actionManager)
         .dismiss(Collections.singletonList(contentId), streamDataOperations, SESSION_ID);
-    verify(basicLoggingApi).onContentDismissed(contentLoggingData);
+    verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
   }
 
   @Test

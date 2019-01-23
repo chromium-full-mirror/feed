@@ -31,8 +31,12 @@ public interface BasicLoggingApi {
   /**
    * Called when content has been dismissed by a user. This could be done via a swipe or through the
    * context menu.
+   *
+   * @param data data for content on which swipe was performed.
+   * @param wasCommitted true if the action was committed and thus important to the user model false
+   *     if the action was undone.
    */
-  void onContentDismissed(ContentLoggingData data);
+  void onContentDismissed(ContentLoggingData data, boolean wasCommitted);
 
   /**
    * Called when content has been swiped by a user.
@@ -73,6 +77,29 @@ public interface BasicLoggingApi {
    */
   void onMoreButtonClicked(int position);
 
+  /**
+   * Called when the user has indicated they aren't interested in the story's source.
+   *
+   * @param data data for content on which swipe was performed.
+   * @param wasCommitted true if the action was committed and thus important to the user model false
+   *     if the action was undone.
+   */
+  void onNotInterestedInSource(ContentLoggingData data, boolean wasCommitted);
+
+  /**
+   * Called when the user has indicated they aren't interested in the story's topic.
+   *
+   * @param data data for content on which swipe was performed.
+   * @param wasCommitted true if the action was committed and thus important to the user model false
+   *     if the action was undone.
+   */
+  void onNotInterestedInTopic(ContentLoggingData data, boolean wasCommitted);
+
+  /** Called when card header is visible on the screen */
+  void onInterestHeaderView(ContentLoggingData data);
+
+  /** Called when the card header is clicked */
+  void onInterestHeaderClicked(ContentLoggingData data);
   /**
    * Called when Stream is shown and content was shown to the user. Content could have been cached
    * or a network fetch may have been needed.

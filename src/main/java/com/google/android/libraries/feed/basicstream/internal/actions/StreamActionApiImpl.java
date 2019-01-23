@@ -104,7 +104,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   @Override
   public void dismiss(String contentId, List<StreamDataOperation> dataOperations) {
     actionManager.dismiss(Collections.singletonList(contentId), dataOperations, sessionToken);
-    basicLoggingApi.onContentDismissed(contentLoggingData);
+    basicLoggingApi.onContentDismissed(contentLoggingData, /*wasCommitted=*/ true);
   }
 
   @Override
