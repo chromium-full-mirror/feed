@@ -46,7 +46,7 @@ class GradientShader extends ShapeDrawable.ShaderFactory {
     RectF line = calculateGradientLine(width, height, angleRadians, angleRadiansSmall);
 
     return new android.graphics.LinearGradient(
-        line.left, line.top, line.right, line.bottom, colors, stops, TileMode.REPEAT);
+        line.left, line.top, line.right, line.bottom, colors, stops, TileMode.CLAMP);
   }
 
   /** Returns a RectF as a shorthand for two points - start coords and end coords */
