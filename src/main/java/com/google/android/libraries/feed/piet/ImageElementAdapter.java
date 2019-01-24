@@ -109,8 +109,9 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
     // TODO: Remove the fallback for Image.getScaleType()
     Image.ScaleType scaleType =
         image.hasScaleType() ? image.getScaleType() : getElementStyle().getScaleType();
+    Integer overlayColor = image.hasOverlayColor() ? image.getOverlayColor() : null;
     LoadImageCallback loadImageCallback =
-        createLoadImageCallback(toAndroidScaleType(scaleType), frameContext);
+        createLoadImageCallback(toAndroidScaleType(scaleType), overlayColor, frameContext);
     currentlyLoadingImage = loadImageCallback;
     getParameters()
         .hostProviders
@@ -169,10 +170,12 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
   }
 
   @VisibleForTesting
-  LoadImageCallback createLoadImageCallback(ScaleType scaleType, FrameContext frameContext) {
+  LoadImageCallback createLoadImageCallback(
+      ScaleType scaleType, /*@Nullable*/ Integer overlayColor, FrameContext frameContext) {
     return new LoadImageCallback(
         getBaseView(),
         scaleType,
+        overlayColor,
         getElementStyle().getFadeInImageOnLoad(),
         getParameters(),
         frameContext);

@@ -330,8 +330,9 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
     }
 
     // Start asynchronously loading the real image.
+    Integer overlayColor = image.hasOverlayColor() ? image.getOverlayColor() : null;
     ImageSpanDrawableCallback imageSpanLoader =
-        new ImageSpanDrawableCallback(wrapper, chunkStyle, textView);
+        new ImageSpanDrawableCallback(wrapper, chunkStyle, overlayColor, textView);
     loadingImages.add(imageSpanLoader);
     int styleWidth = styleToImageDim(chunkStyle.getWidthSpecPx(getContext()));
     int styleHeight = styleToImageDim(chunkStyle.getHeightSpecPx(getContext()));
@@ -474,12 +475,18 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
   class ImageSpanDrawableCallback implements Consumer</*@Nullable*/ Drawable> {
     private final LayerDrawable wrapper;
     private final StyleProvider imageStyle;
+    /*@Nullable*/ private final Integer overlayColor;
     private final TextView textView;
     private boolean cancelled = false;
 
-    ImageSpanDrawableCallback(LayerDrawable wrapper, StyleProvider imageStyle, TextView textView) {
+    ImageSpanDrawableCallback(
+        LayerDrawable wrapper,
+        StyleProvider imageStyle,
+        /*@Nullable*/ Integer overlayColor,
+        TextView textView) {
       this.wrapper = wrapper;
       this.imageStyle = imageStyle;
+      this.overlayColor = overlayColor;
       this.textView = textView;
     }
 
@@ -488,10 +495,11 @@ class ChunkedTextElementAdapter extends TextElementAdapter {
       if (cancelled || imageDrawable == null) {
         return;
       }
+      Drawable finalDrawable = ViewUtils.applyOverlayColor(imageDrawable, overlayColor);
       checkState(
-          wrapper.setDrawableByLayerId(SINGLE_LAYER_ID, imageDrawable),
+          wrapper.setDrawableByLayerId(SINGLE_LAYER_ID, finalDrawable),
           "Failed to set drawable on chunked text");
-      setBounds(imageDrawable, imageStyle, textView);
+      setBounds(finalDrawable, imageStyle, textView);
       textView.invalidate();
       loadingImages.remove(this);
     }

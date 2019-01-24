@@ -14,7 +14,9 @@
 
 package com.google.android.libraries.feed.piet;
 
+import android.graphics.PorterDuff.Mode;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.support.v4.view.ViewCompat;
@@ -201,6 +203,19 @@ public class ViewUtils {
         }
       }
     }
+  }
+
+  /**
+   * Replaces all non-transparent pixels of a {@link Drawable} with overlayColor and returns the new
+   * {@link Drawable}; If overlayColor is null, returns the original {@link Drawable}.
+   */
+  static Drawable applyOverlayColor(Drawable drawable, /*@Nullable*/ Integer overlayColor) {
+    if (overlayColor == null) {
+      return drawable;
+    }
+    Drawable drawableWithOverlay = drawable.mutate();
+    drawableWithOverlay.setColorFilter(overlayColor, Mode.SRC_IN);
+    return drawableWithOverlay;
   }
 
   private static Rect getViewRectOnScreen(View view) {

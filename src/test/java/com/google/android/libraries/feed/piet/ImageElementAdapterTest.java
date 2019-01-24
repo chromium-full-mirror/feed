@@ -398,9 +398,30 @@ public class ImageElementAdapterTest {
     adapter.bindModel(DEFAULT_MODEL, frameContext);
     assertThat(adapter.getBaseView().getDrawable()).isSameAs(preLoadFillDrawable);
 
-    // Load drawable andreplace pre-load fill
+    // Load drawable and replace pre-load fill
     verify(assetProvider)
         .getImage(DEFAULT_IMAGE, DIMENSION_UNKNOWN, DIMENSION_UNKNOWN, loadImageCallback);
+  }
+
+  @Test
+  public void testBindModel_overlayColor() {
+    Element modelWithOverlayColor =
+        Element.newBuilder()
+            .setImageElement(
+                ImageElement.newBuilder()
+                    .setImage(DEFAULT_IMAGE.toBuilder().setOverlayColor(0x11223344)))
+            .build();
+
+    // Bind and expect tint to be set
+    adapter.createAdapter(modelWithOverlayColor, frameContext);
+    adapter.bindModel(modelWithOverlayColor, frameContext);
+    assertThat(adapter.overlayColorForCallback).isEqualTo(0x11223344);
+
+    adapter.unbindModel();
+
+    // Bind again and expect tint to be reset
+    adapter.bindModel(DEFAULT_MODEL, frameContext);
+    assertThat(adapter.overlayColorForCallback).isNull();
   }
 
   @Test
@@ -590,14 +611,17 @@ public class ImageElementAdapterTest {
   private class ImageElementAdapterForTest extends ImageElementAdapter {
 
     private ScaleType scaleTypeForCallback;
+    private Integer overlayColorForCallback;
 
     private ImageElementAdapterForTest(Context context, AdapterParameters parameters) {
       super(context, parameters);
     }
 
     @Override
-    LoadImageCallback createLoadImageCallback(ScaleType scaleType, FrameContext frameContext) {
+    LoadImageCallback createLoadImageCallback(
+        ScaleType scaleType, /*@Nullable*/ Integer overlayColor, FrameContext frameContext) {
       this.scaleTypeForCallback = scaleType;
+      this.overlayColorForCallback = overlayColor;
       return loadImageCallback;
     }
   }

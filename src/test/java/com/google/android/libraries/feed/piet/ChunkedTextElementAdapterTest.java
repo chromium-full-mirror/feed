@@ -31,9 +31,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -164,7 +168,9 @@ public class ChunkedTextElementAdapterTest {
         new AdapterParameters(
             null, null, hostProviders, mockTextEvaluator, null, null, new FakeClock());
 
-    drawable = new ColorDrawable(Color.GREEN);
+    drawable =
+        new BitmapDrawable(
+            Bitmap.createBitmap(IMAGE_WIDTH_PX, IMAGE_HEIGHT_PX, Bitmap.Config.ARGB_8888));
     Shadows.shadowOf(drawable).setIntrinsicHeight(IMAGE_HEIGHT_PX);
     Shadows.shadowOf(drawable).setIntrinsicWidth(IMAGE_WIDTH_PX);
     spannable = new SpannableStringBuilder();
@@ -640,6 +646,35 @@ public class ChunkedTextElementAdapterTest {
     Drawable rightMarginDrawable = imageSpans[2].getDrawable();
     assertThat(leftMarginDrawable.getBounds().left).isEqualTo(0);
     assertThat(rightMarginDrawable.getBounds().right).isEqualTo(22);
+  }
+
+  @Test
+  public void testAddImageChunk_overlayColor() {
+    // Required to set up the local frameContext member var.
+    adapter.createAdapter(asElement(TextElement.getDefaultInstance()), frameContext);
+
+    Image tintedImage = IMAGE_CHUNK_IMAGE.toBuilder().setOverlayColor(0xFEEDFACE).build();
+    Chunk imageChunk =
+        Chunk.newBuilder()
+            .setImageChunk(StyledImageChunk.newBuilder().setImage(tintedImage))
+            .build();
+
+    adapter.addImageChunk(frameContext, textView, spannable, imageChunk);
+
+    ImageSpan[] imageSpans = spannable.getSpans(0, 1, ImageSpan.class);
+    LayerDrawable containerDrawable = (LayerDrawable) imageSpans[0].getDrawable();
+
+    ArgumentCaptor<ImageSpanDrawableCallback> imageCallbackCaptor =
+        ArgumentCaptor.forClass(ImageSpanDrawableCallback.class);
+    verify(mockAssetProvider)
+        .getImage(eq(tintedImage), anyInt(), anyInt(), imageCallbackCaptor.capture());
+
+    // Activate the image loading callback
+    imageCallbackCaptor.getValue().accept(drawable);
+
+    // Assert that we set the image on the span
+    assertThat(containerDrawable.getDrawable(0).getColorFilter())
+        .isEqualTo(new PorterDuffColorFilter(0xFEEDFACE, Mode.SRC_IN));
   }
 
   @Test

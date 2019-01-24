@@ -24,6 +24,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.RippleDrawable;
 import android.view.Gravity;
 import android.view.View;
@@ -452,6 +457,34 @@ public class ViewUtilsTest {
     ViewUtils.maybeTriggerViewActions(
         view, viewport, VIEW_AND_HIDE_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     assertThat(activeActions).containsExactly(HIDE_ACTION);
+  }
+
+  @Test
+  public void testApplyOverlayColor_setsColorFilter() {
+    int overlayColor1 = 0xFFEEDDCC;
+    int overlayColor2 = 0xCCDDEEFF;
+    Drawable original = new BitmapDrawable(Bitmap.createBitmap(12, 34, Bitmap.Config.ARGB_8888));
+
+    Drawable result1 = ViewUtils.applyOverlayColor(original, overlayColor1);
+    Drawable result2 = ViewUtils.applyOverlayColor(original, overlayColor2);
+
+    assertThat(result1).isNotSameAs(original);
+    assertThat(result1.getColorFilter())
+        .isEqualTo(new PorterDuffColorFilter(overlayColor1, Mode.SRC_IN));
+
+    assertThat(result2).isNotSameAs(original);
+    assertThat(result2.getColorFilter())
+        .isEqualTo(new PorterDuffColorFilter(overlayColor2, Mode.SRC_IN));
+  }
+
+  @Test
+  public void testApplyOverlayColor_nullIsNoOp() {
+    Drawable original = new BitmapDrawable(Bitmap.createBitmap(12, 34, Bitmap.Config.ARGB_8888));
+
+    Drawable result1 = ViewUtils.applyOverlayColor(original, null);
+
+    assertThat(result1).isSameAs(original);
+    assertThat(result1.getColorFilter()).isNull();
   }
 
   /** Sets up view and viewport so that view should be fully visible. */

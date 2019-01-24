@@ -33,6 +33,7 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
   private final ImageView imageView;
   private final ScaleType scaleType;
   private final long initialTime;
+  /*@Nullable*/ private final Integer overlayColor;
   private final boolean fadeImage;
   private final AdapterParameters parameters;
 
@@ -43,11 +44,13 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
   LoadImageCallback(
       ImageView imageView,
       ScaleType scaleType,
+      /*@Nullable*/ Integer overlayColor,
       boolean fadeImage,
       AdapterParameters parameters,
       FrameContext frameContext) {
     this.imageView = imageView;
     this.scaleType = scaleType;
+    this.overlayColor = overlayColor;
     this.fadeImage = fadeImage;
     this.parameters = parameters;
     this.initialTime = parameters.clock.elapsedRealtime();
@@ -61,12 +64,13 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
 
     imageView.setScaleType(scaleType);
 
-    this.finalDrawable = drawable;
+    final Drawable localDrawable = ViewUtils.applyOverlayColor(drawable, overlayColor);
+    this.finalDrawable = localDrawable;
 
     // If we are in the process of binding when we get the image, we should not fade in the
     // image as the image was cached.
     if (!shouldFadeInImage()) {
-      imageView.setImageDrawable(drawable);
+      imageView.setImageDrawable(localDrawable);
       // Invalidating the view as the view doesn't update if not manually updated here.
       imageView.invalidate();
       return;
@@ -78,7 +82,7 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
             : new ColorDrawable(Color.TRANSPARENT);
 
     TransitionDrawable transitionDrawable =
-        new TransitionDrawable(new Drawable[] {initialDrawable, drawable});
+        new TransitionDrawable(new Drawable[] {initialDrawable, localDrawable});
     imageView.setImageDrawable(transitionDrawable);
     transitionDrawable.setCrossFadeEnabled(true);
     transitionDrawable.startTransition(FADE_IN_ANIMATION_TIME_MS);
@@ -91,7 +95,7 @@ public class LoadImageCallback implements Consumer</*@Nullable*/ Drawable> {
           // Allows GC of the initial drawable and the transition drawable. Additionally
           // fixes the issue where the transition sometimes doesn't occur, which would
           // result in blank images.
-          imageView.setImageDrawable(finalDrawable);
+          imageView.setImageDrawable(this.finalDrawable);
         },
         FADE_IN_ANIMATION_TIME_MS);
   }
