@@ -43,9 +43,4 @@ message FeedRequest {
 
   // The list of client supported capabilities.
   repeated Capability client_capability = 4;
-
-  // The list of server supported capabilities from the previous call so
-  // the server can invalidate the feed if the new capabilities differ
-  // from the previous capabilities.
-  repeated Capability previous_server_capabilities = 5;
 }
