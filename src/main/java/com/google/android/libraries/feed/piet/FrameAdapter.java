@@ -232,7 +232,7 @@ public class FrameAdapter {
         return Collections.singletonList(inlineSliceAdapter);
       case TEMPLATE_INVOCATION:
         TemplateInvocation templateInvocation = content.getTemplateInvocation();
-        List<ElementAdapter<?, ?>> returnList = new ArrayList<>();
+        ArrayList<ElementAdapter<?, ?>> returnList = new ArrayList<>();
         for (BindingContext bindingContext : templateInvocation.getBindingContextsList()) {
           TemplateAdapterModel model =
               new TemplateAdapterModel(
@@ -241,7 +241,8 @@ public class FrameAdapter {
               parameters.templateBinder.createAndBindTemplateAdapter(model, frameContext);
           returnList.add(templateAdapter);
         }
-        return returnList;
+        returnList.trimToSize();
+        return Collections.unmodifiableList(returnList);
       default:
         Logger.wtf(
             TAG,

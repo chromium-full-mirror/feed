@@ -27,6 +27,7 @@ import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /** Utility class for collecting and displaying debug information. */
@@ -96,13 +97,14 @@ class DebugLogger {
   }
 
   List<ErrorCode> getErrorCodes() {
-    List<ErrorCode> errorCodes = new ArrayList<>();
+    ArrayList<ErrorCode> errorCodes = new ArrayList<>();
     for (int i = 0; i < messages.size(); i++) {
       for (ErrorCodeAndMessage errorCodeAndMessage : messages.valueAt(i)) {
         errorCodes.add(errorCodeAndMessage.errorCode);
       }
     }
-    return errorCodes;
+    errorCodes.trimToSize();
+    return Collections.unmodifiableList(errorCodes);
   }
 
   private View getDivider(Context context) {

@@ -39,6 +39,7 @@ import com.google.search.now.ui.piet.ElementsProto.GridCellWidth.WidthSpecCase;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /** An {@link ElementContainerAdapter} which manages {@code GridRow} slices. */
@@ -63,11 +64,12 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
 
   @Override
   List<Content> getContentsFromModel(GridRow model) {
-    List<Content> contents = new ArrayList<>();
+    ArrayList<Content> contents = new ArrayList<>();
     for (GridCell cell : model.getCellsList()) {
       contents.add(cell.getContent());
     }
-    return contents;
+    contents.trimToSize();
+    return Collections.unmodifiableList(contents);
   }
 
   @Override
