@@ -15,11 +15,14 @@
 package com.google.android.libraries.feed.common.time.testing;
 
 import com.google.android.libraries.feed.common.time.Clock;
+import java.util.HashSet;
+import java.util.Set;
 
 /** Fake implementation of {@link Clock} for testing. */
 public class FakeClock implements Clock {
   private long currentTime;
   private long elapsedRealtimeMs;
+  private final Set<ClockUpdateListener> listeners;
 
   public FakeClock() {
     this(0, 0);
@@ -28,6 +31,7 @@ public class FakeClock implements Clock {
   public FakeClock(long currentTime, long elapsedRealtime) {
     this.currentTime = currentTime;
     elapsedRealtimeMs = elapsedRealtime;
+    this.listeners = new HashSet<>();
   }
 
   /**
@@ -44,6 +48,7 @@ public class FakeClock implements Clock {
   public FakeClock set(long currentTime, long elapsedRealtime) {
     this.currentTime = currentTime;
     elapsedRealtimeMs = elapsedRealtime;
+    onClockUpdated(currentTime, elapsedRealtime);
     return this;
   }
 
@@ -54,6 +59,7 @@ public class FakeClock implements Clock {
   public void advance(long millis) {
     currentTime += millis;
     elapsedRealtimeMs += millis;
+    onClockUpdated(currentTime, elapsedRealtimeMs);
   }
 
   @Override
@@ -69,5 +75,20 @@ public class FakeClock implements Clock {
   @Override
   public long uptimeMillis() {
     return elapsedRealtimeMs;
+  }
+
+  private void onClockUpdated(long currentTime, long elapsedRealtime) {
+    for (ClockUpdateListener listener : listeners) {
+      listener.onClockUpdated(currentTime, elapsedRealtime);
+    }
+  }
+
+  public void addClockUpdateListener(ClockUpdateListener listener) {
+    listeners.add(listener);
+  }
+
+  /** Listener for when the clock time is updated. */
+  public interface ClockUpdateListener {
+    void onClockUpdated(long newCurrentTime, long newElapsedRealtime);
   }
 }
