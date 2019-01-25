@@ -55,12 +55,12 @@ maven_jar(
 
 maven_jar(
     name = "com_google_truth_truth",
-    artifact = "com.google.truth:truth:0.42",
+    artifact = "com.google.truth:truth:0.39",
 )
 
 maven_jar(
     name = "com_google_truth_liteproto_extension",
-    artifact = "com.google.truth.extensions:truth-liteproto-extension:0.42"
+    artifact = "com.google.truth.extensions:truth-liteproto-extension:0.39"
 )
 
 maven_jar(
