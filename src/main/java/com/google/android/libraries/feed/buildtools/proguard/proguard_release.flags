@@ -2,6 +2,7 @@
 # specific flags should be added to each host's proguard specs and overall
 # should be avoided.
 
+
 -assumenosideeffects class com.google.android.libraries.feed.common.logging.Logger {
   public static boolean isDebugEnabled(java.lang.String) return false;
   public static boolean isVerboseEnabled(java.lang.String) return false;
@@ -16,3 +17,4 @@
 
   private static boolean shouldWtfCrash() return false;
 }
+
