@@ -32,6 +32,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -137,7 +138,7 @@ public class StyleProviderTest {
         .isEqualTo((int) LayoutUtils.dpToPx(style.getWidth(), context));
     assertThat(styleProvider.hasHeight()).isTrue();
     assertThat(styleProvider.hasWidth()).isTrue();
-    assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_CROP);
+    assertThat(styleProvider.getScaleType()).isEqualTo(ImageView.ScaleType.CENTER_CROP);
     assertThat(styleProvider.hasGravityHorizontal()).isTrue();
     assertThat(styleProvider.getGravityHorizontal(Gravity.CLIP_VERTICAL)).isEqualTo(Gravity.END);
     assertThat(styleProvider.hasGravityVertical()).isTrue();
@@ -166,7 +167,7 @@ public class StyleProviderTest {
     assertThat(styleProvider.getWidthSpecPx(context)).isEqualTo(DIMENSION_NOT_SET);
     assertThat(styleProvider.hasHeight()).isFalse();
     assertThat(styleProvider.hasWidth()).isFalse();
-    assertThat(styleProvider.getScaleType()).isEqualTo(ScaleType.CENTER_INSIDE);
+    assertThat(styleProvider.getScaleType()).isEqualTo(ImageView.ScaleType.FIT_CENTER);
     assertThat(styleProvider.hasGravityHorizontal()).isFalse();
     assertThat(styleProvider.getGravityHorizontal(Gravity.CLIP_VERTICAL))
         .isEqualTo(Gravity.CLIP_VERTICAL);

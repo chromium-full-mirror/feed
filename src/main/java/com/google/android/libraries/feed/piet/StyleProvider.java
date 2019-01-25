@@ -25,14 +25,16 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
 import com.google.android.libraries.feed.piet.ui.GradientDrawable;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerViewHelper;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.GradientsProto.Fill;
-import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.Borders;
 import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
@@ -107,8 +109,17 @@ class StyleProvider {
   }
 
   /** Image scale type on this style */
-  public Image.ScaleType getScaleType() {
-    return style.getScaleType();
+  public ImageView.ScaleType getScaleType() {
+    switch (style.getScaleType()) {
+      case CENTER_CROP:
+        return ScaleType.CENTER_CROP;
+      case CENTER_INSIDE:
+      case SCALE_TYPE_UNSPECIFIED:
+        return ScaleType.FIT_CENTER;
+    }
+    throw new PietFatalException(
+        ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
+        String.format("Unsupported ScaleType: %s", style.getScaleType()));
   }
 
   /** The {@link RoundedCorners} to be used with the background color. */

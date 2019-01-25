@@ -25,8 +25,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
-import com.google.android.libraries.feed.common.time.testing.FakeClock;
+import android.widget.ImageView;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -37,7 +38,6 @@ import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ImagesProto.Image;
-import com.google.search.now.ui.piet.ImagesProto.Image.ScaleType;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import java.util.Collections;
 import java.util.List;
@@ -138,7 +138,7 @@ public class ElementStackAdapterTest {
     when(mockStyleProvider.hasHeight()).thenReturn(true);
     when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(123);
     when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(456);
-    when(mockStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
+    when(mockStyleProvider.getScaleType()).thenReturn(ImageView.ScaleType.CENTER_CROP);
 
     adapter.createAdapter(element, frameContext);
     adapter.bindModel(element, frameContext);
@@ -169,7 +169,7 @@ public class ElementStackAdapterTest {
     when(mockStyleProvider.hasHeight()).thenReturn(true);
     when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(123);
     when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(456);
-    when(mockStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
+    when(mockStyleProvider.getScaleType()).thenReturn(ImageView.ScaleType.CENTER_CROP);
 
     adapter.createAdapter(element, frameContext);
     adapter.bindModel(element, frameContext);

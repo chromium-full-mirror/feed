@@ -51,16 +51,15 @@ message Image {
     // will be cropped.
     CENTER_CROP = 2;
   }
-  // How the image should be scaled.
-  // DEPRECATED: use the scale_type on Style message instead
-  optional ScaleType scale_type = 2
-      [default = CENTER_INSIDE, deprecated = true];
 
   // Replace all non-transparent pixels of this image with the specified color.
   // This is used for changing the color of icons which are provided as a
   // monochrome bitmap. If this optional field is not provided, the image will
   // not be modified. See [INTERNAL LINK]
   optional fixed32 overlay_color = 3;
+
+  // Reserved tags from deprecated fields
+  reserved 2;
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
