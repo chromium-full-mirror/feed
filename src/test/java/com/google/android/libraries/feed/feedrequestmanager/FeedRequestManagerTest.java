@@ -847,9 +847,7 @@ public class FeedRequestManagerTest {
     codedOutputStream.writeUInt32NoTag(rawResponse.length);
     codedOutputStream.writeRawBytes(rawResponse);
     codedOutputStream.flush();
-    byte[] newResponse = new byte[buffer.remaining()];
-    buffer.get(newResponse);
-    return new HttpResponse(responseCode, newResponse);
+    return new HttpResponse(responseCode, buffer.array());
   }
 
   private static DismissActionWithSemanticProperties buildDismissAction(
