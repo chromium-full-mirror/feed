@@ -24,6 +24,6 @@ option cc_enable_arenas = true;
 
 // Object representing scroll state in the Stream.
 message ScrollState {
-  required int32 position = 1;
-  required int32 offset = 2;
+  optional int32 position = 1;
+  optional int32 offset = 2;
 }
