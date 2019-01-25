@@ -41,9 +41,11 @@ public class Configuration {
     ConfigKey.NON_CACHED_MIN_PAGE_SIZE,
     ConfigKey.DEFAULT_ACTION_TTL_SECONDS,
     ConfigKey.TRIGGER_IMMEDIATE_PAGINATION,
-    // Boolean which causes synthetic tokens to be consumed when they are found. Only valid during
-    // initialization, during restore we always consume synthetic tokens.
+    // Boolean which causes synthetic tokens to be consumed when they are found.
     ConfigKey.CONSUME_SYNTHETIC_TOKENS,
+    // Boolean which causes synthetic tokens to be automatically consume when restoring.  This will
+    // not cause synthetic tokens to be consumed when opening with a new session.
+    ConfigKey.CONSUME_SYNTHETIC_TOKENS_WHILE_RESTORING,
     // Turn on the Timeout Scheduler
     ConfigKey.USE_TIMEOUT_SCHEDULER,
     // Time in ms where the stories are consider current
@@ -86,6 +88,8 @@ public class Configuration {
     String DEFAULT_ACTION_TTL_SECONDS = "default_action_ttl_seconds";
     String TRIGGER_IMMEDIATE_PAGINATION = "trigger_immediate_pagination_bool";
     String CONSUME_SYNTHETIC_TOKENS = "consume_synthetic_tokens_bool";
+    String CONSUME_SYNTHETIC_TOKENS_WHILE_RESTORING =
+        "consume_synthetic_tokens_while_restoring_bool";
     String USE_TIMEOUT_SCHEDULER = "use_timeout_scheduler";
     String TIMEOUT_STORIES_ARE_CURRENT = "timeout_stories_are_current";
     String TIMEOUT_STORIES_CURRENT_WITH_REFRESH = "timeout_stories_current_with_refresh";

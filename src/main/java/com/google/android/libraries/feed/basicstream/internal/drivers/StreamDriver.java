@@ -497,8 +497,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         position,
         snackbarApi,
         threadUtils,
-        // We always want to automatically consume synthetic tokens when we are restoring.
-        /*forceAutoConsumeSyntheticTokens= */ restoring);
+        restoring);
   }
 
   @VisibleForTesting

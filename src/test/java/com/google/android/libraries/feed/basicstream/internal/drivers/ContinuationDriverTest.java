@@ -41,8 +41,8 @@ import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ContinuationViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.R;
-import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -103,7 +103,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
     continuationDriver.initialize();
   }
 
@@ -121,7 +121,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
 
     assertThat(continuationDriver.isSynthetic()).isFalse();
 
@@ -138,7 +138,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
 
     assertThat(continuationDriver.isSynthetic()).isTrue();
   }
@@ -157,7 +157,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
     continuationDriver.initialize();
 
     verify(modelToken).registerObserver(continuationDriver);
@@ -182,7 +182,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
     continuationDriver.initialize();
 
     // Call initialize again to make sure it doesn't duplicate work
@@ -214,7 +214,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
     continuationDriver.initialize();
 
     // Call initialize again to make sure it doesn't duplicate work
@@ -229,16 +229,21 @@ public class ContinuationDriverTest {
   }
 
   @Test
-  public void testInitialize_autoConsumeSyntheticTokenOnRestore() {
+  public void testInitialize_doesNotAutoConsumeSyntheticTokenOnRestore() {
     when(modelToken.isSynthetic()).thenReturn(true);
+
+    Configuration configuration =
+        new Configuration.Builder()
+            .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false)
+            .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, false)
+            .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS_WHILE_RESTORING, false)
+            .build();
+
     continuationDriver =
         new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
-            new Configuration.Builder()
-                .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true)
-                .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, false)
-                .build(),
+            configuration,
             context,
             cursorChangedListener,
             modelChild,
@@ -246,7 +251,42 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ true);
+            /* restoring= */ true);
+
+    continuationDriver.initialize();
+
+    verify(modelToken).registerObserver(continuationDriver);
+    verify(modelProvider, never()).handleToken(modelToken);
+
+    continuationDriver.bind(continuationViewHolder);
+    verify(continuationViewHolder)
+        .bind(eq(continuationDriver), any(LoggingListener.class), eq(false));
+  }
+
+  @Test
+  public void testInitialize_autoConsumeSyntheticTokenOnRestore() {
+    when(modelToken.isSynthetic()).thenReturn(true);
+
+    Configuration configuration =
+        new Configuration.Builder()
+            .put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false)
+            .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, true)
+            .put(ConfigKey.CONSUME_SYNTHETIC_TOKENS_WHILE_RESTORING, true)
+            .build();
+
+    continuationDriver =
+        new ContinuationDriverForTest(
+            basicLoggingApi,
+            clock,
+            configuration,
+            context,
+            cursorChangedListener,
+            modelChild,
+            modelProvider,
+            POSITION,
+            snackbarApi,
+            threadUtils,
+            /* restoring= */ true);
 
     continuationDriver.initialize();
 
@@ -277,7 +317,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
 
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
@@ -299,7 +339,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
 
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
@@ -321,7 +361,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
 
     assertThatRunnable(() -> continuationDriver.bind(continuationViewHolder))
         .throwsAnExceptionOfType(IllegalStateException.class);
@@ -355,7 +395,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
 
     continuationDriver.onDestroy();
 
@@ -428,7 +468,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
 
@@ -532,7 +572,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ false);
+            /* restoring= */ false);
 
     continuationDriver.initialize();
     continuationDriver.bind(continuationViewHolder);
@@ -563,7 +603,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ true);
+            /* restoring= */ true);
     continuationDriver.initialize();
 
     continuationDriver.bind(continuationViewHolder);
@@ -585,7 +625,7 @@ public class ContinuationDriverTest {
             POSITION,
             snackbarApi,
             threadUtils,
-            /* forceAutoConsumeSyntheticTokens= */ true);
+            /* restoring= */ true);
     continuationDriver.initialize();
 
     continuationDriver.bind(continuationViewHolder);
@@ -667,7 +707,7 @@ public class ContinuationDriverTest {
         int position,
         SnackbarApi snackbarApi,
         ThreadUtils threadUtils,
-        boolean forceAutoConsumeSyntheticTokens) {
+        boolean restoring) {
       super(
           basicLoggingApi,
           clock,
@@ -679,7 +719,7 @@ public class ContinuationDriverTest {
           position,
           snackbarApi,
           threadUtils,
-          forceAutoConsumeSyntheticTokens);
+          restoring);
     }
 
     @Override

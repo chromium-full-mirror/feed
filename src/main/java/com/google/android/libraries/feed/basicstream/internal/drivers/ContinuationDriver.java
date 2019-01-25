@@ -81,7 +81,7 @@ public class ContinuationDriver extends LeafFeatureDriver
       int position,
       SnackbarApi snackbarApi,
       ThreadUtils threadUtils,
-      boolean forceAutoConsumeSyntheticTokens) {
+      boolean restoring) {
     this.basicLoggingApi = basicLoggingApi;
     this.context = context;
     this.cursorChangedListener = cursorChangedListener;
@@ -96,7 +96,9 @@ public class ContinuationDriver extends LeafFeatureDriver
         configuration.getValueOrDefault(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, false);
     this.consumeSyntheticTokens =
         configuration.getValueOrDefault(ConfigKey.CONSUME_SYNTHETIC_TOKENS, false)
-            || forceAutoConsumeSyntheticTokens;
+            || (restoring
+                && configuration.getValueOrDefault(
+                    ConfigKey.CONSUME_SYNTHETIC_TOKENS_WHILE_RESTORING, false));
   }
 
   public boolean isSynthetic() {
