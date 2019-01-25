@@ -28,6 +28,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -781,6 +782,18 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testSetStreamContentVisibility_createsModelProvider_ifContentNowVisible() {
+    basicStream.setStreamContentVisibility(false);
+    basicStream.onShow();
+
+    verifyNoMoreInteractions(modelProvider);
+
+    basicStream.setStreamContentVisibility(true);
+
+    verify(modelProviderFactory).createNew(any(ViewDepthProvider.class));
+  }
+
+  @Test
   public void testTriggerRefresh() {
     basicStream.onShow();
 
@@ -842,6 +855,25 @@ public class BasicStreamTest {
     basicStream.onShow();
 
     verify(adapter).setShown(true);
+  }
+
+  @Test
+  public void testOnShow_doesNotCreateModelProvider_ifStreamContentNotVisible() {
+    basicStream.setStreamContentVisibility(false);
+
+    basicStream.onShow();
+
+    verifyNoMoreInteractions(modelProviderFactory);
+    verify(adapter, never()).setDriver(any(StreamDriver.class));
+  }
+
+  @Test
+  public void testOnShow_restoresScrollPosition_ifStreamContentNotVisible() {
+    basicStream.setStreamContentVisibility(false);
+
+    basicStream.onShow();
+
+    verify(scrollRestorer).maybeRestoreScroll();
   }
 
   @Test

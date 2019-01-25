@@ -124,6 +124,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private boolean isInitialLoad = true;
   private boolean isRestoring;
   private boolean isDestroyed;
+  private boolean isStreamContentVisible = true;
 
   @LoggingState private int loggingState = LoggingState.STARTING;
 
@@ -257,70 +258,13 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @Override
   public void onShow() {
-    if (modelProvider == null) {
-
-      // For nullness checker
-      ModelProvider localModelProvider = null;
-      String localSavedSessionToken = savedSessionToken;
-      if (localSavedSessionToken != null) {
-        isRestoring = true;
-        Logger.d(TAG, "Attempting to restoring session token: %s.", localSavedSessionToken);
-        localModelProvider = modelProviderFactory.create(localSavedSessionToken);
-      }
-
-      if (localModelProvider == null) {
-        // If a session is no longer valid then a ModelProvider will not have been created above.
-        Logger.d(TAG, "Creating new session for showing.");
-        localModelProvider = modelProviderFactory.createNew(deepestContentTracker);
-        sessionStartTimestamp = clock.currentTimeMillis();
-      }
-
-      modelProvider = localModelProvider;
-      modelProvider.registerObserver(this);
-    }
-
-    if (streamDriver == null) {
-      // If the ModelProvider is not ready we don't want to restore the Stream at all.  Instead we
-      // need to wait for it to become active and we can reset the StreamDriver with the correct
-      // scroll restorer in order to finally restore scroll position.
-      ScrollRestorer initialScrollRestorer =
-          modelProvider.getCurrentState() == State.READY
-              ? scrollRestorer
-              : createNonRestoringScrollRestorer(configuration, recyclerView, streamScrollMonitor);
-
-      streamDriver =
-          createStreamDriver(
-              actionApi,
-              actionManager,
-              actionParserFactory,
-              modelProvider,
-              threadUtils,
-              clock,
-              configuration,
-              context,
-              snackbarApi,
-              streamContentChangedListener,
-              initialScrollRestorer,
-              basicLoggingApi,
-              streamOfflineMonitor,
-              knownContentApi,
-              contextMenuManager,
-              isRestoring,
-              isInitialLoad);
-      if (isInitialLoad && !isRestoring) {
-        mainThreadRunner.executeWithDelay(
-            TAG + " onShow",
-            () -> {
-              if (isInitialLoad) {
-                checkNotNull(streamDriver).showZeroState(/* showSpinner= */ true);
-                initialLoadingSpinnerStartTime = clock.currentTimeMillis();
-              }
-            },
-            MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
-      } else if (!isRestoring) {
-        streamDriver.showZeroState(/* showSpinner= */ true);
-      }
-      adapter.setDriver(streamDriver);
+    // Only create model provider if Stream content is visible.
+    if (isStreamContentVisible) {
+      createModelProviderAndStreamDriver();
+    } else {
+      // If Stream content is not visible, we will not create the StreamDriver and restore the
+      // scroll position automatically. So we try to restore the scroll position before.
+      scrollRestorer.maybeRestoreScroll();
     }
     adapter.setShown(true);
   }
@@ -405,6 +349,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   @Override
   public void setStreamContentVisibility(boolean visible) {
     checkNotNull(adapter, "onCreate must be called before setStreamContentVisibility");
+    // If Stream content was previously not visible, ModelProvider might need to be created.
+    if (!isStreamContentVisible && visible && modelProvider == null) {
+      createModelProviderAndStreamDriver();
+    }
+    isStreamContentVisible = visible;
     adapter.setStreamContentVisible(visible);
   }
 
@@ -675,6 +624,74 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     scrollRestorer.abandonRestoringScroll();
     if (streamDriver != null) {
       streamDriver.showZeroState(/* showSpinner= */ false);
+    }
+  }
+
+  private void createModelProviderAndStreamDriver() {
+    if (modelProvider == null) {
+
+      // For nullness checker
+      ModelProvider localModelProvider = null;
+      String localSavedSessionToken = savedSessionToken;
+      if (localSavedSessionToken != null) {
+        isRestoring = true;
+        Logger.d(TAG, "Attempting to restoring session token: %s.", localSavedSessionToken);
+        localModelProvider = modelProviderFactory.create(localSavedSessionToken);
+      }
+
+      if (localModelProvider == null) {
+        // If a session is no longer valid then a ModelProvider will not have been created above.
+        Logger.d(TAG, "Creating new session for showing.");
+        localModelProvider = modelProviderFactory.createNew(deepestContentTracker);
+        sessionStartTimestamp = clock.currentTimeMillis();
+      }
+
+      modelProvider = localModelProvider;
+      modelProvider.registerObserver(this);
+    }
+
+    if (streamDriver == null) {
+      // If the ModelProvider is not ready we don't want to restore the Stream at all.  Instead we
+      // need to wait for it to become active and we can reset the StreamDriver with the correct
+      // scroll restorer in order to finally restore scroll position.
+      ScrollRestorer initialScrollRestorer =
+          modelProvider.getCurrentState() == State.READY
+              ? scrollRestorer
+              : createNonRestoringScrollRestorer(configuration, recyclerView, streamScrollMonitor);
+
+      streamDriver =
+          createStreamDriver(
+              actionApi,
+              actionManager,
+              actionParserFactory,
+              modelProvider,
+              threadUtils,
+              clock,
+              configuration,
+              context,
+              snackbarApi,
+              streamContentChangedListener,
+              initialScrollRestorer,
+              basicLoggingApi,
+              streamOfflineMonitor,
+              knownContentApi,
+              contextMenuManager,
+              isRestoring,
+              isInitialLoad);
+      if (isInitialLoad && !isRestoring) {
+        mainThreadRunner.executeWithDelay(
+            TAG + " onShow",
+            () -> {
+              if (isInitialLoad) {
+                checkNotNull(streamDriver).showZeroState(/* showSpinner= */ true);
+                initialLoadingSpinnerStartTime = clock.currentTimeMillis();
+              }
+            },
+            MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
+      } else if (!isRestoring) {
+        streamDriver.showZeroState(/* showSpinner= */ true);
+      }
+      adapter.setDriver(streamDriver);
     }
   }
 
