@@ -8,6 +8,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FeedModelProviderFactoryTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -29,6 +30,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FeedModelProviderTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

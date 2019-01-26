@@ -8,6 +8,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["InMemoryJournalStorageTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -24,6 +25,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["InMemoryJournalStorageDirectTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -38,6 +40,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["InMemoryContentStorageTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -53,6 +56,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["InMemoryContentStorageDirectTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -67,6 +71,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentContentStorageTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -89,6 +94,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentContentStorageDirectTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -106,6 +112,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentJournalStorageTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -124,6 +131,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["PersistentJournalStorageDirectTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
