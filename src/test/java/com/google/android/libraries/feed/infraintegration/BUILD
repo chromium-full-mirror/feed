@@ -8,6 +8,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ClearAllTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -30,6 +31,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContentRemoveTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -50,6 +52,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContentUpdateTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -71,6 +74,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["DetachSessionTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -92,6 +96,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["EmptyStreamTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -112,6 +117,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ExistingSessionTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -132,6 +138,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["FilterHeadTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -154,6 +161,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["LimitedPagingTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -174,6 +182,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["MultiSessionPagingTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -196,6 +205,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["RemoveTrackingBehaviorTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -221,6 +231,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["RootOnlyTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -241,6 +252,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SemanticPropertiesTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -263,6 +275,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SharedStateTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -285,6 +298,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SimpleStreamTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -306,6 +320,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamPagingTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -327,6 +342,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StructureUpdateTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -348,6 +364,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["SyntheticTokensTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -370,6 +387,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["TimeoutSessionBaseTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -392,6 +410,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["TimeoutSessionWithContentTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -413,6 +432,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ViewDepthProviderTests.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",

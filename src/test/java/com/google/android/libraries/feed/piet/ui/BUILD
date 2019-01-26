@@ -8,6 +8,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["AspectRatioScalingImageViewTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -22,6 +23,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["BorderDrawableTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -38,6 +40,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["GradientDrawableTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -55,6 +58,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["GradientShaderTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -72,6 +76,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["GridRowViewTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -87,6 +92,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["RoundedCornerWrapperViewTest.java"],
+    aapt_version = "aapt",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
