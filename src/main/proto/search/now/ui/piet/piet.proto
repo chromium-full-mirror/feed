@@ -79,6 +79,7 @@ option cc_enable_arenas = true;
 // A Frame is the top-level UI construct in Piet. Every layout is contained
 // within a Frame. Each frame defines the contents displayed to the user as a
 // single view, which may contain a complex set of child views.
+// NextId: 12
 message Frame {
   // A string tag for the frame, currently used for debugging purposes. Need not
   // be unique.
@@ -95,15 +96,29 @@ message Frame {
   // is a performance optimization that makes view recycling efficient. This
   // applies to both the inlined Stylesheet and stylesheet_id's referencing a
   // PietSharedState Stylesheet.
+  //
+  // DEPRECATED: Use stylesheets field instead. If that field is set, these
+  // deprecated fields will be ignored.
   oneof frame_style_scope {
-    // If this is defined the Stylesheet for the Frame is found by a lookup
+    // If this is defined, the Stylesheet for the Frame is found by a lookup
     // in PietSharedState.Stylesheets. If the stylesheet_id cannot be found,
     // ERR_MISSING_STYLESHEET is raised.
-    string stylesheet_id = 2;
+    // DEPRECATED: use stylesheets field instead.
+    string stylesheet_id = 2 [deprecated = true];
 
     // A local Stylesheet that provides styles used by Elements in this Frame.
-    Stylesheet stylesheet = 3;
+    // DEPRECATED: use stylesheets field instead.
+    Stylesheet stylesheet = 3 [deprecated = true];
   }
+
+  // Defines the Stylesheets used by this Frame.
+  //
+  // NOTE: Styles from this Stylesheet are not available to Templates; they can
+  // only be used by Elements defined directly in this Frame itself, such as
+  // non-template Content. This limitation is a performance optimization that
+  // makes view recycling efficient. This applies to both the inlined
+  // Stylesheets and stylesheet_id's referencing a PietSharedState Stylesheet.
+  optional Stylesheets stylesheets = 11;
 
   // Styles applied to this Frame. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
@@ -135,6 +150,21 @@ message Frame {
 
   // Deprecated field IDs.
   reserved 6, 9;
+}
+
+// UI Elements in a Frame or Template use a Stylesheet to resolve the Styles
+// that define their appearance. The Stylesheet is constructed by combining
+// Styles from any Stylesheets referenced here; Stylesheets can by directly
+// inlined, or referenced from the global shared state in PietSharedState.
+// Piet will report ERR_DUPLICATE_STYLE if multiple Styles across any of the
+// Stylesheets have the same style id (after MediaQueryCondition filtering).
+message Stylesheets {
+  // Stylesheets to be fetched from the global PietSharedState.
+  // If a stylesheet_id cannot be found, ERR_MISSING_STYLESHEET is raised.
+  repeated string stylesheet_ids = 1;
+
+  // Inline Stylesheets. These can be filtered by MediaQueryCondition.
+  repeated Stylesheet stylesheets = 2;
 }
 
 // A set of Styles; each Style must have a style_id that is unique within this
@@ -174,16 +204,27 @@ message Template {
   // - Styles from the Frame CANNOT be referenced from within a Template.
   // - Styles from the PietSharedState CAN be referenced, only if the
   //   stylesheet_id is defined by the Template.
+  //
+  // DEPRECATED: Use stylesheets field instead. If that field is set, these
+  // deprecated fields will be ignored.
   oneof template_stylesheet {
     // If defined, the Stylesheet for this Template is looked up in
     // PietSharedState.Stylesheets. If the stylesheet_id cannot be found,
     // ERR_MISSING_STYLESHEET is raised.
-    string stylesheet_id = 2;
+    // DEPRECATED: use stylesheets field instead.
+    string stylesheet_id = 2 [deprecated = true];
 
     // A local Stylesheet. Styles in this Stylesheet will only be available to
     // elements defined in this Template.
-    Stylesheet stylesheet = 3;
+    // DEPRECATED: use stylesheets field instead.
+    Stylesheet stylesheet = 3 [deprecated = true];
   }
+
+  // The Stylesheets used within this Template's scope.
+  // - Styles from the Frame CANNOT be referenced from within a Template.
+  // - Styles from the PietSharedState CAN be referenced, only if the
+  //   stylesheet_id is defined by the Template.
+  optional Stylesheets stylesheets = 11;
 
   // Styles applied to all child views of this Template.
   optional StyleIdsStack child_default_style_ids = 4;
