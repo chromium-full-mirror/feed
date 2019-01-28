@@ -54,6 +54,11 @@ maven_jar(
 )
 
 maven_jar(
+    name = "com_google_guava_guava_android",
+    artifact = "com.google.guava:guava:27.0.1-android",
+)
+
+maven_jar(
     name = "com_google_truth_truth",
     artifact = "com.google.truth:truth:0.39",
 )
