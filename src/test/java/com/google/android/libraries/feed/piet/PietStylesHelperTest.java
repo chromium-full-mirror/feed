@@ -80,6 +80,7 @@ public class PietStylesHelperTest {
   private List<PietSharedState> sharedStates = new ArrayList<>();
   @Mock FrameContext frameContext;
   @Mock AssetProvider assetProvider;
+  DebugLogger debugLogger;
 
   private Context context;
   private PietStylesHelper helper;
@@ -109,7 +110,10 @@ public class PietStylesHelperTest {
     sharedStates.add(sharedState1);
     sharedStates.add(sharedState2);
 
-    helper = new PietStylesHelper(sharedStates, FRAME_WIDTH_PX, assetProvider, context);
+    debugLogger = new DebugLogger();
+
+    helper =
+        new PietStylesHelper(sharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context);
   }
 
   @Test
@@ -153,7 +157,11 @@ public class PietStylesHelperTest {
     when(assetProvider.isDarkTheme()).thenReturn(true);
     helper =
         new PietStylesHelper(
-            Collections.singletonList(sharedState), FRAME_WIDTH_PX, assetProvider, context);
+            Collections.singletonList(sharedState),
+            FRAME_WIDTH_PX,
+            assetProvider,
+            debugLogger,
+            context);
 
     assertThat(helper.getStylesheetMap("DARK")).containsExactly(STYLE_ID_1, STYLE_1);
     assertThat(helper.getStylesheetMap("LIGHT")).isEmpty();
@@ -162,7 +170,11 @@ public class PietStylesHelperTest {
     when(assetProvider.isDarkTheme()).thenReturn(false);
     helper =
         new PietStylesHelper(
-            Collections.singletonList(sharedState), FRAME_WIDTH_PX, assetProvider, context);
+            Collections.singletonList(sharedState),
+            FRAME_WIDTH_PX,
+            assetProvider,
+            debugLogger,
+            context);
 
     assertThat(helper.getStylesheetMap("DARK")).isEmpty();
     assertThat(helper.getStylesheetMap("LIGHT")).containsExactly(STYLE_ID_2, STYLE_2);
@@ -191,7 +203,11 @@ public class PietStylesHelperTest {
     when(assetProvider.isDarkTheme()).thenReturn(true);
     helper =
         new PietStylesHelper(
-            Collections.singletonList(sharedState), FRAME_WIDTH_PX, assetProvider, context);
+            Collections.singletonList(sharedState),
+            FRAME_WIDTH_PX,
+            assetProvider,
+            debugLogger,
+            context);
 
     assertThat(helper.getTemplate("DARK")).isSameAs(darkTemplate);
     assertThat(helper.getTemplate("LIGHT")).isNull();
@@ -200,7 +216,11 @@ public class PietStylesHelperTest {
     when(assetProvider.isDarkTheme()).thenReturn(false);
     helper =
         new PietStylesHelper(
-            Collections.singletonList(sharedState), FRAME_WIDTH_PX, assetProvider, context);
+            Collections.singletonList(sharedState),
+            FRAME_WIDTH_PX,
+            assetProvider,
+            debugLogger,
+            context);
 
     assertThat(helper.getTemplate("DARK")).isNull();
     assertThat(helper.getTemplate("LIGHT")).isSameAs(lightTemplate);
@@ -234,7 +254,9 @@ public class PietStylesHelperTest {
     sharedStates.add(sharedState2);
 
     assertThatRunnable(
-            () -> new PietStylesHelper(sharedStates, FRAME_WIDTH_PX, assetProvider, context))
+            () ->
+                new PietStylesHelper(
+                    sharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context))
         .throwsAnExceptionOfType(PietFatalException.class)
         .that()
         .hasMessageThat()

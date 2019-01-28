@@ -66,6 +66,7 @@ import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
+import com.google.search.now.ui.piet.PietProto.Stylesheets;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Font;
@@ -142,7 +143,7 @@ public class FrameContextTest {
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);
     pietSharedStates = new ArrayList<>();
     pietStylesHelper =
-        new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, context);
+        new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context);
 
     frameView = new FrameLayout(context);
   }
@@ -199,7 +200,8 @@ public class FrameContextTest {
             DEFAULT_FRAME,
             defaultStylesheet,
             pietSharedStates,
-            new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, context),
+            new PietStylesHelper(
+                pietSharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context),
             DebugBehavior.VERBOSE,
             debugLogger,
             actionHandler,
@@ -255,14 +257,18 @@ public class FrameContextTest {
     int templateDefaultColor = 434343;
     Template templateWithStyles =
         Template.newBuilder()
-            .setStylesheet(
-                Stylesheet.newBuilder()
-                    .addStyles(
-                        Style.newBuilder().setStyleId("templateStyle").setColor(templateStyleColor))
-                    .addStyles(
-                        Style.newBuilder()
-                            .setStyleId("templateDefault")
-                            .setColor(templateDefaultColor)))
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheets(
+                        Stylesheet.newBuilder()
+                            .addStyles(
+                                Style.newBuilder()
+                                    .setStyleId("templateStyle")
+                                    .setColor(templateStyleColor))
+                            .addStyles(
+                                Style.newBuilder()
+                                    .setStyleId("templateDefault")
+                                    .setColor(templateDefaultColor))))
             .setChildDefaultStyleIds(StyleIdsStack.newBuilder().addStyleIds("templateDefault"))
             .build();
     FrameContext frameContextWithTemplate =
@@ -292,7 +298,10 @@ public class FrameContextTest {
     frameContext = defaultFrameContext();
 
     Template template =
-        Template.newBuilder().setTemplateId("kingSize").setStylesheetId(stylesheetId).build();
+        Template.newBuilder()
+            .setTemplateId("kingSize")
+            .setStylesheets(Stylesheets.newBuilder().addStylesheetIds(stylesheetId))
+            .build();
 
     FrameContext templateContext =
         frameContext.createTemplateContext(template, BindingContext.getDefaultInstance());
@@ -300,6 +309,43 @@ public class FrameContextTest {
     StyleIdsStack styleRef = StyleIdsStack.newBuilder().addStyleIds(styleId).build();
     assertThat(templateContext.makeStyleFor(styleRef).getWidthSpecPx(context))
         .isEqualTo((int) LayoutUtils.dpToPx(width, context));
+  }
+
+  @Test
+  public void testCreateTemplateContext_multipleStylesheets() {
+    String styleId = "cotton";
+    int width = 343;
+    Style style = Style.newBuilder().setStyleId(styleId).setWidth(width).build();
+    String stylesheetId = "linen";
+    Stylesheet stylesheet =
+        Stylesheet.newBuilder().setStylesheetId(stylesheetId).addStyles(style).build();
+    pietSharedStates.add(PietSharedState.newBuilder().addStylesheets(stylesheet).build());
+    frameContext = defaultFrameContext();
+    int templateStyleColor = 343434;
+    String templateStyleId = "templateStyle";
+
+    Template template =
+        Template.newBuilder()
+            .setTemplateId("kingSize")
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheetIds(stylesheetId)
+                    .addStylesheets(
+                        Stylesheet.newBuilder()
+                            .addStyles(
+                                Style.newBuilder()
+                                    .setStyleId(templateStyleId)
+                                    .setColor(templateStyleColor))))
+            .build();
+
+    FrameContext templateContext =
+        frameContext.createTemplateContext(template, BindingContext.getDefaultInstance());
+
+    StyleIdsStack styleRef = StyleIdsStack.newBuilder().addStyleIds(styleId).build();
+    assertThat(templateContext.makeStyleFor(styleRef).getWidthSpecPx(context))
+        .isEqualTo((int) LayoutUtils.dpToPx(width, context));
+    styleRef = StyleIdsStack.newBuilder().addStyleIds(templateStyleId).build();
+    assertThat(templateContext.makeStyleFor(styleRef).getColor()).isEqualTo(templateStyleColor);
   }
 
   /** Bind a template with a child default style that is defined by the Template. */
@@ -321,7 +367,10 @@ public class FrameContextTest {
     Template template =
         Template.newBuilder()
             .setTemplateId("badtemplate")
-            .setStylesheet(Stylesheet.newBuilder().addStyles(childStyle))
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheets(Stylesheet.newBuilder().addStyles(childStyle))
+                    .build())
             .setChildDefaultStyleIds(
                 StyleIdsStack.newBuilder().addStyleIds(childStyleId).setStyleBinding(boundStyleRef))
             .build();
@@ -966,17 +1015,15 @@ public class FrameContextTest {
     assertThat(frameContext.getChunkedTextBindingValue(textBindingRef)).isEqualTo(textBindingValue);
   }
 
+  // TODO: Remove; this is now reported by PietStylesHelper.
+  @Deprecated
   @Test
   public void testError_stylesheetNotFound() {
-    Frame frame = getBaseFrame();
-    FrameContext frameContext = makeFrameContextFromFrame(frame);
-    assertThat(frameContext).isNotNull();
-    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
-  }
-
-  @Test
-  public void testError_styleNotFound() {
-    Frame frame = getBaseFrame();
+    Frame frame =
+        Frame.newBuilder()
+            .setStylesheetId(STYLESHEET_ID)
+            .setStyleReferences(SAMPLE_STYLE_IDS)
+            .build();
     FrameContext frameContext = makeFrameContextFromFrame(frame);
     assertThat(frameContext).isNotNull();
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).hasSize(1);
@@ -992,7 +1039,10 @@ public class FrameContextTest {
 
   @Test
   public void testBindFrame_withStylesheetId() {
-    Frame frame = Frame.newBuilder().setStylesheetId(STYLESHEET_ID).build();
+    Frame frame =
+        Frame.newBuilder()
+            .setStylesheets(Stylesheets.newBuilder().addStylesheetIds(STYLESHEET_ID))
+            .build();
     setUpPietSharedStates();
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
@@ -1007,7 +1057,11 @@ public class FrameContextTest {
   @Test
   public void testBindFrame_withStylesheet() {
     Frame frame =
-        Frame.newBuilder().setStylesheet(Stylesheet.newBuilder().addStyles(SAMPLE_STYLE)).build();
+        Frame.newBuilder()
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheets(Stylesheet.newBuilder().addStyles(SAMPLE_STYLE)))
+            .build();
 
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
@@ -1020,10 +1074,39 @@ public class FrameContextTest {
   }
 
   @Test
+  public void testBindFrame_withMultipleStylesheets() {
+    Frame frame =
+        Frame.newBuilder()
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheetIds(STYLESHEET_ID)
+                    .addStylesheets(Stylesheet.newBuilder().addStyles(BASE_STYLE).build()))
+            .build();
+
+    setUpPietSharedStates();
+
+    FrameContext frameContext = makeFrameContextFromFrame(frame);
+
+    assertThat(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()).getColor())
+        .isNotEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(frameContext.makeStyleFor(SAMPLE_STYLE_IDS).getColor())
+        .isEqualTo(SAMPLE_STYLE_COLOR);
+    assertThat(
+            frameContext
+                .makeStyleFor(
+                    StyleIdsStack.newBuilder().addStyleIds(BASE_STYLE.getStyleId()).build())
+                .getColor())
+        .isEqualTo(BASE_STYLE_COLOR);
+    assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();
+  }
+
+  @Test
   public void testBindFrame_withFrameStyle() {
     Frame frame =
         Frame.newBuilder()
-            .setStylesheet(Stylesheet.newBuilder().addStyles(SAMPLE_STYLE))
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheets(Stylesheet.newBuilder().addStyles(SAMPLE_STYLE)))
             .setStyleReferences(SAMPLE_STYLE_IDS)
             .build();
 
@@ -1037,7 +1120,11 @@ public class FrameContextTest {
   @Test
   public void testBindFrame_withoutFrameStyle() {
     Frame frame =
-        Frame.newBuilder().setStylesheet(Stylesheet.newBuilder().addStyles(SAMPLE_STYLE)).build();
+        Frame.newBuilder()
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheets(Stylesheet.newBuilder().addStyles(SAMPLE_STYLE)))
+            .build();
 
     FrameContext frameContext = makeFrameContextFromFrame(frame);
 
@@ -1052,10 +1139,15 @@ public class FrameContextTest {
     String heightStyleId = "JUMBO";
     Frame frame =
         Frame.newBuilder()
-            .setStylesheet(
-                Stylesheet.newBuilder()
-                    .addStyles(SAMPLE_STYLE)
-                    .addStyles(Style.newBuilder().setStyleId(heightStyleId).setHeight(styleHeight)))
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheets(
+                        Stylesheet.newBuilder()
+                            .addStyles(SAMPLE_STYLE)
+                            .addStyles(
+                                Style.newBuilder()
+                                    .setStyleId(heightStyleId)
+                                    .setHeight(styleHeight))))
             .setStyleReferences(SAMPLE_STYLE_IDS)
             .build();
 
@@ -1101,7 +1193,10 @@ public class FrameContextTest {
     StyleIdsStack twoStyles =
         StyleIdsStack.newBuilder().addStyleIds(styleId1).addStyleIds(styleId2).build();
     Frame frame =
-        Frame.newBuilder().setStylesheetId(STYLESHEET_ID).setStyleReferences(twoStyles).build();
+        Frame.newBuilder()
+            .setStylesheets(Stylesheets.newBuilder().addStylesheetIds(STYLESHEET_ID))
+            .setStyleReferences(twoStyles)
+            .build();
     pietSharedStates.add(
         PietSharedState.newBuilder()
             .addStylesheets(
@@ -1137,7 +1232,7 @@ public class FrameContextTest {
   }
 
   @Test
-  public void testGetMediaQueryStylesheet() {
+  public void testGetMediaQueryStylesheets() {
     String noMediaQueryStylesheetId = "noMediaQueries";
     Stylesheet noMediaQueryStylesheet =
         Stylesheet.newBuilder().setStylesheetId(noMediaQueryStylesheetId).build();
@@ -1164,21 +1259,27 @@ public class FrameContextTest {
 
     Template inlineStylesheetTemplate =
         Template.newBuilder()
-            .setStylesheet(Stylesheet.newBuilder().setStylesheetId("inline"))
+            .setStylesheets(
+                Stylesheets.newBuilder()
+                    .addStylesheets(Stylesheet.newBuilder().setStylesheetId("inline")))
             .build();
-    assertThat(frameContext.getMediaQueryStylesheet(inlineStylesheetTemplate)).isNull();
+    assertThat(frameContext.getMediaQueryStylesheets(inlineStylesheetTemplate)).isEmpty();
 
     Template notFoundStylesheetTemplate = Template.newBuilder().setStylesheetId("NotFound").build();
-    assertThat(frameContext.getMediaQueryStylesheet(notFoundStylesheetTemplate)).isNull();
+    assertThat(frameContext.getMediaQueryStylesheets(notFoundStylesheetTemplate)).isEmpty();
 
     Template noConditionsTemplate =
-        Template.newBuilder().setStylesheetId(noMediaQueryStylesheetId).build();
-    assertThat(frameContext.getMediaQueryStylesheet(noConditionsTemplate)).isNull();
+        Template.newBuilder()
+            .setStylesheets(Stylesheets.newBuilder().addStylesheetIds(noMediaQueryStylesheetId))
+            .build();
+    assertThat(frameContext.getMediaQueryStylesheets(noConditionsTemplate)).isEmpty();
 
     Template mediaQueryTemplate =
-        Template.newBuilder().setStylesheetId(mediaQueryStylesheetId).build();
-    assertThat(frameContext.getMediaQueryStylesheet(mediaQueryTemplate))
-        .isEqualTo(mediaQueryStylesheet);
+        Template.newBuilder()
+            .setStylesheets(Stylesheets.newBuilder().addStylesheetIds(mediaQueryStylesheetId))
+            .build();
+    assertThat(frameContext.getMediaQueryStylesheets(mediaQueryTemplate))
+        .containsExactly(mediaQueryStylesheet);
   }
 
   @Test
@@ -1218,7 +1319,7 @@ public class FrameContextTest {
         DEFAULT_FRAME,
         defaultStylesheet,
         pietSharedStates,
-        new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, context),
+        new PietStylesHelper(pietSharedStates, FRAME_WIDTH_PX, assetProvider, debugLogger, context),
         DebugBehavior.VERBOSE,
         debugLogger,
         actionHandler,
@@ -1290,7 +1391,7 @@ public class FrameContextTest {
 
   private Frame getBaseFrame() {
     return Frame.newBuilder()
-        .setStylesheetId(STYLESHEET_ID)
+        .setStylesheets(Stylesheets.newBuilder().addStylesheetIds(STYLESHEET_ID))
         .setStyleReferences(SAMPLE_STYLE_IDS)
         .build();
   }

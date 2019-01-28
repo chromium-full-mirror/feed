@@ -24,6 +24,7 @@ import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.MediaQueriesProto.MediaQueryCondition;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Stylesheet;
+import com.google.search.now.ui.piet.PietProto.Stylesheets;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
@@ -35,20 +36,27 @@ import java.util.Map;
 public class PietStylesHelper {
   private static final String TAG = "PietStylesHelper";
 
+  @Deprecated
   private final Map<String, NoKeyOverwriteHashMap<String, Style>> stylesheetScopes =
       new NoKeyOverwriteHashMap<>("Style", ErrorCode.ERR_DUPLICATE_STYLE);
+
+  private final Map<Stylesheets, NoKeyOverwriteHashMap<String, Style>> multiStylesheetScopes =
+      new NoKeyOverwriteHashMap<>("Style", ErrorCode.ERR_DUPLICATE_STYLESHEET);
   private final Map<String, Stylesheet> stylesheets =
       new NoKeyOverwriteHashMap<>("Stylesheet", ErrorCode.ERR_DUPLICATE_STYLESHEET);
   private final Map<String, Template> templates =
       new NoKeyOverwriteHashMap<>("Template", ErrorCode.ERR_DUPLICATE_TEMPLATE);
 
   private final MediaQueryHelper mediaQueryHelper;
+  private final DebugLogger debugLogger;
 
   PietStylesHelper(
       List<PietSharedState> pietSharedStates,
       int frameWidthPx,
       AssetProvider assetProvider,
+      DebugLogger debugLogger,
       Context context) {
+    this.debugLogger = debugLogger;
     mediaQueryHelper = new MediaQueryHelper(frameWidthPx, assetProvider, context);
     for (PietSharedState sharedState : pietSharedStates) {
       if (sharedState.getStylesheetsCount() > 0) {
@@ -77,6 +85,53 @@ public class PietStylesHelper {
   }
 
   /** Returns a Map of style_id to Style. This represents the Stylesheet. */
+  NoKeyOverwriteHashMap<String, Style> getStylesheetMap(Stylesheets stylesheetRefs) {
+    if (multiStylesheetScopes.containsKey(stylesheetRefs)) {
+      return multiStylesheetScopes.get(stylesheetRefs);
+    }
+
+    NoKeyOverwriteHashMap<String, Style> styleMap =
+        new NoKeyOverwriteHashMap<>("Style", ErrorCode.ERR_DUPLICATE_STYLE);
+
+    // Add inline stylesheets.
+    for (Stylesheet stylesheet : stylesheetRefs.getStylesheetsList()) {
+      addStylesToMapIfMediaQueryConditionsMet(stylesheet, styleMap);
+    }
+
+    // Add stylesheets referenced from PietSharedState.
+    for (String stylesheetId : stylesheetRefs.getStylesheetIdsList()) {
+      Stylesheet stylesheet = stylesheets.get(stylesheetId);
+      if (stylesheet == null) {
+        String message =
+            String.format("Stylesheet [%s] was not found in the PietSharedState", stylesheetId);
+        debugLogger.recordMessage(MessageType.WARNING, ErrorCode.ERR_MISSING_STYLESHEET, message);
+        Logger.w(TAG, message);
+        continue;
+      }
+      addStylesToMapIfMediaQueryConditionsMet(stylesheet, styleMap);
+    }
+
+    multiStylesheetScopes.put(stylesheetRefs, styleMap);
+
+    return styleMap;
+  }
+
+  /** Adds all styles from the Stylesheet to the Map, subject to MediaQueryCondition filtering. */
+  private void addStylesToMapIfMediaQueryConditionsMet(
+      Stylesheet stylesheet, NoKeyOverwriteHashMap<String, Style> styleMap) {
+    if (!areMediaQueriesMet(stylesheet.getConditionsList())) {
+      return;
+    }
+    for (Style style : stylesheet.getStylesList()) {
+      if (!areMediaQueriesMet(style.getConditionsList())) {
+        continue;
+      }
+      styleMap.put(style.getStyleId(), style);
+    }
+  }
+
+  /** Returns a Map of style_id to Style. This represents the Stylesheet. */
+  @Deprecated
   NoKeyOverwriteHashMap<String, Style> getStylesheetMap(String stylesheetId) {
     if (stylesheetScopes.containsKey(stylesheetId)) {
       return stylesheetScopes.get(stylesheetId);
@@ -91,6 +146,7 @@ public class PietStylesHelper {
     return createMapFromStylesheet(Stylesheet.getDefaultInstance());
   }
 
+  @Deprecated
   NoKeyOverwriteHashMap<String, Style> createMapFromStylesheet(Stylesheet stylesheet) {
     NoKeyOverwriteHashMap<String, Style> styleMap =
         new NoKeyOverwriteHashMap<>("Style", ErrorCode.ERR_DUPLICATE_STYLE);

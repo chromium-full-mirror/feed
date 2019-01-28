@@ -110,7 +110,7 @@ class TemplateBinder {
     return new TemplateKey(
         model.getTemplate(),
         frameContext.getPietSharedStates(),
-        frameContext.getMediaQueryStylesheet(model.getTemplate()));
+        frameContext.getMediaQueryStylesheets(model.getTemplate()));
   }
 
   /**
@@ -133,17 +133,17 @@ class TemplateBinder {
     private final Template template;
     /*@Nullable*/ private final List<PietSharedState> pietSharedStates;
 
-    // If the Template references a Stylesheet that has MediaQueryConditions on it, it needs to be
-    // part of the key.
-    /*@Nullable*/ private final Stylesheet mediaQueryBasedStylesheet;
+    // If the Template references Stylesheets that have MediaQueryConditions on them, they need to
+    // be part of the key.
+    private final List<Stylesheet> mediaQueryBasedStylesheets;
 
     TemplateKey(
         Template template,
         /*@Nullable*/ List<PietSharedState> pietSharedStates,
-        /*@Nullable*/ Stylesheet mediaQueryBasedStylesheet) {
+        List<Stylesheet> mediaQueryBasedStylesheets) {
       this.template = template;
       this.pietSharedStates = pietSharedStates;
-      this.mediaQueryBasedStylesheet = mediaQueryBasedStylesheet;
+      this.mediaQueryBasedStylesheets = mediaQueryBasedStylesheets;
     }
 
     /** Equals checks the hashCode of the component fields to avoid expensive proto equals. */
@@ -173,14 +173,13 @@ class TemplateBinder {
               || this.pietSharedStates.hashCode() != that.pietSharedStates.hashCode())) {
         return false;
       }
-      // Check that stylesheets are equal or both null
-      if (that.mediaQueryBasedStylesheet == null ^ this.mediaQueryBasedStylesheet == null) {
+      // Check that stylesheets are equal or both empty
+      if (that.mediaQueryBasedStylesheets.isEmpty() ^ this.mediaQueryBasedStylesheets.isEmpty()) {
         return false;
       }
-      if (this.mediaQueryBasedStylesheet != null
-          && that.mediaQueryBasedStylesheet != null
-          && this.mediaQueryBasedStylesheet.hashCode()
-              != that.mediaQueryBasedStylesheet.hashCode()) {
+      if (this.mediaQueryBasedStylesheets != that.mediaQueryBasedStylesheets
+          && this.mediaQueryBasedStylesheets.hashCode()
+              != that.mediaQueryBasedStylesheets.hashCode()) {
         return false;
       }
 
@@ -193,7 +192,7 @@ class TemplateBinder {
       result = 31 * result + (pietSharedStates != null ? pietSharedStates.hashCode() : 0);
       result =
           31 * result
-              + (mediaQueryBasedStylesheet != null ? mediaQueryBasedStylesheet.hashCode() : 0);
+              + (mediaQueryBasedStylesheets != null ? mediaQueryBasedStylesheets.hashCode() : 0);
       return result;
     }
   }

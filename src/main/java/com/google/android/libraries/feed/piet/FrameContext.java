@@ -57,6 +57,8 @@ import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.BoundStyle;
 import com.google.search.now.ui.piet.StylesProto.Style;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +78,9 @@ class FrameContext {
   private final HostProviders hostProviders;
   private final HostBindingProvider hostBindingProvider;
   private final Map<String, Template> templates;
+
+  // List of stylesheets for each Template that could be affected by media queries.
+  private final Map<Template, List<Stylesheet>> templateMediaQueryStylesheets;
 
   // This is the Frame which contains all the slices being processed.
   private final Frame currentFrame;
@@ -155,6 +160,7 @@ class FrameContext {
     this.hostBindingProvider = hostProviders.getHostBindingProvider();
     this.templates = templates;
     this.frameView = frameView;
+    this.templateMediaQueryStylesheets = new HashMap<>();
   }
 
   /**
@@ -173,11 +179,15 @@ class FrameContext {
       View frameView) {
     PietStylesHelper pietStylesHelper =
         new PietStylesHelper(
-            pietSharedStates, frameWidthPx, hostProviders.getAssetProvider(), context);
+            pietSharedStates, frameWidthPx, hostProviders.getAssetProvider(), debugLogger, context);
     NoKeyOverwriteHashMap<String, Style> styleMap = null;
-    if (frame.hasStylesheetId()) {
+    if (frame.hasStylesheets()) {
+      styleMap = pietStylesHelper.getStylesheetMap(frame.getStylesheets());
+    } else if (frame.hasStylesheetId()) {
+      // TODO: Remove this deprecated branch
       styleMap = pietStylesHelper.getStylesheetMap(frame.getStylesheetId());
     } else if (frame.hasStylesheet()) {
+      // TODO: Remove this deprecated branch
       styleMap = pietStylesHelper.createMapFromStylesheet(frame.getStylesheet());
     }
 
@@ -200,20 +210,46 @@ class FrameContext {
     return frameContext;
   }
 
-  /** If the template's stylesheet could be affected by a MediaQuery, return it, otherwise null */
-  /*@Nullable*/
-  Stylesheet getMediaQueryStylesheet(Template template) {
-    if (!template.hasStylesheetId()) {
-      return null;
+  /** Return any of the template's stylesheets that could be affected by a MediaQuery. */
+  List<Stylesheet> getMediaQueryStylesheets(Template template) {
+    if (templateMediaQueryStylesheets.containsKey(template)) {
+      return templateMediaQueryStylesheets.get(template);
     }
-    Stylesheet stylesheet = stylesHelper.getStylesheet(template.getStylesheetId());
-    if (stylesheet == null) {
-      return null;
+
+    ArrayList<Stylesheet> mediaQueryStylesheets = new ArrayList<>();
+
+    // TODO: remove this deprecated branch.
+    if (template.getStylesheets().getStylesheetIdsList().isEmpty()) {
+      if (template.getStylesheet().getConditionsCount() > 0) {
+        mediaQueryStylesheets.add(template.getStylesheet());
+      }
+      if (template.hasStylesheetId()) {
+        Stylesheet stylesheet = stylesHelper.getStylesheet(template.getStylesheetId());
+        if (stylesheet != null && stylesheet.getConditionsCount() > 0) {
+          mediaQueryStylesheets.add(stylesheet);
+        }
+      }
+    } else {
+      for (Stylesheet stylesheet : template.getStylesheets().getStylesheetsList()) {
+        if (stylesheet.getConditionsCount() > 0) {
+          mediaQueryStylesheets.add(stylesheet);
+        }
+      }
+      for (String stylesheetId : template.getStylesheets().getStylesheetIdsList()) {
+        Stylesheet stylesheet = stylesHelper.getStylesheet(stylesheetId);
+        if (stylesheet != null && stylesheet.getConditionsCount() > 0) {
+          mediaQueryStylesheets.add(stylesheet);
+        }
+      }
     }
-    if (stylesheet.getConditionsCount() == 0) {
-      return null;
-    }
-    return stylesheet;
+
+    mediaQueryStylesheets.trimToSize();
+    List<Stylesheet> mediaQueryStylesheetsImmutable =
+        Collections.unmodifiableList(mediaQueryStylesheets);
+
+    templateMediaQueryStylesheets.put(template, mediaQueryStylesheetsImmutable);
+
+    return mediaQueryStylesheetsImmutable;
   }
 
   /**
@@ -225,15 +261,20 @@ class FrameContext {
     Map<String, BindingValue> bindingValues = createBindingValueMap(bindingContext);
     Map<String, Style> localStylesheet;
 
-    switch (template.getTemplateStylesheetCase()) {
-      case STYLESHEET:
-        localStylesheet = stylesHelper.createMapFromStylesheet(template.getStylesheet());
-        break;
-      case STYLESHEET_ID:
-        localStylesheet = stylesHelper.getStylesheetMap(template.getStylesheetId());
-        break;
-      default:
-        localStylesheet = new HashMap<>();
+    if (template.hasStylesheets()) {
+      localStylesheet = stylesHelper.getStylesheetMap(template.getStylesheets());
+    } else {
+      // TODO: Remove this deprecated branch
+      switch (template.getTemplateStylesheetCase()) {
+        case STYLESHEET:
+          localStylesheet = stylesHelper.createMapFromStylesheet(template.getStylesheet());
+          break;
+        case STYLESHEET_ID:
+          localStylesheet = stylesHelper.getStylesheetMap(template.getStylesheetId());
+          break;
+        default:
+          localStylesheet = new HashMap<>();
+      }
     }
 
     Style templateBaseStyle;
