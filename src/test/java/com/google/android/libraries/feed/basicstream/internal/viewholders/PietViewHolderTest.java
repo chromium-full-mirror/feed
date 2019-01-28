@@ -34,6 +34,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
+import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder.PietViewActionScrollListener;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -44,6 +45,7 @@ import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor;
+import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.android.libraries.feed.testing.host.stream.FakeCardConfiguration;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -80,12 +82,14 @@ public class PietViewHolderTest {
   @Mock private StreamActionApiImpl streamActionApi;
   @Mock private LoggingListener loggingListener;
   @Mock private VisibilityMonitor visibilityMonitor;
+  @Mock private StreamScrollMonitor streamScrollMonitor;
 
   private ActionHandler actionHandler;
   private Configuration configuration;
   private PietViewHolder pietViewHolder;
   private FrameLayout frameLayout;
   private View view;
+  private View viewport;
   private final List<PietSharedState> pietSharedStates = new ArrayList<>();
   private Context context;
 
@@ -97,6 +101,7 @@ public class PietViewHolderTest {
     frameLayout = new FrameLayout(context);
     frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     view = new TextView(context);
+    viewport = new FrameLayout(context);
     when(pietManager.createPietFrameAdapter(
             Mockito.<Supplier<ViewGroup>>any(),
             any(ActionHandler.class),
@@ -107,7 +112,14 @@ public class PietViewHolderTest {
 
     configuration = new Configuration.Builder().build();
     pietViewHolder =
-        new PietViewHolder(cardConfiguration, frameLayout, pietManager, context, configuration) {
+        new PietViewHolder(
+            cardConfiguration,
+            frameLayout,
+            pietManager,
+            streamScrollMonitor,
+            viewport,
+            context,
+            configuration) {
           @Override
           VisibilityMonitor createVisibilityMonitor(View view, Configuration configuration) {
             return visibilityMonitor;
@@ -231,6 +243,19 @@ public class PietViewHolderTest {
   }
 
   @Test
+  public void testBind_setsScrollListener() {
+    pietViewHolder.bind(
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        streamActionApi,
+        FeedActionPayload.getDefaultInstance(),
+        loggingListener,
+        actionParser);
+
+    verify(streamScrollMonitor).addScrollListener(any(PietViewActionScrollListener.class));
+  }
+
+  @Test
   public void testUnbind() {
     pietViewHolder.bind(
         Frame.getDefaultInstance(),
@@ -263,6 +288,24 @@ public class PietViewHolderTest {
     pietViewHolder.unbind();
 
     verify(visibilityMonitor).setListener(null);
+  }
+
+  @Test
+  public void testBind_unsetsScrollListener() {
+    pietViewHolder.bind(
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        streamActionApi,
+        FeedActionPayload.getDefaultInstance(),
+        loggingListener,
+        actionParser);
+
+    pietViewHolder.unbind();
+
+    ArgumentCaptor<PietViewActionScrollListener> captor =
+        ArgumentCaptor.forClass(PietViewActionScrollListener.class);
+    verify(streamScrollMonitor).addScrollListener(captor.capture());
+    verify(streamScrollMonitor).removeScrollListener(captor.getValue());
   }
 
   @Test

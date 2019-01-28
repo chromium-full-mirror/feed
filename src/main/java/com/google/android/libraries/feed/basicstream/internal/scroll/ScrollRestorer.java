@@ -102,7 +102,7 @@ public class ScrollRestorer {
     }
     Logger.d(TAG, "Restoring scroll");
     getLayoutManager().scrollToPositionWithOffset(scrollPosition, scrollOffset);
-    streamScrollMonitor.onProgrammaticScroll();
+    streamScrollMonitor.onProgrammaticScroll(recyclerView);
     canRestore = false;
   }
 

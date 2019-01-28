@@ -57,6 +57,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/deepestcontenttracker",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "@robolectric//bazel:robolectric",
         gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
         "@com_google_guava_guava//jar",

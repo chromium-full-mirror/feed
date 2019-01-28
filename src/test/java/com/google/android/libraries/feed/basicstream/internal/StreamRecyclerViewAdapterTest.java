@@ -52,6 +52,7 @@ import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
+import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.Collections;
@@ -90,6 +91,7 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private DeepestContentTracker deepestContentTracker;
   @Mock private Header header1;
   @Mock private Header header2;
+  @Mock private StreamScrollMonitor streamScrollMonitor;
 
   private Context context;
   private LinearLayout frameContainer;
@@ -126,10 +128,12 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
             context,
+            new RecyclerView(context),
             cardConfiguration,
             pietManager,
             deepestContentTracker,
             contentChangedListener,
+            streamScrollMonitor,
             CONFIGURATION);
     streamRecyclerViewAdapter.setHeaders(headers);
 
@@ -357,10 +361,12 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
             context,
+            new RecyclerView(context),
             cardConfiguration,
             pietManager,
             deepestContentTracker,
             contentChangedListener,
+            streamScrollMonitor,
             CONFIGURATION) {
           @Override
           HeaderDriver createHeaderDriver(Header header) {
@@ -384,10 +390,12 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
             context,
+            new RecyclerView(context),
             cardConfiguration,
             pietManager,
             deepestContentTracker,
             contentChangedListener,
+            streamScrollMonitor,
             CONFIGURATION) {
           @Override
           HeaderDriver createHeaderDriver(Header header) {
@@ -474,10 +482,12 @@ public class StreamRecyclerViewAdapterTest {
     streamRecyclerViewAdapter =
         new StreamRecyclerViewAdapter(
             context,
+            new RecyclerView(context),
             cardConfiguration,
             pietManager,
             deepestContentTracker,
             contentChangedListener,
+            streamScrollMonitor,
             CONFIGURATION) {
           @Override
           HeaderDriver createHeaderDriver(Header header) {

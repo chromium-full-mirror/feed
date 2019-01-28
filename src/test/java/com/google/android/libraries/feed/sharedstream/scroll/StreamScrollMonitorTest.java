@@ -55,8 +55,7 @@ public class StreamScrollMonitorTest {
     recyclerView = new RecyclerView(context);
     mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
 
-    streamScrollMonitor =
-        new StreamScrollMonitor(recyclerView, contentChangedListener, mainThreadRunner);
+    streamScrollMonitor = new StreamScrollMonitor(contentChangedListener, mainThreadRunner);
     streamScrollMonitor.addScrollListener(scrollListener1);
   }
 
@@ -139,7 +138,7 @@ public class StreamScrollMonitorTest {
 
   @Test
   public void onProgrammaticScroll() {
-    streamScrollMonitor.onProgrammaticScroll();
+    streamScrollMonitor.onProgrammaticScroll(recyclerView);
 
     verify(scrollListener1, never()).onScrolled(anyInt(), anyInt());
 

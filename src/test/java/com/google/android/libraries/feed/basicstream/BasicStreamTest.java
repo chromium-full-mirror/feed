@@ -61,8 +61,8 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -1107,13 +1107,13 @@ public class BasicStreamTest {
         PietManager pietManager,
         DeepestContentTracker deepestContentTracker,
         StreamContentChangedListener streamContentChangedListener,
+        StreamScrollMonitor streamScrollMonitor,
         Configuration configuration) {
       return adapter;
     }
 
     @Override
     StreamScrollMonitor createStreamScrollMonitor(
-        RecyclerView recyclerView,
         ContentChangedListener contentChangedListener,
         MainThreadRunner mainThreadRunner) {
       return streamScrollMonitor;

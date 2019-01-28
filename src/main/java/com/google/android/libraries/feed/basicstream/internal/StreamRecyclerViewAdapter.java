@@ -25,6 +25,7 @@ import android.support.v7.util.DiffUtil;
 import android.support.v7.util.DiffUtil.DiffResult;
 import android.support.v7.util.ListUpdateCallback;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
@@ -46,6 +47,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
+import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,6 +59,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private static final String TAG = "StreamRecyclerViewAdapt";
 
   private final Context context;
+  private final View viewport;
   private final CardConfiguration cardConfiguration;
   private final PietManager pietManager;
   private final Configuration configuration;
@@ -70,17 +73,21 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private boolean shown;
 
   /*@Nullable*/ private StreamDriver streamDriver;
+  private final StreamScrollMonitor streamScrollMonitor;
 
   // Suppress initialization warnings for calling setHasStableIds on RecyclerView.Adapter
   @SuppressWarnings("initialization")
   public StreamRecyclerViewAdapter(
       Context context,
+      View viewport,
       CardConfiguration cardConfiguration,
       PietManager pietManager,
       DeepestContentTracker deepestContentTracker,
       ContentChangedListener contentChangedListener,
+      StreamScrollMonitor streamScrollMonitor,
       Configuration configuration) {
     this.context = context;
+    this.viewport = viewport;
     this.cardConfiguration = cardConfiguration;
     this.pietManager = pietManager;
     this.contentChangedListener = contentChangedListener;
@@ -91,6 +98,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     boundViewHolderToLeafFeatureDriverMap = new HashMap<>();
     streamContentVisible = true;
     this.deepestContentTracker = deepestContentTracker;
+    this.streamScrollMonitor = streamScrollMonitor;
   }
 
   @Override
@@ -113,6 +121,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
         cardConfiguration,
         frameLayout,
         pietManager,
+        streamScrollMonitor,
+        viewport,
         context,
         configuration);
   }

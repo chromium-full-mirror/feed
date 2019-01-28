@@ -228,8 +228,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   public void onCreate(/*@Nullable*/ String savedInstanceState) {
     checkState(recyclerView == null, "Can't call onCreate() multiple times.");
     setupRecyclerView();
-    streamScrollMonitor =
-        createStreamScrollMonitor(recyclerView, streamContentChangedListener, mainThreadRunner);
 
     if (savedInstanceState == null) {
       scrollRestorer = createScrollRestorer(configuration, recyclerView, streamScrollMonitor, null);
@@ -463,6 +461,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   }
 
   private void setupRecyclerView() {
+    recyclerView = new RecyclerView(context);
+    streamScrollMonitor = createStreamScrollMonitor(streamContentChangedListener, mainThreadRunner);
+    recyclerView.addOnScrollListener(streamScrollMonitor);
     adapter =
         createRecyclerViewAdapter(
             context,
@@ -470,9 +471,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             pietManager,
             deepestContentTracker,
             streamContentChangedListener,
+            streamScrollMonitor,
             configuration);
     adapter.setHeaders(headers);
-    recyclerView = new RecyclerView(context);
     recyclerView.setId(R.id.feed_stream_recycler_view);
     recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
     contextMenuManager = createContextMenuManager(recyclerView, new MenuMeasurer(context));
@@ -746,22 +747,24 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       PietManager pietManager,
       DeepestContentTracker deepestContentTracker,
       StreamContentChangedListener streamContentChangedListener,
+      StreamScrollMonitor streamScrollMonitor,
       Configuration configuration) {
     return new StreamRecyclerViewAdapter(
         context,
+        recyclerView,
         cardConfiguration,
         pietManager,
         deepestContentTracker,
         streamContentChangedListener,
+        streamScrollMonitor,
         configuration);
   }
 
   @VisibleForTesting
   StreamScrollMonitor createStreamScrollMonitor(
-      RecyclerView recyclerView,
       ContentChangedListener contentChangedListener,
       MainThreadRunner mainThreadRunner) {
-    return new StreamScrollMonitor(recyclerView, contentChangedListener, mainThreadRunner);
+    return new StreamScrollMonitor(contentChangedListener, mainThreadRunner);
   }
 
   @VisibleForTesting

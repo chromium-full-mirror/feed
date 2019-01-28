@@ -31,7 +31,6 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
 
   private static final String TAG = "StreamScrollMonitor";
 
-  private final RecyclerView recyclerView;
   private final MainThreadRunner mainThreadRunner;
   private final Set<ScrollListener> scrollListeners;
   private final ContentChangedListener contentChangedListener;
@@ -40,16 +39,12 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
   // not call listener when it is added.
   @SuppressWarnings("initialization")
   public StreamScrollMonitor(
-      RecyclerView recyclerView,
       ContentChangedListener childChangeListener,
       MainThreadRunner mainThreadRunner) {
     this.contentChangedListener = childChangeListener;
     this.mainThreadRunner = mainThreadRunner;
 
     scrollListeners = new HashSet<>();
-
-    this.recyclerView = recyclerView;
-    recyclerView.addOnScrollListener(this);
   }
 
   public void addScrollListener(ScrollListener listener) {
@@ -64,7 +59,7 @@ public class StreamScrollMonitor extends RecyclerView.OnScrollListener {
    * Should be called if a programmatic scroll of the RecyclerView is done. Will notify host with
    * appropriate deltas.
    */
-  public void onProgrammaticScroll() {
+  public void onProgrammaticScroll(RecyclerView recyclerView) {
     mainThreadRunner.execute(
         TAG + " onProgrammaticScroll",
         () -> {

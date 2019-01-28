@@ -79,7 +79,7 @@ public class ScrollRestorerTest {
         new ScrollRestorer(configuration, recyclerView, streamScrollMonitor, SCROLL_STATE);
     scrollRestorer.maybeRestoreScroll();
 
-    verify(streamScrollMonitor).onProgrammaticScroll();
+    verify(streamScrollMonitor).onProgrammaticScroll(recyclerView);
     assertThat(layoutManager.scrolledPosition).isEqualTo(TOP_POSITION);
     assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
   }
@@ -94,7 +94,7 @@ public class ScrollRestorerTest {
     layoutManager.scrollToPositionWithOffset(TOP_POSITION, OFFSET);
     scrollRestorer.maybeRestoreScroll();
 
-    verify(streamScrollMonitor).onProgrammaticScroll();
+    verify(streamScrollMonitor).onProgrammaticScroll(recyclerView);
     assertThat(layoutManager.scrolledPosition).isEqualTo(TOP_POSITION);
     assertThat(layoutManager.scrolledOffset).isEqualTo(OFFSET);
   }
