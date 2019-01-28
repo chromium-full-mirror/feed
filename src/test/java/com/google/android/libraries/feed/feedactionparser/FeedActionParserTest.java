@@ -190,14 +190,14 @@ public class FeedActionParserTest {
 
   private static final String DISMISS_CONTENT_ID_STRING = "dismissContentId";
 
-  private static final FeedActionPayload DISMISS_FEED_ACTION =
+  private static final FeedActionPayload DISMISS_LOCAL_FEED_ACTION =
       FeedActionPayload.newBuilder()
           .setExtension(
               FeedAction.feedActionExtension,
               FeedAction.newBuilder()
                   .setMetadata(
                       FeedActionMetadata.newBuilder()
-                          .setType(Type.DISMISS)
+                          .setType(Type.DISMISS_LOCAL)
                           .setDismissData(
                               DismissData.newBuilder()
                                   .addDataOperations(DataOperation.getDefaultInstance())
@@ -205,14 +205,14 @@ public class FeedActionParserTest {
                   .build())
           .build();
 
-  private static final FeedActionPayload DISMISS_FEED_ACTION_NO_CONTENT_ID =
+  private static final FeedActionPayload DISMISS_LOCAL_FEED_ACTION_NO_CONTENT_ID =
       FeedActionPayload.newBuilder()
           .setExtension(
               FeedAction.feedActionExtension,
               FeedAction.newBuilder()
                   .setMetadata(
                       FeedActionMetadata.newBuilder()
-                          .setType(Type.DISMISS)
+                          .setType(Type.DISMISS_LOCAL)
                           .setDismissData(
                               DismissData.newBuilder()
                                   .addDataOperations(DataOperation.getDefaultInstance())))
@@ -397,7 +397,8 @@ public class FeedActionParserTest {
   @Test
   public void testDismiss_noApiSupport() {
     when(streamActionApi.canDismiss()).thenReturn(false);
-    feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
+    feedActionParser.parseFeedActionPayload(
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
     verify(streamActionApi, never())
         .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class));
   }
@@ -406,7 +407,7 @@ public class FeedActionParserTest {
   public void testDismiss_noContentId() {
     when(streamActionApi.canDismiss()).thenReturn(true);
     feedActionParser.parseFeedActionPayload(
-        DISMISS_FEED_ACTION_NO_CONTENT_ID, streamActionApi, /* view= */ null);
+        DISMISS_LOCAL_FEED_ACTION_NO_CONTENT_ID, streamActionApi, /* view= */ null);
     verify(streamActionApi, never())
         .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class));
   }
@@ -416,14 +417,15 @@ public class FeedActionParserTest {
     when(streamActionApi.canDismiss()).thenReturn(true);
 
     when(protocolAdapter.createOperations(
-            DISMISS_FEED_ACTION
+            DISMISS_LOCAL_FEED_ACTION
                 .getExtension(FeedAction.feedActionExtension)
                 .getMetadata()
                 .getDismissData()
                 .getDataOperationsList()))
         .thenReturn(Result.failure());
 
-    feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
+    feedActionParser.parseFeedActionPayload(
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
 
     verify(streamActionApi, never())
         .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class));
@@ -440,14 +442,15 @@ public class FeedActionParserTest {
     when(streamActionApi.canDismiss()).thenReturn(true);
 
     when(protocolAdapter.createOperations(
-            DISMISS_FEED_ACTION
+            DISMISS_LOCAL_FEED_ACTION
                 .getExtension(FeedAction.feedActionExtension)
                 .getMetadata()
                 .getDismissData()
                 .getDataOperationsList()))
         .thenReturn(Result.success(streamDataOperations));
 
-    feedActionParser.parseFeedActionPayload(DISMISS_FEED_ACTION, streamActionApi, /* view= */ null);
+    feedActionParser.parseFeedActionPayload(
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
 
     verify(streamActionApi).dismiss(DISMISS_CONTENT_ID_STRING, streamDataOperations);
   }

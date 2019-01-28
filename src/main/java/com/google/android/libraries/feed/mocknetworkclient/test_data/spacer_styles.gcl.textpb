@@ -37,7 +37,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -115,10 +115,10 @@ initial_response {
               contents {
                 element {
                   spacer_element {
-                    style_references {
-                      style_ids: "divider"
-                    }
                     height: 1
+                  }
+                  style_references {
+                    style_ids: "divider"
                   }
                 }
               }
@@ -148,7 +148,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -225,9 +225,9 @@ initial_response {
               contents {
                 element {
                   spacer_element {
-                    style_references {
-                      style_ids: "divider"
-                    }
+                  }
+                  style_references {
+                    style_ids: "divider"
                   }
                 }
               }
@@ -257,7 +257,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -357,34 +357,34 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "primary-action"
-                    }
                     parameterized_text {
                       text: "Above the separtor"
                     }
+                  }
+                  style_references {
+                    style_ids: "primary-action"
                   }
                 }
               }
               contents {
                 element {
                   spacer_element {
-                    style_references {
-                      style_ids: "divider"
-                    }
                     height: 1
+                  }
+                  style_references {
+                    style_ids: "divider"
                   }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "primary-action"
-                    }
                     parameterized_text {
                       text: "Below the separtor"
                     }
+                  }
+                  style_references {
+                    style_ids: "primary-action"
                   }
                 }
               }
@@ -414,7 +414,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -517,34 +517,34 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "primary-action"
-                    }
                     parameterized_text {
                       text: "Card - Background on Fat Divider"
                     }
+                  }
+                  style_references {
+                    style_ids: "primary-action"
                   }
                 }
               }
               contents {
                 element {
                   spacer_element {
-                    style_references {
-                      style_ids: "divider"
-                    }
                     height: 2
+                  }
+                  style_references {
+                    style_ids: "divider"
                   }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "primary-action"
-                    }
                     parameterized_text {
                       text: "Below the separtor"
                     }
+                  }
+                  style_references {
+                    style_ids: "primary-action"
                   }
                 }
               }
@@ -574,7 +574,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -681,34 +681,34 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "primary-action"
-                    }
                     parameterized_text {
                       text: "Card with full background"
                     }
+                  }
+                  style_references {
+                    style_ids: "primary-action"
                   }
                 }
               }
               contents {
                 element {
                   spacer_element {
-                    style_references {
-                      style_ids: "divider"
-                    }
                     height: 1
+                  }
+                  style_references {
+                    style_ids: "divider"
                   }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "primary-action"
-                    }
                     parameterized_text {
                       text: "Below the separtor"
                     }
+                  }
+                  style_references {
+                    style_ids: "primary-action"
                   }
                 }
               }

@@ -100,7 +100,7 @@ public final class FeedActionParser implements ActionParser {
 
         streamActionApi.openContextMenu(feedActionMetadata.getOpenContextMenuData(), view);
         break;
-      case DISMISS:
+      case DISMISS_LOCAL:
         if (!streamActionApi.canDismiss()) {
           Logger.e(TAG, "Cannot dismiss: StreamActionApi does not support it");
           break;
@@ -211,14 +211,13 @@ public final class FeedActionParser implements ActionParser {
         return streamActionApi.canOpenUrlInNewTab();
       case OPEN_CONTEXT_MENU:
         return streamActionApi.canOpenContextMenu();
-      case DISMISS:
+      case DISMISS_LOCAL:
         return streamActionApi.canDismiss();
       case DOWNLOAD:
         return contentMetadata.get() != null && streamActionApi.canDownloadUrl();
       case LEARN_MORE:
         return streamActionApi.canLearnMore();
       case UNKNOWN:
-        break;
     }
     Logger.e(TAG, "Unhandled feed action type: %s", type);
     return false;

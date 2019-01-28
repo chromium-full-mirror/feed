@@ -30,24 +30,24 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "title"
-                    }
                     parameterized_text_binding {
                       binding_id: "title-binding"
                     }
+                  }
+                  style_references {
+                    style_ids: "title"
                   }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text_binding {
                       binding_id: "subtitle-binding"
                     }
+                  }
+                  style_references {
+                    style_ids: "subtitle"
                   }
                 }
               }
@@ -90,7 +90,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"

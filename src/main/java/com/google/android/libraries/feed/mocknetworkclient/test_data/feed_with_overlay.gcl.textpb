@@ -108,9 +108,6 @@ initial_response {
           }
           element {
             grid_row {
-              style_references {
-                style_ids: "row-style"
-              }
               cells {
                 width_binding {
                   binding_id: "image-width"
@@ -118,15 +115,12 @@ initial_response {
                 content {
                   element {
                     image_element {
-                      style_references {
-                        style_ids: "image"
-                        style_ids: "cell-style"
-                      }
                       image_binding {
                         binding_id: "image-binding"
                       }
                     }
                     style_references {
+                      style_ids: "image"
                       style_ids: "cell-style"
                     }
                   }
@@ -139,27 +133,21 @@ initial_response {
                 content {
                   element {
                     element_list {
-                      style_references {
-                        style_ids: "story"
-                      }
                       contents {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "title"
-                            }
                             parameterized_text_binding {
                               binding_id: "title-binding"
                             }
+                          }
+                          style_references {
+                            style_ids: "title"
                           }
                         }
                       }
                       contents {
                         element {
                           grid_row {
-                            style_references {
-                              style_ids: "source-row"
-                            }
                             cells {
                               width {
                                 dp: 16
@@ -167,12 +155,12 @@ initial_response {
                               content {
                                 element {
                                   image_element {
-                                    style_references {
-                                      style_ids: "source-icon"
-                                    }
                                     image_binding {
                                       binding_id: "source-icon-binding"
                                     }
+                                  }
+                                  style_references {
+                                    style_ids: "source-icon"
                                   }
                                 }
                               }
@@ -181,19 +169,25 @@ initial_response {
                               content {
                                 element {
                                   text_element {
-                                    style_references {
-                                      style_ids: "source"
-                                    }
                                     parameterized_text_binding {
                                       binding_id: "source-binding"
                                     }
+                                  }
+                                  style_references {
+                                    style_ids: "source"
                                   }
                                 }
                               }
                             }
                           }
+                          style_references {
+                            style_ids: "source-row"
+                          }
                         }
                       }
+                    }
+                    style_references {
+                      style_ids: "story"
                     }
                   }
                 }
@@ -201,6 +195,9 @@ initial_response {
             }
             actions_binding {
               binding_id: "actions-binding"
+            }
+            style_references {
+              style_ids: "row-style"
             }
           }
         }
@@ -260,7 +257,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "card.f"
@@ -453,7 +450,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: DISMISS
+                                            type: DISMISS_LOCAL
                                             dismiss_data {
                                               content_id {
                                                 content_domain: "content.f"
@@ -559,7 +556,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "card.f"
@@ -752,7 +749,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: DISMISS
+                                            type: DISMISS_LOCAL
                                             dismiss_data {
                                               content_id {
                                                 content_domain: "content.f"
@@ -858,7 +855,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "card.f"
@@ -1051,7 +1048,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: DISMISS
+                                            type: DISMISS_LOCAL
                                             dismiss_data {
                                               content_id {
                                                 content_domain: "content.f"
@@ -1157,7 +1154,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "card.f"
@@ -1350,7 +1347,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: DISMISS
+                                            type: DISMISS_LOCAL
                                             dismiss_data {
                                               content_id {
                                                 content_domain: "content.f"
@@ -1456,7 +1453,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "card.f"
@@ -1649,7 +1646,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: DISMISS
+                                            type: DISMISS_LOCAL
                                             dismiss_data {
                                               content_id {
                                                 content_domain: "content.f"
@@ -1755,7 +1752,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "card.f"
@@ -1948,7 +1945,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: DISMISS
+                                            type: DISMISS_LOCAL
                                             dismiss_data {
                                               content_id {
                                                 content_domain: "content.f"
@@ -2054,7 +2051,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "card.f"
@@ -2247,7 +2244,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: DISMISS
+                                            type: DISMISS_LOCAL
                                             dismiss_data {
                                               content_id {
                                                 content_domain: "content.f"
@@ -2353,7 +2350,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "card.f"
@@ -2546,7 +2543,7 @@ initial_response {
                                       feed_action_payload {
                                         [search.now.ui.action.FeedAction.feed_action_extension] {
                                           metadata {
-                                            type: DISMISS
+                                            type: DISMISS_LOCAL
                                             dismiss_data {
                                               content_id {
                                                 content_domain: "content.f"

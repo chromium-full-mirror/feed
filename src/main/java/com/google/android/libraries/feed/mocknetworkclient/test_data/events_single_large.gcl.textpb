@@ -37,7 +37,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -125,7 +125,6 @@ initial_response {
                   }
                   width: 32
                   height: 32
-                  scale_type: CENTER_INSIDE
                 }
                 styles {
                   style_id: "Roboto"
@@ -197,14 +196,15 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "CardCapImage"
-                            }
                             image {
                               sources {
                                 url: "https://i.imgur.com/FFq3sJ7.png"
                               }
+                              scale_type: CENTER_INSIDE
                             }
+                          }
+                          style_references {
+                            style_ids: "CardCapImage"
                           }
                         }
                       }
@@ -216,26 +216,26 @@ initial_response {
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "CardCapTitle"
-                                    style_ids: "Roboto"
-                                  }
                                   parameterized_text {
                                     text: "Seattle"
                                   }
+                                }
+                                style_references {
+                                  style_ids: "CardCapTitle"
+                                  style_ids: "Roboto"
                                 }
                               }
                             }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "CardCapSubtitle"
-                                    style_ids: "Roboto"
-                                  }
                                   parameterized_text {
                                     text: "Upcoming trip"
                                   }
+                                }
+                                style_references {
+                                  style_ids: "CardCapSubtitle"
+                                  style_ids: "Roboto"
                                 }
                               }
                             }
@@ -252,38 +252,34 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "FullWidthWithPadding"
-                      style_ids: "Roboto"
-                      style_ids: "Tagline"
-                    }
                     parameterized_text {
                       text: "Don\342\200\231t miss this event while you\342\200\231re in Seattle"
                     }
+                  }
+                  style_references {
+                    style_ids: "FullWidthWithPadding"
+                    style_ids: "Roboto"
+                    style_ids: "Tagline"
                   }
                 }
               }
               contents {
                 element {
                   image_element {
-                    style_references {
-                      style_ids: "FullWidthWithPadding"
-                    }
                     image {
                       sources {
                         url: "https://i.imgur.com/GV2SM5J.png"
                       }
                     }
                   }
+                  style_references {
+                    style_ids: "FullWidthWithPadding"
+                  }
                 }
               }
               contents {
                 element {
                   grid_row {
-                    style_references {
-                      style_ids: "FullWidthWithPadding"
-                      style_ids: "EventDetails"
-                    }
                     cells {
                       width {
                         dp: 56
@@ -294,26 +290,26 @@ initial_response {
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "EventDateDD"
-                                    style_ids: "Roboto"
-                                  }
                                   parameterized_text {
                                     text: "09"
                                   }
+                                }
+                                style_references {
+                                  style_ids: "EventDateDD"
+                                  style_ids: "Roboto"
                                 }
                               }
                             }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "EventDateMM"
-                                    style_ids: "Roboto"
-                                  }
                                   parameterized_text {
                                     text: "AUG"
                                   }
+                                }
+                                style_references {
+                                  style_ids: "EventDateMM"
+                                  style_ids: "Roboto"
                                 }
                               }
                             }
@@ -328,39 +324,39 @@ initial_response {
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "EventTitle"
-                                    style_ids: "Roboto"
-                                  }
                                   parameterized_text {
                                     text: "Seafair Weekend Festival"
                                   }
                                 }
-                              }
-                            }
-                            contents {
-                              element {
-                                text_element {
-                                  style_references {
-                                    style_ids: "EventMetadata"
-                                    style_ids: "Roboto"
-                                  }
-                                  parameterized_text {
-                                    text: "Fri, Aug 9 \342\200\224 Sun, Aug 1"
-                                  }
+                                style_references {
+                                  style_ids: "EventTitle"
+                                  style_ids: "Roboto"
                                 }
                               }
                             }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "EventMetadata"
-                                    style_ids: "Roboto"
+                                  parameterized_text {
+                                    text: "Fri, Aug 9 \342\200\224 Sun, Aug 1"
                                   }
+                                }
+                                style_references {
+                                  style_ids: "EventMetadata"
+                                  style_ids: "Roboto"
+                                }
+                              }
+                            }
+                            contents {
+                              element {
+                                text_element {
                                   parameterized_text {
                                     text: "Parc de Can Zam, Barcelona"
                                   }
+                                }
+                                style_references {
+                                  style_ids: "EventMetadata"
+                                  style_ids: "Roboto"
                                 }
                               }
                             }
@@ -368,6 +364,10 @@ initial_response {
                         }
                       }
                     }
+                  }
+                  style_references {
+                    style_ids: "FullWidthWithPadding"
+                    style_ids: "EventDetails"
                   }
                 }
               }

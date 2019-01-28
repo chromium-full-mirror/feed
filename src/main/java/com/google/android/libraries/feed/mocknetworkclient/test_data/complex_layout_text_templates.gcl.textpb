@@ -133,57 +133,57 @@ initial_response {
                       contents {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "F1"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb1"
                             }
                           }
+                          style_references {
+                            style_ids: "F1"
+                          }
                         }
                       }
                       contents {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "F1"
-                              style_ids: "FS1"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb2"
                             }
                           }
+                          style_references {
+                            style_ids: "F1"
+                            style_ids: "FS1"
+                          }
                         }
                       }
                       contents {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "C2"
-                              style_ids: "F3"
-                              style_ids: "P1"
-                              style_ids: "M1"
-                              style_ids: "B3"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb3"
                             }
                           }
+                          style_references {
+                            style_ids: "C2"
+                            style_ids: "F3"
+                            style_ids: "P1"
+                            style_ids: "M1"
+                            style_ids: "B3"
+                          }
                         }
                       }
                       contents {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "B3"
-                              style_ids: "P1"
-                              style_ids: "M1"
-                              style_ids: "C1"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb4"
                             }
                           }
+                          style_references {
+                            style_ids: "B3"
+                            style_ids: "P1"
+                            style_ids: "M1"
+                            style_ids: "C1"
+                          }
                         }
                       }
                     }
@@ -197,39 +197,39 @@ initial_response {
                       contents {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "M1"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb5"
                             }
                           }
-                        }
-                      }
-                      contents {
-                        element {
-                          text_element {
-                            style_references {
-                              style_ids: "M2"
-                              style_ids: "C3"
-                              style_ids: "FS2"
-                            }
-                            parameterized_text_binding {
-                              binding_id: "tb6"
-                            }
+                          style_references {
+                            style_ids: "M1"
                           }
                         }
                       }
                       contents {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "P2"
-                              style_ids: "C3"
+                            parameterized_text_binding {
+                              binding_id: "tb6"
                             }
+                          }
+                          style_references {
+                            style_ids: "M2"
+                            style_ids: "C3"
+                            style_ids: "FS2"
+                          }
+                        }
+                      }
+                      contents {
+                        element {
+                          text_element {
                             parameterized_text_binding {
                               binding_id: "tb7"
                             }
+                          }
+                          style_references {
+                            style_ids: "P2"
+                            style_ids: "C3"
                           }
                         }
                       }
@@ -244,27 +244,27 @@ initial_response {
                       contents {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "C2"
-                              style_ids: "M2"
-                              style_ids: "B3"
-                              style_ids: "FS2"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb8"
                             }
+                          }
+                          style_references {
+                            style_ids: "C2"
+                            style_ids: "M2"
+                            style_ids: "B3"
+                            style_ids: "FS2"
                           }
                         }
                       }
                       contents {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "FS1"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb9"
                             }
+                          }
+                          style_references {
+                            style_ids: "FS1"
                           }
                         }
                       }
@@ -276,12 +276,12 @@ initial_response {
                 content {
                   element {
                     text_element {
-                      style_references {
-                        style_ids: "P2"
-                      }
                       parameterized_text_binding {
                         binding_id: "tb10"
                       }
+                    }
+                    style_references {
+                      style_ids: "P2"
                     }
                   }
                 }
@@ -294,27 +294,12 @@ initial_response {
                         content {
                           element {
                             text_element {
-                              style_references {
-                                style_ids: "M1"
-                              }
                               parameterized_text_binding {
                                 binding_id: "tb11"
                               }
                             }
-                          }
-                        }
-                      }
-                      cells {
-                        content {
-                          element {
-                            text_element {
-                              style_references {
-                                style_ids: "B1"
-                                style_ids: "FS1"
-                              }
-                              parameterized_text_binding {
-                                binding_id: "tb12"
-                              }
+                            style_references {
+                              style_ids: "M1"
                             }
                           }
                         }
@@ -323,14 +308,29 @@ initial_response {
                         content {
                           element {
                             text_element {
-                              style_references {
-                                style_ids: "M1"
-                                style_ids: "C1"
-                                style_ids: "F2"
+                              parameterized_text_binding {
+                                binding_id: "tb12"
                               }
+                            }
+                            style_references {
+                              style_ids: "B1"
+                              style_ids: "FS1"
+                            }
+                          }
+                        }
+                      }
+                      cells {
+                        content {
+                          element {
+                            text_element {
                               parameterized_text_binding {
                                 binding_id: "tb13"
                               }
+                            }
+                            style_references {
+                              style_ids: "M1"
+                              style_ids: "C1"
+                              style_ids: "F2"
                             }
                           }
                         }
@@ -350,16 +350,16 @@ initial_response {
                               content {
                                 element {
                                   text_element {
-                                    style_references {
-                                      style_ids: "C1"
-                                      style_ids: "M2"
-                                      style_ids: "F2"
-                                      style_ids: "P1"
-                                      style_ids: "FS2"
-                                    }
                                     parameterized_text_binding {
                                       binding_id: "tb14"
                                     }
+                                  }
+                                  style_references {
+                                    style_ids: "C1"
+                                    style_ids: "M2"
+                                    style_ids: "F2"
+                                    style_ids: "P1"
+                                    style_ids: "FS2"
                                   }
                                 }
                               }
@@ -368,16 +368,16 @@ initial_response {
                               content {
                                 element {
                                   text_element {
-                                    style_references {
-                                      style_ids: "P2"
-                                      style_ids: "F3"
-                                      style_ids: "FS2"
-                                      style_ids: "B2"
-                                      style_ids: "M1"
-                                    }
                                     parameterized_text_binding {
                                       binding_id: "tb15"
                                     }
+                                  }
+                                  style_references {
+                                    style_ids: "P2"
+                                    style_ids: "F3"
+                                    style_ids: "FS2"
+                                    style_ids: "B2"
+                                    style_ids: "M1"
                                   }
                                 }
                               }
@@ -392,29 +392,13 @@ initial_response {
                               content {
                                 element {
                                   text_element {
-                                    style_references {
-                                      style_ids: "F3"
-                                      style_ids: "P2"
-                                    }
                                     parameterized_text_binding {
                                       binding_id: "tb16"
                                     }
                                   }
-                                }
-                              }
-                            }
-                            cells {
-                              content {
-                                element {
-                                  text_element {
-                                    style_references {
-                                      style_ids: "P2"
-                                      style_ids: "B3"
-                                      style_ids: "C1"
-                                    }
-                                    parameterized_text_binding {
-                                      binding_id: "tb17"
-                                    }
+                                  style_references {
+                                    style_ids: "F3"
+                                    style_ids: "P2"
                                   }
                                 }
                               }
@@ -423,15 +407,31 @@ initial_response {
                               content {
                                 element {
                                   text_element {
-                                    style_references {
-                                      style_ids: "B3"
-                                      style_ids: "FS1"
-                                      style_ids: "M2"
-                                      style_ids: "F3"
+                                    parameterized_text_binding {
+                                      binding_id: "tb17"
                                     }
+                                  }
+                                  style_references {
+                                    style_ids: "P2"
+                                    style_ids: "B3"
+                                    style_ids: "C1"
+                                  }
+                                }
+                              }
+                            }
+                            cells {
+                              content {
+                                element {
+                                  text_element {
                                     parameterized_text_binding {
                                       binding_id: "tb18"
                                     }
+                                  }
+                                  style_references {
+                                    style_ids: "B3"
+                                    style_ids: "FS1"
+                                    style_ids: "M2"
+                                    style_ids: "F3"
                                   }
                                 }
                               }
@@ -447,13 +447,13 @@ initial_response {
                 content {
                   element {
                     text_element {
-                      style_references {
-                        style_ids: "F1"
-                        style_ids: "P2"
-                      }
                       parameterized_text_binding {
                         binding_id: "tb19"
                       }
+                    }
+                    style_references {
+                      style_ids: "F1"
+                      style_ids: "P2"
                     }
                   }
                 }
@@ -570,17 +570,17 @@ initial_response {
                       content {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "p2"
-                              style_ids: "fs2"
-                              style_ids: "b3"
-                              style_ids: "m1"
-                              style_ids: "c2"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb1"
                             }
                           }
+                          style_references {
+                            style_ids: "p2"
+                            style_ids: "fs2"
+                            style_ids: "b3"
+                            style_ids: "m1"
+                            style_ids: "c2"
+                          }
                         }
                       }
                     }
@@ -588,15 +588,15 @@ initial_response {
                       content {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "p1"
-                              style_ids: "c2"
-                              style_ids: "fs1"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb2"
                             }
                           }
+                          style_references {
+                            style_ids: "p1"
+                            style_ids: "c2"
+                            style_ids: "fs1"
+                          }
                         }
                       }
                     }
@@ -604,14 +604,14 @@ initial_response {
                       content {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "f1"
-                              style_ids: "fs2"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb3"
                             }
                           }
+                          style_references {
+                            style_ids: "f1"
+                            style_ids: "fs2"
+                          }
                         }
                       }
                     }
@@ -619,17 +619,17 @@ initial_response {
                       content {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "c2"
-                              style_ids: "f3"
-                              style_ids: "p2"
-                              style_ids: "b2"
-                              style_ids: "fs1"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb4"
                             }
                           }
+                          style_references {
+                            style_ids: "c2"
+                            style_ids: "f3"
+                            style_ids: "p2"
+                            style_ids: "b2"
+                            style_ids: "fs1"
+                          }
                         }
                       }
                     }
@@ -643,34 +643,16 @@ initial_response {
                       content {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "fs2"
-                              style_ids: "c1"
-                              style_ids: "f3"
-                              style_ids: "m1"
-                              style_ids: "p2"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb5"
                             }
                           }
-                        }
-                      }
-                    }
-                    cells {
-                      content {
-                        element {
-                          text_element {
-                            style_references {
-                              style_ids: "m1"
-                              style_ids: "b2"
-                              style_ids: "p2"
-                              style_ids: "fs2"
-                              style_ids: "c2"
-                            }
-                            parameterized_text_binding {
-                              binding_id: "tb6"
-                            }
+                          style_references {
+                            style_ids: "fs2"
+                            style_ids: "c1"
+                            style_ids: "f3"
+                            style_ids: "m1"
+                            style_ids: "p2"
                           }
                         }
                       }
@@ -679,16 +661,34 @@ initial_response {
                       content {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "c1"
-                              style_ids: "p1"
-                              style_ids: "fs1"
-                              style_ids: "m2"
-                              style_ids: "f3"
+                            parameterized_text_binding {
+                              binding_id: "tb6"
                             }
+                          }
+                          style_references {
+                            style_ids: "m1"
+                            style_ids: "b2"
+                            style_ids: "p2"
+                            style_ids: "fs2"
+                            style_ids: "c2"
+                          }
+                        }
+                      }
+                    }
+                    cells {
+                      content {
+                        element {
+                          text_element {
                             parameterized_text_binding {
                               binding_id: "tb7"
                             }
+                          }
+                          style_references {
+                            style_ids: "c1"
+                            style_ids: "p1"
+                            style_ids: "fs1"
+                            style_ids: "m2"
+                            style_ids: "f3"
                           }
                         }
                       }
@@ -703,15 +703,15 @@ initial_response {
                       content {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "c1"
-                              style_ids: "p2"
-                              style_ids: "m2"
-                              style_ids: "f2"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb8"
                             }
+                          }
+                          style_references {
+                            style_ids: "c1"
+                            style_ids: "p2"
+                            style_ids: "m2"
+                            style_ids: "f2"
                           }
                         }
                       }
@@ -720,15 +720,15 @@ initial_response {
                       content {
                         element {
                           text_element {
-                            style_references {
-                              style_ids: "c1"
-                              style_ids: "fs2"
-                              style_ids: "b2"
-                              style_ids: "p2"
-                            }
                             parameterized_text_binding {
                               binding_id: "tb9"
                             }
+                          }
+                          style_references {
+                            style_ids: "c1"
+                            style_ids: "fs2"
+                            style_ids: "b2"
+                            style_ids: "p2"
                           }
                         }
                       }
@@ -775,7 +775,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -980,7 +980,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -1185,7 +1185,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -1390,7 +1390,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -1595,7 +1595,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -1800,7 +1800,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -2005,7 +2005,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -2210,7 +2210,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -2415,7 +2415,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -2620,7 +2620,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -2825,7 +2825,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -2970,7 +2970,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -3115,7 +3115,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -3260,7 +3260,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -3405,7 +3405,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -3550,7 +3550,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -3695,7 +3695,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -3840,7 +3840,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -3985,7 +3985,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -4130,7 +4130,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -4275,7 +4275,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -4480,7 +4480,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -4625,7 +4625,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -4830,7 +4830,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -4975,7 +4975,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -5180,7 +5180,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -5325,7 +5325,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -5530,7 +5530,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -5675,7 +5675,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -5880,7 +5880,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -6025,7 +6025,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -6230,7 +6230,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -6375,7 +6375,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -6580,7 +6580,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -6725,7 +6725,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -6930,7 +6930,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -7075,7 +7075,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -7280,7 +7280,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -7425,7 +7425,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -7630,7 +7630,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"

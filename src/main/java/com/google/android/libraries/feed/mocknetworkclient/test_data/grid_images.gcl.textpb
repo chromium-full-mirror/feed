@@ -107,7 +107,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -168,13 +168,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "title"
-                    }
                     parameterized_text {
                       text: "IMAGES LARGER THAN THEIR CONTAINER"
                     }
                   }
+                  style_references {
+                    style_ids: "title"
+                  }
                 }
               }
               contents {
@@ -187,9 +187,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image-with-height"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/544px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
@@ -197,6 +194,9 @@ initial_response {
                                 height_px: 1024
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image-with-height"
                           }
                         }
                       }
@@ -208,9 +208,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image-with-height"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/1024px-Magdeburg_2018.jpeg"
@@ -218,6 +215,9 @@ initial_response {
                                 height_px: 213
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image-with-height"
                           }
                         }
                       }
@@ -228,13 +228,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "Above images have a height=100 style and CENTER_INSIDE (default) scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -247,10 +247,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image-with-height"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/544px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
@@ -258,6 +254,10 @@ initial_response {
                                 height_px: 1024
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image-with-height"
+                            style_ids: "center-crop"
                           }
                         }
                       }
@@ -269,10 +269,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image-with-height"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/1024px-Magdeburg_2018.jpeg"
@@ -280,6 +276,10 @@ initial_response {
                                 height_px: 213
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image-with-height"
+                            style_ids: "center-crop"
                           }
                         }
                       }
@@ -290,13 +290,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "Above images have a height=100 style and CENTER_CROP scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -309,9 +309,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/544px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
@@ -319,6 +316,9 @@ initial_response {
                                 height_px: 1024
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image"
                           }
                         }
                       }
@@ -330,9 +330,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/1024px-Magdeburg_2018.jpeg"
@@ -340,6 +337,9 @@ initial_response {
                                 height_px: 213
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image"
                           }
                         }
                       }
@@ -350,13 +350,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "The above images have no style height and CENTER_INSIDE (default) scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -369,10 +369,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/544px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
@@ -381,6 +377,10 @@ initial_response {
                               }
                             }
                           }
+                          style_references {
+                            style_ids: "tall-image"
+                            style_ids: "center-crop"
+                          }
                         }
                       }
                     }
@@ -391,10 +391,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/1024px-Magdeburg_2018.jpeg"
@@ -403,6 +399,10 @@ initial_response {
                               }
                             }
                           }
+                          style_references {
+                            style_ids: "wide-image"
+                            style_ids: "center-crop"
+                          }
                         }
                       }
                     }
@@ -412,13 +412,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "The above images have no style height and CENTER_CROP scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -431,14 +431,14 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/544px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image"
                           }
                         }
                       }
@@ -450,14 +450,14 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/1024px-Magdeburg_2018.jpeg"
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image"
                           }
                         }
                       }
@@ -468,13 +468,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "The above images have no style height or image dims and CENTER_INSIDE (default) scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -487,15 +487,15 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/544px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image"
+                            style_ids: "center-crop"
                           }
                         }
                       }
@@ -507,15 +507,15 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/1024px-Magdeburg_2018.jpeg"
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image"
+                            style_ids: "center-crop"
                           }
                         }
                       }
@@ -526,25 +526,25 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "The above images have no style height or image dims and CENTER_CROP scaling"
                     }
+                  }
+                  style_references {
+                    style_ids: "subtitle"
                   }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "title"
-                    }
                     parameterized_text {
                       text: "IMAGES SMALLER THAN THEIR CONTAINER"
                     }
                   }
+                  style_references {
+                    style_ids: "title"
+                  }
                 }
               }
               contents {
@@ -557,9 +557,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image-with-height2"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/127px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
@@ -567,6 +564,9 @@ initial_response {
                                 height_px: 240
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image-with-height2"
                           }
                         }
                       }
@@ -578,9 +578,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image-with-height2"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/320px-Magdeburg_2018.jpeg"
@@ -588,6 +585,9 @@ initial_response {
                                 height_px: 67
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image-with-height2"
                           }
                         }
                       }
@@ -598,13 +598,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "Above images have a height=200 style and CENTER_INSIDE (default) scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -617,10 +617,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image-with-height2"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/127px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
@@ -628,6 +624,10 @@ initial_response {
                                 height_px: 240
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image-with-height2"
+                            style_ids: "center-crop"
                           }
                         }
                       }
@@ -639,10 +639,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image-with-height2"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/320px-Magdeburg_2018.jpeg"
@@ -650,6 +646,10 @@ initial_response {
                                 height_px: 67
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image-with-height2"
+                            style_ids: "center-crop"
                           }
                         }
                       }
@@ -660,13 +660,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "Above images have a height=200 style and CENTER_CROP scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -679,9 +679,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/127px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
@@ -689,6 +686,9 @@ initial_response {
                                 height_px: 240
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image"
                           }
                         }
                       }
@@ -700,9 +700,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/320px-Magdeburg_2018.jpeg"
@@ -710,6 +707,9 @@ initial_response {
                                 height_px: 67
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image"
                           }
                         }
                       }
@@ -720,13 +720,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "The above images have no style height and CENTER_INSIDE (default) scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -739,10 +739,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/127px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
@@ -751,6 +747,10 @@ initial_response {
                               }
                             }
                           }
+                          style_references {
+                            style_ids: "tall-image"
+                            style_ids: "center-crop"
+                          }
                         }
                       }
                     }
@@ -761,10 +761,6 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/320px-Magdeburg_2018.jpeg"
@@ -773,6 +769,10 @@ initial_response {
                               }
                             }
                           }
+                          style_references {
+                            style_ids: "wide-image"
+                            style_ids: "center-crop"
+                          }
                         }
                       }
                     }
@@ -782,13 +782,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "The above images have no style height and CENTER_CROP scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -801,14 +801,14 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/127px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image"
                           }
                         }
                       }
@@ -820,14 +820,14 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/320px-Magdeburg_2018.jpeg"
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image"
                           }
                         }
                       }
@@ -838,13 +838,13 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "The above images have no style height or image dims and CENTER_INSIDE (default) scaling"
                     }
                   }
+                  style_references {
+                    style_ids: "subtitle"
+                  }
                 }
               }
               contents {
@@ -857,15 +857,15 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "tall-image"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg/127px-01-01-2014_-_Messeturm_-_trade_fair_tower_-_Frankfurt-_Germany_-_04.jpg"
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "tall-image"
+                            style_ids: "center-crop"
                           }
                         }
                       }
@@ -877,15 +877,15 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "wide-image"
-                              style_ids: "center-crop"
-                            }
                             image {
                               sources {
                                 url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Magdeburg_2018.jpeg/320px-Magdeburg_2018.jpeg"
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "wide-image"
+                            style_ids: "center-crop"
                           }
                         }
                       }
@@ -896,12 +896,12 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "The above images have no style height or image dims and CENTER_CROP scaling"
                     }
+                  }
+                  style_references {
+                    style_ids: "subtitle"
                   }
                 }
               }

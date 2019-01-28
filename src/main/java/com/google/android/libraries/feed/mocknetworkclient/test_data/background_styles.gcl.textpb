@@ -37,7 +37,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -136,7 +136,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -212,12 +212,12 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "style:now-card"
-                    }
                     parameterized_text {
                       text: "Padding and margins. More padding on sides, more margins on top and bottom"
                     }
+                  }
+                  style_references {
+                    style_ids: "style:now-card"
                   }
                 }
               }
@@ -247,7 +247,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -327,12 +327,12 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "style:now-card"
-                    }
                     parameterized_text {
                       text: "Padding, margins, and corners. More padding on sides, more margins on top and bottom"
                     }
+                  }
+                  style_references {
+                    style_ids: "style:now-card"
                   }
                 }
               }
@@ -362,7 +362,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -453,12 +453,12 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "style:now-card"
-                    }
                     parameterized_text {
                       text: "Rounded corners with gradient bottom-left red to top-right blue. Corners should be rounded on the left. The gradient is intended to be at a 45 degree angle, but it probably is not, due to the implementation of GradientDrawable on Android."
                     }
+                  }
+                  style_references {
+                    style_ids: "style:now-card"
                   }
                 }
               }
@@ -488,7 +488,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -572,14 +572,14 @@ initial_response {
               contents {
                 element {
                   image_element {
-                    style_references {
-                      style_ids: "image"
-                    }
                     image {
                       sources {
                         url: "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcR7csq_YyHSa2jBWiEkVAbECueSFbVeg8VkVGG9474cQW_L6AT9"
                       }
                     }
+                  }
+                  style_references {
+                    style_ids: "image"
                   }
                 }
               }
@@ -618,7 +618,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -706,6 +706,14 @@ initial_response {
                     color: 4278190335
                   }
                 }
+                styles {
+                  style_id: "bottom"
+                  gravity_vertical: GRAVITY_BOTTOM
+                }
+                styles {
+                  style_id: "middle"
+                  gravity_vertical: GRAVITY_MIDDLE
+                }
               }
               style_references {
                 style_ids: "style:now-card"
@@ -720,35 +728,36 @@ initial_response {
                       content {
                         element {
                           element_list {
-                            style_references {
-                              style_ids: "blue"
-                            }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "green"
-                                    style_ids: "cell"
-                                  }
                                   parameterized_text {
                                     text: "Green box in blue cell bottom"
                                   }
                                 }
+                                style_references {
+                                  style_ids: "green"
+                                  style_ids: "cell"
+                                }
                               }
                             }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "red"
-                                    style_ids: "cell"
-                                  }
                                   parameterized_text {
                                     text: "Red box in blue cell bottom"
                                   }
                                 }
+                                style_references {
+                                  style_ids: "red"
+                                  style_ids: "cell"
+                                }
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "blue"
+                            style_ids: "bottom"
                           }
                           gravity_vertical: GRAVITY_BOTTOM
                         }
@@ -761,47 +770,47 @@ initial_response {
                       content {
                         element {
                           element_list {
-                            style_references {
-                              style_ids: "red"
-                            }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "blue"
-                                    style_ids: "cell"
-                                  }
                                   parameterized_text {
                                     text: "Blue box in red cell"
                                   }
                                 }
+                                style_references {
+                                  style_ids: "blue"
+                                  style_ids: "cell"
+                                }
                               }
                             }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "cell"
-                                  }
                                   parameterized_text {
                                     text: "words in a red cell"
                                   }
                                 }
+                                style_references {
+                                  style_ids: "cell"
+                                }
                               }
                             }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "green"
-                                    style_ids: "cell"
-                                  }
                                   parameterized_text {
                                     text: "Green box in red cell"
                                   }
                                 }
+                                style_references {
+                                  style_ids: "green"
+                                  style_ids: "cell"
+                                }
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "red"
                           }
                         }
                       }
@@ -813,35 +822,36 @@ initial_response {
                       content {
                         element {
                           element_list {
-                            style_references {
-                              style_ids: "green"
-                            }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "red"
-                                    style_ids: "cell"
-                                  }
                                   parameterized_text {
                                     text: "Red box in green cell center"
                                   }
                                 }
+                                style_references {
+                                  style_ids: "red"
+                                  style_ids: "cell"
+                                }
                               }
                             }
                             contents {
                               element {
                                 text_element {
-                                  style_references {
-                                    style_ids: "blue"
-                                    style_ids: "cell"
-                                  }
                                   parameterized_text {
                                     text: "Blue box in green cell center"
                                   }
                                 }
+                                style_references {
+                                  style_ids: "blue"
+                                  style_ids: "cell"
+                                }
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "green"
+                            style_ids: "middle"
                           }
                           gravity_vertical: GRAVITY_MIDDLE
                         }

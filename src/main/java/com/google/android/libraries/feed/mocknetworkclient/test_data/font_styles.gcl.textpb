@@ -37,7 +37,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -150,72 +150,72 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-thin"
-                    }
                     parameterized_text {
                       text: "Roboto Thin"
                     }
                   }
+                  style_references {
+                    style_ids: "font-thin"
+                  }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-light"
-                    }
                     parameterized_text {
                       text: "Roboto Light"
                     }
                   }
+                  style_references {
+                    style_ids: "font-light"
+                  }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-regular"
-                    }
                     parameterized_text {
                       text: "Roboto Regular"
                     }
                   }
+                  style_references {
+                    style_ids: "font-regular"
+                  }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-medium"
-                    }
                     parameterized_text {
                       text: "Roboto Medium"
                     }
                   }
-                }
-              }
-              contents {
-                element {
-                  text_element {
-                    style_references {
-                      style_ids: "font-bold"
-                    }
-                    parameterized_text {
-                      text: "Roboto Bold"
-                    }
+                  style_references {
+                    style_ids: "font-medium"
                   }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-black"
+                    parameterized_text {
+                      text: "Roboto Bold"
                     }
+                  }
+                  style_references {
+                    style_ids: "font-bold"
+                  }
+                }
+              }
+              contents {
+                element {
+                  text_element {
                     parameterized_text {
                       text: "Roboto Black"
                     }
+                  }
+                  style_references {
+                    style_ids: "font-black"
                   }
                 }
               }
@@ -245,7 +245,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "news-story"
@@ -364,72 +364,72 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-thin"
-                    }
                     parameterized_text {
                       text: "Roboto Thin Italic"
                     }
                   }
+                  style_references {
+                    style_ids: "font-thin"
+                  }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-light"
-                    }
                     parameterized_text {
                       text: "Roboto Light Italic"
                     }
                   }
+                  style_references {
+                    style_ids: "font-light"
+                  }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-regular"
-                    }
                     parameterized_text {
                       text: "Roboto Regular Italic"
                     }
                   }
+                  style_references {
+                    style_ids: "font-regular"
+                  }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-medium"
-                    }
                     parameterized_text {
                       text: "Roboto Medium Italic"
                     }
                   }
-                }
-              }
-              contents {
-                element {
-                  text_element {
-                    style_references {
-                      style_ids: "font-bold"
-                    }
-                    parameterized_text {
-                      text: "Roboto Bold Italic"
-                    }
+                  style_references {
+                    style_ids: "font-medium"
                   }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "font-black"
+                    parameterized_text {
+                      text: "Roboto Bold Italic"
                     }
+                  }
+                  style_references {
+                    style_ids: "font-bold"
+                  }
+                }
+              }
+              contents {
+                element {
+                  text_element {
                     parameterized_text {
                       text: "Roboto Black Italic"
                     }
+                  }
+                  style_references {
+                    style_ids: "font-black"
                   }
                 }
               }

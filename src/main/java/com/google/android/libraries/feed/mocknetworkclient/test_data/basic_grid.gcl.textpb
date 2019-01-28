@@ -65,7 +65,7 @@ initial_response {
             swipe_action {
               [search.now.ui.action.FeedAction.feed_action_extension] {
                 metadata {
-                  type: DISMISS
+                  type: DISMISS_LOCAL
                   dismiss_data {
                     content_id {
                       content_domain: "hello-world"
@@ -133,14 +133,14 @@ initial_response {
                       content {
                         element {
                           image_element {
-                            style_references {
-                              style_ids: "source-icon"
-                            }
                             image {
                               sources {
                                 url: "https://www.google.com/s2/favicons?domain=www.nytimes.com&sz=48"
                               }
                             }
+                          }
+                          style_references {
+                            style_ids: "source-icon"
                           }
                         }
                       }
@@ -165,24 +165,24 @@ initial_response {
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "title"
-                    }
                     parameterized_text {
                       text: "Hello, World!"
                     }
+                  }
+                  style_references {
+                    style_ids: "title"
                   }
                 }
               }
               contents {
                 element {
                   text_element {
-                    style_references {
-                      style_ids: "subtitle"
-                    }
                     parameterized_text {
                       text: "Lorem ipsum dolor sit amet"
                     }
+                  }
+                  style_references {
+                    style_ids: "subtitle"
                   }
                 }
               }
