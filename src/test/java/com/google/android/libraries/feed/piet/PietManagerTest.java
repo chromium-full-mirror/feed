@@ -25,13 +25,19 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.google.android.libraries.feed.common.functional.Supplier;
-import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.SystemClockImpl;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.EventLogger;
+import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.piet.host.ThrowingCustomElementProvider;
+import com.google.search.now.ui.piet.PietProto.Frame;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +53,6 @@ public class PietManagerTest {
   @Mock private EventLogger eventLogger;
   @Mock private AssetProvider assetProvider;
   @Mock private CustomElementProvider customElementProvider;
-  @Mock private Supplier<ViewGroup> cardViewSupplier;
   @Mock Context mockContext1;
   @Mock Context mockContext2;
 
@@ -63,14 +68,19 @@ public class PietManagerTest {
     context = Robolectric.buildActivity(Activity.class).get();
     viewGroup1 = new LinearLayout(context);
     viewGroup2 = new FrameLayout(context);
-    pietManager = new PietManager(DebugBehavior.VERBOSE, assetProvider, customElementProvider);
+    pietManager =
+        PietManager.builder(assetProvider)
+            .setDebugBehavior(DebugBehavior.VERBOSE)
+            .setCustomElementProvider(customElementProvider)
+            .build();
   }
 
   @Test
   public void testCreatePietFrameAdapter() {
+    Supplier<ViewGroup> cardViewSupplier = Suppliers.of(viewGroup1);
     FrameAdapter frameAdapter =
         pietManager.createPietFrameAdapter(cardViewSupplier, actionHandler, eventLogger, context);
-    assertThat(frameAdapter.getParameters().parentViewSupplier).isEqualTo(cardViewSupplier);
+    assertThat(frameAdapter.getParameters().parentViewSupplier).isSameAs(cardViewSupplier);
   }
 
   @Test
@@ -94,6 +104,51 @@ public class PietManagerTest {
   }
 
   @Test
+  public void testBuilder_defaults() {
+    PietManager manager = PietManager.builder(assetProvider).build();
+    AdapterParameters parameters = manager.getAdapterParameters(context, Suppliers.of(viewGroup1));
+    assertThat(parameters.hostProviders.getAssetProvider()).isSameAs(assetProvider);
+    assertThat(parameters.hostProviders.getCustomElementProvider())
+        .isInstanceOf(ThrowingCustomElementProvider.class);
+    assertThat(parameters.clock).isInstanceOf(SystemClockImpl.class);
+    // There's no good way to test the HostBindingProvider.
+
+    FrameAdapter frameAdapter =
+        manager.createPietFrameAdapter(
+            Suppliers.of(viewGroup1), actionHandler, eventLogger, context);
+    FrameContext frameContext =
+        frameAdapter.createFrameContext(
+            Frame.getDefaultInstance(), 0, Collections.emptyList(), viewGroup2);
+    assertThat(frameContext.getDebugBehavior()).isEqualTo(DebugBehavior.SILENT);
+  }
+
+  @Test
+  public void testBuilder_setters() {
+    HostBindingProvider hostBindingProvider = new HostBindingProvider();
+    Clock clock = new FakeClock();
+    PietManager manager =
+        PietManager.builder(assetProvider)
+            .setDebugBehavior(DebugBehavior.VERBOSE)
+            .setCustomElementProvider(customElementProvider)
+            .setHostBindingProvider(hostBindingProvider)
+            .setClock(clock)
+            .build();
+    AdapterParameters parameters = manager.getAdapterParameters(context, Suppliers.of(viewGroup1));
+    assertThat(parameters.hostProviders.getAssetProvider()).isSameAs(assetProvider);
+    assertThat(parameters.hostProviders.getCustomElementProvider()).isSameAs(customElementProvider);
+    assertThat(parameters.hostProviders.getHostBindingProvider()).isSameAs(hostBindingProvider);
+    assertThat(parameters.clock).isSameAs(clock);
+
+    FrameAdapter frameAdapter =
+        manager.createPietFrameAdapter(
+            Suppliers.of(viewGroup1), actionHandler, eventLogger, context);
+    FrameContext frameContext =
+        frameAdapter.createFrameContext(
+            Frame.getDefaultInstance(), 0, Collections.emptyList(), viewGroup2);
+    assertThat(frameContext.getDebugBehavior()).isEqualTo(DebugBehavior.VERBOSE);
+  }
+
+  @Test
   public void testPurgeRecyclerPools() {
     // Test with null adapterParameters
     pietManager.purgeRecyclerPools();
@@ -104,7 +159,7 @@ public class PietManagerTest {
     pietManager.adapterParameters =
         new AdapterParameters(
             context,
-            cardViewSupplier,
+            Suppliers.of(viewGroup1),
             hostProviders,
             null,
             mockFactory,

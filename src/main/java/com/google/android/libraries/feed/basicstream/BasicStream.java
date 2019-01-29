@@ -63,6 +63,7 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.contentchanged.StreamContentChangedListener;
@@ -202,16 +203,19 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       /*@Nullable*/ HostBindingProvider hostBindingProvider,
       StreamOfflineMonitor streamOfflineMonitor,
       Configuration configuration) {
-    return new PietManager(
-        debugBehavior,
+    AssetProvider assetProvider =
         new PietAssetProvider(
             imageLoaderApi,
             cardConfiguration,
             clock,
-            configuration.getValueOrDefault(ConfigKey.FADE_IMAGE_THRESHOLD_MS, 80)),
-        new PietCustomElementProvider(context, customElementProvider),
-        new PietHostBindingProvider(hostBindingProvider, streamOfflineMonitor),
-        clock);
+            configuration.getValueOrDefault(ConfigKey.FADE_IMAGE_THRESHOLD_MS, 80));
+    return PietManager.builder(assetProvider)
+        .setDebugBehavior(debugBehavior)
+        .setCustomElementProvider(new PietCustomElementProvider(context, customElementProvider))
+        .setHostBindingProvider(
+            new PietHostBindingProvider(hostBindingProvider, streamOfflineMonitor))
+        .setClock(clock)
+        .build();
   }
 
   @Override

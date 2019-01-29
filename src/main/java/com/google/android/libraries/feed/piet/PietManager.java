@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.piet.host.ThrowingCustomElementProvider;
 
 /** Manages a top-level session of Piet. */
 public class PietManager {
@@ -37,19 +38,7 @@ public class PietManager {
   private final Clock clock;
   @VisibleForTesting /*@Nullable*/ AdapterParameters adapterParameters = null;
 
-  public PietManager(
-      DebugBehavior debugBehavior,
-      AssetProvider assetProvider,
-      CustomElementProvider customElementProvider) {
-    this(
-        debugBehavior,
-        assetProvider,
-        customElementProvider,
-        new HostBindingProvider(),
-        new SystemClockImpl());
-  }
-
-  public PietManager(
+  private PietManager(
       DebugBehavior debugBehavior,
       AssetProvider assetProvider,
       CustomElementProvider customElementProvider,
@@ -93,6 +82,56 @@ public class PietManager {
   public void purgeRecyclerPools() {
     if (adapterParameters != null) {
       adapterParameters.elementAdapterFactory.purgeRecyclerPools();
+    }
+  }
+
+  public static Builder builder(AssetProvider assetProvider) {
+    return new Builder(assetProvider);
+  }
+
+  /** Builder for PietManager that provides defaults wherever possible */
+  public static class Builder {
+    private final AssetProvider assetProvider;
+    private DebugBehavior debugBehavior = DebugBehavior.SILENT;
+    /*@MonotonicNonNull*/ private CustomElementProvider customElementProvider = null;
+    /*@MonotonicNonNull*/ private HostBindingProvider hostBindingProvider = null;
+    /*@MonotonicNonNull*/ private Clock clock = null;
+
+    private Builder(AssetProvider assetProvider) {
+      this.assetProvider = assetProvider;
+    }
+
+    public Builder setDebugBehavior(DebugBehavior debugBehavior) {
+      this.debugBehavior = debugBehavior;
+      return this;
+    }
+
+    public Builder setCustomElementProvider(CustomElementProvider customElementProvider) {
+      this.customElementProvider = customElementProvider;
+      return this;
+    }
+
+    public Builder setHostBindingProvider(HostBindingProvider hostBindingProvider) {
+      this.hostBindingProvider = hostBindingProvider;
+      return this;
+    }
+
+    public Builder setClock(Clock clock) {
+      this.clock = clock;
+      return this;
+    }
+
+    public PietManager build() {
+      customElementProvider =
+          customElementProvider == null
+              ? new ThrowingCustomElementProvider()
+              : customElementProvider;
+      hostBindingProvider =
+          hostBindingProvider == null ? new HostBindingProvider() : hostBindingProvider;
+      clock = clock == null ? new SystemClockImpl() : clock;
+
+      return new PietManager(
+          debugBehavior, assetProvider, customElementProvider, hostBindingProvider, clock);
     }
   }
 }
