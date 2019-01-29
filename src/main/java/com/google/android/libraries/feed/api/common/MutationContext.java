@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.api.common;
 
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 
@@ -25,20 +24,17 @@ import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 public final class MutationContext {
   /*@Nullable*/ private final StreamToken continuationToken;
   /*@Nullable*/ private final StreamSession requestingSession;
-  /*@Nullable*/ private final Consumer<Boolean> mutationCompleteConsumer;
   private final boolean userInitiated;
 
   /** Static used to represent an empty Mutation Context */
-  public static final MutationContext EMPTY_CONTEXT = new MutationContext(null, null, null, false);
+  public static final MutationContext EMPTY_CONTEXT = new MutationContext(null, null, false);
 
   private MutationContext(
       /*@Nullable*/ StreamToken continuationToken,
       /*@Nullable*/ StreamSession requestingSession,
-      /*@Nullable*/ Consumer<Boolean> mutationCompleteConsumer,
       boolean userInitiated) {
     this.continuationToken = continuationToken;
     this.requestingSession = requestingSession;
-    this.mutationCompleteConsumer = mutationCompleteConsumer;
     this.userInitiated = userInitiated;
   }
 
@@ -54,11 +50,6 @@ public final class MutationContext {
     return requestingSession;
   }
 
-  /*@Nullable*/
-  public Consumer<Boolean> getMutationCompleteConsumer() {
-    return mutationCompleteConsumer;
-  }
-
   /** Returns {@code true} if the mutation was user initiated. */
   public boolean isUserInitiated() {
     return userInitiated;
@@ -68,7 +59,6 @@ public final class MutationContext {
   public static final class Builder {
     /*@MonotonicNonNull*/ private StreamToken continuationToken;
     /*@MonotonicNonNull*/ private StreamSession requestingSession;
-    /*@MonotonicNonNull*/ private Consumer<Boolean> mutationCompleteConsumer;
     private boolean userInitiated = false;
 
     public Builder() {}
@@ -83,19 +73,13 @@ public final class MutationContext {
       return this;
     }
 
-    public Builder setMutationCompleteConsumer(Consumer<Boolean> mutationCompleteConsumer) {
-      this.mutationCompleteConsumer = mutationCompleteConsumer;
-      return this;
-    }
-
     public Builder setUserInitiated(boolean userInitiated) {
       this.userInitiated = userInitiated;
       return this;
     }
 
     public MutationContext build() {
-      return new MutationContext(
-          continuationToken, requestingSession, mutationCompleteConsumer, userInitiated);
+      return new MutationContext(continuationToken, requestingSession, userInitiated);
     }
   }
 }

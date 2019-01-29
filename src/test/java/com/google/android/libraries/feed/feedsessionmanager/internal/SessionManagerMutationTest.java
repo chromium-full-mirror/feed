@@ -39,7 +39,6 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -170,30 +169,6 @@ public class SessionManagerMutationTest {
     assertThat(mutationCommitter.clearedHead).isTrue();
     verify(schedulerApi).onReceiveNewContent(5L);
     verify(knownContentListener).onNewContentReceived(true, 5L);
-  }
-
-  @Test
-  public void testCompletion() {
-    @SuppressWarnings("unchecked")
-    Consumer<Boolean> completion = mock(Consumer.class);
-    List<String> contentIds = getContentIds(3);
-    List<Pair<StreamStructure, StreamPayload>> features =
-        getFeatures(
-            contentIds,
-            () ->
-                StreamPayload.newBuilder()
-                    .setStreamFeature(StreamFeature.getDefaultInstance())
-                    .build());
-    List<StreamDataOperation> dataOperations = new ArrayList<>();
-    for (Pair<StreamStructure, StreamPayload> feature : features) {
-      dataOperations.add(getStreamDataOperation(feature.first, feature.second));
-    }
-
-    MutationCommitter mutationCommitter =
-        getMutationCommitter(
-            new MutationContext.Builder().setMutationCompleteConsumer(completion).build());
-    mutationCommitter.accept(Result.success(dataOperations));
-    verify(completion).accept(true);
   }
 
   @Test

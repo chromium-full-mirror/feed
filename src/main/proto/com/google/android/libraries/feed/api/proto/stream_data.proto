@@ -146,6 +146,8 @@ message StreamPayload {
 }
 
 // Allow the payload to contain Legacy Stream content.
+// TODO: Should this be removed, this was designed for legacy content
+// which is currently not supported anywhere.
 message StreamLegacyPayload {
   // String identifying the type of the legacy content.  This values is
   // opaque to the infrastructure.

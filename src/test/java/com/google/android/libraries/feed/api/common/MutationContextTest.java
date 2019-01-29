@@ -17,7 +17,6 @@ package com.google.android.libraries.feed.api.common;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.common.MutationContext.Builder;
-import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
@@ -50,15 +49,4 @@ public class MutationContextTest {
     MutationContext mutationContext = new Builder().setUserInitiated(true).build();
     assertThat(mutationContext.isUserInitiated()).isTrue();
   }
-
-  @Test
-  public void testCallback() {
-    MutationContext.Builder builder = new Builder();
-    builder.setMutationCompleteConsumer(completionConsumer);
-    MutationContext mutationContext = builder.build();
-    assertThat(mutationContext).isNotNull();
-    assertThat(mutationContext.getMutationCompleteConsumer()).isEqualTo(completionConsumer);
-  }
-
-  private Consumer<Boolean> completionConsumer = (value) -> {};
 }

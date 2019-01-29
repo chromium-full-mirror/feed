@@ -338,12 +338,6 @@ public final class SessionManagerMutation implements Dumpable {
           () -> {
             contentMutation.commit();
             semanticPropertiesMutation.commit();
-            if (mutationContext != null) {
-              Consumer<Boolean> completionConsumer = mutationContext.getMutationCompleteConsumer();
-              if (completionConsumer != null) {
-                completionConsumer.accept(true);
-              }
-            }
           });
       timeTracker.stop("", "contentUpdate", "items", dataOperations.size());
     }
