@@ -53,7 +53,7 @@ public class FeatureChangeBuilder {
 
       @Override
       public ModelFeature getModelFeature() {
-        return new FakeModelFeature.Builder().build();
+        return FakeModelFeature.newBuilder().build();
       }
 
       @Override

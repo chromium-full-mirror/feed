@@ -33,6 +33,10 @@ public class FakeModelFeature implements ModelFeature {
     this.streamFeature = streamFeature;
   }
 
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
   public HashSet<FeatureChangeObserver> getObservers() {
     return observers;
   }
@@ -66,6 +70,8 @@ public class FakeModelFeature implements ModelFeature {
   public static class Builder {
     private ModelCursor modelCursor = new FakeModelCursor(new ArrayList<>());
     private StreamFeature streamFeature = StreamFeature.getDefaultInstance();
+
+    private Builder() {}
 
     public Builder setModelCursor(ModelCursor modelCursor) {
       this.modelCursor = modelCursor;

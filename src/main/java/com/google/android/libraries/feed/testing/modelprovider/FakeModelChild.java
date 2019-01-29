@@ -30,6 +30,10 @@ public class FakeModelChild implements ModelChild {
   private final /*@Nullable*/ ModelToken modelToken;
   private final /*@Nullable*/ String parentId;
 
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
   private FakeModelChild(
       String contentId,
       /*@Nullable*/ ModelFeature modelFeature,
@@ -92,6 +96,8 @@ public class FakeModelChild implements ModelChild {
     private /*@Nullable*/ ModelFeature modelFeature;
     private /*@Nullable*/ ModelToken modelToken;
     private /*@Nullable*/ String parentId;
+
+    private Builder() {}
 
     public Builder setContentId(String contentId) {
       this.contentId = contentId;

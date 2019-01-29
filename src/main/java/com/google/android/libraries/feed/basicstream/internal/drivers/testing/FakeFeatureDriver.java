@@ -47,7 +47,7 @@ public class FakeFeatureDriver implements FeatureDriver {
     /*@Nullable*/
     private LeafFeatureDriver leafFeatureDriver = new FakeLeafFeatureDriver.Builder().build();
 
-    private ModelFeature modelFeature = new FakeModelFeature.Builder().build();
+    private ModelFeature modelFeature = FakeModelFeature.newBuilder().build();
 
     public Builder setLeafFeatureDriver(/*@Nullable*/ LeafFeatureDriver contentModel) {
       this.leafFeatureDriver = contentModel;

@@ -295,7 +295,7 @@ public class ContinuationDriverTest {
     verify(modelProvider).handleToken(modelToken);
 
     continuationDriver.onTokenCompleted(
-        new TokenCompleted(new FakeModelCursor.Builder().addCard().build()));
+        new TokenCompleted(FakeModelCursor.newBuilder().addCard().build()));
 
     // The listener should be notified that the token was automatically consumed as it was a
     // synthetic token.
@@ -490,7 +490,7 @@ public class ContinuationDriverTest {
 
   @Test
   public void testOnTokenCompleted_checksMainThread() {
-    continuationDriver.onTokenCompleted(new TokenCompleted(new FakeModelCursor.Builder().build()));
+    continuationDriver.onTokenCompleted(new TokenCompleted(FakeModelCursor.newBuilder().build()));
 
     verify(threadUtils).checkMainThread();
   }
@@ -499,7 +499,7 @@ public class ContinuationDriverTest {
   public void testOnTokenCompleted_afterDestroy() {
     continuationDriver.onDestroy();
 
-    continuationDriver.onTokenCompleted(new TokenCompleted(new FakeModelCursor.Builder().build()));
+    continuationDriver.onTokenCompleted(new TokenCompleted(FakeModelCursor.newBuilder().build()));
 
     verify(cursorChangedListener, never())
         .onNewChildren(any(ModelChild.class), Matchers.<List<ModelChild>>any());
@@ -507,8 +507,7 @@ public class ContinuationDriverTest {
 
   @Test
   public void testOnTokenCompleted_extractsModelChildren() {
-    FakeModelCursor cursor =
-        new FakeModelCursor.Builder().addCard().addCluster().addToken().build();
+    FakeModelCursor cursor = FakeModelCursor.newBuilder().addCard().addCluster().addToken().build();
 
     continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
 
@@ -521,7 +520,7 @@ public class ContinuationDriverTest {
     continuationDriver.bind(continuationViewHolder);
     continuationDriver.onClick(/* v= */ null);
 
-    continuationDriver.onTokenCompleted(new TokenCompleted(new FakeModelCursor.Builder().build()));
+    continuationDriver.onTokenCompleted(new TokenCompleted(FakeModelCursor.newBuilder().build()));
 
     verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
     verify(cursorChangedListener).onNewChildren(modelChild, Collections.emptyList());
@@ -532,7 +531,7 @@ public class ContinuationDriverTest {
     continuationDriver.bind(continuationViewHolder);
     continuationDriver.onClick(/* v= */ null);
 
-    FakeModelCursor cursor = new FakeModelCursor.Builder().addToken().build();
+    FakeModelCursor cursor = FakeModelCursor.newBuilder().addToken().build();
     continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
 
     verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
@@ -541,7 +540,7 @@ public class ContinuationDriverTest {
 
   @Test
   public void testOnTokenCompleted_doesNotCreateSnackbar_whenSpinnerNotShown() {
-    FakeModelCursor cursor = new FakeModelCursor.Builder().addToken().build();
+    FakeModelCursor cursor = FakeModelCursor.newBuilder().addToken().build();
     continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
 
     verifyNoMoreInteractions(snackbarApi);

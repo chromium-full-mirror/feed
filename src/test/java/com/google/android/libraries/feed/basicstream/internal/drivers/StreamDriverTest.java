@@ -42,8 +42,8 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
-import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -80,7 +80,7 @@ public class StreamDriverTest {
   private StreamDriverForTest streamDriver;
 
   private static final ModelFeature UNBOUND_CARD =
-      new FakeModelFeature.Builder()
+      FakeModelFeature.newBuilder()
           .setStreamFeature(StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
           .build();
 
@@ -107,9 +107,9 @@ public class StreamDriverTest {
   private ThreadUtils threadUtils;
 
   private static FakeModelChild createFakeClusterModelChild() {
-    return new FakeModelChild.Builder()
+    return FakeModelChild.newBuilder()
         .setModelFeature(
-            new FakeModelFeature.Builder()
+            FakeModelFeature.newBuilder()
                 .setStreamFeature(
                     StreamFeature.newBuilder().setCluster(Cluster.getDefaultInstance()).build())
                 .build())
@@ -147,7 +147,7 @@ public class StreamDriverTest {
   @Test
   public void testBuildChildren() {
     when(streamFeature.getCursor())
-        .thenReturn(new FakeModelCursor.Builder().addCard().addCluster().addToken().build());
+        .thenReturn(FakeModelCursor.newBuilder().addCard().addCluster().addToken().build());
 
     // Causes StreamDriver to build a list of children based on the children from the cursor.
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
@@ -165,7 +165,7 @@ public class StreamDriverTest {
   @Test
   public void testBuildChildren_unboundContent() {
     when(streamFeature.getCursor())
-        .thenReturn(new FakeModelCursor.Builder().addChild(UNBOUND_CARD).addCard().build());
+        .thenReturn(FakeModelCursor.newBuilder().addChild(UNBOUND_CARD).addCard().build());
 
     // Causes StreamDriver to build a list of children based on the children from the cursor.
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
@@ -187,7 +187,7 @@ public class StreamDriverTest {
   public void testMaybeRestoreScroll() {
     streamDriver = createRestoringStreamDriver();
 
-    when(streamFeature.getCursor()).thenReturn(new FakeModelCursor.Builder().addCard().build());
+    when(streamFeature.getCursor()).thenReturn(FakeModelCursor.newBuilder().addCard().build());
 
     streamDriver.getLeafFeatureDrivers();
 
@@ -201,7 +201,7 @@ public class StreamDriverTest {
     streamDriver = createRestoringStreamDriver();
 
     when(streamFeature.getCursor())
-        .thenReturn(new FakeModelCursor.Builder().addCard().addCluster().addToken().build());
+        .thenReturn(FakeModelCursor.newBuilder().addCard().addCluster().addToken().build());
 
     streamDriver.getLeafFeatureDrivers();
 
@@ -217,7 +217,7 @@ public class StreamDriverTest {
 
     when(streamFeature.getCursor())
         .thenReturn(
-            new FakeModelCursor.Builder().addCard().addCluster().addSyntheticToken().build());
+            FakeModelCursor.newBuilder().addCard().addCluster().addSyntheticToken().build());
     when(continuationDriver.isSynthetic()).thenReturn(true);
 
     streamDriver.getLeafFeatureDrivers();
@@ -234,7 +234,7 @@ public class StreamDriverTest {
 
     when(streamFeature.getCursor())
         .thenReturn(
-            new FakeModelCursor.Builder().addCard().addCluster().addSyntheticToken().build());
+            FakeModelCursor.newBuilder().addCard().addCluster().addSyntheticToken().build());
 
     streamDriver.getLeafFeatureDrivers();
 
@@ -246,7 +246,7 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_createsContinuationContentModel() {
-    when(streamFeature.getCursor()).thenReturn(new FakeModelCursor.Builder().addToken().build());
+    when(streamFeature.getCursor()).thenReturn(FakeModelCursor.newBuilder().addToken().build());
 
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
     assertThat(leafFeatureDrivers).hasSize(2);
@@ -258,8 +258,8 @@ public class StreamDriverTest {
   public void testContinuationToken_tokenHandling() {
     streamDriver = createStreamDriver(/* restoring= */ true, /* isInitialLoad= */ false);
 
-    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addToken().build();
-    FakeModelCursor newCursor = new FakeModelCursor.Builder().addCluster().build();
+    FakeModelCursor initialCursor = FakeModelCursor.newBuilder().addToken().build();
+    FakeModelCursor newCursor = FakeModelCursor.newBuilder().addCluster().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
     // Causes StreamDriver to build a list of children based on the children from the cursor.
@@ -282,9 +282,9 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_tokenHandling_newSyntheticToken() {
-    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addSyntheticToken().build();
+    FakeModelCursor initialCursor = FakeModelCursor.newBuilder().addSyntheticToken().build();
     FakeModelCursor newCursor =
-        new FakeModelCursor.Builder().addCluster().addSyntheticToken().build();
+        FakeModelCursor.newBuilder().addCluster().addSyntheticToken().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
     when(continuationDriver.isSynthetic()).thenReturn(true);
 
@@ -305,8 +305,8 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_tokenHandling_notifiesObservers() {
-    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addCard().addToken().build();
-    FakeModelCursor newCursor = new FakeModelCursor.Builder().addCluster().build();
+    FakeModelCursor initialCursor = FakeModelCursor.newBuilder().addCard().addToken().build();
+    FakeModelCursor newCursor = FakeModelCursor.newBuilder().addCluster().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
     streamDriver.getLeafFeatureDrivers();
@@ -321,8 +321,8 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_tokenChildrenAddedAtTokenPosition() {
-    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addCluster().addToken().build();
-    FakeModelCursor newCursor = new FakeModelCursor.Builder().addCluster().addToken().build();
+    FakeModelCursor initialCursor = FakeModelCursor.newBuilder().addCluster().addToken().build();
+    FakeModelCursor newCursor = FakeModelCursor.newBuilder().addCluster().addToken().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
     streamDriver.getLeafFeatureDrivers();
@@ -340,9 +340,9 @@ public class StreamDriverTest {
   @Test
   public void testContinuationToken_tokenChildrenAddedAtTokenPosition_tokenNotAtEnd() {
     FakeModelCursor initialCursor =
-        new FakeModelCursor.Builder().addCluster().addToken().addCluster().build();
+        FakeModelCursor.newBuilder().addCluster().addToken().addCluster().build();
     FakeModelCursor newCursor =
-        new FakeModelCursor.Builder().addCluster().addCard().addCluster().build();
+        FakeModelCursor.newBuilder().addCluster().addCard().addCluster().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
     streamDriver.getLeafFeatureDrivers();
@@ -362,8 +362,8 @@ public class StreamDriverTest {
   @Test
   public void testContinuationToken_tokenNotFound() {
     FakeModelCursor initialCursor =
-        new FakeModelCursor.Builder().addCluster().addToken().addCluster().build();
-    FakeModelCursor badCursor = new FakeModelCursor.Builder().addCard().build();
+        FakeModelCursor.newBuilder().addCluster().addToken().addCluster().build();
+    FakeModelCursor badCursor = FakeModelCursor.newBuilder().addCard().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
     streamDriver.getLeafFeatureDrivers();
@@ -375,7 +375,7 @@ public class StreamDriverTest {
   @Test
   public void testOnChange_remove() {
     FakeModelCursor fakeModelCursor =
-        new FakeModelCursor.Builder().addCard().addCard().addCard().addCard().build();
+        FakeModelCursor.newBuilder().addCard().addCard().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -395,7 +395,7 @@ public class StreamDriverTest {
 
   @Test
   public void testOnChange_addsZeroState_whenFeatureDriversEmpty() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -412,7 +412,7 @@ public class StreamDriverTest {
 
   @Test
   public void testGetLeafFeatureDrivers_addsZeroState_withNoModelChildren() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -425,7 +425,7 @@ public class StreamDriverTest {
   @Test
   public void testGetLeafFeatureDrivers_doesNotAddZeroState_ifInitialLoad() {
     streamDriver = createStreamDriver(/* restoring= */ false, /* isInitialLoad= */ true);
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -437,7 +437,7 @@ public class StreamDriverTest {
   @Test
   public void testGetLeafFeatureDrivers_doesNotAddZeroState_ifRestoring() {
     streamDriver = createStreamDriver(/* restoring= */ true, /* isInitialLoad= */ false);
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -448,7 +448,7 @@ public class StreamDriverTest {
 
   @Test
   public void testShowZeroState_createsZeroState() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addCard().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
@@ -463,7 +463,7 @@ public class StreamDriverTest {
 
   @Test
   public void testShowZeroState_notifiesContentsCleared() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addCard().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -474,7 +474,7 @@ public class StreamDriverTest {
 
   @Test
   public void testShowZeroState_destroysFeatureDrivers() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addToken().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().addToken().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
     streamDriver.getLeafFeatureDrivers();
@@ -486,7 +486,7 @@ public class StreamDriverTest {
 
   @Test
   public void testOnChange_addsNoContentCard_withJustContinuationDriver() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().addCard().addToken().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -503,7 +503,7 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_removesNoContentCard() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().addCard().addToken().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -515,7 +515,7 @@ public class StreamDriverTest {
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
 
-    FakeModelCursor newCursor = new FakeModelCursor.Builder().addCard().build();
+    FakeModelCursor newCursor = FakeModelCursor.newBuilder().addCard().build();
     streamDriver.onNewChildren(fakeModelCursor.getChildAt(1), newCursor.getModelChildren());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
@@ -525,7 +525,7 @@ public class StreamDriverTest {
 
   @Test
   public void testContinuationToken_replacesNoContentCardWithZeroState() {
-    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    FakeModelCursor initialCursor = FakeModelCursor.newBuilder().addCard().addToken().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
     streamDriver.getLeafFeatureDrivers();
 
@@ -540,7 +540,7 @@ public class StreamDriverTest {
 
   @Test
   public void testOnChange_remove_notifiesListener() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addCard().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -556,7 +556,7 @@ public class StreamDriverTest {
 
   @Test
   public void testOnChange_addAndRemoveContent() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addCard().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -582,7 +582,7 @@ public class StreamDriverTest {
 
   @Test
   public void testOnChange_addContent() {
-    FakeModelCursor fakeModelCursor = new FakeModelCursor.Builder().addCard().addCard().build();
+    FakeModelCursor fakeModelCursor = FakeModelCursor.newBuilder().addCard().addCard().build();
 
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -607,7 +607,7 @@ public class StreamDriverTest {
 
   @Test
   public void testOnDestroy() {
-    FakeModelCursor cursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    FakeModelCursor cursor = FakeModelCursor.newBuilder().addCard().addToken().build();
     when(streamFeature.getCursor()).thenReturn(cursor);
 
     // Causes StreamDriver to build a list of children based on the children from the cursor.
@@ -627,7 +627,7 @@ public class StreamDriverTest {
   @Test
   public void testOnDestroy_clearsFeatureDrivers() {
     streamDriver = createStreamDriver(false, true);
-    when(streamFeature.getCursor()).thenReturn(new FakeModelCursor.Builder().addCard().build());
+    when(streamFeature.getCursor()).thenReturn(FakeModelCursor.newBuilder().addCard().build());
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
     streamDriver.onDestroy();
@@ -637,7 +637,7 @@ public class StreamDriverTest {
 
   @Test
   public void testHasContent_returnsTrue() {
-    FakeModelCursor cursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    FakeModelCursor cursor = FakeModelCursor.newBuilder().addCard().addToken().build();
     when(streamFeature.getCursor()).thenReturn(cursor);
     streamDriver.getLeafFeatureDrivers();
 
@@ -646,7 +646,7 @@ public class StreamDriverTest {
 
   @Test
   public void testHasContent_returnsFalse_withNoContentCard() {
-    FakeModelCursor cursor = new FakeModelCursor.Builder().addCard().addToken().build();
+    FakeModelCursor cursor = FakeModelCursor.newBuilder().addCard().addToken().build();
     when(streamFeature.getCursor()).thenReturn(cursor);
     streamDriver.getLeafFeatureDrivers();
     // Remove card to trigger no content card.
@@ -658,7 +658,7 @@ public class StreamDriverTest {
 
   @Test
   public void testHasContent_returnsFalse_withZeroState() {
-    FakeModelCursor cursor = new FakeModelCursor.Builder().build();
+    FakeModelCursor cursor = FakeModelCursor.newBuilder().build();
     when(streamFeature.getCursor()).thenReturn(cursor);
     streamDriver.getLeafFeatureDrivers();
 
@@ -667,8 +667,8 @@ public class StreamDriverTest {
 
   @Test
   public void testAutoConsumeSyntheticTokensOnRestore() {
-    FakeModelCursor initialCursor = new FakeModelCursor.Builder().addCard().addToken().build();
-    FakeModelCursor newCursor = new FakeModelCursor.Builder().addToken().build();
+    FakeModelCursor initialCursor = FakeModelCursor.newBuilder().addCard().addToken().build();
+    FakeModelCursor newCursor = FakeModelCursor.newBuilder().addToken().build();
 
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 

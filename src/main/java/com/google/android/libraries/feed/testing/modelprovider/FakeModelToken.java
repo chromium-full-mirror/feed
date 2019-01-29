@@ -31,6 +31,10 @@ public class FakeModelToken implements ModelToken {
     this.isSynthetic = isSynthetic;
   }
 
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
   public HashSet<TokenCompletedObserver> getObservers() {
     return observers;
   }
@@ -58,6 +62,8 @@ public class FakeModelToken implements ModelToken {
   public static class Builder {
     private StreamToken streamToken = StreamToken.getDefaultInstance();
     private boolean isSynthetic;
+
+    private Builder() {}
 
     public Builder setStreamToken(StreamToken streamToken) {
       this.streamToken = streamToken;

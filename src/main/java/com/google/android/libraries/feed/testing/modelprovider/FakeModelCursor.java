@@ -37,6 +37,10 @@ public class FakeModelCursor implements ModelCursor {
     this.modelChildren = modelChildren;
   }
 
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
   public void setModelChildren(List<ModelChild> modelChildren) {
     this.modelChildren = modelChildren;
   }
@@ -66,13 +70,15 @@ public class FakeModelCursor implements ModelCursor {
   public static class Builder {
     List<ModelChild> cursorChildren = new ArrayList<>();
 
+    private Builder() {}
+
     public Builder addCard() {
-      final FakeModelCursor build = new Builder().build();
+      final FakeModelCursor build = newBuilder().build();
       return addChildWithModelFeature(getCardModelFeatureWithCursor(build));
     }
 
     public Builder addChild(ModelFeature feature) {
-      return addChild(new FakeModelChild.Builder().setModelFeature(feature).build());
+      return addChild(FakeModelChild.newBuilder().setModelFeature(feature).build());
     }
 
     public Builder addChild(ModelChild child) {
@@ -86,7 +92,7 @@ public class FakeModelCursor implements ModelCursor {
     }
 
     public Builder addChildWithModelFeature(FakeModelFeature modelFeature) {
-      ModelChild cardChild = new FakeModelChild.Builder().setModelFeature(modelFeature).build();
+      ModelChild cardChild = FakeModelChild.newBuilder().setModelFeature(modelFeature).build();
       cursorChildren.add(cardChild);
       return this;
     }
@@ -94,10 +100,7 @@ public class FakeModelCursor implements ModelCursor {
     public Builder addChildWithModelFeatureAndContentId(
         FakeModelFeature modelFeature, String contentId) {
       ModelChild cardChild =
-          new FakeModelChild.Builder()
-              .setModelFeature(modelFeature)
-              .setContentId(contentId)
-              .build();
+          FakeModelChild.newBuilder().setModelFeature(modelFeature).setContentId(contentId).build();
       cursorChildren.add(cardChild);
       return this;
     }
@@ -114,7 +117,7 @@ public class FakeModelCursor implements ModelCursor {
     }
 
     public Builder addToken(boolean isSynthetic) {
-      return addToken(new FakeModelToken.Builder().setIsSynthetic(isSynthetic).build());
+      return addToken(FakeModelToken.newBuilder().setIsSynthetic(isSynthetic).build());
     }
 
     public Builder addToken() {
@@ -122,7 +125,7 @@ public class FakeModelCursor implements ModelCursor {
     }
 
     public Builder addToken(ModelToken token) {
-      ModelChild tokenChild = new FakeModelChild.Builder().setModelToken(token).build();
+      ModelChild tokenChild = FakeModelChild.newBuilder().setModelToken(token).build();
 
       cursorChildren.add(tokenChild);
 
@@ -139,14 +142,14 @@ public class FakeModelCursor implements ModelCursor {
   }
 
   public static FakeModelFeature getCardModelFeatureWithCursor(ModelCursor modelCursor) {
-    return new FakeModelFeature.Builder()
+    return FakeModelFeature.newBuilder()
         .setStreamFeature(StreamFeature.newBuilder().setCard(Card.getDefaultInstance()).build())
         .setModelCursor(modelCursor)
         .build();
   }
 
   public static FakeModelFeature getClusterModelFeatureWithCursor(ModelCursor cursor) {
-    return new FakeModelFeature.Builder()
+    return FakeModelFeature.newBuilder()
         .setStreamFeature(
             StreamFeature.newBuilder().setCluster(Cluster.getDefaultInstance()).build())
         .setModelCursor(cursor)
@@ -155,13 +158,13 @@ public class FakeModelCursor implements ModelCursor {
 
   public static FakeModelFeature getContentModelFeatureWithCursor(
       Content content, ModelCursor cursor) {
-    return new FakeModelFeature.Builder()
+    return FakeModelFeature.newBuilder()
         .setStreamFeature(StreamFeature.newBuilder().setContent(content).build())
         .setModelCursor(cursor)
         .build();
   }
 
   public static FakeModelFeature getModelFeatureWithEmptyCursor() {
-    return new FakeModelFeature.Builder().setModelCursor(new Builder().build()).build();
+    return FakeModelFeature.newBuilder().setModelCursor(newBuilder().build()).build();
   }
 }
