@@ -929,6 +929,15 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testOnSessionStart_showsZeroState_ifFeatureDriversEmpty() {
+    basicStream.onShow();
+
+    basicStream.onSessionStart();
+
+    verify(streamDriver).showZeroState(/* showSpinner= */ false);
+  }
+
+  @Test
   public void testOnShow_delaysShowingZeroState_onInitialLoad() {
     basicStream.onShow();
 

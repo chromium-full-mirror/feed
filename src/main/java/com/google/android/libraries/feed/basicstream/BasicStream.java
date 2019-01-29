@@ -502,7 +502,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     recyclerView.addOnLayoutChangeListener(this);
   }
 
-  private void updateAdapter(ModelProvider modelProvider) {
+  private void updateAdapterAfterSessionStart(ModelProvider modelProvider) {
     if (streamDriver != null) {
       streamDriver.onDestroy();
     }
@@ -527,6 +527,10 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             isRestoring,
             /* isInitialLoad= */ false);
 
+    // If after starting a new session the Stream is still empty, we should show the zero state.
+    if (streamDriver.getLeafFeatureDrivers().isEmpty()) {
+      streamDriver.showZeroState(/* showSpinner= */ false);
+    }
     adapter.setDriver(streamDriver);
     if (loggingState == LoggingState.STARTING
         && modelProvider.getCurrentState() == State.READY
@@ -549,7 +553,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       long spinnerDisplayTime = clock.currentTimeMillis() - initialLoadingSpinnerStartTime;
       // If MINIMUM_SPINNER_SHOW_TIME has elapsed, the new content can be shown immediately.
       if (spinnerDisplayTime >= MINIMUM_SPINNER_SHOW_TIME) {
-        updateAdapter(localModelProvider);
+        updateAdapterAfterSessionStart(localModelProvider);
         logContent();
       } else {
         // If MINIMUM_SPINNER_SHOW_TIME has not elapsed, the new content should only be shown once
@@ -560,14 +564,14 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               // Only show content if model providers are the same. If they are different, this
               // indicates that the session finished before the spinner show time elapsed.
               if (modelProvider == localModelProvider) {
-                updateAdapter(localModelProvider);
+                updateAdapterAfterSessionStart(localModelProvider);
                 logContent();
               }
             },
             MINIMUM_SPINNER_SHOW_TIME - spinnerDisplayTime);
       }
     } else {
-      updateAdapter(localModelProvider);
+      updateAdapterAfterSessionStart(localModelProvider);
       logContent();
     }
     isInitialLoad = false;
