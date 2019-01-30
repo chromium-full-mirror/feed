@@ -52,6 +52,8 @@ message FeedActionMetadata {
     // should not be persisted to server-side storage as this experience is
     // intended for signed-out users or ones with WAA disabled.
     DISMISS_LOCAL = 5;
+    // Dismiss logged on the server for signed-in users with WAA enabled.
+    DISMISS = 11;
     // Note that the data required to download content is not on the action, but
     // rather the content. This is intentionally done to avoid sending multiple
     // copies of the same data, which could potentially be multiple long
@@ -59,6 +61,8 @@ message FeedActionMetadata {
     DOWNLOAD = 6;
     OPEN_URL_NEW_TAB = 7;
     LEARN_MORE = 8;
+    NOT_INTERESTED_IN_TOPIC = 9;
+    NOT_INTERESTED_IN_SOURCE = 10;
   }
   optional Type type = 1;
 
@@ -72,6 +76,9 @@ message FeedActionMetadata {
 
     // The data needed by the Stream to perform a dismiss.
     DismissData dismiss_data = 4;
+
+    // The data needed by the Stream to handle the not interested action.
+    NotInterestedInData not_interested_in_data = 6;
   }
 
   reserved 5;
@@ -92,10 +99,50 @@ message OpenContextMenuData {
 message DismissData {
   optional search.now.wire.feed.ContentId content_id = 1;
   repeated search.now.wire.feed.DataOperation data_operations = 2;
+  // Data used by the client to show a confirmation message with option to undo.
+  // This confirmation and undo option will only appear if the UndoAction is
+  // present and the client can handle this capability.
+  optional UndoAction undo_action = 3;
+}
+
+// Data needed by the client to handle the not interested action.
+message NotInterestedInData {
+  // Data used by the client to show a confirmation message with option to undo.
+  // This confirmation and undo option will only appear if the UndoAction is
+  // present and the client can handle this capability.
+  optional UndoAction undo_action = 1;
+  // The data needed by Stream to preform the dismiss.
+  optional search.now.wire.feed.ContentId content_id = 2;
+  // The data needed by Stream to preform the dismiss.
+  repeated search.now.wire.feed.DataOperation data_operations = 3;
+  // The data needed by the server to handle action recording.
+  optional OpaqueActionData opaque_action_data = 4;
+}
+
+// Data used by the client to show a confirmation message with an action to
+// reverse it.
+message UndoAction {
+  // The string shown to the user that confirms the action was just taken.
+  optional string confirmation_label = 1;
+  // The string that labels that option to reverse the action. Defaults to
+  // "Undo" if not sent.
+  optional string undo_label = 2;
 }
 
 // FeedActionMetadata with a label to show in a context menu.
 message LabelledFeedActionData {
   optional string label = 1;
   optional FeedActionPayload feed_action_payload = 2;
+}
+
+// The data needed by the server to handle action recording. This information is
+// opaque to the client and will be the information that is roundtripped so the
+// server can properly handle the action. For the Not Interested In action, this
+// data will contain the mids needed to record that the user is not interested
+// in that particular mid. Please note it is important to keep this to a bare
+// minimum amount of data.
+message OpaqueActionData {
+  // Reserved fields for renderable unit extensions
+  // Please use CL numbers you own for extension numbers.
+  extensions 1 to 1;
 }

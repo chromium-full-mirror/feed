@@ -218,6 +218,8 @@ public final class FeedActionParser implements ActionParser {
       case LEARN_MORE:
         return streamActionApi.canLearnMore();
       case UNKNOWN:
+      default:
+        // TODO : Handle the action types introduced in [INTERNAL LINK]
     }
     Logger.e(TAG, "Unhandled feed action type: %s", type);
     return false;
