@@ -25,4 +25,10 @@ public @interface BundledAssets {
 
   /** Badge to show indicating content links to a video. */
   String VIDEO_INDICATOR_BADGE = "video_indicator_badge";
+
+  /** Icon that indicates a click will take the user to a menu. */
+  String MENU_ICON = "menu_icon";
+
+  /** Branding interest spark icon. */
+  String SPARK_ICON = "spark_icon";
 }
