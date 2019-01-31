@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.host.logging;
 
+import java.util.List;
+
 /** The BasicLoggingApi is used by the Feed to log actions performed on the Feed. */
 public interface BasicLoggingApi {
   /**
@@ -131,4 +133,12 @@ public interface BasicLoggingApi {
    * @param spinnerType type of spinner that was shown.
    */
   void onSpinnerShown(int timeShownMs, @SpinnerType int spinnerType);
+
+  /**
+   * Called when Piet wants to report events that occurred during Frame rendering.
+   *
+   * @param pietErrorCodes int versions of values from Piet {@link
+   *     com.google.search.now.ui.piet.ErrorsProto.ErrorCode} enum
+   */
+  void onPietFrameRenderingEvent(List<Integer> pietErrorCodes);
 }
