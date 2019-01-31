@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Mai mult</string>
+  <string name="more_button_label">Mai multe</string>
   <string name="no_suggestions">Asta este tot</string>
   <string name="zero_state_text_morning">În curând vor apărea mai multe articole. O dimineață plăcută!</string>
   <string name="zero_state_text_afternoon">În curând vor apărea mai multe articole. O după-amiază plăcută!</string>

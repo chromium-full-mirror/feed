@@ -19,9 +19,9 @@
   <string name="no_suggestions">Eso es todo por ahora</string>
   <string name="zero_state_text_morning">Próximamente se mostrarán más artículos. Disfruta de la mañana.</string>
   <string name="zero_state_text_afternoon">Próximamente se mostrarán más artículos. Disfruta de la tarde.</string>
-  <string name="zero_state_text_evening">Próximamente se mostrarán más artículos. Disfruta de la tarde.</string>
+  <string name="zero_state_text_evening">Próximamente se mostrarán más artículos. Disfruta de la noche.</string>
   <string name="feed_refresh">Actualizar</string>
   <string name="snackbar_fetch_failed">No se pueden obtener sugerencias</string>
-  <string name="snackbar_fetch_no_new_suggestions">No hay ninguna sugerencia nueva</string>
+  <string name="snackbar_fetch_no_new_suggestions">No hay sugerencias nuevas</string>
   <string name="suggestions_section_empty">Los artículos sugeridos aparecen aquí</string>
 </resources>

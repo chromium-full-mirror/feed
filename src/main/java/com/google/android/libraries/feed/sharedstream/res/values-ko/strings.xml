@@ -22,6 +22,6 @@
   <string name="zero_state_text_evening">더 많은 콘텐츠가 표시될 예정이니 기대해주세요. 즐거운 저녁 시간 보내세요.</string>
   <string name="feed_refresh">새로고침</string>
   <string name="snackbar_fetch_failed">추천을 받을 수 없음</string>
-  <string name="snackbar_fetch_no_new_suggestions">새 추천 없음</string>
-  <string name="suggestions_section_empty">추천 기사가 여기에 표시됩니다.</string>
+  <string name="snackbar_fetch_no_new_suggestions">새로운 추천 콘텐츠 없음</string>
+  <string name="suggestions_section_empty">추천 콘텐츠가 여기에 표시됩니다.</string>
 </resources>

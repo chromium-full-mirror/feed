@@ -21,7 +21,7 @@
   <string name="zero_state_text_afternoon">Drīzumā būs pieejami citi raksti. Jauku pēcpusdienu!</string>
   <string name="zero_state_text_evening">Drīzumā būs pieejami citi raksti. Jauku vakaru!</string>
   <string name="feed_refresh">Atsvaidzināt</string>
-  <string name="snackbar_fetch_failed">Nevar iegūt ieteikumus</string>
+  <string name="snackbar_fetch_failed">Nevar iegūt ieteikumus.</string>
   <string name="snackbar_fetch_no_new_suggestions">Nav jaunu ieteikumu</string>
-  <string name="suggestions_section_empty">Šeit tiks parādīti ieteiktie raksti.</string>
+  <string name="suggestions_section_empty">Ieteiktie raksti tiek parādīti šeit</string>
 </resources>

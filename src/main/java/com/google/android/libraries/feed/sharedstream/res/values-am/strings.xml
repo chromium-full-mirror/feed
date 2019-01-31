@@ -21,7 +21,7 @@
   <string name="zero_state_text_afternoon">ተጨማሪ ጽሑፎች በቅርቡ ይታያሉ። የእርስዎን ከሰዓት በኋላ ጊዜ ይዝናኑበት!</string>
   <string name="zero_state_text_evening">ተጨማሪ ጽሑፎች በቅርቡ ይታያሉ። የእርስዎን ምሽት ይዝናኑበት!</string>
   <string name="feed_refresh">አድስ</string>
-  <string name="snackbar_fetch_failed">የአስተያየት ጥቆማዎችን ማግኘት አይቻልም</string>
+  <string name="snackbar_fetch_failed">የአስተያየት ጥቆማዎችን ማግኘት አልተቻለም</string>
   <string name="snackbar_fetch_no_new_suggestions">ምንም አዲስ የአስተያየት ጥቆማዎች የሉም</string>
   <string name="suggestions_section_empty">የእርስዎ የተጠቆሙ ዘገባዎች እዚህ ይመጣሉ</string>
 </resources>

@@ -21,7 +21,7 @@
   <string name="zero_state_text_afternoon">Serão apresentados mais artigos em breve. Desfrute da sua tarde!</string>
   <string name="zero_state_text_evening">Serão apresentados mais artigos em breve. Desfrute do seu serão!</string>
   <string name="feed_refresh">Atualizar</string>
-  <string name="snackbar_fetch_failed">Não é possível obter sugestões.</string>
-  <string name="snackbar_fetch_no_new_suggestions">Não existem novas sugestões.</string>
+  <string name="snackbar_fetch_failed">Não é possível obter sugestões</string>
+  <string name="snackbar_fetch_no_new_suggestions">Não existem novas sugestões</string>
   <string name="suggestions_section_empty">Os seus artigos sugeridos são apresentados aqui.</string>
 </resources>

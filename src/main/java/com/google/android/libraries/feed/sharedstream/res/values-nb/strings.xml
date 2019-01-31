@@ -17,7 +17,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="more_button_label">Mer</string>
   <string name="no_suggestions">Det var alt for denne gangen</string>
-  <string name="zero_state_text_morning">Flere artikler kommer snart. Ha en fin morgen.</string>
+  <string name="zero_state_text_morning">Flere artikler kommer snart. Ha en fin dag.</string>
   <string name="zero_state_text_afternoon">Flere artikler kommer snart. Ha en fin ettermiddag.</string>
   <string name="zero_state_text_evening">Flere artikler kommer snart. Ha en fin kveld.</string>
   <string name="feed_refresh">Last inn på nytt</string>

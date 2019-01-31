@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Flere</string>
+  <string name="more_button_label">Mere</string>
   <string name="no_suggestions">Det var det hele indtil videre</string>
   <string name="zero_state_text_morning">Der vises snart flere artikler. Hav en god formiddag!</string>
   <string name="zero_state_text_afternoon">Der vises snart flere artikler. Hav en god eftermiddag!</string>
