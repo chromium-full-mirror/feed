@@ -64,6 +64,11 @@ maven_jar(
 )
 
 maven_jar(
+    name = "com_google_testing_compile_compile_testing",
+    artifact = "com.google.testing.compile:compile-testing:4.2.2",
+)
+
+maven_jar(
     name = "com_google_truth_truth",
     artifact = "com.google.truth:truth:0.39",
 )
