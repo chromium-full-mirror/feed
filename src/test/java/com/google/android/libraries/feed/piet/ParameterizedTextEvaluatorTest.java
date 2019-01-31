@@ -15,7 +15,7 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -66,7 +66,7 @@ public class ParameterizedTextEvaluatorTest {
   public void testEvaluate_time() {
     String content = "content %s";
     String time = "10 minutes";
-    when(assetProvider.getRelativeElapsedString(anyInt())).thenReturn(time);
+    when(assetProvider.getRelativeElapsedString(anyLong())).thenReturn(time);
     long initialTime = 10;
     clock.set(initialTime * MILLISECONDS_PER_SECOND + 10 * MILLISECONDS_PER_MINUTE);
     ParameterizedText text =
@@ -85,7 +85,7 @@ public class ParameterizedTextEvaluatorTest {
     String content = "content %s - %s";
     String time1 = "10 minutes";
     String time2 = "20 minutes";
-    when(assetProvider.getRelativeElapsedString(anyInt())).thenReturn(time1).thenReturn(time2);
+    when(assetProvider.getRelativeElapsedString(anyLong())).thenReturn(time1).thenReturn(time2);
     clock.set(20 * MILLISECONDS_PER_MINUTE);
 
     ParameterizedText text =
@@ -114,7 +114,7 @@ public class ParameterizedTextEvaluatorTest {
   public void testEvaluate_htmlAndParameters() {
     String content = "<h1>content %s</h1>";
     String time1 = "1 second";
-    when(assetProvider.getRelativeElapsedString(anyInt())).thenReturn(time1);
+    when(assetProvider.getRelativeElapsedString(anyLong())).thenReturn(time1);
 
     ParameterizedText text =
         ParameterizedText.newBuilder()
