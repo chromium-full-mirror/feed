@@ -33,9 +33,7 @@ message FeedAction {
   // real-time.
   optional FeedActionMetadata metadata = 1;
 
-  // The message to show the user when displaying a prompt that allows them to
-  // undo this action for a short time after executing it.
-  optional string undo_text = 2;
+  reserved 2;  // deprecated fields
 }
 
 // Metadata needed by the host to handle the action.
