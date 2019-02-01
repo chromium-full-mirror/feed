@@ -28,4 +28,6 @@ enum Capability {
   FEED_UI = 2;
   INTEREST_HEADER = 3;
   UNDOABLE_ACTIONS = 4;
+  MANAGE_INTERESTS = 5;
+  CARD_MENU_TOOLTIP = 6;
 }
