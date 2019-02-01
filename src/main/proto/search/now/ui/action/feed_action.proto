@@ -95,8 +95,16 @@ message OpenContextMenuData {
 
 // Data needed by Stream to perform a dismiss.
 message DismissData {
+  // The ContentId needed by the server to suppress reshowing the dismissed
+  // content. This will usually be the ContentId of the card which holds the
+  // content, not the ContentId of the content itself.
   optional search.now.wire.feed.ContentId content_id = 1;
+
+  // The DataOperations which are needed to actually perform the dismiss on the
+  // client. This is typically a singleton list of a remove operation on the
+  // Cluster that the content belongs to.
   repeated search.now.wire.feed.DataOperation data_operations = 2;
+
   // Data used by the client to show a confirmation message with option to undo.
   // This confirmation and undo option will only appear if the UndoAction is
   // present and the client can handle this capability.
