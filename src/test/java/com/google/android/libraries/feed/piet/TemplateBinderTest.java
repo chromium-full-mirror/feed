@@ -32,7 +32,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;

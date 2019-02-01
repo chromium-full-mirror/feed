@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.sharedstream.piet;
 
-import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -35,20 +34,19 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests for {@link PietAssetProvider}. */
+/** Tests for {@link PietImageLoader}. */
 @RunWith(RobolectricTestRunner.class)
-public class PietAssetProviderTest {
+public class PietImageLoaderTest {
 
   private static final int DEFAULT_CORNER_RADIUS = 10;
   private static final int WIDTH_PX = 50;
   private static final int HEIGHT_PX = 150;
-  private static final int FADE_THRESHOLD_MS = 333;
 
   @Mock private CardConfiguration cardConfiguration;
   @Mock private ImageLoaderApi imageLoaderApi;
 
   private FakeClock clock;
-  private PietAssetProvider pietAssetProvider;
+  private PietImageLoader pietImageLoader;
 
   @Before
   public void setUp() {
@@ -58,8 +56,7 @@ public class PietAssetProviderTest {
 
     clock = new FakeClock();
     clock.set(TimeUnit.MINUTES.toMillis(1));
-    pietAssetProvider =
-        new PietAssetProvider(imageLoaderApi, cardConfiguration, clock, FADE_THRESHOLD_MS);
+    pietImageLoader = new PietImageLoader(imageLoaderApi);
   }
 
   @Test
@@ -75,23 +72,7 @@ public class PietAssetProviderTest {
           // Do nothing.
         };
 
-    pietAssetProvider.getImage(imageBuilder.build(), WIDTH_PX, HEIGHT_PX, consumer);
+    pietImageLoader.getImage(imageBuilder.build(), WIDTH_PX, HEIGHT_PX, consumer);
     verify(imageLoaderApi).loadDrawable(urls, WIDTH_PX, HEIGHT_PX, consumer);
-  }
-
-  @Test
-  public void testGetRelativeElapsedString() {
-    assertThat(pietAssetProvider.getRelativeElapsedString(TimeUnit.MINUTES.toMillis(1)))
-        .isEqualTo("1 minute ago");
-  }
-
-  @Test
-  public void testGetDefaultCornerRadius() {
-    assertThat(pietAssetProvider.getDefaultCornerRadius()).isEqualTo(DEFAULT_CORNER_RADIUS);
-  }
-
-  @Test
-  public void testGetFadeThreshold() {
-    assertThat(pietAssetProvider.getFadeImageThresholdMs()).isEqualTo(FADE_THRESHOLD_MS);
   }
 }

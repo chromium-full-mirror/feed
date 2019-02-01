@@ -29,7 +29,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
-import com.google.android.libraries.feed.piet.host.AssetProvider.GoogleSansTypeface;
+import com.google.android.libraries.feed.piet.host.TypefaceProvider.GoogleSansTypeface;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;

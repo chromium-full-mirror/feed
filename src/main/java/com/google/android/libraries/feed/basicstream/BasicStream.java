@@ -50,6 +50,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanc
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -63,7 +64,6 @@ import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
-import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.contentchanged.StreamContentChangedListener;
@@ -72,9 +72,10 @@ import com.google.android.libraries.feed.sharedstream.contextmenumanager.Context
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.FloatingContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
-import com.google.android.libraries.feed.sharedstream.piet.PietAssetProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvider;
+import com.google.android.libraries.feed.sharedstream.piet.PietImageLoader;
+import com.google.android.libraries.feed.sharedstream.piet.PietStringFormatter;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
@@ -203,13 +204,12 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       /*@Nullable*/ HostBindingProvider hostBindingProvider,
       StreamOfflineMonitor streamOfflineMonitor,
       Configuration configuration) {
-    AssetProvider assetProvider =
-        new PietAssetProvider(
-            imageLoaderApi,
-            cardConfiguration,
-            clock,
-            configuration.getValueOrDefault(ConfigKey.FADE_IMAGE_THRESHOLD_MS, 80));
-    return PietManager.builder(assetProvider)
+    return PietManager.builder()
+        .setImageLoader(new PietImageLoader(imageLoaderApi))
+        .setStringFormatter(new PietStringFormatter(clock))
+        .setFadeImageThresholdMs(
+            Suppliers.of(configuration.getValueOrDefault(ConfigKey.FADE_IMAGE_THRESHOLD_MS, 80)))
+        .setDefaultCornerRadius(() -> cardConfiguration.getDefaultCornerRadius())
         .setDebugBehavior(debugBehavior)
         .setCustomElementProvider(new PietCustomElementProvider(context, customElementProvider))
         .setHostBindingProvider(

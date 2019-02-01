@@ -21,11 +21,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
-import com.google.android.libraries.feed.common.testing.Suppliers;
+import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
@@ -35,7 +37,11 @@ import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.piet.host.ImageLoader;
+import com.google.android.libraries.feed.piet.host.StringFormatter;
 import com.google.android.libraries.feed.piet.host.ThrowingCustomElementProvider;
+import com.google.android.libraries.feed.piet.host.TypefaceProvider;
+import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import java.util.Collections;
 import org.junit.Before;
@@ -49,12 +55,18 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class PietManagerTest {
 
+  private static final boolean IS_DARK_THEME = true;
+
   @Mock private ActionHandler actionHandler;
   @Mock private EventLogger eventLogger;
   @Mock private AssetProvider assetProvider;
   @Mock private CustomElementProvider customElementProvider;
   @Mock Context mockContext1;
   @Mock Context mockContext2;
+
+  @Mock ImageLoader imageLoader;
+  @Mock StringFormatter stringFormatter;
+  @Mock TypefaceProvider typefaceProvider;
 
   private Context context;
   private ViewGroup viewGroup1;
@@ -69,7 +81,7 @@ public class PietManagerTest {
     viewGroup1 = new LinearLayout(context);
     viewGroup2 = new FrameLayout(context);
     pietManager =
-        PietManager.builder(assetProvider)
+        PietManager.builder()
             .setDebugBehavior(DebugBehavior.VERBOSE)
             .setCustomElementProvider(customElementProvider)
             .build();
@@ -105,9 +117,8 @@ public class PietManagerTest {
 
   @Test
   public void testBuilder_defaults() {
-    PietManager manager = PietManager.builder(assetProvider).build();
+    PietManager manager = PietManager.builder().build();
     AdapterParameters parameters = manager.getAdapterParameters(context, Suppliers.of(viewGroup1));
-    assertThat(parameters.hostProviders.getAssetProvider()).isSameAs(assetProvider);
     assertThat(parameters.hostProviders.getCustomElementProvider())
         .isInstanceOf(ThrowingCustomElementProvider.class);
     assertThat(parameters.clock).isInstanceOf(SystemClockImpl.class);
@@ -120,6 +131,12 @@ public class PietManagerTest {
         frameAdapter.createFrameContext(
             Frame.getDefaultInstance(), 0, Collections.emptyList(), viewGroup2);
     assertThat(frameContext.getDebugBehavior()).isEqualTo(DebugBehavior.SILENT);
+
+    AssetProvider assetProvider = manager.assetProvider;
+
+    assertThat(assetProvider.isDarkTheme()).isFalse();
+    assertThat(assetProvider.getDefaultCornerRadius()).isEqualTo(0);
+    assertThat(assetProvider.getFadeImageThresholdMs()).isEqualTo(Integer.MAX_VALUE);
   }
 
   @Test
@@ -127,14 +144,19 @@ public class PietManagerTest {
     HostBindingProvider hostBindingProvider = new HostBindingProvider();
     Clock clock = new FakeClock();
     PietManager manager =
-        PietManager.builder(assetProvider)
+        PietManager.builder()
+            .setImageLoader(imageLoader)
+            .setStringFormatter(stringFormatter)
+            .setDefaultCornerRadius(Suppliers.of(123))
+            .setIsDarkTheme(Suppliers.of(IS_DARK_THEME))
+            .setFadeImageThresholdMs(Suppliers.of(456))
+            .setTypefaceProvider(typefaceProvider)
             .setDebugBehavior(DebugBehavior.VERBOSE)
             .setCustomElementProvider(customElementProvider)
             .setHostBindingProvider(hostBindingProvider)
             .setClock(clock)
             .build();
     AdapterParameters parameters = manager.getAdapterParameters(context, Suppliers.of(viewGroup1));
-    assertThat(parameters.hostProviders.getAssetProvider()).isSameAs(assetProvider);
     assertThat(parameters.hostProviders.getCustomElementProvider()).isSameAs(customElementProvider);
     assertThat(parameters.hostProviders.getHostBindingProvider()).isSameAs(hostBindingProvider);
     assertThat(parameters.clock).isSameAs(clock);
@@ -146,6 +168,24 @@ public class PietManagerTest {
         frameAdapter.createFrameContext(
             Frame.getDefaultInstance(), 0, Collections.emptyList(), viewGroup2);
     assertThat(frameContext.getDebugBehavior()).isEqualTo(DebugBehavior.VERBOSE);
+
+    AssetProvider assetProvider = manager.assetProvider;
+
+    Consumer<Drawable> drawableConsumer = drawable -> {};
+    assetProvider.getImage(Image.getDefaultInstance(), 12, 34, drawableConsumer);
+    verify(imageLoader).getImage(Image.getDefaultInstance(), 12, 34, drawableConsumer);
+
+    assetProvider.getRelativeElapsedString(789);
+    verify(stringFormatter).getRelativeElapsedString(789);
+
+    assetProvider.getTypeface("blah", true);
+    verify(typefaceProvider).getTypeface("blah", true);
+
+    assertThat(assetProvider.isDarkTheme()).isEqualTo(IS_DARK_THEME);
+
+    assertThat(assetProvider.getDefaultCornerRadius()).isEqualTo(123);
+
+    assertThat(assetProvider.getFadeImageThresholdMs()).isEqualTo(456);
   }
 
   @Test

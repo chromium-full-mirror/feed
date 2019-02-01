@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.android.libraries.feed.common.testing;
-
-import com.google.android.libraries.feed.common.functional.Supplier;
+package com.google.android.libraries.feed.common.functional;
 
 /** Utility methods for working with the {@link Supplier} class. */
 public class Suppliers {

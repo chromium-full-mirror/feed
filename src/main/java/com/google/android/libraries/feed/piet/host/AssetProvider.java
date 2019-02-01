@@ -16,14 +16,35 @@ package com.google.android.libraries.feed.piet.host;
 
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.StringDef;
+import android.support.annotation.VisibleForTesting;
 import com.google.android.libraries.feed.common.functional.Consumer;
+import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.piet.host.TypefaceProvider.GoogleSansTypeface;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 
 /** Provide Assets from the host */
-public interface AssetProvider {
-  /** Constant used when an image's height or width is not known. */
-  int DIMENSION_UNKNOWN = -1;
+public class AssetProvider {
+  @VisibleForTesting final ImageLoader imageLoader;
+  @VisibleForTesting final StringFormatter stringFormatter;
+  private final Supplier<Integer> defaultCornerRadiusSupplier;
+  private final Supplier<Boolean> isDarkThemeSupplier;
+  private final Supplier<Integer> fadeImageThresholdMsSupplier;
+  @VisibleForTesting final TypefaceProvider typefaceProvider;
+
+  public AssetProvider(
+      ImageLoader imageLoader,
+      StringFormatter stringFormatter,
+      Supplier<Integer> defaultCornerRadiusSupplier,
+      Supplier<Boolean> isDarkThemeSupplier,
+      Supplier<Integer> fadeImageThresholdMsSupplier,
+      TypefaceProvider typefaceProvider) {
+    this.imageLoader = imageLoader;
+    this.stringFormatter = stringFormatter;
+    this.defaultCornerRadiusSupplier = defaultCornerRadiusSupplier;
+    this.isDarkThemeSupplier = isDarkThemeSupplier;
+    this.fadeImageThresholdMsSupplier = fadeImageThresholdMsSupplier;
+    this.typefaceProvider = typefaceProvider;
+  }
 
   /**
    * Given an {@link Image}, asynchronously load the {@link Drawable} and return via a {@link
@@ -34,29 +55,40 @@ public interface AssetProvider {
    * the host should be careful to preserve the aspect ratio.
    *
    * @param image The image to load.
-   * @param widthPx The width of the {@link Image} in pixels. Will be {@link #DIMENSION_UNKNOWN} if
+   * @param widthPx The width of the {@link Image} in pixels. Will be {@link #DIMENSION_NOT_SET} if
    *     unknown.
-   * @param heightPx The height of the {@link Image} in pixels. Will be {@link #DIMENSION_UNKNOWN}
+   * @param heightPx The height of the {@link Image} in pixels. Will be {@link #DIMENSION_NOT_SET}
    *     if unknown.
    * @param consumer Callback to return the {@link Drawable} from an {@link Image} if the load
    *     succeeds. {@literal null} should be passed to this if no source succeeds in loading the
    *     image
    */
-  void getImage(Image image, int widthPx, int heightPx, Consumer</*@Nullable*/ Drawable> consumer);
+  public void getImage(
+      Image image, int widthPx, int heightPx, Consumer</*@Nullable*/ Drawable> consumer) {
+    imageLoader.getImage(image, widthPx, heightPx, consumer);
+  }
 
   /** Return a relative elapsed time string such as "8 minutes ago" or "1 day ago". */
-  String getRelativeElapsedString(long elapsedTimeMillis);
+  public String getRelativeElapsedString(long elapsedTimeMillis) {
+    return stringFormatter.getRelativeElapsedString(elapsedTimeMillis);
+  }
 
   /** Returns the default corner rounding radius in pixels. */
-  int getDefaultCornerRadius();
+  public int getDefaultCornerRadius() {
+    return defaultCornerRadiusSupplier.get();
+  }
 
   /** Returns whether the theme for the Piet rendering context is a "dark theme". */
-  boolean isDarkTheme();
+  public boolean isDarkTheme() {
+    return isDarkThemeSupplier.get();
+  }
 
   /**
    * Fade-in animation will only occur if image loading time takes more than this amount of time.
    */
-  int getFadeImageThresholdMs();
+  public int getFadeImageThresholdMs() {
+    return fadeImageThresholdMsSupplier.get();
+  }
 
   /**
    * Allows the host to return a typeface Piet would otherwise not be able to access (ex. from
@@ -69,21 +101,7 @@ public interface AssetProvider {
    * and not found.
    */
   /*@Nullable*/
-  Typeface getTypeface(String typeface, boolean isItalic);
-
-  /**
-   * Strings the host can expect to receive to request Google Sans fonts. These are intentionally
-   * decoupled from the Piet CommonTypeface enum so we can change the proto enum names without
-   * breaking older hosts.
-   */
-  @StringDef({
-    GoogleSansTypeface.UNDEFINED,
-    GoogleSansTypeface.GOOGLE_SANS_REGULAR,
-    GoogleSansTypeface.GOOGLE_SANS_MEDIUM
-  })
-  @interface GoogleSansTypeface {
-    String UNDEFINED = "UNDEFINED";
-    String GOOGLE_SANS_REGULAR = "GOOGLE_SANS_REGULAR";
-    String GOOGLE_SANS_MEDIUM = "GOOGLE_SANS_MEDIUM";
+  public Typeface getTypeface(String typeface, boolean isItalic) {
+    return typefaceProvider.getTypeface(typeface, isItalic);
   }
 }

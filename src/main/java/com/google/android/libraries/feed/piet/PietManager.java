@@ -18,20 +18,27 @@ import android.content.Context;
 import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
+import com.google.android.libraries.feed.piet.host.EmptyStringFormatter;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
+import com.google.android.libraries.feed.piet.host.ImageLoader;
+import com.google.android.libraries.feed.piet.host.NullImageLoader;
+import com.google.android.libraries.feed.piet.host.NullTypefaceProvider;
+import com.google.android.libraries.feed.piet.host.StringFormatter;
 import com.google.android.libraries.feed.piet.host.ThrowingCustomElementProvider;
+import com.google.android.libraries.feed.piet.host.TypefaceProvider;
 
 /** Manages a top-level session of Piet. */
 public class PietManager {
 
-  private final AssetProvider assetProvider;
+  @VisibleForTesting final AssetProvider assetProvider;
   private final DebugBehavior debugBehavior;
   private final CustomElementProvider customElementProvider;
   private final HostBindingProvider hostBindingProvider;
@@ -85,21 +92,33 @@ public class PietManager {
     }
   }
 
-  public static Builder builder(AssetProvider assetProvider) {
-    return new Builder(assetProvider);
+  public static Builder builder() {
+    return new Builder();
   }
 
   /** Builder for PietManager that provides defaults wherever possible */
   public static class Builder {
-    private final AssetProvider assetProvider;
+    private static final NullImageLoader BLANK_IMAGE_LOADER = new NullImageLoader();
+    private static final StringFormatter EMPTY_STRING_FORMATTER = new EmptyStringFormatter();
+    private static final Supplier<Integer> CORNER_RADIUS_DEFAULT = Suppliers.of(0);
+    private static final Supplier<Boolean> DARK_THEME_DEFAULT = Suppliers.of(false);
+    private static final Supplier<Integer> FADE_IMAGE_THRESHOLD_DEFAULT =
+        Suppliers.of(Integer.MAX_VALUE);
+    private static final TypefaceProvider NULL_TYPEFACE_PROVIDER = new NullTypefaceProvider();
+
+    private ImageLoader imageLoader = BLANK_IMAGE_LOADER;
+    private StringFormatter stringFormatter = EMPTY_STRING_FORMATTER;
+    private Supplier<Integer> defaultCornerRadiusSupplier = CORNER_RADIUS_DEFAULT;
+    private Supplier<Boolean> isDarkThemeSupplier = DARK_THEME_DEFAULT;
+    private Supplier<Integer> fadeImageThresholdMsSupplier = FADE_IMAGE_THRESHOLD_DEFAULT;
+    private TypefaceProvider typefaceProvider = NULL_TYPEFACE_PROVIDER;
+
     private DebugBehavior debugBehavior = DebugBehavior.SILENT;
     /*@MonotonicNonNull*/ private CustomElementProvider customElementProvider = null;
     /*@MonotonicNonNull*/ private HostBindingProvider hostBindingProvider = null;
     /*@MonotonicNonNull*/ private Clock clock = null;
 
-    private Builder(AssetProvider assetProvider) {
-      this.assetProvider = assetProvider;
-    }
+    private Builder() {}
 
     public Builder setDebugBehavior(DebugBehavior debugBehavior) {
       this.debugBehavior = debugBehavior;
@@ -121,6 +140,38 @@ public class PietManager {
       return this;
     }
 
+    // AssetProvider-related setters
+    public Builder setImageLoader(ImageLoader imageLoader) {
+      this.imageLoader = imageLoader;
+      return this;
+    }
+
+    public Builder setStringFormatter(StringFormatter stringFormatter) {
+      this.stringFormatter = stringFormatter;
+      return this;
+    }
+
+    public Builder setDefaultCornerRadius(Supplier<Integer> defaultCornerRadiusSupplier) {
+      this.defaultCornerRadiusSupplier = defaultCornerRadiusSupplier;
+      return this;
+    }
+
+    public Builder setIsDarkTheme(Supplier<Boolean> isDarkThemeSupplier) {
+      this.isDarkThemeSupplier = isDarkThemeSupplier;
+      return this;
+    }
+
+    public Builder setFadeImageThresholdMs(Supplier<Integer> fadeImageThresholdMsSupplier) {
+      this.fadeImageThresholdMsSupplier = fadeImageThresholdMsSupplier;
+      return this;
+    }
+
+    public Builder setTypefaceProvider(TypefaceProvider typefaceProvider) {
+      this.typefaceProvider = typefaceProvider;
+      return this;
+    }
+    // End AssetProvider-related setters
+
     public PietManager build() {
       customElementProvider =
           customElementProvider == null
@@ -129,6 +180,15 @@ public class PietManager {
       hostBindingProvider =
           hostBindingProvider == null ? new HostBindingProvider() : hostBindingProvider;
       clock = clock == null ? new SystemClockImpl() : clock;
+
+      AssetProvider assetProvider =
+          new AssetProvider(
+              imageLoader,
+              stringFormatter,
+              defaultCornerRadiusSupplier,
+              isDarkThemeSupplier,
+              fadeImageThresholdMsSupplier,
+              typefaceProvider);
 
       return new PietManager(
           debugBehavior, assetProvider, customElementProvider, hostBindingProvider, clock);
