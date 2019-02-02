@@ -8,7 +8,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["CardDriverTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -40,7 +40,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ClusterDriverTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -69,7 +69,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContentDriverTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -106,7 +106,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ContinuationDriverTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -133,7 +133,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["HeaderDriverTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -151,7 +151,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["NoContentDriverTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -168,7 +168,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["StreamDriverTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -207,7 +207,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ZeroStateDriverTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
