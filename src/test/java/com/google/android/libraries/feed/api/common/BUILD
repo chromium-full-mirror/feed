@@ -8,7 +8,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["MutationContextTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
@@ -25,7 +25,7 @@ android_local_test(
     size = "small",
     timeout = "moderate",
     srcs = ["ThreadUtilsTest.java"],
-    aapt_version = "aapt",
+    aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
