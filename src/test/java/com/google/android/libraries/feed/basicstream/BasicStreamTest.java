@@ -55,6 +55,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.api.stream.Header;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
+import com.google.android.libraries.feed.basicstream.internal.StreamItemAnimator;
 import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerViewAdapter;
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
@@ -779,6 +780,26 @@ public class BasicStreamTest {
     reset(adapter);
     basicStream.setStreamContentVisibility(true);
     verify(adapter).setStreamContentVisible(true);
+  }
+
+  @Test
+  public void testStreamContentVisible_notifiesItemAnimator_notVisible() {
+    basicStream.setStreamContentVisibility(false);
+
+    assertThat(
+            ((StreamItemAnimator) getStreamRecyclerView().getItemAnimator())
+                .getStreamContentVisibility())
+        .isFalse();
+  }
+
+  @Test
+  public void testStreamContentVisible_notifiesItemAnimator_visible() {
+    basicStream.setStreamContentVisibility(true);
+
+    assertThat(
+            ((StreamItemAnimator) getStreamRecyclerView().getItemAnimator())
+                .getStreamContentVisibility())
+        .isTrue();
   }
 
   @Test

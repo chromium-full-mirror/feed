@@ -15,6 +15,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/stream",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
+        "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
         "@robolectric//bazel:robolectric",
     ],

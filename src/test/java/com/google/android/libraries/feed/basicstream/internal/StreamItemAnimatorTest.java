@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.basicstream.internal;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -31,17 +32,38 @@ public class StreamItemAnimatorTest {
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private FeedViewHolder feedViewHolder;
 
-  private StreamItemAnimator streamItemAnimator;
+  private StreamItemAnimatorForTest streamItemAnimator;
 
   @Before
   public void setup() {
     initMocks(this);
-    streamItemAnimator = new StreamItemAnimator(contentChangedListener);
+    streamItemAnimator = new StreamItemAnimatorForTest(contentChangedListener);
   }
 
   @Test
   public void testOnAnimationFinished() {
     streamItemAnimator.onAnimationFinished(feedViewHolder);
     verify(contentChangedListener).onContentChanged();
+  }
+
+  @Test
+  public void setStreamVisibility_toVisible_endsAnimations() {
+    streamItemAnimator.setStreamVisibility(true);
+    assertThat(streamItemAnimator.animationsEnded).isTrue();
+  }
+
+  private static class StreamItemAnimatorForTest extends StreamItemAnimator {
+
+    private boolean animationsEnded;
+
+    StreamItemAnimatorForTest(ContentChangedListener contentChangedListener) {
+      super(contentChangedListener);
+    }
+
+    @Override
+    public void endAnimations() {
+      super.endAnimations();
+      animationsEnded = true;
+    }
   }
 }

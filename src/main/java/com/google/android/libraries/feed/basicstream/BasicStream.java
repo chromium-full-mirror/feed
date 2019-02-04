@@ -134,6 +134,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   /*@MonotonicNonNull*/ private StreamDriver streamDriver;
 
   /*@Nullable*/ private String savedSessionToken;
+  private StreamItemAnimator itemAnimator;
 
   public BasicStream(
       Context context,
@@ -355,7 +356,10 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     if (!isStreamContentVisible && visible && modelProvider == null) {
       createModelProviderAndStreamDriver();
     }
+
     isStreamContentVisible = visible;
+
+    itemAnimator.setStreamVisibility(visible);
     adapter.setStreamContentVisible(visible);
   }
 
@@ -498,7 +502,10 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
           streamConfiguration.getPaddingBottom());
     }
 
-    recyclerView.setItemAnimator(new StreamItemAnimator(streamContentChangedListener));
+    itemAnimator = new StreamItemAnimator(streamContentChangedListener);
+    itemAnimator.setStreamVisibility(isStreamContentVisible);
+
+    recyclerView.setItemAnimator(itemAnimator);
     recyclerView.addOnLayoutChangeListener(this);
   }
 
