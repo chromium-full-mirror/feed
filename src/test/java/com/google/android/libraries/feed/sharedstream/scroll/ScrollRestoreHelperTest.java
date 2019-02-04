@@ -17,7 +17,9 @@ package com.google.android.libraries.feed.sharedstream.scroll;
 import static com.google.common.truth.Truth.assertThat;
 
 import android.app.Activity;
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
@@ -37,11 +39,12 @@ public final class ScrollRestoreHelperTest {
   private static final int FIRST_VISIBLE_ITEM_OFFSET = 14;
 
   private LinearLayoutManagerForTest linearLayoutManager;
+  private Context context;
 
   @Before
   public void setUp() {
-    linearLayoutManager =
-        new LinearLayoutManagerForTest(Robolectric.buildActivity(Activity.class).get());
+    context = Robolectric.buildActivity(Activity.class).get();
+    linearLayoutManager = new LinearLayoutManagerForTest(context);
     linearLayoutManager.firstVisibleItemPosition = FIRST_VISIBLE_ITEM_POSITION;
     linearLayoutManager.firstVisibleViewOffset = FIRST_VISIBLE_ITEM_OFFSET;
   }
@@ -79,6 +82,9 @@ public final class ScrollRestoreHelperTest {
             .build();
 
     setUpForRestoringBelowTheFold();
+    View view = new View(context);
+    view.setTop(FIRST_VISIBLE_ITEM_OFFSET);
+    linearLayoutManager.addChildToPosition(FIRST_VISIBLE_ITEM_POSITION, view);
 
     // With ABANDON_RESTORE_BELOW_FOLD true, we should not restore below the fold.
     assertThat(
@@ -98,6 +104,9 @@ public final class ScrollRestoreHelperTest {
             .build();
 
     setUpForRestoringBelowTheFold();
+    View view = new View(context);
+    view.setTop(FIRST_VISIBLE_ITEM_OFFSET);
+    linearLayoutManager.addChildToPosition(FIRST_VISIBLE_ITEM_POSITION, view);
 
     // With ABANDON_RESTORE_BELOW_FOLD false, we should restore below the fold.
     assertThat(

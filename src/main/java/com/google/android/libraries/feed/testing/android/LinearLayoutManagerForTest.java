@@ -14,18 +14,19 @@
 
 package com.google.android.libraries.feed.testing.android;
 
+import static com.google.android.libraries.feed.common.Validators.checkNotNull;
+
 import android.content.Context;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /** A {@link LinearLayoutManager} used for testing. */
 public final class LinearLayoutManagerForTest extends LinearLayoutManager {
 
-  private final Context context;
-  private final List<View> childMap;
+  private final Map<Integer, View> childMap;
 
   public int firstVisibleItemPosition = RecyclerView.NO_POSITION;
   public int firstVisibleViewOffset;
@@ -37,8 +38,7 @@ public final class LinearLayoutManagerForTest extends LinearLayoutManager {
 
   public LinearLayoutManagerForTest(Context context) {
     super(context);
-    this.context = context;
-    this.childMap = new ArrayList<>();
+    this.childMap = new HashMap<>();
   }
 
   @Override
@@ -53,16 +53,12 @@ public final class LinearLayoutManagerForTest extends LinearLayoutManager {
 
   @Override
   public View findViewByPosition(int position) {
-    if (position >= 0 && position < childMap.size()) {
-      return childMap.get(position);
+    if (childMap.containsKey(position)) {
+      return checkNotNull(
+          childMap.get(position),
+          "addChildToPosition(int position, View child) should be called prior to "
+              + "findViewByPosition(int position).");
     }
-    // TODO: Stop creating a new View and enforce addChildToPosition.
-    if (position == firstVisibleItemPosition) {
-      View view = new View(context);
-      view.setTop(firstVisibleViewOffset);
-      return view;
-    }
-
     return super.findViewByPosition(position);
   }
 
@@ -73,6 +69,6 @@ public final class LinearLayoutManagerForTest extends LinearLayoutManager {
   }
 
   public void addChildToPosition(int position, View child) {
-    childMap.add(position, child);
+    childMap.put(position, child);
   }
 }

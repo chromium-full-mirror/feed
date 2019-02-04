@@ -8,5 +8,8 @@ android_library(
     name = "android",
     testonly = 1,
     srcs = glob(["*.java"]),
-    deps = [gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0")],
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/common",
+        gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
+    ],
 )

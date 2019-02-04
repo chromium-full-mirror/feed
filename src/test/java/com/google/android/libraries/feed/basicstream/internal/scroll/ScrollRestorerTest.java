@@ -26,6 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
@@ -55,6 +56,7 @@ public class ScrollRestorerTest {
 
   private RecyclerView recyclerView;
   private LinearLayoutManagerForTest layoutManager;
+  private Context context;
 
   @Before
   public void setUp() {
@@ -66,7 +68,7 @@ public class ScrollRestorerTest {
             eq(ConfigKey.ABANDON_RESTORE_BELOW_FOLD_THRESHOLD), anyInt()))
         .thenReturn(ABANDON_RESTORE_THRESHOLD);
 
-    Context context = Robolectric.buildActivity(Activity.class).get();
+    context = Robolectric.buildActivity(Activity.class).get();
 
     recyclerView = new RecyclerView(context);
     layoutManager = new LinearLayoutManagerForTest(context);
@@ -117,6 +119,9 @@ public class ScrollRestorerTest {
   public void testGetScrollStateForScrollPosition() {
     layoutManager.firstVisibleItemPosition = TOP_POSITION;
     layoutManager.firstVisibleViewOffset = OFFSET;
+    View view = new View(context);
+    view.setTop(OFFSET);
+    layoutManager.addChildToPosition(TOP_POSITION, view);
     ScrollState restorerScrollState =
         nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
             .getScrollStateForScrollRestore(HEADER_COUNT);
@@ -139,6 +144,9 @@ public class ScrollRestorerTest {
     layoutManager.firstVisibleItemPosition = TOP_POSITION;
     layoutManager.firstVisibleViewOffset = OFFSET;
     layoutManager.lastVisibleItemPosition = BOTTOM_POSITION;
+    View view = new View(context);
+    view.setTop(OFFSET);
+    layoutManager.addChildToPosition(TOP_POSITION, view);
     ScrollState restorerScrollState =
         nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
             .getScrollStateForScrollRestore(HEADER_COUNT);
@@ -152,6 +160,9 @@ public class ScrollRestorerTest {
 
     layoutManager.firstVisibleItemPosition = TOP_POSITION;
     layoutManager.firstVisibleViewOffset = OFFSET;
+    View view = new View(context);
+    view.setTop(OFFSET);
+    layoutManager.addChildToPosition(TOP_POSITION, view);
     ScrollState restorerScrollState =
         nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
             .getScrollStateForScrollRestore(HEADER_COUNT);
@@ -166,6 +177,9 @@ public class ScrollRestorerTest {
     layoutManager.firstVisibleItemPosition = TOP_POSITION;
     layoutManager.firstVisibleViewOffset = OFFSET;
     layoutManager.lastVisibleItemPosition = ABANDON_RESTORE_THRESHOLD + HEADER_COUNT + 1;
+    View view = new View(context);
+    view.setTop(OFFSET);
+    layoutManager.addChildToPosition(TOP_POSITION, view);
     ScrollState restorerScrollState =
         nonRestoringRestorer(configuration, recyclerView, streamScrollMonitor)
             .getScrollStateForScrollRestore(HEADER_COUNT);
