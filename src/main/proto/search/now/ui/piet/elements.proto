@@ -382,13 +382,8 @@ message GridCell {
 // The width of a GridCell.
 message GridCellWidth {
   // An enum that indicates the width of the GridCell, in reference to its
-  // content. The option of setting a GridCell width to be its content width
-  // is supported only for GridCells with TextElement or ImageElement as their
-  // content, in those cases, the width of the GridCell will be the width of the
-  // contained element.
-  // If this is set and the enclosed Element is anything other than a
-  // TextElement or ImageElement,
-  // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT will be raised.
+  // content. The width of the GridCell will be the width of the contained
+  // element.
   enum ContentWidth {
     // Do not use. If used, this will raise
     // ERR_CONTENT_WIDTH_GRID_CELL_WITH_INVALID_CONTENT at runtime.
