@@ -341,11 +341,6 @@ message Font {
   // Apply the italic style to the Font.
   optional bool italic = 4;
 
-  // Sets text letter-spacing in em units. Typical values for slight expansion
-  // will be around 0.05. Negative values tighten text. Also known as “tracking”
-  // in typography, or “character spacing” in image editing tools.
-  optional float letter_spacing = 5 [deprecated = true];
-
   // Sets text letter spacing in dp. This indicates how much space will be
   // added between characters. Negative values tighten text, whereas positive
   // values increase space between letters. Also known as “tracking” in
@@ -375,6 +370,9 @@ message Font {
   // provides no way to request that a particular font face be downloaded at
   // runtime; this should be done out-of-band if required.
   repeated Typeface typeface = 8;
+
+  // Deprecated field IDs, do not reuse.
+  reserved 5;
 }
 
 message Typeface {
