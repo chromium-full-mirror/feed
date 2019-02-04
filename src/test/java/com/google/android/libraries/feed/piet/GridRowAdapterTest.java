@@ -30,6 +30,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import com.google.android.libraries.feed.common.functional.Suppliers;
@@ -60,7 +61,6 @@ import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.ImagesProto.Image;
-import com.google.search.now.ui.piet.ImagesProto.Image.ScaleType;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.EdgeWidths;
@@ -324,7 +324,7 @@ public class GridRowAdapterTest {
     when(childStyleProvider.hasWidth()).thenReturn(true);
     when(childStyleProvider.getWidthSpecPx(context)).thenReturn(456);
     when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
-    when(childStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
+    when(childStyleProvider.getScaleType()).thenReturn(ImageView.ScaleType.CENTER_CROP);
 
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 
@@ -360,7 +360,7 @@ public class GridRowAdapterTest {
     when(childStyleProvider.hasHeight()).thenReturn(true);
     when(childStyleProvider.getHeightSpecPx(context)).thenReturn(123);
     when(childStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
-    when(childStyleProvider.getScaleType()).thenReturn(ScaleType.CENTER_CROP);
+    when(childStyleProvider.getScaleType()).thenReturn(ImageView.ScaleType.CENTER_CROP);
 
     when(frameContext.makeStyleFor(childStyles)).thenReturn(childStyleProvider);
 

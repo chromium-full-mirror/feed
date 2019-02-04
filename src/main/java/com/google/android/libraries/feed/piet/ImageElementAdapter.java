@@ -106,12 +106,9 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
     getBaseView().setDefaultAspectRatio(getAspectRatio(image));
 
     checkState(currentlyLoadingImage == null, "An image loading callback exists; unbind first");
-    // TODO: Remove the fallback for Image.getScaleType()
-    Image.ScaleType scaleType =
-        image.hasScaleType() ? image.getScaleType() : getElementStyle().getScaleType();
     Integer overlayColor = image.hasOverlayColor() ? image.getOverlayColor() : null;
     LoadImageCallback loadImageCallback =
-        createLoadImageCallback(toAndroidScaleType(scaleType), overlayColor, frameContext);
+        createLoadImageCallback(getElementStyle().getScaleType(), overlayColor, frameContext);
     currentlyLoadingImage = loadImageCallback;
     getParameters()
         .hostProviders
@@ -125,21 +122,6 @@ class ImageElementAdapter extends ElementAdapter<AspectRatioScalingImageView, Im
 
   private int convertDimensionForImageLoader(int dimension) {
     return dimension < 0 ? DIMENSION_UNKNOWN : dimension;
-  }
-
-  @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
-  private static ScaleType toAndroidScaleType(Image.ScaleType pietScaleType) {
-    switch (pietScaleType) {
-      case CENTER_CROP:
-        return ScaleType.CENTER_CROP;
-      case CENTER_INSIDE:
-      case SCALE_TYPE_UNSPECIFIED:
-        return ScaleType.FIT_CENTER;
-      default:
-        throw new PietFatalException(
-            ErrorCode.ERR_MISSING_OR_UNHANDLED_CONTENT,
-            String.format("Unsupported ScaleType: %s", pietScaleType));
-    }
   }
 
   @VisibleForTesting
