@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="more_button_label">Више</string>
+  <string name="more_button_label">Још</string>
   <string name="no_suggestions">То је све за сада</string>
   <string name="zero_state_text_morning">Још чланака ће се појавити ускоро. Желимо вам пријатно јутро!</string>
   <string name="zero_state_text_afternoon">Још чланака ће се појавити ускоро. Желимо вам пријатно поподне!</string>
@@ -24,4 +24,5 @@
   <string name="snackbar_fetch_failed">Не можете да добијете предлоге</string>
   <string name="snackbar_fetch_no_new_suggestions">Нема нових предлога</string>
   <string name="suggestions_section_empty">Предложени чланци се приказују овде</string>
+  <string name="snackbar_default_action">Undo</string>
 </resources>

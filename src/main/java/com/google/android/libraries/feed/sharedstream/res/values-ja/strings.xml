@@ -24,4 +24,5 @@
   <string name="snackbar_fetch_failed">おすすめの記事を取得できません</string>
   <string name="snackbar_fetch_no_new_suggestions">新しいおすすめ記事はありません</string>
   <string name="suggestions_section_empty">おすすめの記事がここに表示されます</string>
+  <string name="snackbar_default_action">Undo</string>
 </resources>

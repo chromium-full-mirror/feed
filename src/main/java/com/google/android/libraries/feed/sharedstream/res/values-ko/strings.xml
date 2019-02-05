@@ -24,4 +24,5 @@
   <string name="snackbar_fetch_failed">추천을 받을 수 없음</string>
   <string name="snackbar_fetch_no_new_suggestions">새로운 추천 콘텐츠 없음</string>
   <string name="suggestions_section_empty">추천 콘텐츠가 여기에 표시됩니다.</string>
+  <string name="snackbar_default_action">Undo</string>
 </resources>

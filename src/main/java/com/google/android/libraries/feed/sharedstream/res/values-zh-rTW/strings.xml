@@ -24,4 +24,5 @@
   <string name="snackbar_fetch_failed">無法取得建議</string>
   <string name="snackbar_fetch_no_new_suggestions">沒有新的建議</string>
   <string name="suggestions_section_empty">這裡會顯示為你推薦的文章</string>
+  <string name="snackbar_default_action">Undo</string>
 </resources>

@@ -24,4 +24,5 @@
   <string name="snackbar_fetch_failed">Det går inte att få förslag</string>
   <string name="snackbar_fetch_no_new_suggestions">Inga nya förslag</string>
   <string name="suggestions_section_empty">Rekommenderade artiklar visas här</string>
+  <string name="snackbar_default_action">Undo</string>
 </resources>

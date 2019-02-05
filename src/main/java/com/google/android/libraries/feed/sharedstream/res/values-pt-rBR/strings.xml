@@ -24,4 +24,5 @@
   <string name="snackbar_fetch_failed">Não é possível exibir as sugestões</string>
   <string name="snackbar_fetch_no_new_suggestions">Nenhuma nova sugestão</string>
   <string name="suggestions_section_empty">Os artigos sugeridos aparecerão aqui</string>
+  <string name="snackbar_default_action">Undo</string>
 </resources>

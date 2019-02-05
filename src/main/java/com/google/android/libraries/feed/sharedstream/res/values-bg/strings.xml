@@ -24,4 +24,5 @@
   <string name="snackbar_fetch_failed">Предложенията не могат да бъдат показани</string>
   <string name="snackbar_fetch_no_new_suggestions">Няма нови предложения</string>
   <string name="suggestions_section_empty">Предложените ви статии ще се показват тук</string>
+  <string name="snackbar_default_action">Undo</string>
 </resources>

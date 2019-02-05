@@ -24,4 +24,5 @@
   <string name="snackbar_fetch_failed">Не вдається отримати пропозиції</string>
   <string name="snackbar_fetch_no_new_suggestions">Немає нових пропозицій</string>
   <string name="suggestions_section_empty">Тут відображатимуться пропоновані статті</string>
+  <string name="snackbar_default_action">Undo</string>
 </resources>

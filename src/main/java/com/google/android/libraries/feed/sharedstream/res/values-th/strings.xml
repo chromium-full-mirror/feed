@@ -24,4 +24,5 @@
   <string name="snackbar_fetch_failed">รับคำแนะนำไม่ได้</string>
   <string name="snackbar_fetch_no_new_suggestions">ไม่มีคำแนะนำใหม่</string>
   <string name="suggestions_section_empty">บทความที่แนะนำจะปรากฏที่นี่</string>
+  <string name="snackbar_default_action">Undo</string>
 </resources>
