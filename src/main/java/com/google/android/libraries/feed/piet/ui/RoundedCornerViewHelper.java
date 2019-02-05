@@ -16,7 +16,6 @@ package com.google.android.libraries.feed.piet.ui;
 
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
-import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 import java.util.Arrays;
 
@@ -26,9 +25,8 @@ public class RoundedCornerViewHelper {
   public static final int TOP_CORNERS = Corners.TOP_START_VALUE | Corners.TOP_END_VALUE;
   public static final int BOTTOM_CORNERS = Corners.BOTTOM_START_VALUE | Corners.BOTTOM_END_VALUE;
 
-  public static float[] createRoundedCornerMask(float radius, int cornerField) {
-    final int layoutDirection =
-        LayoutUtils.isDefaultLocaleRtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR;
+  public static float[] createRoundedCornerMask(float radius, int cornerField, boolean isRtL) {
+    final int layoutDirection = isRtL ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR;
     return createRoundedCornerMask(radius, cornerField, layoutDirection);
   }
 

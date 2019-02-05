@@ -164,9 +164,6 @@ public class ChunkedTextElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
-    adapterParameters =
-        new AdapterParameters(
-            null, null, hostProviders, mockTextEvaluator, null, null, new FakeClock());
 
     drawable =
         new BitmapDrawable(
@@ -181,18 +178,24 @@ public class ChunkedTextElementAdapterTest {
             mockAssetProvider, ParameterizedText.newBuilder().setText(CHUNKY_TEXT).build()))
         .thenReturn(PROCESSED_TEXT);
     when(frameContext.makeStyleFor(CHUNK_STYLE)).thenReturn(mockStyleProvider);
-    when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .thenReturn(adapterParameters.defaultStyleProvider);
     when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
         .thenAnswer(invocation -> invocation.getArguments()[0]);
     when(frameContext.reportMessage(anyInt(), any(), anyString()))
         .thenAnswer(invocation -> invocation.getArguments()[2]);
     when(hostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
+    when(mockAssetProvider.isRtL()).thenReturn(false);
     when(frameContext.getActionHandler()).thenReturn(mockActionHandler);
     when(mockStyleProvider.getFont()).thenReturn(Font.getDefaultInstance());
     when(mockStyleProvider.getMargins()).thenReturn(EdgeWidths.getDefaultInstance());
     when(mockStyleProvider.getWidthSpecPx(context)).thenReturn(DIMENSION_UNKNOWN);
     when(mockStyleProvider.getHeightSpecPx(context)).thenReturn(DIMENSION_UNKNOWN);
+
+    adapterParameters =
+        new AdapterParameters(
+            null, null, hostProviders, mockTextEvaluator, null, null, new FakeClock());
+
+    when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
+        .thenReturn(adapterParameters.defaultStyleProvider);
 
     adapter = new ChunkedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);
   }

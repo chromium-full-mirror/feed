@@ -30,6 +30,7 @@ import android.view.View;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.piet.CustomElementAdapter.KeySupplier;
+import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.search.now.ui.piet.BindingRefsProto.CustomBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
@@ -56,6 +57,7 @@ public class CustomElementAdapterTest {
   @Mock private FrameContext frameContext;
   @Mock private CustomElementProvider customElementProvider;
   @Mock private HostProviders hostProviders;
+  @Mock private AssetProvider assetProvider;
 
   private Context context;
   private View customView;
@@ -67,14 +69,20 @@ public class CustomElementAdapterTest {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
     customView = new View(context);
-    adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
+
     when(hostProviders.getCustomElementProvider()).thenReturn(customElementProvider);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(assetProvider.isRtL()).thenReturn(false);
     when(customElementProvider.createCustomElement(DUMMY_DATA)).thenReturn(customView);
-    when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
-        .thenReturn(adapterParameters.defaultStyleProvider);
     when(frameContext.reportMessage(anyInt(), any(), anyString()))
         .thenAnswer(invocation -> invocation.getArguments()[2]);
+
+    adapterParameters =
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
+
+    when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
+        .thenReturn(adapterParameters.defaultStyleProvider);
+
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }
 

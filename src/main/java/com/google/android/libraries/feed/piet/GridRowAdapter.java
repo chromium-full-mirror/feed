@@ -25,6 +25,7 @@ import android.support.annotation.VisibleForTesting;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.AdapterFactory.AdapterKeySupplier;
 import com.google.android.libraries.feed.piet.AdapterFactory.SingletonKeySupplier;
@@ -48,7 +49,11 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
   private static final String TAG = "GridRowAdapter";
 
   private GridRowAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters, createView(context), KeySupplier.SINGLETON_KEY);
+    super(
+        context,
+        parameters,
+        createView(context, parameters.hostProviders.getAssetProvider().isRtLSupplier()),
+        KeySupplier.SINGLETON_KEY);
   }
 
   @Override
@@ -176,8 +181,8 @@ class GridRowAdapter extends ElementContainerAdapter<GridRowView, GridRow> {
   }
 
   @VisibleForTesting
-  static GridRowView createView(Context context) {
-    GridRowView viewGroup = new GridRowView(context);
+  static GridRowView createView(Context context, Supplier<Boolean> isRtL) {
+    GridRowView viewGroup = new GridRowView(context, isRtL);
     viewGroup.setOrientation(LinearLayout.HORIZONTAL);
     viewGroup.setLayoutParams(
         new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));

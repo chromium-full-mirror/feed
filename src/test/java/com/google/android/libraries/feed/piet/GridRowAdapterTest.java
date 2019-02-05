@@ -121,21 +121,25 @@ public class GridRowAdapterTest {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
 
-    adapterParameters =
-        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
-    adapter = new KeySupplier().getAdapter(context, adapterParameters);
-
-    when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
-        .thenReturn(adapterParameters.defaultStyleProvider);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(assetProvider.isRtL()).thenReturn(false);
+    when(assetProvider.isRtLSupplier()).thenReturn(Suppliers.of(false));
     when(frameContext.makeStyleFor(GRID_STYLES)).thenReturn(styleProvider);
     when(frameContext.getActionHandler()).thenReturn(actionHandler);
     when(frameContext.filterImageSourcesByMediaQueryCondition(any(Image.class)))
         .thenAnswer(invocation -> invocation.getArguments()[0]);
     when(frameContext.reportMessage(anyInt(), any(), anyString()))
         .thenAnswer(invocation -> invocation.getArguments()[2]);
-    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
     when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
     when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+
+    adapterParameters =
+        new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
+
+    when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
+        .thenReturn(adapterParameters.defaultStyleProvider);
+
+    adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }
 
   @Test
@@ -987,7 +991,7 @@ public class GridRowAdapterTest {
 
   @Test
   public void testCreateViewGroup() {
-    LinearLayout gridView = GridRowAdapter.createView(context);
+    LinearLayout gridView = GridRowAdapter.createView(context, Suppliers.of(false));
     assertThat(gridView.getOrientation()).isEqualTo(LinearLayout.HORIZONTAL);
     assertThat(gridView.getLayoutParams().width).isEqualTo(LayoutParams.MATCH_PARENT);
     assertThat(gridView.getLayoutParams().height).isEqualTo(LayoutParams.WRAP_CONTENT);

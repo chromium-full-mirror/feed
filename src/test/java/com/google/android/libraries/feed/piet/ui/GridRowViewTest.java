@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.piet.ui.GridRowView.LayoutParams;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,7 +60,7 @@ public class GridRowViewTest {
 
     unspecifiedSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
 
-    gridRowView = new GridRowView(context);
+    gridRowView = new GridRowView(context, Suppliers.of(false));
 
     collapsibleView = new TestView(context, COLLAPSIBLE_WIDTH, HEIGHT);
     collapsibleView.setLayoutParams(

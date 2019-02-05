@@ -70,6 +70,12 @@ public class ParameterizedTextElementAdapterTest {
   public void setUp() throws Exception {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
+
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(assetProvider.isRtL()).thenReturn(false);
+    when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+    when(mockStyleProvider.getTextAlignment()).thenReturn(Gravity.START | Gravity.TOP);
+
     adapterParameters =
         new AdapterParameters(
             null,
@@ -79,11 +85,9 @@ public class ParameterizedTextElementAdapterTest {
             null,
             null,
             new FakeClock());
-    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+
     when(frameContext.makeStyleFor(any(StyleIdsStack.class)))
         .thenReturn(adapterParameters.defaultStyleProvider);
-    when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
-    when(mockStyleProvider.getTextAlignment()).thenReturn(Gravity.START | Gravity.TOP);
 
     adapter =
         new ParameterizedTextElementAdapter.KeySupplier().getAdapter(context, adapterParameters);

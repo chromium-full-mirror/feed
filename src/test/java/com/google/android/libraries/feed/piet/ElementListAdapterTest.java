@@ -104,16 +104,18 @@ public class ElementListAdapterTest {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
 
+    when(frameContext.makeStyleFor(LIST_STYLES)).thenReturn(styleProvider);
+    when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
+    when(frameContext.getActionHandler()).thenReturn(actionHandler);
+    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(assetProvider.isRtL()).thenReturn(false);
+    when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+
     adapterParameters =
         new AdapterParameters(context, Suppliers.of(null), hostProviders, new FakeClock());
 
     when(frameContext.makeStyleFor(StyleIdsStack.getDefaultInstance()))
         .thenReturn(adapterParameters.defaultStyleProvider);
-    when(frameContext.makeStyleFor(LIST_STYLES)).thenReturn(styleProvider);
-    when(styleProvider.getPadding()).thenReturn(EdgeWidths.getDefaultInstance());
-    when(frameContext.getActionHandler()).thenReturn(actionHandler);
-    when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
-    when(styleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
 
     adapter = new KeySupplier().getAdapter(context, adapterParameters);
   }

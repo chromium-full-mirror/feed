@@ -363,15 +363,11 @@ class StyleProvider {
         (int) LayoutUtils.dpToPx(padding.getBottom() + getBorderWidth(Edges.BOTTOM), context)
             + extraLineHeight.bottomPaddingPx();
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-      view.setPaddingRelative(startPadding, topPadding, endPadding, bottomPadding);
-    } else {
-      view.setPadding(
-          LayoutUtils.isDefaultLocaleRtl() ? endPadding : startPadding,
-          topPadding,
-          LayoutUtils.isDefaultLocaleRtl() ? startPadding : endPadding,
-          bottomPadding);
-    }
+    view.setPadding(
+        assetProvider.isRtL() ? endPadding : startPadding,
+        topPadding,
+        assetProvider.isRtL() ? startPadding : endPadding,
+        bottomPadding);
   }
 
   private int getBorderWidth(Borders.Edges edge) {
@@ -391,16 +387,17 @@ class StyleProvider {
 
     // Set up outline of borders
     float[] outerRadii;
+    boolean isRtL = assetProvider.isRtL();
     if (hasRoundedCorners(context)) {
       outerRadii =
           RoundedCornerViewHelper.createRoundedCornerMask(
-              getRoundedCornerRadius(context), getRoundedCorners().getBitmask());
+              getRoundedCornerRadius(context), getRoundedCorners().getBitmask(), isRtL);
     } else {
       outerRadii = ZERO_RADIUS;
     }
 
     // Create a drawable to stroke the border
-    BorderDrawable borderDrawable = new BorderDrawable(context, getBorders(), outerRadii);
+    BorderDrawable borderDrawable = new BorderDrawable(context, getBorders(), outerRadii, isRtL);
     view.setForeground(borderDrawable);
   }
 
@@ -437,7 +434,10 @@ class StyleProvider {
   FrameLayout createWrapperView(Context context) {
     if (hasRoundedCorners(context)) {
       return new RoundedCornerWrapperView(
-          context, getRoundedCorners().getBitmask(), getRoundedCornerRadius(context));
+          context,
+          getRoundedCorners().getBitmask(),
+          getRoundedCornerRadius(context),
+          assetProvider.isRtLSupplier());
     }
     return new FrameLayout(context);
   }

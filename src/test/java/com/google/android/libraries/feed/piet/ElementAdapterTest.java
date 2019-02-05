@@ -1161,7 +1161,7 @@ public class ElementAdapterTest {
   @Test
   public void testRoundedCorners() {
     RoundedCornerWrapperView roundedCornerWrapperView =
-        new RoundedCornerWrapperView(context, 0, 10);
+        new RoundedCornerWrapperView(context, 0, 10, Suppliers.of(false));
     when(styleProvider.hasRoundedCorners(context)).thenReturn(true);
     when(styleProvider.createWrapperView(context)).thenReturn(roundedCornerWrapperView);
 

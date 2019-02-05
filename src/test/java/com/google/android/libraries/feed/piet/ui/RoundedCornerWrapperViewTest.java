@@ -21,6 +21,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.widget.FrameLayout.LayoutParams;
+import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.functional.Suppliers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +32,8 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for the {@link RoundedCornerWrapperView}. */
 @RunWith(RobolectricTestRunner.class)
 public class RoundedCornerWrapperViewTest {
+
+  private static final Supplier<Boolean> LEFT_TO_RIGHT = Suppliers.of(false);
 
   private Context context;
   private Canvas canvas;
@@ -44,7 +48,7 @@ public class RoundedCornerWrapperViewTest {
 
   @Test
   public void testZeroDimensions_notRounded() {
-    RoundedCornerWrapperView view = new RoundedCornerWrapperView(context, 0, 0);
+    RoundedCornerWrapperView view = new RoundedCornerWrapperView(context, 0, 0, LEFT_TO_RIGHT);
 
     view.setLayoutParams(new LayoutParams(0, 100));
     assertThat(view.getWidth()).isEqualTo(0);
@@ -65,7 +69,7 @@ public class RoundedCornerWrapperViewTest {
 
   @Test
   public void testZeroDimensions_rounded() {
-    RoundedCornerWrapperView view = new RoundedCornerWrapperView(context, 7, 10);
+    RoundedCornerWrapperView view = new RoundedCornerWrapperView(context, 7, 10, LEFT_TO_RIGHT);
 
     view.setLayoutParams(new LayoutParams(0, 100));
     assertThat(view.getWidth()).isEqualTo(0);

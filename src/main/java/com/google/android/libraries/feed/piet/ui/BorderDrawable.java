@@ -35,7 +35,7 @@ public class BorderDrawable extends ShapeDrawable {
 
   // Doesn't like calls to getPaint()
   @SuppressWarnings("initialization")
-  public BorderDrawable(Context context, Borders borders, float[] cornerRadii) {
+  public BorderDrawable(Context context, Borders borders, float[] cornerRadii, boolean isRtL) {
     super(new RoundRectShape(cornerRadii, null, null));
 
     int borderWidth = (int) LayoutUtils.dpToPx(borders.getWidth(), context);
@@ -49,9 +49,8 @@ public class BorderDrawable extends ShapeDrawable {
       offsetToHideTop = 0;
       offsetToHideBottom = 0;
     } else {
-      boolean isLtR = !LayoutUtils.isDefaultLocaleRtl();
-      int leftEdge = isLtR ? Edges.START.getNumber() : Edges.END.getNumber();
-      int rightEdge = isLtR ? Edges.END.getNumber() : Edges.START.getNumber();
+      int leftEdge = isRtL ? Edges.END.getNumber() : Edges.START.getNumber();
+      int rightEdge = isRtL ? Edges.START.getNumber() : Edges.END.getNumber();
       boolean hasLeftBorder = (bitmask & leftEdge) != 0;
       boolean hasRightBorder = (bitmask & rightEdge) != 0;
       boolean hasTopBorder = (bitmask & Edges.TOP.getNumber()) != 0;

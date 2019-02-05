@@ -34,6 +34,7 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.ui.BorderDrawable;
@@ -93,6 +94,7 @@ public class StyleProviderTest {
     when(textAdapter.getView()).thenReturn(view);
     when(textAdapter.getBaseView()).thenReturn(textView);
     when(textAdapter.getContext()).thenReturn(context);
+    when(mockAssetProvider.isRtLSupplier()).thenReturn(Suppliers.of(false));
   }
 
   @Test
@@ -352,6 +354,18 @@ public class StyleProviderTest {
     new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
         .applyPadding(context, view, padding, TextElementAdapter.ExtraLineHeight.builder().build());
     verifyPadding(view, padding);
+  }
+
+  @Test
+  public void testApplyPadding_RtL() {
+    EdgeWidths padding =
+        EdgeWidths.newBuilder().setTop(1).setBottom(2).setStart(3).setEnd(4).build();
+    when(mockAssetProvider.isRtL()).thenReturn(true);
+    when(mockAssetProvider.isRtLSupplier()).thenReturn(Suppliers.of(true));
+    new StyleProvider(Style.getDefaultInstance(), mockAssetProvider)
+        .applyPadding(context, view, padding, TextElementAdapter.ExtraLineHeight.builder().build());
+    assertThat(view.getPaddingLeft()).isEqualTo(4);
+    assertThat(view.getPaddingRight()).isEqualTo(3);
   }
 
   @Config(sdk = VERSION_CODES.JELLY_BEAN)
@@ -767,15 +781,6 @@ public class StyleProviderTest {
     assertThat(view.getBackground()).isInstanceOf(ColorDrawable.class);
   }
 
-  private void verifyPadding(View view, EdgeWidths padding) {
-    assertThat(view.getPaddingTop()).isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context));
-    assertThat(view.getPaddingBottom())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context));
-    assertThat(view.getPaddingStart())
-        .isEqualTo((int) LayoutUtils.dpToPx(padding.getStart(), context));
-    assertThat(view.getPaddingEnd()).isEqualTo((int) LayoutUtils.dpToPx(padding.getEnd(), context));
-  }
-
   @Test
   public void testCreateBackground() {
     int color = 12345;
@@ -835,6 +840,15 @@ public class StyleProviderTest {
     assertThat(styleProvider).isEqualTo(sameStyleProvider);
     assertThat(styleProvider.hashCode()).isEqualTo(sameStyleProvider.hashCode());
     assertThat(styleProvider).isNotEqualTo(differentStyleProvider);
+  }
+
+  private void verifyPadding(View view, EdgeWidths padding) {
+    assertThat(view.getPaddingTop()).isEqualTo((int) LayoutUtils.dpToPx(padding.getTop(), context));
+    assertThat(view.getPaddingBottom())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getBottom(), context));
+    assertThat(view.getPaddingStart())
+        .isEqualTo((int) LayoutUtils.dpToPx(padding.getStart(), context));
+    assertThat(view.getPaddingEnd()).isEqualTo((int) LayoutUtils.dpToPx(padding.getEnd(), context));
   }
 
   private void verifyMargins(MarginLayoutParams params, EdgeWidths margins) {

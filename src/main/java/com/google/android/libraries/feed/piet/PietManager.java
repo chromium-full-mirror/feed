@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -112,6 +113,7 @@ public class PietManager {
     private Supplier<Boolean> isDarkThemeSupplier = DARK_THEME_DEFAULT;
     private Supplier<Integer> fadeImageThresholdMsSupplier = FADE_IMAGE_THRESHOLD_DEFAULT;
     private TypefaceProvider typefaceProvider = NULL_TYPEFACE_PROVIDER;
+    private Supplier<Boolean> isRtLSupplier = LayoutUtils::isDefaultLocaleRtl;
 
     private DebugBehavior debugBehavior = DebugBehavior.SILENT;
     /*@MonotonicNonNull*/ private CustomElementProvider customElementProvider = null;
@@ -156,13 +158,18 @@ public class PietManager {
       return this;
     }
 
+    public Builder setFadeImageThresholdMs(Supplier<Integer> fadeImageThresholdMsSupplier) {
+      this.fadeImageThresholdMsSupplier = fadeImageThresholdMsSupplier;
+      return this;
+    }
+
     public Builder setIsDarkTheme(Supplier<Boolean> isDarkThemeSupplier) {
       this.isDarkThemeSupplier = isDarkThemeSupplier;
       return this;
     }
 
-    public Builder setFadeImageThresholdMs(Supplier<Integer> fadeImageThresholdMsSupplier) {
-      this.fadeImageThresholdMsSupplier = fadeImageThresholdMsSupplier;
+    public Builder setIsRtL(Supplier<Boolean> isRtLSupplier) {
+      this.isRtLSupplier = isRtLSupplier;
       return this;
     }
 
@@ -186,8 +193,9 @@ public class PietManager {
               imageLoader,
               stringFormatter,
               defaultCornerRadiusSupplier,
-              isDarkThemeSupplier,
               fadeImageThresholdMsSupplier,
+              isDarkThemeSupplier,
+              isRtLSupplier,
               typefaceProvider);
 
       return new PietManager(

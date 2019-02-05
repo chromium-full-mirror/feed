@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.SystemClockImpl;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
+import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -44,6 +45,7 @@ import com.google.android.libraries.feed.piet.host.TypefaceProvider;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import java.util.Collections;
+import java.util.Locale;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,9 +56,6 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests of the {@link PietManager}. */
 @RunWith(RobolectricTestRunner.class)
 public class PietManagerTest {
-
-  private static final boolean IS_DARK_THEME = true;
-
   @Mock private ActionHandler actionHandler;
   @Mock private EventLogger eventLogger;
   @Mock private AssetProvider assetProvider;
@@ -137,10 +136,29 @@ public class PietManagerTest {
     assertThat(assetProvider.isDarkTheme()).isFalse();
     assertThat(assetProvider.getDefaultCornerRadius()).isEqualTo(0);
     assertThat(assetProvider.getFadeImageThresholdMs()).isEqualTo(Integer.MAX_VALUE);
+    assertThat(assetProvider.isRtL()).isFalse();
+  }
+
+  @Test
+  public void testBuilder_rtl() {
+    Locale defaultLocale = Locale.getDefault();
+
+    Locale.setDefault(Locale.forLanguageTag("ar"));
+    assertThat(LayoutUtils.isDefaultLocaleRtl()).isTrue();
+
+    PietManager manager = PietManager.builder().build();
+
+    assertThat(manager.assetProvider.isRtL()).isTrue();
+
+    // Reset the Locale so it doesn't mess up other tests
+    // (Removing this causes failures in Kokoro/Bazel testing)
+    Locale.setDefault(defaultLocale);
   }
 
   @Test
   public void testBuilder_setters() {
+    boolean isRtL = true;
+    boolean isDarkTheme = true;
     HostBindingProvider hostBindingProvider = new HostBindingProvider();
     Clock clock = new FakeClock();
     PietManager manager =
@@ -148,7 +166,8 @@ public class PietManagerTest {
             .setImageLoader(imageLoader)
             .setStringFormatter(stringFormatter)
             .setDefaultCornerRadius(Suppliers.of(123))
-            .setIsDarkTheme(Suppliers.of(IS_DARK_THEME))
+            .setIsDarkTheme(Suppliers.of(isDarkTheme))
+            .setIsRtL(Suppliers.of(isRtL))
             .setFadeImageThresholdMs(Suppliers.of(456))
             .setTypefaceProvider(typefaceProvider)
             .setDebugBehavior(DebugBehavior.VERBOSE)
@@ -181,10 +200,10 @@ public class PietManagerTest {
     assetProvider.getTypeface("blah", true);
     verify(typefaceProvider).getTypeface("blah", true);
 
-    assertThat(assetProvider.isDarkTheme()).isEqualTo(IS_DARK_THEME);
+    assertThat(assetProvider.isDarkTheme()).isEqualTo(isDarkTheme);
+    assertThat(assetProvider.isRtL()).isEqualTo(isRtL);
 
     assertThat(assetProvider.getDefaultCornerRadius()).isEqualTo(123);
-
     assertThat(assetProvider.getFadeImageThresholdMs()).isEqualTo(456);
   }
 

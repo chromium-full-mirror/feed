@@ -79,6 +79,11 @@ public class TextElementAdapterTest {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
 
+    when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
+    when(mockAssetProvider.isRtL()).thenReturn(false);
+    when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
+    when(mockStyleProvider.getTextAlignment()).thenReturn(Gravity.START | Gravity.TOP);
+
     adapterParameters =
         new AdapterParameters(
             null,
@@ -88,9 +93,6 @@ public class TextElementAdapterTest {
             null,
             null,
             new FakeClock());
-    when(mockHostProviders.getAssetProvider()).thenReturn(mockAssetProvider);
-    when(mockStyleProvider.getRoundedCorners()).thenReturn(RoundedCorners.getDefaultInstance());
-    when(mockStyleProvider.getTextAlignment()).thenReturn(Gravity.START | Gravity.TOP);
 
     adapter = new TestTextElementAdapter(context, adapterParameters);
   }

@@ -22,12 +22,13 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.common.ui.LayoutUtils;
 
 /** LinearLayout with special measuring code for GridRow */
 public class GridRowView extends LinearLayout {
   private static final String TAG = "GridRowView";
+  private final Supplier<Boolean> isRtlSupplier;
 
   // Total width of the GridRowView's internal padding, child widths, and child margins.
   // This will not equal getMeasuredWidth() when the GridRowView is MATCH_PARENT width and the
@@ -40,8 +41,9 @@ public class GridRowView extends LinearLayout {
 
   // TODO: call to setOrientation(int) not allowed on the given receiver.
   @SuppressWarnings("nullness:method.invocation.invalid")
-  public GridRowView(Context context) {
+  public GridRowView(Context context, Supplier<Boolean> isRtlSupplier) {
     super(context);
+    this.isRtlSupplier = isRtlSupplier;
     super.setOrientation(HORIZONTAL);
   }
 
@@ -298,7 +300,7 @@ public class GridRowView extends LinearLayout {
   // THIS METHOD IS UNTESTED: PROCEED WITH CAUTION!
   @Override
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-    final boolean isLayoutRtl = LayoutUtils.isDefaultLocaleRtl();
+    final boolean isLayoutRtl = isRtlSupplier.get();
     final int paddingTop = getPaddingTop();
 
     int childTop;

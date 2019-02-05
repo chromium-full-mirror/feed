@@ -36,6 +36,7 @@ import android.view.View;
 import android.view.View.MeasureSpec;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
+import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
@@ -114,7 +115,8 @@ public class ImageElementAdapterTest {
     when(styleProvider.getScaleType()).thenReturn(ScaleType.FIT_CENTER);
     when(styleProvider.createWrapperView(context))
         .thenReturn(
-            new RoundedCornerWrapperView(context, CORNERS.getBitmask(), CORNERS.getRadius()));
+            new RoundedCornerWrapperView(
+                context, CORNERS.getBitmask(), CORNERS.getRadius(), Suppliers.of(false)));
     setStyle(null, null);
 
     adapter = new ImageElementAdapterForTest(context, parameters);

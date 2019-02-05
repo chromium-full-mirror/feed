@@ -23,7 +23,6 @@ import android.graphics.Rect;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.search.now.ui.piet.StylesProto.Borders;
 import com.google.search.now.ui.piet.StylesProto.Borders.Edges;
-import java.util.Locale;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +33,8 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class BorderDrawableTest {
   private static final float[] ZERO_RADII = new float[] {0, 0, 0, 0, 0, 0, 0, 0};
+  private static final boolean LEFT_TO_RIGHT = false;
+  private static final boolean RIGHT_TO_LEFT = true;
 
   private static final int COLOR = 0xFFFF0000;
   private static final int WIDTH_DP = 8;
@@ -52,7 +53,8 @@ public class BorderDrawableTest {
 
   @Test
   public void testBorders_setsPaintParams() {
-    BorderDrawable borderDrawable = new BorderDrawable(context, DEFAULT_BORDER, ZERO_RADII);
+    BorderDrawable borderDrawable =
+        new BorderDrawable(context, DEFAULT_BORDER, ZERO_RADII, LEFT_TO_RIGHT);
 
     assertThat(borderDrawable.getPaint().getStyle()).isEqualTo(Paint.Style.STROKE);
     assertThat(borderDrawable.getPaint().getStrokeWidth()).isEqualTo((float) widthPx * 2);
@@ -61,7 +63,8 @@ public class BorderDrawableTest {
 
   @Test
   public void testBorders_allSides_default() {
-    BorderDrawable borderDrawable = new BorderDrawable(context, DEFAULT_BORDER, ZERO_RADII);
+    BorderDrawable borderDrawable =
+        new BorderDrawable(context, DEFAULT_BORDER, ZERO_RADII, LEFT_TO_RIGHT);
 
     assertThat(borderDrawable.getPaint().getStyle()).isEqualTo(Paint.Style.STROKE);
     assertThat(borderDrawable.getPaint().getStrokeWidth()).isEqualTo((float) widthPx * 2);
@@ -85,7 +88,8 @@ public class BorderDrawableTest {
                         | Edges.START.getNumber()
                         | Edges.END.getNumber())
                 .build(),
-            ZERO_RADII);
+            ZERO_RADII,
+            LEFT_TO_RIGHT);
 
     borderDrawable.setBounds(1, 2, 3, 4);
     Rect bounds = borderDrawable.getBounds();
@@ -101,7 +105,8 @@ public class BorderDrawableTest {
                 .toBuilder()
                 .setBitmask(Edges.TOP.getNumber() | Edges.START.getNumber())
                 .build(),
-            ZERO_RADII);
+            ZERO_RADII,
+            LEFT_TO_RIGHT);
 
     borderDrawable.setBounds(1, 2, 3, 4);
     Rect bounds = borderDrawable.getBounds();
@@ -117,7 +122,8 @@ public class BorderDrawableTest {
                 .toBuilder()
                 .setBitmask(Edges.BOTTOM.getNumber() | Edges.END.getNumber())
                 .build(),
-            ZERO_RADII);
+            ZERO_RADII,
+            LEFT_TO_RIGHT);
 
     borderDrawable.setBounds(1, 2, 3, 4);
     Rect bounds = borderDrawable.getBounds();
@@ -126,11 +132,6 @@ public class BorderDrawableTest {
 
   @Test
   public void testBorders_someSides_RtL() {
-    Locale defaultLocale = Locale.getDefault();
-
-    Locale.setDefault(Locale.forLanguageTag("ar"));
-    assertThat(LayoutUtils.isDefaultLocaleRtl()).isTrue();
-
     BorderDrawable borderDrawable =
         new BorderDrawable(
             context,
@@ -139,7 +140,8 @@ public class BorderDrawableTest {
                 .setBitmask(
                     Edges.TOP.getNumber() | Edges.BOTTOM.getNumber() | Edges.END.getNumber())
                 .build(),
-            ZERO_RADII);
+            ZERO_RADII,
+            RIGHT_TO_LEFT);
 
     borderDrawable.setBounds(1, 2, 3, 4);
     Rect bounds = borderDrawable.getBounds();
@@ -153,15 +155,12 @@ public class BorderDrawableTest {
                 .setBitmask(
                     Edges.TOP.getNumber() | Edges.BOTTOM.getNumber() | Edges.START.getNumber())
                 .build(),
-            ZERO_RADII);
+            ZERO_RADII,
+            RIGHT_TO_LEFT);
 
     borderDrawable.setBounds(1, 2, 3, 4);
     bounds = borderDrawable.getBounds();
     assertThat(bounds).isEqualTo(new Rect(1 - widthPx, 2, 3, 4));
-
-    // Reset the Locale so it doesn't mess up other tests
-    // (Removing this causes failures in Kokoro/Bazel testing)
-    Locale.setDefault(defaultLocale);
   }
 
   @Test
@@ -173,7 +172,8 @@ public class BorderDrawableTest {
                 .toBuilder()
                 .setBitmask(Edges.TOP.getNumber() | Edges.END.getNumber())
                 .build(),
-            ZERO_RADII);
+            ZERO_RADII,
+            LEFT_TO_RIGHT);
 
     borderDrawable.setBounds(new Rect(1, 2, 3, 4));
     Rect bounds = borderDrawable.getBounds();

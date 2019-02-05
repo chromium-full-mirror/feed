@@ -29,20 +29,23 @@ public class AssetProvider {
   private final Supplier<Integer> defaultCornerRadiusSupplier;
   private final Supplier<Boolean> isDarkThemeSupplier;
   private final Supplier<Integer> fadeImageThresholdMsSupplier;
+  private final Supplier<Boolean> isRtLSupplier;
   @VisibleForTesting final TypefaceProvider typefaceProvider;
 
   public AssetProvider(
       ImageLoader imageLoader,
       StringFormatter stringFormatter,
       Supplier<Integer> defaultCornerRadiusSupplier,
-      Supplier<Boolean> isDarkThemeSupplier,
       Supplier<Integer> fadeImageThresholdMsSupplier,
+      Supplier<Boolean> isDarkThemeSupplier,
+      Supplier<Boolean> isRtLSupplier,
       TypefaceProvider typefaceProvider) {
     this.imageLoader = imageLoader;
     this.stringFormatter = stringFormatter;
     this.defaultCornerRadiusSupplier = defaultCornerRadiusSupplier;
     this.isDarkThemeSupplier = isDarkThemeSupplier;
     this.fadeImageThresholdMsSupplier = fadeImageThresholdMsSupplier;
+    this.isRtLSupplier = isRtLSupplier;
     this.typefaceProvider = typefaceProvider;
   }
 
@@ -103,5 +106,15 @@ public class AssetProvider {
   /*@Nullable*/
   public Typeface getTypeface(String typeface, boolean isItalic) {
     return typefaceProvider.getTypeface(typeface, isItalic);
+  }
+
+  /** Returns whether Piet should render layouts using a right-to-left orientation. */
+  public boolean isRtL() {
+    return isRtLSupplier.get();
+  }
+
+  /** Returns whether Piet should render layouts using a right-to-left orientation. */
+  public Supplier<Boolean> isRtLSupplier() {
+    return isRtLSupplier;
   }
 }

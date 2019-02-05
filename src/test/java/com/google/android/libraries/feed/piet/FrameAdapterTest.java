@@ -145,6 +145,7 @@ public class FrameAdapterTest {
     when(templateAdapter.getHorizontalGravity(anyInt())).thenReturn(Gravity.CENTER_HORIZONTAL);
     when(templateAdapter.getVerticalGravity(anyInt())).thenReturn(Gravity.BOTTOM);
     when(hostProviders.getAssetProvider()).thenReturn(assetProvider);
+    when(assetProvider.isRtLSupplier()).thenReturn(Suppliers.of(false));
     when(frameContext.reportMessage(eq(MessageType.ERROR), anyString()))
         .thenAnswer(
             invocationOnMock -> {

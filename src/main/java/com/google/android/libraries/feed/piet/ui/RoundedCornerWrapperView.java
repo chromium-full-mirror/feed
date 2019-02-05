@@ -30,8 +30,8 @@ import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
-import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners.Corners;
 
 /** Wrapper for {@link View} instances in Piet that require rounded corners. */
@@ -41,6 +41,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
   private final Paint paint;
   private final Paint maskPaint;
   private final int roundedCornerRadius;
+  private final Supplier<Boolean> isRtLSupplier;
   private final int bitmask;
 
   /*@Nullable*/ private RoundRectShape outlineShape = null;
@@ -52,15 +53,17 @@ public class RoundedCornerWrapperView extends FrameLayout {
   /*@Nullable*/ private Bitmap cornerBR = null;
 
   // Keep track of current mask configuration so we can use cached values if nothing has changed.
-  int lastRadius = -1;
-  boolean lastLtR;
+  private int lastRadius = -1;
+  private boolean lastRtL;
 
   // Doesn't like the call to setOutlineProvider
   @SuppressWarnings("initialization")
-  public RoundedCornerWrapperView(Context context, int bitmask, int roundedCornerRadius) {
+  public RoundedCornerWrapperView(
+      Context context, int bitmask, int roundedCornerRadius, Supplier<Boolean> isRtLSupplier) {
     super(context);
     this.roundedCornerRadius = roundedCornerRadius;
-    lastLtR = isLtR();
+    this.isRtLSupplier = isRtLSupplier;
+    lastRtL = !isRtLSupplier.get(); // Flip this so we must update the layout on the first time.
 
     paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -79,7 +82,9 @@ public class RoundedCornerWrapperView extends FrameLayout {
                   || localOutlineShape.getHeight() != view.getHeight()
                   || localOutlineShape.getWidth() != view.getWidth()) {
                 int radius = makeRadius(view.getWidth(), view.getHeight(), roundedCornerRadius);
-                float[] radii = RoundedCornerViewHelper.createRoundedCornerMask(radius, bitmask);
+                float[] radii =
+                    RoundedCornerViewHelper.createRoundedCornerMask(
+                        radius, bitmask, isRtLSupplier.get());
                 localOutlineShape = new RoundRectShape(radii, null, null);
                 localOutlineShape.resize(view.getWidth(), view.getHeight());
                 outlineShape = localOutlineShape;
@@ -91,7 +96,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
 
     // If the view never gets smaller in one dimension than radius * 2, this will be the only time
     // we need to create the corner masks.
-    makeCornerMasks(roundedCornerRadius, lastLtR);
+    makeCornerMasks(roundedCornerRadius);
 
     setWillNotDraw(false);
   }
@@ -101,42 +106,43 @@ public class RoundedCornerWrapperView extends FrameLayout {
    *
    * <p>This will no-op if radius and isLtR are the same as the last call.
    */
-  void makeCornerMasks(int radius, boolean isLtR) {
+  void makeCornerMasks(int radius) {
     if (!hasRoundedCorners()) {
       return;
     }
-    if (radius == lastRadius && isLtR == lastLtR) {
+    boolean isRtL = isRtLSupplier.get();
+    if (radius == lastRadius && isRtL == lastRtL) {
       return;
     }
 
     Canvas canvas = new Canvas();
 
-    if ((shouldRoundCorner(Corners.TOP_START) && isLtR)
-        || (shouldRoundCorner(Corners.TOP_END) && !isLtR)) {
+    if ((shouldRoundCorner(Corners.TOP_START) && !isRtL)
+        || (shouldRoundCorner(Corners.TOP_END) && isRtL)) {
       cornerTL = Bitmap.createBitmap(radius, radius, Config.ALPHA_8);
       canvas.setBitmap(cornerTL);
       canvas.drawColor(Color.BLACK);
       canvas.drawCircle(radius, radius, radius, maskPaint);
     }
 
-    if ((shouldRoundCorner(Corners.TOP_END) && isLtR)
-        || (shouldRoundCorner(Corners.TOP_START) && !isLtR)) {
+    if ((shouldRoundCorner(Corners.TOP_END) && !isRtL)
+        || (shouldRoundCorner(Corners.TOP_START) && isRtL)) {
       cornerTR = Bitmap.createBitmap(roundedCornerRadius, roundedCornerRadius, Config.ALPHA_8);
       canvas.setBitmap(cornerTR);
       canvas.drawColor(Color.BLACK);
       canvas.drawCircle(0, radius, radius, maskPaint);
     }
 
-    if ((shouldRoundCorner(Corners.BOTTOM_START) && isLtR)
-        || (shouldRoundCorner(Corners.BOTTOM_END) && !isLtR)) {
+    if ((shouldRoundCorner(Corners.BOTTOM_START) && !isRtL)
+        || (shouldRoundCorner(Corners.BOTTOM_END) && isRtL)) {
       cornerBL = Bitmap.createBitmap(radius, radius, Config.ALPHA_8);
       canvas.setBitmap(cornerBL);
       canvas.drawColor(Color.BLACK);
       canvas.drawCircle(radius, 0, radius, maskPaint);
     }
 
-    if ((shouldRoundCorner(Corners.BOTTOM_END) && isLtR)
-        || (shouldRoundCorner(Corners.BOTTOM_START) && !isLtR)) {
+    if ((shouldRoundCorner(Corners.BOTTOM_END) && !isRtL)
+        || (shouldRoundCorner(Corners.BOTTOM_START) && isRtL)) {
       cornerBR = Bitmap.createBitmap(radius, radius, Config.ALPHA_8);
       canvas.setBitmap(cornerBR);
       canvas.drawColor(Color.BLACK);
@@ -144,7 +150,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
     }
 
     lastRadius = radius;
-    lastLtR = isLtR;
+    lastRtL = isRtL;
   }
 
   /**
@@ -187,7 +193,6 @@ public class RoundedCornerWrapperView extends FrameLayout {
       return;
     }
 
-    boolean isLtR = isLtR();
     int radius = makeRadius(width, height, roundedCornerRadius);
 
     // We need to create a new bitmap because the default canvas doesn't have transparency (?)
@@ -198,7 +203,7 @@ public class RoundedCornerWrapperView extends FrameLayout {
     super.draw(offscreenCanvas);
 
     // Set up the corner masks. This should no-op if radius and isLtR have not changed.
-    makeCornerMasks(radius, isLtR);
+    makeCornerMasks(radius);
 
     // Crop the corners off using masks
     maskCorners(offscreenCanvas, width, height, radius, maskPaint);
@@ -244,11 +249,6 @@ public class RoundedCornerWrapperView extends FrameLayout {
     if (cornerBR != null) {
       canvas.drawBitmap(cornerBR, width - radius, height - radius, paint);
     }
-  }
-
-  // TODO: Pass this in as a Supplier so the host can change it.
-  private boolean isLtR() {
-    return !LayoutUtils.isDefaultLocaleRtl();
   }
 
   /** This should always be true; we should not be using this view when corners are not round. */

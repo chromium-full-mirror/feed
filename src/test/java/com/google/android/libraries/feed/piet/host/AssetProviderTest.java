@@ -54,8 +54,9 @@ public class AssetProviderTest {
             imageLoader,
             stringFormatter,
             Suppliers.of(123),
-            Suppliers.of(true),
             Suppliers.of(456),
+            Suppliers.of(true),
+            Suppliers.of(true),
             typefaceProvider);
 
     assertThat(assetProvider.imageLoader).isSameAs(imageLoader);
@@ -64,6 +65,7 @@ public class AssetProviderTest {
     assertThat(assetProvider.getDefaultCornerRadius()).isEqualTo(123);
     assertThat(assetProvider.getFadeImageThresholdMs()).isEqualTo(456);
     assertThat(assetProvider.isDarkTheme()).isTrue();
+    assertThat(assetProvider.isRtL()).isTrue();
   }
 
   @Test
