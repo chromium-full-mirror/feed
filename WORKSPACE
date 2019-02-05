@@ -18,16 +18,16 @@ gmaven_rules()
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "cef7f1b5a7c5fba672bec2a319246e8feba471f04dcebfe362d55930ee7c1c30",
-    strip_prefix = "protobuf-3.5.0",
-    urls = ["https://github.com/google/protobuf/archive/v3.5.0.zip"],
+    sha256 = "73fdad358857e120fd0fa19e071a96e15c0f23bb25f85d3f7009abfd4f264a2a",
+    strip_prefix = "protobuf-3.6.1.3",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.6.1.3.tar.gz"],
 )
 
 http_archive(
     name = "com_google_protobuf_javalite",
-    sha256 = "d8a2fed3708781196f92e1e7e7e713cf66804bd2944894401057214aff4f468e",
-    strip_prefix = "protobuf-5e8916e881c573c5d83980197a6f783c132d4276",
-    urls = ["https://github.com/google/protobuf/archive/5e8916e881c573c5d83980197a6f783c132d4276.zip"],
+    sha256 = "79d102c61e2a479a0b7e5fc167bcfaa4832a0c6aad4a75fa7da0480564931bcc",
+    strip_prefix = "protobuf-384989534b2246d413dbcd750744faab2607b516",
+    urls = ["https://github.com/google/protobuf/archive/384989534b2246d413dbcd750744faab2607b516.zip"],
 )
 
 http_archive(
@@ -35,6 +35,7 @@ http_archive(
     urls = ["https://github.com/robolectric/robolectric-bazel/archive/7020b9a7a4796d2dc5392d6385d83e384a01f9fd.tar.gz"],
     strip_prefix = "robolectric-bazel-7020b9a7a4796d2dc5392d6385d83e384a01f9fd",
 )
+
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 robolectric_repositories()
 
