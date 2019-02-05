@@ -69,4 +69,9 @@
     Your suggested articles appear here
   </string>
 
+  <string name="snackbar_default_action"
+      description="Text that appears on the snackbar that when clicked will allow users to undo the previous action [CHAR_LIMIT=20]">
+    Undo
+  </string>
+
 </resources>

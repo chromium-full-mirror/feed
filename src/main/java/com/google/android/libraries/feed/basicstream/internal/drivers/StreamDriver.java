@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -39,9 +40,13 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
+import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
+import com.google.android.libraries.feed.sharedstream.R;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
+import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,7 +55,8 @@ import java.util.List;
 import java.util.Map;
 
 /** Generates a list of {@link LeafFeatureDriver} instances for an entire stream. */
-public class StreamDriver implements CursorChangedListener, FeatureChangeObserver {
+public class StreamDriver
+    implements CursorChangedListener, FeatureChangeObserver, PendingDismissHandler {
 
   private static final String TAG = "StreamDriver";
   private final ActionApi actionApi;
@@ -455,6 +461,7 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         modelFeature,
         modelProvider,
         position,
+        this,
         streamOfflineMonitor,
         contentChangedListener,
         contextMenuManager);
@@ -470,6 +477,9 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
         modelFeature,
         modelProvider,
         position,
+        (undoAction, pendingDismissCallback) -> {
+          Logger.wtf(TAG, "Dismissing a card without a cluster is not supported.");
+        },
         streamOfflineMonitor,
         contentChangedListener,
         contextMenuManager);
@@ -513,6 +523,83 @@ public class StreamDriver implements CursorChangedListener, FeatureChangeObserve
 
   public void setStreamContentListener(/*@Nullable*/ StreamContentListener contentListener) {
     this.contentListener = contentListener;
+  }
+
+  @Override
+  public void triggerPendingDismiss(
+      String contentId, UndoAction undoAction, PendingDismissCallback pendingDismissCallback) {
+
+    // Remove the feature driver to temporarily hide the card. Find the modelChild and index so the
+    // driver can be recreated and inserted if dismiss is undone.
+    ModelChild modelChild = getModelChildForContentId(contentId);
+    if (modelChild == null) {
+      Logger.wtf(TAG, "No model child found with that content id.");
+      pendingDismissCallback.onDismissCommitted();
+      return;
+    }
+
+    FeatureDriver featureDriver = modelChildFeatureDriverMap.get(modelChild);
+    if (featureDriver == null) {
+      Logger.wtf(TAG, "No FeatureDriver found for that model child.");
+      pendingDismissCallback.onDismissCommitted();
+      return;
+    }
+
+    int index = featureDrivers.indexOf(featureDriver);
+    if (index < 0) {
+      Logger.wtf(TAG, "No FeatureDriver found in the FeatureDriver list.");
+      pendingDismissCallback.onDismissCommitted();
+      return;
+    }
+
+    removeDriver(modelChild);
+
+    snackbarApi.show(
+        undoAction.getConfirmationLabel(),
+        undoAction.hasUndoLabel()
+            ? undoAction.getUndoLabel()
+            : context.getResources().getString(R.string.snackbar_default_action),
+        new SnackbarCallbackApi() {
+          @Override
+          public void onDismissNoAction() {
+            pendingDismissCallback.onDismissCommitted();
+          }
+
+          @Override
+          public void onDismissedWithAction() {
+            pendingDismissCallback.onDismissReverted();
+            createFeatureChildAndInsertAtIndex(modelChild, index);
+          }
+        });
+  }
+
+  private void createFeatureChildAndInsertAtIndex(ModelChild modelChild, int index) {
+    FeatureDriver featureDriver = createFeatureChild(modelChild.getModelFeature(), index);
+    if (featureDriver == null) {
+      Logger.wtf(TAG, "Could not recreate the FeatureDriver.");
+      return;
+    }
+    featureDrivers.add(index, featureDriver);
+    if (modelChild != null) {
+      modelChildFeatureDriverMap.put(modelChild, featureDriver);
+    }
+    LeafFeatureDriver leafFeatureDriver = featureDriver.getLeafFeatureDriver();
+    if (leafFeatureDriver == null) {
+      Logger.wtf(TAG, "No LeafFeatureDriver found.");
+      return;
+    }
+    notifyContentsAdded(
+        featureDrivers.indexOf(featureDriver), Collections.singletonList(leafFeatureDriver));
+  }
+
+  /*@Nullable*/
+  private ModelChild getModelChildForContentId(String contentId) {
+    for (ModelChild model : modelChildFeatureDriverMap.keySet()) {
+      if (model.getContentId().equals(contentId)) {
+        return model;
+      }
+    }
+    return null;
   }
 
   /** Allows listening for changes in the contents held by a {@link StreamDriver} */

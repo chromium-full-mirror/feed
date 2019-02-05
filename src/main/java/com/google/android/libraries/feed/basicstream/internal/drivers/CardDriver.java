@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
@@ -44,6 +45,7 @@ public class CardDriver implements FeatureDriver {
   private final ModelFeature cardModel;
   private final ModelProvider modelProvider;
   private final int position;
+  private final ClusterPendingDismissHelper clusterPendingDismissHelper;
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final ContentChangedListener contentChangedListener;
   private final ContextMenuManager contextMenuManager;
@@ -58,6 +60,7 @@ public class CardDriver implements FeatureDriver {
       ModelFeature cardModel,
       ModelProvider modelProvider,
       int position,
+      ClusterPendingDismissHelper clusterPendingDismissHelper,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
       ContextMenuManager contextMenuManager) {
@@ -68,6 +71,7 @@ public class CardDriver implements FeatureDriver {
     this.cardModel = cardModel;
     this.modelProvider = modelProvider;
     this.position = position;
+    this.clusterPendingDismissHelper = clusterPendingDismissHelper;
     this.streamOfflineMonitor = streamOfflineMonitor;
     this.contentChangedListener = contentChangedListener;
     this.contextMenuManager = contextMenuManager;
@@ -129,6 +133,7 @@ public class CardDriver implements FeatureDriver {
         modelProvider,
         position,
         swipeAction,
+        clusterPendingDismissHelper,
         streamOfflineMonitor,
         contentChangedListener,
         contextMenuManager);

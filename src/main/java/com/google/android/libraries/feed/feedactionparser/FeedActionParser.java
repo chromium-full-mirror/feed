@@ -100,15 +100,11 @@ public final class FeedActionParser implements ActionParser {
 
         streamActionApi.openContextMenu(feedActionMetadata.getOpenContextMenuData(), view);
         break;
+      case DISMISS:
       case DISMISS_LOCAL:
         if (!streamActionApi.canDismiss()) {
-          Logger.e(TAG, "Cannot dismiss: StreamActionApi does not support it");
-          break;
-        }
-
-        if (!feedActionMetadata.getDismissData().hasContentId()) {
-          Logger.e(TAG, "Cannot dismiss: no Content Id");
-          break;
+          Logger.e(TAG, "Cannot dismiss: StreamActionApi does not support it.");
+          return;
         }
 
         Result<List<StreamDataOperation>> streamDataOperationsResult =
@@ -117,12 +113,67 @@ public final class FeedActionParser implements ActionParser {
 
         if (!streamDataOperationsResult.isSuccessful()) {
           Logger.e(TAG, "Cannot dismiss: conversion to StreamDataOperation failed.");
-          break;
+          return;
         }
-
+        if (!feedActionMetadata.getDismissData().hasContentId()) {
+          Logger.e(TAG, "Cannot dismiss: no Content Id");
+          return;
+        }
+        // TODO: Once we start logging DISMISS via the feed action end point, DISMISS
+        // and DISMISS_LOCAL should not be handled in the exact same way.
         streamActionApi.dismiss(
             protocolAdapter.getStreamContentId(feedActionMetadata.getDismissData().getContentId()),
-            streamDataOperationsResult.getValue());
+            streamDataOperationsResult.getValue(),
+            feedActionMetadata.getDismissData().getUndoAction());
+
+        break;
+      case NOT_INTERESTED_IN_SOURCE:
+        if (!streamActionApi.canHandleNotInterestedInSource()) {
+          Logger.e(
+              TAG,
+              "Cannot preform action not interested in topic action: StreamActionApi does not support it.");
+          return;
+        }
+
+        Result<List<StreamDataOperation>> streamDataOperationResult =
+            protocolAdapter.createOperations(
+                feedActionMetadata.getNotInterestedInData().getDataOperationsList());
+
+        if (!streamDataOperationResult.isSuccessful()) {
+          Logger.e(
+              TAG,
+              "Cannot preform action not interested in topic action: conversion to StreamDataOperation failed.");
+          return;
+        }
+
+        streamActionApi.handleNotInterestedInSource(
+            streamDataOperationResult.getValue(),
+            feedActionMetadata.getNotInterestedInData().getUndoAction(),
+            feedActionMetadata.getNotInterestedInData().getOpaqueActionData());
+        break;
+      case NOT_INTERESTED_IN_TOPIC:
+        if (!streamActionApi.canHandleNotInterestedInTopic()) {
+          Logger.e(
+              TAG,
+              "Cannot preform action not interested in topic action: StreamActionApi does not support it.");
+          return;
+        }
+
+        Result<List<StreamDataOperation>> dataOperationResult =
+            protocolAdapter.createOperations(
+                feedActionMetadata.getNotInterestedInData().getDataOperationsList());
+
+        if (!dataOperationResult.isSuccessful()) {
+          Logger.e(
+              TAG,
+              "Cannot preform action not interested in topic action: conversion to StreamDataOperation failed.");
+          return;
+        }
+
+        streamActionApi.handleNotInterestedInTopic(
+            dataOperationResult.getValue(),
+            feedActionMetadata.getNotInterestedInData().getUndoAction(),
+            feedActionMetadata.getNotInterestedInData().getOpaqueActionData());
         break;
       case DOWNLOAD:
         if (!streamActionApi.canDownloadUrl()) {
@@ -211,12 +262,19 @@ public final class FeedActionParser implements ActionParser {
         return streamActionApi.canOpenUrlInNewTab();
       case OPEN_CONTEXT_MENU:
         return streamActionApi.canOpenContextMenu();
+      case DISMISS:
       case DISMISS_LOCAL:
+        // TODO: Once we start logging DISMISS via the feed action end point, DISMISS
+        // and DISMISS_LOCAL should not be handled in the exact same way.
         return streamActionApi.canDismiss();
       case DOWNLOAD:
         return contentMetadata.get() != null && streamActionApi.canDownloadUrl();
       case LEARN_MORE:
         return streamActionApi.canLearnMore();
+      case NOT_INTERESTED_IN_SOURCE:
+        return streamActionApi.canHandleNotInterestedInSource();
+      case NOT_INTERESTED_IN_TOPIC:
+        return streamActionApi.canHandleNotInterestedInTopic();
       case UNKNOWN:
       default:
         // TODO : Handle the action types introduced in [INTERNAL LINK]

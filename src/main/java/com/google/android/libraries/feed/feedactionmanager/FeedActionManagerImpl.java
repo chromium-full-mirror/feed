@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
+import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import java.util.List;
 
 /** Default implementation of {@link ActionManager} */
@@ -45,10 +46,35 @@ public class FeedActionManagerImpl implements ActionManager {
   }
 
   @Override
-  public void dismiss(
+  public void dismissLocal(
       List<String> contentIds,
       List<StreamDataOperation> streamDataOperations,
       /*@Nullable*/ String sessionToken) {
+    executeStreamDataOperations(streamDataOperations, sessionToken);
+    // Store the dismissLocal actions
+    taskQueue.execute(
+        "feedActionManagerDismiss",
+        TaskType.BACKGROUND,
+        () -> {
+          ActionMutation actionMutation = store.editActions();
+          for (String contentId : contentIds) {
+            actionMutation.add(ActionType.DISMISS, contentId);
+          }
+          actionMutation.commit();
+        });
+  }
+
+  @Override
+  public void dismiss(
+      OpaqueActionData opaqueActionData,
+      List<StreamDataOperation> streamDataOperations,
+      /*@Nullable*/ String sessionToken) {
+    executeStreamDataOperations(streamDataOperations, sessionToken);
+    // TODO: Log this action via the action end point.
+  }
+
+  private void executeStreamDataOperations(
+      List<StreamDataOperation> streamDataOperations, /*@Nullable*/ String sessionToken) {
     threadUtils.checkMainThread();
 
     // Update sessions
@@ -63,17 +89,5 @@ public class FeedActionManagerImpl implements ActionManager {
                 .setRequestingSession(streamSessionBuilder.build())
                 .build())
         .accept(Result.success(streamDataOperations));
-
-    // Store the dismiss actions
-    taskQueue.execute(
-        "feedActionManagerDismiss",
-        TaskType.BACKGROUND,
-        () -> {
-          ActionMutation actionMutation = store.editActions();
-          for (String contentId : contentIds) {
-            actionMutation.add(ActionType.DISMISS, contentId);
-          }
-          actionMutation.commit();
-        });
   }
 }

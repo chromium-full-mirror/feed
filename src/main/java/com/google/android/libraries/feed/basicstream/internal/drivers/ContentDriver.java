@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
@@ -83,6 +84,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ModelProvider modelProvider,
       int position,
       FeedActionPayload swipeAction,
+      ClusterPendingDismissHelper clusterPendingDismissHelper,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
       ContextMenuManager contextMenuManager) {
@@ -109,7 +111,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
             basicLoggingApi,
             contentLoggingData,
             modelProvider.getSessionToken(),
-            contextMenuManager);
+            contextMenuManager,
+            clusterPendingDismissHelper);
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
     contentUrl = representationData.getUri();
@@ -263,7 +266,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       BasicLoggingApi basicLoggingApi,
       ContentLoggingData contentLoggingData,
       /*@Nullable*/ String sessionToken,
-      ContextMenuManager contextMenuManager) {
+      ContextMenuManager contextMenuManager,
+      ClusterPendingDismissHelper clusterPendingDismissHelper) {
     return new StreamActionApiImpl(
         actionApi,
         actionParser,
@@ -271,7 +275,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
         basicLoggingApi,
         contentLoggingData,
         contextMenuManager,
-        sessionToken);
+        sessionToken,
+        clusterPendingDismissHelper);
   }
 
   private class OfflineStatusConsumer implements Consumer<Boolean> {

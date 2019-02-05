@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
+import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
@@ -74,11 +75,11 @@ public class FeedActionManagerImplTest {
   }
 
   @Test
-  public void dismiss() throws Exception {
+  public void dismissLocal() throws Exception {
     setUpDismissMocks();
     StreamDataOperation dataOperation = buildBasicDismissOperation();
 
-    actionManager.dismiss(
+    actionManager.dismissLocal(
         Collections.singletonList(CONTENT_ID_STRING),
         Collections.singletonList(dataOperation),
         null);
@@ -99,11 +100,11 @@ public class FeedActionManagerImplTest {
   }
 
   @Test
-  public void dismiss_sessionTokenSet() throws Exception {
+  public void dismissLocal_sessionTokenSet() throws Exception {
     setUpDismissMocks();
     StreamDataOperation dataOperation = buildBasicDismissOperation();
 
-    actionManager.dismiss(
+    actionManager.dismissLocal(
         Collections.singletonList(CONTENT_ID_STRING),
         Collections.singletonList(dataOperation),
         SESSION_TOKEN);
@@ -113,6 +114,46 @@ public class FeedActionManagerImplTest {
     assertThat(contentIdStringCaptor.getValue()).isEqualTo(CONTENT_ID_STRING);
 
     verify(actionMutation).commit();
+
+    verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
+    assertThat(mutationContextCaptor.getValue().getRequestingSession().getStreamToken())
+        .isEqualTo(SESSION_TOKEN);
+
+    verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
+    Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
+    assertThat(result.isSuccessful()).isTrue();
+    List<StreamDataOperation> streamDataOperations = result.getValue();
+    assertThat(streamDataOperations).hasSize(1);
+    StreamDataOperation streamDataOperation = streamDataOperations.get(0);
+    assertThat(streamDataOperation).isEqualTo(dataOperation);
+  }
+
+  @Test
+  public void dismiss() throws Exception {
+    setUpDismissMocks();
+    StreamDataOperation dataOperation = buildBasicDismissOperation();
+
+    actionManager.dismiss(
+        OpaqueActionData.getDefaultInstance(), Collections.singletonList(dataOperation), null);
+
+    verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
+    Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
+    assertThat(result.isSuccessful()).isTrue();
+    List<StreamDataOperation> streamDataOperations = result.getValue();
+    assertThat(streamDataOperations).hasSize(1);
+    StreamDataOperation streamDataOperation = streamDataOperations.get(0);
+    assertThat(streamDataOperation).isEqualTo(dataOperation);
+  }
+
+  @Test
+  public void dismiss_sessionTokenSet() throws Exception {
+    setUpDismissMocks();
+    StreamDataOperation dataOperation = buildBasicDismissOperation();
+
+    actionManager.dismiss(
+        OpaqueActionData.getDefaultInstance(),
+        Collections.singletonList(dataOperation),
+        SESSION_TOKEN);
 
     verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
     assertThat(mutationContextCaptor.getValue().getRequestingSession().getStreamToken())

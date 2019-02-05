@@ -23,14 +23,18 @@ import com.google.android.libraries.feed.api.modelprovider.ModelCursor;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
+import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 
 /** {@link FeatureDriver} for Clusters. */
-public class ClusterDriver implements FeatureDriver {
+public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper {
 
   private static final String TAG = "ClusterDriver";
   private final ActionApi actionApi;
@@ -40,6 +44,7 @@ public class ClusterDriver implements FeatureDriver {
   private final ModelFeature clusterModel;
   private final ModelProvider modelProvider;
   private final int position;
+  private final PendingDismissHandler pendingDismissHandler;
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final ContentChangedListener contentChangedListener;
   private final ContextMenuManager contextMenuManager;
@@ -53,6 +58,7 @@ public class ClusterDriver implements FeatureDriver {
       ModelFeature clusterModel,
       ModelProvider modelProvider,
       int position,
+      PendingDismissHandler pendingDismissHandler,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
       ContextMenuManager contextMenuManager) {
@@ -63,6 +69,7 @@ public class ClusterDriver implements FeatureDriver {
     this.clusterModel = clusterModel;
     this.modelProvider = modelProvider;
     this.position = position;
+    this.pendingDismissHandler = pendingDismissHandler;
     this.streamOfflineMonitor = streamOfflineMonitor;
     this.contentChangedListener = contentChangedListener;
     this.contextMenuManager = contextMenuManager;
@@ -128,8 +135,17 @@ public class ClusterDriver implements FeatureDriver {
         content,
         modelProvider,
         position,
+        this,
         streamOfflineMonitor,
         contentChangedListener,
         contextMenuManager);
+  }
+
+  @Override
+  public void triggerPendingDismissForCluster(
+      UndoAction undoAction, PendingDismissCallback pendingDismissCallback) {
+    // Get the content id assoc with this ClusterDriver and pass the dismiss to the StreamDriver.
+    pendingDismissHandler.triggerPendingDismiss(
+        clusterModel.getStreamFeature().getContentId(), undoAction, pendingDismissCallback);
   }
 }

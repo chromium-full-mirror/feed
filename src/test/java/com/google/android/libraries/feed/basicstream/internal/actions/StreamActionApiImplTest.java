@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.actions;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -29,19 +30,24 @@ import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.android.libraries.feed.testing.sharedstream.contextmenumanager.FakeContextMenuManager;
+import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
+import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
+import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,6 +55,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -124,6 +131,7 @@ public class StreamActionApiImplTest {
   @Mock private ActionManager actionManager;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentLoggingData contentLoggingData;
+  @Mock private ClusterPendingDismissHelper clusterPendingDismissHelper;
 
   private FakeContextMenuManager contextMenuManager;
   private StreamActionApiImpl streamActionApi;
@@ -144,7 +152,8 @@ public class StreamActionApiImplTest {
             basicLoggingApi,
             contentLoggingData,
             contextMenuManager,
-            SESSION_ID);
+            SESSION_ID,
+            clusterPendingDismissHelper);
   }
 
   @Test
@@ -157,11 +166,71 @@ public class StreamActionApiImplTest {
     String contentId = "contentId";
     List<StreamDataOperation> streamDataOperations =
         Collections.singletonList(StreamDataOperation.getDefaultInstance());
-    streamActionApi.dismiss(contentId, streamDataOperations);
+    streamActionApi.dismiss(contentId, streamDataOperations, UndoAction.getDefaultInstance());
 
     verify(actionManager)
-        .dismiss(Collections.singletonList(contentId), streamDataOperations, SESSION_ID);
+        .dismissLocal(ImmutableList.of(contentId), streamDataOperations, SESSION_ID);
     verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
+  }
+
+  @Test
+  public void testDismiss_withSnackbar_onCommitted() {
+    testCommittedDismissWithSnackbar(Type.DISMISS);
+  }
+
+  @Test
+  public void testDismiss_withSnackbar_onReverted() {
+    testRevertedDismissWithSnackbar(Type.DISMISS);
+  }
+
+  @Test
+  public void testDismiss_noSnackbar() {
+    testDismissNoSnackbar(Type.DISMISS);
+  }
+
+  @Test
+  public void testDismissWithSnackbar_dismissLocal_onCommitted() {
+    testCommittedDismissWithSnackbar(Type.DISMISS_LOCAL);
+  }
+
+  @Test
+  public void testDismissWithSnackbar_dismissLocal_onReverted() {
+    testRevertedDismissWithSnackbar(Type.DISMISS_LOCAL);
+  }
+
+  @Test
+  public void testDismissNoSnackbar_dismissLocal_onReverted() {
+    testDismissNoSnackbar(Type.DISMISS_LOCAL);
+  }
+
+  @Test
+  public void testHandleNotInterestedInTopic_onCommitted() {
+    testCommittedDismissWithSnackbar(Type.NOT_INTERESTED_IN_TOPIC);
+  }
+
+  @Test
+  public void testHandleNotInterestedInTopic_onReverted() {
+    testRevertedDismissWithSnackbar(Type.NOT_INTERESTED_IN_TOPIC);
+  }
+
+  @Test
+  public void testHandleNotInterestedInTopic_noSnackbar() {
+    testDismissNoSnackbar(Type.NOT_INTERESTED_IN_TOPIC);
+  }
+
+  @Test
+  public void testHandleNotInterestedInSource_onCommitted() {
+    testCommittedDismissWithSnackbar(Type.NOT_INTERESTED_IN_SOURCE);
+  }
+
+  @Test
+  public void testHandleNotInterestedInSource_onReverted() {
+    testRevertedDismissWithSnackbar(Type.NOT_INTERESTED_IN_SOURCE);
+  }
+
+  @Test
+  public void testHandleNotInterestedInSource_noSnackbar() {
+    testDismissNoSnackbar(Type.NOT_INTERESTED_IN_SOURCE);
   }
 
   @Test
@@ -342,5 +411,153 @@ public class StreamActionApiImplTest {
 
     // Second context menu fails in opening and is not logged.
     verifyZeroInteractions(basicLoggingApi);
+  }
+
+  private void testCommittedDismissWithSnackbar(Type actionType) {
+    ArgumentCaptor<PendingDismissCallback> pendingDismissCallback =
+        ArgumentCaptor.forClass(PendingDismissCallback.class);
+    String contentId = "contentId";
+    List<StreamDataOperation> streamDataOperations =
+        Collections.singletonList(StreamDataOperation.getDefaultInstance());
+    UndoAction undoAction = UndoAction.newBuilder().setConfirmationLabel("confirmation").build();
+    switch (actionType) {
+      case DISMISS:
+      case DISMISS_LOCAL:
+        streamActionApi.dismiss(contentId, streamDataOperations, undoAction);
+        break;
+      case NOT_INTERESTED_IN_SOURCE:
+        streamActionApi.handleNotInterestedInSource(
+            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        break;
+      case NOT_INTERESTED_IN_TOPIC:
+        streamActionApi.handleNotInterestedInTopic(
+            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        break;
+      default:
+        break;
+    }
+
+    verify(clusterPendingDismissHelper)
+        .triggerPendingDismissForCluster(eq(undoAction), pendingDismissCallback.capture());
+
+    pendingDismissCallback.getValue().onDismissCommitted();
+
+    switch (actionType) {
+      case DISMISS:
+      case DISMISS_LOCAL:
+        verify(actionManager)
+            .dismissLocal(ImmutableList.of(contentId), streamDataOperations, SESSION_ID);
+        verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
+        break;
+      case NOT_INTERESTED_IN_SOURCE:
+        verify(actionManager)
+            .dismiss(OpaqueActionData.getDefaultInstance(), streamDataOperations, SESSION_ID);
+        verify(basicLoggingApi)
+            .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ true);
+        break;
+      case NOT_INTERESTED_IN_TOPIC:
+        verify(actionManager)
+            .dismiss(OpaqueActionData.getDefaultInstance(), streamDataOperations, SESSION_ID);
+        verify(basicLoggingApi).onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ true);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private void testRevertedDismissWithSnackbar(Type actionType) {
+    ArgumentCaptor<PendingDismissCallback> pendingDismissCallback =
+        ArgumentCaptor.forClass(PendingDismissCallback.class);
+    String contentId = "contentId";
+    List<StreamDataOperation> streamDataOperations =
+        Collections.singletonList(StreamDataOperation.getDefaultInstance());
+    UndoAction undoAction = UndoAction.newBuilder().setConfirmationLabel("confirmation").build();
+    switch (actionType) {
+      case DISMISS:
+      case DISMISS_LOCAL:
+        streamActionApi.dismiss(contentId, streamDataOperations, undoAction);
+        break;
+      case NOT_INTERESTED_IN_SOURCE:
+        streamActionApi.handleNotInterestedInSource(
+            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        break;
+      case NOT_INTERESTED_IN_TOPIC:
+        streamActionApi.handleNotInterestedInTopic(
+            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        break;
+      default:
+        break;
+    }
+
+    verify(clusterPendingDismissHelper)
+        .triggerPendingDismissForCluster(eq(undoAction), pendingDismissCallback.capture());
+
+    pendingDismissCallback.getValue().onDismissReverted();
+
+    verify(actionManager, never())
+        .dismissLocal(ImmutableList.of(contentId), streamDataOperations, SESSION_ID);
+    switch (actionType) {
+      case DISMISS:
+      case DISMISS_LOCAL:
+        verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ false);
+        break;
+      case NOT_INTERESTED_IN_SOURCE:
+        verify(basicLoggingApi)
+            .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ false);
+        break;
+      case NOT_INTERESTED_IN_TOPIC:
+        verify(basicLoggingApi)
+            .onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ false);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private void testDismissNoSnackbar(Type actionType) {
+    String contentId = "contentId";
+    List<StreamDataOperation> streamDataOperations =
+        Collections.singletonList(StreamDataOperation.getDefaultInstance());
+    UndoAction undoAction = UndoAction.getDefaultInstance();
+    switch (actionType) {
+      case DISMISS:
+      case DISMISS_LOCAL:
+        streamActionApi.dismiss(contentId, streamDataOperations, undoAction);
+        break;
+      case NOT_INTERESTED_IN_SOURCE:
+        streamActionApi.handleNotInterestedInSource(
+            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        break;
+      case NOT_INTERESTED_IN_TOPIC:
+        streamActionApi.handleNotInterestedInTopic(
+            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        break;
+      default:
+        break;
+    }
+
+    verify(clusterPendingDismissHelper, never()).triggerPendingDismissForCluster(any(), any());
+
+    switch (actionType) {
+      case DISMISS:
+      case DISMISS_LOCAL:
+        verify(actionManager)
+            .dismissLocal(ImmutableList.of(contentId), streamDataOperations, SESSION_ID);
+        verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
+        break;
+      case NOT_INTERESTED_IN_SOURCE:
+        verify(actionManager)
+            .dismiss(OpaqueActionData.getDefaultInstance(), streamDataOperations, SESSION_ID);
+        verify(basicLoggingApi)
+            .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ true);
+        break;
+      case NOT_INTERESTED_IN_TOPIC:
+        verify(actionManager)
+            .dismiss(OpaqueActionData.getDefaultInstance(), streamDataOperations, SESSION_ID);
+        verify(basicLoggingApi).onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ true);
+        break;
+      default:
+        break;
+    }
   }
 }

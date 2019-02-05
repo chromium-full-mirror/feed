@@ -29,6 +29,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
@@ -80,6 +81,7 @@ public class CardDriverTest {
   @Mock private ModelFeature cardModelFeature;
   @Mock private LeafFeatureDriver leafFeatureDriver;
   @Mock private ContentChangedListener contentChangedListener;
+  @Mock private ClusterPendingDismissHelper clusterPendingDismissHelper;
 
   private CardDriverForTest cardDriver;
   private FakeModelCursor cardCursor;
@@ -201,6 +203,7 @@ public class CardDriverTest {
           cardModel,
           modelProvider,
           position,
+          clusterPendingDismissHelper,
           streamOfflineMonitor,
           contentChangedListener,
           contextMenuManager);

@@ -42,8 +42,11 @@ import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
+import com.google.search.now.ui.action.FeedActionProto.NotInterestedInData;
+import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
+import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -190,6 +193,9 @@ public class FeedActionParserTest {
 
   private static final String DISMISS_CONTENT_ID_STRING = "dismissContentId";
 
+  private static final UndoAction UNDO_ACTION =
+      UndoAction.newBuilder().setConfirmationLabel("confirmation").build();
+
   private static final FeedActionPayload DISMISS_LOCAL_FEED_ACTION =
       FeedActionPayload.newBuilder()
           .setExtension(
@@ -201,7 +207,38 @@ public class FeedActionParserTest {
                           .setDismissData(
                               DismissData.newBuilder()
                                   .addDataOperations(DataOperation.getDefaultInstance())
-                                  .setContentId(DISMISS_CONTENT_ID)))
+                                  .setContentId(DISMISS_CONTENT_ID)
+                                  .setUndoAction(UNDO_ACTION)))
+                  .build())
+          .build();
+
+  private static final FeedActionPayload NOT_INTERESTED_IN_SOURCE =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.NOT_INTERESTED_IN_SOURCE)
+                          .setNotInterestedInData(
+                              NotInterestedInData.newBuilder()
+                                  .addDataOperations(DataOperation.getDefaultInstance())
+                                  .setUndoAction(UNDO_ACTION)))
+                  .build())
+          .build();
+
+  private static final FeedActionPayload NOT_INTERESTED_IN_TOPIC =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.NOT_INTERESTED_IN_TOPIC)
+                          .setNotInterestedInData(
+                              NotInterestedInData.newBuilder()
+                                  .addDataOperations(DataOperation.getDefaultInstance())
+                                  .setUndoAction(UNDO_ACTION)))
                   .build())
           .build();
 
@@ -230,6 +267,12 @@ public class FeedActionParserTest {
 
   @Mock private StreamActionApi streamActionApi;
   @Mock private ProtocolAdapter protocolAdapter;
+
+  List<StreamDataOperation> streamDataOperations =
+      Lists.newArrayList(
+          StreamDataOperation.newBuilder()
+              .setStreamStructure(StreamStructure.newBuilder().setContentId("dataOpContentId"))
+              .build());
 
   private FeedActionParser feedActionParser;
 
@@ -397,19 +440,65 @@ public class FeedActionParserTest {
   @Test
   public void testDismiss_noApiSupport() {
     when(streamActionApi.canDismiss()).thenReturn(false);
+    when(protocolAdapter.createOperations(
+            DISMISS_LOCAL_FEED_ACTION
+                .getExtension(FeedAction.feedActionExtension)
+                .getMetadata()
+                .getDismissData()
+                .getDataOperationsList()))
+        .thenReturn(Result.success(streamDataOperations));
     feedActionParser.parseFeedActionPayload(
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
     verify(streamActionApi, never())
-        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class));
+        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class), any());
+  }
+
+  @Test
+  public void testNotInterestedInTopic_noApiSupport() {
+    when(streamActionApi.canHandleNotInterestedInTopic()).thenReturn(false);
+    when(protocolAdapter.createOperations(
+            NOT_INTERESTED_IN_TOPIC
+                .getExtension(FeedAction.feedActionExtension)
+                .getMetadata()
+                .getNotInterestedInData()
+                .getDataOperationsList()))
+        .thenReturn(Result.success(streamDataOperations));
+    feedActionParser.parseFeedActionPayload(
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
+    verify(streamActionApi, never())
+        .handleNotInterestedInTopic(Mockito.anyListOf(StreamDataOperation.class), any(), any());
+  }
+
+  @Test
+  public void testNotInterestedInSource_noApiSupport() {
+    when(streamActionApi.canHandleNotInterestedInSource()).thenReturn(false);
+    when(protocolAdapter.createOperations(
+            NOT_INTERESTED_IN_SOURCE
+                .getExtension(FeedAction.feedActionExtension)
+                .getMetadata()
+                .getNotInterestedInData()
+                .getDataOperationsList()))
+        .thenReturn(Result.success(streamDataOperations));
+    feedActionParser.parseFeedActionPayload(
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
+    verify(streamActionApi, never())
+        .handleNotInterestedInSource(Mockito.anyListOf(StreamDataOperation.class), any(), any());
   }
 
   @Test
   public void testDismiss_noContentId() {
     when(streamActionApi.canDismiss()).thenReturn(true);
+    when(protocolAdapter.createOperations(
+            DISMISS_LOCAL_FEED_ACTION
+                .getExtension(FeedAction.feedActionExtension)
+                .getMetadata()
+                .getDismissData()
+                .getDataOperationsList()))
+        .thenReturn(Result.success(streamDataOperations));
     feedActionParser.parseFeedActionPayload(
         DISMISS_LOCAL_FEED_ACTION_NO_CONTENT_ID, streamActionApi, /* view= */ null);
     verify(streamActionApi, never())
-        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class));
+        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class), any());
   }
 
   @Test
@@ -428,17 +517,11 @@ public class FeedActionParserTest {
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
 
     verify(streamActionApi, never())
-        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class));
+        .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class), any());
   }
 
   @Test
   public void testDismiss() {
-    List<StreamDataOperation> streamDataOperations =
-        Lists.newArrayList(
-            StreamDataOperation.newBuilder()
-                .setStreamStructure(StreamStructure.newBuilder().setContentId("dataOpContentId"))
-                .build());
-
     when(streamActionApi.canDismiss()).thenReturn(true);
 
     when(protocolAdapter.createOperations(
@@ -452,7 +535,49 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
 
-    verify(streamActionApi).dismiss(DISMISS_CONTENT_ID_STRING, streamDataOperations);
+    verify(streamActionApi).dismiss(DISMISS_CONTENT_ID_STRING, streamDataOperations, UNDO_ACTION);
+  }
+
+  @Test
+  public void testNotInterestedInSource() {
+    when(streamActionApi.canDismiss()).thenReturn(true);
+    when(streamActionApi.canHandleNotInterestedInSource()).thenReturn(true);
+
+    when(protocolAdapter.createOperations(
+            NOT_INTERESTED_IN_SOURCE
+                .getExtension(FeedAction.feedActionExtension)
+                .getMetadata()
+                .getNotInterestedInData()
+                .getDataOperationsList()))
+        .thenReturn(Result.success(streamDataOperations));
+
+    feedActionParser.parseFeedActionPayload(
+        NOT_INTERESTED_IN_SOURCE, streamActionApi, /* view= */ null);
+
+    verify(streamActionApi)
+        .handleNotInterestedInSource(
+            streamDataOperations, UNDO_ACTION, OpaqueActionData.getDefaultInstance());
+  }
+
+  @Test
+  public void testNotInterestedInTopic() {
+    when(streamActionApi.canDismiss()).thenReturn(true);
+    when(streamActionApi.canHandleNotInterestedInTopic()).thenReturn(true);
+
+    when(protocolAdapter.createOperations(
+            NOT_INTERESTED_IN_TOPIC
+                .getExtension(FeedAction.feedActionExtension)
+                .getMetadata()
+                .getNotInterestedInData()
+                .getDataOperationsList()))
+        .thenReturn(Result.success(streamDataOperations));
+
+    feedActionParser.parseFeedActionPayload(
+        NOT_INTERESTED_IN_TOPIC, streamActionApi, /* view= */ null);
+
+    verify(streamActionApi)
+        .handleNotInterestedInTopic(
+            streamDataOperations, UNDO_ACTION, OpaqueActionData.getDefaultInstance());
   }
 
   @Test

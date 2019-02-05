@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -147,6 +148,7 @@ public class ContentDriverTest {
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ModelFeature modelFeature;
   @Mock private ModelProvider modelProvider;
+  @Mock private ClusterPendingDismissHelper clusterPendingDismissHelper;
   @Mock private PietViewHolder pietViewHolder;
   @Mock private StreamActionApi streamActionApi;
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
@@ -176,6 +178,7 @@ public class ContentDriverTest {
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
+            clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
             contextMenuManager) {
@@ -187,7 +190,8 @@ public class ContentDriverTest {
               BasicLoggingApi basicLoggingApi,
               ContentLoggingData contentLoggingData,
               String sessionToken,
-              ContextMenuManager contextMenuManager) {
+              ContextMenuManager contextMenuManager,
+              ClusterPendingDismissHelper clusterPendingDismissHelper) {
             return streamActionApi;
           }
         };
@@ -319,6 +323,7 @@ public class ContentDriverTest {
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
+            clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
             contextMenuManager);
@@ -352,6 +357,7 @@ public class ContentDriverTest {
             modelProvider,
             POSITION,
             payload,
+            clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
             contextMenuManager);
@@ -383,6 +389,7 @@ public class ContentDriverTest {
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
+            clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
             contextMenuManager);
@@ -425,6 +432,7 @@ public class ContentDriverTest {
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
+            clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
             contextMenuManager);
@@ -486,6 +494,7 @@ public class ContentDriverTest {
             modelProvider,
             POSITION,
             FeedActionPayload.getDefaultInstance(),
+            clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
             contextMenuManager);

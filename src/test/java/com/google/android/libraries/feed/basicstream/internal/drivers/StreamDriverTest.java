@@ -15,7 +15,9 @@
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
+import static com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor.getCardModelFeatureWithCursor;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -48,8 +50,11 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
+import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
+import com.google.android.libraries.feed.sharedstream.R;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
@@ -57,6 +62,7 @@ import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
 import com.google.android.libraries.feed.testing.modelprovider.FeatureChangeBuilder;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
 import java.util.ArrayList;
@@ -98,6 +104,7 @@ public class StreamDriverTest {
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private KnownContentApi knownContentApi;
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
+  @Mock private PendingDismissCallback pendingDismissCallback;
 
   @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
 
@@ -687,6 +694,31 @@ public class StreamDriverTest {
     assertThat(streamDriver.wasRestoringDuringLastContinuationDriver).isFalse();
   }
 
+  @Test
+  public void testTriggerPendingDismiss_noAction() {
+    SnackbarCallbackApi snackbarCallbackApi =
+        triggerPendingDismiss(UndoAction.newBuilder().setConfirmationLabel("confirmation").build());
+
+    snackbarCallbackApi.onDismissNoAction();
+    verify(pendingDismissCallback).onDismissCommitted();
+  }
+
+  @Test
+  public void testTriggerPendingDismiss_actionTaken() {
+    SnackbarCallbackApi snackbarCallbackApi =
+        triggerPendingDismiss(UndoAction.newBuilder().setConfirmationLabel("confirmation").build());
+
+    snackbarCallbackApi.onDismissedWithAction();
+    verify(pendingDismissCallback).onDismissReverted();
+    verify(contentListener).notifyContentsAdded(eq(0), any());
+  }
+
+  @Test
+  public void testTriggerPendingDismiss_actionStringSent() {
+    triggerPendingDismiss(
+        UndoAction.newBuilder().setConfirmationLabel("conf").setUndoLabel("undo label").build());
+  }
+
   private StreamDriverForTest createNonRestoringStreamDriver() {
     return createStreamDriver(/* restoring= */ false, /* isInitialLoad= */ false);
   }
@@ -713,6 +745,38 @@ public class StreamDriverTest {
     FakeFeatureDriver featureDriver = (FakeFeatureDriver) streamDriver.childrenCreated.get(i);
     assertThat(featureDriver.getModelFeature().getStreamFeature().hasCluster()).isTrue();
     return streamDriver.childrenCreated.get(i).getLeafFeatureDriver();
+  }
+
+  private SnackbarCallbackApi triggerPendingDismiss(UndoAction undoAction) {
+    ArgumentCaptor<SnackbarCallbackApi> snackbarCallbackApi =
+        ArgumentCaptor.forClass(SnackbarCallbackApi.class);
+    String contentId = "contentId";
+    when(streamFeature.getCursor())
+        .thenReturn(
+            FakeModelCursor.newBuilder()
+                .addChild(
+                    FakeModelChild.newBuilder()
+                        .setModelFeature(
+                            getCardModelFeatureWithCursor(FakeModelCursor.newBuilder().build()))
+                        .setContentId(contentId)
+                        .build())
+                .build());
+
+    // Causes StreamDriver to build a list of children based on the children from the cursor.
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.triggerPendingDismiss(contentId, undoAction, pendingDismissCallback);
+
+    verify(contentListener).notifyContentRemoved(0);
+    verify(snackbarApi)
+        .show(
+            eq(undoAction.getConfirmationLabel()),
+            undoAction.hasUndoLabel()
+                ? eq(undoAction.getUndoLabel())
+                : eq(context.getResources().getString(R.string.snackbar_default_action)),
+            snackbarCallbackApi.capture());
+
+    return snackbarCallbackApi.getValue();
   }
 
   private class StreamDriverForTest extends StreamDriver {

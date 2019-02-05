@@ -18,15 +18,19 @@ import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
+import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
+import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
+import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +47,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final BasicLoggingApi basicLoggingApi;
   private final ContentLoggingData contentLoggingData;
   private final ContextMenuManager contextMenuManager;
+  private final ClusterPendingDismissHelper clusterPendingDismissHelper;
 
   /*@Nullable*/ private final String sessionToken;
 
@@ -53,7 +58,8 @@ public class StreamActionApiImpl implements StreamActionApi {
       BasicLoggingApi basicLoggingApi,
       ContentLoggingData contentLoggingData,
       ContextMenuManager contextMenuManager,
-      /*@Nullable*/ String sessionToken) {
+      /*@Nullable*/ String sessionToken,
+      ClusterPendingDismissHelper clusterPendingDismissHelper) {
     this.actionApi = actionApi;
     this.actionParser = actionParser;
     this.actionManager = actionManager;
@@ -61,6 +67,7 @@ public class StreamActionApiImpl implements StreamActionApi {
     this.contentLoggingData = contentLoggingData;
     this.contextMenuManager = contextMenuManager;
     this.sessionToken = sessionToken;
+    this.clusterPendingDismissHelper = clusterPendingDismissHelper;
   }
 
   @Override
@@ -90,7 +97,6 @@ public class StreamActionApiImpl implements StreamActionApi {
     }
   }
 
-
   @Override
   public boolean canOpenContextMenu() {
     return true;
@@ -102,9 +108,109 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   @Override
-  public void dismiss(String contentId, List<StreamDataOperation> dataOperations) {
-    actionManager.dismiss(Collections.singletonList(contentId), dataOperations, sessionToken);
-    basicLoggingApi.onContentDismissed(contentLoggingData, /*wasCommitted=*/ true);
+  public boolean canHandleNotInterestedInTopic() {
+    return true;
+  }
+
+  @Override
+  public void handleNotInterestedInTopic(
+      List<StreamDataOperation> dataOperations,
+      UndoAction undoAction,
+      OpaqueActionData opaqueActionData) {
+    if (!undoAction.hasConfirmationLabel()) {
+      dismiss(opaqueActionData, dataOperations);
+      basicLoggingApi.onNotInterestedInTopic(contentLoggingData, /* wasCommitted = */ true);
+    } else {
+      dismissWithSnackbar(
+          undoAction,
+          new PendingDismissCallback() {
+            @Override
+            public void onDismissReverted() {
+              basicLoggingApi.onNotInterestedInTopic(
+                  contentLoggingData, /* wasCommitted = */ false);
+            }
+
+            @Override
+            public void onDismissCommitted() {
+              dismiss(opaqueActionData, dataOperations);
+              // TODO: Log this action via the action end point.
+              basicLoggingApi.onNotInterestedInTopic(contentLoggingData, /* wasCommitted = */ true);
+            }
+          });
+    }
+  }
+
+  @Override
+  public boolean canHandleNotInterestedInSource() {
+    return true;
+  }
+
+  @Override
+  public void handleNotInterestedInSource(
+      List<StreamDataOperation> dataOperations,
+      UndoAction undoAction,
+      OpaqueActionData opaqueActionData) {
+    if (!undoAction.hasConfirmationLabel()) {
+      dismiss(opaqueActionData, dataOperations);
+      basicLoggingApi.onNotInterestedInSource(contentLoggingData, /* wasCommitted = */ true);
+    } else {
+      dismissWithSnackbar(
+          undoAction,
+          new PendingDismissCallback() {
+            @Override
+            public void onDismissReverted() {
+              basicLoggingApi.onNotInterestedInSource(
+                  contentLoggingData, /* wasCommitted = */ false);
+            }
+
+            @Override
+            public void onDismissCommitted() {
+              dismiss(opaqueActionData, dataOperations);
+              // TODO: Log this action via the action end point.
+              basicLoggingApi.onNotInterestedInSource(
+                  contentLoggingData, /* wasCommitted = */ true);
+            }
+          });
+    }
+  }
+
+  @Override
+  public void dismiss(
+      String contentId, List<StreamDataOperation> dataOperations, UndoAction undoAction) {
+    if (!undoAction.hasConfirmationLabel()) {
+      dismissLocal(contentId, dataOperations);
+      basicLoggingApi.onContentDismissed(contentLoggingData, /* wasCommitted = */ true);
+    } else {
+      dismissWithSnackbar(
+          undoAction,
+          new PendingDismissCallback() {
+            @Override
+            public void onDismissReverted() {
+              basicLoggingApi.onContentDismissed(contentLoggingData, /* wasCommitted = */ false);
+            }
+
+            @Override
+            public void onDismissCommitted() {
+              dismissLocal(contentId, dataOperations);
+              // TODO: Log this action via the action end point.
+              basicLoggingApi.onContentDismissed(contentLoggingData, /* wasCommitted = */ true);
+            }
+          });
+    }
+  }
+
+  private void dismiss(
+      OpaqueActionData opaqueActionData, List<StreamDataOperation> dataOperations) {
+    actionManager.dismiss(opaqueActionData, dataOperations, sessionToken);
+  }
+
+  private void dismissLocal(String contentId, List<StreamDataOperation> dataOperations) {
+    actionManager.dismissLocal(Collections.singletonList(contentId), dataOperations, sessionToken);
+  }
+
+  private void dismissWithSnackbar(
+      UndoAction undoAction, PendingDismissCallback pendingDismissCallback) {
+    clusterPendingDismissHelper.triggerPendingDismissForCluster(undoAction, pendingDismissCallback);
   }
 
   @Override

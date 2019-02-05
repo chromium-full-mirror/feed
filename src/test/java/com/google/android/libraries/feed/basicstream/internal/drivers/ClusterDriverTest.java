@@ -28,18 +28,22 @@ import com.google.android.libraries.feed.api.modelprovider.ModelChild.Type;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 
 /** Tests for {@link ClusterDriver}. */
@@ -53,6 +57,7 @@ public class ClusterDriverTest {
   @Mock private LeafFeatureDriver leafFeatureDriver;
   @Mock private ModelFeature clusterModelFeature;
   @Mock private ContentChangedListener contentChangedListener;
+  @Mock private PendingDismissHandler pendingDismissHandler;
 
   private ClusterDriverForTest clusterDriver;
 
@@ -113,6 +118,20 @@ public class ClusterDriverTest {
     verify(cardDriver).onDestroy();
   }
 
+  @Test
+  public void testTriggerPendingDismiss() {
+    StreamFeature streamFeature = StreamFeature.newBuilder().setContentId("contentId").build();
+    when(clusterModelFeature.getStreamFeature()).thenReturn(streamFeature);
+    PendingDismissCallback pendingDismissCallback = Mockito.mock(PendingDismissCallback.class);
+    clusterDriver.triggerPendingDismissForCluster(
+        UndoAction.getDefaultInstance(), pendingDismissCallback);
+    verify(pendingDismissHandler)
+        .triggerPendingDismiss(
+            clusterModelFeature.getStreamFeature().getContentId(),
+            UndoAction.getDefaultInstance(),
+            pendingDismissCallback);
+  }
+
   class ClusterDriverForTest extends ClusterDriver {
 
     private final CardDriver cardDriver;
@@ -136,6 +155,7 @@ public class ClusterDriverTest {
           clusterModel,
           modelProvider,
           position,
+          pendingDismissHandler,
           streamOfflineMonitor,
           contentChangedListener,
           contextMenuManager);
