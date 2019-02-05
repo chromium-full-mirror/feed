@@ -330,15 +330,36 @@ public final class FeedRequestManager implements RequestManager {
         feedRequestBuilder.addFeedActionQueryData(buildFeedActionQueryData());
       }
       feedRequestBuilder.setClientInfo(buildClientInfo());
-      if (configuration.getValueOrDefault(ConfigKey.FEED_UI_ENABLED, false)) {
-        feedRequestBuilder.addClientCapability(Capability.FEED_UI);
-      }
-      if (configuration.getValueOrDefault(ConfigKey.USE_SECONDARY_PAGE_REQUEST, false)) {
-        feedRequestBuilder.addClientCapability(Capability.USE_SECONDARY_PAGE_REQUEST);
-      }
+      addCapabilities(feedRequestBuilder);
       requestBuilder.setExtension(FeedRequest.feedRequest, feedRequestBuilder.build());
 
       return requestBuilder.build();
+    }
+
+    private void addCapabilities(Builder feedRequestBuilder) {
+      addCapabilityIfConfigEnabled(
+          feedRequestBuilder, ConfigKey.FEED_UI_ENABLED, Capability.FEED_UI);
+      addCapabilityIfConfigEnabled(
+          feedRequestBuilder, ConfigKey.INTEREST_HEADER_UI_ENABLED, Capability.INTEREST_HEADER);
+      addCapabilityIfConfigEnabled(
+          feedRequestBuilder, ConfigKey.UNDOABLE_ACTIONS_ENABLED, Capability.UNDOABLE_ACTIONS);
+      addCapabilityIfConfigEnabled(
+          feedRequestBuilder, ConfigKey.MANAGE_INTERESTS_ENABLED, Capability.MANAGE_INTERESTS);
+      addCapabilityIfConfigEnabled(
+          feedRequestBuilder, ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, Capability.CARD_MENU_TOOLTIP);
+      addCapabilityIfConfigEnabled(
+          feedRequestBuilder,
+          ConfigKey.USE_SECONDARY_PAGE_REQUEST,
+          Capability.USE_SECONDARY_PAGE_REQUEST);
+      feedRequestBuilder.addClientCapability(Capability.BASE_UI);
+      Logger.i(TAG, "Capability List: %s", feedRequestBuilder.getClientCapabilityList());
+    }
+
+    private void addCapabilityIfConfigEnabled(
+        Builder feedRequestBuilder, String configKey, Capability capability) {
+      if (configuration.getValueOrDefault(configKey, false)) {
+        feedRequestBuilder.addClientCapability(capability);
+      }
     }
 
     private FeedActionQueryData buildFeedActionQueryData() {

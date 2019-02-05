@@ -73,6 +73,16 @@ public class Configuration {
     ConfigKey.CONTENT_DIR,
     // Boolean which if true, will ask the server for the feed ui response.
     ConfigKey.FEED_UI_ENABLED,
+    // Boolean which if true, will ask the server for an interest header in the response.
+    ConfigKey.INTEREST_HEADER_UI_ENABLED,
+    // Boolean which if true, will ask the server for not interested in actions and a durable
+    // dismiss action.
+    ConfigKey.UNDOABLE_ACTIONS_ENABLED,
+    // Boolean which if true, will ask the server for an menu option to launch the interest
+    // management customize page.
+    ConfigKey.MANAGE_INTERESTS_ENABLED,
+    // Boolean which if true, will allow tooltips to show.
+    ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE,
     // Boolean which if true, will ask the server for a different pagination strategy.
     ConfigKey.USE_SECONDARY_PAGE_REQUEST,
   })
@@ -105,6 +115,10 @@ public class Configuration {
     String FADE_IMAGE_THRESHOLD_MS = "fade_image_threshold_ms";
     String LIMIT_PAGE_UPDATES = "limit_page_updates";
     String FEED_UI_ENABLED = "feed_ui_enabled";
+    String INTEREST_HEADER_UI_ENABLED = "interest_header_ui_enabled";
+    String UNDOABLE_ACTIONS_ENABLED = "undoable_actions_enabled";
+    String MANAGE_INTERESTS_ENABLED = "manage_interests_enabled";
+    String CARD_MENU_TOOLTIP_ELIGIBLE = "card_menu_tooltip_eligible";
     String USE_SECONDARY_PAGE_REQUEST = "use_secondary_page_request";
   }
 

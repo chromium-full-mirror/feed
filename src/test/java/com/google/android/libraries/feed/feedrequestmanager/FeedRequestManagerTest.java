@@ -172,85 +172,43 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                getTestFeedRequestBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
+                getTestFeedRequestBuilder()
+                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .addClientCapability(Capability.BASE_UI)
+                    .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
   public void testTriggerRefresh_FeedUiCapabilityAddedWhenFlagIsOn() throws Exception {
-    Configuration configuration =
-        new Configuration.Builder().put(ConfigKey.FEED_UI_ENABLED, true).build();
-    requestManager =
-        new FeedRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            scheduler,
-            getTaskQueue(),
-            timingUtils,
-            threadUtils,
-            actionReader,
-            context,
-            applicationInfo);
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    testCapabilityAdded(ConfigKey.FEED_UI_ENABLED, Capability.FEED_UI);
+  }
 
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+  @Test
+  public void testTriggerRefresh_interesteHeaderCapabilityAddedWhenFlagIsOn() throws Exception {
+    testCapabilityAdded(ConfigKey.INTEREST_HEADER_UI_ENABLED, Capability.INTEREST_HEADER);
+  }
 
-    HttpRequest httpRequest = requestCaptor.getValue();
-    assertHttpRequestFormattedCorrectly(httpRequest);
+  @Test
+  public void testTriggerRefresh_undoableActionCapabilityAddedWhenFlagIsOn() throws Exception {
+    testCapabilityAdded(ConfigKey.UNDOABLE_ACTIONS_ENABLED, Capability.UNDOABLE_ACTIONS);
+  }
 
-    Request request = getRequestFromHttpRequest(httpRequest);
-    Request expectedRequest =
-        Request.newBuilder()
-            .setRequestVersion(RequestVersion.FEED_QUERY)
-            .setExtension(
-                FeedRequest.feedRequest,
-                getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
-                    .addClientCapability(Capability.FEED_UI)
-                    .build())
-            .build();
-    assertThat(request).isEqualTo(expectedRequest);
+  @Test
+  public void testTriggerRefresh_manageInterestsCapabilityAddedWhenFlagIsOn() throws Exception {
+    testCapabilityAdded(ConfigKey.MANAGE_INTERESTS_ENABLED, Capability.MANAGE_INTERESTS);
+  }
+
+  @Test
+  public void testTriggerRefresh_tooltipCapabilityAddedWhenFlagIsOn() throws Exception {
+    testCapabilityAdded(ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE, Capability.CARD_MENU_TOOLTIP);
   }
 
   @Test
   public void testTriggerRefresh_useSecondaryPageRequestAdded() throws Exception {
-    Configuration configuration =
-        new Configuration.Builder().put(ConfigKey.USE_SECONDARY_PAGE_REQUEST, true).build();
-    requestManager =
-        new FeedRequestManager(
-            configuration,
-            networkClient,
-            protocolAdapter,
-            new FeedExtensionRegistry(ArrayList::new),
-            scheduler,
-            getTaskQueue(),
-            timingUtils,
-            threadUtils,
-            actionReader,
-            context,
-            applicationInfo);
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
-
-    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
-
-    HttpRequest httpRequest = requestCaptor.getValue();
-    assertHttpRequestFormattedCorrectly(httpRequest);
-
-    Request request = getRequestFromHttpRequest(httpRequest);
-    Request expectedRequest =
-        Request.newBuilder()
-            .setRequestVersion(RequestVersion.FEED_QUERY)
-            .setExtension(
-                FeedRequest.feedRequest,
-                getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
-                    .addClientCapability(Capability.USE_SECONDARY_PAGE_REQUEST)
-                    .build())
-            .build();
-    assertThat(request).isEqualTo(expectedRequest);
+    testCapabilityAdded(
+        ConfigKey.USE_SECONDARY_PAGE_REQUEST, Capability.USE_SECONDARY_PAGE_REQUEST);
   }
 
   @Test
@@ -274,7 +232,10 @@ public class FeedRequestManagerTest {
             .setRequestVersion(RequestVersion.FEED_QUERY)
             .setExtension(
                 FeedRequest.feedRequest,
-                getTestFeedRequestBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
+                getTestFeedRequestBuilder()
+                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .addClientCapability(Capability.BASE_UI)
+                    .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
 
@@ -326,6 +287,7 @@ public class FeedRequestManagerTest {
                             .addAllUniqueTable(expectedTables)
                             .addAllUniqueSemanticProperties(expectedSemanticProperties)
                             .addAllFeedActionQueryDataItem(expectedDataItems))
+                    .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
@@ -380,6 +342,7 @@ public class FeedRequestManagerTest {
                             .addAllUniqueTable(expectedTables)
                             .addAllUniqueSemanticProperties(expectedSemanticProperties)
                             .addAllFeedActionQueryDataItem(expectedDataItems))
+                    .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
@@ -434,6 +397,7 @@ public class FeedRequestManagerTest {
                             .addAllUniqueTable(expectedTables)
                             .addAllUniqueSemanticProperties(expectedSemanticProperties)
                             .addAllFeedActionQueryDataItem(expectedDataItems))
+                    .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
@@ -487,6 +451,7 @@ public class FeedRequestManagerTest {
                             .addAllUniqueTable(expectedTables)
                             .addAllUniqueSemanticProperties(expectedSemanticProperties)
                             .addAllFeedActionQueryDataItem(expectedDataItems))
+                    .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
@@ -552,6 +517,7 @@ public class FeedRequestManagerTest {
                             .addAllUniqueTable(expectedTables)
                             .addAllUniqueSemanticProperties(expectedSemanticProperties)
                             .addAllFeedActionQueryDataItem(expectedDataItems))
+                    .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
@@ -613,6 +579,7 @@ public class FeedRequestManagerTest {
                             .addAllUniqueTable(expectedTables)
                             .addAllUniqueSemanticProperties(expectedSemanticProperties)
                             .addAllFeedActionQueryDataItem(expectedDataItems))
+                    .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
@@ -673,6 +640,7 @@ public class FeedRequestManagerTest {
                             .addAllUniqueTable(expectedTables)
                             .addAllUniqueSemanticProperties(expectedSemanticProperties)
                             .addAllFeedActionQueryDataItem(expectedDataItems))
+                    .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
@@ -807,6 +775,7 @@ public class FeedRequestManagerTest {
                                     .setBuildType(BuildType.RELEASE)
                                     .build())
                             .build())
+                    .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
@@ -883,5 +852,42 @@ public class FeedRequestManagerTest {
                         .setBuildType(BuildType.DEV)
                         .build())
                 .build());
+  }
+
+  private void testCapabilityAdded(String configKey, Capability capability) throws Exception {
+    Configuration configuration = new Configuration.Builder().put(configKey, true).build();
+    requestManager =
+        new FeedRequestManager(
+            configuration,
+            networkClient,
+            protocolAdapter,
+            new FeedExtensionRegistry(ArrayList::new),
+            scheduler,
+            getTaskQueue(),
+            timingUtils,
+            threadUtils,
+            actionReader,
+            context,
+            applicationInfo);
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+
+    HttpRequest httpRequest = requestCaptor.getValue();
+    assertHttpRequestFormattedCorrectly(httpRequest);
+
+    Request request = getRequestFromHttpRequest(httpRequest);
+    Request expectedRequest =
+        Request.newBuilder()
+            .setRequestVersion(RequestVersion.FEED_QUERY)
+            .setExtension(
+                FeedRequest.feedRequest,
+                getTestFeedRequestBuilder()
+                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .addClientCapability(capability)
+                    .addClientCapability(Capability.BASE_UI)
+                    .build())
+            .build();
+    assertThat(request).isEqualTo(expectedRequest);
   }
 }
