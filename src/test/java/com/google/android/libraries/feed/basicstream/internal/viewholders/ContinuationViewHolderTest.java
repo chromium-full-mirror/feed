@@ -120,12 +120,6 @@ public class ContinuationViewHolderTest {
     assertThat(marginLayoutParams.bottomMargin).isEqualTo(cardConfiguration.getCardBottomMargin());
     assertThat(marginLayoutParams.leftMargin).isEqualTo(cardConfiguration.getCardStartMargin());
     assertThat(marginLayoutParams.rightMargin).isEqualTo(cardConfiguration.getCardEndMargin());
-    assertThat(marginLayoutParams.topMargin)
-        .isEqualTo(
-            (int)
-                context
-                    .getResources()
-                    .getDimension(R.dimen.feed_more_button_container_top_margins));
   }
 
   @Test
