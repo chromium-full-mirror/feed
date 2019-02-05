@@ -73,6 +73,8 @@ public class Configuration {
     ConfigKey.CONTENT_DIR,
     // Boolean which if true, will ask the server for the feed ui response.
     ConfigKey.FEED_UI_ENABLED,
+    // Boolean which if true, will ask the server for a different pagination strategy.
+    ConfigKey.USE_SECONDARY_PAGE_REQUEST,
   })
   public @interface ConfigKey {
     String ABANDON_RESTORE_BELOW_FOLD = "abandon_restore_below_fold";
@@ -103,6 +105,7 @@ public class Configuration {
     String FADE_IMAGE_THRESHOLD_MS = "fade_image_threshold_ms";
     String LIMIT_PAGE_UPDATES = "limit_page_updates";
     String FEED_UI_ENABLED = "feed_ui_enabled";
+    String USE_SECONDARY_PAGE_REQUEST = "use_secondary_page_request";
   }
 
   private final HashMap<String, Object> values;

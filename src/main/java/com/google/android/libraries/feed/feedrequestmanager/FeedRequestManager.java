@@ -333,6 +333,9 @@ public final class FeedRequestManager implements RequestManager {
       if (configuration.getValueOrDefault(ConfigKey.FEED_UI_ENABLED, false)) {
         feedRequestBuilder.addClientCapability(Capability.FEED_UI);
       }
+      if (configuration.getValueOrDefault(ConfigKey.USE_SECONDARY_PAGE_REQUEST, false)) {
+        feedRequestBuilder.addClientCapability(Capability.USE_SECONDARY_PAGE_REQUEST);
+      }
       requestBuilder.setExtension(FeedRequest.feedRequest, feedRequestBuilder.build());
 
       return requestBuilder.build();

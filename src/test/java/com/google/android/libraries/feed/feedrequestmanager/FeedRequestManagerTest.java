@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.feedrequestmanager;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.extensions.proto.LiteProtoTruth.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -46,7 +47,6 @@ import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
-import com.google.common.truth.extensions.proto.LiteProtoTruth;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
@@ -166,12 +166,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
     Request expectedRequest =
         Request.newBuilder()
             .setRequestVersion(RequestVersion.FEED_QUERY)
@@ -179,7 +174,7 @@ public class FeedRequestManagerTest {
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
@@ -206,12 +201,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
     Request expectedRequest =
         Request.newBuilder()
             .setRequestVersion(RequestVersion.FEED_QUERY)
@@ -222,7 +212,45 @@ public class FeedRequestManagerTest {
                     .addClientCapability(Capability.FEED_UI)
                     .build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
+  }
+
+  @Test
+  public void testTriggerRefresh_useSecondaryPageRequestAdded() throws Exception {
+    Configuration configuration =
+        new Configuration.Builder().put(ConfigKey.USE_SECONDARY_PAGE_REQUEST, true).build();
+    requestManager =
+        new FeedRequestManager(
+            configuration,
+            networkClient,
+            protocolAdapter,
+            new FeedExtensionRegistry(ArrayList::new),
+            scheduler,
+            getTaskQueue(),
+            timingUtils,
+            threadUtils,
+            actionReader,
+            context,
+            applicationInfo);
+    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+
+    HttpRequest httpRequest = requestCaptor.getValue();
+    assertHttpRequestFormattedCorrectly(httpRequest);
+
+    Request request = getRequestFromHttpRequest(httpRequest);
+    Request expectedRequest =
+        Request.newBuilder()
+            .setRequestVersion(RequestVersion.FEED_QUERY)
+            .setExtension(
+                FeedRequest.feedRequest,
+                getTestFeedRequestBuilder()
+                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .addClientCapability(Capability.USE_SECONDARY_PAGE_REQUEST)
+                    .build())
+            .build();
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
@@ -240,12 +268,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
     Request expectedRequest =
         Request.newBuilder()
             .setRequestVersion(RequestVersion.FEED_QUERY)
@@ -253,7 +276,7 @@ public class FeedRequestManagerTest {
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder().setFeedQuery(FeedQuery.getDefaultInstance()).build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
 
     Response response = Response.getDefaultInstance();
     responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
@@ -274,12 +297,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
 
     List<Long> expectedIds = Collections.singletonList(ID);
     List<String> expectedContentDomains = Collections.singletonList(CONTENT_DOMAIN);
@@ -310,7 +328,7 @@ public class FeedRequestManagerTest {
                             .addAllFeedActionQueryDataItem(expectedDataItems))
                     .build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
@@ -328,12 +346,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
 
     List<Long> expectedIds = Arrays.asList(ID, ID_2);
     List<String> expectedContentDomains = Arrays.asList(CONTENT_DOMAIN, CONTENT_DOMAIN_2);
@@ -369,7 +382,7 @@ public class FeedRequestManagerTest {
                             .addAllFeedActionQueryDataItem(expectedDataItems))
                     .build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
@@ -387,12 +400,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
 
     List<Long> expectedIds = Arrays.asList(ID, ID_2);
     List<String> expectedContentDomains = Collections.singletonList(CONTENT_DOMAIN);
@@ -428,7 +436,7 @@ public class FeedRequestManagerTest {
                             .addAllFeedActionQueryDataItem(expectedDataItems))
                     .build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
@@ -445,12 +453,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
 
     List<Long> expectedIds = Collections.singletonList(ID);
     List<String> expectedContentDomains = Collections.singletonList(CONTENT_DOMAIN);
@@ -486,7 +489,7 @@ public class FeedRequestManagerTest {
                             .addAllFeedActionQueryDataItem(expectedDataItems))
                     .build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
@@ -506,12 +509,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
 
     List<Long> expectedIds = Arrays.asList(ID, ID_2);
     List<String> expectedContentDomains = Arrays.asList(CONTENT_DOMAIN, CONTENT_DOMAIN_2);
@@ -556,7 +554,7 @@ public class FeedRequestManagerTest {
                             .addAllFeedActionQueryDataItem(expectedDataItems))
                     .build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
@@ -575,12 +573,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
 
     List<Long> expectedIds = Arrays.asList(ID, ID_2);
     List<String> expectedContentDomains = Collections.singletonList(CONTENT_DOMAIN);
@@ -622,7 +615,7 @@ public class FeedRequestManagerTest {
                             .addAllFeedActionQueryDataItem(expectedDataItems))
                     .build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
@@ -641,12 +634,7 @@ public class FeedRequestManagerTest {
     HttpRequest httpRequest = requestCaptor.getValue();
     assertHttpRequestFormattedCorrectly(httpRequest);
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
 
     List<Long> expectedIds = Arrays.asList(ID, ID_2);
     List<String> expectedContentDomains = Arrays.asList(CONTENT_DOMAIN, CONTENT_DOMAIN_2);
@@ -687,7 +675,7 @@ public class FeedRequestManagerTest {
                             .addAllFeedActionQueryDataItem(expectedDataItems))
                     .build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   @Test
@@ -701,7 +689,7 @@ public class FeedRequestManagerTest {
     responseConsumerCaptor.getValue().accept(createHttpResponse(/* responseCode= */ 200, response));
 
     verify(protocolAdapter).createModel(responseCaptor.capture());
-    LiteProtoTruth.assertThat(responseCaptor.getValue()).isEqualTo(response);
+    assertThat(responseCaptor.getValue()).isEqualTo(response);
 
     verify(consumer).accept(consumerCapture.capture());
     List<Result<List<StreamDataOperation>>> consumerCaptures = consumerCapture.getAllValues();
@@ -786,12 +774,7 @@ public class FeedRequestManagerTest {
 
     HttpRequest httpRequest = requestCaptor.getValue();
 
-    Request request =
-        Request.parseFrom(
-            Base64.decode(
-                httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
-                Base64.URL_SAFE),
-            registry);
+    Request request = getRequestFromHttpRequest(httpRequest);
     Request expectedRequest =
         Request.newBuilder()
             .setRequestVersion(RequestVersion.FEED_QUERY)
@@ -826,7 +809,7 @@ public class FeedRequestManagerTest {
                             .build())
                     .build())
             .build();
-    LiteProtoTruth.assertThat(request).isEqualTo(expectedRequest);
+    assertThat(request).isEqualTo(expectedRequest);
   }
 
   private static void assertHttpRequestFormattedCorrectly(HttpRequest httpRequest) {
@@ -866,6 +849,14 @@ public class FeedRequestManagerTest {
             false);
     taskQueue.initialize(() -> {});
     return taskQueue;
+  }
+
+  private Request getRequestFromHttpRequest(HttpRequest httpRequest) throws Exception {
+    return Request.parseFrom(
+        Base64.decode(
+            httpRequest.getUri().getQueryParameter(FeedRequestManager.MOTHERSHIP_PARAM_PAYLOAD),
+            Base64.URL_SAFE),
+        registry);
   }
 
   private static FeedRequest.Builder getTestFeedRequestBuilder() {
