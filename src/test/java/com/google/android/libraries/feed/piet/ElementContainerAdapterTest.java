@@ -42,6 +42,8 @@ import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
+import com.google.search.now.ui.piet.ElementsProto.Visibility;
+import com.google.search.now.ui.piet.ElementsProto.VisibilityState;
 import com.google.search.now.ui.piet.ImagesProto.Image;
 import com.google.search.now.ui.piet.PietProto.Template;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
@@ -611,6 +613,32 @@ public class ElementContainerAdapterTest {
 
     verify(mockTemplateAdapter).unbindModel();
     verify(mockTemplateAdapter).releaseAdapter();
+  }
+
+  @Test
+  public void testUnbind_visibilityWasGone() {
+    List<Content> contents = new ArrayList<>();
+    contents.add(Content.newBuilder().setTemplateInvocation(DEFAULT_TEMPLATE_INVOCATION).build());
+    contents.add(Content.newBuilder().setElement(DEFAULT_ELEMENT).build());
+
+    Element goneElement =
+        Element.newBuilder()
+            .setVisibilityState(VisibilityState.newBuilder().setDefaultVisibility(Visibility.GONE))
+            .build();
+
+    adapter.createAdapter(contents, goneElement, frameContext);
+    adapter.bindModel(contents, goneElement, frameContext);
+
+    // Nothing was created because the visibility was GONE
+    assertThat(adapter.childAdapters).isEmpty();
+    assertThat(adapter.adaptersPerContent).isEmpty();
+
+    adapter.unbindModel();
+
+    // Nothing crashes, and the adapter is still uncreated.
+    assertThat(adapter.childAdapters).isEmpty();
+    assertThat(adapter.adaptersPerContent).isEmpty();
+    assertThat(adapter.getBaseView().getChildCount()).isEqualTo(0);
   }
 
   private static class TestElementContainerAdapter

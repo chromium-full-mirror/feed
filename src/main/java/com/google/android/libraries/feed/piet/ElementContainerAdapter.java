@@ -70,7 +70,7 @@ abstract class ElementContainerAdapter<V extends ViewGroup, M> extends ElementAd
   /** Unbind the model and release child adapters. Be sure to call this in any overrides. */
   @Override
   void onUnbindModel() {
-    if (getRawModel() != null) {
+    if (getRawModel() != null && !childAdapters.isEmpty()) {
       unbindChildAdapters(getContentsFromModel(getModel()));
     }
 

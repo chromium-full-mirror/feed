@@ -53,8 +53,18 @@ abstract class ElementAdapter<V extends View, M> {
   private Element baseElement = Element.getDefaultInstance();
   /*@Nullable*/ private RecyclerKey key;
   private StyleProvider elementStyle;
+
+  /**
+   * Set to {@code true} when {@link #createAdapter} has completed successfully; unset at the end of
+   * {@link #releaseAdapter}.
+   */
   private boolean created = false;
-  private boolean binding = false;
+
+  /**
+   * We only check the bound visibility when we're in the process of binding, not in {@link
+   * #createAdapter}.
+   */
+  private boolean checkBoundVisibility = false;
 
   /*@Nullable*/ private FrameLayout wrapperView = null;
 
@@ -187,7 +197,7 @@ abstract class ElementAdapter<V extends View, M> {
   void bindModel(M model, Element baseElement, FrameContext frameContext) {
     this.model = model;
     this.baseElement = baseElement;
-    binding = true;
+    checkBoundVisibility = true;
     if (getElementStyleIdsStack().hasStyleBinding()) {
       elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
     }
@@ -322,10 +332,13 @@ abstract class ElementAdapter<V extends View, M> {
    * recursively. Do not override; override {@link #onUnbindModel} instead.
    */
   public void unbindModel() {
-    onUnbindModel();
+    // If the visibility was GONE, we may not have ever called onBindModel.
+    if (created) {
+      onUnbindModel();
+    }
     model = null;
     baseElement = Element.getDefaultInstance();
-    binding = false;
+    checkBoundVisibility = false;
 
     // Unset actions
     ViewUtils.clearOnLongClickActions(getBaseView());
@@ -518,7 +531,7 @@ abstract class ElementAdapter<V extends View, M> {
   @VisibleForTesting
   Visibility getVisibilityForElement(Element element, FrameContext frameContext) {
     VisibilityState visibilityState = element.getVisibilityState();
-    if (binding && visibilityState.hasOverridingBoundVisibility()) {
+    if (checkBoundVisibility && visibilityState.hasOverridingBoundVisibility()) {
       /*@Nullable*/
       Visibility overridingVisibility =
           frameContext.getVisibilityFromBinding(visibilityState.getOverridingBoundVisibility());

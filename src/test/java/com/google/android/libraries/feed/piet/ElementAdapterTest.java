@@ -772,6 +772,29 @@ public class ElementAdapterTest {
     assertThat(adapter.getRawModel()).isNull();
   }
 
+  // If onBindModel was never called, onUnbindModel should not be called.
+  @Test
+  public void testUnbindModel_visibilityWasGone() {
+    Element goneElement =
+        Element.newBuilder()
+            .setVisibilityState(VisibilityState.newBuilder().setDefaultVisibility(Visibility.GONE))
+            .build();
+    adapter.createAdapter(goneElement, frameContext);
+    adapter.bindModel(goneElement, frameContext);
+
+    assertThat(adapter.testAdapterCreated).isFalse();
+    assertThat(adapter.testAdapterBound).isFalse();
+
+    // Set this to something else so we can check if onUnbindModel gets called - it should not.
+    adapter.testAdapterBound = true;
+
+    adapter.unbindModel();
+
+    // onUnbindModel was not called so this is still true.
+    assertThat(adapter.testAdapterBound).isTrue();
+    assertThat(adapter.testAdapterCreated).isFalse();
+  }
+
   @Test
   public void testUnbindModel_unsetsActions() {
     Element elementWithOverlaysAndActions =
