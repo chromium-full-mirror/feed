@@ -5,7 +5,7 @@ android_sdk_repository(
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Google Maven Repository
-GMAVEN_TAG = "20181206-1"
+GMAVEN_TAG = "20181212-2"
 
 http_archive(
     name = "gmaven_rules",
