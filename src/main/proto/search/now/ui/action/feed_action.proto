@@ -17,9 +17,11 @@ syntax = "proto2";
 package search.now.ui.action;
 
 option optimize_for=LITE_RUNTIME;
+
 import "src/main/proto/search/now/ui/action/feed_action_payload.proto";
 import "src/main/proto/search/now/wire/feed/content_id.proto";
 import "src/main/proto/search/now/wire/feed/data_operation.proto";
+
 option java_package = "com.google.search.now.ui.action";
 option java_outer_classname = "FeedActionProto";
 
@@ -61,6 +63,8 @@ message FeedActionMetadata {
     LEARN_MORE = 8;
     NOT_INTERESTED_IN_TOPIC = 9;
     NOT_INTERESTED_IN_SOURCE = 10;
+    VIEW_ELEMENT = 12;
+    HIDE_ELEMENT = 13;
   }
   optional Type type = 1;
 
@@ -78,7 +82,16 @@ message FeedActionMetadata {
     // The data needed by the Stream to handle the not interested action.
     NotInterestedInData not_interested_in_data = 6;
   }
-
+  // The type of element this action is bounded on.
+  enum ElementType {
+    UNKNOWN_ELEMENT_TYPE = 0;
+    CARD_LARGE_IMAGE = 1;
+    CARD_SMALL_IMAGE = 2;
+    INTEREST_HEADER = 3;
+    TOOLTIP = 4;
+  }
+  // Used by the host to perform Basic logging for views and clicks.
+  optional ElementType element_type = 7;
   reserved 5;
 }
 

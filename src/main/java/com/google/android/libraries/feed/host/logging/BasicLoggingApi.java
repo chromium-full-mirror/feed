@@ -97,11 +97,6 @@ public interface BasicLoggingApi {
    */
   void onNotInterestedInTopic(ContentLoggingData data, boolean wasCommitted);
 
-  /** Called when card header is visible on the screen */
-  void onInterestHeaderView(ContentLoggingData data);
-
-  /** Called when the card header is clicked */
-  void onInterestHeaderClicked(ContentLoggingData data);
   /**
    * Called when Stream is shown and content was shown to the user. Content could have been cached
    * or a network fetch may have been needed.
@@ -141,4 +136,22 @@ public interface BasicLoggingApi {
    *     com.google.search.now.ui.piet.ErrorsProto.ErrorCode} enum
    */
   void onPietFrameRenderingEvent(List<Integer> pietErrorCodes);
+
+  /**
+   * Called when a user has clicked on an element. This is similar to onContentClicked, but records
+   * the specific elementType that was clicked.
+   *
+   * @param data data for content on which action was performed.
+   * @param elementType describes the type of element which was clicked.
+   */
+  void onVisualElementClicked(ElementLoggingData data, @ElementType int elementType);
+
+  /**
+   * Called when a user has viewed an element. This is similar to onContentViewed, but records the
+   * view after it has been on the screen for a given amount of time instead of on predraw.
+   *
+   * @param data data for content on which action was performed.
+   * @param elementType describes the type of element which was clicked.
+   */
+  void onVisualElementViewed(ElementLoggingData data, @ElementType int elementType);
 }
