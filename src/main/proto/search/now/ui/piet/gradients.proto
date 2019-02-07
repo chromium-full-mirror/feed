@@ -48,6 +48,10 @@ message LinearGradient {
   // 270: ← From Right to Left.
   // Values must be in the range [0..360). Negative values are not valid.
   optional uint32 direction_deg = 2;
+
+  // If this boolean is true, the 'x' component of the gradient's angle will be
+  // reversed when Piet is rendering a layout for a right-to-left language.
+  optional bool reverse_for_rtl = 3;
 }
 
 // A GradientStop is one color in a gradient. A simple gradient is composed of
