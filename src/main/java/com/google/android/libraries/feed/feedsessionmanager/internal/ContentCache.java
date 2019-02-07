@@ -18,15 +18,16 @@ import com.google.android.libraries.feed.common.logging.Dumpable;
 import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * In order to support optimistic writes, the cache must cache the payloads for the full mutation.
- * The cache supports a mutation lifecycle methods to start and finish the mutation. The cache will
- * hold onto the mutation payloads, until the next mutation is started. We do this allow multiple
- * ModelProviders sessions to access the mutation payloads after the initial mutation is processed.
- * This cache assumes that we update all ModelProviders within the life of a single mutation. This
+ * In order to support optimistic writes, the cache must store the payloads for the full duration of
+ * the mutation. The cache supports lifecycle methods to start and finish the mutation. The cache
+ * will hold onto payloads during the duration of the mutation, but will clear data when a mutation
+ * is started or finished.
+ *
+ * <p>This cache assumes that we update all ModelProviders within the lifecycle of a mutation. This
  * is the current behavior of FeedModelProvider.
  */
 public final class ContentCache implements Dumpable {
@@ -40,7 +41,7 @@ public final class ContentCache implements Dumpable {
   private int mutationsCount = 0;
 
   public ContentCache() {
-    mutationCache = new HashMap<>();
+    mutationCache = new ConcurrentHashMap<>();
   }
 
   /**
@@ -61,6 +62,7 @@ public final class ContentCache implements Dumpable {
     if (mutationCache.size() > maxMutationCacheSize) {
       maxMutationCacheSize = mutationCache.size();
     }
+    mutationCache.clear();
   }
 
   /** Return the {@link StreamPayload} or {@code null} if it is not found in the cache. */

@@ -61,6 +61,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -386,9 +387,11 @@ public class FeedSessionManagerTest {
         mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
     when(store.editSession(any(StreamSession.class))).thenReturn(session);
     ContentMutation content = mock(ContentMutation.class);
+    when(content.commit()).thenReturn(CommitResult.SUCCESS);
     when(store.editContent()).thenReturn(content);
 
     SemanticPropertiesMutation semanticPropertiesMutation = mock(SemanticPropertiesMutation.class);
+    when(semanticPropertiesMutation.commit()).thenReturn(CommitResult.SUCCESS);
     when(store.editSemanticProperties()).thenReturn(semanticPropertiesMutation);
 
     FeedSessionManager sessionManager =

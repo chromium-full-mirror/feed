@@ -38,6 +38,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
+import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.search.now.feed.client.StreamDataProto;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -73,6 +74,8 @@ public final class SessionManagerMutation implements Dumpable {
   private int createCount = 0;
   private int commitCount = 0;
   private int errorCount = 0;
+  private int contentCommitErrorCount = 0;
+  private int semanticPropertiesCommitErrorCount = 0;
 
   /** Listens for errors which need to be reported to a ModelProvider. */
   public interface ModelErrorObserver {
@@ -129,6 +132,11 @@ public final class SessionManagerMutation implements Dumpable {
     dumper.forKey("mutationsCreated").value(createCount);
     dumper.forKey("commitCount").value(commitCount).compactPrevious();
     dumper.forKey("errorCount").value(errorCount).compactPrevious();
+    dumper.forKey("contentCommitErrorCount").value(contentCommitErrorCount).compactPrevious();
+    dumper
+        .forKey("semanticPropertiesCommitErrorCount")
+        .value(semanticPropertiesCommitErrorCount)
+        .compactPrevious();
   }
 
   // TODO: Tiktok doesn't allow MutationCommitter to extend HeadMutationCommitter
@@ -331,13 +339,19 @@ public final class SessionManagerMutation implements Dumpable {
         Logger.e(
             TAG, "Unsupported Mutation: %s", dataOperation.getStreamStructure().getOperation());
       }
-      contentCache.finishMutation();
       taskQueue.execute(
           "persistMutation",
           TaskType.BACKGROUND,
           () -> {
-            contentMutation.commit();
-            semanticPropertiesMutation.commit();
+            if (contentMutation.commit().getResult() == CommitResult.Result.FAILURE) {
+              contentCommitErrorCount++;
+              Logger.e(TAG, "contentMutation failed");
+            }
+            if (semanticPropertiesMutation.commit().getResult() == CommitResult.Result.FAILURE) {
+              semanticPropertiesCommitErrorCount++;
+              Logger.e(TAG, "semanticPropertiesMutation failed");
+            }
+            contentCache.finishMutation();
           });
       timeTracker.stop("", "contentUpdate", "items", dataOperations.size());
     }

@@ -97,6 +97,7 @@ public class SessionManagerMutationTest {
   private SessionCache sessionCache;
   private Session notifySession;
   private ModelError notifyError;
+  private ContentCache contentCache;
 
   @Before
   public void setUp() {
@@ -126,6 +127,7 @@ public class SessionManagerMutationTest {
     sessionCache =
         new SessionCache(storeSpy, taskQueue, sessionFactory, 10L, timingUtils, threadUtils, clock);
     sessionCache.initialize();
+    contentCache = new ContentCache();
   }
 
   @Test
@@ -195,6 +197,7 @@ public class SessionManagerMutationTest {
     for (PayloadWithId payload : result.getValue()) {
       assertThat(contentIds).contains(payload.contentId);
     }
+    assertThat(contentCache.size()).isEqualTo(0);
     verify(schedulerApi, never()).onReceiveNewContent(anyLong());
     verify(knownContentListener).onNewContentReceived(false, 8L);
   }
@@ -321,7 +324,6 @@ public class SessionManagerMutationTest {
   }
 
   private MutationCommitter getMutationCommitter(MutationContext mutationContext) {
-    ContentCache contentCache = new ContentCache();
     SessionManagerMutation mutation =
         new SessionManagerMutation(
             storeSpy,

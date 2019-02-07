@@ -18,8 +18,10 @@ import android.support.annotation.IntDef;
 
 /** Status after completion of a commit to storage. */
 public final class CommitResult {
+
+  /** IntDef that defines result values. */
   @IntDef({Result.SUCCESS, Result.FAILURE})
-  @interface Result {
+  public @interface Result {
     int SUCCESS = 0;
     int FAILURE = 1;
   }

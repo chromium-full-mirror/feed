@@ -62,14 +62,25 @@ public class ContentCacheTest {
     cache.put(contentId, payload);
     assertThat(cache.size()).isEqualTo(1);
     assertThat(cache.get(contentId)).isEqualTo(payload);
+  }
 
-    cache.finishMutation();
-    assertThat(cache.size()).isEqualTo(1);
-    assertThat(cache.get(contentId)).isEqualTo(payload);
+  @Test
+  public void testStartMutation_resetsCache() {
+    ContentCache cache = new ContentCache();
+    cache.put(idGenerators.createFeatureContentId(1), StreamPayload.getDefaultInstance());
 
     cache.startMutation();
     assertThat(cache.size()).isEqualTo(0);
-    assertThat(cache.get(contentId)).isNull();
+  }
+
+  @Test
+  public void testFinishMutation_resetsCache() {
+    ContentCache cache = new ContentCache();
+
+    cache.startMutation();
+    cache.put(idGenerators.createFeatureContentId(1), StreamPayload.getDefaultInstance());
+    cache.finishMutation();
+    assertThat(cache.size()).isEqualTo(0);
   }
 
   @Test
