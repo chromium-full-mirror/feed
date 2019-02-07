@@ -179,8 +179,8 @@ public class FeedProcessScopeTest {
                 applicationInfo)
             .setContentStorage(contentStorageDirect)
             .setJournalStorage(journalStorageDirect);
-    assertThat(builder.contentStorage).isEqualTo(contentStorageDirect);
-    assertThat(builder.journalStorage).isEqualTo(journalStorageDirect);
+    assertThat(builder.buildContentStorage()).isEqualTo(contentStorageDirect);
+    assertThat(builder.buildJournalStorage()).isEqualTo(journalStorageDirect);
   }
 
   @Test

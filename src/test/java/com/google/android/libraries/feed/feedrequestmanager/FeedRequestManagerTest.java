@@ -119,6 +119,7 @@ public class FeedRequestManagerTest {
   @Captor private ArgumentCaptor<Result<List<StreamDataOperation>>> consumerCapture;
   private ExtensionRegistryLite registry;
   private FeedRequestManager requestManager;
+  private FakeMainThreadRunner fakeMainThreadRunner;
   private final TimingUtils timingUtils = new TimingUtils();
 
   private final Configuration configuration = new Configuration.Builder().build();
@@ -131,6 +132,7 @@ public class FeedRequestManagerTest {
     FeedExtensionRegistry feedExtensionRegistry = new FeedExtensionRegistry(ArrayList::new);
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
+    fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
     ReflectionHelpers.setStaticField(Build.VERSION.class, "SDK_INT", VERSION_CODES.KITKAT);
     ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "4.4.3");
     ReflectionHelpers.setStaticField(Build.class, "CPU_ABI", "armeabi");
@@ -151,7 +153,8 @@ public class FeedRequestManagerTest {
             threadUtils,
             actionReader,
             context,
-            applicationInfo);
+            applicationInfo,
+            fakeMainThreadRunner);
 
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.emptyList()));
@@ -811,11 +814,7 @@ public class FeedRequestManagerTest {
 
   private TaskQueue getTaskQueue() {
     TaskQueue taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            clock,
-            false);
+        new TaskQueue(MoreExecutors.directExecutor(), fakeMainThreadRunner, clock, false);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }
@@ -868,7 +867,8 @@ public class FeedRequestManagerTest {
             threadUtils,
             actionReader,
             context,
-            applicationInfo);
+            applicationInfo,
+            fakeMainThreadRunner);
     requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());

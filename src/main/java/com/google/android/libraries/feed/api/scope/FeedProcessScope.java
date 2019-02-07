@@ -259,12 +259,11 @@ public final class FeedProcessScope implements Dumpable {
     private final Configuration configuration;
     ExecutorService singleThreadExecutor;
     private final LoggingApi loggingApi;
-    private final NetworkClient networkClient;
-    private final SchedulerApi schedulerApi;
+    private final NetworkClient unwrappedNetworkClient;
+    private final SchedulerApi unwrappedSchedulerApi;
     private final FeedAppLifecycleListener lifecycleListener;
     private final DebugBehavior debugBehavior;
     private final Context context;
-    private final MainThreadRunner mainThreadRunner = new MainThreadRunner();
     private final ApplicationInfo applicationInfo;
 
     // Optional fields - if they are not provided, we will use default implementations.
@@ -272,10 +271,13 @@ public final class FeedProcessScope implements Dumpable {
     /*@MonotonicNonNull*/ private SessionManager sessionManager = null;
     /*@MonotonicNonNull*/ private ProtocolAdapter protocolAdapter = null;
     /*@MonotonicNonNull*/ private ProtoExtensionProvider protoExtensionProvider = null;
-    /*@MonotonicNonNull*/ @VisibleForTesting ContentStorageDirect contentStorage = null;
-    /*@MonotonicNonNull*/ @VisibleForTesting JournalStorageDirect journalStorage = null;
+    /*@MonotonicNonNull*/ ContentStorageDirect contentStorage = null;
+    /*@MonotonicNonNull*/ JournalStorageDirect journalStorage = null;
+    /*@MonotonicNonNull*/ ContentStorage rawContentStorage = null;
+    /*@MonotonicNonNull*/ JournalStorage rawJournalStorage = null;
     /*@MonotonicNonNull*/ private Clock clock;
     /*@MonotonicNonNull*/ private KnownContentApi knownContentApi;
+    /*@MonotonicNonNull*/ private MainThreadRunner mainThreadRunner;
 
     // This will be overridden in tests.
     private ThreadUtils threadUtils = new ThreadUtils();
@@ -298,19 +300,8 @@ public final class FeedProcessScope implements Dumpable {
       this.debugBehavior = debugBehavior;
       this.context = context;
       this.applicationInfo = applicationInfo;
-
-      boolean directHostCallEnabled =
-          configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
-      if (networkClient instanceof DirectHostSupported && directHostCallEnabled) {
-        this.networkClient = networkClient;
-      } else {
-        this.networkClient = new NetworkClientWrapper(networkClient, threadUtils, mainThreadRunner);
-      }
-      if (schedulerApi instanceof DirectHostSupported && directHostCallEnabled) {
-        this.schedulerApi = schedulerApi;
-      } else {
-        this.schedulerApi = new SchedulerApiWrapper(schedulerApi, threadUtils, mainThreadRunner);
-      }
+      this.unwrappedNetworkClient = networkClient;
+      this.unwrappedSchedulerApi = schedulerApi;
     }
 
     public Builder setProtocolAdapter(ProtocolAdapter protocolAdapter) {
@@ -334,14 +325,7 @@ public final class FeedProcessScope implements Dumpable {
     }
 
     public Builder setContentStorage(ContentStorage contentStorage) {
-      ContentStorageDirect contentStorageDirect;
-      boolean useDirect = configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
-      if (useDirect && contentStorage instanceof ContentStorageDirect) {
-        contentStorageDirect = (ContentStorageDirect) contentStorage;
-      } else {
-        contentStorageDirect = new ContentStorageDirectImpl(contentStorage, mainThreadRunner);
-      }
-      this.contentStorage = contentStorageDirect;
+      rawContentStorage = contentStorage;
       return this;
     }
 
@@ -351,19 +335,17 @@ public final class FeedProcessScope implements Dumpable {
     }
 
     public Builder setJournalStorage(JournalStorage journalStorage) {
-      JournalStorageDirect journalStorageDirect;
-      boolean useDirect = configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
-      if (useDirect && journalStorage instanceof JournalStorageDirect) {
-        journalStorageDirect = (JournalStorageDirect) journalStorage;
-      } else {
-        journalStorageDirect = new JournalStorageDirectImpl(journalStorage, mainThreadRunner);
-      }
-      this.journalStorage = journalStorageDirect;
+      rawJournalStorage = journalStorage;
       return this;
     }
 
     public Builder setJournalStorageDirect(JournalStorageDirect journalStorage) {
       this.journalStorage = journalStorage;
+      return this;
+    }
+
+    public Builder setMainThreadRunner(MainThreadRunner mainThreadRunner) {
+      this.mainThreadRunner = mainThreadRunner;
       return this;
     }
 
@@ -378,24 +360,84 @@ public final class FeedProcessScope implements Dumpable {
       return this;
     }
 
+    private MainThreadRunner getOrCreateMainThreadRunner() {
+      if (mainThreadRunner == null) {
+        mainThreadRunner = new MainThreadRunner();
+      }
+      return mainThreadRunner;
+    }
+
+    @VisibleForTesting
+    ContentStorageDirect buildContentStorage() {
+      if (contentStorage == null) {
+        boolean useDirect = configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
+        if (useDirect
+            && rawContentStorage != null
+            && rawContentStorage instanceof ContentStorageDirect) {
+          contentStorage = (ContentStorageDirect) rawContentStorage;
+        } else if (rawContentStorage != null) {
+          contentStorage =
+              new ContentStorageDirectImpl(rawContentStorage, getOrCreateMainThreadRunner());
+        } else {
+          contentStorage = new InMemoryContentStorage();
+        }
+      }
+      return contentStorage;
+    }
+
+    @VisibleForTesting
+    JournalStorageDirect buildJournalStorage() {
+      if (journalStorage == null) {
+        boolean useDirect = configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
+        if (useDirect
+            && rawJournalStorage != null
+            && rawJournalStorage instanceof JournalStorageDirect) {
+          journalStorage = (JournalStorageDirect) rawJournalStorage;
+        } else if (rawJournalStorage != null) {
+          journalStorage =
+              new JournalStorageDirectImpl(rawJournalStorage, getOrCreateMainThreadRunner());
+        } else {
+          journalStorage = new InMemoryJournalStorage();
+        }
+      }
+      return journalStorage;
+    }
+
     public FeedProcessScope build() {
+      contentStorage = buildContentStorage();
+      journalStorage = buildJournalStorage();
+
+      boolean directHostCallEnabled =
+          configuration.getValueOrDefault(ConfigKey.USE_DIRECT_STORAGE, false);
+      NetworkClient networkClient;
+      SchedulerApi schedulerApi;
+      if (unwrappedNetworkClient instanceof DirectHostSupported && directHostCallEnabled) {
+        networkClient = unwrappedNetworkClient;
+      } else {
+        networkClient =
+            new NetworkClientWrapper(
+                unwrappedNetworkClient, threadUtils, getOrCreateMainThreadRunner());
+      }
+      if (unwrappedSchedulerApi instanceof DirectHostSupported && directHostCallEnabled) {
+        schedulerApi = unwrappedSchedulerApi;
+      } else {
+        schedulerApi =
+            new SchedulerApiWrapper(
+                unwrappedSchedulerApi, threadUtils, getOrCreateMainThreadRunner());
+      }
+
       // Build default component instances if necessary.
       if (protoExtensionProvider == null) {
         // Return an empty list of extensions by default.
         protoExtensionProvider = ArrayList::new;
       }
       FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(protoExtensionProvider);
-      if (contentStorage == null) {
-        contentStorage = new InMemoryContentStorage();
-      }
-      if (journalStorage == null) {
-        journalStorage = new InMemoryJournalStorage();
-      }
       if (clock == null) {
         clock = new SystemClockImpl();
       }
       TimingUtils timingUtils = new TimingUtils();
-      TaskQueue taskQueue = new TaskQueue(singleThreadExecutor, mainThreadRunner, clock, true);
+      TaskQueue taskQueue =
+          new TaskQueue(singleThreadExecutor, getOrCreateMainThreadRunner(), clock, true);
       FeedStore store =
           new FeedStore(
               timingUtils,
@@ -426,7 +468,8 @@ public final class FeedProcessScope implements Dumpable {
                 threadUtils,
                 actionReader,
                 context,
-                applicationInfo);
+                applicationInfo,
+                getOrCreateMainThreadRunner());
       }
       if (sessionManager == null) {
         FeedSessionManagerFactory fsmFactory =
@@ -449,7 +492,8 @@ public final class FeedProcessScope implements Dumpable {
           new FeedActionManagerImpl(sessionManager, store, threadUtils, taskQueue);
 
       if (knownContentApi == null) {
-        knownContentApi = new FeedKnownContentApi(sessionManager, mainThreadRunner, threadUtils);
+        knownContentApi =
+            new FeedKnownContentApi(sessionManager, getOrCreateMainThreadRunner(), threadUtils);
       }
 
       ClearAllListener clearAllListener =
@@ -464,7 +508,7 @@ public final class FeedProcessScope implements Dumpable {
           timingUtils,
           threadUtils,
           taskQueue,
-          mainThreadRunner,
+          getOrCreateMainThreadRunner(),
           lifecycleListener,
           clock,
           debugBehavior,

@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.api.actionmanager.ActionReader;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -79,6 +80,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   private final TimingUtils timingUtils = new TimingUtils();
   private Context context;
   private ApplicationInfo applicationInfo;
+  private MainThreadRunner mainThreadRunner;
 
   @Override
   protected Uri getValidUri(@HttpMethod String method) {
@@ -91,6 +93,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
     applicationInfo = new ApplicationInfo.Builder(context).setVersionString("0").build();
+    mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
     MockServer mockServer = MockServer.getDefaultInstance();
     networkClient =
@@ -175,7 +178,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             threadUtils,
             actionReader,
             context,
-            applicationInfo);
+            applicationInfo,
+            mainThreadRunner);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -214,7 +218,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             threadUtils,
             actionReader,
             context,
-            applicationInfo);
+            applicationInfo,
+            mainThreadRunner);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -233,11 +238,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
   private TaskQueue getTaskQueue() {
     TaskQueue taskQueue =
-        new TaskQueue(
-            MoreExecutors.directExecutor(),
-            FakeMainThreadRunner.runTasksImmediately(),
-            clock,
-            false);
+        new TaskQueue(MoreExecutors.directExecutor(), mainThreadRunner, clock, false);
     taskQueue.initialize(() -> {});
     return taskQueue;
   }

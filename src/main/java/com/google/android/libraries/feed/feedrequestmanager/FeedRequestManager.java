@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -93,6 +94,7 @@ public final class FeedRequestManager implements RequestManager {
   private final ThreadUtils threadUtils;
   private final ActionReader actionReader;
   private final Context context;
+  private final MainThreadRunner mainThreadRunner;
   private ApplicationInfo applicationInfo;
 
   /*@Nullable*/
@@ -110,7 +112,8 @@ public final class FeedRequestManager implements RequestManager {
       ThreadUtils threadUtils,
       ActionReader actionReader,
       Context context,
-      ApplicationInfo applicationInfo) {
+      ApplicationInfo applicationInfo,
+      MainThreadRunner mainThreadRunner) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -122,6 +125,7 @@ public final class FeedRequestManager implements RequestManager {
     this.actionReader = actionReader;
     this.context = context;
     this.applicationInfo = applicationInfo;
+    this.mainThreadRunner = mainThreadRunner;
   }
 
   @Override
@@ -241,28 +245,34 @@ public final class FeedRequestManager implements RequestManager {
   }
 
   private void handleResponseBytes(
-      byte[] responseBytes, Consumer<Result<List<StreamDataOperation>>> consumer) {
-    Response response;
-    boolean isLengthPrefixed =
-        configuration.getValueOrDefault(ConfigKey.FEED_SERVER_RESPONSE_LENGTH_PREFIXED, true);
-    try {
-      response =
-          Response.parseFrom(
-              isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,
-              extensionRegistry.getExtensionRegistry());
-    } catch (IOException e) {
-      Logger.e(TAG, e, "Response parse failed");
-      consumer.accept(Result.failure());
-      return;
-    }
-    Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
-    Result<List<StreamDataOperation>> contextResult;
-    if (result.isSuccessful()) {
-      contextResult = Result.success(result.getValue());
-    } else {
-      contextResult = Result.failure();
-    }
-    consumer.accept(contextResult);
+      final byte[] responseBytes, final Consumer<Result<List<StreamDataOperation>>> consumer) {
+    taskQueue.execute(
+        "handleResponseBytes",
+        TaskType.IMMEDIATE,
+        () -> {
+          Response response;
+          boolean isLengthPrefixed =
+              configuration.getValueOrDefault(ConfigKey.FEED_SERVER_RESPONSE_LENGTH_PREFIXED, true);
+          try {
+            response =
+                Response.parseFrom(
+                    isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,
+                    extensionRegistry.getExtensionRegistry());
+          } catch (IOException e) {
+            Logger.e(TAG, e, "Response parse failed");
+            consumer.accept(Result.failure());
+            return;
+          }
+          Result<List<StreamDataOperation>> result = protocolAdapter.createModel(response);
+          final Result<List<StreamDataOperation>> contextResult;
+          if (result.isSuccessful()) {
+            contextResult = Result.success(result.getValue());
+          } else {
+            contextResult = Result.failure();
+          }
+          mainThreadRunner.execute(
+              "FeedRequestManager consumer", () -> consumer.accept(contextResult));
+        });
   }
 
   /**
