@@ -14,16 +14,16 @@
 
 syntax = "proto2";
 
+package search.now.ui.piet;
+
+option optimize_for=LITE_RUNTIME;
+
 import "src/main/proto/search/now/ui/piet/accessibility.proto";
 import "src/main/proto/search/now/ui/piet/actions.proto";
 import "src/main/proto/search/now/ui/piet/binding_refs.proto";
 import "src/main/proto/search/now/ui/piet/images.proto";
 import "src/main/proto/search/now/ui/piet/styles.proto";
 import "src/main/proto/search/now/ui/piet/text.proto";
-
-package search.now.ui.piet;
-
-option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "ElementsProto";
@@ -136,7 +136,8 @@ message Element {
     ImageElement image_element = 3;
 
     // Add a spacer line which can be defined as a divider.
-    SpacerElement spacer_element = 4;
+    // Deprecated: use an empty ElementStack instead.
+    SpacerElement spacer_element = 4 [deprecated = true];
 
     // A simple text line
     TextElement text_element = 2;
@@ -277,7 +278,7 @@ message ImageElement {
   // Styles applied to this ImageElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   // Deprecated: use the StyleIdsStack on Element instead.
-  optional StyleIdsStack style_references = 1 [ deprecated = true ];
+  optional StyleIdsStack style_references = 1 [deprecated = true];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -286,14 +287,17 @@ message ImageElement {
 // A SpacerElement represents an empty space. Uses include gaps or dividers
 // within a card. Styles can be set on a spacer, e.g. background_color, but
 // no bindings are supported since it is always empty.
+// Deprecated: use an empty ElementStack instead.
 message SpacerElement {
+  option deprecated = true;
+
   // Height in DP of this spacer.
   optional int32 height = 2;
 
   // Styles applied to this SpacerElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   // Deprecated: use the StyleIdsStack on Element instead.
-  optional StyleIdsStack style_references = 1 [ deprecated = true ];
+  optional StyleIdsStack style_references = 1 [deprecated = true];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -323,7 +327,7 @@ message TextElement {
   // Styles applied to this TextElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   // Deprecated: use the StyleIdsStack on Element instead.
-  optional StyleIdsStack style_references = 1 [ deprecated = true ];
+  optional StyleIdsStack style_references = 1 [deprecated = true];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -344,7 +348,7 @@ message GridRow {
 
   // Styles applied to this GridRow.
   // Deprecated: use the StyleIdsStack on Element instead.
-  optional StyleIdsStack style_references = 1 [ deprecated = true ];
+  optional StyleIdsStack style_references = 1 [deprecated = true];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -430,7 +434,7 @@ message ElementList {
 
   // Styles applied to this ElementList.
   // Deprecated: use the StyleIdsStack on Element instead.
-  optional StyleIdsStack style_references = 3 [ deprecated = true ];
+  optional StyleIdsStack style_references = 3 [deprecated = true];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
@@ -479,7 +483,7 @@ message CustomElement {
   // Styles applied to this CustomElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   // Deprecated: use the StyleIdsStack on Element instead.
-  optional StyleIdsStack style_references = 1 [ deprecated = true ];
+  optional StyleIdsStack style_references = 1 [deprecated = true];
 
   // Please use CL numbers you own for extension numbers.
   extensions 10000 to max;
