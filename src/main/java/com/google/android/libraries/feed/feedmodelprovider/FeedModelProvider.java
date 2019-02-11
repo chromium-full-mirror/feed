@@ -791,6 +791,9 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
     SyntheticTokenTracker(UpdatableModelChild pagingChild, int startingPosition, int pageSize) {
       this.pagingChild = pagingChild;
 
+      if (startingPosition < 0) {
+        startingPosition = 0;
+      }
       List<UpdatableModelChild> children = containers.get(pagingChild.getContentId());
       if (children == null) {
         Logger.e(TAG, "Paging child doesn't not have children");

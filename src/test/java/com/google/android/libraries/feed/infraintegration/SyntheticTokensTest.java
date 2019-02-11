@@ -32,7 +32,10 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompleted;
 import com.google.android.libraries.feed.api.modelprovider.TokenCompletedObserver;
+import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
+import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
@@ -41,9 +44,12 @@ import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuil
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,6 +70,7 @@ public class SyntheticTokensTest {
   private SessionManager sessionManager;
   private ModelProviderFactory modelProviderFactory;
   private ModelProviderValidator modelValidator;
+  private ProtocolAdapter protocolAdapter;
   private final ContentIdGenerators contentIdGenerators = new ContentIdGenerators();
 
   @Before
@@ -83,6 +90,7 @@ public class SyntheticTokensTest {
     requestManager = scope.getRequestManager();
     sessionManager = scope.getSessionManager();
     modelProviderFactory = scope.getModelProviderFactory();
+    protocolAdapter = scope.getProtocolAdapter();
     modelValidator = new ModelProviderValidator(scope.getProtocolAdapter());
   }
 
@@ -434,6 +442,85 @@ public class SyntheticTokensTest {
         modelValidator.assertCursorContentsWithToken(
             cursor, getExpectedCards(cards, pageCards, -1));
     assertThat(tokenFeature).isNull();
+  }
+
+  /**
+   * This will tests synthetic tokens in the context of an empty ModelProvider, see [INTERNAL LINK].
+   * This test is written directly against the session manager instead of the request manager.
+   *
+   * <p>
+   * <li>Create an initial Model provider with a single content item under the root
+   * <li>Remove that item, creating an empty Root
+   * <li>Added a new page of items with enough to cause a synthetic token to be added
+   */
+  @Test
+  public void testEmptyFeed() {
+    ContentId[] cards =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(1),
+        };
+    ContentId[] cardsTwo =
+        new ContentId[] {
+          WireProtocolResponseBuilder.createFeatureContentId(2),
+          WireProtocolResponseBuilder.createFeatureContentId(3),
+          WireProtocolResponseBuilder.createFeatureContentId(4),
+          WireProtocolResponseBuilder.createFeatureContentId(5),
+          WireProtocolResponseBuilder.createFeatureContentId(6),
+          WireProtocolResponseBuilder.createFeatureContentId(7),
+          WireProtocolResponseBuilder.createFeatureContentId(8),
+        };
+
+    // Create an initial root with a single item in it.
+    WireProtocolResponseBuilder responseBuilder =
+        new WireProtocolResponseBuilder().addClearOperation().addRootFeature();
+    for (ContentId contentId : cards) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    requestManager.queueResponse(responseBuilder.build());
+    requestManager.triggerRefresh(
+        RequestReason.APP_OPEN_REFRESH,
+        sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
+    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+
+    // Prep for sending modifications to the model provider
+    StreamSession session =
+        StreamSession.newBuilder().setStreamToken(modelProvider.getSessionToken()).build();
+    MutationContext context = new MutationContext.Builder().setRequestingSession(session).build();
+
+    // Remove the single item under the root to create the empty state.
+    responseBuilder = new WireProtocolResponseBuilder().removeFeature(cards[0], ROOT_CONTENT_ID);
+    Result<List<StreamDataOperation>> result = protocolAdapter.createModel(responseBuilder.build());
+    assertThat(result.isSuccessful()).isTrue();
+    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
+        sessionManager.getUpdateConsumer(context);
+    updateConsumer.accept(Result.success(result.getValue()));
+
+    // Verify the empty state
+    ModelFeature root = modelProvider.getRootFeature();
+    assertThat(root).isNotNull();
+    ModelCursor cursor = root.getCursor();
+    assertThat(cursor.isAtEnd()).isTrue();
+
+    // Create a next page response with enough new cards to ensure a synthetic token is added
+    responseBuilder = new WireProtocolResponseBuilder();
+    for (ContentId contentId : cardsTwo) {
+      responseBuilder.addCard(contentId, ROOT_CONTENT_ID);
+    }
+    result = protocolAdapter.createModel(responseBuilder.build());
+    assertThat(result.isSuccessful()).isTrue();
+    updateConsumer = sessionManager.getUpdateConsumer(context);
+    updateConsumer.accept(Result.success(result.getValue()));
+
+    // Validate the current model
+    root = modelProvider.getRootFeature();
+    assertThat(root).isNotNull();
+    cursor = root.getCursor();
+    ModelChild tokenFeature =
+        modelValidator.assertCursorContentsWithToken(
+            cursor, Arrays.copyOf(cardsTwo, INITIAL_PAGE_SIZE));
+    assertThat(tokenFeature).isNotNull();
+    assertThat(tokenFeature.getModelToken().isSynthetic()).isTrue();
   }
 
   private ContentId[] getExpectedCards(ContentId[] first, ContentId[] second, int length) {
