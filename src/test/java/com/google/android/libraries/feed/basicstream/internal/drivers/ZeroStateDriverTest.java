@@ -34,12 +34,11 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder;
-import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger;
-import java.util.Calendar;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,8 +51,6 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link ZeroStateDriver}. */
 @RunWith(RobolectricTestRunner.class)
 public class ZeroStateDriverTest {
-
-  private static final int HOUR_OF_DAY = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentChangedListener contentChangedListener;
@@ -87,7 +84,7 @@ public class ZeroStateDriverTest {
     zeroStateDriver.bind(zeroStateViewHolder);
 
     assertThat(zeroStateDriver.isBound()).isTrue();
-    verify(zeroStateViewHolder).bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ false);
+    verify(zeroStateViewHolder).bind(zeroStateDriver, /* showSpinner= */ false);
   }
 
   @Test
@@ -101,23 +98,21 @@ public class ZeroStateDriverTest {
             /* spinnerShown= */ true);
 
     zeroStateDriver.bind(zeroStateViewHolder);
-    verify(zeroStateViewHolder).bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ true);
+    verify(zeroStateViewHolder).bind(zeroStateDriver, /* showSpinner= */ true);
   }
 
   @Test
   public void testBindAfterOnClick_bindsViewholderWithSpinnerShown() {
     InOrder inOrder = Mockito.inOrder(zeroStateViewHolder);
     zeroStateDriver.bind(zeroStateViewHolder);
-    inOrder
-        .verify(zeroStateViewHolder)
-        .bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ false);
+    inOrder.verify(zeroStateViewHolder).bind(zeroStateDriver, /* showSpinner= */ false);
 
     zeroStateDriver.onClick(new FrameLayout(context));
     zeroStateDriver.unbind();
 
     zeroStateDriver.bind(zeroStateViewHolder);
 
-    inOrder.verify(zeroStateViewHolder).bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ true);
+    inOrder.verify(zeroStateViewHolder).bind(zeroStateDriver, /* showSpinner= */ true);
   }
 
   @Test
@@ -247,8 +242,7 @@ public class ZeroStateDriverTest {
     assertThat(zeroStateDriver.isBound()).isTrue();
     zeroStateDriver.maybeRebind();
     assertThat(zeroStateDriver.isBound()).isTrue();
-    verify(zeroStateViewHolder, times(2))
-        .bind(zeroStateDriver, HOUR_OF_DAY, /* showSpinner= */ false);
+    verify(zeroStateViewHolder, times(2)).bind(zeroStateDriver, /* showSpinner= */ false);
     verify(zeroStateViewHolder).unbind();
   }
 
@@ -261,7 +255,7 @@ public class ZeroStateDriverTest {
     assertThat(zeroStateDriver.isBound()).isFalse();
     zeroStateDriver.maybeRebind();
     assertThat(zeroStateDriver.isBound()).isFalse();
-    verify(zeroStateViewHolder, never()).bind(any(OnClickListener.class), anyInt(), anyBoolean());
+    verify(zeroStateViewHolder, never()).bind(any(OnClickListener.class), anyBoolean());
     verify(zeroStateViewHolder, never()).unbind();
   }
 
@@ -274,11 +268,6 @@ public class ZeroStateDriverTest {
         ContentChangedListener contentChangedListener,
         boolean spinnerShown) {
       super(basicLoggingApi, clock, modelProvider, contentChangedListener, spinnerShown);
-    }
-
-    @Override
-    int getHourOfDay() {
-      return HOUR_OF_DAY;
     }
 
     @Override

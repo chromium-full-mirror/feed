@@ -15,29 +15,22 @@
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
 import android.content.Context;
-import android.support.annotation.StringRes;
-import android.support.annotation.VisibleForTesting;
-import android.support.v7.widget.RecyclerView.LayoutParams;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import android.widget.TextView;
+import android.widget.FrameLayout.LayoutParams;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 
 /** {@link android.support.v7.widget.RecyclerView.ViewHolder} for zero state. */
 public class ZeroStateViewHolder extends FeedViewHolder {
-  @VisibleForTesting static final int MORNING_HOUR_START = 0;
-  @VisibleForTesting static final int AFTERNOON_HOUR_START = 12;
-  @VisibleForTesting static final int EVENING_HOUR_START = 17;
 
   private final View zeroStateView;
   private final View loadingSpinner;
   private final View actionButton;
-  private final TextView bodyText;
   private final CardConfiguration cardConfiguration;
 
   public ZeroStateViewHolder(
@@ -48,27 +41,13 @@ public class ZeroStateViewHolder extends FeedViewHolder {
     loadingSpinner = view.findViewById(R.id.loading_spinner);
     zeroStateView = view.findViewById(R.id.zero_state);
     actionButton = view.findViewById(R.id.action_button);
-    bodyText = view.findViewById(R.id.body_text);
     this.cardConfiguration = cardConfiguration;
   }
 
-  public void bind(OnClickListener onClickListener, int hour, boolean showSpinner) {
-    ViewGroup.LayoutParams layoutParams = itemView.getLayoutParams();
-    if (layoutParams == null) {
-      layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-      itemView.setLayoutParams(layoutParams);
-    } else if (!(layoutParams instanceof MarginLayoutParams)) {
-      layoutParams = new LayoutParams(layoutParams);
-      itemView.setLayoutParams(layoutParams);
-    }
-    LayoutUtils.setMarginsRelative(
-        (MarginLayoutParams) layoutParams,
-        cardConfiguration.getCardStartMargin(),
-        0,
-        cardConfiguration.getCardEndMargin(),
-        cardConfiguration.getCardBottomMargin());
+  public void bind(OnClickListener onClickListener, boolean showSpinner) {
+    View noContentView = itemView.findViewById(R.id.no_content_container);
+    setCardLayout(noContentView, cardConfiguration);
 
-    bodyText.setText(getBodyText(hour));
     actionButton.setOnClickListener(onClickListener);
     showSpinner(showSpinner);
   }
@@ -87,14 +66,26 @@ public class ZeroStateViewHolder extends FeedViewHolder {
     zeroStateView.setVisibility(showSpinner ? View.GONE : View.VISIBLE);
   }
 
-  @StringRes
-  private int getBodyText(int hour) {
-    if (hour >= MORNING_HOUR_START && hour < AFTERNOON_HOUR_START) {
-      return R.string.zero_state_text_morning;
-    } else if (hour >= AFTERNOON_HOUR_START && hour < EVENING_HOUR_START) {
-      return R.string.zero_state_text_afternoon;
-    } else {
-      return R.string.zero_state_text_evening;
+  private void setCardLayout(View cardView, CardConfiguration cardConfiguration) {
+    // Need to reset padding here.  Setting a background can affect padding so if we switch from
+    // a background which has padding to one that does not, then the padding needs to be removed.
+    cardView.setPadding(0, 0, 0, 0);
+
+    cardView.setBackground(cardConfiguration.getCardBackground());
+
+    ViewGroup.LayoutParams layoutParams = cardView.getLayoutParams();
+    if (layoutParams == null) {
+      layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+    } else if (!(layoutParams instanceof MarginLayoutParams)) {
+      layoutParams = new LayoutParams(layoutParams);
     }
+    cardView.setLayoutParams(layoutParams);
+
+    LayoutUtils.setMarginsRelative(
+        (MarginLayoutParams) layoutParams,
+        cardConfiguration.getCardStartMargin(),
+        0, // The top margin is not configurable by the host, so is always zero.
+        cardConfiguration.getCardEndMargin(),
+        cardConfiguration.getCardBottomMargin());
   }
 }

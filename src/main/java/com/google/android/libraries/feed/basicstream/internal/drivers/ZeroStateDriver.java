@@ -29,7 +29,6 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger;
-import java.util.Calendar;
 
 /** {@link FeatureDriver} for the zero state. */
 public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListener {
@@ -62,7 +61,7 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
     checkState(viewHolder instanceof ZeroStateViewHolder);
 
     zeroStateViewHolder = (ZeroStateViewHolder) viewHolder;
-    zeroStateViewHolder.bind(this, getHourOfDay(), spinnerShown);
+    zeroStateViewHolder.bind(this, spinnerShown);
     // Only log that spinner is being shown if it has not been logged before.
     if (spinnerShown && !spinnerLogger.isSpinnerActive()) {
       spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD);
@@ -123,11 +122,6 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
   @VisibleForTesting
   boolean isBound() {
     return zeroStateViewHolder != null;
-  }
-
-  @VisibleForTesting
-  int getHourOfDay() {
-    return Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
   }
 
   @VisibleForTesting

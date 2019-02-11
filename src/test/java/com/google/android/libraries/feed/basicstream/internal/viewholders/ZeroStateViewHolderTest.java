@@ -14,9 +14,6 @@
 
 package com.google.android.libraries.feed.basicstream.internal.viewholders;
 
-import static com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder.AFTERNOON_HOUR_START;
-import static com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder.EVENING_HOUR_START;
-import static com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroStateViewHolder.MORNING_HOUR_START;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -27,7 +24,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.testing.host.stream.FakeCardConfiguration;
 import org.junit.Before;
@@ -44,7 +40,6 @@ public class ZeroStateViewHolderTest {
   @Mock private OnClickListener onClickListener;
 
   private CardConfiguration cardConfiguration;
-  private Context context;
   private FrameLayout frameLayout;
   private ZeroStateViewHolder zeroStateViewHolder;
 
@@ -52,7 +47,7 @@ public class ZeroStateViewHolderTest {
   public void setup() {
     initMocks(this);
     cardConfiguration = new FakeCardConfiguration();
-    context = Robolectric.buildActivity(Activity.class).get();
+    Context context = Robolectric.buildActivity(Activity.class).get();
     frameLayout = new FrameLayout(context);
     frameLayout.setLayoutParams(new MarginLayoutParams(100, 100));
     zeroStateViewHolder = new ZeroStateViewHolder(context, frameLayout, cardConfiguration);
@@ -67,7 +62,7 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testBind_setsOnClickListener() {
-    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
+    zeroStateViewHolder.bind(onClickListener, /* showSpinner= */ false);
 
     View actionButton = frameLayout.findViewById(R.id.action_button);
     actionButton.performClick();
@@ -76,53 +71,8 @@ public class ZeroStateViewHolderTest {
   }
 
   @Test
-  public void testBind_setsMorningMessage_forMorningStart() {
-    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
-
-    TextView bodyText = frameLayout.findViewById(R.id.body_text);
-    assertThat(bodyText.getText())
-        .isEqualTo(context.getResources().getString(R.string.zero_state_text_morning));
-  }
-
-  @Test
-  public void testBind_setsMorningMessage_forMorningEnd() {
-    zeroStateViewHolder.bind(onClickListener, AFTERNOON_HOUR_START - 1, /* showSpinner= */ false);
-
-    TextView bodyText = frameLayout.findViewById(R.id.body_text);
-    assertThat(bodyText.getText())
-        .isEqualTo(context.getResources().getString(R.string.zero_state_text_morning));
-  }
-
-  @Test
-  public void testBind_setsAfternoonMessage_forAfternoonStart() {
-    zeroStateViewHolder.bind(onClickListener, AFTERNOON_HOUR_START, /* showSpinner= */ false);
-
-    TextView bodyText = frameLayout.findViewById(R.id.body_text);
-    assertThat(bodyText.getText())
-        .isEqualTo(context.getResources().getString(R.string.zero_state_text_afternoon));
-  }
-
-  @Test
-  public void testBind_setsAfternoonMessage_forAfternoonEnd() {
-    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START - 1, /* showSpinner= */ false);
-
-    TextView bodyText = frameLayout.findViewById(R.id.body_text);
-    assertThat(bodyText.getText())
-        .isEqualTo(context.getResources().getString(R.string.zero_state_text_afternoon));
-  }
-
-  @Test
-  public void testBind_setsEveningMessage_forEveningStart() {
-    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START, /* showSpinner= */ false);
-
-    TextView bodyText = frameLayout.findViewById(R.id.body_text);
-    assertThat(bodyText.getText())
-        .isEqualTo(context.getResources().getString(R.string.zero_state_text_evening));
-  }
-
-  @Test
   public void testBind_showsLoadingSpinner_whenInitializingFalse() {
-    zeroStateViewHolder.bind(onClickListener, EVENING_HOUR_START, /* showSpinner= */ false);
+    zeroStateViewHolder.bind(onClickListener, /* showSpinner= */ false);
 
     View spinner = frameLayout.findViewById(R.id.loading_spinner);
     View zeroState = frameLayout.findViewById(R.id.zero_state);
@@ -140,7 +90,7 @@ public class ZeroStateViewHolderTest {
     assertThat(spinner.getVisibility()).isEqualTo(View.VISIBLE);
     assertThat(zeroState.getVisibility()).isEqualTo(View.GONE);
 
-    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
+    zeroStateViewHolder.bind(onClickListener, /* showSpinner= */ false);
 
     assertThat(spinner.getVisibility()).isEqualTo(View.GONE);
     assertThat(zeroState.getVisibility()).isEqualTo(View.VISIBLE);
@@ -148,10 +98,10 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testBind_setsMargins() {
-    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
+    zeroStateViewHolder.bind(onClickListener, /* showSpinner= */ false);
 
-    MarginLayoutParams marginLayoutParams =
-        (MarginLayoutParams) zeroStateViewHolder.itemView.getLayoutParams();
+    View zeroStateView = zeroStateViewHolder.itemView.findViewById(R.id.no_content_container);
+    MarginLayoutParams marginLayoutParams = (MarginLayoutParams) zeroStateView.getLayoutParams();
     assertThat(marginLayoutParams.bottomMargin).isEqualTo(cardConfiguration.getCardBottomMargin());
     assertThat(marginLayoutParams.leftMargin).isEqualTo(cardConfiguration.getCardStartMargin());
     assertThat(marginLayoutParams.rightMargin).isEqualTo(cardConfiguration.getCardEndMargin());
@@ -159,7 +109,7 @@ public class ZeroStateViewHolderTest {
 
   @Test
   public void testUnbind() {
-    zeroStateViewHolder.bind(onClickListener, MORNING_HOUR_START, /* showSpinner= */ false);
+    zeroStateViewHolder.bind(onClickListener, /* showSpinner= */ false);
 
     View actionButton = frameLayout.findViewById(R.id.action_button);
     assertThat(actionButton.hasOnClickListeners()).isTrue();
