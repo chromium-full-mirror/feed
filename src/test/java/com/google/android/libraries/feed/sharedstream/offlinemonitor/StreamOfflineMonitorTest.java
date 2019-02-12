@@ -21,6 +21,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -152,5 +153,24 @@ public class StreamOfflineMonitorTest {
 
     verify(offlineIndicatorApi, never())
         .getOfflineStatus(eq(Collections.emptyList()), Mockito.<Consumer<List<String>>>any());
+  }
+
+  @Test
+  public void testOnDestroy_clearsConsumersMap() {
+    streamOfflineMonitor.addOfflineStatusConsumer(URL, offlineStatusConsumer1);
+
+    // Should clear out all listeners
+    streamOfflineMonitor.onDestroy();
+
+    streamOfflineMonitor.updateOfflineStatus(URL, true);
+
+    verifyZeroInteractions(offlineStatusConsumer1);
+  }
+
+  @Test
+  public void testOnDestroy_detachesFromApi() {
+    streamOfflineMonitor.onDestroy();
+
+    verify(offlineIndicatorApi).removeOfflineStatusListener(streamOfflineMonitor);
   }
 }

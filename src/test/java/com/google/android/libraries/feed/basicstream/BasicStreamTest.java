@@ -44,6 +44,7 @@ import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.knowncontent.KnownContentApi;
 import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
@@ -62,6 +63,7 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
+import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -89,7 +91,9 @@ import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,9 +144,9 @@ public class BasicStreamTest {
   @Mock private ScrollRestorer nonRestoringScrollRestorer;
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
-  @Mock private KnownContentApi knownContentApi;
   @Mock private ContextMenuManagerImpl contextMenuManager;
 
+  private FakeKnownContentApi knownContentApi;
   private LinearLayoutManagerWithFakePositioning layoutManager;
   private Context context;
   private FakeClock clock;
@@ -154,6 +158,7 @@ public class BasicStreamTest {
   public void setUp() {
     initMocks(this);
 
+    knownContentApi = new FakeKnownContentApi();
     headers = new ArrayList<>();
     headers.add(mock(Header.class));
 
@@ -407,6 +412,7 @@ public class BasicStreamTest {
     verify(adapter).onDestroy();
     verify(initialModelProvider, never()).invalidate();
     verify(initialModelProvider).detachModelProvider();
+    assertThat(knownContentApi.listeners).isEmpty();
   }
 
   @Test
@@ -1209,6 +1215,29 @@ public class BasicStreamTest {
 
     private void addChildToPosition(int position, View child) {
       childMap.add(position, child);
+    }
+  }
+
+  private static class FakeKnownContentApi implements KnownContentApi {
+
+    private final Set<KnownContentListener> listeners = new HashSet<>();
+
+    @Override
+    public void getKnownContent(Consumer<List<ContentMetadata>> knownContentConsumer) {}
+
+    @Override
+    public void addListener(KnownContentListener listener) {
+      listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(KnownContentListener listener) {
+      listeners.remove(listener);
+    }
+
+    @Override
+    public KnownContentListener getKnownContentHostNotifier() {
+      return null;
     }
   }
 }

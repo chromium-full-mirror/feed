@@ -133,4 +133,9 @@ public class StreamOfflineMonitor implements OfflineStatusListener {
 
     notifyConsumers(url, availableOffline);
   }
+
+  public void onDestroy() {
+    offlineStatusConsumersMap.clear();
+    offlineIndicatorApi.removeOfflineStatusListener(this);
+  }
 }

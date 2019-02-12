@@ -299,7 +299,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     if (streamDriver != null) {
       streamDriver.onDestroy();
     }
-
+    streamOfflineMonitor.onDestroy();
     isDestroyed = true;
   }
 
