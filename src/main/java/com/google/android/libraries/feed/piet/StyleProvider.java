@@ -470,7 +470,7 @@ class StyleProvider {
       case COLOR:
         return new ColorDrawable(background.getColor());
       case LINEAR_GRADIENT:
-        return new GradientDrawable(background.getLinearGradient());
+        return new GradientDrawable(background.getLinearGradient(), assetProvider.isRtLSupplier());
       default:
         return null;
     }

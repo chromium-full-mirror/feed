@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.piet.ui;
 
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.search.now.ui.piet.GradientsProto.LinearGradient;
 
 /** Class to display gradients according to the Piet spec (angle + color stops at %ages) */
@@ -23,7 +24,7 @@ public class GradientDrawable extends ShapeDrawable {
 
   // Doesn't like the call to setShape and setShaderFactory
   @SuppressWarnings("initialization")
-  public GradientDrawable(LinearGradient gradient) {
+  public GradientDrawable(LinearGradient gradient, Supplier<Boolean> rtlSupplier) {
     super();
 
     int[] colors = new int[gradient.getStopsCount()];
@@ -33,6 +34,11 @@ public class GradientDrawable extends ShapeDrawable {
       stops[i] = gradient.getStops(i).getPositionPercent() / 100.0f;
     }
     setShape(new RectShape());
-    setShaderFactory(new GradientShader(colors, stops, gradient.getDirectionDeg()));
+    setShaderFactory(
+        new GradientShader(
+            colors,
+            stops,
+            gradient.getDirectionDeg(),
+            gradient.getReverseForRtl() ? rtlSupplier : null));
   }
 }
