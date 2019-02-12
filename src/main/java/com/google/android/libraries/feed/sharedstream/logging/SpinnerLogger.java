@@ -23,10 +23,11 @@ import com.google.android.libraries.feed.host.logging.SpinnerType;
 public class SpinnerLogger {
 
   private static final String TAG = "SpinnerLogger";
+  private static final int SPINNER_INACTIVE = -1;
   private final BasicLoggingApi basicLoggingApi;
   private final Clock clock;
 
-  private long spinnerStartTime = -1;
+  private long spinnerStartTime = SPINNER_INACTIVE;
   @SpinnerType private int spinnerType;
 
   public SpinnerLogger(BasicLoggingApi basicLoggingApi, Clock clock) {
@@ -54,10 +55,10 @@ public class SpinnerLogger {
 
     long spinnerDuration = clock.currentTimeMillis() - spinnerStartTime;
     basicLoggingApi.onSpinnerShown((int) spinnerDuration, spinnerType);
-    spinnerStartTime = -1;
+    spinnerStartTime = SPINNER_INACTIVE;
   }
 
   public boolean isSpinnerActive() {
-    return spinnerStartTime != -1;
+    return spinnerStartTime != SPINNER_INACTIVE;
   }
 }
