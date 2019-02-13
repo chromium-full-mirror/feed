@@ -16,8 +16,10 @@ package com.google.android.libraries.feed.feedsessionmanager.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.common.testing.InternalProtocolBuilder;
 import com.google.android.libraries.feed.api.modelprovider.ModelChild;
@@ -29,6 +31,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedsessionmanager.internal.testing.AbstractSessionImplTest;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -75,6 +78,29 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
     assertThat(session.contentInSession).hasSize(featureCnt);
     assertThat(session.contentInSession)
         .contains(contentIdGenerators.createFeatureContentId(featureId));
+  }
+
+  @Test
+  public void testClearHead_onPaginationRequest() {
+    SessionImpl session = getSessionImpl();
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, true);
+    int featureCnt = 3;
+    int featureId = 5;
+    InternalProtocolBuilder protocolBuilder = new InternalProtocolBuilder().addClearOperation();
+    addFeatures(protocolBuilder, featureCnt, featureId);
+    List<StreamStructure> streamStructures = protocolBuilder.buildAsStreamStructure();
+
+    ViewDepthProvider mockDepthProvider = mock(ViewDepthProvider.class);
+    session.bindModelProvider(modelProvider, mockDepthProvider);
+    session.populateModelProvider(TEST_SESSION, new ArrayList<>(), false, false);
+    session.updateSession(
+        true,
+        streamStructures,
+        new MutationContext.Builder()
+            .setRequestingSession(TEST_SESSION)
+            .setContinuationToken(StreamToken.newBuilder().setContentId("token").build())
+            .build());
+    verify(modelProvider).invalidate();
   }
 
   @Test

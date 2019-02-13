@@ -147,11 +147,33 @@ public class SessionImpl implements InitializableSession, Dumpable {
       /*@Nullable*/ MutationContext mutationContext) {
     StreamSession ss = Validators.checkNotNull(streamSession);
     if (clearHead) {
-      Logger.i(TAG, "Session %s not updated due to clearHead", ss.getStreamToken());
+      if (shouldInvalidateModuleProvider(mutationContext, ss)) {
+        if (modelProvider != null) {
+          modelProvider.invalidate();
+          Logger.i(
+              TAG,
+              "Invalidating Model Provider for session %s due to a clear head",
+              ss.getStreamToken());
+        }
+      } else {
+        Logger.i(TAG, "Session %s not updated due to clearHead", ss.getStreamToken());
+      }
       return;
     }
     updateCount++;
     updateSessionInternal(streamStructures, mutationContext);
+  }
+
+  protected boolean shouldInvalidateModuleProvider(
+      /*@Nullable*/ MutationContext mutationContext, StreamSession ss) {
+    if (modelProvider != null
+        && mutationContext != null
+        && mutationContext.getContinuationToken() != null) {
+      StreamSession requestingSession = mutationContext.getRequestingSession();
+      return requestingSession != null
+          && ss.getStreamToken().equals(requestingSession.getStreamToken());
+    }
+    return false;
   }
 
   @Override
