@@ -26,7 +26,6 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
-import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import java.util.Arrays;
@@ -40,7 +39,6 @@ class ElementAdapterFactory {
   private final AdapterFactory<ParameterizedTextElementAdapter, TextElement>
       parameterizedTextElementFactory;
   private final AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory;
-  private final AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory;
   private final AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
   private final AdapterFactory<ElementListAdapter, ElementList> elementListFactory;
   private final AdapterFactory<ElementStackAdapter, ElementStack> elementStackFactory;
@@ -58,7 +56,6 @@ class ElementAdapterFactory {
         new AdapterFactory<>(
             context, parameters, new ParameterizedTextElementAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new ImageElementAdapter.KeySupplier()),
-        new AdapterFactory<>(context, parameters, new SpacerElementAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new GridRowAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new ElementListAdapter.KeySupplier()),
         new AdapterFactory<>(context, parameters, new ElementStackAdapter.KeySupplier()),
@@ -72,7 +69,6 @@ class ElementAdapterFactory {
       AdapterFactory<ChunkedTextElementAdapter, TextElement> chunkedTextElementFactory,
       AdapterFactory<ParameterizedTextElementAdapter, TextElement> parameterizedTextElementFactory,
       AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory,
-      AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory,
       AdapterFactory<GridRowAdapter, GridRow> gridRowFactory,
       AdapterFactory<ElementListAdapter, ElementList> elementListFactory,
       AdapterFactory<ElementStackAdapter, ElementStack> elementStackFactory,
@@ -81,7 +77,6 @@ class ElementAdapterFactory {
     this.chunkedTextElementFactory = chunkedTextElementFactory;
     this.parameterizedTextElementFactory = parameterizedTextElementFactory;
     this.imageElementFactory = imageElementFactory;
-    this.spacerElementFactory = spacerElementFactory;
     this.gridRowFactory = gridRowFactory;
     this.elementListFactory = elementListFactory;
     this.elementStackFactory = elementStackFactory;
@@ -92,7 +87,6 @@ class ElementAdapterFactory {
                 chunkedTextElementFactory,
                 parameterizedTextElementFactory,
                 imageElementFactory,
-                spacerElementFactory,
                 gridRowFactory,
                 elementListFactory,
                 elementStackFactory));
@@ -130,9 +124,6 @@ class ElementAdapterFactory {
         break;
       case IMAGE_ELEMENT:
         returnAdapter = imageElementFactory.get(element.getImageElement(), frameContext);
-        break;
-      case SPACER_ELEMENT:
-        returnAdapter = spacerElementFactory.get(element.getSpacerElement(), frameContext);
         break;
       case GRID_ROW:
         returnAdapter = gridRowFactory.get(element.getGridRow(), frameContext);
@@ -182,8 +173,6 @@ class ElementAdapterFactory {
       parameterizedTextElementFactory.release((ParameterizedTextElementAdapter) adapter);
     } else if (adapter instanceof ImageElementAdapter) {
       imageElementFactory.release((ImageElementAdapter) adapter);
-    } else if (adapter instanceof SpacerElementAdapter) {
-      spacerElementFactory.release((SpacerElementAdapter) adapter);
     } else if (adapter instanceof GridRowAdapter) {
       gridRowFactory.release((GridRowAdapter) adapter);
     } else if (adapter instanceof ElementListAdapter) {

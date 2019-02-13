@@ -45,8 +45,8 @@ import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
+import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
-import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
@@ -72,7 +72,7 @@ public class ElementListAdapterTest {
       StyleIdsStack.newBuilder().addStyleIds(LIST_STYLE_ID).build();
 
   private static final Element DEFAULT_ELEMENT =
-      Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()).build();
+      Element.newBuilder().setElementStack(ElementStack.getDefaultInstance()).build();
   private static final Content DEFAULT_CONTENT =
       Content.newBuilder().setElement(DEFAULT_ELEMENT).build();
   private static final Element IMAGE_ELEMENT =
@@ -363,10 +363,15 @@ public class ElementListAdapterTest {
                     .setElement(
                         DEFAULT_ELEMENT
                             .toBuilder()
+                            .setStyleReferences(LIST_STYLES)
                             .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)))
             .build();
 
     adapter.createAdapter(asElement(listWithStyles), frameContext);
+
+    adapter.childAdapters.get(0).widthPx = 123;
+    adapter.childAdapters.get(0).heightPx = 456;
+
     adapter.bindModel(asElement(listWithStyles), frameContext);
 
     assertThat(adapter.getBaseView().getChildCount()).isEqualTo(1);
@@ -375,9 +380,9 @@ public class ElementListAdapterTest {
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).gravity)
         .isEqualTo(Gravity.CENTER_HORIZONTAL);
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
-        .isEqualTo(ViewGroup.LayoutParams.MATCH_PARENT);
+        .isEqualTo(123);
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
-        .isEqualTo(0);
+        .isEqualTo(456);
   }
 
   @Test
@@ -386,7 +391,8 @@ public class ElementListAdapterTest {
     StyleIdsStack marginsStyles = StyleIdsStack.newBuilder().addStyleIds(marginsStyleId).build();
     Element elementWithMargins =
         Element.newBuilder()
-            .setSpacerElement(SpacerElement.newBuilder().setStyleReferences(marginsStyles))
+            .setStyleReferences(marginsStyles)
+            .setElementStack(ElementStack.getDefaultInstance())
             .build();
     ElementList listWithStyles =
         ElementList.newBuilder()
@@ -480,8 +486,11 @@ public class ElementListAdapterTest {
                     .setElement(
                         DEFAULT_ELEMENT
                             .toBuilder()
+                            .setStyleReferences(LIST_STYLES)
                             .setGravityHorizontal(GravityHorizontal.GRAVITY_CENTER)))
             .build();
+    when(styleProvider.getWidthSpecPx(context)).thenReturn(123);
+    when(styleProvider.getHeightSpecPx(context)).thenReturn(456);
 
     adapter.createAdapter(asElement(listWithStyles), frameContext);
 
@@ -492,9 +501,9 @@ public class ElementListAdapterTest {
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).gravity)
         .isEqualTo(Gravity.CENTER_HORIZONTAL);
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).width)
-        .isEqualTo(ViewGroup.LayoutParams.MATCH_PARENT);
+        .isEqualTo(123);
     assertThat(((LayoutParams) adapter.getBaseView().getChildAt(0).getLayoutParams()).height)
-        .isEqualTo(0);
+        .isEqualTo(456);
   }
 
   @Test

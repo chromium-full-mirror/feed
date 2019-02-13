@@ -51,12 +51,12 @@ import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.CustomElement;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
+import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.GridCell;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridCellWidth.ContentWidth;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
-import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
 import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
@@ -83,7 +83,7 @@ public class GridRowAdapterTest {
   private static final StyleIdsStack GRID_STYLES =
       StyleIdsStack.newBuilder().addStyleIds(GRID_STYLE_ID).build();
   private static final Element DEFAULT_ELEMENT =
-      Element.newBuilder().setSpacerElement(SpacerElement.getDefaultInstance()).build();
+      Element.newBuilder().setElementStack(ElementStack.getDefaultInstance()).build();
   private static final Content DEFAULT_CONTENT =
       Content.newBuilder().setElement(DEFAULT_ELEMENT).build();
   private static final Content TEXT_CONTENT =
@@ -422,9 +422,8 @@ public class GridRowAdapterTest {
                         Content.newBuilder()
                             .setElement(
                                 Element.newBuilder()
-                                    .setSpacerElement(
-                                        SpacerElement.newBuilder()
-                                            .setStyleReferences(childStyles)))))
+                                    .setStyleReferences(childStyles)
+                                    .setElementStack(ElementStack.getDefaultInstance()))))
             .build();
 
     StyleProvider childStyleProvider = mock(StyleProvider.class);
@@ -458,7 +457,7 @@ public class GridRowAdapterTest {
     adapter.createAdapter(asElement(gridRowTop), frameContext);
     adapter.bindModel(asElement(gridRowTop), frameContext);
 
-    SpacerElementAdapter cellAdapter = (SpacerElementAdapter) adapter.childAdapters.get(0);
+    ElementStackAdapter cellAdapter = (ElementStackAdapter) adapter.childAdapters.get(0);
     LayoutParams params = (LinearLayout.LayoutParams) cellAdapter.getView().getLayoutParams();
     assertThat(params.gravity).isEqualTo(Gravity.CENTER_VERTICAL);
   }
@@ -588,7 +587,7 @@ public class GridRowAdapterTest {
                         Content.newBuilder()
                             .setElement(
                                 Element.newBuilder()
-                                    .setSpacerElement(SpacerElement.getDefaultInstance()))))
+                                    .setElementStack(ElementStack.getDefaultInstance()))))
             .build();
     Element cellWithTwoElements =
         Element.newBuilder()
@@ -598,12 +597,12 @@ public class GridRowAdapterTest {
                         Content.newBuilder()
                             .setElement(
                                 Element.newBuilder()
-                                    .setSpacerElement(SpacerElement.getDefaultInstance())))
+                                    .setElementStack(ElementStack.getDefaultInstance())))
                     .addContents(
                         Content.newBuilder()
                             .setElement(
                                 Element.newBuilder()
-                                    .setSpacerElement(SpacerElement.getDefaultInstance()))))
+                                    .setElementStack(ElementStack.getDefaultInstance()))))
             .build();
 
     when(frameContext.getElementBindingValue(ELEMENT_BINDING))

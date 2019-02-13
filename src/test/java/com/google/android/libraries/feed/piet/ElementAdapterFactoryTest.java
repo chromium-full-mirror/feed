@@ -37,7 +37,6 @@ import com.google.search.now.ui.piet.ElementsProto.ElementList;
 import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
-import com.google.search.now.ui.piet.ElementsProto.SpacerElement;
 import com.google.search.now.ui.piet.ElementsProto.TextElement;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import com.google.search.now.ui.piet.PietProto.Template;
@@ -62,7 +61,6 @@ public class ElementAdapterFactoryTest {
   @Mock private ChunkedTextElementAdapter chunkedTextElementAdapter;
   @Mock private ParameterizedTextElementAdapter parameterizedTextElementAdapter;
   @Mock private ImageElementAdapter imageElementAdapter;
-  @Mock private SpacerElementAdapter spacerElementAdapter;
   @Mock private GridRowAdapter gridRowAdapter;
   @Mock private ElementListAdapter elementListAdapter;
   @Mock private ElementAdapter<? extends View, ?> templateAdapter;
@@ -77,8 +75,6 @@ public class ElementAdapterFactoryTest {
       parameterizedTextElementFactory;
 
   @Mock private AdapterFactory<ImageElementAdapter, ImageElement> imageElementFactory;
-
-  @Mock private AdapterFactory<SpacerElementAdapter, SpacerElement> spacerElementFactory;
 
   @Mock private AdapterFactory<GridRowAdapter, GridRow> gridRowFactory;
 
@@ -103,7 +99,6 @@ public class ElementAdapterFactoryTest {
             chunkedTextElementFactory,
             parameterizedTextElementFactory,
             imageElementFactory,
-            spacerElementFactory,
             gridRowFactory,
             elementListFactory,
             elementStackFactory,
@@ -116,8 +111,6 @@ public class ElementAdapterFactoryTest {
         .thenReturn(parameterizedTextElementAdapter);
     when(imageElementFactory.get(any(ImageElement.class), eq(frameContext)))
         .thenReturn(imageElementAdapter);
-    when(spacerElementFactory.get(any(SpacerElement.class), eq(frameContext)))
-        .thenReturn(spacerElementAdapter);
     when(gridRowFactory.get(any(GridRow.class), eq(frameContext))).thenReturn(gridRowAdapter);
     when(elementListFactory.get(any(ElementList.class), eq(frameContext)))
         .thenReturn(elementListAdapter);
@@ -127,7 +120,6 @@ public class ElementAdapterFactoryTest {
     adapterFactories.add(chunkedTextElementFactory);
     adapterFactories.add(parameterizedTextElementFactory);
     adapterFactories.add(imageElementFactory);
-    adapterFactories.add(spacerElementFactory);
     adapterFactories.add(gridRowFactory);
     adapterFactories.add(elementListFactory);
     adapterFactories.add(elementStackFactory);
@@ -210,15 +202,6 @@ public class ElementAdapterFactoryTest {
   }
 
   @Test
-  public void testCreateAdapterForElement_spacerElement() {
-    SpacerElement model = SpacerElement.getDefaultInstance();
-    Element element = Element.newBuilder().setSpacerElement(model).build();
-    assertThat(adapterFactory.createAdapterForElement(element, frameContext))
-        .isSameAs(spacerElementAdapter);
-    verify(spacerElementFactory).get(model, frameContext);
-  }
-
-  @Test
   public void testCreateAdapterForElement_gridRow() {
     GridRow model = GridRow.getDefaultInstance();
     Element element = Element.newBuilder().setGridRow(model).build();
@@ -285,13 +268,6 @@ public class ElementAdapterFactoryTest {
   public void testReleaseAdapter_imageElement() {
     adapterFactory.releaseAdapter(imageElementAdapter);
     verify(imageElementFactory).release(imageElementAdapter);
-    testNoOtherFactoryInteractions();
-  }
-
-  @Test
-  public void testReleaseAdapter_spacer() {
-    adapterFactory.releaseAdapter(spacerElementAdapter);
-    verify(spacerElementFactory).release(spacerElementAdapter);
     testNoOtherFactoryInteractions();
   }
 
