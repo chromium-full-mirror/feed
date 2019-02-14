@@ -20,6 +20,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <include layout="@layout/feed_spinner_gone"/>
     <LinearLayout
         android:id="@+id/zero_state"
         android:orientation="vertical"
