@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.host.action;
 
 import android.view.View;
 import com.google.android.libraries.feed.host.logging.ActionType;
+import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
@@ -60,4 +61,22 @@ public interface StreamActionApi extends ActionApi {
 
   /** Called when a client action has been performed. */
   void onClientAction(@ActionType int actionType);
+
+  /** Whether or not the not view actions can be handled. */
+  boolean canHandleElementView();
+
+  /** Whether or not the not hide actions can be handled. */
+  boolean canHandleElementHide();
+
+  /** Whether or not the not click actions can be handled. */
+  boolean canHandleElementClick();
+
+  /** Called when a view action has been performed. */
+  void onElementView(@ElementType int elementType);
+
+  /** Called when a hide action has been performed. */
+  void onElementHide(@ElementType int elementType);
+
+  /** Called when a click action has been performed. */
+  void onElementClick(@ElementType int elementType);
 }

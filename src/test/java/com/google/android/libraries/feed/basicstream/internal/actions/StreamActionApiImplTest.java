@@ -29,12 +29,14 @@ import android.content.Context;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionSource;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.android.libraries.feed.testing.sharedstream.contextmenumanager.FakeContextMenuManager;
 import com.google.common.collect.ImmutableList;
@@ -241,6 +243,13 @@ public class StreamActionApiImplTest {
   }
 
   @Test
+  public void testOnElementClick_logsElementClicked() {
+    streamActionApi.onElementClick(ElementType.INTEREST_HEADER);
+
+    verify(basicLoggingApi).onVisualElementClicked(contentLoggingData, ElementType.INTEREST_HEADER);
+  }
+
+  @Test
   public void testOpenUrl() {
     streamActionApi.openUrlInNewWindow(URL);
     verify(actionApi).openUrlInNewWindow(URL);
@@ -331,14 +340,25 @@ public class StreamActionApiImplTest {
 
     inOrder
         .verify(actionParser)
-        .parseFeedActionPayload(NORMAL_OPEN_URL.getFeedActionPayload(), streamActionApi, view);
-    inOrder
-        .verify(actionParser)
-        .parseFeedActionPayload(OPEN_IN_NEW_WINDOW.getFeedActionPayload(), streamActionApi, view);
+        .parseFeedActionPayload(
+            NORMAL_OPEN_URL.getFeedActionPayload(),
+            streamActionApi,
+            view,
+            ActionSource.CONTEXT_MENU);
     inOrder
         .verify(actionParser)
         .parseFeedActionPayload(
-            OPEN_IN_INCOGNITO_MODE.getFeedActionPayload(), streamActionApi, view);
+            OPEN_IN_NEW_WINDOW.getFeedActionPayload(),
+            streamActionApi,
+            view,
+            ActionSource.CONTEXT_MENU);
+    inOrder
+        .verify(actionParser)
+        .parseFeedActionPayload(
+            OPEN_IN_INCOGNITO_MODE.getFeedActionPayload(),
+            streamActionApi,
+            view,
+            ActionSource.CONTEXT_MENU);
   }
 
   @Test

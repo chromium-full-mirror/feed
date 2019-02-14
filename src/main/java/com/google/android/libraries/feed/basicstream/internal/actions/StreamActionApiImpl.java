@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.actions;
 import android.view.View;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionSource;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -24,6 +25,7 @@ import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -90,7 +92,8 @@ public class StreamActionApiImpl implements StreamActionApi {
                 actionParser.parseFeedActionPayload(
                     enabledActions.get(position).getFeedActionPayload(),
                     StreamActionApiImpl.this,
-                    anchorView));
+                    anchorView,
+                    ActionSource.CONTEXT_MENU));
 
     if (menuOpened) {
       basicLoggingApi.onContentContextMenuOpened(contentLoggingData);
@@ -276,5 +279,31 @@ public class StreamActionApiImpl implements StreamActionApi {
   @Override
   public boolean canLearnMore() {
     return actionApi.canLearnMore();
+  }
+
+  @Override
+  public boolean canHandleElementView() {
+    return true;
+  }
+
+  @Override
+  public boolean canHandleElementHide() {
+    return true;
+  }
+
+  @Override
+  public boolean canHandleElementClick() {
+    return true;
+  }
+
+  @Override
+  public void onElementView(@ElementType int elementType) {}
+
+  @Override
+  public void onElementHide(@ElementType int elementType) {}
+
+  @Override
+  public void onElementClick(@ElementType int elementType) {
+    basicLoggingApi.onVisualElementClicked(contentLoggingData, elementType);
   }
 }

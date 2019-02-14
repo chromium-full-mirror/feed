@@ -23,10 +23,17 @@ import com.google.search.now.ui.piet.ActionsProto.Action;
 public interface ActionParser {
 
   void parseAction(
-      Action action, StreamActionApi streamActionApi, View view, /*@Nullable*/ String veLoggingToken);
+      Action action,
+      StreamActionApi streamActionApi,
+      View view,
+      /*@Nullable*/ String veLoggingToken,
+      @ActionSource int actionSource);
 
   void parseFeedActionPayload(
-      FeedActionPayload feedActionPayload, StreamActionApi streamActionApi, View view);
+      FeedActionPayload feedActionPayload,
+      StreamActionApi streamActionApi,
+      View view,
+      @ActionSource int actionSource);
 
   boolean canPerformAction(FeedActionPayload feedActionPayload, StreamActionApi streamActionApi);
 }

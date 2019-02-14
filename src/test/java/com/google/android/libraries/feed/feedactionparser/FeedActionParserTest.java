@@ -27,9 +27,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import com.google.android.libraries.feed.api.actionparser.ActionSource;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.feedactionparser.internal.ElementTypeConverter;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
@@ -40,6 +42,7 @@ import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.DismissData;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
+import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.NotInterestedInData;
@@ -242,6 +245,41 @@ public class FeedActionParserTest {
                   .build())
           .build();
 
+  private static final FeedActionPayload VIEW_ELEMENT =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.VIEW_ELEMENT)
+                          .setElementType(ElementType.INTEREST_HEADER))
+                  .build())
+          .build();
+  private static final FeedActionPayload HIDE_ELEMENT =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.HIDE_ELEMENT)
+                          .setElementType(ElementType.INTEREST_HEADER))
+                  .build())
+          .build();
+
+  private static final FeedActionPayload CLICK_ELEMENT =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.HIDE_ELEMENT)
+                          .setElementType(ElementType.INTEREST_HEADER))
+                  .build())
+          .build();
+
   private static final FeedActionPayload DISMISS_LOCAL_FEED_ACTION_NO_CONTENT_ID =
       FeedActionPayload.newBuilder()
           .setExtension(
@@ -290,7 +328,11 @@ public class FeedActionParserTest {
   public void testParseAction() {
     when(streamActionApi.canOpenUrl()).thenReturn(true);
     feedActionParser.parseAction(
-        OPEN_URL_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
+        OPEN_URL_ACTION,
+        streamActionApi,
+        /* view= */ null,
+        /* veLoggingToken= */ null,
+        ActionSource.CLICK);
 
     verify(streamActionApi).openUrl(URL);
     verify(streamActionApi).onClientAction(ActionType.OPEN_URL);
@@ -300,7 +342,11 @@ public class FeedActionParserTest {
   public void testParseAction_newWindow() {
     when(streamActionApi.canOpenUrlInNewWindow()).thenReturn(true);
     feedActionParser.parseAction(
-        OPEN_NEW_WINDOW_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
+        OPEN_NEW_WINDOW_ACTION,
+        streamActionApi,
+        /* view= */ null,
+        /* veLoggingToken= */ null,
+        ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInNewWindow(URL);
     verify(streamActionApi).onClientAction(ActionType.OPEN_URL_NEW_WINDOW);
@@ -310,7 +356,11 @@ public class FeedActionParserTest {
   public void testParseAction_incognito() {
     when(streamActionApi.canOpenUrlInIncognitoMode()).thenReturn(true);
     feedActionParser.parseAction(
-        OPEN_INCOGNITO_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
+        OPEN_INCOGNITO_ACTION,
+        streamActionApi,
+        /* view= */ null,
+        /* veLoggingToken= */ null,
+        ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInIncognitoMode(URL);
     verify(streamActionApi).onClientAction(ActionType.OPEN_URL_INCOGNITO);
@@ -320,7 +370,11 @@ public class FeedActionParserTest {
   public void testParseAction_newTab() {
     when(streamActionApi.canOpenUrlInNewTab()).thenReturn(true);
     feedActionParser.parseAction(
-        OPEN_NEW_TAB_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken= */ null);
+        OPEN_NEW_TAB_ACTION,
+        streamActionApi,
+        /* view= */ null,
+        /* veLoggingToken= */ null,
+        ActionSource.CLICK);
 
     verify(streamActionApi).openUrlInNewTab(URL);
     verify(streamActionApi).onClientAction(ActionType.OPEN_URL_NEW_TAB);
@@ -342,7 +396,8 @@ public class FeedActionParserTest {
             .build(),
         streamActionApi,
         /* view= */ view,
-        /* veLoggingToken= */ null);
+        /* veLoggingToken= */ null,
+        ActionSource.CLICK);
 
     verify(streamActionApi)
         .openContextMenu(
@@ -358,7 +413,7 @@ public class FeedActionParserTest {
   public void testParseAction_downloadUrl() {
     when(streamActionApi.canDownloadUrl()).thenReturn(true);
     feedActionParser.parseFeedActionPayload(
-        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
+        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi).downloadUrl(CONTENT_METADATA);
     verify(streamActionApi).onClientAction(ActionType.DOWNLOAD);
   }
@@ -425,7 +480,7 @@ public class FeedActionParserTest {
             /* contentMetadata= */ () -> null);
     when(streamActionApi.canDownloadUrl()).thenReturn(true);
     feedActionParser.parseFeedActionPayload(
-        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
+        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, times(0)).downloadUrl(any(ContentMetadata.class));
   }
 
@@ -433,7 +488,7 @@ public class FeedActionParserTest {
   public void testDownloadUrl_noHostSupport() {
     when(streamActionApi.canDownloadUrl()).thenReturn(false);
     feedActionParser.parseFeedActionPayload(
-        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null);
+        DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, times(0)).downloadUrl(any(ContentMetadata.class));
   }
 
@@ -448,7 +503,7 @@ public class FeedActionParserTest {
                 .getDataOperationsList()))
         .thenReturn(Result.success(streamDataOperations));
     feedActionParser.parseFeedActionPayload(
-        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, never())
         .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class), any());
   }
@@ -464,7 +519,7 @@ public class FeedActionParserTest {
                 .getDataOperationsList()))
         .thenReturn(Result.success(streamDataOperations));
     feedActionParser.parseFeedActionPayload(
-        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, never())
         .handleNotInterestedInTopic(Mockito.anyListOf(StreamDataOperation.class), any(), any());
   }
@@ -480,7 +535,7 @@ public class FeedActionParserTest {
                 .getDataOperationsList()))
         .thenReturn(Result.success(streamDataOperations));
     feedActionParser.parseFeedActionPayload(
-        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, never())
         .handleNotInterestedInSource(Mockito.anyListOf(StreamDataOperation.class), any(), any());
   }
@@ -496,7 +551,10 @@ public class FeedActionParserTest {
                 .getDataOperationsList()))
         .thenReturn(Result.success(streamDataOperations));
     feedActionParser.parseFeedActionPayload(
-        DISMISS_LOCAL_FEED_ACTION_NO_CONTENT_ID, streamActionApi, /* view= */ null);
+        DISMISS_LOCAL_FEED_ACTION_NO_CONTENT_ID,
+        streamActionApi,
+        /* view= */ null,
+        ActionSource.CLICK);
     verify(streamActionApi, never())
         .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class), any());
   }
@@ -514,7 +572,7 @@ public class FeedActionParserTest {
         .thenReturn(Result.failure());
 
     feedActionParser.parseFeedActionPayload(
-        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
     verify(streamActionApi, never())
         .dismiss(anyString(), Mockito.anyListOf(StreamDataOperation.class), any());
@@ -533,7 +591,7 @@ public class FeedActionParserTest {
         .thenReturn(Result.success(streamDataOperations));
 
     feedActionParser.parseFeedActionPayload(
-        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null);
+        DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
     verify(streamActionApi).dismiss(DISMISS_CONTENT_ID_STRING, streamDataOperations, UNDO_ACTION);
   }
@@ -552,7 +610,7 @@ public class FeedActionParserTest {
         .thenReturn(Result.success(streamDataOperations));
 
     feedActionParser.parseFeedActionPayload(
-        NOT_INTERESTED_IN_SOURCE, streamActionApi, /* view= */ null);
+        NOT_INTERESTED_IN_SOURCE, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
     verify(streamActionApi)
         .handleNotInterestedInSource(
@@ -573,7 +631,7 @@ public class FeedActionParserTest {
         .thenReturn(Result.success(streamDataOperations));
 
     feedActionParser.parseFeedActionPayload(
-        NOT_INTERESTED_IN_TOPIC, streamActionApi, /* view= */ null);
+        NOT_INTERESTED_IN_TOPIC, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
     verify(streamActionApi)
         .handleNotInterestedInTopic(
@@ -584,7 +642,11 @@ public class FeedActionParserTest {
   public void testLearnMore() {
     when(streamActionApi.canLearnMore()).thenReturn(true);
     feedActionParser.parseAction(
-        LEARN_MORE_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken- */ null);
+        LEARN_MORE_ACTION,
+        streamActionApi,
+        /* view= */ null, /* veLoggingToken- */
+        null,
+        ActionSource.CLICK);
 
     verify(streamActionApi).learnMore();
     verify(streamActionApi).onClientAction(ActionType.LEARN_MORE);
@@ -594,8 +656,58 @@ public class FeedActionParserTest {
   public void testLearnMore_noApiSupport() {
     when(streamActionApi.canLearnMore()).thenReturn(false);
     feedActionParser.parseAction(
-        LEARN_MORE_ACTION, streamActionApi, /* view= */ null, /* veLoggingToken- */ null);
+        LEARN_MORE_ACTION,
+        streamActionApi,
+        /* view= */ null, /* veLoggingToken- */
+        null,
+        ActionSource.CLICK);
 
     verify(streamActionApi, never()).learnMore();
+  }
+
+  @Test
+  public void testOnHide() {
+    when(streamActionApi.canHandleElementHide()).thenReturn(true);
+    feedActionParser.parseFeedActionPayload(
+        HIDE_ELEMENT, streamActionApi, /* view= */ null, ActionSource.VIEW);
+
+    verify(streamActionApi)
+        .onElementHide(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+
+    verify(streamActionApi, never())
+        .onElementClick(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnView() {
+    when(streamActionApi.canHandleElementView()).thenReturn(true);
+    feedActionParser.parseFeedActionPayload(
+        VIEW_ELEMENT, streamActionApi, /* view= */ null, ActionSource.VIEW);
+
+    verify(streamActionApi)
+        .onElementView(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+
+    verify(streamActionApi, never())
+        .onElementClick(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnClick() {
+    when(streamActionApi.canHandleElementClick()).thenReturn(true);
+    feedActionParser.parseFeedActionPayload(
+        CLICK_ELEMENT, streamActionApi, /* view= */ null, ActionSource.CLICK);
+
+    verify(streamActionApi)
+        .onElementClick(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnClick_notLogClick() {
+    when(streamActionApi.canHandleElementClick()).thenReturn(true);
+    feedActionParser.parseFeedActionPayload(
+        VIEW_ELEMENT, streamActionApi, /* view= */ null, ActionSource.VIEW);
+
+    verify(streamActionApi, never())
+        .onElementClick(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
   }
 }

@@ -24,12 +24,14 @@ import static com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata
 
 import android.view.View;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionSource;
 import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedactionparser.internal.ActionTypeConverter;
+import com.google.android.libraries.feed.feedactionparser.internal.ElementTypeConverter;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -64,19 +66,26 @@ public final class FeedActionParser implements ActionParser {
 
   @Override
   public void parseAction(
-      Action action, StreamActionApi streamActionApi, View view, /*@Nullable*/ String veLoggingToken) {
+      Action action,
+      StreamActionApi streamActionApi,
+      View view,
+      /*@Nullable*/ String veLoggingToken,
+      @ActionSource int actionSource) {
     FeedActionPayload feedActionPayload =
         pietFeedActionPayloadRetriever.getFeedActionPayload(action);
     if (feedActionPayload == null) {
       Logger.w(TAG, "Unable to get FeedActionPayload from PietFeedActionPayloadRetriever");
       return;
     }
-    parseFeedActionPayload(feedActionPayload, streamActionApi, view);
+    parseFeedActionPayload(feedActionPayload, streamActionApi, view, actionSource);
   }
 
   @Override
   public void parseFeedActionPayload(
-      FeedActionPayload feedActionPayload, StreamActionApi streamActionApi, View view) {
+      FeedActionPayload feedActionPayload,
+      StreamActionApi streamActionApi,
+      View view,
+      @ActionSource int actionSource) {
     FeedActionMetadata feedActionMetadata =
         feedActionPayload.getExtension(FeedAction.feedActionExtension).getMetadata();
     switch (feedActionMetadata.getType()) {
@@ -198,8 +207,40 @@ public final class FeedActionParser implements ActionParser {
         streamActionApi.learnMore();
         streamActionApi.onClientAction(ActionTypeConverter.convert(LEARN_MORE));
         break;
+      case VIEW_ELEMENT:
+        if (!streamActionApi.canHandleElementView()) {
+          Logger.e(TAG, "Cannot log Element View: StreamActionApi does not support it");
+          break;
+        } else if (!feedActionMetadata.hasElementType()) {
+          Logger.e(TAG, "Cannot log ElementView : no Element Type");
+          break;
+        }
+        streamActionApi.onElementView(
+            ElementTypeConverter.convert(feedActionMetadata.getElementType()));
+        break;
+      case HIDE_ELEMENT:
+        if (!streamActionApi.canHandleElementHide()) {
+          Logger.e(TAG, "Cannot log Element Hide: StreamActionApi does not support it");
+          break;
+        } else if (!feedActionMetadata.hasElementType()) {
+          Logger.e(TAG, "Cannot log Element Hide : no Element Type");
+          break;
+        }
+        streamActionApi.onElementHide(
+            ElementTypeConverter.convert(feedActionMetadata.getElementType()));
+        break;
       default:
         Logger.wtf(TAG, "Haven't implemented host handling of %s", feedActionMetadata.getType());
+    }
+    if (actionSource == ActionSource.CLICK) {
+      if (!streamActionApi.canHandleElementClick()) {
+        Logger.e(TAG, "Cannot log Element Click: StreamActionApi does not support it");
+      } else if (!feedActionMetadata.hasElementType()) {
+        Logger.e(TAG, "Cannot log Element Click: no Element Type");
+      } else {
+        streamActionApi.onElementClick(
+            ElementTypeConverter.convert(feedActionMetadata.getElementType()));
+      }
     }
   }
 

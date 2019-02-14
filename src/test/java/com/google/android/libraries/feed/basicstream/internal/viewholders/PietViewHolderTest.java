@@ -33,6 +33,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionSource;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder.PietViewActionScrollListener;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -348,7 +349,8 @@ public class PietViewHolderTest {
 
     verify(loggingListener).onContentSwiped();
     verify(actionParser)
-        .parseFeedActionPayload(SWIPE_ACTION, streamActionApi, pietViewHolder.itemView);
+        .parseFeedActionPayload(
+            SWIPE_ACTION, streamActionApi, pietViewHolder.itemView, ActionSource.SWIPE);
   }
 
   @Test
@@ -364,7 +366,8 @@ public class PietViewHolderTest {
     actionHandler.handleAction(ACTION, ActionType.CLICK, FRAME, view, VE_LOGGING_TOKEN);
 
     verify(loggingListener).onContentClicked();
-    verify(actionParser).parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN);
+    verify(actionParser)
+        .parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN, ActionSource.CLICK);
   }
 
   @Test
@@ -380,7 +383,8 @@ public class PietViewHolderTest {
     actionHandler.handleAction(ACTION, ActionType.LONG_CLICK, FRAME, view, VE_LOGGING_TOKEN);
 
     verify(loggingListener, never()).onContentClicked();
-    verify(actionParser).parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN);
+    verify(actionParser)
+        .parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN, ActionSource.LONG_CLICK);
   }
 
   @Test
@@ -396,6 +400,7 @@ public class PietViewHolderTest {
     actionHandler.handleAction(ACTION, ActionType.VIEW, FRAME, view, VE_LOGGING_TOKEN);
 
     verify(loggingListener, never()).onContentClicked();
-    verify(actionParser).parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN);
+    verify(actionParser)
+        .parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN, ActionSource.VIEW);
   }
 }

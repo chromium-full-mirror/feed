@@ -24,6 +24,8 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
+import com.google.android.libraries.feed.api.actionparser.ActionSource;
+import com.google.android.libraries.feed.api.actionparser.ActionSourceConverter;
 import com.google.android.libraries.feed.api.stream.ScrollListener;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.ui.LayoutUtils;
@@ -87,7 +89,13 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
               if (actionType == ActionType.CLICK) {
                 getLoggingListener().onContentClicked();
               }
-              getActionParser().parseAction(action, getStreamActionApi(), view, veLoggingToken);
+              getActionParser()
+                  .parseAction(
+                      action,
+                      getStreamActionApi(),
+                      view,
+                      veLoggingToken,
+                      ActionSourceConverter.convertPietAction(actionType));
             },
             errorCodes -> {},
             context);
@@ -171,7 +179,8 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
       Logger.wtf(TAG, "Swipe performed on unbound ViewHolder.");
       return;
     }
-    actionParser.parseFeedActionPayload(swipeAction, getStreamActionApi(), itemView);
+    actionParser.parseFeedActionPayload(
+        swipeAction, getStreamActionApi(), itemView, ActionSource.SWIPE);
 
     if (loggingListener == null) {
       Logger.wtf(TAG, "Logging listener is null. Swipe perfomred on unbound ViewHolder.");
