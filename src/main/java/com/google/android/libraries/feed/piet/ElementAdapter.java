@@ -24,8 +24,10 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
+import com.google.search.now.ui.piet.AccessibilityProto.Accessibility;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
+import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.Visibility;
@@ -232,6 +234,30 @@ abstract class ElementAdapter<V extends View, M> {
     // Reapply styles if we have style bindings
     if (getElementStyleIdsStack().hasStyleBinding()) {
       elementStyle.applyElementStyles(this);
+    }
+
+    getBaseView()
+        .setContentDescription(
+            getAccessibilityString(baseElement.getAccessibility(), frameContext));
+  }
+
+  private CharSequence getAccessibilityString(
+      Accessibility accessibility, FrameContext frameContext) {
+    switch (accessibility.getDescriptionDataCase()) {
+      case DESCRIPTION:
+        return getTemplatedStringEvaluator()
+            .evaluate(parameters.hostProviders.getAssetProvider(), accessibility.getDescription());
+      case DESCRIPTION_BINDING:
+        BindingValue bindingValue =
+            frameContext.getParameterizedTextBindingValue(accessibility.getDescriptionBinding());
+        if (bindingValue.hasParameterizedText()) {
+          return getTemplatedStringEvaluator()
+              .evaluate(
+                  parameters.hostProviders.getAssetProvider(), bindingValue.getParameterizedText());
+        }
+        // fall through
+      default:
+        return "";
     }
   }
 

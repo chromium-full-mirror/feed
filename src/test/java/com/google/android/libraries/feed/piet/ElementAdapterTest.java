@@ -43,11 +43,13 @@ import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.ui.RoundedCornerWrapperView;
 import com.google.android.libraries.feed.testing.shadows.ExtendedShadowView;
+import com.google.search.now.ui.piet.AccessibilityProto.Accessibility;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
 import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.ElementBindingRef;
+import com.google.search.now.ui.piet.BindingRefsProto.ParameterizedTextBindingRef;
 import com.google.search.now.ui.piet.BindingRefsProto.VisibilityBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
@@ -61,6 +63,7 @@ import com.google.search.now.ui.piet.RoundedCornersProto.RoundedCorners;
 import com.google.search.now.ui.piet.StylesProto.GravityHorizontal;
 import com.google.search.now.ui.piet.StylesProto.GravityVertical;
 import com.google.search.now.ui.piet.StylesProto.StyleIdsStack;
+import com.google.search.now.ui.piet.TextProto.ParameterizedText;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -746,6 +749,48 @@ public class ElementAdapterTest {
     assertThat(adapter.testAdapterCreated).isFalse();
     assertThat(adapter.testAdapterBound).isTrue();
     assertThat(adapter.getView().getVisibility()).isEqualTo(View.INVISIBLE);
+  }
+
+  @Test
+  public void testBindModel_accessibility() {
+    Element accessibilityElement =
+        Element.newBuilder()
+            .setAccessibility(
+                Accessibility.newBuilder()
+                    .setDescription(ParameterizedText.newBuilder().setText("Accessible!")))
+            .build();
+
+    adapter.bindModel(accessibilityElement, frameContext);
+
+    assertThat(adapter.getView().getContentDescription().toString()).isEqualTo("Accessible!");
+  }
+
+  @Test
+  public void testBindModel_accessibilityBinding() {
+    ParameterizedTextBindingRef textBinding =
+        ParameterizedTextBindingRef.newBuilder().setBindingId("binding").build();
+    Element accessibilityElement =
+        Element.newBuilder()
+            .setAccessibility(Accessibility.newBuilder().setDescriptionBinding(textBinding))
+            .build();
+    when(frameContext.getParameterizedTextBindingValue(textBinding))
+        .thenReturn(
+            BindingValue.newBuilder()
+                .setParameterizedText(ParameterizedText.newBuilder().setText("Accessible!"))
+                .build());
+
+    adapter.bindModel(accessibilityElement, frameContext);
+
+    assertThat(adapter.getView().getContentDescription().toString()).isEqualTo("Accessible!");
+  }
+
+  @Test
+  public void testBindModel_accessibilityReset() {
+    adapter.getView().setContentDescription("OLD CONTENT DESCRIPTION");
+
+    adapter.bindModel(Element.getDefaultInstance(), frameContext);
+
+    assertThat(adapter.getView().getContentDescription().toString()).isEmpty();
   }
 
   @Test
