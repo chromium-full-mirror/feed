@@ -73,6 +73,7 @@ import com.google.android.libraries.feed.sharedstream.contextmenumanager.Floatin
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
+import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietImageLoader;
 import com.google.android.libraries.feed.sharedstream.piet.PietStringFormatter;
@@ -480,7 +481,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             deepestContentTracker,
             streamContentChangedListener,
             streamScrollMonitor,
-            configuration);
+            configuration,
+            new PietEventLogger(basicLoggingApi));
     adapter.setHeaders(headers);
     recyclerView.setId(R.id.feed_stream_recycler_view);
     recyclerView.setLayoutManager(createRecyclerViewLayoutManager(context));
@@ -763,7 +765,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       DeepestContentTracker deepestContentTracker,
       StreamContentChangedListener streamContentChangedListener,
       StreamScrollMonitor streamScrollMonitor,
-      Configuration configuration) {
+      Configuration configuration,
+      PietEventLogger pietEventLogger) {
     return new StreamRecyclerViewAdapter(
         context,
         recyclerView,
@@ -772,7 +775,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         deepestContentTracker,
         streamContentChangedListener,
         streamScrollMonitor,
-        configuration);
+        configuration,
+        pietEventLogger);
   }
 
   @VisibleForTesting

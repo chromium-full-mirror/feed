@@ -38,6 +38,7 @@ import com.google.android.libraries.feed.basicstream.internal.actions.StreamActi
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder.PietViewActionScrollListener;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.FrameAdapter;
 import com.google.android.libraries.feed.piet.PietManager;
@@ -46,14 +47,17 @@ import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor;
+import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.android.libraries.feed.testing.host.stream.FakeCardConfiguration;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.piet.ActionsProto.Action;
+import com.google.search.now.ui.piet.ErrorsProto.ErrorCode;
 import com.google.search.now.ui.piet.PietProto.Frame;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,6 +88,7 @@ public class PietViewHolderTest {
   @Mock private LoggingListener loggingListener;
   @Mock private VisibilityMonitor visibilityMonitor;
   @Mock private StreamScrollMonitor streamScrollMonitor;
+  @Mock private BasicLoggingApi basicLoggingApi;
 
   private ActionHandler actionHandler;
   private Configuration configuration;
@@ -120,7 +125,8 @@ public class PietViewHolderTest {
             streamScrollMonitor,
             viewport,
             context,
-            configuration) {
+            configuration,
+            new PietEventLogger(basicLoggingApi)) {
           @Override
           VisibilityMonitor createVisibilityMonitor(View view, Configuration configuration) {
             return visibilityMonitor;
@@ -402,5 +408,25 @@ public class PietViewHolderTest {
     verify(loggingListener, never()).onContentClicked();
     verify(actionParser)
         .parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN, ActionSource.VIEW);
+  }
+
+  @Test
+  public void testPietError_loggedToHost() {
+    ArgumentCaptor<EventLogger> pietEventLoggerCaptor = ArgumentCaptor.forClass(EventLogger.class);
+
+    verify(pietManager)
+        .createPietFrameAdapter(
+            Mockito.<Supplier<ViewGroup>>any(),
+            eq(actionHandler),
+            pietEventLoggerCaptor.capture(),
+            eq(context));
+
+    pietEventLoggerCaptor
+        .getValue()
+        .logEvents(Collections.singletonList(ErrorCode.ERR_MISSING_BINDING_VALUE));
+
+    verify(basicLoggingApi)
+        .onPietFrameRenderingEvent(
+            Collections.singletonList(ErrorCode.ERR_MISSING_BINDING_VALUE.getNumber()));
   }
 }

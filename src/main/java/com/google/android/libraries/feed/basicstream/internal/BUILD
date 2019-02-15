@@ -14,9 +14,11 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
         "//src/main/java/com/google/android/libraries/feed/host/config",
+        "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/deepestcontenttracker",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         gmaven_artifact("com.android.support:support_annotations:jar:28.0.0"),  # buildcleaner: keep
         gmaven_artifact("com.android.support:interpolator:aar:28.0.0"),

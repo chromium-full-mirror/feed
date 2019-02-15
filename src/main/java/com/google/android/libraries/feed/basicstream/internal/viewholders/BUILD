@@ -17,11 +17,13 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/common/ui",
         "//src/main/java/com/google/android/libraries/feed/host/action",
         "//src/main/java/com/google/android/libraries/feed/host/config",
+        "//src/main/java/com/google/android/libraries/feed/host/logging",
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/piet",
         "//src/main/java/com/google/android/libraries/feed/piet/host",
         "//src/main/java/com/google/android/libraries/feed/sharedstream:resources",  # build_cleaner: keep
         "//src/main/java/com/google/android/libraries/feed/sharedstream/logging",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "//src/main/proto/search/now/ui/action:feed_action_payload_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",

@@ -47,6 +47,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
+import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,6 +69,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
   private final HashMap<FeedViewHolder, LeafFeatureDriver> boundViewHolderToLeafFeatureDriverMap;
   private final DeepestContentTracker deepestContentTracker;
   private final ContentChangedListener contentChangedListener;
+  private final PietEventLogger eventLogger;
 
   private boolean streamContentVisible;
   private boolean shown;
@@ -85,7 +87,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
       DeepestContentTracker deepestContentTracker,
       ContentChangedListener contentChangedListener,
       StreamScrollMonitor streamScrollMonitor,
-      Configuration configuration) {
+      Configuration configuration,
+      PietEventLogger eventLogger) {
     this.context = context;
     this.viewport = viewport;
     this.cardConfiguration = cardConfiguration;
@@ -99,6 +102,7 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
     streamContentVisible = true;
     this.deepestContentTracker = deepestContentTracker;
     this.streamScrollMonitor = streamScrollMonitor;
+    this.eventLogger = eventLogger;
   }
 
   @Override
@@ -124,7 +128,8 @@ public class StreamRecyclerViewAdapter extends RecyclerView.Adapter<FeedViewHold
         streamScrollMonitor,
         viewport,
         context,
-        configuration);
+        configuration,
+        eventLogger);
   }
 
   @Override

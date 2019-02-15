@@ -52,6 +52,7 @@ import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
+import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -92,6 +93,7 @@ public class StreamRecyclerViewAdapterTest {
   @Mock private Header header1;
   @Mock private Header header2;
   @Mock private StreamScrollMonitor streamScrollMonitor;
+  @Mock private PietEventLogger pietEventLogger;
 
   private Context context;
   private LinearLayout frameContainer;
@@ -134,7 +136,8 @@ public class StreamRecyclerViewAdapterTest {
             deepestContentTracker,
             contentChangedListener,
             streamScrollMonitor,
-            CONFIGURATION);
+            CONFIGURATION,
+            pietEventLogger);
     streamRecyclerViewAdapter.setHeaders(headers);
 
     when(driver.getLeafFeatureDrivers()).thenReturn(Lists.newArrayList(initialFeatureDriver));
@@ -367,7 +370,8 @@ public class StreamRecyclerViewAdapterTest {
             deepestContentTracker,
             contentChangedListener,
             streamScrollMonitor,
-            CONFIGURATION) {
+            CONFIGURATION,
+            pietEventLogger) {
           @Override
           HeaderDriver createHeaderDriver(Header header) {
             if (header == headers.get(0)) {
@@ -396,7 +400,8 @@ public class StreamRecyclerViewAdapterTest {
             deepestContentTracker,
             contentChangedListener,
             streamScrollMonitor,
-            CONFIGURATION) {
+            CONFIGURATION,
+            pietEventLogger) {
           @Override
           HeaderDriver createHeaderDriver(Header header) {
             if (header == headers.get(0)) {
@@ -488,7 +493,8 @@ public class StreamRecyclerViewAdapterTest {
             deepestContentTracker,
             contentChangedListener,
             streamScrollMonitor,
-            CONFIGURATION) {
+            CONFIGURATION,
+            pietEventLogger) {
           @Override
           HeaderDriver createHeaderDriver(Header header) {
             if (header == headers.get(0)) {

@@ -40,6 +40,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/sharedstream/contextmenumanager",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/deepestcontenttracker",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/offlinemonitor",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/piet",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/scroll",
         "//src/main/java/com/google/android/libraries/feed/testing/shadows",

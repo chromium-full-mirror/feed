@@ -84,6 +84,7 @@ import com.google.android.libraries.feed.sharedstream.contextmenumanager.Context
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManagerImpl;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
+import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
@@ -1144,7 +1145,8 @@ public class BasicStreamTest {
         DeepestContentTracker deepestContentTracker,
         StreamContentChangedListener streamContentChangedListener,
         StreamScrollMonitor streamScrollMonitor,
-        Configuration configuration) {
+        Configuration configuration,
+        PietEventLogger pietEventLogger) {
       return adapter;
     }
 

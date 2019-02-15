@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.VisibilityMonitor;
+import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.piet.PietAndroidSupport.ShardingControl;
@@ -72,7 +73,8 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
       StreamScrollMonitor streamScrollMonitor,
       View viewport,
       Context context,
-      Configuration configuration) {
+      Configuration configuration,
+      PietEventLogger eventLogger) {
     super(cardView);
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;
@@ -99,7 +101,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
                       veLoggingToken,
                       ActionSourceConverter.convertPietAction(actionType));
             },
-            errorCodes -> {},
+            eventLogger::logEvents,
             context);
     visibilityMonitor = createVisibilityMonitor(cardView, configuration);
     cardView.addView(frameAdapter.getFrameContainer());
