@@ -249,6 +249,10 @@ public class ContinuationDriver extends LeafFeatureDriver
   @Override
   public void onContentSwiped() {}
 
+  // TODO: add similar view logging cancelation and time delay for the More button
+  @Override
+  public void onScrollStateChanged(int newScrollState) {}
+
   private List<ModelChild> extractModelChildrenFromCursor(ModelCursor cursor) {
     List<ModelChild> modelChildren = new ArrayList<>();
     ModelChild child;

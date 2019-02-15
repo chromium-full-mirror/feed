@@ -23,4 +23,11 @@ public interface LoggingListener extends VisibilityListener {
   void onContentClicked();
 
   void onContentSwiped();
+
+  /**
+   * Called when the scroll state changes.
+   *
+   * @param newScrollState: the new {@link ScrollState} that is occurring (e.g. dragging, idle).
+   */
+  void onScrollStateChanged(int newScrollState);
 }

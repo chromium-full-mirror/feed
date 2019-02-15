@@ -56,13 +56,14 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
   private final StreamScrollMonitor streamScrollMonitor;
   private final FrameAdapter frameAdapter;
   private final VisibilityMonitor visibilityMonitor;
-  private final PietViewActionScrollListener scrollListener;
+  private final View viewport;
   private boolean bound;
 
   /*@Nullable*/ private ActionParser actionParser;
   /*@Nullable*/ private LoggingListener loggingListener;
   /*@Nullable*/ private StreamActionApi streamActionApi;
   /*@Nullable*/ private FeedActionPayload swipeAction;
+  /*@Nullable*/ private PietViewActionScrollListener scrollListener;
 
   public PietViewHolder(
       CardConfiguration cardConfiguration,
@@ -76,6 +77,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     this.cardConfiguration = cardConfiguration;
     this.cardView = cardView;
     this.streamScrollMonitor = streamScrollMonitor;
+    this.viewport = viewport;
     cardView.setId(R.id.feed_content_card);
     this.frameAdapter =
         pietManager.createPietFrameAdapter(
@@ -101,8 +103,6 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
             context);
     visibilityMonitor = createVisibilityMonitor(cardView, configuration);
     cardView.addView(frameAdapter.getFrameContainer());
-
-    scrollListener = new PietViewActionScrollListener(frameAdapter, viewport);
   }
 
   public void bind(
@@ -120,7 +120,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     this.streamActionApi = streamActionApi;
     this.swipeAction = swipeAction;
     this.actionParser = actionParser;
-
+    scrollListener = new PietViewActionScrollListener(frameAdapter, viewport, loggingListener);
     // Need to reset padding here.  Setting a background can affect padding so if we switch from
     // a background which has padding to one that does not, then the padding needs to be removed.
     cardView.setPadding(0, 0, 0, 0);
@@ -147,8 +147,9 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
         0, // TODO: set the frame width here
         (ShardingControl) null,
         pietSharedStates);
-
-    streamScrollMonitor.addScrollListener(scrollListener);
+    if (scrollListener != null) {
+      streamScrollMonitor.addScrollListener(scrollListener);
+    }
 
     bound = true;
   }
@@ -165,7 +166,9 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
     swipeAction = null;
     visibilityMonitor.setListener(null);
     frameAdapter.unbindModel();
-    streamScrollMonitor.removeScrollListener(scrollListener);
+    if (scrollListener != null) {
+      streamScrollMonitor.removeScrollListener(scrollListener);
+    }
     bound = false;
   }
 
@@ -214,10 +217,13 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
   static class PietViewActionScrollListener implements ScrollListener {
     private final FrameAdapter frameAdapter;
     private final View viewport;
+    private final LoggingListener loggingListener;
 
-    PietViewActionScrollListener(FrameAdapter frameAdapter, View viewport) {
+    PietViewActionScrollListener(
+        FrameAdapter frameAdapter, View viewport, LoggingListener loggingListener) {
       this.frameAdapter = frameAdapter;
       this.viewport = viewport;
+      this.loggingListener = loggingListener;
     }
 
     @Override
@@ -230,6 +236,7 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
       if (state == ScrollState.IDLE) {
         frameAdapter.triggerViewActions(viewport);
       }
+      loggingListener.onScrollStateChanged(state);
     }
 
     @Override
