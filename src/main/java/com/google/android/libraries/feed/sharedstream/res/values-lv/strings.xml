@@ -24,5 +24,5 @@
   <string name="snackbar_fetch_failed">Nevar iegūt ieteikumus.</string>
   <string name="snackbar_fetch_no_new_suggestions">Nav jaunu ieteikumu</string>
   <string name="suggestions_section_empty">Ieteiktie raksti tiek parādīti šeit</string>
-  <string name="snackbar_default_action">Undo</string>
+  <string name="snackbar_default_action">Atsaukt</string>
 </resources>

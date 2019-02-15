@@ -24,5 +24,5 @@
   <string name="snackbar_fetch_failed">Prijedlozi se ne mogu dohvatiti</string>
   <string name="snackbar_fetch_no_new_suggestions">Nema novih prijedloga</string>
   <string name="suggestions_section_empty">Ovdje će se prikazivati predloženi članci</string>
-  <string name="snackbar_default_action">Undo</string>
+  <string name="snackbar_default_action">Poništi</string>
 </resources>

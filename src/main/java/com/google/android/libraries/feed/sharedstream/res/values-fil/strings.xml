@@ -24,5 +24,5 @@
   <string name="snackbar_fetch_failed">Hindi makakuha ng mga suhestyon</string>
   <string name="snackbar_fetch_no_new_suggestions">Walang bagong suhestyon</string>
   <string name="suggestions_section_empty">Lalabas dito ang mga iminungkahi mong artikulo</string>
-  <string name="snackbar_default_action">Undo</string>
+  <string name="snackbar_default_action">I-undo</string>
 </resources>

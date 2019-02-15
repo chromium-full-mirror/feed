@@ -24,5 +24,5 @@
   <string name="snackbar_fetch_failed">يتعذر الحصول على الاقتراحات</string>
   <string name="snackbar_fetch_no_new_suggestions">ما من اقتراحات جديدة</string>
   <string name="suggestions_section_empty">تظهر مقالاتك المقترحة هنا</string>
-  <string name="snackbar_default_action">Undo</string>
+  <string name="snackbar_default_action">تراجع</string>
 </resources>

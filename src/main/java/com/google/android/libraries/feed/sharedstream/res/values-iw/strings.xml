@@ -24,5 +24,5 @@
   <string name="snackbar_fetch_failed">לא ניתן לקבל הצעות</string>
   <string name="snackbar_fetch_no_new_suggestions">אין הצעות חדשות</string>
   <string name="suggestions_section_empty">הצעות של מאמרים עבורך מופיעות כאן</string>
-  <string name="snackbar_default_action">Undo</string>
+  <string name="snackbar_default_action">ביטול</string>
 </resources>

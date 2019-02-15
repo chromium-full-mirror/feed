@@ -24,5 +24,5 @@
   <string name="snackbar_fetch_failed">सुझाव नहीं मिल पा रहे हैं</string>
   <string name="snackbar_fetch_no_new_suggestions">कोई नया सुझाव नहीं है</string>
   <string name="suggestions_section_empty">आपके सुझाए हुए लेख यहां दिखाई देते हैं</string>
-  <string name="snackbar_default_action">Undo</string>
+  <string name="snackbar_default_action">पहले जैसा करें</string>
 </resources>
