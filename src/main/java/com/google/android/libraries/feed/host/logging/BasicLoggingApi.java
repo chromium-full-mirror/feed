@@ -154,4 +154,10 @@ public interface BasicLoggingApi {
    * @param elementType describes the type of element which was clicked.
    */
   void onVisualElementViewed(ElementLoggingData data, @ElementType int elementType);
+
+  /**
+   * Reports an internal error. This error should be logged by hosts, but not handled. In
+   * particular, the host should not crash if this method is called.
+   */
+  void onInternalError(@InternalFeedError int internalError);
 }
