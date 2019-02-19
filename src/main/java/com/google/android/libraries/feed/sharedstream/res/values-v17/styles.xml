@@ -36,14 +36,6 @@
     <item name="android:background">@drawable/feed_text_ripple_drawable</item>
   </style>
 
-  <style name="FeedMoreButtonContainer">
-    <item name="android:layout_width">match_parent</item>
-    <item name="android:layout_height">wrap_content</item>
-    <item name="android:paddingStart">@dimen/more_button_padding</item>
-    <item name="android:paddingEnd">@dimen/more_button_padding</item>
-    <item name="android:paddingBottom">@dimen/more_button_padding</item>
-  </style>
-
   <!-- Menu Text Padding Styles -->
   <style name="FeedMenuTextPaddingStyle">
     <item name="android:paddingStart">?android:attr/listPreferredItemPaddingStart</item>
