@@ -50,6 +50,12 @@ message Actions {
   // become more than half visible (reset) and then becomes less than half
   // visible.
   repeated VisibilityAction on_hide_actions = 4;
+
+  // Action to be executed when the user force touches on a UI element. May not
+  // be supported on all platforms.
+  //
+  // Ex. Preview the matching detail UI for a UI element with this action.
+  optional Action on_force_touch_action = 5;
 }
 
 // Defines an Action which can be raised when the user clicks a UI element. The
