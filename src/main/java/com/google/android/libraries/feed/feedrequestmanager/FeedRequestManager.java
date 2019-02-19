@@ -350,8 +350,6 @@ public final class FeedRequestManager implements RequestManager {
       addCapabilityIfConfigEnabled(
           feedRequestBuilder, ConfigKey.FEED_UI_ENABLED, Capability.FEED_UI);
       addCapabilityIfConfigEnabled(
-          feedRequestBuilder, ConfigKey.INTEREST_HEADER_UI_ENABLED, Capability.INTEREST_HEADER);
-      addCapabilityIfConfigEnabled(
           feedRequestBuilder, ConfigKey.UNDOABLE_ACTIONS_ENABLED, Capability.UNDOABLE_ACTIONS);
       addCapabilityIfConfigEnabled(
           feedRequestBuilder, ConfigKey.MANAGE_INTERESTS_ENABLED, Capability.MANAGE_INTERESTS);

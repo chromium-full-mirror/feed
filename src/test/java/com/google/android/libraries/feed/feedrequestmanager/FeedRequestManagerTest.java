@@ -189,11 +189,6 @@ public class FeedRequestManagerTest {
   }
 
   @Test
-  public void testTriggerRefresh_interesteHeaderCapabilityAddedWhenFlagIsOn() throws Exception {
-    testCapabilityAdded(ConfigKey.INTEREST_HEADER_UI_ENABLED, Capability.INTEREST_HEADER);
-  }
-
-  @Test
   public void testTriggerRefresh_undoableActionCapabilityAddedWhenFlagIsOn() throws Exception {
     testCapabilityAdded(ConfigKey.UNDOABLE_ACTIONS_ENABLED, Capability.UNDOABLE_ACTIONS);
   }
