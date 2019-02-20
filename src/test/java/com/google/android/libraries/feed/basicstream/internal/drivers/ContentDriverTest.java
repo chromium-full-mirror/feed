@@ -49,6 +49,7 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementType;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.StreamContentLoggingData;
@@ -355,6 +356,7 @@ public class ContentDriverTest {
             any(LoggingListener.class),
             any(ActionParser.class));
     verify(modelProvider).getSharedState(CONTENT_ID_1);
+    verify(basicLoggingApi).onInternalError(InternalFeedError.NULL_SHARED_STATES);
   }
 
   @Test

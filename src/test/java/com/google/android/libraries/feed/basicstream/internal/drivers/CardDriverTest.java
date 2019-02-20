@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
@@ -84,6 +85,8 @@ public class CardDriverTest {
   @Mock private LeafFeatureDriver leafFeatureDriver;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private ClusterPendingDismissHelper clusterPendingDismissHelper;
+  @Mock private BasicLoggingApi basicLoggingApi;
+
   private final Configuration configuration = new Configuration.Builder().build();
   private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
   private CardDriverForTest cardDriver;
@@ -116,7 +119,7 @@ public class CardDriverTest {
             mock(ActionApi.class),
             mock(ActionManager.class),
             mock(ActionParserFactory.class),
-            mock(BasicLoggingApi.class),
+            basicLoggingApi,
             cardModelFeature,
             mock(ModelProvider.class),
             POSITION,
@@ -180,6 +183,16 @@ public class CardDriverTest {
     cardCursor.setModelChildren(Lists.newArrayList(pietModelChild));
 
     assertThat(cardDriver.getLeafFeatureDriver()).isNull();
+  }
+
+  @Test
+  public void getLeafFeatureDrivers_childNotAFeature_logsInternalError() {
+    cardCursor = FakeModelCursor.newBuilder().addUnboundChild().build();
+    when(cardModelFeature.getCursor()).thenReturn(cardCursor);
+
+    cardDriver.getLeafFeatureDriver();
+
+    verify(basicLoggingApi).onInternalError(InternalFeedError.CARD_CHILD_MISSING_FEATURE);
   }
 
   public class CardDriverForTest extends CardDriver {

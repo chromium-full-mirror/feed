@@ -50,6 +50,7 @@ import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
 import com.google.android.libraries.feed.sharedstream.R;
@@ -66,6 +67,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
+import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -84,6 +86,19 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class StreamDriverTest {
 
+  public static final FakeModelCursor CURSOR_WITH_INVALID_CHILDREN =
+      FakeModelCursor.newBuilder()
+          .addChild(
+              FakeModelChild.newBuilder()
+                  .setModelFeature(
+                      FakeModelFeature.newBuilder()
+                          .setStreamFeature(
+                              StreamFeature.newBuilder()
+                                  .setContent(Content.getDefaultInstance())
+                                  .build())
+                          .build())
+                  .build())
+          .build();
   private StreamDriverForTest streamDriver;
 
   private static final ModelFeature UNBOUND_CARD =
@@ -184,12 +199,40 @@ public class StreamDriverTest {
   }
 
   @Test
+  public void testBuildChildren_unboundChild_logsInternalError() {
+    when(streamFeature.getCursor())
+        .thenReturn(FakeModelCursor.newBuilder().addUnboundChild().build());
+
+    streamDriver.getLeafFeatureDrivers();
+
+    verify(basicLoggingApi).onInternalError(InternalFeedError.TOP_LEVEL_UNBOUND_CHILD);
+  }
+
+  @Test
   public void testBuildChildren_initializing() {
     when(modelProvider.getRootFeature()).thenReturn(null);
     when(modelProvider.getCurrentState()).thenReturn(State.INITIALIZING);
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
     assertThat(leafFeatureDrivers).hasSize(1);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(ZeroStateDriver.class);
+  }
+
+  @Test
+  public void testBuildChildren_nullRootFeature_logsInternalError() {
+    when(modelProvider.getRootFeature()).thenReturn(null);
+
+    streamDriver.getLeafFeatureDrivers();
+
+    verify(basicLoggingApi).onInternalError(InternalFeedError.NO_ROOT_FEATURE);
+  }
+
+  @Test
+  public void testCreateChildren_invalidFeatureType_logsInternalError() {
+    when(streamFeature.getCursor()).thenReturn(CURSOR_WITH_INVALID_CHILDREN);
+
+    streamDriver.getLeafFeatureDrivers();
+
+    verify(basicLoggingApi).onInternalError(InternalFeedError.TOP_LEVEL_INVALID_FEATURE_TYPE);
   }
 
   @Test

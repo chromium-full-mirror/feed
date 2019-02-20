@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThrea
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
@@ -60,6 +61,8 @@ public class ClusterDriverTest {
   @Mock private ModelFeature clusterModelFeature;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private PendingDismissHandler pendingDismissHandler;
+  @Mock private BasicLoggingApi basicLoggingApi;
+
   private final Configuration configuration = new Configuration.Builder().build();
   private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
   private ClusterDriverForTest clusterDriver;
@@ -88,7 +91,7 @@ public class ClusterDriverTest {
             mock(ActionApi.class),
             mock(ActionManager.class),
             mock(ActionParserFactory.class),
-            mock(BasicLoggingApi.class),
+            basicLoggingApi,
             clusterModelFeature,
             mock(ModelProvider.class),
             /* position= */ 0,
@@ -133,6 +136,26 @@ public class ClusterDriverTest {
             clusterModelFeature.getStreamFeature().getContentId(),
             UndoAction.getDefaultInstance(),
             pendingDismissCallback);
+  }
+
+  @Test
+  public void getLeafFeatureDrivers_childNotAFeature_logsInternalError() {
+    FakeModelCursor clusterCursor = FakeModelCursor.newBuilder().addUnboundChild().build();
+    when(clusterModelFeature.getCursor()).thenReturn(clusterCursor);
+
+    clusterDriver.getLeafFeatureDriver();
+
+    verify(basicLoggingApi).onInternalError(InternalFeedError.CLUSTER_CHILD_MISSING_FEATURE);
+  }
+
+  @Test
+  public void getLeafFeatureDrivers_childNotACard_logsInternalError() {
+    FakeModelCursor clusterCursor = FakeModelCursor.newBuilder().addCluster().build();
+    when(clusterModelFeature.getCursor()).thenReturn(clusterCursor);
+
+    clusterDriver.getLeafFeatureDriver();
+
+    verify(basicLoggingApi).onInternalError(InternalFeedError.CLUSTER_CHILD_NOT_CARD);
   }
 
   class ClusterDriverForTest extends ClusterDriver {

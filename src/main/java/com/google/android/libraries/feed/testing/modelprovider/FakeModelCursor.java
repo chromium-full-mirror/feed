@@ -91,6 +91,11 @@ public class FakeModelCursor implements ModelCursor {
       return addChildWithModelFeature(getClusterModelFeatureWithCursor(cursor));
     }
 
+    public Builder addUnboundChild() {
+      addChild(FakeModelChild.newBuilder().build());
+      return this;
+    }
+
     public Builder addChildWithModelFeature(FakeModelFeature modelFeature) {
       ModelChild cardChild = FakeModelChild.newBuilder().setModelFeature(modelFeature).build();
       cursorChildren.add(cardChild);

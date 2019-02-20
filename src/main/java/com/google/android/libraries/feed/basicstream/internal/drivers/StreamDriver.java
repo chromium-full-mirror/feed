@@ -40,6 +40,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
 import com.google.android.libraries.feed.sharedstream.R;
@@ -141,6 +142,7 @@ public class StreamDriver
         rootFeature.registerObserver(this);
         modelFeatureChangeObserverRegistered = true;
       } else {
+        basicLoggingApi.onInternalError(InternalFeedError.NO_ROOT_FEATURE);
         Logger.w(TAG, "found null root feature loading Leaf Feature Drivers");
       }
     }
@@ -244,6 +246,7 @@ public class StreamDriver
         continuationDriver.initialize();
         return continuationDriver;
       case Type.UNBOUND:
+        basicLoggingApi.onInternalError(InternalFeedError.TOP_LEVEL_UNBOUND_CHILD);
         Logger.e(TAG, "Found unbound child %s, ignoring it", child.getContentId());
         return null;
       default:
@@ -259,6 +262,7 @@ public class StreamDriver
       return createClusterDriver(modelFeature, position);
     }
 
+    basicLoggingApi.onInternalError(InternalFeedError.TOP_LEVEL_INVALID_FEATURE_TYPE);
     Logger.w(
         TAG,
         "Invalid StreamFeature Type, must be Card or Cluster but was %s",

@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementType;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.sharedstream.constants.Constants;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
@@ -113,7 +114,7 @@ public class ContentDriver extends LeafFeatureDriver
     PietContent pietContent = getPietContent(content);
     this.basicLoggingApi = basicLoggingApi;
     frame = pietContent.getFrame();
-    pietSharedStates = getPietSharedStates(pietContent, modelProvider);
+    pietSharedStates = getPietSharedStates(pietContent, modelProvider, basicLoggingApi);
     contentId = contentFeatureModel.getStreamFeature().getContentId();
     RepresentationData representationData = content.getRepresentationData();
     contentLoggingData =
@@ -169,10 +170,12 @@ public class ContentDriver extends LeafFeatureDriver
   private List<PietSharedState> getPietSharedStates(
       /*@UnderInitialization*/ ContentDriver this,
       PietContent pietContent,
-      ModelProvider modelProvider) {
+      ModelProvider modelProvider,
+      BasicLoggingApi basicLoggingApi) {
     List<PietSharedState> sharedStates = new ArrayList<>();
     for (ContentId contentId : pietContent.getPietSharedStatesList()) {
-      PietSharedState pietSharedState = extractPietSharedState(contentId, modelProvider);
+      PietSharedState pietSharedState =
+          extractPietSharedState(contentId, modelProvider, basicLoggingApi);
       if (pietSharedState == null) {
         return new ArrayList<>();
       }
@@ -186,11 +189,14 @@ public class ContentDriver extends LeafFeatureDriver
   private PietSharedState extractPietSharedState(
       /*@UnderInitialization*/ ContentDriver this,
       ContentId pietSharedStateId,
-      ModelProvider modelProvider) {
+      ModelProvider modelProvider,
+      BasicLoggingApi basicLoggingApi) {
     StreamSharedState sharedState = modelProvider.getSharedState(pietSharedStateId);
     if (sharedState != null) {
       return sharedState.getPietSharedStateItem().getPietSharedState();
     }
+
+    basicLoggingApi.onInternalError(InternalFeedError.NULL_SHARED_STATES);
     Logger.e(
         TAG,
         "Shared state was null. Stylesheets and templates on PietSharedState "

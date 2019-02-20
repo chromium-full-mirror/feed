@@ -31,6 +31,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
@@ -113,6 +114,7 @@ public class CardDriver implements FeatureDriver {
     ModelChild child;
     if ((child = cursor.getNextItem()) != null) {
       if (child.getType() != Type.FEATURE) {
+        basicLoggingApi.onInternalError(InternalFeedError.CARD_CHILD_MISSING_FEATURE);
         Logger.e(TAG, "ContentChild was not bound to a Feature, found type: %s", child.getType());
         return null;
       }

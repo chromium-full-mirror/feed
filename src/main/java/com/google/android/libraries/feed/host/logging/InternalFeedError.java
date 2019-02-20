@@ -20,7 +20,14 @@ import android.support.annotation.IntDef;
 @IntDef({
   InternalFeedError.SWITCH_TO_EPHEMERAL,
   InternalFeedError.NO_URL_FOR_OPEN,
-  InternalFeedError.FAILED_TO_RESTORE
+  InternalFeedError.FAILED_TO_RESTORE,
+  InternalFeedError.NO_ROOT_FEATURE,
+  InternalFeedError.TOP_LEVEL_UNBOUND_CHILD,
+  InternalFeedError.TOP_LEVEL_INVALID_FEATURE_TYPE,
+  InternalFeedError.CLUSTER_CHILD_MISSING_FEATURE,
+  InternalFeedError.CLUSTER_CHILD_NOT_CARD,
+  InternalFeedError.CARD_CHILD_MISSING_FEATURE,
+  InternalFeedError.NULL_SHARED_STATES
 })
 public @interface InternalFeedError {
 
@@ -32,4 +39,25 @@ public @interface InternalFeedError {
 
   /** Represents a failure to restore. */
   int FAILED_TO_RESTORE = 2;
+
+  /** Represents getting a session with no root feature. */
+  int NO_ROOT_FEATURE = 3;
+
+  /** Represents a top level child being unbound when initializing. */
+  int TOP_LEVEL_UNBOUND_CHILD = 4;
+
+  /** Represents a top level feature being neither a card nor a cluster. */
+  int TOP_LEVEL_INVALID_FEATURE_TYPE = 5;
+
+  /** Represents a child of a cluster not having a feature. */
+  int CLUSTER_CHILD_MISSING_FEATURE = 6;
+
+  /** Represents a child of a cluster not being a card. */
+  int CLUSTER_CHILD_NOT_CARD = 7;
+
+  /** Represents a child of a card not having a feature. */
+  int CARD_CHILD_MISSING_FEATURE = 8;
+
+  /** Represents a failure to load shared states for Piet content. */
+  int NULL_SHARED_STATES = 9;
 }

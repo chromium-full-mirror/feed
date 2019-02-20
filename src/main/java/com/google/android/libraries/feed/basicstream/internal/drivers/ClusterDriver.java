@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
@@ -112,23 +113,20 @@ public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper
     ModelChild child;
     while ((child = cursor.getNextItem()) != null) {
       if (child.getType() != Type.FEATURE) {
+        basicLoggingApi.onInternalError(InternalFeedError.CLUSTER_CHILD_MISSING_FEATURE);
         Logger.e(TAG, "Child of cursor is not a feature");
         continue;
       }
 
-      ModelFeature content = child.getModelFeature();
+      ModelFeature childModelFeature = child.getModelFeature();
 
-      if (content == null) {
-        Logger.e(TAG, "Content not found");
-        continue;
-      }
-
-      if (!content.getStreamFeature().hasCard()) {
+      if (!childModelFeature.getStreamFeature().hasCard()) {
+        basicLoggingApi.onInternalError(InternalFeedError.CLUSTER_CHILD_NOT_CARD);
         Logger.e(TAG, "Content not card.");
         continue;
       }
 
-      return createCardDriver(content);
+      return createCardDriver(childModelFeature);
     }
 
     return null;
