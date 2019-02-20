@@ -160,4 +160,21 @@ public interface BasicLoggingApi {
    * particular, the host should not crash if this method is called.
    */
   void onInternalError(@InternalFeedError int internalError);
+
+  /**
+   * Called when a token successfully completes.
+   *
+   * @param wasSynthetic whether the token was synthetic.
+   * @param contentCount how many top level features were in the response, typically clusters.
+   * @param tokenCount how many tokens were in the response.
+   */
+  void onTokenCompleted(boolean wasSynthetic, int contentCount, int tokenCount);
+
+  /**
+   * Called when a token fails to complete.
+   *
+   * @param wasSynthetic whether the token was synthetic.
+   * @param failureCount How many times the token has failed to complete, including this failure.
+   */
+  void onTokenFailedToComplete(boolean wasSynthetic, int failureCount);
 }
