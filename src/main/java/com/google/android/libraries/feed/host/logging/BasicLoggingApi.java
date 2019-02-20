@@ -177,4 +177,11 @@ public interface BasicLoggingApi {
    * @param failureCount How many times the token has failed to complete, including this failure.
    */
   void onTokenFailedToComplete(boolean wasSynthetic, int failureCount);
+
+  /**
+   * Called when a request is made.
+   *
+   * @param requestReason the reason the request was made.
+   */
+  void onServerRequest(@RequestReason int requestReason);
 }
