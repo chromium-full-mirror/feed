@@ -42,7 +42,6 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   private static final String TAG = "StreamActionApiImpl";
 
-
   private final ActionApi actionApi;
   private final ActionParser actionParser;
   private final ActionManager actionManager;
@@ -50,6 +49,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final ContentLoggingData contentLoggingData;
   private final ContextMenuManager contextMenuManager;
   private final ClusterPendingDismissHelper clusterPendingDismissHelper;
+  private final ViewElementActionHandler viewElementActionHandler;
 
   /*@Nullable*/ private final String sessionToken;
 
@@ -61,7 +61,8 @@ public class StreamActionApiImpl implements StreamActionApi {
       ContentLoggingData contentLoggingData,
       ContextMenuManager contextMenuManager,
       /*@Nullable*/ String sessionToken,
-      ClusterPendingDismissHelper clusterPendingDismissHelper) {
+      ClusterPendingDismissHelper clusterPendingDismissHelper,
+      ViewElementActionHandler viewElementActionHandler) {
     this.actionApi = actionApi;
     this.actionParser = actionParser;
     this.actionManager = actionManager;
@@ -70,6 +71,7 @@ public class StreamActionApiImpl implements StreamActionApi {
     this.contextMenuManager = contextMenuManager;
     this.sessionToken = sessionToken;
     this.clusterPendingDismissHelper = clusterPendingDismissHelper;
+    this.viewElementActionHandler = viewElementActionHandler;
   }
 
   @Override
@@ -297,10 +299,14 @@ public class StreamActionApiImpl implements StreamActionApi {
   }
 
   @Override
-  public void onElementView(@ElementType int elementType) {}
+  public void onElementView(@ElementType int elementType) {
+    viewElementActionHandler.onElementView(elementType);
+  }
 
   @Override
-  public void onElementHide(@ElementType int elementType) {}
+  public void onElementHide(@ElementType int elementType) {
+    viewElementActionHandler.onElementHide(elementType);
+  }
 
   @Override
   public void onElementClick(@ElementType int elementType) {

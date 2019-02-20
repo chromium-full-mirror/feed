@@ -25,8 +25,10 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
@@ -48,6 +50,9 @@ public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final ContentChangedListener contentChangedListener;
   private final ContextMenuManager contextMenuManager;
+  private final MainThreadRunner mainThreadRunner;
+  private final Configuration configuration;
+
   /*@Nullable*/ private CardDriver cardDriver;
 
   ClusterDriver(
@@ -61,7 +66,9 @@ public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper
       PendingDismissHandler pendingDismissHandler,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
-      ContextMenuManager contextMenuManager) {
+      ContextMenuManager contextMenuManager,
+      MainThreadRunner mainThreadRunner,
+      Configuration configuration) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -73,6 +80,8 @@ public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper
     this.streamOfflineMonitor = streamOfflineMonitor;
     this.contentChangedListener = contentChangedListener;
     this.contextMenuManager = contextMenuManager;
+    this.mainThreadRunner = mainThreadRunner;
+    this.configuration = configuration;
   }
 
   @Override
@@ -138,7 +147,9 @@ public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper
         this,
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuManager);
+        contextMenuManager,
+        mainThreadRunner,
+        configuration);
   }
 
   @Override

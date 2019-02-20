@@ -1125,7 +1125,8 @@ public class BasicStreamTest {
         KnownContentApi knownContentApi,
         ContextMenuManager contextMenuManager,
         boolean restoring,
-        boolean isInitialLoad) {
+        boolean isInitialLoad,
+        MainThreadRunner mainThreadRunner) {
       streamDriverScrollRestorer = scrollRestorer;
       streamDriverRestoring = restoring;
       return streamDriver;

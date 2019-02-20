@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.common.concurrent.testing;
 
+import com.google.android.libraries.feed.common.concurrent.CancelableRunnableTask;
+import com.google.android.libraries.feed.common.concurrent.CancelableTask;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -55,12 +57,13 @@ public final class FakeMainThreadRunner extends MainThreadRunner {
   }
 
   @Override
-  public void executeWithDelay(String name, Runnable runnable, long delayMs) {
-    delayedTasks.add(new DelayedRunnable(runnable, delayMs));
-
+  public CancelableTask executeWithDelay(String name, Runnable runnable, long delayMs) {
+    CancelableRunnableTask cancelable = new CancelableRunnableTask(runnable);
+    delayedTasks.add(new DelayedRunnable(cancelable, delayMs));
     if (runTasksImmediately) {
       runAllTasks();
     }
+    return cancelable;
   }
 
   public void runAllTasks() {

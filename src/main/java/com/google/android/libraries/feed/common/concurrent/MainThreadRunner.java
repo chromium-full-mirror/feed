@@ -37,9 +37,11 @@ public class MainThreadRunner {
     executor.execute(runnable);
   }
 
-  public void executeWithDelay(String name, Runnable runnable, long delayMs) {
+  public CancelableTask executeWithDelay(String name, Runnable runnable, long delayMs) {
+    CancelableRunnableTask cancelable = new CancelableRunnableTask(runnable);
     Logger.i(
         TAG, "Running task [%s] on the Main Thread with a delay of %d milliseconds", name, delayMs);
-    handler.postDelayed(runnable, delayMs);
+    handler.postDelayed(cancelable, delayMs);
+    return cancelable;
   }
 }

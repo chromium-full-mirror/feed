@@ -44,6 +44,7 @@ import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriv
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.drivers.testing.FakeLeafFeatureDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -112,6 +113,7 @@ public class StreamDriverTest {
   private Context context;
   private Clock clock;
   private ThreadUtils threadUtils;
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
 
   private static FakeModelChild createFakeClusterModelChild() {
     return FakeModelChild.newBuilder()
@@ -807,7 +809,8 @@ public class StreamDriverTest {
           knownContentApi,
           mock(ContextMenuManager.class),
           restoring,
-          isInitialLoad);
+          isInitialLoad,
+          mainThreadRunner);
       childrenCreated = new ArrayList<>();
     }
 

@@ -34,6 +34,7 @@ import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.drivers.ContinuationDriver.CursorChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -76,6 +77,7 @@ public class StreamDriver
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final ContextMenuManager contextMenuManager;
   private final boolean isInitialLoad;
+  private final MainThreadRunner mainThreadRunner;
 
   private boolean restoring;
   private boolean rootFeatureConsumed;
@@ -100,7 +102,8 @@ public class StreamDriver
       KnownContentApi knownContentApi,
       ContextMenuManager contextMenuManager,
       boolean restoring,
-      boolean isInitialLoad) {
+      boolean isInitialLoad,
+      MainThreadRunner mainThreadRunner) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -119,6 +122,7 @@ public class StreamDriver
     this.streamOfflineMonitor = streamOfflineMonitor;
     this.restoring = restoring;
     this.isInitialLoad = isInitialLoad;
+    this.mainThreadRunner = mainThreadRunner;
 
     modelProvider.enableRemoveTracking(
         new StreamRemoveTrackingFactory(modelProvider, knownContentApi));
@@ -464,7 +468,9 @@ public class StreamDriver
         this,
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuManager);
+        contextMenuManager,
+        mainThreadRunner,
+        configuration);
   }
 
   @VisibleForTesting
@@ -482,7 +488,9 @@ public class StreamDriver
         },
         streamOfflineMonitor,
         contentChangedListener,
-        contextMenuManager);
+        contextMenuManager,
+        mainThreadRunner,
+        configuration);
   }
 
   @VisibleForTesting

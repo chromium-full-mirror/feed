@@ -67,7 +67,6 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link StreamActionApiImpl}. */
 @RunWith(RobolectricTestRunner.class)
 public class StreamActionApiImplTest {
-
   private static final String URL = "www.google.com";
   private static final String OPEN_LABEL = "Open";
   private static final String OPEN_IN_NEW_WINDOW_LABEL = "Open in new window";
@@ -134,6 +133,7 @@ public class StreamActionApiImplTest {
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentLoggingData contentLoggingData;
   @Mock private ClusterPendingDismissHelper clusterPendingDismissHelper;
+  @Mock private ViewElementActionHandler viewElementActionHandler;
 
   private FakeContextMenuManager contextMenuManager;
   private StreamActionApiImpl streamActionApi;
@@ -155,7 +155,8 @@ public class StreamActionApiImplTest {
             contentLoggingData,
             contextMenuManager,
             SESSION_ID,
-            clusterPendingDismissHelper);
+            clusterPendingDismissHelper,
+            viewElementActionHandler);
   }
 
   @Test
@@ -247,6 +248,20 @@ public class StreamActionApiImplTest {
     streamActionApi.onElementClick(ElementType.INTEREST_HEADER);
 
     verify(basicLoggingApi).onVisualElementClicked(contentLoggingData, ElementType.INTEREST_HEADER);
+  }
+
+  @Test
+  public void testOnElementView() {
+    streamActionApi.onElementView(ElementType.INTEREST_HEADER);
+
+    verify(viewElementActionHandler).onElementView(ElementType.INTEREST_HEADER);
+  }
+
+  @Test
+  public void testOnElementHide() {
+    streamActionApi.onElementHide(ElementType.INTEREST_HEADER);
+
+    verify(viewElementActionHandler).onElementHide(ElementType.INTEREST_HEADER);
   }
 
   @Test

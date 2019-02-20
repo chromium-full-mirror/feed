@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.drivers;
 import static com.google.android.libraries.feed.common.Validators.checkState;
 
 import android.support.annotation.VisibleForTesting;
+import android.support.v7.widget.RecyclerView;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
@@ -25,16 +26,23 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
+import com.google.android.libraries.feed.basicstream.internal.actions.ViewElementActionHandler;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
+import com.google.android.libraries.feed.common.concurrent.CancelableTask;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.host.logging.ElementType;
+import com.google.android.libraries.feed.sharedstream.constants.Constants;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.OneShotVisibilityLoggingListener;
@@ -51,10 +59,12 @@ import com.google.search.now.ui.stream.StreamStructureProto.PietContent;
 import com.google.search.now.ui.stream.StreamStructureProto.RepresentationData;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /** {@link FeatureDriver} for content. */
-public class ContentDriver extends LeafFeatureDriver implements LoggingListener {
+public class ContentDriver extends LeafFeatureDriver
+    implements LoggingListener, ViewElementActionHandler {
 
   private static final String TAG = "ContentDriver";
 
@@ -70,11 +80,15 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   private final String contentUrl;
   private final ContentChangedListener contentChangedListener;
   private final ActionParser actionParser;
+  private final MainThreadRunner mainThreadRunner;
+  private final long viewDelayMs;
+  private final HashMap<Integer, CancelableTask> viewActionTaskMap = new HashMap<>();
 
   private boolean availableOffline;
   /*@Nullable*/ private LoggingListener loggingListener;
   /*@Nullable*/ private PietViewHolder viewHolder;
 
+  @SuppressWarnings("nullness:argument.type.incompatible")
   ContentDriver(
       ActionApi actionApi,
       ActionManager actionManager,
@@ -87,7 +101,13 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ClusterPendingDismissHelper clusterPendingDismissHelper,
       StreamOfflineMonitor streamOfflineMonitor,
       ContentChangedListener contentChangedListener,
-      ContextMenuManager contextMenuManager) {
+      ContextMenuManager contextMenuManager,
+      MainThreadRunner mainThreadRunner,
+      Configuration configuration) {
+    this.mainThreadRunner = mainThreadRunner;
+    viewDelayMs =
+        configuration.getValueOrDefault(
+            ConfigKey.VIEW_MIN_TIME_MS, Constants.VIEW_MIN_TIME_MS_DEFAULT);
     Content content = contentFeatureModel.getStreamFeature().getContent();
 
     PietContent pietContent = getPietContent(content);
@@ -112,7 +132,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
             contentLoggingData,
             modelProvider.getSessionToken(),
             contextMenuManager,
-            clusterPendingDismissHelper);
+            clusterPendingDismissHelper,
+            this);
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
     contentUrl = representationData.getUri();
@@ -125,6 +146,7 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   @Override
   public void onDestroy() {
     streamOfflineMonitor.removeOfflineStatusConsumer(contentUrl, offlineStatusConsumer);
+    removeAllPendingTasks();
   }
 
   @Override
@@ -250,7 +272,26 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
   }
 
   @Override
-  public void onScrollStateChanged(int newScrollState) {}
+  public void onScrollStateChanged(int newScrollState) {
+    if (newScrollState != RecyclerView.SCROLL_STATE_IDLE) {
+      removeAllPendingTasks();
+    }
+  }
+
+  private void removeAllPendingTasks() {
+    for (CancelableTask cancellable : viewActionTaskMap.values()) {
+      cancellable.cancel();
+    }
+
+    viewActionTaskMap.clear();
+  }
+
+  private void removePendingViewActionTaskForElement(@ElementType int elementType) {
+    CancelableTask cancelable = viewActionTaskMap.remove(elementType);
+    if (cancelable != null) {
+      cancelable.cancel();
+    }
+  }
 
   private ContentLoggingData createContentLoggingData(
       /*@UnderInitialization*/ ContentDriver this,
@@ -270,7 +311,8 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
       ContentLoggingData contentLoggingData,
       /*@Nullable*/ String sessionToken,
       ContextMenuManager contextMenuManager,
-      ClusterPendingDismissHelper clusterPendingDismissHelper) {
+      ClusterPendingDismissHelper clusterPendingDismissHelper,
+      ViewElementActionHandler handler) {
     return new StreamActionApiImpl(
         actionApi,
         actionParser,
@@ -279,7 +321,24 @@ public class ContentDriver extends LeafFeatureDriver implements LoggingListener 
         contentLoggingData,
         contextMenuManager,
         sessionToken,
-        clusterPendingDismissHelper);
+        clusterPendingDismissHelper,
+        handler);
+  }
+
+  @Override
+  public void onElementView(@ElementType int elementType) {
+    removePendingViewActionTaskForElement(elementType);
+    CancelableTask cancelableTask =
+        mainThreadRunner.executeWithDelay(
+            TAG + elementType,
+            () -> basicLoggingApi.onVisualElementViewed(contentLoggingData, elementType),
+            viewDelayMs);
+    viewActionTaskMap.put(elementType, cancelableTask);
+  }
+
+  @Override
+  public void onElementHide(@ElementType int elementType) {
+    removePendingViewActionTaskForElement(elementType);
   }
 
   private class OfflineStatusConsumer implements Consumer<Boolean> {

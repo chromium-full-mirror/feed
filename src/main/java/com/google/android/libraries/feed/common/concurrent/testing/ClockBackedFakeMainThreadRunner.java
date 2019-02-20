@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.common.concurrent.testing;
 
 import static com.google.android.libraries.feed.common.Validators.checkNotNull;
 
+import com.google.android.libraries.feed.common.concurrent.CancelableRunnableTask;
+import com.google.android.libraries.feed.common.concurrent.CancelableTask;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import java.util.Comparator;
@@ -61,8 +63,10 @@ public final class ClockBackedFakeMainThreadRunner extends MainThreadRunner {
   }
 
   @Override
-  public void executeWithDelay(String name, Runnable runnable, long delayMs) {
-    delayedTasks.add(new TimedRunnable(runnable, fakeClock.elapsedRealtime() + delayMs));
+  public CancelableTask executeWithDelay(String name, Runnable runnable, long delayMs) {
+    CancelableRunnableTask cancelable = new CancelableRunnableTask(runnable);
+    delayedTasks.add(new TimedRunnable(cancelable, fakeClock.elapsedRealtime() + delayMs));
+    return cancelable;
   }
 
   private static final class TimedRunnable implements Runnable {

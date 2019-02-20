@@ -534,7 +534,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             knownContentApi,
             contextMenuManager,
             isRestoring,
-            /* isInitialLoad= */ false);
+            /* isInitialLoad= */ false,
+            mainThreadRunner);
 
     // If after starting a new session the Stream is still empty, we should show the zero state.
     if (streamDriver.getLeafFeatureDrivers().isEmpty()) {
@@ -695,7 +696,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               knownContentApi,
               contextMenuManager,
               isRestoring,
-              isInitialLoad);
+              isInitialLoad,
+              mainThreadRunner);
       if (isInitialLoad && !isRestoring) {
         mainThreadRunner.executeWithDelay(
             TAG + " onShow",
@@ -736,7 +738,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       KnownContentApi knownContentApi,
       ContextMenuManager contextMenuManager,
       boolean restoring,
-      boolean isInitialLoad) {
+      boolean isInitialLoad,
+      MainThreadRunner mainThreadRunner) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -754,7 +757,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         knownContentApi,
         contextMenuManager,
         restoring,
-        isInitialLoad);
+        isInitialLoad,
+        mainThreadRunner);
   }
 
   @VisibleForTesting

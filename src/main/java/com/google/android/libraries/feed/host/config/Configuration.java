@@ -83,6 +83,8 @@ public class Configuration {
     ConfigKey.CARD_MENU_TOOLTIP_ELIGIBLE,
     // Boolean which if true, will ask the server for a different pagination strategy.
     ConfigKey.USE_SECONDARY_PAGE_REQUEST,
+    // Time in ms for the minimum amount of time a view must be onscreen to count as a view.
+    ConfigKey.VIEW_MIN_TIME_MS,
   })
   public @interface ConfigKey {
     String ABANDON_RESTORE_BELOW_FOLD = "abandon_restore_below_fold";
@@ -117,6 +119,7 @@ public class Configuration {
     String MANAGE_INTERESTS_ENABLED = "manage_interests_enabled";
     String CARD_MENU_TOOLTIP_ELIGIBLE = "card_menu_tooltip_eligible";
     String USE_SECONDARY_PAGE_REQUEST = "use_secondary_page_request";
+    String VIEW_MIN_TIME_MS = "view_min_time_ms";
   }
 
   private final HashMap<String, Object> values;

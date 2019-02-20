@@ -29,7 +29,9 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.PendingDismissHandler;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.host.action.ActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
@@ -58,7 +60,8 @@ public class ClusterDriverTest {
   @Mock private ModelFeature clusterModelFeature;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private PendingDismissHandler pendingDismissHandler;
-
+  private final Configuration configuration = new Configuration.Builder().build();
+  private final FakeMainThreadRunner mainThreadRunner = FakeMainThreadRunner.queueAllTasks();
   private ClusterDriverForTest clusterDriver;
 
   @Before
@@ -158,7 +161,9 @@ public class ClusterDriverTest {
           pendingDismissHandler,
           streamOfflineMonitor,
           contentChangedListener,
-          contextMenuManager);
+          contextMenuManager,
+          mainThreadRunner,
+          configuration);
       this.cardDriver = cardDriver;
     }
 

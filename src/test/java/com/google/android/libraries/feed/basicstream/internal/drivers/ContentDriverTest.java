@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.support.v7.widget.RecyclerView;
 import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.actionparser.ActionParserFactory;
@@ -33,14 +34,21 @@ import com.google.android.libraries.feed.api.knowncontent.ContentMetadata;
 import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
+import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
+import com.google.android.libraries.feed.basicstream.internal.actions.ViewElementActionHandler;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
+import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.StreamContentLoggingData;
@@ -76,15 +84,13 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link ContentDriver}. */
 @RunWith(RobolectricTestRunner.class)
 public class ContentDriverTest {
-
+  private static final long VIEW_MIN_TIME_MS = 200;
   private static final int POSITION = 1;
   private static final String CONTENT_URL = "google.com";
   private static final String CONTENT_TITLE = "title";
 
   private static final BasicLoggingMetadata BASIC_LOGGING_METADATA =
-      BasicLoggingMetadata.newBuilder()
-          .setScore(40)
-          .build();
+      BasicLoggingMetadata.newBuilder().setScore(40).build();
   private static final RepresentationData REPRESENTATION_DATA =
       RepresentationData.newBuilder().setUri(CONTENT_URL).setPublishedTimeSeconds(10).build();
   private static final ContentLoggingData CONTENT_LOGGING_DATA =
@@ -150,18 +156,23 @@ public class ContentDriverTest {
   @Mock private ModelProvider modelProvider;
   @Mock private ClusterPendingDismissHelper clusterPendingDismissHelper;
   @Mock private PietViewHolder pietViewHolder;
-  @Mock private StreamActionApi streamActionApi;
+  @Mock private StreamActionApiImpl streamActionApi;
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private ActionParser actionParser;
   @Mock private ContextMenuManager contextMenuManager;
   @Captor private ArgumentCaptor<Consumer<Boolean>> offlineConsumerCaptor;
-
   private ContentDriver contentDriver;
+  private final FakeClock clock = new FakeClock();
+  private final ClockBackedFakeMainThreadRunner mainThreadRunner =
+      ClockBackedFakeMainThreadRunner.create(clock);
+  private final Configuration configuration =
+      new Configuration.Builder().put(ConfigKey.VIEW_MIN_TIME_MS, VIEW_MIN_TIME_MS).build();
 
   @Before
   public void setup() {
     initMocks(this);
+    
     when(modelFeature.getStreamFeature())
         .thenReturn(StreamFeature.newBuilder().setContent(CONTENT).build());
     when(modelProvider.getSharedState(CONTENT_ID_1)).thenReturn(STREAM_SHARED_STATE_1);
@@ -181,9 +192,11 @@ public class ContentDriverTest {
             clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager) {
+            contextMenuManager,
+            mainThreadRunner,
+            configuration) {
           @Override
-          StreamActionApi createStreamActionApi(
+          StreamActionApiImpl createStreamActionApi(
               ActionApi actionApi,
               ActionParser actionParser,
               ActionManager actionManager,
@@ -191,7 +204,8 @@ public class ContentDriverTest {
               ContentLoggingData contentLoggingData,
               String sessionToken,
               ContextMenuManager contextMenuManager,
-              ClusterPendingDismissHelper clusterPendingDismissHelper) {
+              ClusterPendingDismissHelper clusterPendingDismissHelper,
+              ViewElementActionHandler handler) {
             return streamActionApi;
           }
         };
@@ -326,7 +340,9 @@ public class ContentDriverTest {
             clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager);
+            contextMenuManager,
+            mainThreadRunner,
+            configuration);
 
     contentDriver.bind(pietViewHolder);
 
@@ -360,7 +376,9 @@ public class ContentDriverTest {
             clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager);
+            contextMenuManager,
+            mainThreadRunner,
+            configuration);
 
     contentDriver.bind(pietViewHolder);
 
@@ -392,7 +410,9 @@ public class ContentDriverTest {
             clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager);
+            contextMenuManager,
+            mainThreadRunner,
+            configuration);
 
     contentDriver.bind(pietViewHolder);
 
@@ -435,7 +455,9 @@ public class ContentDriverTest {
             clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager);
+            contextMenuManager,
+            mainThreadRunner,
+            configuration);
 
     contentDriver.bind(pietViewHolder);
 
@@ -473,6 +495,96 @@ public class ContentDriverTest {
     assertThat(contentDriver.isBound()).isFalse();
   }
 
+  @Test
+  public void testOnElementView_logsElementViewed() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    clock.advance(VIEW_MIN_TIME_MS);
+
+    verify(basicLoggingApi)
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnElementView_logsElementViewed_beforeTimeout() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    clock.advance(VIEW_MIN_TIME_MS - 1);
+
+    verify(basicLoggingApi, never())
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnElementView_logsElementViewedThenHidden() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementHide(ElementType.INTEREST_HEADER);
+    clock.advance(VIEW_MIN_TIME_MS);
+
+    verify(basicLoggingApi, never())
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnElementView_logsElementViewedThenHiddenThenViewed() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementHide(ElementType.INTEREST_HEADER);
+    clock.advance(VIEW_MIN_TIME_MS - 1);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    clock.advance(VIEW_MIN_TIME_MS);
+    // Check that it only gets recorded once.
+    verify(basicLoggingApi)
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnElementView_logsElementViewedMultiple_differentTypes() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.CARD_LARGE_IMAGE);
+    clock.advance(VIEW_MIN_TIME_MS);
+
+    verify(basicLoggingApi)
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+    verify(basicLoggingApi)
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.CARD_LARGE_IMAGE));
+  }
+
+  @Test
+  public void testOnElementView_logsElementViewedMultiple_sameTypes() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    clock.advance(VIEW_MIN_TIME_MS);
+
+    // Make sure it only logs one view.
+    verify(basicLoggingApi)
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnScrollStateChanged() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onScrollStateChanged(RecyclerView.SCROLL_STATE_DRAGGING);
+    clock.advance(VIEW_MIN_TIME_MS);
+    verify(basicLoggingApi, never())
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnScrollStateChanged_idle() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onScrollStateChanged(RecyclerView.SCROLL_STATE_IDLE);
+    clock.advance(VIEW_MIN_TIME_MS);
+    verify(basicLoggingApi)
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOnDestroy_cancelsTasks() {
+    contentDriver.onElementView(ElementType.INTEREST_HEADER);
+    contentDriver.onDestroy();
+    clock.advance(VIEW_MIN_TIME_MS);
+    verify(basicLoggingApi, never())
+        .onVisualElementViewed(any(ContentLoggingData.class), eq(ElementType.INTEREST_HEADER));
+  }
+
   /** For Captor of generic. */
   @SuppressWarnings("unchecked")
   /*@Nullable*/
@@ -497,7 +609,9 @@ public class ContentDriverTest {
             clusterPendingDismissHelper,
             streamOfflineMonitor,
             contentChangedListener,
-            contextMenuManager);
+            contextMenuManager,
+            mainThreadRunner,
+            configuration);
 
     ArgumentCaptor<Supplier<ContentMetadata>> contentMetadataSupplierCaptor =
         ArgumentCaptor.forClass((Class<Supplier<ContentMetadata>>) (Class) Supplier.class);
