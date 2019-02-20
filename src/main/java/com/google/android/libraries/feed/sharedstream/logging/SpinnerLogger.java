@@ -54,7 +54,7 @@ public class SpinnerLogger {
     }
 
     long spinnerDuration = clock.currentTimeMillis() - spinnerStartTime;
-    basicLoggingApi.onSpinnerShown((int) spinnerDuration, spinnerType);
+    basicLoggingApi.onSpinnerFinished((int) spinnerDuration, spinnerType);
     spinnerStartTime = SPINNER_INACTIVE;
   }
 

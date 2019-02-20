@@ -57,13 +57,13 @@ public class SpinnerLoggerTest {
   }
 
   @Test
-  public void spinnerFinished_logsOnSpinnerShown_ifSpinnerStartedCalledBefore() {
+  public void spinnerFinished_logsOnSpinnerFinished_ifSpinnerStartedCalledBefore() {
     spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD);
     clock.set(START_TIME + SPINNER_TIME);
 
     spinnerLogger.spinnerFinished();
 
-    verify(basicLoggingApi).onSpinnerShown(SPINNER_TIME, SpinnerType.INITIAL_LOAD);
+    verify(basicLoggingApi).onSpinnerFinished(SPINNER_TIME, SpinnerType.INITIAL_LOAD);
   }
 
   @Test

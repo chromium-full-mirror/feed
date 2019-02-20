@@ -122,12 +122,27 @@ public interface BasicLoggingApi {
   void onOpenedWithNoContent();
 
   /**
-   * Called when a loading spinner is shown in the Stream
+   * Called when a loading spinner starts showing.
    *
-   * @param timeShownMs time in milliseconds that the spinner was shown.
+   * @param spinnerType type of spinner that is shown.
+   */
+  void onSpinnerStarted(@SpinnerType int spinnerType);
+
+  /**
+   * Called when a loading spinner finishes showing.
+   *
+   * @param timeShownMs time in milliseconds that the spinner was shown before completing.
    * @param spinnerType type of spinner that was shown.
    */
-  void onSpinnerShown(int timeShownMs, @SpinnerType int spinnerType);
+  void onSpinnerFinished(int timeShownMs, @SpinnerType int spinnerType);
+
+  /**
+   * Called when a spinner is destroyed without completing.
+   *
+   * @param timeShownMs time in milliseconds that the spinner was shown before being destroyed.
+   * @param spinnerType type of spinner that was shown.
+   */
+  void onSpinnerDestroyedWithoutCompleting(int timeShownMs, @SpinnerType int spinnerType);
 
   /**
    * Called when Piet wants to report events that occurred during Frame rendering.
@@ -184,4 +199,22 @@ public interface BasicLoggingApi {
    * @param requestReason the reason the request was made.
    */
   void onServerRequest(@RequestReason int requestReason);
+
+  /**
+   * Logged when the zero state is shown. Shown in this context specifically means created, but
+   * doesn't necessarily indicate that the user saw the zero state.
+   *
+   * @param zeroStateShowReason the reason the zero state was shown.
+   */
+  void onZeroStateShown(@ZeroStateShowReason int zeroStateShowReason);
+
+  /**
+   * Called when a refresh from a zero state is completed.
+   *
+   * @param newContentCount Number of content created. Note: content here refers to content from the
+   *     server. If the zero state refresh completes to show another zero state, this value would be
+   *     zero.
+   * @param newTokenCount Number of tokens created.
+   */
+  void onZeroStateRefreshCompleted(int newContentCount, int newTokenCount);
 }
