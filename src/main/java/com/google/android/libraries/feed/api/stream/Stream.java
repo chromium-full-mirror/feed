@@ -146,6 +146,14 @@ public interface Stream {
    */
   boolean isChildAtPositionVisible(int position);
 
+  /**
+   * Returns true if Stream will handle horizontal swipe in response to user gesture. This can be
+   * used by host to tell whether or not it can consume user gesture. If this method returns true,
+   * which means the gesture will be consumed by a underlying view using this Stream instance, the
+   * host should not do anything to avoid conflicts.
+   */
+  boolean willHandleHorizontalSwipe();
+
   void addScrollListener(ScrollListener listener);
 
   void removeScrollListener(ScrollListener listener);

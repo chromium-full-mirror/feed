@@ -108,7 +108,7 @@ public final class StreamItemTouchCallbacksTest {
         translationX,
         /* dY= */ 0,
         /* i= */ 1,
-        /* b= */ true);
+        /* isCurrentlyActive= */ true);
 
     assertThat(dismissibleViewHolder.itemView.getTranslationX()).isEqualTo(translationX);
     assertThat(dismissibleViewHolder.itemView.getAlpha()).isEqualTo(.5f);
