@@ -217,4 +217,19 @@ public interface BasicLoggingApi {
    * @param newTokenCount Number of tokens created.
    */
   void onZeroStateRefreshCompleted(int newContentCount, int newTokenCount);
+
+  /**
+   * Called with the first event that occurs after the UI registers for a new session. If, for
+   * example, multiple errors occurred repeatedly due to a user pressing a refresh button on the
+   * zero-state UI, those would not be reported by this, as the UI would have only registered for a
+   * new session before the first error.
+   *
+   * @param sessionEvent the event that first occurred after the UI registered for a session.
+   * @param timeFromRegisteringMs how long it took, in milliseconds, for the event to occur after
+   *     the UI registered for a session.
+   * @param sessionCount the number of sessions that have been requested by the UI. This would never
+   *     be reset until the UI is destroyed, and would start at {@literal 1}.
+   */
+  void onInitialSessionEvent(
+      @SessionEvent int sessionEvent, int timeFromRegisteringMs, int sessionCount);
 }
