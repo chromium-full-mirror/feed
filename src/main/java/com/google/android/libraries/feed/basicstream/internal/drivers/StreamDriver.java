@@ -203,16 +203,25 @@ public class StreamDriver
                 return checkNotNull(next);
               }
             };
-    return createAndInsertChildrenAtIndex(cursorIterable, modelProvider, insertionIndex);
+    return createAndInsertChildrenAtIndex(cursorIterable, modelProvider, insertionIndex)
+        .featureDrivers;
   }
 
-  private List<FeatureDriver> createAndInsertChildrenAtIndex(
+  private ChildCreationPayload createAndInsertChildrenAtIndex(
       Iterable<ModelChild> modelChildren, ModelProvider modelProvider, int insertionIndex) {
     List<FeatureDriver> newChildren = new ArrayList<>();
+
+    int tokenCount = 0;
+    int contentCount = 0;
 
     for (ModelChild child : modelChildren) {
       FeatureDriver featureDriverChild = createChild(child, modelProvider, insertionIndex);
       if (featureDriverChild != null) {
+        if (child.getType() == Type.FEATURE) {
+          contentCount++;
+        } else if (child.getType() == Type.TOKEN) {
+          tokenCount++;
+        }
         newChildren.add(featureDriverChild);
         featureDrivers.add(insertionIndex, featureDriverChild);
         modelChildFeatureDriverMap.put(child, featureDriverChild);
@@ -220,7 +229,7 @@ public class StreamDriver
       }
     }
 
-    return newChildren;
+    return new ChildCreationPayload(newChildren, tokenCount, contentCount);
   }
 
   /*@Nullable*/
@@ -316,22 +325,28 @@ public class StreamDriver
       notifyContentsAdded(
           insertionIndex,
           buildLeafFeatureDrivers(
-              createAndInsertChildrenAtIndex(appendedChildren, modelProvider, insertionIndex)));
+              createAndInsertChildrenAtIndex(appendedChildren, modelProvider, insertionIndex)
+                  .featureDrivers));
     }
 
     addNoContentCardOrZeroStateIfNecessary(ZeroStateShowReason.CONTENT_DISMISSED);
   }
 
   @Override
-  public void onNewChildren(ModelChild modelChild, List<ModelChild> modelChildren) {
+  public void onNewChildren(
+      ModelChild modelChild, List<ModelChild> modelChildren, boolean wasSynthetic) {
     int continuationIndex = removeDriver(modelChild);
     if (continuationIndex < 0) {
       Logger.wtf(TAG, "Received an onNewChildren for an unknown child.");
       return;
     }
-    List<FeatureDriver> newChildren =
+    ChildCreationPayload tokenPayload =
         createAndInsertChildrenAtIndex(modelChildren, modelProvider, continuationIndex);
 
+    List<FeatureDriver> newChildren = tokenPayload.featureDrivers;
+
+    basicLoggingApi.onTokenCompleted(
+        wasSynthetic, tokenPayload.contentCount, tokenPayload.tokenCount);
     notifyContentsAdded(continuationIndex, buildLeafFeatureDrivers(newChildren));
     if (shouldRemoveNoContentCardOrZeroState()) {
       featureDrivers.get(0).onDestroy();
@@ -639,6 +654,20 @@ public class StreamDriver
       }
     }
     return null;
+  }
+
+  /** Contains the {@link FeatureDriver} instances that were created and metadata about them. */
+  private static class ChildCreationPayload {
+    private final List<FeatureDriver> featureDrivers;
+    private final int tokenCount;
+    private final int contentCount;
+
+    private ChildCreationPayload(
+        List<FeatureDriver> featureDrivers, int tokenCount, int contentCount) {
+      this.featureDrivers = featureDrivers;
+      this.tokenCount = tokenCount;
+      this.contentCount = contentCount;
+    }
   }
 
   /** Allows listening for changes in the contents held by a {@link StreamDriver} */

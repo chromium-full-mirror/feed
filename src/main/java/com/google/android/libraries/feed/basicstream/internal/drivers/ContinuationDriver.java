@@ -68,6 +68,7 @@ public class ContinuationDriver extends LeafFeatureDriver
   private boolean viewLogged;
   private boolean destroyed;
   private boolean tokenHandled;
+  private int failureCount = 0;
   @SpinnerType private int spinnerType = SpinnerType.INFINITE_FEED;
   /*@Nullable*/ private ContinuationViewHolder continuationViewHolder;
 
@@ -218,7 +219,7 @@ public class ContinuationDriver extends LeafFeatureDriver
           context.getResources().getString(R.string.snackbar_fetch_no_new_suggestions));
     }
 
-    cursorChangedListener.onNewChildren(modelChild, modelChildren);
+    cursorChangedListener.onNewChildren(modelChild, modelChildren, modelToken.isSynthetic());
   }
 
   @Override
@@ -230,6 +231,7 @@ public class ContinuationDriver extends LeafFeatureDriver
       continuationViewHolder.setShowSpinner(false);
     }
 
+    basicLoggingApi.onTokenFailedToComplete(modelToken.isSynthetic(), ++failureCount);
     snackbarApi.show(context.getString(R.string.snackbar_fetch_failed));
   }
 
@@ -281,8 +283,9 @@ public class ContinuationDriver extends LeafFeatureDriver
      *
      * @param modelChild the {@link ModelChild} representing the token that was processed.
      * @param modelChildren the list of new {@link ModelChild} from the token.
+     * @param wasSynthetic whether the token was synthetic.
      */
-    void onNewChildren(ModelChild modelChild, List<ModelChild> modelChildren);
+    void onNewChildren(ModelChild modelChild, List<ModelChild> modelChildren, boolean wasSynthetic);
   }
 
   @VisibleForTesting

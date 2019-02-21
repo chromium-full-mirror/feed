@@ -136,6 +136,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/host/stream",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/logging",
         "//src/main/java/com/google/android/libraries/feed/testing/modelprovider",
+        "@com_google_guava_guava//jar",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
         "@robolectric//bazel:robolectric",

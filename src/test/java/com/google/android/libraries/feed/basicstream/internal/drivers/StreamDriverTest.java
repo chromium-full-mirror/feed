@@ -64,6 +64,7 @@ import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelFeature;
 import com.google.android.libraries.feed.testing.modelprovider.FeatureChangeBuilder;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
@@ -71,7 +72,6 @@ import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.ui.stream.StreamStructureProto.Cluster;
 import com.google.search.now.ui.stream.StreamStructureProto.Content;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -324,7 +324,8 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers.get(0)).isEqualTo(noContentDriver);
     assertThat(leafFeatureDrivers.get(1)).isEqualTo(continuationDriver);
 
-    streamDriver.onNewChildren(initialCursor.getChildAt(0), newCursor.getModelChildren());
+    streamDriver.onNewChildren(
+        initialCursor.getChildAt(0), newCursor.getModelChildren(), /* wasSynthetic = */ false);
     leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
     assertThat(leafFeatureDrivers.get(0)).isEqualTo(getLeafFeatureDriverFromCluster(1));
@@ -350,7 +351,8 @@ public class StreamDriverTest {
     assertThat(leafFeatureDrivers.get(0)).isEqualTo(noContentDriver);
     assertThat(leafFeatureDrivers.get(1)).isEqualTo(continuationDriver);
 
-    streamDriver.onNewChildren(initialCursor.getChildAt(0), newCursor.getModelChildren());
+    streamDriver.onNewChildren(
+        initialCursor.getChildAt(0), newCursor.getModelChildren(), /* wasSynthetic = */ true);
     leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(2);
     assertThat(leafFeatureDrivers.get(0)).isEqualTo(getLeafFeatureDriverFromCluster(1));
@@ -367,7 +369,8 @@ public class StreamDriverTest {
 
     streamDriver.getLeafFeatureDrivers();
 
-    streamDriver.onNewChildren(initialCursor.getChildAt(1), newCursor.getModelChildren());
+    streamDriver.onNewChildren(
+        initialCursor.getChildAt(1), newCursor.getModelChildren(), /* wasSynthetic = */ false);
 
     verify(contentListener).notifyContentRemoved(1);
     verify(contentListener)
@@ -382,7 +385,8 @@ public class StreamDriverTest {
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
     streamDriver.getLeafFeatureDrivers();
-    streamDriver.onNewChildren(initialCursor.getChildAt(1), newCursor.getModelChildren());
+    streamDriver.onNewChildren(
+        initialCursor.getChildAt(1), newCursor.getModelChildren(), /* wasSynthetic = */ false);
 
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
     assertThat(leafFeatureDrivers).hasSize(3);
@@ -402,7 +406,8 @@ public class StreamDriverTest {
     when(streamFeature.getCursor()).thenReturn(initialCursor);
 
     streamDriver.getLeafFeatureDrivers();
-    streamDriver.onNewChildren(initialCursor.getChildAt(1), newCursor.getModelChildren());
+    streamDriver.onNewChildren(
+        initialCursor.getChildAt(1), newCursor.getModelChildren(), /* wasSynthetic = */ false);
 
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();
     assertThat(leafFeatureDrivers).hasSize(5);
@@ -424,7 +429,11 @@ public class StreamDriverTest {
 
     streamDriver.getLeafFeatureDrivers();
     assertThatRunnable(
-            () -> streamDriver.onNewChildren(badCursor.getChildAt(0), badCursor.getModelChildren()))
+            () ->
+                streamDriver.onNewChildren(
+                    badCursor.getChildAt(0),
+                    badCursor.getModelChildren(),
+                    /* wasSynthetic = */ false))
         .throwsAnExceptionOfType(RuntimeException.class);
   }
 
@@ -578,7 +587,8 @@ public class StreamDriverTest {
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(NoContentDriver.class);
 
     FakeModelCursor newCursor = FakeModelCursor.newBuilder().addCard().build();
-    streamDriver.onNewChildren(fakeModelCursor.getChildAt(1), newCursor.getModelChildren());
+    streamDriver.onNewChildren(
+        fakeModelCursor.getChildAt(1), newCursor.getModelChildren(), /* wasSynthetic = */ false);
 
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0))
@@ -589,11 +599,33 @@ public class StreamDriverTest {
   public void testContinuationToken_replacesNoContentCardWithZeroState() {
     FakeModelCursor initialCursor = FakeModelCursor.newBuilder().addCard().addToken().build();
     initializeStreamDriverAndDismissAllFeatureChildren(initialCursor);
-    streamDriver.onNewChildren(initialCursor.getChildAt(1), Collections.emptyList());
+    streamDriver.onNewChildren(
+        initialCursor.getChildAt(1), ImmutableList.of(), /* wasSynthetic = */ false);
 
     verify(noContentDriver).onDestroy();
     assertThat(streamDriver.getLeafFeatureDrivers()).hasSize(1);
     assertThat(streamDriver.getLeafFeatureDrivers().get(0)).isInstanceOf(ZeroStateDriver.class);
+  }
+
+  @Test
+  public void testContinuationToken_logsContinuationTokenPayload() {
+    FakeModelCursor initialCursor = FakeModelCursor.newBuilder().addCard().addToken().build();
+    when(streamFeature.getCursor()).thenReturn(initialCursor);
+
+    streamDriver.getLeafFeatureDrivers();
+    streamDriver.onNewChildren(
+        initialCursor.getChildAt(1),
+        FakeModelCursor.newBuilder()
+            .addCluster()
+            .addCard()
+            .addCard()
+            .addToken()
+            .build()
+            .getModelChildren(),
+        true);
+
+    verify(basicLoggingApi)
+        .onTokenCompleted(/* wasSynthetic= */ true, /* contentCount= */ 3, /* tokenCount= */ 1);
   }
 
   @Test
@@ -730,7 +762,8 @@ public class StreamDriverTest {
     // forced to consume synthetic tokens.
     streamDriver.maybeRestoreScroll();
 
-    streamDriver.onNewChildren(initialCursor.getChildAt(1), newCursor.getModelChildren());
+    streamDriver.onNewChildren(
+        initialCursor.getChildAt(1), newCursor.getModelChildren(), /* wasSynthetic = */ false);
 
     assertThat(streamDriver.wasRestoringDuringLastContinuationDriver).isFalse();
   }

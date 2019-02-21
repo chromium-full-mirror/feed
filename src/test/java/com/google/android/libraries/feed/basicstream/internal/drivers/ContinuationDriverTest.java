@@ -51,12 +51,13 @@ import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
-import java.util.Collections;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -306,7 +307,8 @@ public class ContinuationDriverTest {
     // The listener should be notified that the token was automatically consumed as it was a
     // synthetic token.
     verify(cursorChangedListener)
-        .onNewChildren(any(ModelChild.class), Mockito.<List<ModelChild>>any()/* autoConsumed= */ );
+        .onNewChildren(
+            any(ModelChild.class), Mockito.<List<ModelChild>>any(), /* wasSynthetic= */ eq(true));
   }
 
   @Test
@@ -508,7 +510,8 @@ public class ContinuationDriverTest {
     continuationDriver.onTokenCompleted(new TokenCompleted(FakeModelCursor.newBuilder().build()));
 
     verify(cursorChangedListener, never())
-        .onNewChildren(any(ModelChild.class), Matchers.<List<ModelChild>>any());
+        .onNewChildren(
+            any(ModelChild.class), Matchers.<List<ModelChild>>any(), /* wasSynthetic= */ eq(false));
   }
 
   @Test
@@ -517,7 +520,8 @@ public class ContinuationDriverTest {
 
     continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
 
-    verify(cursorChangedListener).onNewChildren(modelChild, cursor.getModelChildren());
+    verify(cursorChangedListener)
+        .onNewChildren(modelChild, cursor.getModelChildren(), /* wasSynthetic= */ false);
     verifyNoMoreInteractions(snackbarApi);
   }
 
@@ -529,7 +533,8 @@ public class ContinuationDriverTest {
     continuationDriver.onTokenCompleted(new TokenCompleted(FakeModelCursor.newBuilder().build()));
 
     verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
-    verify(cursorChangedListener).onNewChildren(modelChild, Collections.emptyList());
+    verify(cursorChangedListener)
+        .onNewChildren(modelChild, ImmutableList.of(), /* wasSynthetic= */ false);
   }
 
   @Test
@@ -541,7 +546,8 @@ public class ContinuationDriverTest {
     continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
 
     verify(snackbarApi).show(context.getString(R.string.snackbar_fetch_no_new_suggestions));
-    verify(cursorChangedListener).onNewChildren(modelChild, cursor.getModelChildren());
+    verify(cursorChangedListener)
+        .onNewChildren(modelChild, cursor.getModelChildren(), /* wasSynthetic= */ false);
   }
 
   @Test
@@ -550,7 +556,8 @@ public class ContinuationDriverTest {
     continuationDriver.onTokenCompleted(new TokenCompleted(cursor));
 
     verifyNoMoreInteractions(snackbarApi);
-    verify(cursorChangedListener).onNewChildren(modelChild, cursor.getModelChildren());
+    verify(cursorChangedListener)
+        .onNewChildren(modelChild, cursor.getModelChildren(), /* wasSynthetic= */ false);
   }
 
   @Test
@@ -654,6 +661,41 @@ public class ContinuationDriverTest {
     continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
 
     verify(spinnerLogger).spinnerFinished();
+  }
+
+  @Test
+  public void testOnError_logsTokenError() {
+    continuationDriver.bind(continuationViewHolder);
+
+    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+
+    verify(basicLoggingApi).onTokenFailedToComplete(/* wasSynthetic= */ false, /*failureCount=*/ 1);
+  }
+
+  @Test
+  public void testOnError_logsTokenError_incrementsFailureCount() {
+    continuationDriver.bind(continuationViewHolder);
+
+    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+
+    InOrder inOrder = Mockito.inOrder(basicLoggingApi);
+    inOrder.verify(basicLoggingApi).onTokenFailedToComplete(/* wasSynthetic= */ false, 1);
+    inOrder.verify(basicLoggingApi).onTokenFailedToComplete(/* wasSynthetic= */ false, 2);
+    inOrder.verify(basicLoggingApi).onTokenFailedToComplete(/* wasSynthetic= */ false, 3);
+  }
+
+  @Test
+  public void testOnError_syntheticToken_logsTokenError() {
+    when(modelToken.isSynthetic()).thenReturn(true);
+
+    continuationDriver.bind(continuationViewHolder);
+
+    continuationDriver.onError(new ModelError(ErrorType.PAGINATION_ERROR, null));
+
+    verify(basicLoggingApi)
+        .onTokenFailedToComplete(/* wasSynthetic= */ true, /* failureCount= */ 1);
   }
 
   @Test
