@@ -17,14 +17,14 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalOperation;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Append;
 import com.google.android.libraries.feed.host.storage.JournalOperation.Type;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -36,9 +36,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests of the {@link ActionGc} class. */
+/** Tests of the {@link LocalActionGc} class. */
 @RunWith(RobolectricTestRunner.class)
-public class ActionGcTest {
+public class LocalActionGcTest {
 
   private static final String DISMISS_JOURNAL_NAME = "DISMISS";
   private static final String CONTENT_ID_1 = "contentId1";
@@ -55,16 +55,16 @@ public class ActionGcTest {
   @Test
   public void gc_empty() throws Exception {
     // Probably won't be called with empty actions
-    List<StreamAction> allActions = Collections.emptyList();
+    List<StreamLocalAction> allActions = Collections.emptyList();
     List<String> validContentIds = Collections.emptyList();
 
     ArgumentCaptor<JournalMutation> journalMutationCaptor =
         ArgumentCaptor.forClass(JournalMutation.class);
 
-    ActionGc actionGc =
-        new ActionGc(
+    LocalActionGc localActionGc =
+        new LocalActionGc(
             allActions, validContentIds, journalStorage, timingUtils, DISMISS_JOURNAL_NAME);
-    actionGc.gc();
+    localActionGc.gc();
 
     verify(journalStorage).commit(journalMutationCaptor.capture());
 
@@ -77,28 +77,28 @@ public class ActionGcTest {
 
   @Test
   public void gc_allValid() throws Exception {
-    StreamAction action1 =
-        StreamAction.newBuilder()
+    StreamLocalAction action1 =
+        StreamLocalAction.newBuilder()
             .setAction(ActionType.DISMISS)
             .setFeatureContentId(CONTENT_ID_1)
             .setTimestampSeconds(TimeUnit.DAYS.toSeconds(43))
             .build();
-    StreamAction action2 =
-        StreamAction.newBuilder()
+    StreamLocalAction action2 =
+        StreamLocalAction.newBuilder()
             .setAction(ActionType.DISMISS)
             .setFeatureContentId(CONTENT_ID_2)
             .setTimestampSeconds(TimeUnit.DAYS.toSeconds(44))
             .build();
-    List<StreamAction> allActions = Arrays.asList(action1, action2);
+    List<StreamLocalAction> allActions = Arrays.asList(action1, action2);
     List<String> validContentIds = Arrays.asList(CONTENT_ID_1, CONTENT_ID_2);
 
     ArgumentCaptor<JournalMutation> journalMutationCaptor =
         ArgumentCaptor.forClass(JournalMutation.class);
 
-    ActionGc actionGc =
-        new ActionGc(
+    LocalActionGc localActionGc =
+        new LocalActionGc(
             allActions, validContentIds, journalStorage, timingUtils, DISMISS_JOURNAL_NAME);
-    actionGc.gc();
+    localActionGc.gc();
 
     verify(journalStorage).commit(journalMutationCaptor.capture());
 
@@ -115,28 +115,28 @@ public class ActionGcTest {
 
   @Test
   public void gc_allInvalid() throws Exception {
-    StreamAction action1 =
-        StreamAction.newBuilder()
+    StreamLocalAction action1 =
+        StreamLocalAction.newBuilder()
             .setAction(ActionType.DISMISS)
             .setFeatureContentId(CONTENT_ID_1)
             .setTimestampSeconds(TimeUnit.DAYS.toSeconds(43))
             .build();
-    StreamAction action2 =
-        StreamAction.newBuilder()
+    StreamLocalAction action2 =
+        StreamLocalAction.newBuilder()
             .setAction(ActionType.DISMISS)
             .setFeatureContentId(CONTENT_ID_2)
             .setTimestampSeconds(TimeUnit.DAYS.toSeconds(44))
             .build();
-    List<StreamAction> allActions = Arrays.asList(action1, action2);
+    List<StreamLocalAction> allActions = Arrays.asList(action1, action2);
     List<String> validContentIds = Collections.emptyList();
 
     ArgumentCaptor<JournalMutation> journalMutationCaptor =
         ArgumentCaptor.forClass(JournalMutation.class);
 
-    ActionGc actionGc =
-        new ActionGc(
+    LocalActionGc localActionGc =
+        new LocalActionGc(
             allActions, validContentIds, journalStorage, timingUtils, DISMISS_JOURNAL_NAME);
-    actionGc.gc();
+    localActionGc.gc();
 
     verify(journalStorage).commit(journalMutationCaptor.capture());
 
@@ -149,28 +149,28 @@ public class ActionGcTest {
 
   @Test
   public void gc_someValid() throws Exception {
-    StreamAction action1 =
-        StreamAction.newBuilder()
+    StreamLocalAction action1 =
+        StreamLocalAction.newBuilder()
             .setAction(ActionType.DISMISS)
             .setFeatureContentId(CONTENT_ID_1)
             .setTimestampSeconds(TimeUnit.DAYS.toSeconds(43))
             .build();
-    StreamAction action2 =
-        StreamAction.newBuilder()
+    StreamLocalAction action2 =
+        StreamLocalAction.newBuilder()
             .setAction(ActionType.DISMISS)
             .setFeatureContentId(CONTENT_ID_2)
             .setTimestampSeconds(TimeUnit.DAYS.toSeconds(44))
             .build();
-    List<StreamAction> allActions = Arrays.asList(action1, action2);
+    List<StreamLocalAction> allActions = Arrays.asList(action1, action2);
     List<String> validContentIds = Collections.singletonList(CONTENT_ID_2);
 
     ArgumentCaptor<JournalMutation> journalMutationCaptor =
         ArgumentCaptor.forClass(JournalMutation.class);
 
-    ActionGc actionGc =
-        new ActionGc(
+    LocalActionGc localActionGc =
+        new LocalActionGc(
             allActions, validContentIds, journalStorage, timingUtils, DISMISS_JOURNAL_NAME);
-    actionGc.gc();
+    localActionGc.gc();
 
     verify(journalStorage).commit(journalMutationCaptor.capture());
 

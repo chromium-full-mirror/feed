@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -51,8 +51,8 @@ import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
@@ -176,7 +176,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         .editSemanticProperties()
         .add(CONTENT_ID, ByteString.copyFrom(SEMANTIC_PROPERTIES))
         .commit();
-    store.editActions().add(ActionType.DISMISS, CONTENT_ID).commit();
+    store.editLocalActions().add(ActionType.DISMISS, CONTENT_ID).commit();
     store.editContent().add(CONTENT_ID, PAYLOAD).commit();
     store.editSession(Store.HEAD).add(STREAM_STRUCTURE).commit();
 
@@ -193,7 +193,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
     assertThat(journalMutation.getOperations().get(0).getType())
         .isEqualTo(JournalOperation.Type.APPEND);
     byte[] journalMutationBytes = ((Append) journalMutation.getOperations().get(0)).getValue();
-    StreamAction action = StreamAction.parseFrom(journalMutationBytes);
+    StreamLocalAction action = StreamLocalAction.parseFrom(journalMutationBytes);
     assertThat(action.getAction()).isEqualTo(ActionType.DISMISS);
     assertThat(action.getFeatureContentId()).isEqualTo(CONTENT_ID);
 

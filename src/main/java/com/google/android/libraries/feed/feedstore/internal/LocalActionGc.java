@@ -19,23 +19,23 @@ import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTrac
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation.Builder;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Garbage collector for {@link StreamAction}s stored in a journal */
-public final class ActionGc {
+/** Garbage collector for {@link StreamLocalAction}s stored in a journal */
+public final class LocalActionGc {
 
-  private static final String TAG = "ActionGc";
+  private static final String TAG = "LocalActionGc";
 
-  private final List<StreamAction> actions;
+  private final List<StreamLocalAction> actions;
   private final List<String> validContentIds;
   private final JournalStorageDirect journalStorageDirect;
   private final TimingUtils timingUtils;
   private final String journalName;
 
-  ActionGc(
-      List<StreamAction> actions,
+  LocalActionGc(
+      List<StreamLocalAction> actions,
       List<String> validContentIds,
       JournalStorageDirect journalStorageDirect,
       TimingUtils timingUtils,
@@ -54,9 +54,9 @@ public final class ActionGc {
    */
   void gc() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    List<StreamAction> validActions = new ArrayList<>(validContentIds.size());
+    List<StreamLocalAction> validActions = new ArrayList<>(validContentIds.size());
 
-    for (StreamAction action : actions) {
+    for (StreamLocalAction action : actions) {
       if (validContentIds.contains(action.getFeatureContentId())) {
         validActions.add(action);
       }
@@ -65,7 +65,7 @@ public final class ActionGc {
     Builder mutationBuilder = new Builder(journalName);
     mutationBuilder.delete();
 
-    for (StreamAction action : validActions) {
+    for (StreamLocalAction action : validActions) {
       mutationBuilder.append(action.toByteArray());
     }
     CommitResult result = journalStorageDirect.commit(mutationBuilder.build());

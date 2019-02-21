@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.storage.CommitResult;
@@ -29,7 +29,7 @@ import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentMutation.Builder;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -64,7 +64,7 @@ public class ContentGcTest {
   public void gc() {
     Set<String> accessibleContent = Collections.emptySet();
     Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamAction> dismissActions = Collections.emptySet();
+    Set<StreamLocalAction> dismissActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(CONTENT_ID_1);
     contentKeys.add(CONTENT_ID_2);
@@ -90,7 +90,7 @@ public class ContentGcTest {
   public void gc_accessible() {
     Set<String> accessibleContent = new HashSet<>(Collections.singletonList(CONTENT_ID_1));
     Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamAction> dismissActions = Collections.emptySet();
+    Set<StreamLocalAction> dismissActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(CONTENT_ID_1);
     contentKeys.add(CONTENT_ID_2);
@@ -116,7 +116,7 @@ public class ContentGcTest {
   public void gc_reserved() {
     Set<String> accessibleContent = Collections.emptySet();
     Set<String> reservedContentIds = new HashSet<>(Collections.singletonList(CONTENT_ID_1));
-    Set<StreamAction> dismissActions = Collections.emptySet();
+    Set<StreamLocalAction> dismissActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(CONTENT_ID_1);
     contentKeys.add(CONTENT_ID_2);
@@ -142,7 +142,7 @@ public class ContentGcTest {
   public void gc_semanticProperties_noAction() {
     Set<String> accessibleContent = Collections.emptySet();
     Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamAction> dismissActions = Collections.emptySet();
+    Set<StreamLocalAction> dismissActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(SEMANTIC_PROPERTIES_1);
     contentKeys.add(SEMANTIC_PROPERTIES_2);
@@ -172,10 +172,10 @@ public class ContentGcTest {
   public void gc_semanticProperties_validAction() {
     Set<String> accessibleContent = Collections.emptySet();
     Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamAction> dismissActions =
+    Set<StreamLocalAction> dismissActions =
         new HashSet<>(
             Collections.singletonList(
-                StreamAction.newBuilder()
+                StreamLocalAction.newBuilder()
                     .setAction(ActionType.DISMISS)
                     .setFeatureContentId(CONTENT_ID_1)
                     .build()));
@@ -204,7 +204,7 @@ public class ContentGcTest {
   public void gc_semanticProperties_accessibleContent() {
     Set<String> accessibleContent = Collections.singleton(CONTENT_ID_1);
     Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamAction> dismissActions = Collections.emptySet();
+    Set<StreamLocalAction> dismissActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(CONTENT_ID_1);
     contentKeys.add(SEMANTIC_PROPERTIES_1);
@@ -231,7 +231,7 @@ public class ContentGcTest {
   public void gc_prefixed_sharedState() {
     Set<String> accessibleContent = Collections.emptySet();
     Set<String> reservedContentIds = Collections.emptySet();
-    Set<StreamAction> dismissActions = Collections.emptySet();
+    Set<StreamLocalAction> dismissActions = Collections.emptySet();
     List<String> contentKeys = new ArrayList<>();
     contentKeys.add(SHARED_STATE_PREFIX + CONTENT_ID_1);
     contentKeys.add(CONTENT_ID_2);

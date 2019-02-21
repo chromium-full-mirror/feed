@@ -25,8 +25,8 @@ import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.api.store.ActionMutation;
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
+import com.google.android.libraries.feed.api.store.LocalActionMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -59,7 +59,7 @@ public class FeedActionManagerImplTest {
   @Mock private Store store;
   @Mock private ThreadUtils threadUtils;
   @Mock private Clock clock;
-  @Mock private ActionMutation actionMutation;
+  @Mock private LocalActionMutation localActionMutation;
   @Mock private Consumer<Result<List<StreamDataOperation>>> streamDataOperationsConsumer;
   @Captor private ArgumentCaptor<Integer> actionTypeCaptor;
   @Captor private ArgumentCaptor<String> contentIdStringCaptor;
@@ -84,11 +84,11 @@ public class FeedActionManagerImplTest {
         Collections.singletonList(dataOperation),
         null);
 
-    verify(actionMutation).add(actionTypeCaptor.capture(), contentIdStringCaptor.capture());
+    verify(localActionMutation).add(actionTypeCaptor.capture(), contentIdStringCaptor.capture());
     assertThat(actionTypeCaptor.getValue()).isEqualTo(ActionType.DISMISS);
     assertThat(contentIdStringCaptor.getValue()).isEqualTo(CONTENT_ID_STRING);
 
-    verify(actionMutation).commit();
+    verify(localActionMutation).commit();
 
     verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
     Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
@@ -109,11 +109,11 @@ public class FeedActionManagerImplTest {
         Collections.singletonList(dataOperation),
         SESSION_TOKEN);
 
-    verify(actionMutation).add(actionTypeCaptor.capture(), contentIdStringCaptor.capture());
+    verify(localActionMutation).add(actionTypeCaptor.capture(), contentIdStringCaptor.capture());
     assertThat(actionTypeCaptor.getValue()).isEqualTo(ActionType.DISMISS);
     assertThat(contentIdStringCaptor.getValue()).isEqualTo(CONTENT_ID_STRING);
 
-    verify(actionMutation).commit();
+    verify(localActionMutation).commit();
 
     verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
     assertThat(mutationContextCaptor.getValue().getRequestingSession().getStreamToken())
@@ -180,8 +180,8 @@ public class FeedActionManagerImplTest {
   private void setUpDismissMocks() {
     when(sessionManager.getUpdateConsumer(any(MutationContext.class)))
         .thenReturn(streamDataOperationsConsumer);
-    when(actionMutation.add(anyInt(), anyString())).thenReturn(actionMutation);
-    when(store.editActions()).thenReturn(actionMutation);
+    when(localActionMutation.add(anyInt(), anyString())).thenReturn(localActionMutation);
+    when(store.editLocalActions()).thenReturn(localActionMutation);
   }
 
   private TaskQueue getTaskQueue() {

@@ -25,7 +25,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTrac
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -37,14 +37,14 @@ public final class ContentGc {
 
   private final Supplier<Set<String>> accessibleContentSupplier;
   private final Set<String> reservedContentIds;
-  private final Supplier<Set<StreamAction>> actionsSupplier;
+  private final Supplier<Set<StreamLocalAction>> actionsSupplier;
   private final ContentStorageDirect contentStorageDirect;
   private final TimingUtils timingUtils;
 
   ContentGc(
       Supplier<Set<String>> accessibleContentSupplier,
       Set<String> reservedContentIds,
-      Supplier<Set<StreamAction>> actionsSupplier,
+      Supplier<Set<StreamLocalAction>> actionsSupplier,
       ContentStorageDirect contentStorageDirect,
       TimingUtils timingUtils) {
     this.accessibleContentSupplier = accessibleContentSupplier;
@@ -63,7 +63,7 @@ public final class ContentGc {
     population.removeAll(accessibleContent);
     population.removeAll(reservedContentIds);
     population.removeAll(getAccessibleSemanticProperties(accessibleContent));
-    population.removeAll(getActionSemanticProperties(getActions()));
+    population.removeAll(getLocalActionSemanticProperties(getLocalActions()));
     filterPrefixed(population);
 
     // Population now contains only un-accessible items
@@ -104,10 +104,10 @@ public final class ContentGc {
     return accessibleContent;
   }
 
-  private Set<StreamAction> getActions() {
+  private Set<StreamLocalAction> getLocalActions() {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
-    Set<StreamAction> actions = actionsSupplier.get();
-    tracker.stop("", "getActions", "actionCount", actions.size());
+    Set<StreamLocalAction> actions = actionsSupplier.get();
+    tracker.stop("", "getLocalActions", "actionCount", actions.size());
     return actions;
   }
 
@@ -139,16 +139,16 @@ public final class ContentGc {
     return semanticPropertiesKeys;
   }
 
-  private Set<String> getActionSemanticProperties(Set<StreamAction> actions) {
+  private Set<String> getLocalActionSemanticProperties(Set<StreamLocalAction> actions) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     Set<String> semanticPropertiesKeys = new HashSet<>();
-    for (StreamAction action : actions) {
+    for (StreamLocalAction action : actions) {
       String semanticPropertyKey = SEMANTIC_PROPERTIES_PREFIX + action.getFeatureContentId();
       semanticPropertiesKeys.add(semanticPropertyKey);
     }
     tracker.stop(
         "",
-        "getActionSemanticProperties",
+        "getLocalActionSemanticProperties",
         "actionSemanticPropertiesSize",
         semanticPropertiesKeys.size());
     return semanticPropertiesKeys;

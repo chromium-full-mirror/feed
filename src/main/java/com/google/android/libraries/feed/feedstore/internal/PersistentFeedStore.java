@@ -22,9 +22,9 @@ import android.util.Base64;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.store.ActionMutation;
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.ContentMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.StoreListener;
@@ -46,7 +46,7 @@ import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -228,33 +228,33 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
-  public Result<List<StreamAction>> getAllDismissActions() {
+  public Result<List<StreamLocalAction>> getAllDismissLocalActions() {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
     Result<List<byte[]>> listResult = journalStorageDirect.read(DISMISS_ACTION_JOURNAL);
     if (!listResult.isSuccessful()) {
       Logger.e(TAG, "Error retrieving dismiss journal");
-      tracker.stop("getAllDismissActions failed");
+      tracker.stop("getAllDismissLocalActions failed");
       return Result.failure();
     } else {
       List<byte[]> actionByteArrays = listResult.getValue();
-      List<StreamAction> actions = new ArrayList<>(actionByteArrays.size());
+      List<StreamLocalAction> actions = new ArrayList<>(actionByteArrays.size());
       for (byte[] bytes : actionByteArrays) {
-        StreamAction action;
+        StreamLocalAction action;
         try {
-          action = StreamAction.parseFrom(bytes);
+          action = StreamLocalAction.parseFrom(bytes);
           actions.add(action);
         } catch (InvalidProtocolBufferException e) {
           Logger.e(
               TAG,
               e,
-              "Error parsing StreamAction for bytes: %s (length %d)",
+              "Error parsing StreamLocalAction for bytes: %s (length %d)",
               Base64.encodeToString(bytes, Base64.DEFAULT),
               bytes.length);
         }
       }
-      tracker.stop("task", "getAllDismissActions", "size", actions.size());
+      tracker.stop("task", "getAllDismissLocalActions", "size", actions.size());
       return Result.success(actions);
     }
   }
@@ -319,17 +319,17 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
-  public ActionMutation editActions() {
+  public LocalActionMutation editLocalActions() {
     threadUtils.checkNotMainThread();
-    return new FeedActionMutation(this::commitActionMutation);
+    return new FeedLocalActionMutation(this::commitActionMutation);
   }
 
   @Override
   public Runnable triggerContentGc(
       Set<String> reservedContentIds, Supplier<Set<String>> accessibleContent) {
-    Supplier<Set<StreamAction>> dismissActionSupplier =
+    Supplier<Set<StreamLocalAction>> dismissActionSupplier =
         () -> {
-          Result<List<StreamAction>> dismissActionsResult = getAllDismissActions();
+          Result<List<StreamLocalAction>> dismissActionsResult = getAllDismissLocalActions();
           if (!dismissActionsResult.isSuccessful()) {
             // TODO: clean up error condition
             Logger.e(TAG, "Error retrieving dismiss actions for content garbage collection");
@@ -349,8 +349,9 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
-  public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
-    return new ActionGc(
+  public Runnable triggerLocalActionGc(
+      List<StreamLocalAction> actions, List<String> validContentIds) {
+    return new LocalActionGc(
             actions, validContentIds, journalStorageDirect, timingUtils, DISMISS_ACTION_JOURNAL)
         ::gc;
   }
@@ -455,8 +456,8 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       }
       JournalMutation.Builder builder = new JournalMutation.Builder(journalName);
       for (String contentId : entry.getValue()) {
-        StreamAction action =
-            StreamAction.newBuilder()
+        StreamLocalAction action =
+            StreamLocalAction.newBuilder()
                 .setAction(actionType)
                 .setFeatureContentId(contentId)
                 .setTimestampSeconds(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()))
@@ -464,7 +465,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
         byte[] actionBytes = action.toByteArray();
         Logger.i(
             TAG,
-            "Adding StreamAction bytes %s (length %d) to journal %s",
+            "Adding StreamLocalAction bytes %s (length %d) to journal %s",
             Base64.encodeToString(actionBytes, Base64.DEFAULT),
             actionBytes.length,
             journalName);

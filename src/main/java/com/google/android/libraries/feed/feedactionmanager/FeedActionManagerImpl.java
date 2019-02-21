@@ -18,8 +18,8 @@ import com.google.android.libraries.feed.api.actionmanager.ActionManager;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
-import com.google.android.libraries.feed.api.store.ActionMutation;
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
+import com.google.android.libraries.feed.api.store.LocalActionMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -56,11 +56,11 @@ public class FeedActionManagerImpl implements ActionManager {
         "feedActionManagerDismiss",
         TaskType.BACKGROUND,
         () -> {
-          ActionMutation actionMutation = store.editActions();
+          LocalActionMutation localActionMutation = store.editLocalActions();
           for (String contentId : contentIds) {
-            actionMutation.add(ActionType.DISMISS, contentId);
+            localActionMutation.add(ActionType.DISMISS, contentId);
           }
-          actionMutation.commit();
+          localActionMutation.commit();
         });
   }
 

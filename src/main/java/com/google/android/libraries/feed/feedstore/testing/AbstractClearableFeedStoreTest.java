@@ -18,13 +18,13 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.feedstore.internal.ClearableStore;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -134,13 +134,13 @@ public abstract class AbstractClearableFeedStoreTest extends AbstractFeedStoreTe
     // Actions
     commitResult =
         store
-            .editActions()
+            .editLocalActions()
             .add(ActionType.DISMISS, CONTENT_ID)
             .add(ActionType.DISMISS, CONTENT_ID_2)
             .commit();
     assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
 
-    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
+    Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     assertThat(dismissActionsResult.getValue()).hasSize(2);
 
@@ -175,7 +175,7 @@ public abstract class AbstractClearableFeedStoreTest extends AbstractFeedStoreTe
     assertThat(sessionsResult.getValue()).hasSize(0);
 
     // Actions (should not be cleared)
-    dismissActionsResult = store.getAllDismissActions();
+    dismissActionsResult = store.getAllDismissLocalActions();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     assertThat(dismissActionsResult.getValue()).hasSize(0);
   }

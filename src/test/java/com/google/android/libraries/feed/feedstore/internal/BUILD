@@ -4,10 +4,10 @@ load("//src/main/java/com/google/android/libraries/feed/buildtools/testing:andro
 licenses(["notice"])  # Apache 2
 
 android_local_test(
-    name = "ActionGcTest",
+    name = "LocalActionGcTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["ActionGcTest.java"],
+    srcs = ["LocalActionGcTest.java"],
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
@@ -73,9 +73,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/api/common",
         "//src/main/java/com/google/android/libraries/feed/api/store",
         "//src/main/java/com/google/android/libraries/feed/common",
-        "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/protoextensions",
-        "//src/main/java/com/google/android/libraries/feed/feedstore",
         "//src/main/java/com/google/android/libraries/feed/feedstore/internal",
         "//src/main/java/com/google/android/libraries/feed/feedstore/testing",
         "//src/main/java/com/google/android/libraries/feed/host/storage",

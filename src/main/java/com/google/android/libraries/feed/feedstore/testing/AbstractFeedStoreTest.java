@@ -20,8 +20,8 @@ import static org.mockito.Mockito.when;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.ContentMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
@@ -30,9 +30,9 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload.Builder;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -329,10 +329,10 @@ public abstract class AbstractFeedStoreTest {
   public void getDismissActions() {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
     Store store = getStore();
-    store.editActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
-    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
+    store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
+    Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
-    List<StreamAction> dismissActions = dismissActionsResult.getValue();
+    List<StreamLocalAction> dismissActions = dismissActionsResult.getValue();
     assertThat(dismissActions).isNotEmpty();
     assertThat(dismissActions.get(0).getAction()).isEqualTo(ActionType.DISMISS);
     assertThat(dismissActions.get(0).getFeatureContentId()).isEqualTo(OPERATION_CONTENT_ID);
@@ -343,7 +343,7 @@ public abstract class AbstractFeedStoreTest {
   public void getDismissActions_notIncludedInSessions() {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
     Store store = getStore();
-    store.editActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
+    store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
     Result<List<StreamSession>> allSessionsResult = store.getAllSessions();
     assertThat(allSessionsResult.isSuccessful()).isTrue();
     List<StreamSession> allSessions = allSessionsResult.getValue();
@@ -355,13 +355,13 @@ public abstract class AbstractFeedStoreTest {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
     Store store = getStore();
     store
-        .editActions()
+        .editLocalActions()
         .add(ActionType.DISMISS, OPERATION_CONTENT_ID)
         .add(ActionType.DISMISS, PAYLOAD_CONTENT_ID)
         .commit();
-    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
+    Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
-    List<StreamAction> dismissActions = dismissActionsResult.getValue();
+    List<StreamLocalAction> dismissActions = dismissActionsResult.getValue();
     assertThat(dismissActions).isNotEmpty();
     assertThat(dismissActions.get(0).getAction()).isEqualTo(ActionType.DISMISS);
     assertThat(dismissActions.get(0).getFeatureContentId()).isEqualTo(OPERATION_CONTENT_ID);
@@ -375,11 +375,11 @@ public abstract class AbstractFeedStoreTest {
   public void getDismissActions_expired() {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
     Store store = getStore();
-    store.editActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
+    store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
     when(clock.currentTimeMillis()).thenReturn(THREE_DAYS_AFTER_START_TIME_MILLIS);
-    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
+    Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
-    List<StreamAction> dismissActions = dismissActionsResult.getValue();
+    List<StreamLocalAction> dismissActions = dismissActionsResult.getValue();
 
     // Should still return expired actions.
     assertThat(dismissActions).isNotEmpty();

@@ -16,6 +16,8 @@ package com.google.android.libraries.feed.feedactionreader;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,7 +29,7 @@ import com.google.android.libraries.feed.api.common.DismissActionWithSemanticPro
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.testing.ContentIdGenerators;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
@@ -37,7 +39,7 @@ import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.Arrays;
 import java.util.Collections;
@@ -78,7 +80,8 @@ public class FeedActionReaderTest {
     when(configuration.getValueOrDefault(same(ConfigKey.MINIMUM_VALID_ACTION_RATIO), any()))
         .thenReturn(0.9);
 
-    when(store.triggerActionGc(anyList(), anyList())).thenReturn(() -> {});
+    when(store.triggerLocalActionGc(anyListOf(StreamLocalAction.class), anyListOf(String.class)))
+        .thenReturn(() -> {});
 
     actionReader =
         new FeedActionReader(store, clock, protocolAdapter, getTaskQueue(), configuration);
@@ -93,7 +96,7 @@ public class FeedActionReaderTest {
   public void getAllDismissedActions() {
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
 
-    StreamAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
+    StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     mockStoreCalls(Collections.singletonList(dismissAction), Collections.emptyList());
 
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
@@ -115,32 +118,35 @@ public class FeedActionReaderTest {
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     List<DismissActionWithSemanticProperties> dismissActions = dismissActionsResult.getValue();
     assertThat(dismissActions).hasSize(0);
-    verify(store, never()).triggerActionGc(anyList(), anyList());
+    verify(store, never())
+        .triggerLocalActionGc(anyListOf(StreamLocalAction.class), anyListOf(String.class));
   }
 
   @Test
   public void getAllDismissedActions_storeError_getAllDismissActions() {
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
-    when(store.getAllDismissActions()).thenReturn(Result.failure());
+    when(store.getAllDismissLocalActions()).thenReturn(Result.failure());
 
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
         actionReader.getDismissActionsWithSemanticProperties();
     assertThat(dismissActionsResult.isSuccessful()).isFalse();
-    verify(store, never()).triggerActionGc(anyList(), anyList());
+    verify(store, never())
+        .triggerLocalActionGc(anyListOf(StreamLocalAction.class), anyListOf(String.class));
   }
 
   @Test
   public void getAllDismissedActions_storeError_getSemanticProperties() {
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
-    StreamAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
-    when(store.getAllDismissActions())
+    StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
+    when(store.getAllDismissLocalActions())
         .thenReturn(Result.success(Collections.singletonList(dismissAction)));
     when(store.getSemanticProperties(anyList())).thenReturn(Result.failure());
 
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
         actionReader.getDismissActionsWithSemanticProperties();
     assertThat(dismissActionsResult.isSuccessful()).isFalse();
-    verify(store, never()).triggerActionGc(anyList(), anyList());
+    verify(store, never())
+        .triggerLocalActionGc(anyListOf(StreamLocalAction.class), anyListOf(String.class));
   }
 
   @Test
@@ -148,22 +154,22 @@ public class FeedActionReaderTest {
     when(clock.currentTimeMillis())
         .thenReturn(TimeUnit.SECONDS.toMillis(DEFAULT_TIME) + TimeUnit.DAYS.toMillis(3));
 
-    StreamAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
-    List<StreamAction> dismissActions = Collections.singletonList(dismissAction);
+    StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
+    List<StreamLocalAction> dismissActions = Collections.singletonList(dismissAction);
     mockStoreCalls(dismissActions, Collections.emptyList());
 
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
         actionReader.getDismissActionsWithSemanticProperties();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     assertThat(dismissActionsResult.getValue()).hasSize(0);
-    verify(store).triggerActionGc(dismissActions, Collections.emptyList());
+    verify(store).triggerLocalActionGc(eq(dismissActions), anyListOf(String.class));
   }
 
   @Test
   public void getAllDismissedActions_semanticProperties() {
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
 
-    StreamAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
+    StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
     byte[] semanticData = {12, 41};
     mockStoreCalls(
         Collections.singletonList(dismissAction),
@@ -175,15 +181,16 @@ public class FeedActionReaderTest {
     List<DismissActionWithSemanticProperties> dismissActions = dismissActionsResult.getValue();
     assertThat(dismissActions)
         .containsExactly(new DismissActionWithSemanticProperties(CONTENT_ID, semanticData));
-    verify(store, never()).triggerActionGc(anyList(), anyList());
+    verify(store, never())
+        .triggerLocalActionGc(anyListOf(StreamLocalAction.class), anyListOf(String.class));
   }
 
   @Test
   public void getAllDismissedActions_multipleActions() {
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
 
-    StreamAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
-    StreamAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING_2);
+    StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
+    StreamLocalAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING_2);
     mockStoreCalls(Arrays.asList(dismissAction, dismissAction2), Collections.emptyList());
 
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
@@ -195,15 +202,16 @@ public class FeedActionReaderTest {
         .containsExactly(
             new DismissActionWithSemanticProperties(CONTENT_ID, null),
             new DismissActionWithSemanticProperties(CONTENT_ID_2, null));
-    verify(store, never()).triggerActionGc(anyList(), anyList());
+    verify(store, never())
+        .triggerLocalActionGc(anyListOf(StreamLocalAction.class), anyListOf(String.class));
   }
 
   @Test
   public void getAllDismissedActions_multipleActions_semanticProperties() {
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
 
-    StreamAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
-    StreamAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING_2);
+    StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
+    StreamLocalAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING_2);
     byte[] semanticData = {12, 41};
     byte[] semanticData2 = {42, 72};
     mockStoreCalls(
@@ -221,7 +229,8 @@ public class FeedActionReaderTest {
         .containsExactly(
             new DismissActionWithSemanticProperties(CONTENT_ID, semanticData),
             new DismissActionWithSemanticProperties(CONTENT_ID_2, semanticData2));
-    verify(store, never()).triggerActionGc(anyList(), anyList());
+    verify(store, never())
+        .triggerLocalActionGc(anyListOf(StreamLocalAction.class), anyListOf(String.class));
   }
 
   @Test
@@ -229,9 +238,9 @@ public class FeedActionReaderTest {
     when(clock.currentTimeMillis())
         .thenReturn(TimeUnit.SECONDS.toMillis(DEFAULT_TIME) + TimeUnit.DAYS.toMillis(3));
 
-    StreamAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
-    StreamAction dismissAction2 =
-        StreamAction.newBuilder()
+    StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
+    StreamLocalAction dismissAction2 =
+        StreamLocalAction.newBuilder()
             .setAction(ActionType.DISMISS)
             .setFeatureContentId(CONTENT_ID_STRING_2)
             .setTimestampSeconds(DEFAULT_TIME + TimeUnit.DAYS.toSeconds(2))
@@ -245,7 +254,7 @@ public class FeedActionReaderTest {
     assertThat(dismissActionsResult.getValue())
         .containsExactly(new DismissActionWithSemanticProperties(CONTENT_ID_2, null));
     verify(store)
-        .triggerActionGc(
+        .triggerLocalActionGc(
             Arrays.asList(dismissAction, dismissAction2),
             Collections.singletonList(CONTENT_ID_STRING_2));
   }
@@ -254,8 +263,8 @@ public class FeedActionReaderTest {
   public void getAllDismissedActions_duplicateActions() {
     when(clock.currentTimeMillis()).thenReturn(DEFAULT_TIME);
 
-    StreamAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
-    StreamAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING);
+    StreamLocalAction dismissAction = buildDismissAction(CONTENT_ID_STRING);
+    StreamLocalAction dismissAction2 = buildDismissAction(CONTENT_ID_STRING);
     mockStoreCalls(Arrays.asList(dismissAction, dismissAction2), Collections.emptyList());
 
     Result<List<DismissActionWithSemanticProperties>> dismissActionsResult =
@@ -268,8 +277,8 @@ public class FeedActionReaderTest {
         .containsExactly(new DismissActionWithSemanticProperties(CONTENT_ID, null));
   }
 
-  private StreamAction buildDismissAction(String contentId) {
-    return StreamAction.newBuilder()
+  private StreamLocalAction buildDismissAction(String contentId) {
+    return StreamLocalAction.newBuilder()
         .setAction(ActionType.DISMISS)
         .setFeatureContentId(contentId)
         .setTimestampSeconds(DEFAULT_TIME)
@@ -277,8 +286,8 @@ public class FeedActionReaderTest {
   }
 
   private void mockStoreCalls(
-      List<StreamAction> dismissActions, List<SemanticPropertiesWithId> semanticProperties) {
-    when(store.getAllDismissActions()).thenReturn(Result.success(dismissActions));
+      List<StreamLocalAction> dismissActions, List<SemanticPropertiesWithId> semanticProperties) {
+    when(store.getAllDismissLocalActions()).thenReturn(Result.success(dismissActions));
     when(store.getSemanticProperties(anyList())).thenReturn(Result.success(semanticProperties));
   }
 

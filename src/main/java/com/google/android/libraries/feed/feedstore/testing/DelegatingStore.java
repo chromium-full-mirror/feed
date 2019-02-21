@@ -16,15 +16,15 @@ package com.google.android.libraries.feed.feedstore.testing;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -65,8 +65,8 @@ public class DelegatingStore implements Store {
   }
 
   @Override
-  public Result<List<StreamAction>> getAllDismissActions() {
-    return store.getAllDismissActions();
+  public Result<List<StreamLocalAction>> getAllDismissLocalActions() {
+    return store.getAllDismissLocalActions();
   }
 
   @Override
@@ -105,8 +105,8 @@ public class DelegatingStore implements Store {
   }
 
   @Override
-  public ActionMutation editActions() {
-    return store.editActions();
+  public LocalActionMutation editLocalActions() {
+    return store.editLocalActions();
   }
 
   @Override
@@ -116,8 +116,9 @@ public class DelegatingStore implements Store {
   }
 
   @Override
-  public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
-    return store.triggerActionGc(actions, validContentIds);
+  public Runnable triggerLocalActionGc(
+      List<StreamLocalAction> actions, List<String> validContentIds) {
+    return store.triggerLocalActionGc(actions, validContentIds);
   }
 
   @Override

@@ -14,7 +14,7 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
-import com.google.android.libraries.feed.api.store.ActionMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation;
 import com.google.android.libraries.feed.common.functional.Committer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.storage.CommitResult;
@@ -23,19 +23,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Implementation of {@link ActionMutation} */
-public final class FeedActionMutation implements ActionMutation {
-  private static final String TAG = "FeedActionMutation";
+/** Implementation of {@link LocalActionMutation} */
+public final class FeedLocalActionMutation implements LocalActionMutation {
+  private static final String TAG = "FeedLocalActionMutation";
 
   private final Map<Integer, List<String>> actions = new HashMap<>();
   private final Committer<CommitResult, Map<Integer, List<String>>> committer;
 
-  FeedActionMutation(Committer<CommitResult, Map<Integer, List<String>>> committer) {
+  FeedLocalActionMutation(Committer<CommitResult, Map<Integer, List<String>>> committer) {
     this.committer = committer;
   }
 
   @Override
-  public ActionMutation add(int action, String contentId) {
+  public LocalActionMutation add(int action, String contentId) {
     /*@Nullable*/ List<String> actionsForType = actions.get(action);
     if (actionsForType == null) {
       actionsForType = new ArrayList<>();

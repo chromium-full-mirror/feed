@@ -24,7 +24,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -39,7 +39,7 @@ import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -250,13 +250,13 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     // Actions
     commitResult =
         store
-            .editActions()
+            .editLocalActions()
             .add(ActionType.DISMISS, CONTENT_ID)
             .add(ActionType.DISMISS, CONTENT_ID_2)
             .commit();
     assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
 
-    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
+    Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     assertThat(dismissActionsResult.getValue()).hasSize(2);
 
@@ -295,7 +295,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     assertThat(sessionsResult.getValue()).hasSize(0);
 
     // Actions (should not be cleared)
-    dismissActionsResult = store.getAllDismissActions();
+    dismissActionsResult = store.getAllDismissLocalActions();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     assertThat(dismissActionsResult.getValue()).hasSize(2);
     assertThat(dismissActionsResult.getValue().get(0).getFeatureContentId()).isEqualTo(CONTENT_ID);

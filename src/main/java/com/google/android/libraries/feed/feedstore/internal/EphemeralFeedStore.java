@@ -16,9 +16,9 @@ package com.google.android.libraries.feed.feedstore.internal;
 
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
-import com.google.android.libraries.feed.api.store.ActionMutation;
-import com.google.android.libraries.feed.api.store.ActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.ContentMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.StoreListener;
@@ -29,7 +29,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.common.time.TimingUtils.ElapsedTimeTracker;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -54,7 +54,7 @@ public final class EphemeralFeedStore implements ClearableStore {
   private final Map<String, PayloadWithId> payloadWithIdMap = new HashMap<>();
   private final Map<String, StreamSharedState> sharedStateMap = new HashMap<>();
   private final Map<String, ByteString> semanticPropertiesMap = new HashMap<>();
-  private final Map<Integer, List<StreamAction>> actionsMap = new HashMap<>();
+  private final Map<Integer, List<StreamLocalAction>> actionsMap = new HashMap<>();
   private final Map<String, List<StreamStructure>> sessionsMap = new HashMap<>();
 
   public EphemeralFeedStore(Clock clock, TimingUtils timingUtils, FeedStoreHelper storeHelper) {
@@ -116,8 +116,8 @@ public final class EphemeralFeedStore implements ClearableStore {
   }
 
   @Override
-  public Result<List<StreamAction>> getAllDismissActions() {
-    List<StreamAction> dismissActions = actionsMap.get(ActionType.DISMISS);
+  public Result<List<StreamLocalAction>> getAllDismissLocalActions() {
+    List<StreamLocalAction> dismissActions = actionsMap.get(ActionType.DISMISS);
     if (dismissActions == null) {
       dismissActions = Collections.emptyList();
     }
@@ -211,23 +211,23 @@ public final class EphemeralFeedStore implements ClearableStore {
   }
 
   @Override
-  public ActionMutation editActions() {
-    return new FeedActionMutation(this::commitActionMutation);
+  public LocalActionMutation editLocalActions() {
+    return new FeedLocalActionMutation(this::commitLocalActionMutation);
   }
 
-  private CommitResult commitActionMutation(Map<Integer, List<String>> actions) {
+  private CommitResult commitLocalActionMutation(Map<Integer, List<String>> actions) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
     CommitResult commitResult = CommitResult.SUCCESS;
     for (Map.Entry<Integer, List<String>> entry : actions.entrySet()) {
       Integer actionType = entry.getKey();
-      List<StreamAction> actionsList = actionsMap.get(actionType);
+      List<StreamLocalAction> actionsList = actionsMap.get(actionType);
       if (actionsList == null) {
         actionsList = new ArrayList<>();
         actionsMap.put(actionType, actionsList);
       }
       for (String contentId : entry.getValue()) {
-        StreamAction action =
-            StreamAction.newBuilder()
+        StreamLocalAction action =
+            StreamLocalAction.newBuilder()
                 .setAction(actionType)
                 .setFeatureContentId(contentId)
                 .setTimestampSeconds(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()))
@@ -236,7 +236,7 @@ public final class EphemeralFeedStore implements ClearableStore {
       }
     }
 
-    tracker.stop("task", "commitActionMutation", "actions", actions.size());
+    tracker.stop("task", "commitLocalActionMutation", "actions", actions.size());
     return commitResult;
   }
 
@@ -248,7 +248,8 @@ public final class EphemeralFeedStore implements ClearableStore {
   }
 
   @Override
-  public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
+  public Runnable triggerLocalActionGc(
+      List<StreamLocalAction> actions, List<String> validContentIds) {
     // No garbage collection in ephemeral mode
     return EMPTY_RUNNABLE;
   }

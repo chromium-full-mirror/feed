@@ -23,7 +23,7 @@ import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.JournalMutation;
 import com.google.android.libraries.feed.host.storage.JournalStorage;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
@@ -240,10 +240,10 @@ public abstract class JournalStorageConformanceTest {
   }
 
   @Test
-  public void streamAction_roundTrip() throws Exception {
+  public void StreamLocalAction_roundTrip() throws Exception {
     // Write a Stream action with known breaking data ([INTERNAL LINK])
-    StreamAction action =
-        StreamAction.newBuilder()
+    StreamLocalAction action =
+        StreamLocalAction.newBuilder()
             .setTimestampSeconds(1532979950)
             .setAction(1)
             .setFeatureContentId("FEATURE::stories.f::5726498306727238903")
@@ -260,11 +260,12 @@ public abstract class JournalStorageConformanceTest {
             result -> {
               List<byte[]> bytes = result.getValue();
               assertThat(bytes).hasSize(1);
-              StreamAction parsedAction = null;
+              StreamLocalAction parsedAction = null;
               try {
-                parsedAction = StreamAction.parseFrom(bytes.get(0));
+                parsedAction = StreamLocalAction.parseFrom(bytes.get(0));
               } catch (InvalidProtocolBufferException e) {
-                throw new AssertionError("Should be able to parse StreamAction bytes correctly", e);
+                throw new AssertionError(
+                    "Should be able to parse StreamLocalAction bytes correctly", e);
               }
               assertThat(parsedAction).isEqualTo(action);
             });

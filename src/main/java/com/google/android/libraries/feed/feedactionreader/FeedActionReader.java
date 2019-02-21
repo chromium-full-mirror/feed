@@ -26,7 +26,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -65,16 +65,16 @@ public final class FeedActionReader implements ActionReader {
   @Override
   public Result<List<DismissActionWithSemanticProperties>>
       getDismissActionsWithSemanticProperties() {
-    Result<List<StreamAction>> dismissActionsResult = store.getAllDismissActions();
+    Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();
     if (!dismissActionsResult.isSuccessful()) {
       Logger.e(TAG, "Error fetching dismiss actions from store");
       return Result.failure();
     }
-    List<StreamAction> dismissActions = dismissActionsResult.getValue();
+    List<StreamLocalAction> dismissActions = dismissActionsResult.getValue();
     Set<String> contentIds = new HashSet<>(dismissActions.size());
     long minValidTime =
         TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()) - dismissActionTTLSeconds;
-    for (StreamAction dismissAction : dismissActions) {
+    for (StreamLocalAction dismissAction : dismissActions) {
       if (dismissAction.getTimestampSeconds() > minValidTime) {
         contentIds.add(dismissAction.getFeatureContentId());
       }
@@ -85,9 +85,9 @@ public final class FeedActionReader implements ActionReader {
     // duplicates not being counted as valid.
     if ((double) contentIds.size() / dismissActions.size() < minValidActionRatio) {
       taskQueue.execute(
-          "triggerActionGc",
+          "triggerLocalActionGc",
           TaskType.BACKGROUND,
-          store.triggerActionGc(dismissActions, new ArrayList<>(contentIds)));
+          store.triggerLocalActionGc(dismissActions, new ArrayList<>(contentIds)));
     }
 
     Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =

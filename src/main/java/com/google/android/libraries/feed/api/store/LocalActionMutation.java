@@ -18,7 +18,7 @@ import android.support.annotation.IntDef;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 
 /** Mutation for adding and updating actions in the Feed Store. */
-public interface ActionMutation {
+public interface LocalActionMutation {
 
   @IntDef({ActionType.DISMISS})
   @interface ActionType {
@@ -26,7 +26,7 @@ public interface ActionMutation {
   }
 
   /** Add a new Mutation to the Store */
-  ActionMutation add(@ActionType int action, String contentId);
+  LocalActionMutation add(@ActionType int action, String contentId);
 
   /** Commit the mutations to the backing store */
   CommitResult commit();

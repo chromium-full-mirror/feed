@@ -18,8 +18,8 @@ import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
-import com.google.android.libraries.feed.api.store.ActionMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
+import com.google.android.libraries.feed.api.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -43,7 +43,7 @@ import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
 import com.google.protobuf.ByteString;
-import com.google.search.now.feed.client.StreamDataProto.StreamAction;
+import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -131,8 +131,8 @@ public final class FeedStore extends FeedObservable<StoreListener>
   }
 
   @Override
-  public Result<List<StreamAction>> getAllDismissActions() {
-    return delegate.getAllDismissActions();
+  public Result<List<StreamLocalAction>> getAllDismissLocalActions() {
+    return delegate.getAllDismissLocalActions();
   }
 
   @Override
@@ -171,8 +171,8 @@ public final class FeedStore extends FeedObservable<StoreListener>
   }
 
   @Override
-  public ActionMutation editActions() {
-    return delegate.editActions();
+  public LocalActionMutation editLocalActions() {
+    return delegate.editLocalActions();
   }
 
   @Override
@@ -182,8 +182,9 @@ public final class FeedStore extends FeedObservable<StoreListener>
   }
 
   @Override
-  public Runnable triggerActionGc(List<StreamAction> actions, List<String> validContentIds) {
-    return delegate.triggerActionGc(actions, validContentIds);
+  public Runnable triggerLocalActionGc(
+      List<StreamLocalAction> actions, List<String> validContentIds) {
+    return delegate.triggerLocalActionGc(actions, validContentIds);
   }
 
   @Override
@@ -243,17 +244,17 @@ public final class FeedStore extends FeedObservable<StoreListener>
 
   private void dumpEphemeralActions() {
     // Get all action-related content (actions + semantic data)
-    Result<List<StreamAction>> dismissActionsResult = delegate.getAllDismissActions();
+    Result<List<StreamLocalAction>> dismissActionsResult = delegate.getAllDismissLocalActions();
     if (!dismissActionsResult.isSuccessful()) {
       Logger.e(TAG, "Error retrieving actions when trying to dump ephemeral actions.");
       return;
     }
-    List<StreamAction> dismissActions = dismissActionsResult.getValue();
-    ActionMutation actionMutation = persistentStore.editActions();
+    List<StreamLocalAction> dismissActions = dismissActionsResult.getValue();
+    LocalActionMutation localActionMutation = persistentStore.editLocalActions();
     List<String> dismissActionContentIds = new ArrayList<>(dismissActions.size());
-    for (StreamAction dismiss : dismissActions) {
+    for (StreamLocalAction dismiss : dismissActions) {
       dismissActionContentIds.add(dismiss.getFeatureContentId());
-      actionMutation.add(dismiss.getAction(), dismiss.getFeatureContentId());
+      localActionMutation.add(dismiss.getAction(), dismiss.getFeatureContentId());
     }
     Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
         delegate.getSemanticProperties(dismissActionContentIds);
@@ -269,7 +270,7 @@ public final class FeedStore extends FeedObservable<StoreListener>
     }
 
     // Attempt to write action-related content to persistent storage
-    CommitResult commitResult = actionMutation.commit();
+    CommitResult commitResult = localActionMutation.commit();
     if (commitResult != CommitResult.SUCCESS) {
       Logger.e(TAG, "Error writing actions to persistent store when dumping ephemeral actions.");
       return;
