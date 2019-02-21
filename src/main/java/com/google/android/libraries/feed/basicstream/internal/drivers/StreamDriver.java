@@ -159,11 +159,11 @@ public class StreamDriver
       return;
     }
 
-    // TODO: Handle continuation driver. This needs to handle synthetic tokens.
     if (isLastDriverContinuationDriver()) {
       ContinuationDriver continuationDriver =
           (ContinuationDriver) featureDrivers.get(featureDrivers.size() - 1);
-      if (continuationDriver.isSynthetic()) {
+      // If there is a synthetic token, we should only restore if it has not been handled yet.
+      if (continuationDriver.hasTokenBeenHandled()) {
         return;
       }
     }

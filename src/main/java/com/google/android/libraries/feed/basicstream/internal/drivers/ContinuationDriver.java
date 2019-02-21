@@ -67,6 +67,7 @@ public class ContinuationDriver extends LeafFeatureDriver
   private boolean initialized;
   private boolean viewLogged;
   private boolean destroyed;
+  private boolean tokenHandled;
   @SpinnerType private int spinnerType = SpinnerType.INFINITE_FEED;
   /*@Nullable*/ private ContinuationViewHolder continuationViewHolder;
 
@@ -101,8 +102,8 @@ public class ContinuationDriver extends LeafFeatureDriver
                     ConfigKey.CONSUME_SYNTHETIC_TOKENS_WHILE_RESTORING, false));
   }
 
-  public boolean isSynthetic() {
-    return modelToken.isSynthetic();
+  public boolean hasTokenBeenHandled() {
+    return tokenHandled;
   }
 
   public void initialize() {
@@ -117,6 +118,7 @@ public class ContinuationDriver extends LeafFeatureDriver
       showSpinner = true;
       spinnerType = SpinnerType.SYNTHETIC_TOKEN;
       modelProvider.handleToken(modelToken);
+      tokenHandled = true;
     }
   }
 
@@ -147,6 +149,7 @@ public class ContinuationDriver extends LeafFeatureDriver
     spinnerLogger.spinnerStarted(SpinnerType.MORE_BUTTON);
     checkNotNull(continuationViewHolder).setShowSpinner(true);
     modelProvider.handleToken(modelToken);
+    tokenHandled = true;
   }
 
   @Override

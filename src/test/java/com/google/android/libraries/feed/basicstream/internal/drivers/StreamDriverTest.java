@@ -270,7 +270,7 @@ public class StreamDriverTest {
     when(streamFeature.getCursor())
         .thenReturn(
             FakeModelCursor.newBuilder().addCard().addCluster().addSyntheticToken().build());
-    when(continuationDriver.isSynthetic()).thenReturn(true);
+    when(continuationDriver.hasTokenBeenHandled()).thenReturn(true);
 
     streamDriver.getLeafFeatureDrivers();
 
@@ -338,7 +338,7 @@ public class StreamDriverTest {
     FakeModelCursor newCursor =
         FakeModelCursor.newBuilder().addCluster().addSyntheticToken().build();
     when(streamFeature.getCursor()).thenReturn(initialCursor);
-    when(continuationDriver.isSynthetic()).thenReturn(true);
+    when(continuationDriver.hasTokenBeenHandled()).thenReturn(true);
 
     // Causes StreamDriver to build a list of children based on the children from the cursor.
     List<LeafFeatureDriver> leafFeatureDrivers = streamDriver.getLeafFeatureDrivers();

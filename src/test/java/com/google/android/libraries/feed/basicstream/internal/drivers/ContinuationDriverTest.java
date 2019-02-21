@@ -108,12 +108,13 @@ public class ContinuationDriverTest {
   }
 
   @Test
-  public void testIsSynthetic() {
+  public void testHasTokenBeenHandled_returnsTrue_ifSyntheticTokenConsumedImmediately() {
+    when(modelToken.isSynthetic()).thenReturn(true);
     continuationDriver =
         new ContinuationDriverForTest(
             basicLoggingApi,
             clock,
-            new Configuration.Builder().put(ConfigKey.TRIGGER_IMMEDIATE_PAGINATION, true).build(),
+            new Configuration.Builder().put(ConfigKey.CONSUME_SYNTHETIC_TOKENS, true).build(),
             context,
             cursorChangedListener,
             modelChild,
@@ -122,9 +123,13 @@ public class ContinuationDriverTest {
             snackbarApi,
             threadUtils,
             /* restoring= */ false);
+    continuationDriver.initialize();
 
-    assertThat(continuationDriver.isSynthetic()).isFalse();
+    assertThat(continuationDriver.hasTokenBeenHandled()).isTrue();
+  }
 
+  @Test
+  public void testHasTokenBeenHandled_returnsFalse_ifSyntheticTokenNotConsumedImmediately() {
     when(modelToken.isSynthetic()).thenReturn(true);
     continuationDriver =
         new ContinuationDriverForTest(
@@ -139,8 +144,9 @@ public class ContinuationDriverTest {
             snackbarApi,
             threadUtils,
             /* restoring= */ false);
+    continuationDriver.initialize();
 
-    assertThat(continuationDriver.isSynthetic()).isTrue();
+    assertThat(continuationDriver.hasTokenBeenHandled()).isFalse();
   }
 
   @Test
