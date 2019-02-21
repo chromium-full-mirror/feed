@@ -35,6 +35,8 @@ import com.google.android.libraries.feed.feedactionparser.internal.ElementTypeCo
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -256,6 +258,7 @@ public class FeedActionParserTest {
                           .setElementType(ElementType.INTEREST_HEADER))
                   .build())
           .build();
+
   private static final FeedActionPayload HIDE_ELEMENT =
       FeedActionPayload.newBuilder()
           .setExtension(
@@ -293,6 +296,7 @@ public class FeedActionParserTest {
                                   .addDataOperations(DataOperation.getDefaultInstance())))
                   .build())
           .build();
+
   private static final ContentMetadata CONTENT_METADATA =
       new ContentMetadata(
           URL,
@@ -303,8 +307,21 @@ public class FeedActionParserTest {
           /* faviconUrl= */ null,
           /* snippet= */ null);
 
+  private static final FeedActionPayload OPEN_URL_MISSING_URL =
+      FeedActionPayload.newBuilder()
+          .setExtension(
+              FeedAction.feedActionExtension,
+              FeedAction.newBuilder()
+                  .setMetadata(
+                      FeedActionMetadata.newBuilder()
+                          .setType(Type.OPEN_URL)
+                          .setOpenUrlData(OpenUrlData.getDefaultInstance()))
+                  .build())
+          .build();
+
   @Mock private StreamActionApi streamActionApi;
   @Mock private ProtocolAdapter protocolAdapter;
+  @Mock private BasicLoggingApi basicLoggingApi;
 
   List<StreamDataOperation> streamDataOperations =
       Lists.newArrayList(
@@ -321,7 +338,10 @@ public class FeedActionParserTest {
         .thenReturn(DISMISS_CONTENT_ID_STRING);
     feedActionParser =
         new FeedActionParser(
-            protocolAdapter, new PietFeedActionPayloadRetriever(), () -> CONTENT_METADATA);
+            protocolAdapter,
+            new PietFeedActionPayloadRetriever(),
+            () -> CONTENT_METADATA,
+            basicLoggingApi);
   }
 
   @Test
@@ -477,7 +497,8 @@ public class FeedActionParserTest {
         new FeedActionParser(
             protocolAdapter,
             new PietFeedActionPayloadRetriever(),
-            /* contentMetadata= */ () -> null);
+            /* contentMetadata= */ () -> null,
+            basicLoggingApi);
     when(streamActionApi.canDownloadUrl()).thenReturn(true);
     feedActionParser.parseFeedActionPayload(
         DOWNLOAD_URL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
@@ -709,5 +730,15 @@ public class FeedActionParserTest {
 
     verify(streamActionApi, never())
         .onElementClick(ElementTypeConverter.convert(ElementType.INTEREST_HEADER));
+  }
+
+  @Test
+  public void testOpenUrl_noUrl_logsError() {
+    when(streamActionApi.canOpenUrl()).thenReturn(true);
+
+    feedActionParser.parseFeedActionPayload(
+        OPEN_URL_MISSING_URL, streamActionApi, /* view= */ null, ActionSource.CLICK);
+
+    verify(basicLoggingApi).onInternalError(InternalFeedError.NO_URL_FOR_OPEN);
   }
 }

@@ -34,6 +34,8 @@ import com.google.android.libraries.feed.feedactionparser.internal.ActionTypeCon
 import com.google.android.libraries.feed.feedactionparser.internal.ElementTypeConverter;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
@@ -54,14 +56,17 @@ public final class FeedActionParser implements ActionParser {
   private final PietFeedActionPayloadRetriever pietFeedActionPayloadRetriever;
   private final ProtocolAdapter protocolAdapter;
   private final Supplier</*@Nullable*/ ContentMetadata> contentMetadata;
+  private final BasicLoggingApi basicLoggingApi;
 
   FeedActionParser(
       ProtocolAdapter protocolAdapter,
       PietFeedActionPayloadRetriever pietFeedActionPayloadRetriever,
-      Supplier</*@Nullable*/ ContentMetadata> contentMetadata) {
+      Supplier</*@Nullable*/ ContentMetadata> contentMetadata,
+      BasicLoggingApi basicLoggingApi) {
     this.protocolAdapter = protocolAdapter;
     this.pietFeedActionPayloadRetriever = pietFeedActionPayloadRetriever;
     this.contentMetadata = contentMetadata;
+    this.basicLoggingApi = basicLoggingApi;
   }
 
   @Override
@@ -259,6 +264,7 @@ public final class FeedActionParser implements ActionParser {
     }
 
     if (!openUrlData.hasUrl()) {
+      basicLoggingApi.onInternalError(InternalFeedError.NO_URL_FOR_OPEN);
       Logger.e(TAG, "Cannot open URL action: %s, no URL available.", urlType);
       return;
     }

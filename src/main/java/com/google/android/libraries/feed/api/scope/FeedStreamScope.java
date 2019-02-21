@@ -134,7 +134,7 @@ public final class FeedStreamScope {
                 sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, config);
       }
       if (actionParserFactory == null) {
-        actionParserFactory = new FeedActionParserFactory(protocolAdapter);
+        actionParserFactory = new FeedActionParserFactory(protocolAdapter, basicLoggingApi);
       }
       if (stream == null) {
         stream =
