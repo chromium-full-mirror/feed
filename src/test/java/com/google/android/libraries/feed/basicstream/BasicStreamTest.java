@@ -21,7 +21,6 @@ import static com.google.android.libraries.feed.common.testing.RunnableSubject.a
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -72,6 +71,7 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
 import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
@@ -250,7 +250,7 @@ public class BasicStreamTest {
     basicStream.onSessionFinished();
 
     verify(scrollRestorer).abandonRestoringScroll();
-    verify(streamDriver).showZeroState(/*showSpinner= */ true);
+    verify(streamDriver).showSpinner();
     verify(initialModelProvider).unregisterObserver(basicStream);
     verify(modelProviderFactory, times(2)).createNew(any(ViewDepthProvider.class));
     verify(modelProvider).registerObserver(basicStream);
@@ -264,7 +264,7 @@ public class BasicStreamTest {
     basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
 
     verify(scrollRestorer).abandonRestoringScroll();
-    verify(streamDriver).showZeroState(/* showSpinner= */ false);
+    verify(streamDriver).showZeroState(ZeroStateShowReason.ERROR);
   }
 
   @Test
@@ -554,7 +554,8 @@ public class BasicStreamTest {
 
     basicStream.onShow();
 
-    verify(streamDriver, never()).showZeroState(anyBoolean());
+    verify(streamDriver, never()).showZeroState(/* zeroStateShowReason= */ anyInt());
+    verify(streamDriver, never()).showSpinner();
   }
 
   @Test
@@ -572,7 +573,7 @@ public class BasicStreamTest {
     basicStream.onShow();
     mainThreadRunner.runAllTasks();
 
-    verify(streamDriver).showZeroState(/*showSpinner= */ true);
+    verify(streamDriver).showSpinner();
   }
 
   @Test
@@ -830,7 +831,7 @@ public class BasicStreamTest {
     basicStream.triggerRefresh();
 
     verify(initialModelProvider).triggerRefresh();
-    verify(streamDriver).showZeroState(/* showSpinner= */ true);
+    verify(streamDriver).showSpinner();
   }
 
   @Test
@@ -838,7 +839,7 @@ public class BasicStreamTest {
     basicStream.triggerRefresh();
 
     verify(initialModelProvider, never()).triggerRefresh();
-    verify(streamDriver, never()).showZeroState(/* showSpinner= */ true);
+    verify(streamDriver, never()).showSpinner();
   }
 
   @Test
@@ -962,17 +963,18 @@ public class BasicStreamTest {
 
     basicStream.onSessionStart();
 
-    verify(streamDriver).showZeroState(/* showSpinner= */ false);
+    verify(streamDriver).showZeroState(ZeroStateShowReason.NO_CONTENT);
   }
 
   @Test
   public void testOnShow_delaysShowingZeroState_onInitialLoad() {
     basicStream.onShow();
 
-    verify(streamDriver, never()).showZeroState(/* showSpinner= */ anyBoolean());
+    verify(streamDriver, never()).showZeroState(/* zeroStateShowReason= */ anyInt());
+    verify(streamDriver, never()).showSpinner();
     mainThreadRunner.runAllTasks();
 
-    verify(streamDriver).showZeroState(/* showSpinner= */ true);
+    verify(streamDriver).showSpinner();
   }
 
   @Test

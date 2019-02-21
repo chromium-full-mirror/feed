@@ -58,6 +58,17 @@ public class SpinnerLogger {
     spinnerStartTime = SPINNER_INACTIVE;
   }
 
+  public void spinnerDestroyedWithoutCompleting() {
+    if (!isSpinnerActive()) {
+      Logger.wtf(
+          TAG, "spinnerDestroyedWithoutCompleting should only be called after spinnerStarted.");
+      return;
+    }
+
+    long spinnerDuration = clock.currentTimeMillis() - spinnerStartTime;
+    basicLoggingApi.onSpinnerDestroyedWithoutCompleting((int) spinnerDuration, spinnerType);
+  }
+
   public boolean isSpinnerActive() {
     return spinnerStartTime != SPINNER_INACTIVE;
   }

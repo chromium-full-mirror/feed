@@ -663,7 +663,7 @@ public class ContinuationDriverTest {
 
     continuationDriver.onDestroy();
 
-    verify(spinnerLogger).spinnerFinished();
+    verify(spinnerLogger).spinnerDestroyedWithoutCompleting();
   }
 
   @Test
@@ -673,7 +673,7 @@ public class ContinuationDriverTest {
 
     continuationDriver.onDestroy();
 
-    verify(spinnerLogger, never()).spinnerFinished();
+    verify(spinnerLogger, never()).spinnerDestroyedWithoutCompleting();
   }
 
   @Test

@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
 import com.google.android.libraries.feed.sharedstream.R;
@@ -148,7 +149,7 @@ public class StreamDriver
     }
 
     if (!isInitialLoad) {
-      addNoContentCardOrZeroStateIfNecessary();
+      addNoContentCardOrZeroStateIfNecessary(ZeroStateShowReason.NO_CONTENT);
     }
 
     return buildLeafFeatureDrivers(featureDrivers);
@@ -318,7 +319,7 @@ public class StreamDriver
               createAndInsertChildrenAtIndex(appendedChildren, modelProvider, insertionIndex)));
     }
 
-    addNoContentCardOrZeroStateIfNecessary();
+    addNoContentCardOrZeroStateIfNecessary(ZeroStateShowReason.CONTENT_DISMISSED);
   }
 
   @Override
@@ -341,7 +342,7 @@ public class StreamDriver
     if (newChildren.isEmpty()
         && featureDrivers.size() == 1
         && featureDrivers.get(0) instanceof NoContentDriver) {
-      showZeroState(false);
+      showZeroState(ZeroStateShowReason.NO_CONTENT_FROM_CONTINUATION_TOKEN);
     }
 
     maybeRestoreScroll();
@@ -368,10 +369,11 @@ public class StreamDriver
         && !(featureDrivers.get(0) instanceof ZeroStateDriver);
   }
 
-  private void addNoContentCardOrZeroStateIfNecessary() {
+  private void addNoContentCardOrZeroStateIfNecessary(
+      @ZeroStateShowReason int zeroStateShowReason) {
     LeafFeatureDriver leafFeatureDriver = null;
     if (!restoring && featureDrivers.isEmpty()) {
-      leafFeatureDriver = createZeroStateDriver(/* showSpinner= */ false);
+      leafFeatureDriver = createAndLogZeroState(zeroStateShowReason);
     } else if (featureDrivers.size() == 1 && isLastDriverContinuationDriver()) {
       leafFeatureDriver = createNoContentDriver();
     }
@@ -447,16 +449,35 @@ public class StreamDriver
     }
   }
 
-  public void showZeroState(boolean showSpinner) {
-    ZeroStateDriver zeroStateDriver = createZeroStateDriver(showSpinner);
+  /** Dismisses all content and immediately shows a spinner. */
+  public void showSpinner() {
+    ZeroStateDriver zeroStateDriver = createSpinner();
+    clearAllContent();
+    featureDrivers.add(zeroStateDriver);
+    notifyContentsAdded(0, Collections.singletonList(zeroStateDriver));
+  }
+
+  /** Dismisses all content and shows the zero-state. */
+  public void showZeroState(@ZeroStateShowReason int zeroStateShowReason) {
+    ZeroStateDriver zeroStateDriver = createAndLogZeroState(zeroStateShowReason);
+    clearAllContent();
+    featureDrivers.add(zeroStateDriver);
+    notifyContentsAdded(0, Collections.singletonList(zeroStateDriver));
+  }
+
+  private void clearAllContent() {
     // TODO: Make sure to not notify listeners when driver is destroyed.
     for (FeatureDriver featureDriver : featureDrivers) {
       featureDriver.onDestroy();
     }
     featureDrivers.clear();
     notifyContentsCleared();
-    featureDrivers.add(zeroStateDriver);
-    notifyContentsAdded(0, Collections.singletonList(zeroStateDriver));
+  }
+
+  private ZeroStateDriver createAndLogZeroState(@ZeroStateShowReason int zeroStateShowReason) {
+    basicLoggingApi.onZeroStateShown(zeroStateShowReason);
+
+    return createZeroStateDriver();
   }
 
   @VisibleForTesting
@@ -528,9 +549,15 @@ public class StreamDriver
   }
 
   @VisibleForTesting
-  ZeroStateDriver createZeroStateDriver(boolean showSpinner) {
+  ZeroStateDriver createZeroStateDriver() {
     return new ZeroStateDriver(
-        basicLoggingApi, clock, modelProvider, contentChangedListener, showSpinner);
+        basicLoggingApi, clock, modelProvider, contentChangedListener, /* spinnerShown = */ false);
+  }
+
+  @VisibleForTesting
+  ZeroStateDriver createSpinner() {
+    return new ZeroStateDriver(
+        basicLoggingApi, clock, modelProvider, contentChangedListener, /* spinnerShown= */ true);
   }
 
   public void setStreamContentListener(/*@Nullable*/ StreamContentListener contentListener) {

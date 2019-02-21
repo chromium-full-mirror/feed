@@ -19,7 +19,8 @@ import android.support.annotation.IntDef;
 @IntDef({
   ZeroStateShowReason.ERROR,
   ZeroStateShowReason.NO_CONTENT,
-  ZeroStateShowReason.CONTENT_DISMISSED
+  ZeroStateShowReason.CONTENT_DISMISSED,
+  ZeroStateShowReason.NO_CONTENT_FROM_CONTINUATION_TOKEN
 })
 public @interface ZeroStateShowReason {
 
@@ -33,4 +34,9 @@ public @interface ZeroStateShowReason {
 
   // Indicates the zero state was shown because all content, including any tokens, were dismissed.
   int CONTENT_DISMISSED = 2;
+
+  // Indicates that the only content showing was a continuation token, and that token completed with
+  // no additional content, resulting in no content showing. This shouldn't occur, as a token should
+  // at least return another token.
+  int NO_CONTENT_FROM_CONTINUATION_TOKEN = 3;
 }

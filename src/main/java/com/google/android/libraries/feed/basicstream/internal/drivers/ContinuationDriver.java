@@ -131,9 +131,8 @@ public class ContinuationDriver extends LeafFeatureDriver
     }
     // If the spinner was being shown, it will only be removed when the ContinuationDriver is
     // destroyed. So onSpinnerShown should be logged then.
-    // TODO: Switch to logging that the spinner was destroyed.
     if (spinnerLogger.isSpinnerActive()) {
-      spinnerLogger.spinnerFinished();
+      spinnerLogger.spinnerDestroyedWithoutCompleting();
     }
   }
 

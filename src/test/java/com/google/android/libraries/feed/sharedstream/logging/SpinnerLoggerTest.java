@@ -49,7 +49,7 @@ public class SpinnerLoggerTest {
   }
 
   @Test
-  public void spinnerStarted_throwsRuntimeException_ifSpinnerStartedCalledBefore() {
+  public void spinnerStarted_twice_throwsException() {
     spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD);
 
     assertThatRunnable(() -> spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD))
@@ -59,7 +59,7 @@ public class SpinnerLoggerTest {
   @Test
   public void spinnerFinished_logsOnSpinnerFinished_ifSpinnerStartedCalledBefore() {
     spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD);
-    clock.set(START_TIME + SPINNER_TIME);
+    clock.advance(SPINNER_TIME);
 
     spinnerLogger.spinnerFinished();
 
@@ -67,8 +67,25 @@ public class SpinnerLoggerTest {
   }
 
   @Test
-  public void spinnerFinished_throwsRuntimeException_ifSpinnerStartedNotCalledBefore() {
+  public void spinnerFinished_beforeStarting_throwsException() {
     assertThatRunnable(() -> spinnerLogger.spinnerFinished())
+        .throwsAnExceptionOfType(RuntimeException.class);
+  }
+
+  @Test
+  public void spinnerDestroyedWithoutCompleting_logsOnSpinnerDestroyedWithoutCompleting() {
+    spinnerLogger.spinnerStarted(SpinnerType.MORE_BUTTON);
+    clock.advance(SPINNER_TIME);
+
+    spinnerLogger.spinnerDestroyedWithoutCompleting();
+
+    verify(basicLoggingApi)
+        .onSpinnerDestroyedWithoutCompleting(SPINNER_TIME, SpinnerType.MORE_BUTTON);
+  }
+
+  @Test
+  public void spinnerDestroyed_beforeStarting_throwsException() {
+    assertThatRunnable(() -> spinnerLogger.spinnerDestroyedWithoutCompleting())
         .throwsAnExceptionOfType(RuntimeException.class);
   }
 

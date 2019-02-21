@@ -59,6 +59,7 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
 import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
@@ -447,7 +448,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
     // This invalidates the modelProvider, which results in onSessionFinished() then
     // onSessionStart() being called, leading to recreating the entire stream.
-    streamDriver.showZeroState(/* showSpinner= */ true);
+    streamDriver.showSpinner();
     modelProvider.triggerRefresh();
   }
 
@@ -539,7 +540,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
     // If after starting a new session the Stream is still empty, we should show the zero state.
     if (streamDriver.getLeafFeatureDrivers().isEmpty()) {
-      streamDriver.showZeroState(/* showSpinner= */ false);
+      streamDriver.showZeroState(ZeroStateShowReason.NO_CONTENT);
     }
     adapter.setDriver(streamDriver);
     if (loggingState == LoggingState.STARTING
@@ -554,6 +555,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @Override
   public void onSessionStart() {
+    // TODO: When there is a way to roundtrip data from triggerRefresh() ->
+    // onSessionStart(), log appropriately for was from a zero-state refresh.
     threadUtils.checkMainThread();
     ModelProvider localModelProvider =
         checkNotNull(modelProvider, "Model Provider must be set if a session is active");
@@ -618,7 +621,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     scrollRestorer.abandonRestoringScroll();
 
     if (streamDriver != null) {
-      streamDriver.showZeroState(/* showSpinner= */ true);
+      streamDriver.showSpinner();
     }
     isRestoring = false;
 
@@ -642,7 +645,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
     scrollRestorer.abandonRestoringScroll();
     if (streamDriver != null) {
-      streamDriver.showZeroState(/* showSpinner= */ false);
+      streamDriver.showZeroState(ZeroStateShowReason.ERROR);
     }
   }
 
@@ -703,13 +706,13 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             TAG + " onShow",
             () -> {
               if (isInitialLoad) {
-                checkNotNull(streamDriver).showZeroState(/* showSpinner= */ true);
+                checkNotNull(streamDriver).showSpinner();
                 initialLoadingSpinnerStartTime = clock.currentTimeMillis();
               }
             },
             MINIMUM_TIME_BEFORE_SHOWING_SPINNER);
       } else if (!isRestoring) {
-        streamDriver.showZeroState(/* showSpinner= */ true);
+        streamDriver.showSpinner();
       }
       adapter.setDriver(streamDriver);
     }
