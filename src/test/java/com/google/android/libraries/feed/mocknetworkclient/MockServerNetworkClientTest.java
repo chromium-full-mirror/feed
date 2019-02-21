@@ -96,8 +96,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
     MockServer mockServer = MockServer.getDefaultInstance();
-    networkClient =
-        new MockServerNetworkClient(context, mockServer, new Configuration.Builder().build());
+    networkClient = new MockServerNetworkClient(context, mockServer, /* responseDelayMillis= */ 0L);
 
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.emptyList()));
@@ -111,7 +110,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     mockServerBuilder.setInitialResponse(initialResponse);
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(
-            context, mockServerBuilder.build(), new Configuration.Builder().build());
+            context, mockServerBuilder.build(), /* responseDelayMillis= */ 0L);
     Consumer<HttpResponse> responseConsumer =
         input -> {
           try {
@@ -136,7 +135,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     mockServerBuilder.setInitialResponse(initialResponse);
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(
-            context, mockServerBuilder.build(), new Configuration.Builder().build());
+            context, mockServerBuilder.build(), /* responseDelayMillis= */ 0L);
     Consumer<HttpResponse> responseConsumer =
         input -> {
           try {
@@ -165,7 +164,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     mockServerBuilder.addConditionalResponses(conditionalResponseBuilder.build());
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(
-            context, mockServerBuilder.build(), new Configuration.Builder().build());
+            context, mockServerBuilder.build(), /* responseDelayMillis= */ 0L);
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
             configuration,
@@ -205,7 +204,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
     mockServerBuilder.addConditionalResponses(conditionalResponseBuilder.build());
     MockServerNetworkClient networkClient =
         new MockServerNetworkClient(
-            context, mockServerBuilder.build(), new Configuration.Builder().build());
+            context, mockServerBuilder.build(), /* responseDelayMillis= */ 0L);
     FeedRequestManager feedRequestManager =
         new FeedRequestManager(
             configuration,

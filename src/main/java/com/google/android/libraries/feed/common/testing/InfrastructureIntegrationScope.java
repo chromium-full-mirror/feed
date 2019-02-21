@@ -53,8 +53,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class InfrastructureIntegrationScope {
   private static final boolean USE_TIMEOUT_SCHEDULER = true;
-  private static final long TIMEOUT_STORIES_ARE_CURRENT = 2;
-  private static final long TIMEOUT_STORIES_CURRENT_WITH_REFRESH = 4;
   private static final long TIMEOUT_TIMEOUT_MS = 2;
 
   /**
@@ -183,8 +181,6 @@ public class InfrastructureIntegrationScope {
   public static Configuration getTimeoutSchedulerConfig() {
     return new Configuration.Builder()
         .put(ConfigKey.USE_TIMEOUT_SCHEDULER, USE_TIMEOUT_SCHEDULER)
-        .put(ConfigKey.TIMEOUT_STORIES_ARE_CURRENT, TIMEOUT_STORIES_ARE_CURRENT)
-        .put(ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH, TIMEOUT_STORIES_CURRENT_WITH_REFRESH)
         .put(ConfigKey.TIMEOUT_TIMEOUT_MS, TIMEOUT_TIMEOUT_MS)
         .put(ConfigKey.USE_DIRECT_STORAGE, Boolean.FALSE)
         .build();

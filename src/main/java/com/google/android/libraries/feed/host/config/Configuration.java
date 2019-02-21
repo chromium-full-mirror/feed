@@ -35,7 +35,6 @@ public class Configuration {
     ConfigKey.FEED_SERVER_METHOD,
     ConfigKey.FEED_SERVER_RESPONSE_LENGTH_PREFIXED,
     ConfigKey.SESSION_LIFETIME_MS,
-    ConfigKey.MOCK_SERVER_DELAY_MS,
     ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE,
     ConfigKey.NON_CACHED_PAGE_SIZE,
     ConfigKey.NON_CACHED_MIN_PAGE_SIZE,
@@ -48,10 +47,6 @@ public class Configuration {
     ConfigKey.CONSUME_SYNTHETIC_TOKENS_WHILE_RESTORING,
     // Turn on the Timeout Scheduler
     ConfigKey.USE_TIMEOUT_SCHEDULER,
-    // Time in ms where the stories are consider current
-    ConfigKey.TIMEOUT_STORIES_ARE_CURRENT,
-    // Time in ms where the stores are current, but we start a refresh
-    ConfigKey.TIMEOUT_STORIES_CURRENT_WITH_REFRESH,
     // Time in ms for the length of the timeout
     ConfigKey.TIMEOUT_TIMEOUT_MS,
     ConfigKey.MINIMUM_VALID_ACTION_RATIO,
@@ -65,12 +60,6 @@ public class Configuration {
     ConfigKey.FADE_IMAGE_THRESHOLD_MS,
     // Only update HEAD and the session making a page request
     ConfigKey.LIMIT_PAGE_UPDATES,
-    // This is a host specific flag currently not used in the Jardin libraries.
-    ConfigKey.USE_SQLITE_CONTENT,
-    // A content directly on the device file system where the files/directories are created
-    // for the file based persistent storage.
-    // TODO: The persistent content storage doesn't currently use this
-    ConfigKey.CONTENT_DIR,
     // Boolean which if true, will ask the server for the feed ui response.
     ConfigKey.FEED_UI_ENABLED,
     // Boolean which if true, will ask the server for not interested in actions and a durable
@@ -93,7 +82,6 @@ public class Configuration {
     String FEED_SERVER_METHOD = "feed_server_method";
     String FEED_SERVER_RESPONSE_LENGTH_PREFIXED = "feed_server_response_length_prefixed";
     String SESSION_LIFETIME_MS = "session_lifetime_ms";
-    String MOCK_SERVER_DELAY_MS = "mock_server_delay_ms";
     String INITIAL_NON_CACHED_PAGE_SIZE = "initial_non_cached_page_size";
     String NON_CACHED_PAGE_SIZE = "non_cached_page_size";
     String NON_CACHED_MIN_PAGE_SIZE = "non_cached_min_page_size";
@@ -103,15 +91,11 @@ public class Configuration {
     String CONSUME_SYNTHETIC_TOKENS_WHILE_RESTORING =
         "consume_synthetic_tokens_while_restoring_bool";
     String USE_TIMEOUT_SCHEDULER = "use_timeout_scheduler";
-    String TIMEOUT_STORIES_ARE_CURRENT = "timeout_stories_are_current";
-    String TIMEOUT_STORIES_CURRENT_WITH_REFRESH = "timeout_stories_current_with_refresh";
     String TIMEOUT_TIMEOUT_MS = "timeout_timeout_ms";
     String MINIMUM_VALID_ACTION_RATIO = "minimum_valid_action_ratio";
     String LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS = "logging_immediate_content_threshold_ms";
     String VIEW_LOG_THRESHOLD = "view_log_threshold";
     String USE_DIRECT_STORAGE = "use_direct_storage";
-    String USE_SQLITE_CONTENT = "use_sqlite_content";
-    String CONTENT_DIR = "content_directory";
     String FADE_IMAGE_THRESHOLD_MS = "fade_image_threshold_ms";
     String LIMIT_PAGE_UPDATES = "limit_page_updates";
     String FEED_UI_ENABLED = "feed_ui_enabled";

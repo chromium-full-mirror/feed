@@ -23,8 +23,6 @@ import android.util.Base64;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
-import com.google.android.libraries.feed.host.config.Configuration;
-import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -50,14 +48,14 @@ public final class MockServerNetworkClient implements NetworkClient {
   private final ExtensionRegistryLite extensionRegistry;
   private final long responseDelay;
 
-  public MockServerNetworkClient(Context context, MockServer mockServer, Configuration config) {
+  public MockServerNetworkClient(Context context, MockServer mockServer, long responseDelayMillis) {
     this.context = context;
     initialResponse = mockServer.getInitialResponse();
     conditionalResponses = mockServer.getConditionalResponsesList();
 
     extensionRegistry = ExtensionRegistryLite.newInstance();
     extensionRegistry.add(FeedRequest.feedRequest);
-    responseDelay = config.getValueOrDefault(ConfigKey.MOCK_SERVER_DELAY_MS, 0L);
+    responseDelay = responseDelayMillis;
   }
 
   @Override
