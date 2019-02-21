@@ -1203,6 +1203,67 @@ public class ElementAdapterTest {
             eq(null));
   }
 
+  @Config(shadows = {ExtendedShadowView.class})
+  @Test
+  public void testTriggerHideActions() {
+    Frame frame = Frame.newBuilder().setTag("FRAME").build();
+    when(frameContext.getFrame()).thenReturn(frame);
+    View viewport = new View(context);
+
+    // No actions defined
+    adapter.createAdapter(Element.getDefaultInstance(), frameContext);
+    adapter.bindModel(Element.getDefaultInstance(), frameContext);
+    adapter.triggerHideActions(frameContext);
+    verifyZeroInteractions(actionHandler);
+    adapter.releaseAdapter();
+
+    // Actions defined, but not hide actions
+    Element elementWithNoViewActions =
+        Element.newBuilder()
+            .setActions(Actions.newBuilder().setOnClickAction(Action.getDefaultInstance()))
+            .build();
+    adapter.createAdapter(elementWithNoViewActions, frameContext);
+    adapter.bindModel(elementWithNoViewActions, frameContext);
+    adapter.triggerHideActions(frameContext);
+    verifyZeroInteractions(actionHandler);
+    adapter.unbindModel();
+    adapter.releaseAdapter();
+
+    // Trigger hide actions on the fully-visible view to make hide actions not active.
+    Action hideAction = Action.newBuilder().build();
+    Actions hideActions =
+        Actions.newBuilder()
+            .addOnHideActions(VisibilityAction.newBuilder().setAction(hideAction))
+            .build();
+    Element elementWithActions = Element.newBuilder().setActions(hideActions).build();
+    ExtendedShadowView viewShadow = Shadow.extract(adapter.getView());
+    ExtendedShadowView viewportShadow = Shadow.extract(viewport);
+    viewportShadow.setLocationInWindow(0, 0);
+    viewportShadow.setHeight(100);
+    viewportShadow.setWidth(100);
+    viewShadow.setLocationInWindow(10, 10);
+    viewShadow.setHeight(50);
+    viewShadow.setWidth(50);
+    viewShadow.setAttachedToWindow(true);
+
+    adapter.createAdapter(elementWithActions, frameContext);
+    adapter.bindModel(elementWithActions, frameContext);
+    adapter.triggerViewActions(viewport, frameContext);
+    verifyZeroInteractions(actionHandler);
+
+    // Trigger hide actions
+    adapter.triggerHideActions(frameContext);
+
+    verify(actionHandler)
+        .handleAction(same(hideAction), eq(ActionType.VIEW), eq(frame), eq(view), eq(null));
+
+    // Ensure actions do not trigger again
+    adapter.triggerHideActions(frameContext);
+
+    verify(actionHandler) // Only once, not twice
+        .handleAction(same(hideAction), eq(ActionType.VIEW), eq(frame), eq(view), eq(null));
+  }
+
   @Test
   public void testRoundedCorners() {
     RoundedCornerWrapperView roundedCornerWrapperView =

@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.piet;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -457,6 +458,31 @@ public class ViewUtilsTest {
     ViewUtils.maybeTriggerViewActions(
         view, viewport, VIEW_AND_HIDE_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
     assertThat(activeActions).containsExactly(HIDE_ACTION);
+  }
+
+  @Test
+  public void testHideActions() {
+    ViewUtils.triggerHideActions(
+        view, VIEW_AND_HIDE_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
+    assertThat(activeActions).containsExactly(HIDE_ACTION);
+    verify(mockActionHandler)
+        .handleAction(HIDE_ACTION.getAction(), ActionType.VIEW, DEFAULT_FRAME, view, null);
+  }
+
+  @Test
+  public void testHideActions_deduplicates() {
+    ViewUtils.triggerHideActions(
+        view, VIEW_AND_HIDE_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
+    verify(mockActionHandler)
+        .handleAction(HIDE_ACTION.getAction(), ActionType.VIEW, DEFAULT_FRAME, view, null);
+
+    assertThat(activeActions).containsExactly(HIDE_ACTION);
+
+    // Hide action is not triggered again.
+    ViewUtils.triggerHideActions(
+        view, VIEW_AND_HIDE_ACTIONS, mockActionHandler, DEFAULT_FRAME, activeActions);
+    verify(mockActionHandler, times(1))
+        .handleAction(HIDE_ACTION.getAction(), ActionType.VIEW, DEFAULT_FRAME, view, null);
   }
 
   @Test

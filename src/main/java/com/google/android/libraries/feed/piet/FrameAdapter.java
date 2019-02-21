@@ -156,6 +156,8 @@ public class FrameAdapter {
   }
 
   public void unbindModel() {
+    triggerHideActions();
+
     LinearLayout view = checkNotNull(this.view);
     for (ElementAdapter<?, ?> child : childAdapters) {
       parameters.elementAdapterFactory.releaseAdapter(child);
@@ -202,6 +204,30 @@ public class FrameAdapter {
         frameView);
   }
 
+  /**
+   * Trigger any actions that occur on the view being hidden. This is also called by unbind(); it
+   * only needs to be called independently in cases where the view goes offscreen but stays bound.
+   * Piet hide/show action handling is idempotent, so calling this multiple times in a row will only
+   * trigger each action once.
+   */
+  public void triggerHideActions() {
+    if (frameContext == null || view == null) {
+      return;
+    }
+    FrameContext localFrameContext = frameContext;
+    ViewUtils.triggerHideActions(
+        view,
+        localFrameContext.getFrame().getActions(),
+        localFrameContext.getActionHandler(),
+        localFrameContext.getFrame(),
+        activeActions);
+
+    for (ElementAdapter<?, ?> adapter : childAdapters) {
+      adapter.triggerHideActions(localFrameContext);
+    }
+  }
+
+  /** Trigger all visibility-related actions, filtered on the actual visibility of the view. */
   public void triggerViewActions(View viewport) {
     if (frameContext == null || view == null) {
       return;

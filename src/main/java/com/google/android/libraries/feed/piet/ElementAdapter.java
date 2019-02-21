@@ -587,6 +587,15 @@ abstract class ElementAdapter<V extends View, M> {
     }
   }
 
+  void triggerHideActions(FrameContext frameContext) {
+    ViewUtils.triggerHideActions(
+        getView(),
+        actions,
+        frameContext.getActionHandler(),
+        frameContext.getFrame(),
+        activeVisibilityActions);
+  }
+
   void triggerViewActions(View viewport, FrameContext frameContext) {
     ViewUtils.maybeTriggerViewActions(
         getView(),

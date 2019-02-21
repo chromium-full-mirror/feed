@@ -162,13 +162,7 @@ public class ViewUtils {
     }
     // For invisible views, short-cut triggering of hide/show actions.
     if (view.getVisibility() != View.VISIBLE || !ViewCompat.isAttachedToWindow(view)) {
-      activeActions.removeAll(actions.getOnViewActionsList());
-      for (VisibilityAction visibilityAction : actions.getOnHideActionsList()) {
-        if (activeActions.add(visibilityAction)) {
-          actionHandler.handleAction(
-              visibilityAction.getAction(), ActionType.VIEW, frame, view, null);
-        }
-      }
+      triggerHideActions(view, actions, actionHandler, frame, activeActions);
       return;
     }
 
@@ -201,6 +195,21 @@ public class ViewUtils {
         } else {
           activeActions.remove(visibilityAction);
         }
+      }
+    }
+  }
+
+  static void triggerHideActions(
+      View view,
+      Actions actions,
+      ActionHandler actionHandler,
+      Frame frame,
+      Set<VisibilityAction> activeActions) {
+    activeActions.removeAll(actions.getOnViewActionsList());
+    for (VisibilityAction visibilityAction : actions.getOnHideActionsList()) {
+      if (activeActions.add(visibilityAction)) {
+        actionHandler.handleAction(
+            visibilityAction.getAction(), ActionType.VIEW, frame, view, null);
       }
     }
   }

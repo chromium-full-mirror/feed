@@ -19,6 +19,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -40,18 +41,21 @@ import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.piet.DebugLogger.MessageType;
 import com.google.android.libraries.feed.piet.TemplateBinder.TemplateAdapterModel;
 import com.google.android.libraries.feed.piet.host.ActionHandler;
+import com.google.android.libraries.feed.piet.host.ActionHandler.ActionType;
 import com.google.android.libraries.feed.piet.host.AssetProvider;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.EventLogger;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import com.google.search.now.ui.piet.ActionsProto.Action;
 import com.google.search.now.ui.piet.ActionsProto.Actions;
+import com.google.search.now.ui.piet.ActionsProto.VisibilityAction;
 import com.google.search.now.ui.piet.BindingRefsProto.ActionsBindingRef;
 import com.google.search.now.ui.piet.ElementsProto.BindingContext;
 import com.google.search.now.ui.piet.ElementsProto.BindingValue;
 import com.google.search.now.ui.piet.ElementsProto.Content;
 import com.google.search.now.ui.piet.ElementsProto.Element;
 import com.google.search.now.ui.piet.ElementsProto.ElementList;
+import com.google.search.now.ui.piet.ElementsProto.ElementStack;
 import com.google.search.now.ui.piet.ElementsProto.GridRow;
 import com.google.search.now.ui.piet.ElementsProto.ImageElement;
 import com.google.search.now.ui.piet.ElementsProto.TemplateInvocation;
@@ -572,6 +576,7 @@ public class FrameAdapterTest {
   @Test
   public void testUnsetBackgroundIfNotDefined() {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
+    when(frameContext.getFrame()).thenReturn(frame);
 
     // Set background
     when(styleProvider.createBackground()).thenReturn(new ColorDrawable(12345));
@@ -588,6 +593,7 @@ public class FrameAdapterTest {
   @Test
   public void testUnsetBackgroundIfCreateBackgroundFails() {
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
+    when(frameContext.getFrame()).thenReturn(frame);
 
     // Set background
     when(styleProvider.createBackground()).thenReturn(new ColorDrawable(12345));
@@ -610,6 +616,8 @@ public class FrameAdapterTest {
             .build();
     Frame inlineSliceFrame =
         Frame.newBuilder().addContents(Content.newBuilder().setElement(element)).build();
+    when(frameContext.getFrame()).thenReturn(inlineSliceFrame);
+
     frameAdapter.bindModel(inlineSliceFrame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
     verify(adapterFactory).createAdapterForElement(element, frameContext);
     verify(elementAdapter).bindModel(element, frameContext);
@@ -636,6 +644,7 @@ public class FrameAdapterTest {
         Frame.newBuilder()
             .addContents(Content.newBuilder().setTemplateInvocation(templateSlice))
             .build();
+    when(frameContext.getFrame()).thenReturn(templateSliceFrame);
     frameAdapter.bindModel(
         templateSliceFrame, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
     TemplateAdapterModel model = new TemplateAdapterModel(template, bindingContext);
@@ -653,6 +662,7 @@ public class FrameAdapterTest {
     when(debugLogger.getReportView(MessageType.ERROR, context)).thenReturn(errorView);
 
     Frame frame = Frame.newBuilder().addContents(DEFAULT_CONTENT).build();
+    when(frameContext.getFrame()).thenReturn(frame);
 
     // Errors silenced by debug behavior
     when(frameContext.getDebugBehavior()).thenReturn(DebugBehavior.SILENT);
@@ -712,5 +722,51 @@ public class FrameAdapterTest {
 
     verify(frameContext).makeStyleFor(any()); // Ensure an exception was thrown
     verify(eventLogger).logEvents(errorCodes);
+  }
+
+  @Test
+  public void testUnbindTriggersHideActions() {
+    Action frameHideAction = Action.newBuilder().build();
+    Action elementHideAction = Action.newBuilder().build();
+    Frame frameWithNoActions =
+        Frame.newBuilder()
+            .addContents(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder().setElementStack(ElementStack.getDefaultInstance())))
+            .build();
+    Frame frameWithActions =
+        Frame.newBuilder()
+            .setActions(
+                Actions.newBuilder()
+                    .addOnHideActions(VisibilityAction.newBuilder().setAction(frameHideAction)))
+            .addContents(
+                Content.newBuilder()
+                    .setElement(
+                        Element.newBuilder()
+                            .setActions(
+                                Actions.newBuilder()
+                                    .addOnHideActions(
+                                        VisibilityAction.newBuilder().setAction(elementHideAction)))
+                            .setElementStack(ElementStack.getDefaultInstance())))
+            .build();
+
+    // Bind to a frame with no actions so the onHide actions don't get added to activeActions
+    when(frameContext.getFrame()).thenReturn(frameWithNoActions);
+    frameAdapter.bindModel(
+        frameWithNoActions, FRAME_WIDTH, (ShardingControl) null, pietSharedStates);
+
+    when(frameContext.getFrame()).thenReturn(frameWithActions);
+    when(frameContext.getActionHandler()).thenReturn(actionHandler);
+    frameAdapter.unbindModel();
+
+    verify(actionHandler)
+        .handleAction(
+            same(frameHideAction),
+            eq(ActionType.VIEW),
+            eq(frameWithActions),
+            any(View.class),
+            eq(null));
+    verify(elementAdapter).triggerHideActions(frameContext);
   }
 }
