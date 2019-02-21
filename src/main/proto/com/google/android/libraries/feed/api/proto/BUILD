@@ -6,6 +6,7 @@ proto_library(
     name = "client_feed_proto",
     srcs = glob(["*.proto"]),
     deps = [
+        "//src/main/proto/search/now/ui/action:feed_action_proto",
         "//src/main/proto/search/now/ui/stream:stream_proto",
         "//src/main/proto/search/now/wire/feed:feed_proto",
     ],

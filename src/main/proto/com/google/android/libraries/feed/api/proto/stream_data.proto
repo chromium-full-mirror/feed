@@ -18,6 +18,7 @@ package search.now.feed.client;
 
 option optimize_for=LITE_RUNTIME;
 
+import "src/main/proto/search/now/ui/action/feed_action.proto";
 import "src/main/proto/search/now/ui/stream/stream_structure.proto";
 import "src/main/proto/search/now/wire/feed/piet_shared_state_item.proto";
 
@@ -192,6 +193,21 @@ message StreamLocalAction {
 
   // When the action was recorded
   optional int64 timestamp_seconds = 3;
+}
+
+message StreamUploadableAction {
+  optional ui.action.FeedActionMetadata.Type action_type = 1;
+
+  optional string feature_content_id = 2;
+
+  // The number of time this action was attempted to be recorded
+  optional int32 upload_attempts = 3;
+
+  // When the action was recorded
+  optional int64 timestamp_seconds = 4;
+
+  // The data that needs to be passed to the server
+  optional ui.action.OpaqueActionData action_data = 5;
 }
 
 // An extension to the BasicLoggingMetadata which is used to hide the notion of
