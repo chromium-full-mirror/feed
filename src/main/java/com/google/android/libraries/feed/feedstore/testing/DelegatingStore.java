@@ -22,12 +22,14 @@ import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
+import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.List;
 import java.util.Set;
 
@@ -70,6 +72,11 @@ public class DelegatingStore implements Store {
   }
 
   @Override
+  public Result<Set<StreamUploadableAction>> getAllUploadableActions() {
+    return store.getAllUploadableActions();
+  }
+
+  @Override
   public Result<StreamSession> createNewSession() {
     return store.createNewSession();
   }
@@ -107,6 +114,11 @@ public class DelegatingStore implements Store {
   @Override
   public LocalActionMutation editLocalActions() {
     return store.editLocalActions();
+  }
+
+  @Override
+  public UploadableActionMutation editUploadableActions() {
+    return store.editUploadableActions();
   }
 
   @Override

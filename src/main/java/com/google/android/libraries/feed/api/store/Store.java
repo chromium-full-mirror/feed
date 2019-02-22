@@ -23,6 +23,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.List;
 import java.util.Set;
 
@@ -61,6 +62,9 @@ public interface Store {
   /** Gets all semantic properties objects associated with a given list of contentIds */
   Result<List<SemanticPropertiesWithId>> getSemanticProperties(List<String> contentIds);
 
+  /** Gets an set of ALL {@link UploadableStreamAction}. Note that this includes expired actions. */
+  Result<Set<StreamUploadableAction>> getAllUploadableActions();
+
   /**
    * Gets an increasing, time-ordered list of ALL {@link StreamLocalAction} dismisses. Note that
    * this includes expired actions.
@@ -97,6 +101,9 @@ public interface Store {
 
   /** Returns an action mutation used to modify actions in the store */
   LocalActionMutation editLocalActions();
+
+  /** Returns an action mutation used to modify uploadable actions in the store */
+  UploadableActionMutation editUploadableActions();
 
   /**
    * Returns a runnable which will garbage collect the persisted content. This is called by the

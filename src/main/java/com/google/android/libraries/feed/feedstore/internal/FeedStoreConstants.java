@@ -25,8 +25,12 @@ public final class FeedStoreConstants {
 
   /** Key used to prefix Feed shared states keys in {@link ContentStorage} */
   public static final String SHARED_STATE_PREFIX = "ss::";
+  
   /** Key used to prefix Feed semantic properties keys in {@link ContentStorage} */
   public static final String SEMANTIC_PROPERTIES_PREFIX = "sp::";
+
+  /** Key used to prefix Feed uploadableAction keys in {@link ContentStorage} */
+  public static final String UPLOADABLE_ACTION_PREFIX = "ua::";
 
   /** The name of the journal used to store dismiss actions */
   public static final String DISMISS_ACTION_JOURNAL = "action-dismiss";

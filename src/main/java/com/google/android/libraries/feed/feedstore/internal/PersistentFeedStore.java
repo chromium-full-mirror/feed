@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedstore.internal;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.DISMISS_ACTION_JOURNAL;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 
 import android.util.Base64;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
@@ -28,6 +29,7 @@ import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionTyp
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.StoreListener;
+import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.logging.Dumpable;
@@ -51,6 +53,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -260,6 +263,31 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
+  public Result<Set<StreamUploadableAction>> getAllUploadableActions() {
+    threadUtils.checkNotMainThread();
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    Result<Map<String, byte[]>> bytesResult = contentStorageDirect.getAll(UPLOADABLE_ACTION_PREFIX);
+    if (!bytesResult.isSuccessful()) {
+      Logger.e(TAG, "Error fetching shared states");
+      tracker.stop("getAllUploadableActions", "failed");
+      return Result.failure();
+    }
+    Collection<byte[]> result = bytesResult.getValue().values();
+    Set<StreamUploadableAction> uploadableActions = new HashSet<>();
+    for (byte[] byteArray : result) {
+      try {
+        uploadableActions.add(StreamUploadableAction.parseFrom(byteArray));
+      } catch (InvalidProtocolBufferException e) {
+        tracker.stop("getAllUploadableActions", "failed");
+        Logger.e(TAG, e, "Error parsing protocol buffer from bytes %s", byteArray);
+        return Result.failure();
+      }
+    }
+    tracker.stop("", "getAllUploadableActions", "items", uploadableActions.size());
+    return Result.success(uploadableActions);
+  }
+
+  @Override
   public Result<StreamSession> createNewSession() {
     threadUtils.checkNotMainThread();
 
@@ -321,7 +349,12 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   @Override
   public LocalActionMutation editLocalActions() {
     threadUtils.checkNotMainThread();
-    return new FeedLocalActionMutation(this::commitActionMutation);
+    return new FeedLocalActionMutation(this::commitLocalActionMutation);
+  }
+
+  @Override
+  public UploadableActionMutation editUploadableActions() {
+    return new FeedUploadableActionMutation(this::commitUploadableActionMutation);
   }
 
   @Override
@@ -441,7 +474,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     return commitResult;
   }
 
-  private CommitResult commitActionMutation(Map<Integer, List<String>> actions) {
+  private CommitResult commitLocalActionMutation(Map<Integer, List<String>> actions) {
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
 
     CommitResult commitResult = CommitResult.SUCCESS;
@@ -478,7 +511,31 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       }
     }
 
-    tracker.stop("task", "commitActionMutation", "actions", actions.size());
+    tracker.stop("task", "commitLocalActionMutation", "actions", actions.size());
+    return commitResult;
+  }
+
+  private CommitResult commitUploadableActionMutation(
+      Map<String, FeedUploadableActionMutation.FeedUploadableActionChanges> actions) {
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+
+    Builder contentMutationBuilder = new Builder();
+    for (Map.Entry<String, FeedUploadableActionMutation.FeedUploadableActionChanges> entry :
+        actions.entrySet()) {
+      String contentId = entry.getKey();
+      for (StreamUploadableAction removeAction : entry.getValue().removeActions()) {
+        contentMutationBuilder.delete(
+            UPLOADABLE_ACTION_PREFIX + removeAction.getActionType() + contentId);
+      }
+      for (StreamUploadableAction upsertAction : entry.getValue().upsertActions()) {
+        contentMutationBuilder.upsert(
+            UPLOADABLE_ACTION_PREFIX + upsertAction.getActionType() + contentId,
+            upsertAction.toByteArray());
+      }
+    }
+
+    CommitResult commitResult = contentStorageDirect.commit(contentMutationBuilder.build());
+    tracker.stop("task", "commitUploadableActionMutation", "actions", actions.size());
     return commitResult;
   }
 

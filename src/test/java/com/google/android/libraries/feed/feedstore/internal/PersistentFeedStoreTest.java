@@ -43,10 +43,12 @@ import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -260,6 +262,22 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
     assertThat(dismissActionsResult.getValue()).hasSize(2);
 
+    commitResult =
+        store
+            .editUploadableActions()
+            .upsert(
+                StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+                CONTENT_ID)
+            .upsert(
+                StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build(),
+                CONTENT_ID_2)
+            .commit();
+    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
+
+    Result<Set<StreamUploadableAction>> uploadableActionsResult = store.getAllUploadableActions();
+    assertThat(uploadableActionsResult.isSuccessful()).isTrue();
+    assertThat(uploadableActionsResult.getValue()).hasSize(2);
+
     /*
     CLEAR
     */
@@ -303,5 +321,91 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     assertThat(dismissActionsResult.getValue().get(1).getFeatureContentId())
         .isEqualTo(CONTENT_ID_2);
     assertThat(dismissActionsResult.getValue().get(1).getAction()).isEqualTo(ActionType.DISMISS);
+
+    // UploadableActions (should be cleared)
+    uploadableActionsResult = store.getAllUploadableActions();
+    assertThat(uploadableActionsResult.isSuccessful()).isTrue();
+    assertThat(uploadableActionsResult.getValue()).isEmpty();
+  }
+
+  @Test
+  public void uploadActions_removedBeforeUpserted_stillUpserts() {
+    PersistentFeedStore store = (PersistentFeedStore) getStore();
+
+    CommitResult commitResult =
+        store
+            .editUploadableActions()
+            .upsert(
+                StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+                CONTENT_ID)
+            .upsert(
+                StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build(),
+                CONTENT_ID_2)
+            .remove(
+                StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build(),
+                CONTENT_ID_2)
+            .upsert(
+                StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build(),
+                CONTENT_ID_2)
+            .commit();
+    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
+
+    Result<Set<StreamUploadableAction>> uploadableActionsResult = store.getAllUploadableActions();
+    assertThat(uploadableActionsResult.isSuccessful()).isTrue();
+    assertThat(uploadableActionsResult.getValue()).hasSize(2);
+    assertThat(uploadableActionsResult.getValue())
+        .containsAllOf(
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+            StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID_2).build());
+  }
+
+  @Test
+  public void uploadActions_removedAfterCommittedUpsert_stillRemoves() {
+    PersistentFeedStore store = (PersistentFeedStore) getStore();
+
+    CommitResult commitResult =
+        store
+            .editUploadableActions()
+            .upsert(
+                StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+                CONTENT_ID)
+            .commit();
+
+    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
+    Result<Set<StreamUploadableAction>> uploadableActionsResult = store.getAllUploadableActions();
+    assertThat(uploadableActionsResult.getValue()).hasSize(1);
+    assertThat(uploadableActionsResult.getValue())
+        .contains(StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build());
+
+    commitResult =
+        store
+            .editUploadableActions()
+            .remove(
+                StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+                CONTENT_ID)
+            .commit();
+    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
+
+    uploadableActionsResult = store.getAllUploadableActions();
+    assertThat(uploadableActionsResult.isSuccessful()).isTrue();
+    assertThat(uploadableActionsResult.getValue()).isEmpty();
+  }
+
+  @Test
+  public void uploadActions_removedNonExistantAction_succeeds() {
+    PersistentFeedStore store = (PersistentFeedStore) getStore();
+
+    CommitResult commitResult =
+        store
+            .editUploadableActions()
+            .remove(
+                StreamUploadableAction.newBuilder().setFeatureContentId(CONTENT_ID).build(),
+                CONTENT_ID)
+            .commit();
+    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
+
+    Result<Set<StreamUploadableAction>> uploadableActionsResult = store.getAllUploadableActions();
+    assertThat(uploadableActionsResult.isSuccessful()).isTrue();
+    assertThat(uploadableActionsResult.getValue()).isEmpty();
   }
 }

@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
+import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
@@ -47,6 +48,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -136,6 +138,11 @@ public final class FeedStore extends FeedObservable<StoreListener>
   }
 
   @Override
+  public Result<Set<StreamUploadableAction>> getAllUploadableActions() {
+    return delegate.getAllUploadableActions();
+  }
+
+  @Override
   public Result<StreamSession> createNewSession() {
     return delegate.createNewSession();
   }
@@ -173,6 +180,11 @@ public final class FeedStore extends FeedObservable<StoreListener>
   @Override
   public LocalActionMutation editLocalActions() {
     return delegate.editLocalActions();
+  }
+
+  @Override
+  public UploadableActionMutation editUploadableActions() {
+    return delegate.editUploadableActions();
   }
 
   @Override

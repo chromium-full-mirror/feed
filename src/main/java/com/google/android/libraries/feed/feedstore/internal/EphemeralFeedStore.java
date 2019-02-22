@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionTyp
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.StoreListener;
+import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.time.Clock;
@@ -33,9 +34,11 @@ import com.google.search.now.feed.client.StreamDataProto.StreamLocalAction;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +58,7 @@ public final class EphemeralFeedStore implements ClearableStore {
   private final Map<String, StreamSharedState> sharedStateMap = new HashMap<>();
   private final Map<String, ByteString> semanticPropertiesMap = new HashMap<>();
   private final Map<Integer, List<StreamLocalAction>> actionsMap = new HashMap<>();
+  private final Map<String, Set<StreamUploadableAction>> uploadableActionsMap = new HashMap<>();
   private final Map<String, List<StreamStructure>> sessionsMap = new HashMap<>();
 
   public EphemeralFeedStore(Clock clock, TimingUtils timingUtils, FeedStoreHelper storeHelper) {
@@ -122,6 +126,15 @@ public final class EphemeralFeedStore implements ClearableStore {
       dismissActions = Collections.emptyList();
     }
     return Result.success(dismissActions);
+  }
+
+  @Override
+  public Result<Set<StreamUploadableAction>> getAllUploadableActions() {
+    Set<StreamUploadableAction> uploadableActions = Collections.emptySet();
+    for (Set<StreamUploadableAction> actions : uploadableActionsMap.values()) {
+      uploadableActions.addAll(actions);
+    }
+    return Result.success(uploadableActions);
   }
 
   @Override
@@ -208,6 +221,31 @@ public final class EphemeralFeedStore implements ClearableStore {
     this.semanticPropertiesMap.putAll(semanticPropertiesMap);
     tracker.stop("", "commitSemanticPropertiesMutation", "mutations", semanticPropertiesMap.size());
     return CommitResult.SUCCESS;
+  }
+
+  @Override
+  public UploadableActionMutation editUploadableActions() {
+    return new FeedUploadableActionMutation(this::commitUploadableActionMutation);
+  }
+
+  private CommitResult commitUploadableActionMutation(
+      Map<String, FeedUploadableActionMutation.FeedUploadableActionChanges> actions) {
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    CommitResult commitResult = CommitResult.SUCCESS;
+    for (Map.Entry<String, FeedUploadableActionMutation.FeedUploadableActionChanges> entry :
+        actions.entrySet()) {
+      String contentId = entry.getKey();
+      FeedUploadableActionMutation.FeedUploadableActionChanges changes = entry.getValue();
+      Set<StreamUploadableAction> actionsSet = uploadableActionsMap.get(contentId);
+      if (actionsSet == null) {
+        actionsSet = new HashSet<>();
+      }
+      actionsSet.removeAll(changes.removeActions());
+      actionsSet.addAll(changes.upsertActions());
+      uploadableActionsMap.put(contentId, actionsSet);
+    }
+    tracker.stop("task", "commitUploadableActionMutation", "actions", actions.size());
+    return commitResult;
   }
 
   @Override
