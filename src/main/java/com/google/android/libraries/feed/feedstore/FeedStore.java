@@ -40,6 +40,8 @@ import com.google.android.libraries.feed.feedstore.internal.ClearableStore;
 import com.google.android.libraries.feed.feedstore.internal.EphemeralFeedStore;
 import com.google.android.libraries.feed.feedstore.internal.FeedStoreHelper;
 import com.google.android.libraries.feed.feedstore.internal.PersistentFeedStore;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.storage.CommitResult;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.host.storage.JournalStorageDirect;
@@ -76,6 +78,7 @@ public final class FeedStore extends FeedObservable<StoreListener>
 
   // Needed for switching to ephemeral mode
   private final FeedStoreHelper storeHelper = new FeedStoreHelper();
+  private final BasicLoggingApi basicLoggingApi;
   private final Clock clock;
   private final TimingUtils timingUtils;
   private final ThreadUtils threadUtils;
@@ -89,11 +92,13 @@ public final class FeedStore extends FeedObservable<StoreListener>
       JournalStorageDirect journalStorage,
       ThreadUtils threadUtils,
       TaskQueue taskQueue,
-      Clock clock) {
+      Clock clock,
+      BasicLoggingApi basicLoggingApi) {
     this.taskQueue = taskQueue;
     this.clock = clock;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
+    this.basicLoggingApi = basicLoggingApi;
 
     this.persistentStore =
         new PersistentFeedStore(
@@ -232,6 +237,7 @@ public final class FeedStore extends FeedObservable<StoreListener>
           listener.onSwitchToEphemeralMode();
         }
       }
+      basicLoggingApi.onInternalError(InternalFeedError.SWITCH_TO_EPHEMERAL);
     }
   }
 

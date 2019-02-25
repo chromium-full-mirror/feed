@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.common.protoextensions.FeedExtensionReg
 import com.google.android.libraries.feed.feedstore.testing.AbstractFeedStoreTest;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
@@ -41,6 +42,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
 
   @Mock private ThreadUtils threadUtils;
   @Mock private Configuration configuration;
+  @Mock private BasicLoggingApi basicLoggingApi;
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
@@ -68,7 +70,8 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
             new InMemoryJournalStorage(),
             threadUtils,
             taskQueue,
-            clock);
+            clock,
+            basicLoggingApi);
     feedStore.switchToEphemeralMode();
     return feedStore;
   }

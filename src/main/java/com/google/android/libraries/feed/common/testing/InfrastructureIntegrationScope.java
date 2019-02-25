@@ -82,6 +82,7 @@ public class InfrastructureIntegrationScope {
         }
       };
 
+  private final FakeBasicLoggingApi fakeBasicLoggingApi;
   private final FeedSessionManager feedSessionManager;
   private final FeedProtocolAdapter feedProtocolAdapter;
   private final FeedModelProviderFactory modelProviderFactory;
@@ -100,6 +101,7 @@ public class InfrastructureIntegrationScope {
     TimingUtils timingUtils = new TimingUtils();
     MainThreadRunner mainThreadRunner = new MainThreadRunner();
     appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
+    fakeBasicLoggingApi = new FakeBasicLoggingApi();
 
     FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(new ExtensionProvider());
     ContentStorageDirect contentStorage = new InMemoryContentStorage();
@@ -115,7 +117,8 @@ public class InfrastructureIntegrationScope {
             journalStorage,
             threadUtils,
             taskQueue,
-            clock);
+            clock,
+            fakeBasicLoggingApi);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter, requestDelayMs);
     feedSessionManager =

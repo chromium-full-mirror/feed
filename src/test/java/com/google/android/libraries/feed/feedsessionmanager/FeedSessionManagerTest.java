@@ -58,6 +58,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.Session;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
@@ -108,6 +109,7 @@ public class FeedSessionManagerTest {
   private MainThreadRunner mainThreadRunner;
   private FeedAppLifecycleListener appLifecycleListener;
   private TaskQueue taskQueue;
+  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ThreadUtils threadUtils;
   @Mock private ProtocolAdapter protocolAdapter;
   @Mock private RequestManager requestManager;
@@ -560,7 +562,8 @@ public class FeedSessionManagerTest {
             new InMemoryJournalStorage(),
             threadUtils,
             taskQueue,
-            clock);
+            clock,
+            basicLoggingApi);
     FeedSessionManager fsm =
         new FeedSessionManagerFactory(
                 taskQueue,
@@ -588,7 +591,8 @@ public class FeedSessionManagerTest {
                 new InMemoryJournalStorage(),
                 threadUtils,
                 taskQueue,
-                clock)));
+                clock,
+                basicLoggingApi)));
   }
 
   private FeedSessionManager getUninitializedSessionManager(Store feedStore) {

@@ -99,6 +99,7 @@ public final class FeedProcessScope implements Dumpable {
   private final KnownContentApi knownContentApi;
   private final FeedExtensionRegistry feedExtensionRegistry;
   private final ClearAllListener clearAllListener;
+  private final BasicLoggingApi basicLoggingApi;
 
   /**
    * Return a {@link Builder} to create a FeedProcessScope
@@ -112,7 +113,6 @@ public final class FeedProcessScope implements Dumpable {
       StreamConfiguration streamConfiguration,
       CardConfiguration cardConfiguration,
       SnackbarApi snackbarApi,
-      BasicLoggingApi basicLoggingApi,
       OfflineIndicatorApi offlineIndicatorApi) {
     return new FeedStreamScope.Builder(
         context,
@@ -140,6 +140,7 @@ public final class FeedProcessScope implements Dumpable {
   /** Created through the {@link Builder}. */
   private FeedProcessScope(
       LoggingApi loggingApi,
+      BasicLoggingApi basicLoggingApi,
       NetworkClient networkClient,
       ProtocolAdapter protocolAdapter,
       RequestManager requestManager,
@@ -158,6 +159,7 @@ public final class FeedProcessScope implements Dumpable {
       FeedExtensionRegistry feedExtensionRegistry,
       ClearAllListener clearAllListener) {
     this.loggingApi = loggingApi;
+    this.basicLoggingApi = basicLoggingApi;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
     this.requestManager = requestManager;
@@ -259,6 +261,7 @@ public final class FeedProcessScope implements Dumpable {
     private final Configuration configuration;
     ExecutorService singleThreadExecutor;
     private final LoggingApi loggingApi;
+    private final BasicLoggingApi basicLoggingApi;
     private final NetworkClient unwrappedNetworkClient;
     private final SchedulerApi unwrappedSchedulerApi;
     private final FeedAppLifecycleListener lifecycleListener;
@@ -287,6 +290,7 @@ public final class FeedProcessScope implements Dumpable {
         Configuration configuration,
         ExecutorService singleThreadExecutor,
         LoggingApi loggingApi,
+        BasicLoggingApi basicLoggingApi,
         NetworkClient networkClient,
         SchedulerApi schedulerApi,
         FeedAppLifecycleListener lifecycleListener,
@@ -296,6 +300,7 @@ public final class FeedProcessScope implements Dumpable {
       this.configuration = configuration;
       this.singleThreadExecutor = singleThreadExecutor;
       this.loggingApi = loggingApi;
+      this.basicLoggingApi = basicLoggingApi;
       this.lifecycleListener = lifecycleListener;
       this.debugBehavior = debugBehavior;
       this.context = context;
@@ -446,7 +451,8 @@ public final class FeedProcessScope implements Dumpable {
               journalStorage,
               threadUtils,
               taskQueue,
-              clock);
+              clock,
+              basicLoggingApi);
 
       lifecycleListener.registerObserver(store);
 
@@ -500,6 +506,7 @@ public final class FeedProcessScope implements Dumpable {
           new ClearAllListener(taskQueue, sessionManager, store, threadUtils, lifecycleListener);
       return new FeedProcessScope(
           loggingApi,
+          basicLoggingApi,
           networkClient,
           Validators.checkNotNull(protocolAdapter),
           Validators.checkNotNull(requestManager),

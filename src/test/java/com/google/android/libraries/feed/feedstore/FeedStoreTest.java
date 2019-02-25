@@ -38,6 +38,8 @@ import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStor
 import com.google.android.libraries.feed.feedstore.testing.DelegatingJournalStorage;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.storage.ContentMutation;
 import com.google.android.libraries.feed.host.storage.ContentOperation;
 import com.google.android.libraries.feed.host.storage.ContentOperation.Upsert;
@@ -85,6 +87,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
   // Used only in the task queue to prevent conflicts with the one defined in AbstractFeedStoreTest
   @Mock private Clock taskQueueClock;
   @Mock private Configuration configuration;
+  @Mock private BasicLoggingApi basicLoggingApi;
 
   private TaskQueue taskQueue;
 
@@ -113,7 +116,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         new InMemoryJournalStorage(),
         threadUtils,
         taskQueue,
-        clock);
+        clock,
+        basicLoggingApi);
   }
 
   @Test
@@ -122,6 +126,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
     assertThat(store.isEphemeralMode()).isFalse();
     store.switchToEphemeralMode();
     assertThat(store.isEphemeralMode()).isTrue();
+    verify(basicLoggingApi).onInternalError(InternalFeedError.SWITCH_TO_EPHEMERAL);
   }
 
   @Test
@@ -149,7 +154,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             journalStorageSpy,
             threadUtils,
             taskQueue,
-            clock);
+            clock,
+            basicLoggingApi);
     store.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
     verifyZeroInteractions(journalStorageSpy, contentStorageSpy);
   }
@@ -167,7 +173,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             journalStorageSpy,
             threadUtils,
             taskQueue,
-            clock);
+            clock,
+            basicLoggingApi);
     store.switchToEphemeralMode();
     reset(journalStorageSpy, contentStorageSpy);
 

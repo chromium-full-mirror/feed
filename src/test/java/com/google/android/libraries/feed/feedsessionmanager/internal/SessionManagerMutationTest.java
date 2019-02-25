@@ -47,6 +47,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.SessionMana
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
@@ -78,6 +79,7 @@ import org.robolectric.RobolectricTestRunner;
  */
 @RunWith(RobolectricTestRunner.class)
 public class SessionManagerMutationTest {
+  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ThreadUtils threadUtils;
   @Mock private SchedulerApi schedulerApi;
   @Mock private Clock clock;
@@ -120,7 +122,8 @@ public class SessionManagerMutationTest {
             new InMemoryJournalStorage(),
             threadUtils,
             taskQueue,
-            clock);
+            clock,
+            basicLoggingApi);
     storeSpy = spy(new DelegatingStore(store));
     SessionFactory sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);

@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.LoggingApi;
 import com.google.android.libraries.feed.host.network.NetworkClient;
 import com.google.android.libraries.feed.host.proto.ProtoExtensionProvider;
@@ -55,6 +56,7 @@ import org.robolectric.RobolectricTestRunner;
 public class FeedProcessScopeTest {
   // Mocks for required fields
   @Mock private LoggingApi loggingApi;
+  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private NetworkClient networkClient;
   @Mock private SchedulerApi schedulerApi;
   @Mock private ApplicationInfo applicationInfo;
@@ -85,6 +87,7 @@ public class FeedProcessScopeTest {
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
                 loggingApi,
+                basicLoggingApi,
                 networkClient,
                 schedulerApi,
                 appLifecycleListener,
@@ -117,6 +120,7 @@ public class FeedProcessScopeTest {
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
                 loggingApi,
+                basicLoggingApi,
                 networkClient,
                 schedulerApi,
                 appLifecycleListener,
@@ -147,6 +151,7 @@ public class FeedProcessScopeTest {
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
                 loggingApi,
+                basicLoggingApi,
                 networkClient,
                 schedulerApi,
                 appLifecycleListener,
@@ -171,6 +176,7 @@ public class FeedProcessScopeTest {
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
                 loggingApi,
+                basicLoggingApi,
                 networkClient,
                 schedulerApi,
                 appLifecycleListener,
@@ -195,6 +201,7 @@ public class FeedProcessScopeTest {
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
                 loggingApi,
+                basicLoggingApi,
                 networkClient,
                 schedulerApi,
                 appLifecycleListener,
@@ -214,6 +221,7 @@ public class FeedProcessScopeTest {
                 configuration,
                 MoreExecutors.newDirectExecutorService(),
                 loggingApi,
+                basicLoggingApi,
                 networkClient,
                 schedulerApi,
                 appLifecycleListener,

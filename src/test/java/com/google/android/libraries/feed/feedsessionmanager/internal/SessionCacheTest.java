@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.storage.ContentStorageDirect;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryContentStorage;
 import com.google.android.libraries.feed.hostimpl.storage.InMemoryJournalStorage;
@@ -62,6 +63,7 @@ import org.robolectric.RobolectricTestRunner;
 @RunWith(RobolectricTestRunner.class)
 public class SessionCacheTest {
   private static final long DEFAULT_LIFETIME_MS = 10;
+  @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ThreadUtils threadUtils;
   @Mock private Clock clock;
 
@@ -368,7 +370,8 @@ public class SessionCacheTest {
                 new InMemoryJournalStorage(),
                 threadUtils,
                 taskQueue,
-                clock));
+                clock,
+                basicLoggingApi));
     storeSpy = spy(store);
     sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
