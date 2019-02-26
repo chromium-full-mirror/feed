@@ -26,11 +26,11 @@ import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +74,7 @@ public class FilterHeadTest {
     }
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     sessionManager.getStreamFeaturesFromHead(

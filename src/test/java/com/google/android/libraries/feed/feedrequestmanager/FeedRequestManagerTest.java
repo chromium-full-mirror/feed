@@ -42,6 +42,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.HttpResponse;
@@ -63,7 +64,6 @@ import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryDataItem;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.RequestProto.Request;
 import com.google.search.now.wire.feed.RequestProto.Request.RequestVersion;
@@ -162,7 +162,7 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testTriggerRefresh() throws Exception {
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -176,7 +176,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
@@ -214,7 +215,7 @@ public class FeedRequestManagerTest {
     RequiredConsumer<Result<List<StreamDataOperation>>> consumer =
         new RequiredConsumer<>(input -> {});
     requestManager.setDefaultTriggerRefreshConsumerSupplier(() -> consumer);
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH);
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -231,7 +232,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addClientCapability(Capability.BASE_UI)
                     .build())
             .build();
@@ -249,7 +251,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID, CONTENT_DOMAIN, TABLE, null);
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.singletonList(dismissAction)));
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -276,7 +278,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
                             .setAction(Action.newBuilder().setActionType(ActionType.DISMISS))
@@ -299,7 +302,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, null);
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -331,7 +334,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
                             .setAction(Action.newBuilder().setActionType(ActionType.DISMISS))
@@ -354,7 +358,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN, TABLE, null);
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -386,7 +390,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
                             .setAction(Action.newBuilder().setActionType(ActionType.DISMISS))
@@ -408,7 +413,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID, CONTENT_DOMAIN, TABLE, semanticPropertiesBytes);
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.singletonList(dismissAction)));
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -440,7 +445,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
                             .setAction(Action.newBuilder().setActionType(ActionType.DISMISS))
@@ -465,7 +471,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, semanticPropertiesBytes2);
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -506,7 +512,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
                             .setAction(Action.newBuilder().setActionType(ActionType.DISMISS))
@@ -530,7 +537,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN, TABLE_2, semanticPropertiesBytes);
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -568,7 +575,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
                             .setAction(Action.newBuilder().setActionType(ActionType.DISMISS))
@@ -592,7 +600,7 @@ public class FeedRequestManagerTest {
         buildDismissAction(ID_2, CONTENT_DOMAIN_2, TABLE_2, semanticPropertiesBytes);
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Arrays.asList(dismissAction, dismissAction2)));
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -629,7 +637,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addFeedActionQueryData(
                         FeedActionQueryData.newBuilder()
                             .setAction(Action.newBuilder().setActionType(ActionType.DISMISS))
@@ -646,7 +655,7 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testHandleResponse() throws Exception {
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, consumer);
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, consumer);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -666,7 +675,7 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testHandleResponse_notFound() throws Exception {
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, consumer);
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, consumer);
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
     Response response = Response.getDefaultInstance();
@@ -706,7 +715,7 @@ public class FeedRequestManagerTest {
 
   @Test
   public void testHandleResponse_missingLengthPrefixNotSupported() {
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
     responseConsumerCaptor
@@ -715,6 +724,46 @@ public class FeedRequestManagerTest {
             new HttpResponse(/* responseCode= */ 200, Response.getDefaultInstance().toByteArray()));
 
     verify(protocolAdapter, never()).createModel(any());
+  }
+
+  @Test
+  public void testGetWireRequestResponse_unknown() throws Exception {
+    testReason(RequestReason.UNKNOWN, FeedQuery.RequestReason.UNKNOWN_REQUEST_REASON);
+  }
+
+  @Test
+  public void testGetWireRequestResponse_zeroState() throws Exception {
+    testReason(RequestReason.ZERO_STATE, FeedQuery.RequestReason.ZERO_STATE_REFRESH);
+  }
+
+  @Test
+  public void testGetWireRequestResponse_hostRequested() throws Exception {
+    testReason(RequestReason.HOST_REQUESTED, FeedQuery.RequestReason.SCHEDULED_REFRESH);
+  }
+
+  @Test
+  public void testGetWireRequestResponse_openWithContent() throws Exception {
+    testReason(RequestReason.OPEN_WITH_CONTENT, FeedQuery.RequestReason.WITH_CONTENT);
+  }
+
+  @Test
+  public void testGetWireRequestResponse_manualContinuation() throws Exception {
+    testReason(RequestReason.MANUAL_CONTINUATION, FeedQuery.RequestReason.NEXT_PAGE_SCROLL);
+  }
+
+  @Test
+  public void testGetWireRequestResponse_automaticContinuation() throws Exception {
+    testReason(RequestReason.AUTOMATIC_CONTINUATION, FeedQuery.RequestReason.NEXT_PAGE_SCROLL);
+  }
+
+  @Test
+  public void testGetWireRequestResponse_openWithoutContent() throws Exception {
+    testReason(RequestReason.OPEN_WITHOUT_CONTENT, FeedQuery.RequestReason.INITIAL_LOAD);
+  }
+
+  @Test
+  public void testGetWireRequestResponse_clearAll() throws Exception {
+    testReason(RequestReason.CLEAR_ALL, FeedQuery.RequestReason.CLEAR_ALL);
   }
 
   @Test
@@ -731,7 +780,7 @@ public class FeedRequestManagerTest {
     when(applicationInfo.getBuildType()).thenReturn(ApplicationInfo.BuildType.RELEASE);
     when(applicationInfo.getVersionString()).thenReturn("1.2.3.4");
 
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -747,7 +796,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .setClientInfo(
                         ClientInfo.newBuilder()
                             .setPlatformType(PlatformType.ANDROID)
@@ -777,6 +827,16 @@ public class FeedRequestManagerTest {
                     .build())
             .build();
     assertThat(request).isEqualTo(expectedRequest);
+  }
+
+  private void testReason(@RequestReason int reason, FeedQuery.RequestReason expectedReason)
+      throws Exception {
+    requestManager.triggerRefresh(reason, input -> {});
+    verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
+    HttpRequest httpRequest = requestCaptor.getValue();
+    Request request = getRequestFromHttpRequest(httpRequest);
+    assertThat(request.getExtension(FeedRequest.feedRequest).getFeedQuery().getReason())
+        .isEqualTo(expectedReason);
   }
 
   private static void assertHttpRequestFormattedCorrectly(HttpRequest httpRequest) {
@@ -864,7 +924,7 @@ public class FeedRequestManagerTest {
             context,
             applicationInfo,
             fakeMainThreadRunner);
-    requestManager.triggerRefresh(RequestReason.MANUAL_REFRESH, input -> {});
+    requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
 
@@ -878,7 +938,8 @@ public class FeedRequestManagerTest {
             .setExtension(
                 FeedRequest.feedRequest,
                 getTestFeedRequestBuilder()
-                    .setFeedQuery(FeedQuery.getDefaultInstance())
+                    .setFeedQuery(
+                        FeedQuery.newBuilder().setReason(FeedQuery.RequestReason.SCHEDULED_REFRESH))
                     .addClientCapability(capability)
                     .addClientCapability(Capability.BASE_UI)
                     .build())

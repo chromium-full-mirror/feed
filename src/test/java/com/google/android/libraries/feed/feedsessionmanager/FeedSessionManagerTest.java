@@ -59,6 +59,7 @@ import com.google.android.libraries.feed.feedstore.FeedStore;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingStore;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
@@ -75,7 +76,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -312,9 +312,17 @@ public class FeedSessionManagerTest {
   public void testForceRefresh() {
     StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
-    sessionManager.triggerRefresh(streamSession);
+    sessionManager.triggerRefresh(streamSession, RequestReason.UNKNOWN);
+    verify(requestManager).triggerRefresh(eq(RequestReason.UNKNOWN), resultCapture.capture());
+  }
+
+  @Test
+  public void testForceRefresh_scheduledRefresh() {
+    StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    sessionManager.triggerRefresh(streamSession, RequestReason.HOST_REQUESTED);
     verify(requestManager)
-        .triggerRefresh(eq(RequestReason.MANUAL_REFRESH), resultCapture.capture());
+        .triggerRefresh(eq(RequestReason.HOST_REQUESTED), resultCapture.capture());
   }
 
   @Test

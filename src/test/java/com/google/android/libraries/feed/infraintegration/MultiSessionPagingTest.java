@@ -32,11 +32,11 @@ import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.PagingState;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.nio.charset.Charset;
 import org.junit.Before;
 import org.junit.Test;
@@ -119,7 +119,7 @@ public class MultiSessionPagingTest {
     // Create an initial S1 $HEAD session
     requestManager.queueResponse(s1State.initialResponse);
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     ModelProvider mp1 = modelProviderFactory.createNew(null);
@@ -139,7 +139,7 @@ public class MultiSessionPagingTest {
         StreamSession.newBuilder().setStreamToken(mp2.getSessionToken()).build();
     requestManager.queueResponse(s2State.initialResponse);
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(
             new MutationContext.Builder().setRequestingSession(streamSession).build()));
     assertThat(mp1.getCurrentState()).isEqualTo(State.READY);

@@ -27,6 +27,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroSt
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger;
 
@@ -105,7 +106,7 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
     spinnerShown = true;
     zeroStateViewHolder.showSpinner(spinnerShown);
     contentChangedListener.onContentChanged();
-    modelProvider.triggerRefresh();
+    modelProvider.triggerRefresh(RequestReason.ZERO_STATE);
 
     spinnerLogger.spinnerStarted(SpinnerType.ZERO_STATE_REFRESH);
   }

@@ -32,9 +32,9 @@ import com.google.android.libraries.feed.common.testing.InfrastructureIntegratio
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,7 +77,7 @@ public class SimpleStreamTest {
             .addCard(WireProtocolResponseBuilder.createFeatureContentId(1), ROOT_CONTENT_ID);
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelValidator.assertRoot(modelProvider);
@@ -119,7 +119,7 @@ public class SimpleStreamTest {
     }
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelValidator.assertRoot(modelProvider);

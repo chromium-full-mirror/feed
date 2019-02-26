@@ -17,9 +17,9 @@ package com.google.android.libraries.feed.api.requestmanager;
 import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.List;
 
 /** Creates and issues requests to the server. */
@@ -35,16 +35,20 @@ public interface RequestManager {
   /**
    * Issues a request to refresh the entire feed, with the consumer being called back with the
    * resulting {@link StreamDataOperation}s.
+   *
+   * @param reason The reason for this refresh.
    */
-  void triggerRefresh(RequestReason reason, Consumer<Result<List<StreamDataOperation>>> consumer);
+  void triggerRefresh(
+      @RequestReason int reason, Consumer<Result<List<StreamDataOperation>>> consumer);
 
   /**
    * Issues a request to refresh the entire feed.
    *
+   * @param reason The reason for this refresh.
    * @throws IllegalStateException if {@link #setDefaultTriggerRefreshConsumerSupplier} has not been
    *     called.
    */
-  void triggerRefresh(RequestReason reason);
+  void triggerRefresh(@RequestReason int reason);
 
   /**
    * Sets a supplier that will generate a consumer to be used for the {@link

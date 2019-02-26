@@ -71,6 +71,7 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
 import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -830,7 +831,7 @@ public class BasicStreamTest {
 
     basicStream.triggerRefresh();
 
-    verify(initialModelProvider).triggerRefresh();
+    verify(initialModelProvider).triggerRefresh(RequestReason.HOST_REQUESTED);
     verify(streamDriver).showSpinner();
   }
 
@@ -838,7 +839,7 @@ public class BasicStreamTest {
   public void testTriggerRefresh_beforeOnShow() {
     basicStream.triggerRefresh();
 
-    verify(initialModelProvider, never()).triggerRefresh();
+    verify(initialModelProvider, never()).triggerRefresh(anyInt());
     verify(streamDriver, never()).showSpinner();
   }
 

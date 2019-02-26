@@ -33,9 +33,9 @@ import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,7 +84,7 @@ public class ContentRemoveTest {
     }
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
@@ -104,7 +104,7 @@ public class ContentRemoveTest {
     responseBuilder = new WireProtocolResponseBuilder().removeFeature(cards[1], ROOT_CONTENT_ID);
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     ArgumentCaptor<FeatureChange> capture = ArgumentCaptor.forClass(FeatureChange.class);

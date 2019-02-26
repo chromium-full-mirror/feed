@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.api.modelprovider;
 
 import android.support.annotation.IntDef;
 import com.google.android.libraries.feed.api.common.MutationContext;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
@@ -85,8 +86,10 @@ public interface ModelProvider {
   /**
    * Allow the stream to force a refresh. This will result in the current model being invalidated if
    * the requested refresh is successful.
+   *
+   * @param requestReason The reason for this refresh.
    */
-  void triggerRefresh();
+  void triggerRefresh(@RequestReason int requestReason);
 
   /** Defines the Lifecycle of the ModelProvider */
   @IntDef({State.INITIALIZING, State.READY, State.INVALIDATED})

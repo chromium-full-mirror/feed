@@ -24,6 +24,7 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Function;
 import com.google.android.libraries.feed.common.functional.Supplier;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
@@ -70,9 +71,17 @@ public interface SessionManager extends Resettable {
    * continuation token. This could be called from multiple Model Providers.
    */
   void handleToken(StreamSession session, StreamToken streamToken);
-
+  
   /** Method which causes a refresh */
   void triggerRefresh(/*@Nullable*/ StreamSession streamSession);
+
+  /**
+   * Method which causes a refresh
+   *
+   * @param streamSession The session associated with the request.
+   * @param requestReason The reason for triggering a refresh.
+   */
+  void triggerRefresh(/*@Nullable*/ StreamSession streamSession, @RequestReason int requestReason);
 
   /**
    * Returns a List of {@link StreamPayload} for each of the keys. This operation may perform disk

@@ -31,9 +31,9 @@ import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,7 +87,7 @@ public class ClearAllTest {
     }
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider1 = modelProviderFactory.createNew(null);
     modelValidator.assertCursorContents(modelProvider1, cards);
@@ -119,7 +119,7 @@ public class ClearAllTest {
     }
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelValidator.assertCursorContents(modelProvider, cards);

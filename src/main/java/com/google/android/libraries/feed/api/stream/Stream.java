@@ -162,6 +162,10 @@ public interface Stream {
 
   void removeOnContentChangedListener(ContentChangedListener listener);
 
-  /** Allow the container to trigger a refresh of the stream. */
+  /**
+   * Allow the container to trigger a refresh of the stream.
+   *
+   * <p>Note: this will assume {@link RequestReason.HOST_REQUESTED}.
+   */
   void triggerRefresh();
 }

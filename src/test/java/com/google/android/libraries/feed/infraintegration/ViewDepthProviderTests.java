@@ -32,12 +32,12 @@ import com.google.android.libraries.feed.common.testing.InfrastructureIntegratio
 import com.google.android.libraries.feed.common.testing.ModelProviderValidator;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.host.config.Configuration;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -119,7 +119,7 @@ public class ViewDepthProviderTests {
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // The REQUEST_TWO content acts as a second request on the server, it is triggered by
@@ -157,7 +157,7 @@ public class ViewDepthProviderTests {
     // The REQUEST_ONE content will be added to head, this is then used to create the initial
     // session.
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     // The REQUEST_TWO content acts as a second request on the server, it is triggered by
@@ -188,7 +188,7 @@ public class ViewDepthProviderTests {
     }
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.SCHEDULED_REFRESH,
+        RequestReason.HOST_REQUESTED,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     // Due to running both requests on a single thread, we have to clear the TaskQueue
     taskQueue.runTasksForTest();

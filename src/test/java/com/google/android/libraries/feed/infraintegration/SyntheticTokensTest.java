@@ -43,11 +43,11 @@ import com.google.android.libraries.feed.common.testing.PagingState;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
@@ -135,7 +135,7 @@ public class SyntheticTokensTest {
     }
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -236,7 +236,7 @@ public class SyntheticTokensTest {
     }
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -330,7 +330,7 @@ public class SyntheticTokensTest {
     requestManager.queueResponse(state.initialResponse);
     requestManager.queueResponse(state.pageResponse);
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -399,7 +399,7 @@ public class SyntheticTokensTest {
     requestManager.queueResponse(state.initialResponse);
     requestManager.queueResponse(state.pageResponse);
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -478,7 +478,7 @@ public class SyntheticTokensTest {
     }
     requestManager.queueResponse(responseBuilder.build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -538,7 +538,7 @@ public class SyntheticTokensTest {
     // FeedSessionManager that we are in the non-cached mode.
     requestManager.queueResponse(new WireProtocolResponseBuilder().build());
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
   }
 }

@@ -27,10 +27,10 @@ import com.google.android.libraries.feed.common.Result;
 import com.google.android.libraries.feed.common.testing.FakeRequestManager;
 import com.google.android.libraries.feed.common.testing.InfrastructureIntegrationScope;
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import java.util.Collections;
 import java.util.List;
@@ -70,7 +70,7 @@ public class SemanticPropertiesTest {
         new WireProtocolResponseBuilder().addCardWithSemanticData(contentId, semanticData).build();
     requestManager.queueResponse(response);
     requestManager.triggerRefresh(
-        RequestReason.APP_OPEN_REFRESH,
+        RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
 
     ContentIdGenerators idGenerators = new ContentIdGenerators();

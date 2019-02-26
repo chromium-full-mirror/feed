@@ -61,6 +61,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.SessionFact
 import com.google.android.libraries.feed.feedsessionmanager.internal.SessionManagerMutation;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
@@ -71,7 +72,6 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -286,7 +286,7 @@ public final class FeedSessionManager
     // for REQUEST_WITH_CONTENT which is populate -> request
     if (makeRequest && behavior != REQUEST_WITH_CONTENT) {
       // determine if we make the request before or after populating a session
-      triggerRefresh(null);
+      triggerRefresh(null, RequestReason.OPEN_WITHOUT_CONTENT);
     }
 
     int taskType = TaskType.USER_FACING;
@@ -306,7 +306,7 @@ public final class FeedSessionManager
         timeoutTask,
         sessionPopulationTimeoutMs);
     if (makeRequest && behavior == REQUEST_WITH_CONTENT) {
-      triggerRefresh(null);
+      triggerRefresh(null, RequestReason.OPEN_WITH_CONTENT);
     }
   }
 
@@ -512,6 +512,12 @@ public final class FeedSessionManager
 
   @Override
   public void triggerRefresh(/*@Nullable*/ StreamSession streamSession) {
+    triggerRefresh(streamSession, RequestReason.HOST_REQUESTED);
+  }
+
+  @Override
+  public void triggerRefresh(
+      /*@Nullable*/ StreamSession streamSession, @RequestReason int requestReason) {
     if (!initialized.get()) {
       Logger.i(TAG, "Lazy initialization triggered, triggerRefresh");
       initialize();
@@ -519,14 +525,14 @@ public final class FeedSessionManager
     taskQueue.execute(
         "triggerRefresh(FeedSessionManager)",
         TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
-        () -> triggerRefreshTask(streamSession));
+        () -> triggerRefreshTask(streamSession, requestReason));
   }
 
-  private void triggerRefreshTask(/*@Nullable*/ StreamSession streamSession) {
+  private void triggerRefreshTask(
+      /*@Nullable*/ StreamSession streamSession, @RequestReason int requestReason) {
     threadUtils.checkNotMainThread();
     requestManager.triggerRefresh(
-        RequestReason.MANUAL_REFRESH,
-        getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
+        requestReason, getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
     if (streamSession != null) {
       String streamToken = streamSession.getStreamToken();
       Session session = sessionCache.get(streamToken);

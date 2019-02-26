@@ -59,6 +59,7 @@ import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
 import com.google.android.libraries.feed.host.config.DebugBehavior;
 import com.google.android.libraries.feed.host.imageloader.ImageLoaderApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
 import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorApi;
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
@@ -450,7 +451,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     // This invalidates the modelProvider, which results in onSessionFinished() then
     // onSessionStart() being called, leading to recreating the entire stream.
     streamDriver.showSpinner();
-    modelProvider.triggerRefresh();
+    modelProvider.triggerRefresh(RequestReason.HOST_REQUESTED);
   }
 
   @Override

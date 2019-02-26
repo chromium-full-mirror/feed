@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -55,6 +56,7 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamFeature;
 import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
@@ -270,18 +272,30 @@ public class FeedModelProviderTest {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     StreamSession mockSession = StreamSession.getDefaultInstance();
     modelProvider.streamSession = mockSession;
-    modelProvider.triggerRefresh();
+    modelProvider.triggerRefresh(RequestReason.OPEN_WITH_CONTENT);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
-    verify(sessionManager).triggerRefresh(mockSession);
+    verify(sessionManager).triggerRefresh(mockSession, RequestReason.OPEN_WITH_CONTENT);
+  }
+
+  @Test
+  public void testForceRefresh_differentReason() {
+    FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
+    StreamSession mockSession = StreamSession.getDefaultInstance();
+    modelProvider.streamSession = mockSession;
+    modelProvider.triggerRefresh(RequestReason.HOST_REQUESTED);
+    assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
+    verify(sessionManager).triggerRefresh(mockSession, RequestReason.HOST_REQUESTED);
   }
 
   @Test
   public void testForceRefresh_delayed() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
-    modelProvider.triggerRefresh();
+    assertThat(modelProvider.getRequestReasonForTest()).isEqualTo(RequestReason.UNKNOWN);
+    modelProvider.triggerRefresh(RequestReason.HOST_REQUESTED);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isTrue();
-    verify(sessionManager, never()).triggerRefresh(null);
+    assertThat(modelProvider.getRequestReasonForTest()).isEqualTo(RequestReason.HOST_REQUESTED);
+    verify(sessionManager, never()).triggerRefresh(eq(null), anyInt());
   }
 
   @Test

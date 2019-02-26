@@ -37,6 +37,7 @@ import com.google.android.libraries.feed.basicstream.internal.viewholders.ZeroSt
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger;
 import org.junit.Before;
@@ -180,7 +181,7 @@ public class ZeroStateDriverTest {
 
     verify(zeroStateViewHolder).showSpinner(true);
     verify(contentChangedListener).onContentChanged();
-    verify(modelProvider).triggerRefresh();
+    verify(modelProvider).triggerRefresh(RequestReason.ZERO_STATE);
   }
 
   @Test

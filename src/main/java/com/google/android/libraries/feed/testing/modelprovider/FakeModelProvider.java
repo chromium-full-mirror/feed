@@ -22,6 +22,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelMutation;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderObserver;
 import com.google.android.libraries.feed.api.modelprovider.ModelToken;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
@@ -39,6 +40,7 @@ public class FakeModelProvider implements ModelProvider {
   private ModelFeature rootFeature;
   private boolean wasRefreshTriggered;
   /*@Nullable*/ private String sessionToken = null;
+  @RequestReason private int lastRequestReason = RequestReason.UNKNOWN;
 
   @Override
   public ModelMutation edit() {
@@ -76,8 +78,9 @@ public class FakeModelProvider implements ModelProvider {
   public void handleToken(ModelToken modelToken) {}
 
   @Override
-  public void triggerRefresh() {
+  public void triggerRefresh(@RequestReason int requestReason) {
     wasRefreshTriggered = true;
+    lastRequestReason = requestReason;
   }
 
   @Override
@@ -145,5 +148,10 @@ public class FakeModelProvider implements ModelProvider {
 
   public void setSessionToken(String sessionToken) {
     this.sessionToken = sessionToken;
+  }
+
+  @RequestReason
+  public int getLastRequestReason() {
+    return lastRequestReason;
   }
 }

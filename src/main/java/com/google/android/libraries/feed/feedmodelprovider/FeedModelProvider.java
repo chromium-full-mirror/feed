@@ -57,6 +57,7 @@ import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableMod
 import com.google.android.libraries.feed.feedmodelprovider.internal.UpdatableModelToken;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.protobuf.ByteString;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -139,6 +140,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
 
   @GuardedBy("lock")
   private boolean delayedTriggerRefresh = false;
+
+  @GuardedBy("lock")
+  @RequestReason
+  private int requestReason = RequestReason.UNKNOWN;
 
   FeedModelProvider(
       SessionManager sessionManager,
@@ -233,15 +238,16 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   }
 
   @Override
-  public void triggerRefresh() {
+  public void triggerRefresh(@RequestReason int requestReason) {
     threadUtils.checkMainThread();
     if (streamSession == null) {
       synchronized (lock) {
         delayedTriggerRefresh = true;
+        this.requestReason = requestReason;
       }
       return;
     }
-    sessionManager.triggerRefresh(streamSession);
+    sessionManager.triggerRefresh(streamSession, requestReason);
   }
 
   @Override
@@ -547,7 +553,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
             synchronized (lock) {
               if (delayedTriggerRefresh) {
                 delayedTriggerRefresh = false;
-                mainThreadRunner.execute(TAG + " TriggerRefresh", () -> triggerRefresh());
+                final @RequestReason int requestReasonForTrigger = requestReason;
+                mainThreadRunner.execute(
+                    TAG + " TriggerRefresh", () -> triggerRefresh(requestReasonForTrigger));
+                requestReason = RequestReason.UNKNOWN;
               }
             }
           }
@@ -1296,6 +1305,14 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
   boolean getDelayedTriggerRefreshForTest() {
     synchronized (lock) {
       return delayedTriggerRefresh;
+    }
+  }
+
+  @VisibleForTesting
+  @RequestReason
+  int getRequestReasonForTest() {
+    synchronized (lock) {
+      return requestReason;
     }
   }
 

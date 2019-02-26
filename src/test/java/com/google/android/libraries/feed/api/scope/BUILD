@@ -20,6 +20,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/feedapplifecyclelistener",
+        "//src/main/java/com/google/android/libraries/feed/host/logging",
         "@com_google_guava_guava//jar",
         "@org_mockito_mockito_all//jar",
         "@robolectric//bazel:robolectric",

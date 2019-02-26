@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.feedrequestmanager.internal.Utils;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
 import com.google.android.libraries.feed.host.network.NetworkClient;
@@ -56,7 +57,6 @@ import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryDataItem;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
-import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery.RequestReason;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest.Builder;
 import com.google.search.now.wire.feed.RequestProto.Request;
@@ -138,7 +138,9 @@ public final class FeedRequestManager implements RequestManager {
         () -> {
           Logger.i(TAG, "Task: FeedRequestManager LoadMore");
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
-          RequestBuilder request = newDefaultRequest().setPageToken(streamToken.getNextPageToken());
+          RequestBuilder request =
+              newDefaultRequest(RequestReason.MANUAL_CONTINUATION)
+                  .setPageToken(streamToken.getNextPageToken());
           executeRequest(request, consumer);
           timeTracker.stop(
               "task", "FeedRequestManager LoadMore", "token", streamToken.getNextPageToken());
@@ -147,9 +149,9 @@ public final class FeedRequestManager implements RequestManager {
 
   @Override
   public void triggerRefresh(
-      RequestReason reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
+      @RequestReason int reason, Consumer<Result<List<StreamDataOperation>>> consumer) {
     Logger.i(TAG, "trigger refresh %s", reason);
-    RequestBuilder request = newDefaultRequest();
+    RequestBuilder request = newDefaultRequest(reason);
 
     if (threadUtils.isMainThread()) {
       // This will make a new request, it should invalidate the existing head to delay everything
@@ -164,7 +166,7 @@ public final class FeedRequestManager implements RequestManager {
   }
 
   @Override
-  public void triggerRefresh(RequestReason reason) {
+  public void triggerRefresh(@RequestReason int reason) {
     if (defaultTriggerRefreshConsumerSupplier == null) {
       throw new IllegalStateException(
           "Must set defaultTriggerRefreshConsumerSupplier before calling "
@@ -179,8 +181,34 @@ public final class FeedRequestManager implements RequestManager {
     this.defaultTriggerRefreshConsumerSupplier = consumerSupplier;
   }
 
-  private RequestBuilder newDefaultRequest() {
-    return new RequestBuilder(getLocale(), applicationInfo, configuration);
+  private RequestBuilder newDefaultRequest(@RequestReason int requestReason) {
+    return new RequestBuilder(
+        getLocale(), applicationInfo, configuration, getWireRequestReason(requestReason));
+  }
+
+  private static FeedQuery.RequestReason getWireRequestReason(@RequestReason int requestReason) {
+    switch (requestReason) {
+      case RequestReason.ZERO_STATE:
+        return FeedQuery.RequestReason.ZERO_STATE_REFRESH;
+      case RequestReason.HOST_REQUESTED:
+        return FeedQuery.RequestReason.SCHEDULED_REFRESH;
+      case RequestReason.OPEN_WITH_CONTENT:
+        return FeedQuery.RequestReason.WITH_CONTENT;
+        // TODO: distinguish between automatic and manual continuation for wire
+        // protocol
+      case RequestReason.MANUAL_CONTINUATION:
+      case RequestReason.AUTOMATIC_CONTINUATION:
+        return FeedQuery.RequestReason.NEXT_PAGE_SCROLL;
+      case RequestReason.OPEN_WITHOUT_CONTENT:
+        return FeedQuery.RequestReason.INITIAL_LOAD;
+      case RequestReason.CLEAR_ALL:
+        return FeedQuery.RequestReason.CLEAR_ALL;
+      case RequestReason.UNKNOWN:
+        return FeedQuery.RequestReason.UNKNOWN_REQUEST_REASON;
+      default:
+        Logger.wtf(TAG, "Cannot map request reason with value %d", requestReason);
+        return FeedQuery.RequestReason.UNKNOWN_REQUEST_REASON;
+    }
   }
 
   private void executeRequest(
@@ -296,14 +324,20 @@ public final class FeedRequestManager implements RequestManager {
 
     private ByteString token;
     private List<DismissActionWithSemanticProperties> dismissActionsWithSemanticProperties;
-    private Locale locale;
-    private ApplicationInfo applicationInfo;
-    private Configuration configuration;
+    private final Locale locale;
+    private final ApplicationInfo applicationInfo;
+    private final Configuration configuration;
+    private final FeedQuery.RequestReason requestReason;
 
-    RequestBuilder(Locale locale, ApplicationInfo applicationInfo, Configuration configuration) {
+    RequestBuilder(
+        Locale locale,
+        ApplicationInfo applicationInfo,
+        Configuration configuration,
+        FeedQuery.RequestReason requestReason) {
       this.locale = locale;
       this.applicationInfo = applicationInfo;
       this.configuration = configuration;
+      this.requestReason = requestReason;
     }
 
     /**
@@ -330,7 +364,7 @@ public final class FeedRequestManager implements RequestManager {
       Request.Builder requestBuilder =
           Request.newBuilder().setRequestVersion(RequestVersion.FEED_QUERY);
 
-      FeedQuery.Builder feedQuery = FeedQuery.newBuilder();
+      FeedQuery.Builder feedQuery = FeedQuery.newBuilder().setReason(requestReason);
       if (token != null) {
         feedQuery.setPageToken(token);
       }

@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
+import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public class ClearAllListenerTest {
     setupClearAllListener();
     appLifecycleListener.onClearAllWithRefresh();
     verify(sessionManager).reset();
-    verify(sessionManager).triggerRefresh(null);
+    verify(sessionManager).triggerRefresh(null, RequestReason.CLEAR_ALL);
     verify(store).reset();
     verify(taskQueue).reset();
     verify(taskQueue).completeReset();
