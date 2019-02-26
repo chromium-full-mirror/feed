@@ -49,6 +49,13 @@ public class SpinnerLoggerTest {
   }
 
   @Test
+  public void spinnerStarted_logsSpinnerStarted() {
+    spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD);
+
+    verify(basicLoggingApi).onSpinnerStarted(SpinnerType.INITIAL_LOAD);
+  }
+
+  @Test
   public void spinnerStarted_twice_throwsException() {
     spinnerLogger.spinnerStarted(SpinnerType.INITIAL_LOAD);
 

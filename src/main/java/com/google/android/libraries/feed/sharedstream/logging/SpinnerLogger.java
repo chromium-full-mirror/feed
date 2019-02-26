@@ -43,6 +43,7 @@ public class SpinnerLogger {
       return;
     }
 
+    basicLoggingApi.onSpinnerStarted(spinnerType);
     spinnerStartTime = clock.currentTimeMillis();
     this.spinnerType = spinnerType;
   }
