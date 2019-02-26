@@ -26,7 +26,6 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
-import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import java.util.List;
 
 /** Default implementation of {@link ActionManager} */
@@ -66,7 +65,7 @@ public class FeedActionManagerImpl implements ActionManager {
 
   @Override
   public void dismiss(
-      OpaqueActionData opaqueActionData,
+      String contentId,
       List<StreamDataOperation> streamDataOperations,
       /*@Nullable*/ String sessionToken) {
     executeStreamDataOperations(streamDataOperations, sessionToken);

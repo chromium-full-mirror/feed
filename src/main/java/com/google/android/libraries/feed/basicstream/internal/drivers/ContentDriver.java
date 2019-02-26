@@ -141,7 +141,8 @@ public class ContentDriver extends LeafFeatureDriver
             modelProvider.getSessionToken(),
             contextMenuManager,
             clusterPendingDismissHelper,
-            this);
+            this,
+            contentId);
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
     contentUrl = representationData.getUri();
@@ -326,7 +327,8 @@ public class ContentDriver extends LeafFeatureDriver
       /*@Nullable*/ String sessionToken,
       ContextMenuManager contextMenuManager,
       ClusterPendingDismissHelper clusterPendingDismissHelper,
-      ViewElementActionHandler handler) {
+      ViewElementActionHandler handler,
+      String contentId) {
     return new StreamActionApiImpl(
         actionApi,
         actionParser,
@@ -336,7 +338,8 @@ public class ContentDriver extends LeafFeatureDriver
         contextMenuManager,
         sessionToken,
         clusterPendingDismissHelper,
-        handler);
+        handler,
+        contentId);
   }
 
   @Override

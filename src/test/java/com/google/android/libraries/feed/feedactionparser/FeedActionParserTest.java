@@ -48,7 +48,6 @@ import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Elemen
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.NotInterestedInData;
-import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
@@ -542,7 +541,7 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, never())
-        .handleNotInterestedInTopic(Mockito.anyListOf(StreamDataOperation.class), any(), any());
+        .handleNotInterestedInTopic(Mockito.anyListOf(StreamDataOperation.class), any());
   }
 
   @Test
@@ -558,7 +557,7 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         DISMISS_LOCAL_FEED_ACTION, streamActionApi, /* view= */ null, ActionSource.CLICK);
     verify(streamActionApi, never())
-        .handleNotInterestedInSource(Mockito.anyListOf(StreamDataOperation.class), any(), any());
+        .handleNotInterestedInSource(Mockito.anyListOf(StreamDataOperation.class), any());
   }
 
   @Test
@@ -633,9 +632,7 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         NOT_INTERESTED_IN_SOURCE, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
-    verify(streamActionApi)
-        .handleNotInterestedInSource(
-            streamDataOperations, UNDO_ACTION, OpaqueActionData.getDefaultInstance());
+    verify(streamActionApi).handleNotInterestedInSource(streamDataOperations, UNDO_ACTION);
   }
 
   @Test
@@ -654,9 +651,7 @@ public class FeedActionParserTest {
     feedActionParser.parseFeedActionPayload(
         NOT_INTERESTED_IN_TOPIC, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
-    verify(streamActionApi)
-        .handleNotInterestedInTopic(
-            streamDataOperations, UNDO_ACTION, OpaqueActionData.getDefaultInstance());
+    verify(streamActionApi).handleNotInterestedInTopic(streamDataOperations, UNDO_ACTION);
   }
 
   @Test

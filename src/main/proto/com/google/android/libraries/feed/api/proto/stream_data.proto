@@ -206,8 +206,7 @@ message StreamUploadableAction {
   // When the action was recorded
   optional int64 timestamp_seconds = 4;
 
-  // The data that needs to be passed to the server
-  optional ui.action.OpaqueActionData action_data = 5;
+  reserved 5;  // deprecated fields
 }
 
 // An extension to the BasicLoggingMetadata which is used to hide the notion of

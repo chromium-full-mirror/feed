@@ -30,7 +30,6 @@ import com.google.android.libraries.feed.sharedstream.contextmenumanager.Context
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
-import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.ArrayList;
@@ -50,6 +49,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final ContextMenuManager contextMenuManager;
   private final ClusterPendingDismissHelper clusterPendingDismissHelper;
   private final ViewElementActionHandler viewElementActionHandler;
+  private final String contentId;
 
   /*@Nullable*/ private final String sessionToken;
 
@@ -62,7 +62,8 @@ public class StreamActionApiImpl implements StreamActionApi {
       ContextMenuManager contextMenuManager,
       /*@Nullable*/ String sessionToken,
       ClusterPendingDismissHelper clusterPendingDismissHelper,
-      ViewElementActionHandler viewElementActionHandler) {
+      ViewElementActionHandler viewElementActionHandler,
+      String contentId) {
     this.actionApi = actionApi;
     this.actionParser = actionParser;
     this.actionManager = actionManager;
@@ -72,6 +73,7 @@ public class StreamActionApiImpl implements StreamActionApi {
     this.sessionToken = sessionToken;
     this.clusterPendingDismissHelper = clusterPendingDismissHelper;
     this.viewElementActionHandler = viewElementActionHandler;
+    this.contentId = contentId;
   }
 
   @Override
@@ -119,11 +121,9 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void handleNotInterestedInTopic(
-      List<StreamDataOperation> dataOperations,
-      UndoAction undoAction,
-      OpaqueActionData opaqueActionData) {
+      List<StreamDataOperation> dataOperations, UndoAction undoAction) {
     if (!undoAction.hasConfirmationLabel()) {
-      dismiss(opaqueActionData, dataOperations);
+      dismiss(contentId, dataOperations);
       basicLoggingApi.onNotInterestedInTopic(contentLoggingData, /* wasCommitted = */ true);
     } else {
       dismissWithSnackbar(
@@ -137,7 +137,7 @@ public class StreamActionApiImpl implements StreamActionApi {
 
             @Override
             public void onDismissCommitted() {
-              dismiss(opaqueActionData, dataOperations);
+              dismiss(contentId, dataOperations);
               // TODO: Log this action via the action end point.
               basicLoggingApi.onNotInterestedInTopic(contentLoggingData, /* wasCommitted = */ true);
             }
@@ -152,11 +152,9 @@ public class StreamActionApiImpl implements StreamActionApi {
 
   @Override
   public void handleNotInterestedInSource(
-      List<StreamDataOperation> dataOperations,
-      UndoAction undoAction,
-      OpaqueActionData opaqueActionData) {
+      List<StreamDataOperation> dataOperations, UndoAction undoAction) {
     if (!undoAction.hasConfirmationLabel()) {
-      dismiss(opaqueActionData, dataOperations);
+      dismiss(contentId, dataOperations);
       basicLoggingApi.onNotInterestedInSource(contentLoggingData, /* wasCommitted = */ true);
     } else {
       dismissWithSnackbar(
@@ -170,7 +168,7 @@ public class StreamActionApiImpl implements StreamActionApi {
 
             @Override
             public void onDismissCommitted() {
-              dismiss(opaqueActionData, dataOperations);
+              dismiss(contentId, dataOperations);
               // TODO: Log this action via the action end point.
               basicLoggingApi.onNotInterestedInSource(
                   contentLoggingData, /* wasCommitted = */ true);
@@ -204,9 +202,8 @@ public class StreamActionApiImpl implements StreamActionApi {
     }
   }
 
-  private void dismiss(
-      OpaqueActionData opaqueActionData, List<StreamDataOperation> dataOperations) {
-    actionManager.dismiss(opaqueActionData, dataOperations, sessionToken);
+  private void dismiss(String contentId, List<StreamDataOperation> dataOperations) {
+    actionManager.dismiss(contentId, dataOperations, sessionToken);
   }
 
   private void dismissLocal(String contentId, List<StreamDataOperation> dataOperations) {

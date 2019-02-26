@@ -132,8 +132,6 @@ message NotInterestedInData {
   optional UndoAction undo_action = 1;
   // The data needed by Stream to preform the dismiss.
   repeated search.now.wire.feed.DataOperation data_operations = 2;
-  // The data needed by the server to handle action recording.
-  optional OpaqueActionData opaque_action_data = 3;
 }
 
 // Data used by the client to show a confirmation message with an action to
@@ -150,16 +148,4 @@ message UndoAction {
 message LabelledFeedActionData {
   optional string label = 1;
   optional FeedActionPayload feed_action_payload = 2;
-}
-
-// The data needed by the server to handle action recording. This information is
-// opaque to the client and will be the information that is roundtripped so the
-// server can properly handle the action. For the Not Interested In action, this
-// data will contain the mids needed to record that the user is not interested
-// in that particular mid. Please note it is important to keep this to a bare
-// minimum amount of data.
-message OpaqueActionData {
-  // Reserved fields for renderable unit extensions
-  // Please use CL numbers you own for extension numbers.
-  extensions 1 to 1;
 }

@@ -210,7 +210,8 @@ public class ContentDriverTest {
               String sessionToken,
               ContextMenuManager contextMenuManager,
               ClusterPendingDismissHelper clusterPendingDismissHelper,
-              ViewElementActionHandler handler) {
+              ViewElementActionHandler handler,
+              String contentId) {
             return streamActionApi;
           }
         };

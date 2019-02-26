@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.api.actionmanager;
 
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import java.util.List;
 
 /** Allows Stream to notify the Feed library of actions taken */
@@ -39,13 +38,13 @@ public interface ActionManager {
   /**
    * Executes the provided stream data operations on the session.
    *
-   * @param opaqueActionData The data needed to log to the action endpoint.
+   * @param contentId The id for the content that triggered this action.
    * @param streamDataOperations Any stream data operations that should be applied to the session
    *     (e.g. removing a cluster when the content is removed)
    * @param sessionToken The current session token
    */
   void dismiss(
-      OpaqueActionData opaqueActionData,
+      String contentId,
       List<StreamDataOperation> streamDataOperations,
       /*@Nullable*/ String sessionToken);
 }

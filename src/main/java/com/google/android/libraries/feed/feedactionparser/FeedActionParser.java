@@ -162,8 +162,7 @@ public final class FeedActionParser implements ActionParser {
 
         streamActionApi.handleNotInterestedInSource(
             streamDataOperationResult.getValue(),
-            feedActionMetadata.getNotInterestedInData().getUndoAction(),
-            feedActionMetadata.getNotInterestedInData().getOpaqueActionData());
+            feedActionMetadata.getNotInterestedInData().getUndoAction());
         break;
       case NOT_INTERESTED_IN_TOPIC:
         if (!streamActionApi.canHandleNotInterestedInTopic()) {
@@ -186,8 +185,7 @@ public final class FeedActionParser implements ActionParser {
 
         streamActionApi.handleNotInterestedInTopic(
             dataOperationResult.getValue(),
-            feedActionMetadata.getNotInterestedInData().getUndoAction(),
-            feedActionMetadata.getNotInterestedInData().getOpaqueActionData());
+            feedActionMetadata.getNotInterestedInData().getUndoAction());
         break;
       case DOWNLOAD:
         if (!streamActionApi.canDownloadUrl()) {

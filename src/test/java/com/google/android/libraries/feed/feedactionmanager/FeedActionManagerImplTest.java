@@ -37,7 +37,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
-import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
@@ -133,8 +132,7 @@ public class FeedActionManagerImplTest {
     setUpDismissMocks();
     StreamDataOperation dataOperation = buildBasicDismissOperation();
 
-    actionManager.dismiss(
-        OpaqueActionData.getDefaultInstance(), Collections.singletonList(dataOperation), null);
+    actionManager.dismiss(CONTENT_ID_STRING, Collections.singletonList(dataOperation), null);
 
     verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
     Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
@@ -151,9 +149,7 @@ public class FeedActionManagerImplTest {
     StreamDataOperation dataOperation = buildBasicDismissOperation();
 
     actionManager.dismiss(
-        OpaqueActionData.getDefaultInstance(),
-        Collections.singletonList(dataOperation),
-        SESSION_TOKEN);
+        CONTENT_ID_STRING, Collections.singletonList(dataOperation), SESSION_TOKEN);
 
     verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
     assertThat(mutationContextCaptor.getValue().getRequestingSession().getStreamToken())

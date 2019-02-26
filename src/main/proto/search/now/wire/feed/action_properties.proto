@@ -1,0 +1,33 @@
+// Copyright 2019 The Feed Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
+
+package search.now.wire.feed;
+
+option optimize_for=LITE_RUNTIME;
+
+import "src/main/proto/search/now/wire/feed/opaque_action_data.proto";
+
+option java_package = "com.google.search.now.wire.feed";
+option java_outer_classname = "ActionPropertiesProto";
+
+// ActionProperties hold information that we want to attach to
+// actions when they are sent to the server. For example, an action might be
+// associated with a specific topic.
+message ActionProperties {
+  // This is kept opaque to Feed - we want to keep it and send it alongside
+  // content ids in requests
+  optional OpaqueActionData action_data = 1;
+}

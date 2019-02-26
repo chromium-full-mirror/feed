@@ -18,7 +18,6 @@ import android.view.View;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
-import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.List;
@@ -45,19 +44,13 @@ public interface StreamActionApi extends ActionApi {
   boolean canHandleNotInterestedInTopic();
 
   /** Handles the Not interested in <topic> action. */
-  void handleNotInterestedInTopic(
-      List<StreamDataOperation> dataOperations,
-      UndoAction undoAction,
-      OpaqueActionData opaqueActionData);
+  void handleNotInterestedInTopic(List<StreamDataOperation> dataOperations, UndoAction undoAction);
 
   /** Whether or not the not interested in source action can be handled. */
   boolean canHandleNotInterestedInSource();
 
   /** Handles the Not interested in <source> action. */
-  void handleNotInterestedInSource(
-      List<StreamDataOperation> dataOperations,
-      UndoAction undoAction,
-      OpaqueActionData opaqueActionData);
+  void handleNotInterestedInSource(List<StreamDataOperation> dataOperations, UndoAction undoAction);
 
   /** Called when a client action has been performed. */
   void onClientAction(@ActionType int actionType);

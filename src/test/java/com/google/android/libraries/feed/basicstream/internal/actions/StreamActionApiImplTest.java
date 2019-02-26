@@ -46,7 +46,6 @@ import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
-import com.google.search.now.ui.action.FeedActionProto.OpaqueActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
@@ -117,6 +116,7 @@ public class StreamActionApiImplTest {
                           .build()))
           .build();
   private static final String SESSION_ID = "SESSION_ID";
+  private static final String CONTENT_ID = "CONTENT_ID";
   private static final ContentMetadata CONTENT_METADATA =
       new ContentMetadata(
           URL,
@@ -156,7 +156,8 @@ public class StreamActionApiImplTest {
             contextMenuManager,
             SESSION_ID,
             clusterPendingDismissHelper,
-            viewElementActionHandler);
+            viewElementActionHandler,
+            CONTENT_ID);
   }
 
   @Test
@@ -451,22 +452,19 @@ public class StreamActionApiImplTest {
   private void testCommittedDismissWithSnackbar(Type actionType) {
     ArgumentCaptor<PendingDismissCallback> pendingDismissCallback =
         ArgumentCaptor.forClass(PendingDismissCallback.class);
-    String contentId = "contentId";
     List<StreamDataOperation> streamDataOperations =
         Collections.singletonList(StreamDataOperation.getDefaultInstance());
     UndoAction undoAction = UndoAction.newBuilder().setConfirmationLabel("confirmation").build();
     switch (actionType) {
       case DISMISS:
       case DISMISS_LOCAL:
-        streamActionApi.dismiss(contentId, streamDataOperations, undoAction);
+        streamActionApi.dismiss(CONTENT_ID, streamDataOperations, undoAction);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        streamActionApi.handleNotInterestedInSource(
-            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        streamActionApi.handleNotInterestedInSource(streamDataOperations, undoAction);
         break;
       case NOT_INTERESTED_IN_TOPIC:
-        streamActionApi.handleNotInterestedInTopic(
-            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        streamActionApi.handleNotInterestedInTopic(streamDataOperations, undoAction);
         break;
       default:
         break;
@@ -481,18 +479,16 @@ public class StreamActionApiImplTest {
       case DISMISS:
       case DISMISS_LOCAL:
         verify(actionManager)
-            .dismissLocal(ImmutableList.of(contentId), streamDataOperations, SESSION_ID);
+            .dismissLocal(ImmutableList.of(CONTENT_ID), streamDataOperations, SESSION_ID);
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        verify(actionManager)
-            .dismiss(OpaqueActionData.getDefaultInstance(), streamDataOperations, SESSION_ID);
+        verify(actionManager).dismiss(CONTENT_ID, streamDataOperations, SESSION_ID);
         verify(basicLoggingApi)
             .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ true);
         break;
       case NOT_INTERESTED_IN_TOPIC:
-        verify(actionManager)
-            .dismiss(OpaqueActionData.getDefaultInstance(), streamDataOperations, SESSION_ID);
+        verify(actionManager).dismiss(CONTENT_ID, streamDataOperations, SESSION_ID);
         verify(basicLoggingApi).onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ true);
         break;
       default:
@@ -513,12 +509,10 @@ public class StreamActionApiImplTest {
         streamActionApi.dismiss(contentId, streamDataOperations, undoAction);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        streamActionApi.handleNotInterestedInSource(
-            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        streamActionApi.handleNotInterestedInSource(streamDataOperations, undoAction);
         break;
       case NOT_INTERESTED_IN_TOPIC:
-        streamActionApi.handleNotInterestedInTopic(
-            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        streamActionApi.handleNotInterestedInTopic(streamDataOperations, undoAction);
         break;
       default:
         break;
@@ -560,12 +554,10 @@ public class StreamActionApiImplTest {
         streamActionApi.dismiss(contentId, streamDataOperations, undoAction);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        streamActionApi.handleNotInterestedInSource(
-            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        streamActionApi.handleNotInterestedInSource(streamDataOperations, undoAction);
         break;
       case NOT_INTERESTED_IN_TOPIC:
-        streamActionApi.handleNotInterestedInTopic(
-            streamDataOperations, undoAction, OpaqueActionData.getDefaultInstance());
+        streamActionApi.handleNotInterestedInTopic(streamDataOperations, undoAction);
         break;
       default:
         break;
@@ -581,14 +573,12 @@ public class StreamActionApiImplTest {
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        verify(actionManager)
-            .dismiss(OpaqueActionData.getDefaultInstance(), streamDataOperations, SESSION_ID);
+        verify(actionManager).dismiss(CONTENT_ID, streamDataOperations, SESSION_ID);
         verify(basicLoggingApi)
             .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ true);
         break;
       case NOT_INTERESTED_IN_TOPIC:
-        verify(actionManager)
-            .dismiss(OpaqueActionData.getDefaultInstance(), streamDataOperations, SESSION_ID);
+        verify(actionManager).dismiss(CONTENT_ID, streamDataOperations, SESSION_ID);
         verify(basicLoggingApi).onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ true);
         break;
       default:
