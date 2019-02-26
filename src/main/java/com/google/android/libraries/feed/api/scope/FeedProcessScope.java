@@ -475,7 +475,8 @@ public final class FeedProcessScope implements Dumpable {
                 actionReader,
                 context,
                 applicationInfo,
-                getOrCreateMainThreadRunner());
+                getOrCreateMainThreadRunner(),
+                basicLoggingApi);
       }
       if (sessionManager == null) {
         FeedSessionManagerFactory fsmFactory =

@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.testing.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.android.libraries.feed.feedrequestmanager.FeedRequestManager;
@@ -81,6 +82,7 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
   private Context context;
   private ApplicationInfo applicationInfo;
   private MainThreadRunner mainThreadRunner;
+  private FakeBasicLoggingApi basicLoggingApi;
 
   @Override
   protected Uri getValidUri(@HttpMethod String method) {
@@ -100,6 +102,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
 
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.emptyList()));
+
+    basicLoggingApi = new FakeBasicLoggingApi();
   }
 
   @Test
@@ -178,7 +182,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             actionReader,
             context,
             applicationInfo,
-            mainThreadRunner);
+            mainThreadRunner,
+            basicLoggingApi);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 
@@ -218,7 +223,8 @@ public class MockServerNetworkClientTest extends NetworkClientConformanceTest {
             actionReader,
             context,
             applicationInfo,
-            mainThreadRunner);
+            mainThreadRunner,
+            basicLoggingApi);
     when(protocolAdapter.createModel(any(Response.class)))
         .thenReturn(Result.success(new ArrayList<>()));
 

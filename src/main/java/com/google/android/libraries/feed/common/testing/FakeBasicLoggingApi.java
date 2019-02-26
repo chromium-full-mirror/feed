@@ -28,6 +28,9 @@ import java.util.List;
 
 /** Fake implementation of {@link BasicLoggingApi}. */
 public class FakeBasicLoggingApi implements BasicLoggingApi {
+
+  @RequestReason public int serverRequestReason = RequestReason.UNKNOWN;
+
   public FakeBasicLoggingApi() {}
 
   @Override
@@ -74,7 +77,9 @@ public class FakeBasicLoggingApi implements BasicLoggingApi {
   public void onOpenedWithNoContent() {}
 
   @Override
-  public void onServerRequest(@RequestReason int requestReason) {}
+  public void onServerRequest(@RequestReason int requestReason) {
+    serverRequestReason = requestReason;
+  }
 
   @Override
   public void onSpinnerDestroyedWithoutCompleting(int timeShownMs, @SpinnerType int spinnerType) {}

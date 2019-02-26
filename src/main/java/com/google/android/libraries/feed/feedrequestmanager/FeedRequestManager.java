@@ -39,6 +39,7 @@ import com.google.android.libraries.feed.feedrequestmanager.internal.Utils;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
+import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.network.HttpRequest;
 import com.google.android.libraries.feed.host.network.HttpRequest.HttpMethod;
@@ -95,6 +96,7 @@ public final class FeedRequestManager implements RequestManager {
   private final ActionReader actionReader;
   private final Context context;
   private final MainThreadRunner mainThreadRunner;
+  private final BasicLoggingApi basicLoggingApi;
   private ApplicationInfo applicationInfo;
 
   /*@Nullable*/
@@ -113,7 +115,8 @@ public final class FeedRequestManager implements RequestManager {
       ActionReader actionReader,
       Context context,
       ApplicationInfo applicationInfo,
-      MainThreadRunner mainThreadRunner) {
+      MainThreadRunner mainThreadRunner,
+      BasicLoggingApi basicLoggingApi) {
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.protocolAdapter = protocolAdapter;
@@ -126,6 +129,7 @@ public final class FeedRequestManager implements RequestManager {
     this.context = context;
     this.applicationInfo = applicationInfo;
     this.mainThreadRunner = mainThreadRunner;
+    this.basicLoggingApi = basicLoggingApi;
   }
 
   @Override
@@ -182,8 +186,7 @@ public final class FeedRequestManager implements RequestManager {
   }
 
   private RequestBuilder newDefaultRequest(@RequestReason int requestReason) {
-    return new RequestBuilder(
-        getLocale(), applicationInfo, configuration, getWireRequestReason(requestReason));
+    return new RequestBuilder(getLocale(), applicationInfo, configuration, requestReason);
   }
 
   private static FeedQuery.RequestReason getWireRequestReason(@RequestReason int requestReason) {
@@ -238,6 +241,9 @@ public final class FeedRequestManager implements RequestManager {
     HttpRequest httpRequest =
         new HttpRequest(uriBuilder.build(), httpMethod, Collections.emptyList(), new byte[] {});
     Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
+    mainThreadRunner.execute(
+        "Making request.",
+        () -> basicLoggingApi.onServerRequest(requestBuilder.clientLoggingRequestReason));
     networkClient.send(
         httpRequest,
         input -> {
@@ -328,16 +334,18 @@ public final class FeedRequestManager implements RequestManager {
     private final ApplicationInfo applicationInfo;
     private final Configuration configuration;
     private final FeedQuery.RequestReason requestReason;
+    @RequestReason private final int clientLoggingRequestReason;
 
     RequestBuilder(
         Locale locale,
         ApplicationInfo applicationInfo,
         Configuration configuration,
-        FeedQuery.RequestReason requestReason) {
+        @RequestReason int requestReason) {
       this.locale = locale;
       this.applicationInfo = applicationInfo;
       this.configuration = configuration;
-      this.requestReason = requestReason;
+      this.clientLoggingRequestReason = requestReason;
+      this.requestReason = getWireRequestReason(requestReason);
     }
 
     /**

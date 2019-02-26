@@ -36,6 +36,7 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
+import com.google.android.libraries.feed.common.testing.FakeBasicLoggingApi;
 import com.google.android.libraries.feed.common.testing.RequiredConsumer;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -123,6 +124,7 @@ public class FeedRequestManagerTest {
   private final TimingUtils timingUtils = new TimingUtils();
 
   private final Configuration configuration = new Configuration.Builder().build();
+  private FakeBasicLoggingApi basicLoggingApi;
 
   @Before
   public void setUp() {
@@ -133,6 +135,7 @@ public class FeedRequestManagerTest {
     registry = ExtensionRegistryLite.newInstance();
     registry.add(FeedRequest.feedRequest);
     fakeMainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
+    basicLoggingApi = new FakeBasicLoggingApi();
     ReflectionHelpers.setStaticField(Build.VERSION.class, "SDK_INT", VERSION_CODES.KITKAT);
     ReflectionHelpers.setStaticField(Build.VERSION.class, "RELEASE", "4.4.3");
     ReflectionHelpers.setStaticField(Build.class, "CPU_ABI", "armeabi");
@@ -154,7 +157,8 @@ public class FeedRequestManagerTest {
             actionReader,
             context,
             applicationInfo,
-            fakeMainThreadRunner);
+            fakeMainThreadRunner,
+            basicLoggingApi);
 
     when(actionReader.getDismissActionsWithSemanticProperties())
         .thenReturn(Result.success(Collections.emptyList()));
@@ -837,6 +841,7 @@ public class FeedRequestManagerTest {
     Request request = getRequestFromHttpRequest(httpRequest);
     assertThat(request.getExtension(FeedRequest.feedRequest).getFeedQuery().getReason())
         .isEqualTo(expectedReason);
+    assertThat(basicLoggingApi.serverRequestReason).isEqualTo(reason);
   }
 
   private static void assertHttpRequestFormattedCorrectly(HttpRequest httpRequest) {
@@ -923,7 +928,8 @@ public class FeedRequestManagerTest {
             actionReader,
             context,
             applicationInfo,
-            fakeMainThreadRunner);
+            fakeMainThreadRunner,
+            basicLoggingApi);
     requestManager.triggerRefresh(RequestReason.HOST_REQUESTED, input -> {});
 
     verify(networkClient).send(requestCaptor.capture(), responseConsumerCaptor.capture());
