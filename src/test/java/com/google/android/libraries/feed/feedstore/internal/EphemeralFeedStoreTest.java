@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.feedstore.internal;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -31,7 +32,7 @@ public class EphemeralFeedStoreTest extends AbstractClearableFeedStoreTest {
   }
 
   @Override
-  protected Store getStore() {
+  protected Store getStore(MainThreadRunner mainThreadRunner) {
     return new EphemeralFeedStore(clock, timingUtils, new FeedStoreHelper());
   }
 }

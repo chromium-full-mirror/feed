@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -93,6 +94,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
 
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
+  private FakeMainThreadRunner mainThreadRunner;
 
   @Before
   public void setUp() throws Exception {
@@ -105,10 +107,11 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             taskQueueClock,
             false);
     taskQueue.initialize(() -> {});
+    mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
   }
 
   @Override
-  protected Store getStore() {
+  protected Store getStore(MainThreadRunner mainThreadRunner) {
     return new FeedStore(
         timingUtils,
         extensionRegistry,
@@ -117,12 +120,13 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
         threadUtils,
         taskQueue,
         clock,
-        basicLoggingApi);
+        basicLoggingApi,
+        this.mainThreadRunner);
   }
 
   @Test
   public void testSwitchToEphemeralMode() {
-    FeedStore store = (FeedStore) getStore();
+    FeedStore store = (FeedStore) getStore(mainThreadRunner);
     assertThat(store.isEphemeralMode()).isFalse();
     store.switchToEphemeralMode();
     assertThat(store.isEphemeralMode()).isTrue();
@@ -131,7 +135,7 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
 
   @Test
   public void testSwitchToEphemeralMode_listeners() {
-    FeedStore store = (FeedStore) getStore();
+    FeedStore store = (FeedStore) getStore(mainThreadRunner);
     assertThat(store.isEphemeralMode()).isFalse();
 
     store.registerObserver(listener);
@@ -155,7 +159,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             threadUtils,
             taskQueue,
             clock,
-            basicLoggingApi);
+            basicLoggingApi,
+            mainThreadRunner);
     store.onLifecycleEvent(LifecycleEvent.ENTER_BACKGROUND);
     verifyZeroInteractions(journalStorageSpy, contentStorageSpy);
   }
@@ -174,7 +179,8 @@ public class FeedStoreTest extends AbstractFeedStoreTest {
             threadUtils,
             taskQueue,
             clock,
-            basicLoggingApi);
+            basicLoggingApi,
+            mainThreadRunner);
     store.switchToEphemeralMode();
     reset(journalStorageSpy, contentStorageSpy);
 

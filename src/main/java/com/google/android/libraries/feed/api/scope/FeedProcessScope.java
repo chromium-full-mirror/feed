@@ -452,7 +452,8 @@ public final class FeedProcessScope implements Dumpable {
               threadUtils,
               taskQueue,
               clock,
-              basicLoggingApi);
+              basicLoggingApi,
+              getOrCreateMainThreadRunner());
 
       lifecycleListener.registerObserver(store);
 

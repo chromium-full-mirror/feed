@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.api.store.StoreListener;
 import com.google.android.libraries.feed.api.store.UploadableActionMutation;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.android.libraries.feed.common.feedobservable.FeedObservable;
@@ -71,6 +72,7 @@ public final class FeedStore extends FeedObservable<StoreListener>
 
   // Permanent reference to the persistent store (used for setting off cleanup)
   private final PersistentFeedStore persistentStore;
+  private final MainThreadRunner mainThreadRunner;
   // The current store
   private ClearableStore delegate;
 
@@ -93,12 +95,14 @@ public final class FeedStore extends FeedObservable<StoreListener>
       ThreadUtils threadUtils,
       TaskQueue taskQueue,
       Clock clock,
-      BasicLoggingApi basicLoggingApi) {
+      BasicLoggingApi basicLoggingApi,
+      MainThreadRunner mainThreadRunner) {
     this.taskQueue = taskQueue;
     this.clock = clock;
     this.timingUtils = timingUtils;
     this.threadUtils = threadUtils;
     this.basicLoggingApi = basicLoggingApi;
+    this.mainThreadRunner = mainThreadRunner;
 
     this.persistentStore =
         new PersistentFeedStore(
@@ -237,7 +241,9 @@ public final class FeedStore extends FeedObservable<StoreListener>
           listener.onSwitchToEphemeralMode();
         }
       }
-      basicLoggingApi.onInternalError(InternalFeedError.SWITCH_TO_EPHEMERAL);
+      mainThreadRunner.execute(
+          "log ephemeral switch",
+          () -> basicLoggingApi.onInternalError(InternalFeedError.SWITCH_TO_EPHEMERAL));
     }
   }
 

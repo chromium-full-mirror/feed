@@ -27,6 +27,8 @@ import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
 import com.google.android.libraries.feed.feedstore.testing.AbstractClearableFeedStoreTest;
 import com.google.android.libraries.feed.feedstore.testing.DelegatingContentStorage;
@@ -65,14 +67,16 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
   private final FeedExtensionRegistry extensionRegistry = new FeedExtensionRegistry(ArrayList::new);
   private final ContentStorageDirect contentStorage = new InMemoryContentStorage();
   private final JournalStorageDirect journalStorage = new InMemoryJournalStorage();
+  private FakeMainThreadRunner mainThreadRunner;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+    mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
   }
 
   @Override
-  protected Store getStore() {
+  protected Store getStore(MainThreadRunner mainThreadRunner) {
     return new PersistentFeedStore(
         timingUtils,
         extensionRegistry,
@@ -184,7 +188,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void clearStorage_allStorage() {
-    PersistentFeedStore store = (PersistentFeedStore) getStore();
+    PersistentFeedStore store = (PersistentFeedStore) getStore(mainThreadRunner);
 
     /*
     SETUP
@@ -330,7 +334,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void uploadActions_removedBeforeUpserted_stillUpserts() {
-    PersistentFeedStore store = (PersistentFeedStore) getStore();
+    PersistentFeedStore store = (PersistentFeedStore) getStore(mainThreadRunner);
 
     CommitResult commitResult =
         store
@@ -361,7 +365,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void uploadActions_removedAfterCommittedUpsert_stillRemoves() {
-    PersistentFeedStore store = (PersistentFeedStore) getStore();
+    PersistentFeedStore store = (PersistentFeedStore) getStore(mainThreadRunner);
 
     CommitResult commitResult =
         store
@@ -393,7 +397,7 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
 
   @Test
   public void uploadActions_removedNonExistantAction_succeeds() {
-    PersistentFeedStore store = (PersistentFeedStore) getStore();
+    PersistentFeedStore store = (PersistentFeedStore) getStore(mainThreadRunner);
 
     CommitResult commitResult =
         store

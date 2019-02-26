@@ -25,6 +25,8 @@ import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionTyp
 import com.google.android.libraries.feed.api.store.SessionMutation;
 import com.google.android.libraries.feed.api.store.Store;
 import com.google.android.libraries.feed.common.Result;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
+import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.testing.RunnableSubject;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
@@ -80,33 +82,38 @@ public abstract class AbstractFeedStoreTest {
           .setStreamStructure(STREAM_STRUCTURE)
           .setStreamPayload(STREAM_PAYLOAD)
           .build();
+  private MainThreadRunner mainThreadRunner = FakeMainThreadRunner.runTasksImmediately();
 
-  /** Provides an instance of the store */
-  protected abstract Store getStore();
+  /**
+   * Provides an instance of the store
+   *
+   * @param mainThreadRunner
+   */
+  protected abstract Store getStore(MainThreadRunner mainThreadRunner);
 
   @Test
   public void testMinimalStore() {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     assertThat(store.getHeadSession()).isNotNull();
   }
 
   @Test
   public void testContentMutation() {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     ContentMutation contentMutation = store.editContent();
     assertThat(contentMutation).isNotNull();
   }
 
   @Test
   public void newStoreHasHeadSession() throws Exception {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     StreamSession newSession = store.getHeadSession();
     assertThat(newSession).isNotNull();
   }
 
   @Test
   public void addStructureOperationToSession() throws Exception {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     StreamSession headSession = store.getHeadSession();
     SessionMutation mutation = store.editSession(headSession);
     mutation.add(STREAM_DATA_OPERATION.getStreamStructure());
@@ -122,7 +129,7 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void addContentOperationToSession() throws Exception {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     ContentMutation mutation = store.editContent();
     mutation.add(PAYLOAD_CONTENT_ID, STREAM_DATA_OPERATION.getStreamPayload());
     CommitResult result = mutation.commit();
@@ -132,7 +139,7 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void createNewSession() throws Exception {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     StreamSession headSession = store.getHeadSession();
     SessionMutation mutation = store.editSession(headSession);
     mutation.add(STREAM_STRUCTURE);
@@ -153,7 +160,7 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void removeSession() throws Exception {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     StreamSession headSession = store.getHeadSession();
     SessionMutation mutation = store.editSession(headSession);
     mutation.add(STREAM_STRUCTURE);
@@ -173,7 +180,7 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void clearHead() throws Exception {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     StreamSession headSession = store.getHeadSession();
     SessionMutation mutation = store.editSession(headSession);
     mutation.add(STREAM_STRUCTURE);
@@ -190,7 +197,7 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void getSessions() throws Exception {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     StreamSession headSession = store.getHeadSession();
     SessionMutation mutation = store.editSession(headSession);
     mutation.add(STREAM_STRUCTURE);
@@ -227,7 +234,7 @@ public abstract class AbstractFeedStoreTest {
         StreamPayload.newBuilder()
             .setStreamFeature(StreamFeature.newBuilder().setContentId(PAYLOAD_CONTENT_ID))
             .build();
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
 
     CommitResult commitResult = store.editContent().add(PAYLOAD_CONTENT_ID, streamPayload).commit();
     assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
@@ -247,7 +254,7 @@ public abstract class AbstractFeedStoreTest {
   public void getSharedStates() throws Exception {
     StreamSharedState streamSharedState =
         StreamSharedState.newBuilder().setContentId(PAYLOAD_CONTENT_ID).build();
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     store
         .editContent()
         .add(
@@ -266,7 +273,7 @@ public abstract class AbstractFeedStoreTest {
     List<String> contentIds = new ArrayList<>();
     contentIds.add(PAYLOAD_CONTENT_ID);
 
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     Result<List<PayloadWithId>> payloadsResult = store.getPayloads(contentIds);
     assertThat(payloadsResult.isSuccessful()).isTrue();
     List<PayloadWithId> payloads = payloadsResult.getValue();
@@ -277,7 +284,7 @@ public abstract class AbstractFeedStoreTest {
   public void deleteHead_notAllowed() throws Exception {
     RunnableSubject.assertThatRunnable(
             () -> {
-              Store store = getStore();
+              Store store = getStore(mainThreadRunner);
               store.removeSession(StreamSession.newBuilder().setStreamToken("$HEAD").build());
             })
         .throwsAnExceptionOfType(IllegalStateException.class);
@@ -285,14 +292,14 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void editSemanticProperties() {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     assertThat(store.editSemanticProperties()).isNotNull();
   }
 
   @Test
   public void getSemanticProperties() {
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     store.editSemanticProperties().add(PAYLOAD_CONTENT_ID, semanticData).commit();
     Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
         store.getSemanticProperties(Collections.singletonList(PAYLOAD_CONTENT_ID));
@@ -306,7 +313,7 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void getSemanticProperties_requestDifferentKey() {
     ByteString semanticData = ByteString.copyFromUtf8("helloWorld");
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     store.editSemanticProperties().add(PAYLOAD_CONTENT_ID, semanticData).commit();
     Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
         store.getSemanticProperties(Collections.singletonList(OPERATION_CONTENT_ID));
@@ -317,7 +324,7 @@ public abstract class AbstractFeedStoreTest {
 
   @Test
   public void getSemanticProperties_doesNotExist() {
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     Result<List<SemanticPropertiesWithId>> semanticPropertiesResult =
         store.getSemanticProperties(Collections.singletonList(PAYLOAD_CONTENT_ID));
     assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
@@ -328,7 +335,7 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void getDismissActions() {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
     Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();
     assertThat(dismissActionsResult.isSuccessful()).isTrue();
@@ -342,7 +349,7 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void getDismissActions_notIncludedInSessions() {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
     Result<List<StreamSession>> allSessionsResult = store.getAllSessions();
     assertThat(allSessionsResult.isSuccessful()).isTrue();
@@ -353,7 +360,7 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void getDismissActions_multipleDismisses() {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     store
         .editLocalActions()
         .add(ActionType.DISMISS, OPERATION_CONTENT_ID)
@@ -374,7 +381,7 @@ public abstract class AbstractFeedStoreTest {
   @Test
   public void getDismissActions_expired() {
     when(clock.currentTimeMillis()).thenReturn(START_TIME_MILLIS);
-    Store store = getStore();
+    Store store = getStore(mainThreadRunner);
     store.editLocalActions().add(ActionType.DISMISS, OPERATION_CONTENT_ID).commit();
     when(clock.currentTimeMillis()).thenReturn(THREE_DAYS_AFTER_START_TIME_MILLIS);
     Result<List<StreamLocalAction>> dismissActionsResult = store.getAllDismissLocalActions();

@@ -123,7 +123,8 @@ public class SessionManagerMutationTest {
             threadUtils,
             taskQueue,
             clock,
-            basicLoggingApi);
+            basicLoggingApi,
+            FakeMainThreadRunner.runTasksImmediately());
     storeSpy = spy(new DelegatingStore(store));
     SessionFactory sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);

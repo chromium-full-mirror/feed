@@ -571,7 +571,8 @@ public class FeedSessionManagerTest {
             threadUtils,
             taskQueue,
             clock,
-            basicLoggingApi);
+            basicLoggingApi,
+            FakeMainThreadRunner.runTasksImmediately());
     FeedSessionManager fsm =
         new FeedSessionManagerFactory(
                 taskQueue,
@@ -600,7 +601,8 @@ public class FeedSessionManagerTest {
                 threadUtils,
                 taskQueue,
                 clock,
-                basicLoggingApi)));
+                basicLoggingApi,
+                FakeMainThreadRunner.runTasksImmediately())));
   }
 
   private FeedSessionManager getUninitializedSessionManager(Store feedStore) {

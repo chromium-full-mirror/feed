@@ -118,7 +118,8 @@ public class InfrastructureIntegrationScope {
             threadUtils,
             taskQueue,
             clock,
-            fakeBasicLoggingApi);
+            fakeBasicLoggingApi,
+            mainThreadRunner);
     feedProtocolAdapter = new FeedProtocolAdapter(timingUtils);
     fakeRequestManager = new FakeRequestManager(feedProtocolAdapter, requestDelayMs);
     feedSessionManager =

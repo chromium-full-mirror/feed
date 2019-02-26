@@ -19,6 +19,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.store.Store;
+import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.protoextensions.FeedExtensionRegistry;
@@ -54,7 +55,7 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
   }
 
   @Override
-  protected Store getStore() {
+  protected Store getStore(MainThreadRunner mainThreadRunner) {
     TaskQueue taskQueue =
         new TaskQueue(
             MoreExecutors.directExecutor(),
@@ -71,7 +72,8 @@ public class FeedStoreEphemeralModeTest extends AbstractFeedStoreTest {
             threadUtils,
             taskQueue,
             clock,
-            basicLoggingApi);
+            basicLoggingApi,
+            mainThreadRunner);
     feedStore.switchToEphemeralMode();
     return feedStore;
   }

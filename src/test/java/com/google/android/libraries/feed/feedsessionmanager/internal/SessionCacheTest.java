@@ -371,7 +371,8 @@ public class SessionCacheTest {
                 threadUtils,
                 taskQueue,
                 clock,
-                basicLoggingApi));
+                basicLoggingApi,
+                FakeMainThreadRunner.runTasksImmediately()));
     storeSpy = spy(store);
     sessionFactory =
         new SessionFactory(storeSpy, taskQueue, timingUtils, threadUtils, configuration);
