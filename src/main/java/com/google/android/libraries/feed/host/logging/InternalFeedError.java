@@ -16,7 +16,13 @@ package com.google.android.libraries.feed.host.logging;
 
 import android.support.annotation.IntDef;
 
-/** Represents internal errors of the Feed libraries. */
+/**
+ * Represents internal errors of the Feed libraries.
+ *
+ * <p>When adding new values, the value of {@link InternalFeedError.NEXT_VALUE} should be used and
+ * incremented. When removing values, {@link InternalFeedError.NEXT_VALUE} should not be changed,
+ * and those values should not be reused.
+ */
 @IntDef({
   InternalFeedError.SWITCH_TO_EPHEMERAL,
   InternalFeedError.NO_URL_FOR_OPEN,
@@ -27,7 +33,8 @@ import android.support.annotation.IntDef;
   InternalFeedError.CLUSTER_CHILD_MISSING_FEATURE,
   InternalFeedError.CLUSTER_CHILD_NOT_CARD,
   InternalFeedError.CARD_CHILD_MISSING_FEATURE,
-  InternalFeedError.NULL_SHARED_STATES
+  InternalFeedError.NULL_SHARED_STATES,
+  InternalFeedError.NEXT_VALUE
 })
 public @interface InternalFeedError {
 
@@ -60,4 +67,7 @@ public @interface InternalFeedError {
 
   /** Represents a failure to load shared states for Piet content. */
   int NULL_SHARED_STATES = 9;
+
+  /** The next value that should be used when adding additional values to the IntDef. */
+  int NEXT_VALUE = 10;
 }
