@@ -26,7 +26,7 @@ android_local_test(
         "//src/main/proto/search/now/ui/action:piet_extensions_java_proto_lite",
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
-        "@com_google_guava_guava//jar",
+        "@com_google_guava_guava_android//jar",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
         "@robolectric//bazel:robolectric",

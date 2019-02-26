@@ -76,12 +76,12 @@ maven_jar(
 
 maven_jar(
     name = "com_google_truth_truth",
-    artifact = "com.google.truth:truth:0.39",
+    artifact = "com.google.truth:truth:0.42",
 )
 
 maven_jar(
     name = "com_google_truth_liteproto_extension",
-    artifact = "com.google.truth.extensions:truth-liteproto-extension:0.39"
+    artifact = "com.google.truth.extensions:truth-liteproto-extension:0.42"
 )
 
 maven_jar(
@@ -102,4 +102,9 @@ maven_jar(
 maven_jar(
     name = "javax_inject_javax_inject",
     artifact = "javax.inject:javax.inject:1",
+)
+
+maven_jar(
+    name = "com_googlecode_java_diff_utils_diffutils",
+    artifact = "com.googlecode.java-diff-utils:diffutils:1.3.0",
 )

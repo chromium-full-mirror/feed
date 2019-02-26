@@ -46,7 +46,7 @@ android_local_test(
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent/testing",
         "//src/main/java/com/google/android/libraries/feed/common/time",
-        "@com_google_guava_guava//jar",
+        "@com_google_guava_guava_android//jar",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
         "@robolectric//bazel:robolectric",

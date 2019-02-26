@@ -13,7 +13,7 @@ android_local_test(
     deps = [
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/publicapi/menumeasurer",
-        "@com_google_guava_guava//jar",
+        "@com_google_guava_guava_android//jar",
         "@com_google_truth_truth//jar",
         "@robolectric//bazel:robolectric",
     ],
