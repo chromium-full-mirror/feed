@@ -18,7 +18,7 @@ package com.google.android.libraries.feed.sharedstream.logging;
 public class OneShotVisibilityLoggingListener implements LoggingListener {
 
   private final LoggingListener loggingListener;
-  private boolean viewLogged;
+  protected boolean viewLogged;
 
   public OneShotVisibilityLoggingListener(LoggingListener loggingListener) {
     this.loggingListener = loggingListener;

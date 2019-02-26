@@ -31,6 +31,8 @@ import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.Clu
 import com.google.android.libraries.feed.basicstream.internal.viewholders.FeedViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.ViewHolderType;
+import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ResettableOneShotVisibilityLoggingListener;
+import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.CancelableTask;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -46,7 +48,6 @@ import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.sharedstream.constants.Constants;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
-import com.google.android.libraries.feed.sharedstream.logging.OneShotVisibilityLoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.StreamContentLoggingData;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
@@ -84,12 +85,17 @@ public class ContentDriver extends LeafFeatureDriver
   private final MainThreadRunner mainThreadRunner;
   private final long viewDelayMs;
   private final HashMap<Integer, CancelableTask> viewActionTaskMap = new HashMap<>();
+  private final ViewLoggingUpdater viewLoggingUpdater;
+  private final ResettableOneShotVisibilityLoggingListener loggingListener;
 
   private boolean availableOffline;
-  /*@Nullable*/ private LoggingListener loggingListener;
   /*@Nullable*/ private PietViewHolder viewHolder;
 
-  @SuppressWarnings("nullness:argument.type.incompatible")
+  // TODO: Remove these suppressions when drivers have a proper lifecycle.
+  @SuppressWarnings({
+    "nullness:argument.type.incompatible",
+    "nullness:assignment.type.incompatible"
+  })
   ContentDriver(
       ActionApi actionApi,
       ActionManager actionManager,
@@ -104,7 +110,8 @@ public class ContentDriver extends LeafFeatureDriver
       ContentChangedListener contentChangedListener,
       ContextMenuManager contextMenuManager,
       MainThreadRunner mainThreadRunner,
-      Configuration configuration) {
+      Configuration configuration,
+      ViewLoggingUpdater viewLoggingUpdater) {
     this.mainThreadRunner = mainThreadRunner;
     viewDelayMs =
         configuration.getValueOrDefault(
@@ -142,12 +149,16 @@ public class ContentDriver extends LeafFeatureDriver
     offlineStatusConsumer = new OfflineStatusConsumer();
     streamOfflineMonitor.addOfflineStatusConsumer(contentUrl, offlineStatusConsumer);
     this.contentChangedListener = contentChangedListener;
+    this.viewLoggingUpdater = viewLoggingUpdater;
+    loggingListener = new ResettableOneShotVisibilityLoggingListener(this);
+    viewLoggingUpdater.registerObserver(loggingListener);
   }
 
   @Override
   public void onDestroy() {
     streamOfflineMonitor.removeOfflineStatusConsumer(contentUrl, offlineStatusConsumer);
     removeAllPendingTasks();
+    viewLoggingUpdater.unregisterObserver(loggingListener);
   }
 
   @Override
@@ -208,9 +219,6 @@ public class ContentDriver extends LeafFeatureDriver
   public void bind(FeedViewHolder viewHolder) {
     if (!(viewHolder instanceof PietViewHolder)) {
       throw new AssertionError();
-    }
-    if (loggingListener == null) {
-      loggingListener = new OneShotVisibilityLoggingListener(this);
     }
 
     this.viewHolder = (PietViewHolder) viewHolder;

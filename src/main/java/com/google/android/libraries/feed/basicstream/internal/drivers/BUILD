@@ -18,6 +18,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/pendingdismiss",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/scroll",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewholders",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewloggingupdater",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/functional",
@@ -41,7 +42,7 @@ android_library(
         "//src/main/proto/search/now/ui/stream:stream_java_proto_lite",
         "//src/main/proto/search/now/ui/stream:stream_swipe_extension_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
-        gmaven_artifact("com.android.support:support_annotations:jar:28.0.0"),
+        gmaven_artifact("com.android.support:support_annotations:jar:28.0.0"),  # buildcleaner: keep
         gmaven_artifact("com.android.support:recyclerview_v7:aar:28.0.0"),
         "@com_google_code_findbugs_jsr305//jar",
     ],

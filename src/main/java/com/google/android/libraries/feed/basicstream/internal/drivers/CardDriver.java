@@ -26,6 +26,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
+import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.host.action.ActionApi;
@@ -54,6 +55,7 @@ public class CardDriver implements FeatureDriver {
   private final ContextMenuManager contextMenuManager;
   private final MainThreadRunner mainThreadRunner;
   private final Configuration configuration;
+  private final ViewLoggingUpdater viewLoggingUpdater;
 
   /*@Nullable*/ private ContentDriver contentDriver;
 
@@ -70,7 +72,8 @@ public class CardDriver implements FeatureDriver {
       ContentChangedListener contentChangedListener,
       ContextMenuManager contextMenuManager,
       MainThreadRunner mainThreadRunner,
-      Configuration configuration) {
+      Configuration configuration,
+      ViewLoggingUpdater viewLoggingUpdater) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -84,6 +87,7 @@ public class CardDriver implements FeatureDriver {
     this.contextMenuManager = contextMenuManager;
     this.mainThreadRunner = mainThreadRunner;
     this.configuration = configuration;
+    this.viewLoggingUpdater = viewLoggingUpdater;
   }
 
   @Override
@@ -148,6 +152,7 @@ public class CardDriver implements FeatureDriver {
         contentChangedListener,
         contextMenuManager,
         mainThreadRunner,
-        configuration);
+        configuration,
+        viewLoggingUpdater);
   }
 }

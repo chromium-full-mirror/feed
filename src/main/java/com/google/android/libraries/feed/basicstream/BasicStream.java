@@ -49,6 +49,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerView
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Suppliers;
 import com.google.android.libraries.feed.common.logging.Logger;
@@ -115,6 +116,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final StreamOfflineMonitor streamOfflineMonitor;
   private final MainThreadRunner mainThreadRunner;
   private final KnownContentApi knownContentApi;
+  private final ViewLoggingUpdater viewLoggingUpdater;
 
   private RecyclerView recyclerView;
   private ContextMenuManager contextMenuManager;
@@ -183,6 +185,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             ConfigKey.LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS,
             DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
     this.knownContentApi = knownContentApi;
+    viewLoggingUpdater = createViewLoggingUpdater();
 
     this.pietManager =
         createPietManager(
@@ -356,15 +359,24 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   @Override
   public void setStreamContentVisibility(boolean visible) {
     checkNotNull(adapter, "onCreate must be called before setStreamContentVisibility");
-    // If Stream content was previously not visible, ModelProvider might need to be created.
-    if (!isStreamContentVisible && visible && modelProvider == null) {
-      createModelProviderAndStreamDriver();
+
+    if (visible == isStreamContentVisible) {
+      return;
     }
 
     isStreamContentVisible = visible;
 
-    itemAnimator.setStreamVisibility(visible);
-    adapter.setStreamContentVisible(visible);
+    if (isStreamContentVisible) {
+      viewLoggingUpdater.resetViewTracking();
+    }
+
+    // If Stream content was previously not visible, ModelProvider might need to be created.
+    if (isStreamContentVisible && modelProvider == null) {
+      createModelProviderAndStreamDriver();
+    }
+
+    itemAnimator.setStreamVisibility(isStreamContentVisible);
+    adapter.setStreamContentVisible(isStreamContentVisible);
   }
 
   @Override
@@ -769,7 +781,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         contextMenuManager,
         restoring,
         isInitialLoad,
-        mainThreadRunner);
+        mainThreadRunner,
+        viewLoggingUpdater);
   }
 
   @VisibleForTesting
@@ -840,6 +853,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     }
     manager.setView(recyclerView);
     return manager;
+  }
+
+  @VisibleForTesting
+  ViewLoggingUpdater createViewLoggingUpdater(/*@UnderInitialization*/ BasicStream this) {
+    return new ViewLoggingUpdater();
   }
 
   @IntDef({

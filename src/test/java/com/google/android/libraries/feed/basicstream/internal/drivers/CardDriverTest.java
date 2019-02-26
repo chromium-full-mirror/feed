@@ -30,6 +30,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.stream.ContentChangedListener;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
+import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
@@ -125,7 +126,8 @@ public class CardDriverTest {
             POSITION,
             contentDriverChild,
             mock(StreamOfflineMonitor.class),
-            mock(ContextMenuManager.class));
+            mock(ContextMenuManager.class),
+            mock(ViewLoggingUpdater.class));
   }
 
   @Test
@@ -210,7 +212,8 @@ public class CardDriverTest {
         int position,
         ContentDriver childContentDriver,
         StreamOfflineMonitor streamOfflineMonitor,
-        ContextMenuManager contextMenuManager) {
+        ContextMenuManager contextMenuManager,
+        ViewLoggingUpdater viewLoggingUpdater) {
       super(
           actionApi,
           actionManager,
@@ -224,7 +227,8 @@ public class CardDriverTest {
           contentChangedListener,
           contextMenuManager,
           mainThreadRunner,
-          configuration);
+          configuration,
+          viewLoggingUpdater);
       this.child = childContentDriver;
     }
 

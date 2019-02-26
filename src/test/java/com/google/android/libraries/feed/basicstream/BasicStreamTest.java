@@ -60,6 +60,7 @@ import com.google.android.libraries.feed.basicstream.internal.StreamRecyclerView
 import com.google.android.libraries.feed.basicstream.internal.StreamSavedInstanceStateProto.StreamSavedInstanceState;
 import com.google.android.libraries.feed.basicstream.internal.drivers.StreamDriver;
 import com.google.android.libraries.feed.basicstream.internal.scroll.ScrollRestorer;
+import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.testing.FakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
@@ -147,6 +148,7 @@ public class BasicStreamTest {
   @Mock private ScrollRestorer scrollRestorer;
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContextMenuManagerImpl contextMenuManager;
+  @Mock private ViewLoggingUpdater viewLoggingUpdater;
 
   private FakeKnownContentApi knownContentApi;
   private LinearLayoutManagerWithFakePositioning layoutManager;
@@ -824,6 +826,26 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testSetStreamContentVisibility_resetsViewLogging() {
+    basicStream.setStreamContentVisibility(false);
+    basicStream.onShow();
+
+    basicStream.setStreamContentVisibility(true);
+
+    verify(viewLoggingUpdater).resetViewTracking();
+  }
+
+  @Test
+  public void testSetStreamContentVisibility_trueMultipleTimes_doesNotResetViewLogging() {
+    basicStream.setStreamContentVisibility(true);
+    basicStream.onShow();
+
+    basicStream.setStreamContentVisibility(true);
+
+    verify(viewLoggingUpdater, never()).resetViewTracking();
+  }
+
+  @Test
   public void testTriggerRefresh() {
     basicStream.onShow();
 
@@ -1187,6 +1209,11 @@ public class BasicStreamTest {
     ContextMenuManagerImpl createContextMenuManager(
         RecyclerView recyclerView, MenuMeasurer menuMeasurer) {
       return contextMenuManager;
+    }
+
+    @Override
+    ViewLoggingUpdater createViewLoggingUpdater() {
+      return viewLoggingUpdater;
     }
   }
 

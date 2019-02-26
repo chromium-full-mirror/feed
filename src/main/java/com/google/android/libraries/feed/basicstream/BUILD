@@ -19,6 +19,7 @@ android_library(
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/drivers",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/scroll",
+        "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewloggingupdater",
         "//src/main/java/com/google/android/libraries/feed/common",
         "//src/main/java/com/google/android/libraries/feed/common/concurrent",
         "//src/main/java/com/google/android/libraries/feed/common/functional",

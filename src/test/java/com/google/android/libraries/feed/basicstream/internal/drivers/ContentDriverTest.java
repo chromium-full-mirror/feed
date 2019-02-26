@@ -38,6 +38,7 @@ import com.google.android.libraries.feed.basicstream.internal.actions.StreamActi
 import com.google.android.libraries.feed.basicstream.internal.actions.ViewElementActionHandler;
 import com.google.android.libraries.feed.basicstream.internal.pendingdismiss.ClusterPendingDismissHelper;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder;
+import com.google.android.libraries.feed.basicstream.internal.viewloggingupdater.ViewLoggingUpdater;
 import com.google.android.libraries.feed.common.concurrent.testing.ClockBackedFakeMainThreadRunner;
 import com.google.android.libraries.feed.common.functional.Consumer;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -169,6 +170,7 @@ public class ContentDriverTest {
       ClockBackedFakeMainThreadRunner.create(clock);
   private final Configuration configuration =
       new Configuration.Builder().put(ConfigKey.VIEW_MIN_TIME_MS, VIEW_MIN_TIME_MS).build();
+  private ViewLoggingUpdater viewLoggingUpdater;
 
   @Before
   public void setup() {
@@ -180,6 +182,7 @@ public class ContentDriverTest {
     when(modelProvider.getSharedState(CONTENT_ID_2)).thenReturn(STREAM_SHARED_STATE_2);
     when(actionParserFactory.build(Mockito.<Supplier<ContentMetadata>>any()))
         .thenReturn(actionParser);
+    viewLoggingUpdater = new ViewLoggingUpdater();
     contentDriver =
         new ContentDriver(
             actionApi,
@@ -195,7 +198,8 @@ public class ContentDriverTest {
             contentChangedListener,
             contextMenuManager,
             mainThreadRunner,
-            configuration) {
+            configuration,
+            viewLoggingUpdater) {
           @Override
           StreamActionApiImpl createStreamActionApi(
               ActionApi actionApi,
@@ -261,7 +265,7 @@ public class ContentDriverTest {
   }
 
   @Test
-  public void testBind_visibilityListenerLogsContentViewed() {
+  public void testOnViewVisible_visibilityListenerLogsContentViewed() {
     contentDriver.bind(pietViewHolder);
 
     ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
@@ -282,7 +286,30 @@ public class ContentDriverTest {
   }
 
   @Test
-  public void testBind_visibilityListenerLogsContentClicked() {
+  public void testOnViewVisible_resetVisibility_logsTwice() {
+    contentDriver.bind(pietViewHolder);
+
+    ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
+        ArgumentCaptor.forClass(LoggingListener.class);
+
+    verify(pietViewHolder)
+        .bind(
+            any(Frame.class),
+            anyListOf(PietSharedState.class),
+            any(StreamActionApi.class),
+            any(FeedActionPayload.class),
+            visibilityListenerCaptor.capture(),
+            any(ActionParser.class));
+    LoggingListener listener = visibilityListenerCaptor.getValue();
+    listener.onViewVisible();
+    viewLoggingUpdater.resetViewTracking();
+    listener.onViewVisible();
+
+    verify(basicLoggingApi, times(2)).onContentViewed(CONTENT_LOGGING_DATA);
+  }
+
+  @Test
+  public void testOnContentClicked_visibilityListenerLogsContentClicked() {
     contentDriver.bind(pietViewHolder);
 
     ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
@@ -303,7 +330,7 @@ public class ContentDriverTest {
   }
 
   @Test
-  public void testBind_visibilityListenerLogsContentSwiped() {
+  public void testOnContentSwipe_visibilityListenerLogsContentSwiped() {
     contentDriver.bind(pietViewHolder);
 
     ArgumentCaptor<LoggingListener> visibilityListenerCaptor =
@@ -343,7 +370,8 @@ public class ContentDriverTest {
             contentChangedListener,
             contextMenuManager,
             mainThreadRunner,
-            configuration);
+            configuration,
+            viewLoggingUpdater);
 
     contentDriver.bind(pietViewHolder);
 
@@ -380,7 +408,8 @@ public class ContentDriverTest {
             contentChangedListener,
             contextMenuManager,
             mainThreadRunner,
-            configuration);
+            configuration,
+            viewLoggingUpdater);
 
     contentDriver.bind(pietViewHolder);
 
@@ -414,7 +443,8 @@ public class ContentDriverTest {
             contentChangedListener,
             contextMenuManager,
             mainThreadRunner,
-            configuration);
+            configuration,
+            viewLoggingUpdater);
 
     contentDriver.bind(pietViewHolder);
 
@@ -459,7 +489,8 @@ public class ContentDriverTest {
             contentChangedListener,
             contextMenuManager,
             mainThreadRunner,
-            configuration);
+            configuration,
+            viewLoggingUpdater);
 
     contentDriver.bind(pietViewHolder);
 
@@ -613,7 +644,8 @@ public class ContentDriverTest {
             contentChangedListener,
             contextMenuManager,
             mainThreadRunner,
-            configuration);
+            configuration,
+            viewLoggingUpdater);
 
     ArgumentCaptor<Supplier<ContentMetadata>> contentMetadataSupplierCaptor =
         ArgumentCaptor.forClass((Class<Supplier<ContentMetadata>>) (Class) Supplier.class);

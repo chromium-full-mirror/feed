@@ -27,6 +27,7 @@ public class VisibilityMonitor
     implements ViewTreeObserver.OnPreDrawListener, View.OnAttachStateChangeListener {
 
   public static final double DEFAULT_VIEW_LOG_THRESHOLD = .66;
+  private static final String TAG = "VisibilityMonitor";
 
   private final View view;
   private final double viewLogThreshold;
@@ -69,6 +70,7 @@ public class VisibilityMonitor
 
   @Override
   public void onViewDetachedFromWindow(View v) {
+    visible = false;
     view.getViewTreeObserver().removeOnPreDrawListener(this);
   }
 
