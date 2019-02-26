@@ -74,6 +74,16 @@ public class Configuration {
     ConfigKey.USE_SECONDARY_PAGE_REQUEST,
     // Time in ms for the minimum amount of time a view must be onscreen to count as a view.
     ConfigKey.VIEW_MIN_TIME_MS,
+    // The endpoint used for recording uploaded actions to the server.
+    ConfigKey.FEED_ACTION_SERVER_ENDPOINT,
+    // The method call to the feed action server  (put/post/etc)
+    ConfigKey.FEED_ACTION_SERVER_METHOD,
+    // If the feedActionServer response is length prefixed
+    ConfigKey.FEED_ACTION_SERVER_RESPONSE_LENGTH_PREFIXED,
+    // Maximum number of actions to be uploaded to the enpoint in a single request.
+    ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST,
+    // maximum size of the request to be uploaded to the enpoint in a single request.
+    ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST,
   })
   public @interface ConfigKey {
     String ABANDON_RESTORE_BELOW_FOLD = "abandon_restore_below_fold";
@@ -104,6 +114,13 @@ public class Configuration {
     String CARD_MENU_TOOLTIP_ELIGIBLE = "card_menu_tooltip_eligible";
     String USE_SECONDARY_PAGE_REQUEST = "use_secondary_page_request";
     String VIEW_MIN_TIME_MS = "view_min_time_ms";
+    String FEED_ACTION_SERVER_ENDPOINT = "feed_action_server_endpoint";
+    String FEED_ACTION_SERVER_METHOD = "feed_action_server_method";
+    String FEED_ACTION_SERVER_RESPONSE_LENGTH_PREFIXED =
+        "feed_action_server_response_length_prefixed";
+    String FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST =
+        "feed_action_server_max_actions_per_request";
+    String FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST = "feed_action_server_max_size_per_request";
   }
 
   private final HashMap<String, Object> values;
