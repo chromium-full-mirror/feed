@@ -14,6 +14,7 @@
 
 package com.google.android.libraries.feed.api.store;
 
+import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.common.Result;
@@ -62,6 +63,9 @@ public interface Store {
   /** Gets all semantic properties objects associated with a given list of contentIds */
   Result<List<SemanticPropertiesWithId>> getSemanticProperties(List<String> contentIds);
 
+  /** Gets all action properties objects associated with a given list of contentIds */
+  Result<List<ActionPropertiesWithId>> getActionProperties(List<String> contentIds);
+
   /** Gets an set of ALL {@link UploadableStreamAction}. Note that this includes expired actions. */
   Result<Set<StreamUploadableAction>> getAllUploadableActions();
 
@@ -98,6 +102,9 @@ public interface Store {
 
   /** Returns a semantic properties mutation used to modify the properties in the store */
   SemanticPropertiesMutation editSemanticProperties();
+
+  /** Returns a action properties mutation used to modify the properties in the store */
+  ActionPropertiesMutation editActionProperties();
 
   /** Returns an action mutation used to modify actions in the store */
   LocalActionMutation editLocalActions();

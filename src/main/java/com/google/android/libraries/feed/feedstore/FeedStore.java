@@ -14,10 +14,12 @@
 
 package com.google.android.libraries.feed.feedstore;
 
+import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
 import com.google.android.libraries.feed.api.lifecycle.Resettable;
+import com.google.android.libraries.feed.api.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
@@ -142,6 +144,11 @@ public final class FeedStore extends FeedObservable<StoreListener>
   }
 
   @Override
+  public Result<List<ActionPropertiesWithId>> getActionProperties(List<String> contentIds) {
+    return delegate.getActionProperties(contentIds);
+  }
+
+  @Override
   public Result<List<StreamLocalAction>> getAllDismissLocalActions() {
     return delegate.getAllDismissLocalActions();
   }
@@ -184,6 +191,11 @@ public final class FeedStore extends FeedObservable<StoreListener>
   @Override
   public SemanticPropertiesMutation editSemanticProperties() {
     return delegate.editSemanticProperties();
+  }
+
+  @Override
+  public ActionPropertiesMutation editActionProperties() {
+    return delegate.editActionProperties();
   }
 
   @Override

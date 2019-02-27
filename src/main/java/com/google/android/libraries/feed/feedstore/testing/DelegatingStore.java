@@ -14,8 +14,10 @@
 
 package com.google.android.libraries.feed.feedstore.testing;
 
+import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
+import com.google.android.libraries.feed.api.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
@@ -67,6 +69,11 @@ public class DelegatingStore implements Store {
   }
 
   @Override
+  public Result<List<ActionPropertiesWithId>> getActionProperties(List<String> contentIds) {
+    return store.getActionProperties(contentIds);
+  }
+
+  @Override
   public Result<List<StreamLocalAction>> getAllDismissLocalActions() {
     return store.getAllDismissLocalActions();
   }
@@ -109,6 +116,11 @@ public class DelegatingStore implements Store {
   @Override
   public SemanticPropertiesMutation editSemanticProperties() {
     return store.editSemanticProperties();
+  }
+
+  @Override
+  public ActionPropertiesMutation editActionProperties() {
+    return store.editActionProperties();
   }
 
   @Override

@@ -38,6 +38,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProviderFactory;
 import com.google.android.libraries.feed.api.protocoladapter.ProtocolAdapter;
 import com.google.android.libraries.feed.api.requestmanager.RequestManager;
+import com.google.android.libraries.feed.api.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -76,6 +77,8 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
+import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
+import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -392,6 +395,62 @@ public class FeedSessionManagerTest {
   }
 
   @Test
+  public void testEdit_actionProperties() {
+    com.google.android.libraries.feed.api.store.SessionMutation session =
+        mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
+    when(store.editSession(any(StreamSession.class))).thenReturn(session);
+    ContentMutation content = mock(ContentMutation.class);
+    when(content.commit()).thenReturn(CommitResult.SUCCESS);
+    when(store.editContent()).thenReturn(content);
+    SemanticPropertiesMutation semanticPropertiesMutation = mock(SemanticPropertiesMutation.class);
+    when(semanticPropertiesMutation.commit()).thenReturn(CommitResult.SUCCESS);
+    when(store.editSemanticProperties()).thenReturn(semanticPropertiesMutation);
+    ActionPropertiesMutation actionPropertiesMutation = mock(ActionPropertiesMutation.class);
+    when(actionPropertiesMutation.commit()).thenReturn(CommitResult.SUCCESS);
+    when(store.editActionProperties()).thenReturn(actionPropertiesMutation);
+
+    FeedSessionManager sessionManager =
+        new FeedSessionManagerFactory(
+                taskQueue,
+                store,
+                timingUtils,
+                threadUtils,
+                protocolAdapter,
+                requestManager,
+                schedulerApi,
+                configuration,
+                clock,
+                appLifecycleListener)
+            .create();
+    sessionManager.initialize();
+
+    OpaqueActionData actionData =
+        OpaqueActionData.newBuilder()
+            .setExtension(
+                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
+                OpaqueActionDataForTest.newBuilder().setId("id").build())
+            .build();
+    StreamDataOperation streamDataOperation =
+        StreamDataOperation.newBuilder()
+            .setStreamPayload(StreamPayload.newBuilder().setActionData(actionData))
+            .setStreamStructure(
+                StreamStructure.newBuilder()
+                    .setContentId(rootContentId)
+                    .setOperation(Operation.UPDATE_OR_APPEND))
+            .build();
+
+    Consumer<Result<List<StreamDataOperation>>> updateConsumer =
+        sessionManager.getUpdateConsumer(EMPTY_MUTATION);
+    List<StreamDataOperation> operations = new ArrayList<>();
+    operations.add(streamDataOperation);
+    Result<List<StreamDataOperation>> result = Result.success(operations);
+    updateConsumer.accept(result);
+
+    verify(actionPropertiesMutation).add(rootContentId, actionData);
+    verify(actionPropertiesMutation).commit();
+  }
+
+  @Test
   public void testEdit_semanticProperties() {
     com.google.android.libraries.feed.api.store.SessionMutation session =
         mock(com.google.android.libraries.feed.api.store.SessionMutation.class);
@@ -399,7 +458,9 @@ public class FeedSessionManagerTest {
     ContentMutation content = mock(ContentMutation.class);
     when(content.commit()).thenReturn(CommitResult.SUCCESS);
     when(store.editContent()).thenReturn(content);
-
+    ActionPropertiesMutation actionPropertiesMutation = mock(ActionPropertiesMutation.class);
+    when(actionPropertiesMutation.commit()).thenReturn(CommitResult.SUCCESS);
+    when(store.editActionProperties()).thenReturn(actionPropertiesMutation);
     SemanticPropertiesMutation semanticPropertiesMutation = mock(SemanticPropertiesMutation.class);
     when(semanticPropertiesMutation.commit()).thenReturn(CommitResult.SUCCESS);
     when(store.editSemanticProperties()).thenReturn(semanticPropertiesMutation);

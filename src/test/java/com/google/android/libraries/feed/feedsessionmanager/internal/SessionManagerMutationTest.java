@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.util.Pair;
+import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
@@ -62,6 +63,8 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
+import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -227,6 +230,32 @@ public class SessionManagerMutationTest {
     assertThat(result.isSuccessful()).isTrue();
     assertThat(result.getValue()).hasSize(contentIds.size());
     for (SemanticPropertiesWithId payload : result.getValue()) {
+      assertThat(contentIds).contains(payload.contentId);
+    }
+  }
+
+  @Test
+  public void testActionData() {
+    List<String> contentIds = getContentIds(2);
+    OpaqueActionData data =
+        OpaqueActionData.newBuilder()
+            .setExtension(
+                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
+                OpaqueActionDataForTest.newBuilder().setId("id").build())
+            .build();
+    List<Pair<StreamStructure, StreamPayload>> features =
+        getFeatures(contentIds, () -> StreamPayload.newBuilder().setActionData(data).build());
+    List<StreamDataOperation> dataOperations = new ArrayList<>();
+    for (Pair<StreamStructure, StreamPayload> feature : features) {
+      dataOperations.add(getStreamDataOperation(feature.first, feature.second));
+    }
+    MutationCommitter mutationCommitter = getMutationCommitter(EMPTY_CONTEXT);
+    mutationCommitter.accept(Result.success(dataOperations));
+
+    Result<List<ActionPropertiesWithId>> result = storeSpy.getActionProperties(contentIds);
+    assertThat(result.isSuccessful()).isTrue();
+    assertThat(result.getValue()).hasSize(contentIds.size());
+    for (ActionPropertiesWithId payload : result.getValue()) {
       assertThat(contentIds).contains(payload.contentId);
     }
   }

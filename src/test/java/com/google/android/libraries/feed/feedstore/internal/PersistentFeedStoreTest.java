@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
@@ -46,6 +47,8 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
+import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -222,6 +225,32 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
     assertThat(semanticPropertiesResult.isSuccessful()).isTrue();
     assertThat(semanticPropertiesResult.getValue()).hasSize(2);
 
+    // Action properties
+    OpaqueActionData data1 =
+        OpaqueActionData.newBuilder()
+            .setExtension(
+                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
+                OpaqueActionDataForTest.newBuilder().setId(CONTENT_ID).build())
+            .build();
+    OpaqueActionData data2 =
+        OpaqueActionData.newBuilder()
+            .setExtension(
+                OpaqueActionDataForTest.opaqueActionDataForTestExtension,
+                OpaqueActionDataForTest.newBuilder().setId(CONTENT_ID_2).build())
+            .build();
+    commitResult =
+        store.editActionProperties().add(CONTENT_ID, data1).add(CONTENT_ID_2, data2).commit();
+    assertThat(commitResult).isEqualTo(CommitResult.SUCCESS);
+
+    Result<List<ActionPropertiesWithId>> actionPropertiesResult =
+        store.getActionProperties(Arrays.asList(CONTENT_ID, CONTENT_ID_2));
+    assertThat(actionPropertiesResult.isSuccessful()).isTrue();
+    assertThat(actionPropertiesResult.getValue()).hasSize(2);
+    assertThat(actionPropertiesResult.getValue())
+        .containsExactly(
+            new ActionPropertiesWithId(CONTENT_ID, data1),
+            new ActionPropertiesWithId(CONTENT_ID_2, data2));
+
     // Shared State
     commitResult =
         store
@@ -305,6 +334,11 @@ public class PersistentFeedStoreTest extends AbstractClearableFeedStoreTest {
         .containsExactly(
             new SemanticPropertiesWithId(CONTENT_ID, SEMANTIC_PROPERTIES),
             new SemanticPropertiesWithId(CONTENT_ID_2, SEMANTIC_PROPERTIES_2));
+
+    // Action properties
+    actionPropertiesResult = store.getActionProperties(Arrays.asList(CONTENT_ID, CONTENT_ID_2));
+    assertThat(actionPropertiesResult.isSuccessful()).isTrue();
+    assertThat(actionPropertiesResult.getValue()).hasSize(0);
 
     // Shared state
     sharedStatesResult = store.getSharedStates();

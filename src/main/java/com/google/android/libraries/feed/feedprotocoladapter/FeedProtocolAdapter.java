@@ -40,6 +40,7 @@ import com.google.search.now.wire.feed.FeatureProto.Feature;
 import com.google.search.now.wire.feed.FeatureProto.Feature.RenderableUnit;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponseMetadata;
+import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.TokenProto.Token;
@@ -177,6 +178,12 @@ public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
                     operation.getMetadata().getSemanticProperties().getSemanticPropertiesData())
                 .build());
       }
+      if (operation.getMetadata().getActionProperties().hasActionData()) {
+        streamDataOperations.add(
+            createActionDataOperation(
+                    contentId, operation.getMetadata().getActionProperties().getActionData())
+                .build());
+      }
     }
     totalTimeTracker.stop("task", "convertWireProtocol", "mutations", dataOperations.size());
     return Result.success(streamDataOperations);
@@ -296,6 +303,16 @@ public final class FeedProtocolAdapter implements ProtocolAdapter, Dumpable {
       String contentId, ByteString semanticData) {
     return StreamDataOperation.newBuilder()
         .setStreamPayload(StreamPayload.newBuilder().setSemanticData(semanticData))
+        .setStreamStructure(
+            StreamStructure.newBuilder()
+                .setContentId(contentId)
+                .setOperation(Operation.UPDATE_OR_APPEND));
+  }
+
+  private StreamDataOperation.Builder createActionDataOperation(
+      String contentId, OpaqueActionData actionData) {
+    return StreamDataOperation.newBuilder()
+        .setStreamPayload(StreamPayload.newBuilder().setActionData(actionData))
         .setStreamStructure(
             StreamStructure.newBuilder()
                 .setContentId(contentId)

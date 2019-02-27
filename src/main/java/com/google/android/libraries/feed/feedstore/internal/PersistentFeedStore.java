@@ -14,15 +14,18 @@
 
 package com.google.android.libraries.feed.feedstore.internal;
 
+import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.ACTION_PROPERTIES_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.DISMISS_ACTION_JOURNAL;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SEMANTIC_PROPERTIES_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.SHARED_STATE_PREFIX;
 import static com.google.android.libraries.feed.feedstore.internal.FeedStoreConstants.UPLOADABLE_ACTION_PREFIX;
 
 import android.util.Base64;
+import com.google.android.libraries.feed.api.common.ActionPropertiesWithId;
 import com.google.android.libraries.feed.api.common.PayloadWithId;
 import com.google.android.libraries.feed.api.common.SemanticPropertiesWithId;
 import com.google.android.libraries.feed.api.common.ThreadUtils;
+import com.google.android.libraries.feed.api.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.LocalActionMutation;
 import com.google.android.libraries.feed.api.store.LocalActionMutation.ActionType;
@@ -54,6 +57,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -231,6 +235,43 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
+  public Result<List<ActionPropertiesWithId>> getActionProperties(List<String> contentIds) {
+    threadUtils.checkNotMainThread();
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    List<ActionPropertiesWithId> actionPropertiesWithIds = new ArrayList<>(contentIds.size());
+    List<String> contentIdKeys = new ArrayList<>(contentIds.size());
+    for (String contentId : contentIds) {
+      contentIdKeys.add(ACTION_PROPERTIES_PREFIX + contentId);
+    }
+    Result<Map<String, byte[]>> mapResult = contentStorageDirect.get(contentIdKeys);
+
+    if (mapResult.isSuccessful()) {
+      for (Map.Entry<String, byte[]> entry : mapResult.getValue().entrySet()) {
+        String contentId = entry.getKey().replace(ACTION_PROPERTIES_PREFIX, "");
+        if (contentIds.contains(contentId)) {
+          try {
+            actionPropertiesWithIds.add(
+                new ActionPropertiesWithId(
+                    contentId, OpaqueActionData.parseFrom(entry.getValue())));
+          } catch (InvalidProtocolBufferException e) {
+            Logger.e(
+                TAG,
+                e,
+                "Error parsing OpaqueActionData for bytes: %s",
+                Base64.encodeToString(entry.getValue(), Base64.DEFAULT));
+          }
+        }
+      }
+    } else {
+      Logger.e(TAG, "Error fetching action properties for content ids %s", contentIds);
+      tracker.stop("getActionProperties failed", contentIds);
+    }
+
+    tracker.stop("task", "getActionProperties", "size", actionPropertiesWithIds.size());
+    return Result.success(actionPropertiesWithIds);
+  }
+
+  @Override
   public Result<List<StreamLocalAction>> getAllDismissLocalActions() {
     threadUtils.checkNotMainThread();
     ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
@@ -347,6 +388,12 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
   }
 
   @Override
+  public ActionPropertiesMutation editActionProperties() {
+    threadUtils.checkNotMainThread();
+    return new FeedActionPropertiesMutation(this::commitActionPropertiesMutation);
+  }
+
+  @Override
   public LocalActionMutation editLocalActions() {
     threadUtils.checkNotMainThread();
     return new FeedLocalActionMutation(this::commitLocalActionMutation);
@@ -363,6 +410,7 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     Supplier<Set<StreamLocalAction>> dismissActionSupplier =
         () -> {
           Result<List<StreamLocalAction>> dismissActionsResult = getAllDismissLocalActions();
+
           if (!dismissActionsResult.isSuccessful()) {
             // TODO: clean up error condition
             Logger.e(TAG, "Error retrieving dismiss actions for content garbage collection");
@@ -371,11 +419,24 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
             return new HashSet<>(dismissActionsResult.getValue());
           }
         };
+    Supplier<Set<StreamUploadableAction>> uploadableActionSupplier =
+        () -> {
+          Result<Set<StreamUploadableAction>> uploadableActionsResult = getAllUploadableActions();
+
+          if (!uploadableActionsResult.isSuccessful()) {
+            // TODO: clean up error condition
+            Logger.e(TAG, "Error retrieving uploadable actions for content garbage collection");
+            return Collections.emptySet();
+          } else {
+            return uploadableActionsResult.getValue();
+          }
+        };
 
     return new ContentGc(
             accessibleContent,
             reservedContentIds,
             dismissActionSupplier,
+            uploadableActionSupplier,
             contentStorageDirect,
             timingUtils)
         ::gc;
@@ -423,6 +484,20 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
     CommitResult commitResult = contentStorageDirect.commit(mutationBuilder.build());
     tracker.stop(
         "task", "commitSemanticPropertiesMutation", "mutations", semanticPropertiesMap.size());
+    return commitResult;
+  }
+
+  private CommitResult commitActionPropertiesMutation(
+      Map<String, OpaqueActionData> actionPropertiesMap) {
+    threadUtils.checkNotMainThread();
+    ElapsedTimeTracker tracker = timingUtils.getElapsedTimeTracker(TAG);
+    Builder mutationBuilder = new Builder();
+    for (Map.Entry<String, OpaqueActionData> entry : actionPropertiesMap.entrySet()) {
+      mutationBuilder.upsert(
+          ACTION_PROPERTIES_PREFIX + entry.getKey(), entry.getValue().toByteArray());
+    }
+    CommitResult commitResult = contentStorageDirect.commit(mutationBuilder.build());
+    tracker.stop("task", "commitActionPropertiesMutation", "mutations", actionPropertiesMap.size());
     return commitResult;
   }
 

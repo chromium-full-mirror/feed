@@ -23,6 +23,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelError;
 import com.google.android.libraries.feed.api.modelprovider.ModelError.ErrorType;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider;
 import com.google.android.libraries.feed.api.modelprovider.ModelProvider.State;
+import com.google.android.libraries.feed.api.store.ActionPropertiesMutation;
 import com.google.android.libraries.feed.api.store.ContentMutation;
 import com.google.android.libraries.feed.api.store.SemanticPropertiesMutation;
 import com.google.android.libraries.feed.api.store.Store;
@@ -76,6 +77,7 @@ public final class SessionManagerMutation implements Dumpable {
   private int errorCount = 0;
   private int contentCommitErrorCount = 0;
   private int semanticPropertiesCommitErrorCount = 0;
+  private int actionPropertiesCommitErrorCount = 0;
 
   /** Listens for errors which need to be reported to a ModelProvider. */
   public interface ModelErrorObserver {
@@ -136,6 +138,10 @@ public final class SessionManagerMutation implements Dumpable {
     dumper
         .forKey("semanticPropertiesCommitErrorCount")
         .value(semanticPropertiesCommitErrorCount)
+        .compactPrevious();
+    dumper
+        .forKey("actionPropertiesCommitErrorCount")
+        .value(actionPropertiesCommitErrorCount)
         .compactPrevious();
   }
 
@@ -298,6 +304,7 @@ public final class SessionManagerMutation implements Dumpable {
       contentCache.startMutation();
       ContentMutation contentMutation = store.editContent();
       SemanticPropertiesMutation semanticPropertiesMutation = store.editSemanticProperties();
+      ActionPropertiesMutation actionPropertiesMutation = store.editActionProperties();
       for (StreamDataOperation dataOperation : dataOperations) {
         Operation operation = dataOperation.getStreamStructure().getOperation();
         if (operation == Operation.CLEAR_ALL) {
@@ -324,6 +331,8 @@ public final class SessionManagerMutation implements Dumpable {
           } else if (dataOperation.getStreamPayload().hasSemanticData()) {
             semanticPropertiesMutation.add(
                 contentId, dataOperation.getStreamPayload().getSemanticData());
+          } else if (payload.hasActionData()) {
+            actionPropertiesMutation.add(contentId, payload.getActionData());
           } else {
             Logger.e(TAG, "Unsupported UPDATE_OR_APPEND payload");
           }
@@ -350,6 +359,10 @@ public final class SessionManagerMutation implements Dumpable {
             if (semanticPropertiesMutation.commit().getResult() == CommitResult.Result.FAILURE) {
               semanticPropertiesCommitErrorCount++;
               Logger.e(TAG, "semanticPropertiesMutation failed");
+            }
+            if (actionPropertiesMutation.commit().getResult() == CommitResult.Result.FAILURE) {
+              actionPropertiesCommitErrorCount++;
+              Logger.e(TAG, "actionPropertiesMutation failed");
             }
             contentCache.finishMutation();
           });

@@ -16,12 +16,14 @@ package com.google.android.libraries.feed.common.testing;
 
 import com.google.protobuf.ByteString;
 import com.google.search.now.ui.piet.PietProto.PietSharedState;
+import com.google.search.now.wire.feed.ActionPropertiesProto.ActionProperties;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation;
 import com.google.search.now.wire.feed.DataOperationProto.DataOperation.Operation;
 import com.google.search.now.wire.feed.FeatureProto.Feature;
 import com.google.search.now.wire.feed.FeatureProto.Feature.RenderableUnit;
 import com.google.search.now.wire.feed.FeedResponseProto.FeedResponse;
+import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.PayloadMetadataProto.PayloadMetadata;
 import com.google.search.now.wire.feed.ResponseProto.Response;
 import com.google.search.now.wire.feed.SemanticPropertiesProto.SemanticProperties;
@@ -161,6 +163,20 @@ public class WireProtocolResponseBuilder {
                     .setContentId(contentId)
                     .setSemanticProperties(
                         SemanticProperties.newBuilder().setSemanticPropertiesData(semanticData))));
+    wireProtocolInfo.featuresAdded.add(contentId);
+    return this;
+  }
+
+  public WireProtocolResponseBuilder addCardWithActionData(
+      ContentId contentId, OpaqueActionData actionData) {
+    feedResponseBuilder.addDataOperation(
+        DataOperation.newBuilder()
+            .setOperation(Operation.UPDATE_OR_APPEND)
+            .setFeature(Feature.newBuilder().setRenderableUnit(RenderableUnit.CARD))
+            .setMetadata(
+                PayloadMetadata.newBuilder()
+                    .setContentId(contentId)
+                    .setActionProperties(ActionProperties.newBuilder().setActionData(actionData))));
     wireProtocolInfo.featuresAdded.add(contentId);
     return this;
   }
