@@ -264,7 +264,6 @@ public final class FeedProcessScope implements Dumpable {
     private final BasicLoggingApi basicLoggingApi;
     private final NetworkClient unwrappedNetworkClient;
     private final SchedulerApi unwrappedSchedulerApi;
-    private final FeedAppLifecycleListener lifecycleListener;
     private final DebugBehavior debugBehavior;
     private final Context context;
     private final ApplicationInfo applicationInfo;
@@ -293,7 +292,6 @@ public final class FeedProcessScope implements Dumpable {
         BasicLoggingApi basicLoggingApi,
         NetworkClient networkClient,
         SchedulerApi schedulerApi,
-        FeedAppLifecycleListener lifecycleListener,
         DebugBehavior debugBehavior,
         Context context,
         ApplicationInfo applicationInfo) {
@@ -301,7 +299,6 @@ public final class FeedProcessScope implements Dumpable {
       this.singleThreadExecutor = singleThreadExecutor;
       this.loggingApi = loggingApi;
       this.basicLoggingApi = basicLoggingApi;
-      this.lifecycleListener = lifecycleListener;
       this.debugBehavior = debugBehavior;
       this.context = context;
       this.applicationInfo = applicationInfo;
@@ -455,6 +452,7 @@ public final class FeedProcessScope implements Dumpable {
               basicLoggingApi,
               getOrCreateMainThreadRunner());
 
+      FeedAppLifecycleListener lifecycleListener = new FeedAppLifecycleListener(threadUtils);
       lifecycleListener.registerObserver(store);
 
       if (protocolAdapter == null) {

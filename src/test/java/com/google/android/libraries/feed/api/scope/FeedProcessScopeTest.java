@@ -28,7 +28,6 @@ import com.google.android.libraries.feed.api.requestmanager.RequestManager;
 import com.google.android.libraries.feed.api.scope.FeedProcessScope.Builder;
 import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.common.time.Clock;
-import com.google.android.libraries.feed.feedapplifecyclelistener.FeedAppLifecycleListener;
 import com.google.android.libraries.feed.host.config.ApplicationInfo;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -69,14 +68,12 @@ public class FeedProcessScopeTest {
 
   private final ProtoExtensionProvider protoExtensionProvider = ArrayList::new;
   private Configuration configuration = new Configuration.Builder().build();
-  private FeedAppLifecycleListener appLifecycleListener;
   private Context context;
 
   @Before
   public void setUp() {
     initMocks(this);
     context = Robolectric.buildActivity(Activity.class).get();
-    appLifecycleListener = new FeedAppLifecycleListener(threadUtils);
   }
 
   @Test
@@ -90,7 +87,6 @@ public class FeedProcessScopeTest {
                 basicLoggingApi,
                 networkClient,
                 schedulerApi,
-                appLifecycleListener,
                 DebugBehavior.VERBOSE,
                 context,
                 applicationInfo)
@@ -109,6 +105,7 @@ public class FeedProcessScopeTest {
     assertThat(processScope.getStore()).isNotNull();
     assertThat(processScope.getKnownContentApi()).isNotNull();
     assertThat(processScope.getFeedExtensionRegistry()).isNotNull();
+    assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }
 
   @Test
@@ -123,7 +120,6 @@ public class FeedProcessScopeTest {
                 basicLoggingApi,
                 networkClient,
                 schedulerApi,
-                appLifecycleListener,
                 DebugBehavior.VERBOSE,
                 context,
                 applicationInfo)
@@ -140,6 +136,7 @@ public class FeedProcessScopeTest {
     assertThat(processScope.getClock()).isEqualTo(mockClock);
     assertThat(processScope.getAppLifecycleListener()).isNotNull();
     assertThat(processScope.getActionManager()).isNotNull();
+    assertThat(processScope.getAppLifecycleListener()).isNotNull();
   }
 
   @Test
@@ -154,7 +151,6 @@ public class FeedProcessScopeTest {
                 basicLoggingApi,
                 networkClient,
                 schedulerApi,
-                appLifecycleListener,
                 DebugBehavior.VERBOSE,
                 context,
                 applicationInfo)
@@ -179,7 +175,6 @@ public class FeedProcessScopeTest {
                 basicLoggingApi,
                 networkClient,
                 schedulerApi,
-                appLifecycleListener,
                 DebugBehavior.VERBOSE,
                 context,
                 applicationInfo)
@@ -204,7 +199,6 @@ public class FeedProcessScopeTest {
                 basicLoggingApi,
                 networkClient,
                 schedulerApi,
-                appLifecycleListener,
                 DebugBehavior.VERBOSE,
                 context,
                 applicationInfo)
@@ -224,7 +218,6 @@ public class FeedProcessScopeTest {
                 basicLoggingApi,
                 networkClient,
                 schedulerApi,
-                appLifecycleListener,
                 DebugBehavior.VERBOSE,
                 context,
                 applicationInfo)
