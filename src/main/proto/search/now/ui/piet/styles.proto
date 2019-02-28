@@ -14,16 +14,16 @@
 
 syntax = "proto2";
 
+package search.now.ui.piet;
+
+option optimize_for=LITE_RUNTIME;
+
 import "src/main/proto/search/now/ui/piet/binding_refs.proto";
 import "src/main/proto/search/now/ui/piet/gradients.proto";
 import "src/main/proto/search/now/ui/piet/images.proto";
 import "src/main/proto/search/now/ui/piet/media_queries.proto";
 import "src/main/proto/search/now/ui/piet/rounded_corners.proto";
 import "src/main/proto/search/now/ui/piet/shadows.proto";
-
-package search.now.ui.piet;
-
-option optimize_for=LITE_RUNTIME;
 
 option java_package = "com.google.search.now.ui.piet";
 option java_outer_classname = "StylesProto";
@@ -73,7 +73,7 @@ message Style {
   repeated MediaQueryCondition conditions = 16;
 
   // Foreground color (e.g. for text or any other foreground element).
-  optional fixed32 color = 2;
+  optional fixed32 color = 2 [default = 0xDE000000];
 
   // Defines the background fill, either as a solid color, or a gradient.
   optional Fill background = 3;
@@ -280,7 +280,7 @@ message Font {
   // this numeric font size before rendering.
   // Note that other related metrics such as width and height are NOT
   // automatically scaled, but line height does scale.
-  optional int32 size = 1;
+  optional int32 size = 1 [default = 14];
 
   // Line height, expressed as a multiple of size (hence the `_ratio` suffix).
   // The default value of 1.2 is intended to work well for most scenarios

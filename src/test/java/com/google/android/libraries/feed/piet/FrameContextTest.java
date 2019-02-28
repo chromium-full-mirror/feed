@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import static com.google.android.libraries.feed.common.testing.RunnableSubject.assertThatRunnable;
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -138,7 +137,7 @@ public class FrameContextTest {
     hostBindingProvider = new HostBindingProvider();
     hostProviders =
         new HostProviders(assetProvider, mock(CustomElementProvider.class), hostBindingProvider);
-    defaultStyleProvider = new StyleProvider(DEFAULT_STYLE, assetProvider);
+    defaultStyleProvider = new StyleProvider(assetProvider);
 
     defaultStylesheet.put(SAMPLE_STYLE_ID, SAMPLE_STYLE);
     pietSharedStates = new ArrayList<>();
@@ -1158,7 +1157,7 @@ public class FrameContextTest {
 
     // Make a style for something that doesn't override color, and check that the base color is a
     // default, not the frame color.
-    assertThat(baseStyleWithHeight.getColor()).isEqualTo(DEFAULT_STYLE.getColor());
+    assertThat(baseStyleWithHeight.getColor()).isEqualTo(Style.getDefaultInstance().getColor());
     assertThat(baseStyleWithHeight.getHeightSpecPx(context))
         .isEqualTo((int) LayoutUtils.dpToPx(styleHeight, context));
     assertThat(frameContext.getDebugLogger().getMessages(MessageType.ERROR)).isEmpty();

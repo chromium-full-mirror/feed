@@ -14,7 +14,6 @@
 
 package com.google.android.libraries.feed.piet;
 
-import static com.google.android.libraries.feed.piet.StyleProvider.DEFAULT_STYLE;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_BINDING_VALUE_TYPE_MISMATCH;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_BINDING_VALUE;
 import static com.google.search.now.ui.piet.ErrorsProto.ErrorCode.ERR_DUPLICATE_STYLE;
@@ -91,7 +90,7 @@ class FrameContext {
   // The in-scope bindings as a map from state_id to binding value
   private final Map<String, BindingValue> bindingValues;
 
-  // The base / default style; set to DEFAULT_STYLE for Frame or childDefaultStyleId for Template.
+  // The base / default style; set to default instance for Frame or childDefaultStyleId for Template
   private final Style baseStyle;
 
   // The root view of this frame.
@@ -113,7 +112,7 @@ class FrameContext {
         frame,
         stylesheet,
         new ThrowingEmptyMap(),
-        DEFAULT_STYLE,
+        Style.getDefaultInstance(),
         pietSharedStates,
         pietStylesHelper,
         debugBehavior,
@@ -293,13 +292,12 @@ class FrameContext {
       }
       templateBaseStyle =
           PietStylesHelper.mergeStyleIdsStack(
-              DEFAULT_STYLE,
               childDefaultStyleIds,
               localStylesheet,
               null // Null because the new FrameContext has not been set up yet
               );
     } else {
-      templateBaseStyle = DEFAULT_STYLE;
+      templateBaseStyle = Style.getDefaultInstance();
     }
     return new FrameContext(
         currentFrame,

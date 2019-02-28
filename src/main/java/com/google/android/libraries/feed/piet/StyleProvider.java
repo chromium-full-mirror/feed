@@ -18,7 +18,6 @@ import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.annotation.VisibleForTesting;
 import android.support.v4.view.ViewCompat;
 import android.view.Gravity;
 import android.view.View;
@@ -57,21 +56,16 @@ class StyleProvider {
    */
   public static final int DIMENSION_NOT_SET = -3;
 
-  @VisibleForTesting
-  static final Style DEFAULT_STYLE =
-      Style.newBuilder()
-          .setFont(Font.newBuilder().setSize(14))
-          .setColor(0x84000000)
-          .setPadding(EdgeWidths.getDefaultInstance())
-          .setMargins(EdgeWidths.getDefaultInstance())
-          .setMaxLines(0)
-          .build();
-
   // For borders with no rounded corners.
   private static final float[] ZERO_RADIUS = new float[] {0, 0, 0, 0, 0, 0, 0, 0};
 
   private final Style style;
   private final AssetProvider assetProvider;
+
+  StyleProvider(AssetProvider assetProvider) {
+    this.style = Style.getDefaultInstance();
+    this.assetProvider = assetProvider;
+  }
 
   StyleProvider(Style style, AssetProvider assetProvider) {
     this.style = style;

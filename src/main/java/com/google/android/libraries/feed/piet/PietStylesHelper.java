@@ -168,6 +168,11 @@ public class PietStylesHelper {
     frameTemplates.putAll(templates);
   }
 
+  static Style mergeStyleIdsStack(
+      StyleIdsStack stack, Map<String, Style> styleMap, /*@Nullable*/ FrameContext frameContext) {
+    return mergeStyleIdsStack(Style.getDefaultInstance(), stack, styleMap, frameContext);
+  }
+
   /**
    * Given a StyleIdsStack, a base style, and a styleMap that contains the styles definition,
    * returns a Style that is the proto-merge of all the styles in the stack, starting with the base.

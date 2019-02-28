@@ -61,8 +61,7 @@ class AdapterParameters {
     elementAdapterFactory = new ElementAdapterFactory(context, this, templateRecyclerPool);
     templateBinder = new TemplateBinder(templateRecyclerPool, elementAdapterFactory);
 
-    this.defaultStyleProvider =
-        new StyleProvider(StyleProvider.DEFAULT_STYLE, hostProviders.getAssetProvider());
+    this.defaultStyleProvider = new StyleProvider(hostProviders.getAssetProvider());
   }
 
   /** Testing-only constructor for mocking the internally-constructed objects. */
@@ -82,8 +81,7 @@ class AdapterParameters {
     this.templatedStringEvaluator = templatedStringEvaluator;
     this.elementAdapterFactory = elementAdapterFactory;
     this.templateBinder = templateBinder;
-    this.defaultStyleProvider =
-        new StyleProvider(StyleProvider.DEFAULT_STYLE, hostProviders.getAssetProvider());
+    this.defaultStyleProvider = new StyleProvider(hostProviders.getAssetProvider());
     this.clock = clock;
   }
 }
