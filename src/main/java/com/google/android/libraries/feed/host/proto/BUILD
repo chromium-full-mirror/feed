@@ -6,6 +6,6 @@ java_library(
     name = "proto",
     srcs = glob(["*.java"]),
     deps = [
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",  # buildcleaner: keep
     ],
 )
