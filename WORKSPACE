@@ -51,7 +51,7 @@ maven_jar(
 
 maven_jar(
     name = "com_google_dagger_dagger",
-    artifact = "com.google.dagger:dagger:2.0",
+    artifact = "com.google.dagger:dagger:2.17",
 )
 
 maven_jar(
@@ -71,7 +71,7 @@ maven_jar(
 
 maven_jar(
     name = "com_google_testing_compile_compile_testing",
-    artifact = "com.google.testing.compile:compile-testing:4.2.2",
+    artifact = "com.google.testing.compile:compile-testing:0.15",
 )
 
 maven_jar(
