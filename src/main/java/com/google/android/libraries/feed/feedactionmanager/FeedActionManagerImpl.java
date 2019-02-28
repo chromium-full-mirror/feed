@@ -26,7 +26,9 @@ import com.google.android.libraries.feed.common.concurrent.TaskQueue;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue.TaskType;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.List;
+import java.util.Set;
 
 /** Default implementation of {@link ActionManager} */
 public class FeedActionManagerImpl implements ActionManager {
@@ -65,11 +67,19 @@ public class FeedActionManagerImpl implements ActionManager {
 
   @Override
   public void dismiss(
-      String contentId,
       List<StreamDataOperation> streamDataOperations,
       /*@Nullable*/ String sessionToken) {
     executeStreamDataOperations(streamDataOperations, sessionToken);
-    // TODO: Log this action via the action end point.
+  }
+
+  @Override
+  public void uploadActions(Set<StreamUploadableAction> actions) {
+    taskQueue.execute(
+        "feedActionUpload",
+        TaskType.BACKGROUND,
+        () -> {
+          sessionManager.triggerUploadActions(actions);
+        });
   }
 
   private void executeStreamDataOperations(

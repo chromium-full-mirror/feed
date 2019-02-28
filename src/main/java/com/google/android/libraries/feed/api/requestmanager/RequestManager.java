@@ -20,7 +20,10 @@ import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import java.util.List;
+import java.util.Set;
 
 /** Creates and issues requests to the server. */
 public interface RequestManager {
@@ -56,4 +59,10 @@ public interface RequestManager {
    */
   void setDefaultTriggerRefreshConsumerSupplier(
       Supplier<Consumer<Result<List<StreamDataOperation>>>> consumer);
+
+  /** Issues a request to record a set of actions */
+  void triggerUploadActions(
+      Set<StreamUploadableAction> actions,
+      ConsistencyToken token,
+      Consumer<Result<ConsistencyToken>> consumer);
 }

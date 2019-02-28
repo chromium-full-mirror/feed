@@ -30,8 +30,11 @@ import com.google.search.now.feed.client.StreamDataProto.StreamPayload;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The SessionManager is responsible for creating and updating. A session has a one-to-one
@@ -124,4 +127,10 @@ public interface SessionManager extends Resettable {
 
   /** Sets {@link KnownContentListener} to allow for informing host of when content is added. */
   void setKnownContentListener(KnownContentListener knownContentListener);
+
+  /**
+   * Issues a request to record a set of actions, with the consumer being called back with the
+   * resulting {@link ConsistencyToken}.
+   */
+  void triggerUploadActions(Set<StreamUploadableAction> actions);
 }

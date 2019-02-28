@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDism
 import com.google.android.libraries.feed.testing.sharedstream.contextmenumanager.FakeContextMenuManager;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
 import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
@@ -52,6 +53,7 @@ import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -474,22 +476,44 @@ public class StreamActionApiImplTest {
         .triggerPendingDismissForCluster(eq(undoAction), pendingDismissCallback.capture());
 
     pendingDismissCallback.getValue().onDismissCommitted();
-
+    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
     switch (actionType) {
       case DISMISS:
+        verify(actionManager)
+            .dismissLocal(ImmutableList.of(CONTENT_ID), streamDataOperations, SESSION_ID);
+        verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
+        actionSet.add(
+            StreamUploadableAction.newBuilder()
+                .setFeatureContentId(CONTENT_ID)
+                .setActionType(FeedActionMetadata.Type.DISMISS)
+                .build());
+        verify(actionManager).uploadActions(actionSet);
+        break;
       case DISMISS_LOCAL:
         verify(actionManager)
             .dismissLocal(ImmutableList.of(CONTENT_ID), streamDataOperations, SESSION_ID);
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        verify(actionManager).dismiss(CONTENT_ID, streamDataOperations, SESSION_ID);
+        verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
         verify(basicLoggingApi)
             .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ true);
+        actionSet.add(
+            StreamUploadableAction.newBuilder()
+                .setFeatureContentId(CONTENT_ID)
+                .setActionType(FeedActionMetadata.Type.NOT_INTERESTED_IN_SOURCE)
+                .build());
+        verify(actionManager).uploadActions(actionSet);
         break;
       case NOT_INTERESTED_IN_TOPIC:
-        verify(actionManager).dismiss(CONTENT_ID, streamDataOperations, SESSION_ID);
+        verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
         verify(basicLoggingApi).onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ true);
+        actionSet.add(
+            StreamUploadableAction.newBuilder()
+                .setFeatureContentId(CONTENT_ID)
+                .setActionType(FeedActionMetadata.Type.NOT_INTERESTED_IN_TOPIC)
+                .build());
+        verify(actionManager).uploadActions(actionSet);
         break;
       default:
         break;
@@ -573,12 +597,12 @@ public class StreamActionApiImplTest {
         verify(basicLoggingApi).onContentDismissed(contentLoggingData, /*wasCommitted =*/ true);
         break;
       case NOT_INTERESTED_IN_SOURCE:
-        verify(actionManager).dismiss(CONTENT_ID, streamDataOperations, SESSION_ID);
+        verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
         verify(basicLoggingApi)
             .onNotInterestedInSource(contentLoggingData, /*wasCommitted =*/ true);
         break;
       case NOT_INTERESTED_IN_TOPIC:
-        verify(actionManager).dismiss(CONTENT_ID, streamDataOperations, SESSION_ID);
+        verify(actionManager).dismiss(streamDataOperations, SESSION_ID);
         verify(basicLoggingApi).onNotInterestedInTopic(contentLoggingData, /*wasCommitted =*/ true);
         break;
       default:

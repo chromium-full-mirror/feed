@@ -37,7 +37,9 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -132,7 +134,7 @@ public class FeedActionManagerImplTest {
     setUpDismissMocks();
     StreamDataOperation dataOperation = buildBasicDismissOperation();
 
-    actionManager.dismiss(CONTENT_ID_STRING, Collections.singletonList(dataOperation), null);
+    actionManager.dismiss(Collections.singletonList(dataOperation), null);
 
     verify(streamDataOperationsConsumer).accept(streamDataOperationsCaptor.capture());
     Result<List<StreamDataOperation>> result = streamDataOperationsCaptor.getValue();
@@ -148,8 +150,7 @@ public class FeedActionManagerImplTest {
     setUpDismissMocks();
     StreamDataOperation dataOperation = buildBasicDismissOperation();
 
-    actionManager.dismiss(
-        CONTENT_ID_STRING, Collections.singletonList(dataOperation), SESSION_TOKEN);
+    actionManager.dismiss(Collections.singletonList(dataOperation), SESSION_TOKEN);
 
     verify(sessionManager).getUpdateConsumer(mutationContextCaptor.capture());
     assertThat(mutationContextCaptor.getValue().getRequestingSession().getStreamToken())
@@ -162,6 +163,14 @@ public class FeedActionManagerImplTest {
     assertThat(streamDataOperations).hasSize(1);
     StreamDataOperation streamDataOperation = streamDataOperations.get(0);
     assertThat(streamDataOperation).isEqualTo(dataOperation);
+  }
+
+  @Test
+  public void triggerUploadActions() throws Exception {
+    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+    actionSet.add(StreamUploadableAction.getDefaultInstance());
+    actionManager.uploadActions(actionSet);
+    verify(sessionManager).triggerUploadActions(actionSet);
   }
 
   private StreamDataOperation buildBasicDismissOperation() {

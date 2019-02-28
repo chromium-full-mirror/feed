@@ -76,12 +76,15 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
 import com.google.search.now.wire.feed.OpaqueActionDataProto.OpaqueActionData;
 import com.google.search.now.wire.feed.PietSharedStateItemProto.PietSharedStateItem;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -588,6 +591,19 @@ public class FeedSessionManagerTest {
             sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
     modelProviderFactory.createNew(null);
     verify(spyFeedStore).switchToEphemeralMode();
+  }
+
+  @Test
+  public void testTriggerUploadActions() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+    actionSet.add(StreamUploadableAction.getDefaultInstance());
+    sessionManager.triggerUploadActions(actionSet);
+    verify(requestManager)
+        .triggerUploadActions(
+            actionSet,
+            ConsistencyToken.getDefaultInstance(),
+            sessionManager.getConsistencyTokenConsumer());
   }
 
   private int populateSession(

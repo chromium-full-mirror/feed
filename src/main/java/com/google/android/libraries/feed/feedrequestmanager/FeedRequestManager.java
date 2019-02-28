@@ -49,14 +49,17 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ActionTypeProto;
 import com.google.search.now.wire.feed.CapabilityProto.Capability;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo;
 import com.google.search.now.wire.feed.ClientInfoProto.ClientInfo.PlatformType;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.Action;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryData;
 import com.google.search.now.wire.feed.FeedActionQueryDataProto.FeedActionQueryDataItem;
+import com.google.search.now.wire.feed.FeedActionResponseProto.FeedActionResponse;
 import com.google.search.now.wire.feed.FeedQueryProto.FeedQuery;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest;
 import com.google.search.now.wire.feed.FeedRequestProto.FeedRequest.Builder;
@@ -75,6 +78,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Default implementation of RequestManager. */
 public final class FeedRequestManager implements RequestManager {
@@ -185,6 +189,19 @@ public final class FeedRequestManager implements RequestManager {
     this.defaultTriggerRefreshConsumerSupplier = consumerSupplier;
   }
 
+  @Override
+  public void triggerUploadActions(
+      Set<StreamUploadableAction> actions,
+      ConsistencyToken token,
+      Consumer<Result<ConsistencyToken>> consumer) {
+    UploadableActionsRequestBuilder requestBuilder =
+        new UploadableActionsRequestBuilder(actionReader, protocolAdapter);
+    // TODO: batch if necessary
+    requestBuilder.setConsistencyToken(token).setActions(actions);
+
+    executeUploadActionRequest(requestBuilder, consumer);
+  }
+
   private RequestBuilder newDefaultRequest(@RequestReason int requestReason) {
     return new RequestBuilder(getLocale(), applicationInfo, configuration, requestReason);
   }
@@ -214,6 +231,57 @@ public final class FeedRequestManager implements RequestManager {
     }
   }
 
+  private void executeUploadActionRequest(
+      UploadableActionsRequestBuilder requestBuilder, Consumer<Result<ConsistencyToken>> consumer) {
+    threadUtils.checkNotMainThread();
+
+    String endpoint = configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_ENDPOINT, "");
+    @HttpMethod
+    String httpMethod =
+        configuration.getValueOrDefault(ConfigKey.FEED_ACTION_SERVER_METHOD, HttpMethod.POST);
+    boolean isPostMethod = HttpMethod.POST.equals(httpMethod);
+    Uri.Builder uriBuilder = Uri.parse(endpoint).buildUpon();
+    if (!isPostMethod) {
+      uriBuilder.appendQueryParameter(
+          MOTHERSHIP_PARAM_PAYLOAD,
+          Base64.encodeToString(
+              requestBuilder.build().toByteArray(), Base64.URL_SAFE | Base64.NO_WRAP));
+      uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
+    }
+
+    uriBuilder.appendQueryParameter(LOCALE_PARAM, getLocale().toString());
+
+    HttpRequest httpRequest =
+        new HttpRequest(
+            uriBuilder.build(),
+            httpMethod,
+            Collections.emptyList(),
+            isPostMethod ? requestBuilder.build().toByteArray() : new byte[] {});
+    Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
+    networkClient.send(
+        httpRequest,
+        input -> {
+          Logger.i(
+              TAG,
+              "Request: %s completed with response code: %s",
+              httpRequest.getUri().getPath(),
+              input.getResponseCode());
+          if (input.getResponseCode() != 200) {
+            String errorBody = null;
+            try {
+              errorBody = new String(input.getResponseBody(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+              Logger.e(TAG, "Error handling http error logging", e);
+            }
+            Logger.e(TAG, "errorCode: %d", input.getResponseCode());
+            Logger.e(TAG, "errorResponse: %s", errorBody);
+            consumer.accept(Result.failure());
+            return;
+          }
+          handleUploadableActionResponseBytes(input.getResponseBody(), consumer);
+        });
+  }
+
   private void executeRequest(
       RequestBuilder requestBuilder, Consumer<Result<List<StreamDataOperation>>> consumer) {
     threadUtils.checkNotMainThread();
@@ -227,19 +295,27 @@ public final class FeedRequestManager implements RequestManager {
     }
 
     String endpoint = configuration.getValueOrDefault(ConfigKey.FEED_SERVER_ENDPOINT, "");
-    Uri.Builder uriBuilder = Uri.parse(endpoint).buildUpon();
-    uriBuilder.appendQueryParameter(
-        MOTHERSHIP_PARAM_PAYLOAD,
-        Base64.encodeToString(
-            requestBuilder.build().toByteArray(), Base64.URL_SAFE | Base64.NO_WRAP));
-    uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
-    uriBuilder.appendQueryParameter(LOCALE_PARAM, getLocale().toString());
-
     @HttpMethod
     String httpMethod =
         configuration.getValueOrDefault(ConfigKey.FEED_SERVER_METHOD, HttpMethod.GET);
+    boolean isPostMethod = HttpMethod.POST.equals(httpMethod);
+    Uri.Builder uriBuilder = Uri.parse(endpoint).buildUpon();
+    if (!isPostMethod) {
+      uriBuilder.appendQueryParameter(
+          MOTHERSHIP_PARAM_PAYLOAD,
+          Base64.encodeToString(
+              requestBuilder.build().toByteArray(), Base64.URL_SAFE | Base64.NO_WRAP));
+
+      uriBuilder.appendQueryParameter(MOTHERSHIP_PARAM_FORMAT, MOTHERSHIP_VALUE_BINARY);
+    }
+    uriBuilder.appendQueryParameter(LOCALE_PARAM, getLocale().toString());
+
     HttpRequest httpRequest =
-        new HttpRequest(uriBuilder.build(), httpMethod, Collections.emptyList(), new byte[] {});
+        new HttpRequest(
+            uriBuilder.build(),
+            httpMethod,
+            Collections.emptyList(),
+            isPostMethod ? requestBuilder.build().toByteArray() : new byte[] {});
     Logger.i(TAG, "Making Request: %s", httpRequest.getUri().getPath());
     mainThreadRunner.execute(
         "Making request.",
@@ -267,7 +343,6 @@ public final class FeedRequestManager implements RequestManager {
             consumer.accept(Result.failure());
             return;
           }
-
           handleResponseBytes(input.getResponseBody(), consumer);
         });
   }
@@ -301,6 +376,39 @@ public final class FeedRequestManager implements RequestManager {
           final Result<List<StreamDataOperation>> contextResult;
           if (result.isSuccessful()) {
             contextResult = Result.success(result.getValue());
+          } else {
+            contextResult = Result.failure();
+          }
+          mainThreadRunner.execute(
+              "FeedRequestManager consumer", () -> consumer.accept(contextResult));
+        });
+  }
+
+  private void handleUploadableActionResponseBytes(
+      final byte[] responseBytes, final Consumer<Result<ConsistencyToken>> consumer) {
+    taskQueue.execute(
+        "handleUploadableActionResponseBytes",
+        TaskType.IMMEDIATE,
+        () -> {
+          Response response;
+          boolean isLengthPrefixed =
+              configuration.getValueOrDefault(
+                  ConfigKey.FEED_ACTION_SERVER_RESPONSE_LENGTH_PREFIXED, true);
+          try {
+            response =
+                Response.parseFrom(
+                    isLengthPrefixed ? getLengthPrefixedValue(responseBytes) : responseBytes,
+                    extensionRegistry.getExtensionRegistry());
+          } catch (IOException e) {
+            Logger.e(TAG, e, "Response parse failed");
+            consumer.accept(Result.failure());
+            return;
+          }
+          FeedActionResponse feedActionResponse =
+              response.getExtension(FeedActionResponse.feedActionResponse);
+          final Result<ConsistencyToken> contextResult;
+          if (feedActionResponse.hasConsistencyToken()) {
+            contextResult = Result.success(feedActionResponse.getConsistencyToken());
           } else {
             contextResult = Result.failure();
           }

@@ -71,6 +71,8 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -753,5 +755,23 @@ public final class FeedSessionManager
       default:
         // Do nothing
     }
+  }
+
+  @Override
+  public void triggerUploadActions(Set<StreamUploadableAction> actions) {
+    threadUtils.checkNotMainThread();
+    // TODO: read consistencyToken
+    requestManager.triggerUploadActions(
+        actions, ConsistencyToken.getDefaultInstance(), getConsistencyTokenConsumer());
+  }
+
+  @VisibleForTesting
+  Consumer<Result<ConsistencyToken>> getConsistencyTokenConsumer() {
+    return result -> {
+      if (!result.isSuccessful()) {
+        // TODO: update consistency token and upsert actions to store
+        return;
+      }
+    };
   }
 }

@@ -29,11 +29,14 @@ import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /** Action handler for Stream. */
@@ -123,7 +126,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   public void handleNotInterestedInTopic(
       List<StreamDataOperation> dataOperations, UndoAction undoAction) {
     if (!undoAction.hasConfirmationLabel()) {
-      dismiss(contentId, dataOperations);
+      dismiss(dataOperations);
       basicLoggingApi.onNotInterestedInTopic(contentLoggingData, /* wasCommitted = */ true);
     } else {
       dismissWithSnackbar(
@@ -137,8 +140,14 @@ public class StreamActionApiImpl implements StreamActionApi {
 
             @Override
             public void onDismissCommitted() {
-              dismiss(contentId, dataOperations);
-              // TODO: Log this action via the action end point.
+              dismiss(dataOperations);
+              HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+              actionSet.add(
+                  StreamUploadableAction.newBuilder()
+                      .setFeatureContentId(contentId)
+                      .setActionType(Type.NOT_INTERESTED_IN_TOPIC)
+                      .build());
+              actionManager.uploadActions(actionSet);
               basicLoggingApi.onNotInterestedInTopic(contentLoggingData, /* wasCommitted = */ true);
             }
           });
@@ -154,7 +163,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   public void handleNotInterestedInSource(
       List<StreamDataOperation> dataOperations, UndoAction undoAction) {
     if (!undoAction.hasConfirmationLabel()) {
-      dismiss(contentId, dataOperations);
+      dismiss(dataOperations);
       basicLoggingApi.onNotInterestedInSource(contentLoggingData, /* wasCommitted = */ true);
     } else {
       dismissWithSnackbar(
@@ -168,8 +177,14 @@ public class StreamActionApiImpl implements StreamActionApi {
 
             @Override
             public void onDismissCommitted() {
-              dismiss(contentId, dataOperations);
-              // TODO: Log this action via the action end point.
+              dismiss(dataOperations);
+              HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+              actionSet.add(
+                  StreamUploadableAction.newBuilder()
+                      .setFeatureContentId(contentId)
+                      .setActionType(Type.NOT_INTERESTED_IN_SOURCE)
+                      .build());
+              actionManager.uploadActions(actionSet);
               basicLoggingApi.onNotInterestedInSource(
                   contentLoggingData, /* wasCommitted = */ true);
             }
@@ -195,15 +210,21 @@ public class StreamActionApiImpl implements StreamActionApi {
             @Override
             public void onDismissCommitted() {
               dismissLocal(contentId, dataOperations);
-              // TODO: Log this action via the action end point.
+              HashSet<StreamUploadableAction> actionSet = new HashSet<>();
+              actionSet.add(
+                  StreamUploadableAction.newBuilder()
+                      .setFeatureContentId(contentId)
+                      .setActionType(Type.DISMISS)
+                      .build());
+              actionManager.uploadActions(actionSet);
               basicLoggingApi.onContentDismissed(contentLoggingData, /* wasCommitted = */ true);
             }
           });
     }
   }
 
-  private void dismiss(String contentId, List<StreamDataOperation> dataOperations) {
-    actionManager.dismiss(contentId, dataOperations, sessionToken);
+  private void dismiss(List<StreamDataOperation> dataOperations) {
+    actionManager.dismiss(dataOperations, sessionToken);
   }
 
   private void dismissLocal(String contentId, List<StreamDataOperation> dataOperations) {

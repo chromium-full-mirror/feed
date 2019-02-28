@@ -15,7 +15,9 @@
 package com.google.android.libraries.feed.api.actionmanager;
 
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
+import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import java.util.List;
+import java.util.Set;
 
 /** Allows Stream to notify the Feed library of actions taken */
 public interface ActionManager {
@@ -44,7 +46,12 @@ public interface ActionManager {
    * @param sessionToken The current session token
    */
   void dismiss(
-      String contentId,
       List<StreamDataOperation> streamDataOperations,
       /*@Nullable*/ String sessionToken);
+
+  /**
+   * Issues a request to record a set of actions, with the consumer being called back with the
+   * resulting {@link ConsistencyToken}.
+   */
+  void uploadActions(Set<StreamUploadableAction> actions);
 }
