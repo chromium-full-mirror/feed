@@ -11,9 +11,9 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewloggingupdater",
         "//src/main/java/com/google/android/libraries/feed/sharedstream/logging",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@org_mockito_mockito_all//jar",
         "@robolectric//bazel:robolectric",
     ],
@@ -27,8 +27,8 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/basicstream/internal/viewloggingupdater",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@org_mockito_mockito_all//jar",
         "@robolectric//bazel:robolectric",
     ],

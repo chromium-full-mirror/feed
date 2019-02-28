@@ -11,7 +11,6 @@ android_local_test(
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [
-        "@com_google_protobuf_javalite//:protobuf_java_lite",
         "//src/main/java/com/google/android/libraries/feed/api/actionparser",
         "//src/main/java/com/google/android/libraries/feed/api/knowncontent",
         "//src/main/java/com/google/android/libraries/feed/api/protocoladapter",
@@ -27,6 +26,7 @@ android_local_test(
         "//src/main/proto/search/now/ui/piet:piet_java_proto_lite",
         "//src/main/proto/search/now/wire/feed:feed_java_proto_lite",
         "@com_google_guava_guava_android//jar",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@com_google_truth_truth//jar",
         "@org_mockito_mockito_all//jar",
         "@robolectric//bazel:robolectric",
