@@ -82,8 +82,12 @@ public class Configuration {
     ConfigKey.FEED_ACTION_SERVER_RESPONSE_LENGTH_PREFIXED,
     // Maximum number of actions to be uploaded to the enpoint in a single request.
     ConfigKey.FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST,
-    // maximum size of the request to be uploaded to the enpoint in a single request.
+    // Maximum size of the request to be uploaded to the enpoint in a single request.
     ConfigKey.FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST,
+    // Maximum number of times we will try to upload an action before deleting it.
+    ConfigKey.FEED_ACTION_MAX_UPLOAD_ATTEMPTS,
+    // Ttl of an action that has failed to be uploaded.
+    ConfigKey.FEED_ACTION_TTL_SECONDS,
   })
   public @interface ConfigKey {
     String ABANDON_RESTORE_BELOW_FOLD = "abandon_restore_below_fold";
@@ -121,6 +125,8 @@ public class Configuration {
     String FEED_ACTION_SERVER_MAX_ACTIONS_PER_REQUEST =
         "feed_action_server_max_actions_per_request";
     String FEED_ACTION_SERVER_MAX_SIZE_PER_REQUEST = "feed_action_server_max_size_per_request";
+    String FEED_ACTION_MAX_UPLOAD_ATTEMPTS = "feed_action_max_upload_attempts";
+    String FEED_ACTION_TTL_SECONDS = "feed_action_ttl_seconds";
   }
 
   private final HashMap<String, Object> values;
