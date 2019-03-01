@@ -105,6 +105,10 @@ message FeedActionMetadata {
 message OpenUrlData {
   // The Url to open.
   optional string url = 1;
+  // If populated, the client will attempt to recod all pending actions before
+  // opening the url. Once this finishes, the client will attach to the url its
+  //  latest frequency token as the value of this query param.
+  optional string consistency_token_query_param_name = 2;
 }
 
 // Data needed by Stream to open a context menu.
