@@ -39,6 +39,7 @@ message FeedAction {
 }
 
 // Metadata needed by the host to handle the action.
+// Next Id: 9
 message FeedActionMetadata {
   // The type of action, used by the host to perform any custom logic needed for
   // a specific type of action.
@@ -65,6 +66,7 @@ message FeedActionMetadata {
     NOT_INTERESTED_IN_SOURCE = 10;
     VIEW_ELEMENT = 12;
     HIDE_ELEMENT = 13;
+    SHOW_TOOLTIP = 14;
   }
   optional Type type = 1;
 
@@ -81,6 +83,9 @@ message FeedActionMetadata {
 
     // The data needed by the Stream to handle the not interested action.
     NotInterestedInData not_interested_in_data = 6;
+
+    // The data needed by the Stream to render a tooltip.
+    TooltipData tooltip_data = 8;
   }
   // The type of element this action is bounded on.
   enum ElementType {
@@ -92,6 +97,7 @@ message FeedActionMetadata {
   }
   // Used by the host to perform Basic logging for views and clicks.
   optional ElementType element_type = 7;
+
   reserved 5;
 }
 
@@ -142,6 +148,34 @@ message UndoAction {
   // The string that labels that option to reverse the action. Defaults to
   // "Undo" if not sent.
   optional string undo_label = 2;
+}
+
+// The data needed by the Stream to render a tooltip.
+message TooltipData {
+  optional string label = 1;
+  optional string accessibility_label = 2;
+  enum FeatureName {
+    // No tooltip will render if the FeatureName is UNKNOWN.
+    UNKNOWN = 0;
+    CARD_MENU = 1;
+  }
+  optional FeatureName feature_name = 3;
+  // The infromation for where to offset the arrow from the referenced view.
+  optional Insets insets = 4;
+}
+
+// The information for where to offset the tooltip arrow from the referenced
+// view. The host will decide if the tooltip is above or below the view and this
+// inset data changes the y coordinate of the tooltip arrow. For example, if top
+// inset is 5 and the tooltip is shown above the view, then the tooltip will
+// have its point of the arrow horizontally centered 5 dp below the top of the
+// referenced view. If bottom inset is 5 and the tooltip is shown below the
+// view, then the tooltip will have its point of the arrow horizontally centered
+// 5 dp above the bottom of the referenced view. If no inset is set then the
+// tooltip will show either directly above/below the referenced view.
+message Insets {
+  optional int32 top = 1;
+  optional int32 bottom = 2;
 }
 
 // FeedActionMetadata with a label to show in a context menu.
