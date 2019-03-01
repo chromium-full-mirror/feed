@@ -52,6 +52,9 @@ public final class SessionCache implements Dumpable {
   private static final String TAG = "SessionCache";
   @VisibleForTesting static final String STREAM_SESSION_CONTENT_ID = "FSM::Sessions::0";
 
+  /** Key used to store the consistency token in {@link ContentStorage} */
+  public static final String CONSISTENCY_TOKEN_CONTENT_ID = "ct";
+
   // Used to synchronize the stored data
   private final Object lock = new Object();
 
@@ -302,6 +305,7 @@ public final class SessionCache implements Dumpable {
     }
     Set<String> reservedContentIds = new HashSet<>();
     reservedContentIds.add(STREAM_SESSION_CONTENT_ID);
+    reservedContentIds.add(CONSISTENCY_TOKEN_CONTENT_ID);
     taskQueue.execute(
         "contentGc",
         TaskType.BACKGROUND,

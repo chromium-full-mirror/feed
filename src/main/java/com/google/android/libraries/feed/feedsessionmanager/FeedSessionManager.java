@@ -75,6 +75,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -756,21 +757,39 @@ public final class FeedSessionManager
         // Do nothing
     }
   }
-
+  // TODO: implement longer term fix for reading/saving the consistency token
   @Override
   public void triggerUploadActions(Set<StreamUploadableAction> actions) {
     threadUtils.checkNotMainThread();
-    // TODO: read consistencyToken
+
     requestManager.triggerUploadActions(
-        actions, ConsistencyToken.getDefaultInstance(), getConsistencyTokenConsumer());
+        actions, getConsistencyToken(), getConsistencyTokenConsumer());
+  }
+
+  @VisibleForTesting
+  ConsistencyToken getConsistencyToken() {
+    Result<List<PayloadWithId>> contentResult =
+        store.getPayloads(Collections.singletonList(SessionCache.CONSISTENCY_TOKEN_CONTENT_ID));
+    if (contentResult.isSuccessful()) {
+      for (PayloadWithId payload : contentResult.getValue()) {
+        if (payload.payload.hasConsistencyToken()) {
+          return payload.payload.getConsistencyToken();
+        }
+      }
+    }
+    return ConsistencyToken.getDefaultInstance();
   }
 
   @VisibleForTesting
   Consumer<Result<ConsistencyToken>> getConsistencyTokenConsumer() {
     return result -> {
-      if (!result.isSuccessful()) {
-        // TODO: update consistency token and upsert actions to store
-        return;
+      if (result.isSuccessful()) {
+        store
+            .editContent()
+            .add(
+                SessionCache.CONSISTENCY_TOKEN_CONTENT_ID,
+                StreamPayload.newBuilder().setConsistencyToken(result.getValue()).build())
+            .commit();
       }
     };
   }

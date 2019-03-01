@@ -598,12 +598,27 @@ public class FeedSessionManagerTest {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     HashSet<StreamUploadableAction> actionSet = new HashSet<>();
     actionSet.add(StreamUploadableAction.getDefaultInstance());
+    ConsistencyToken token =
+        ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
+    sessionManager.getConsistencyTokenConsumer().accept(Result.success(token));
     sessionManager.triggerUploadActions(actionSet);
-    verify(requestManager)
-        .triggerUploadActions(
-            actionSet,
-            ConsistencyToken.getDefaultInstance(),
-            sessionManager.getConsistencyTokenConsumer());
+    verify(requestManager).triggerUploadActions(eq(actionSet), eq(token), any(Consumer.class));
+  }
+
+  @Test
+  public void testGetConsistencyToken() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    ConsistencyToken token =
+        ConsistencyToken.newBuilder().setToken(ByteString.copyFrom(new byte[] {0x1, 0xf})).build();
+    sessionManager.getConsistencyTokenConsumer().accept(Result.success(token));
+    assertThat(sessionManager.getConsistencyToken()).isEqualTo(token);
+  }
+
+  @Test
+  public void testGetConsistencyTokenEmpty() {
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    assertThat(sessionManager.getConsistencyToken())
+        .isEqualTo(ConsistencyToken.getDefaultInstance());
   }
 
   private int populateSession(
