@@ -185,8 +185,9 @@ enum ErrorCode {
   ERR_DUPLICATE_STYLE = 4 /* [
     // Server should flag to feature authors when duplicate styles are present.
     (server_error) = ERROR,
-    // Clients prefer to avoid dropping Frames, so pick the first matching style
-    // and continue to render.
+    // Clients prefer to avoid dropping Frames, so pick a matching style and
+    // continue to render. The choosing of which matching style is used is
+    // undefined.
     (client_error) = WARNING
   ] */;
 
