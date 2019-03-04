@@ -1277,6 +1277,35 @@ public class ElementAdapterTest {
   }
 
   @Test
+  public void testRoundedCornersWithVisibility() {
+    RoundedCornerWrapperView roundedCornerWrapperView =
+        new RoundedCornerWrapperView(context, 0, 10, Suppliers.of(false));
+    when(styleProvider.hasRoundedCorners(context)).thenReturn(true);
+    when(styleProvider.createWrapperView(context)).thenReturn(roundedCornerWrapperView);
+
+    VisibilityBindingRef visibilityBinding =
+        VisibilityBindingRef.newBuilder().setBindingId("visibility").build();
+    when(frameContext.getVisibilityFromBinding(visibilityBinding)).thenReturn(Visibility.VISIBLE);
+
+    Element element =
+        Element.newBuilder()
+            .setVisibilityState(
+                VisibilityState.newBuilder()
+                    .setDefaultVisibility(Visibility.GONE)
+                    .setOverridingBoundVisibility(visibilityBinding))
+            .build();
+
+    adapter.createAdapter(element, frameContext);
+
+    FrameLayout parentView = new FrameLayout(context);
+    parentView.addView(adapter.getView());
+
+    adapter.bindModel(element, frameContext);
+
+    assertThat(adapter.getView()).isSameAs(roundedCornerWrapperView);
+  }
+
+  @Test
   public void testGetStyleIdsStack() {
     StyleIdsStack style = StyleIdsStack.newBuilder().addStyleIds("style").build();
     Element elementWithStyle = Element.newBuilder().setStyleReferences(style).build();

@@ -137,18 +137,20 @@ abstract class ElementAdapter<V extends View, M> {
     this.model = model;
     this.baseElement = baseElement;
 
+    // Initialize the wrapper view before checking visibility - we need to have it in place before
+    // the parent adds our outermost view to the hierarchy.
+    elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
+    initializeWrapperViewDependentFeatures(baseElement, frameContext);
+
     Visibility visibility = getVisibilityForElement(baseElement, frameContext);
     setVisibilityOnView(visibility);
     if (visibility == Visibility.GONE) {
       return;
     }
 
-    elementStyle = frameContext.makeStyleFor(getElementStyleIdsStack());
     setDesiredDimensions();
 
     onCreateAdapter(model, baseElement, frameContext);
-
-    initializeWrapperViewDependentFeatures(baseElement, frameContext);
 
     initializeOverflow(baseElement);
 
@@ -159,9 +161,14 @@ abstract class ElementAdapter<V extends View, M> {
 
   private void initializeWrapperViewDependentFeatures(
       Element baseElement, FrameContext frameContext) {
+    if (wrapperView != null) {
+      // We have already initialized the wrapper view.
+      return;
+    }
     if (!elementStyle.hasRoundedCorners(getContext())
         && baseElement.getOverlaysCount() == 0
         && !elementStyle.hasBorders()) {
+      // We do not need a wrapper view.
       return;
     }
 
