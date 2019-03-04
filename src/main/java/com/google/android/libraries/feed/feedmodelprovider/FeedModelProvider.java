@@ -561,18 +561,6 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
             }
           }
 
-          int tokenStart = 0;
-          int tokenPageSize = initialPageSize;
-          synchronized (lock) {
-            if (root != null) {
-              ArrayList<UpdatableModelChild> rootChildren = containers.get(root.getContentId());
-              if (rootChildren != null) {
-                tokenStart = rootChildren.size() - 1;
-                tokenPageSize = pageSize;
-              }
-            }
-          }
-
           // All appends and updates are considered unbound (childrenToBind) and will need to be
           // sent to the ModelChildBinder.
           Map<String, UpdatableModelChild> appendedChildren = new HashMap<>();
@@ -622,6 +610,15 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
                 TAG + " removeTracking", removeTracking::triggerConsumerUpdate);
           }
 
+          // Determine where to start binding children.
+          int tokenStart = 0;
+          synchronized (lock) {
+            if (root != null) {
+              tokenStart = findFirstUnboundChild(containers.get(root.getContentId()));
+            }
+          }
+          int tokenPageSize = tokenStart < initialPageSize ? initialPageSize : pageSize;
+
           synchronized (lock) {
             if (shouldInsertSyntheticToken()) {
               SyntheticTokenTracker tokenTracker =
@@ -655,6 +652,20 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
               removedChildren,
               token != null);
           return null;
+        }
+
+        private int findFirstUnboundChild(/*@Nullable*/ List<UpdatableModelChild> children) {
+          int firstUnboundChild = 0;
+          if (children != null) {
+            firstUnboundChild = children.size() - 1;
+            for (int i = 0; i < children.size() - 1; i++) {
+              if (children.get(i).getType() == Type.UNBOUND) {
+                firstUnboundChild = i;
+                break;
+              }
+            }
+          }
+          return firstUnboundChild;
         }
 
         /** Returns a MutationHandler for processing the mutation */
@@ -829,6 +840,12 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       this.startingPosition = start;
       this.endPosition = end;
       this.insertToken = end < children.size();
+      Logger.i(
+          TAG,
+          "SyntheticTokenTracker: %d, %d, %b",
+          this.startingPosition,
+          this.endPosition,
+          this.insertToken);
     }
 
     /** Returns the UpdatableModelChild which represents the synthetic token added to the model. */

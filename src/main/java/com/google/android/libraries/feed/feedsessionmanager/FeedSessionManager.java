@@ -298,6 +298,9 @@ public final class FeedSessionManager
         && !taskQueue.isDelayed()) {
       // don't wait for the request to finish, go ahead and show the content
       taskType = TaskType.IMMEDIATE;
+    } else if (behavior == RequestBehavior.REQUEST_WITH_CONTENT) {
+      // Make sure the populate session runs immediately (before refresh)
+      taskType = TaskType.IMMEDIATE;
     }
 
     // Task which creates and populates the newly created session.  This must be done

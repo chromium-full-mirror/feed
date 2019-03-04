@@ -139,11 +139,56 @@ public class FeedModelProviderTest {
   }
 
   @Test
+  public void testRemoveWithAppend() {
+    // Enable synthetic tokens.
+    initDefaultConfig();
+    when(config.getValueOrDefault(ConfigKey.INITIAL_NON_CACHED_PAGE_SIZE, 0)).thenReturn(10);
+    FeedModelProvider modelProvider = createFeedModelProvider();
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.INITIALIZING);
+
+    // Create a root with three children attached.
+    modelProvider
+        .edit()
+        .addChild(createStreamStructureAndBinding(getRootFeature()))
+        .addChild(createStreamStructureAndBinding(createFeature(1, rootContentId)))
+        .addChild(createStreamStructureAndBinding(createFeature(2, rootContentId)))
+        .addChild(createStreamStructureAndBinding(createFeature(3, rootContentId)))
+        .commit();
+
+    assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
+    ModelFeature rootFeature = modelProvider.getRootFeature();
+    ModelCursor modelCursor = rootFeature.getCursor();
+    assertThat(modelCursor.getNextItem().getModelFeature().getStreamFeature())
+        .isEqualTo(childBindings.get(1).payload.getStreamFeature());
+    assertThat(modelCursor.getNextItem().getModelFeature().getStreamFeature())
+        .isEqualTo(childBindings.get(2).payload.getStreamFeature());
+    assertThat(modelCursor.getNextItem().getModelFeature().getStreamFeature())
+        .isEqualTo(childBindings.get(3).payload.getStreamFeature());
+
+    // Now remove the second and third children, and add more children.
+    modelProvider
+        .edit()
+        .removeChild(createRemove(rootContentId, createFeatureContentId(2)))
+        .removeChild(createRemove(rootContentId, createFeatureContentId(3)))
+        .addChild(createStreamStructureAndBinding(createFeature(4, rootContentId)))
+        .addChild(createStreamStructureAndBinding(createFeature(5, rootContentId)))
+        .commit();
+
+    // The children should now be #1, #4, and #5; they all should be bound.
+    modelCursor = rootFeature.getCursor();
+    assertThat(modelCursor.getNextItem().getModelFeature().getStreamFeature())
+        .isEqualTo(childBindings.get(1).payload.getStreamFeature());
+    assertThat(modelCursor.getNextItem().getModelFeature().getStreamFeature())
+        .isEqualTo(childBindings.get(4).payload.getStreamFeature());
+    assertThat(modelCursor.getNextItem().getModelFeature().getStreamFeature())
+        .isEqualTo(childBindings.get(5).payload.getStreamFeature());
+  }
+
+  @Test
   public void testEmptyStream() {
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
 
-    ModelMutation mutator = modelProvider.edit();
-    mutator.commit();
+    modelProvider.edit().commit();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
     assertThat(modelProvider.getRootFeature()).isNull();
   }
@@ -302,10 +347,8 @@ public class FeedModelProviderTest {
   public void testInvalidate() {
     // Create a valid model
     FeedModelProvider modelProvider = createFeedModelProviderWithConfig();
-    ModelMutation mutator = modelProvider.edit();
     StreamFeature rootStreamFeature = getRootFeature();
-    mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
-    mutator.commit();
+    modelProvider.edit().addChild(createStreamStructureAndBinding(rootStreamFeature)).commit();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
 
     ModelFeature rootFeature = modelProvider.getRootFeature();
@@ -338,10 +381,8 @@ public class FeedModelProviderTest {
     modelProvider.registerObserver(observer1);
     verify(observer1, never()).onSessionStart();
 
-    ModelMutation mutator = modelProvider.edit();
     StreamFeature rootStreamFeature = getRootFeature();
-    mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
-    mutator.commit();
+    modelProvider.edit().addChild(createStreamStructureAndBinding(rootStreamFeature)).commit();
     verify(observer1).onSessionStart();
 
     ModelProviderObserver observer2 = mock(ModelProviderObserver.class);
@@ -364,17 +405,13 @@ public class FeedModelProviderTest {
     modelProvider.registerObserver(observer);
     verify(observer, never()).onSessionStart();
 
-    ModelMutation mutator = modelProvider.edit();
     StreamFeature rootStreamFeature = getRootFeature();
-    mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
-    mutator.commit();
+    modelProvider.edit().addChild(createStreamStructureAndBinding(rootStreamFeature)).commit();
     verify(observer).onSessionStart();
 
-    mutator = modelProvider.edit();
     String anotherRootId = idGenerators.createRootContentId(100);
     rootStreamFeature = StreamFeature.newBuilder().setContentId(anotherRootId).build();
-    mutator.addChild(createStreamStructureAndBinding(rootStreamFeature));
-    mutator.commit();
+    modelProvider.edit().addChild(createStreamStructureAndBinding(rootStreamFeature)).commit();
     verify(observer).onSessionFinished();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
   }

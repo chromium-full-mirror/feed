@@ -206,7 +206,10 @@ public class TaskQueue implements Dumpable {
         Logger.w(TAG, " - Calling initialize on an initialized TaskQueue");
       }
     }
-    new InitializationTaskWrapper(runnable).runTask();
+
+    TaskWrapper task = new InitializationTaskWrapper(runnable);
+    countTask(task.taskType);
+    task.runTask();
   }
 
   /** Execute a Task on the Executor. */
@@ -229,7 +232,13 @@ public class TaskQueue implements Dumpable {
           new TimeoutTaskWrapper(task, taskType, taskWrapper, timeOutRunnable)
               .startTimeout(timeoutMillis);
     }
-    Logger.i(TAG, " - task [%s - d: %s, b: %s]: %s", taskType, isDelayed(), backlogSize(), task);
+    Logger.i(
+        TAG,
+        " - task [%s - d: %s, b: %s]: %s",
+        taskTypeToString(taskType),
+        isDelayed(),
+        backlogSize(),
+        task);
     scheduleTask(taskWrapper, taskType);
   }
 
@@ -353,6 +362,31 @@ public class TaskQueue implements Dumpable {
     }
   }
 
+  @VisibleForTesting
+  public void resetCounts() {
+    taskCount = 0;
+    immediateTaskCount = 0;
+    headInvalidateTaskCount = 0;
+    headResetTaskCount = 0;
+    userFacingTaskCount = 0;
+    backgroundTaskCount = 0;
+  }
+
+  @VisibleForTesting
+  public int getBackgroundTaskCount() {
+    return backgroundTaskCount;
+  }
+
+  @VisibleForTesting
+  public int getImmediateTaskCount() {
+    return immediateTaskCount;
+  }
+
+  @VisibleForTesting
+  public int getUserFacingTaskCount() {
+    return userFacingTaskCount;
+  }
+
   /** Indicates that tasks are being delayed until a response is processed */
   public boolean isDelayed() {
     synchronized (lock) {
@@ -419,7 +453,12 @@ public class TaskQueue implements Dumpable {
     public final void run() {
       long start = System.nanoTime();
       Logger.i(
-          TAG, "Execute task [%s - d: %s, b: %s]: %s", taskType, isDelayed(), backlogSize(), task);
+          TAG,
+          "Execute task [%s - d: %s, b: %s]: %s",
+          taskTypeToString(taskType),
+          isDelayed(),
+          backlogSize(),
+          task);
       // maintain the currentTask on the stack encase we queue multiple tasks to the Executor
       TaskWrapper saveTask = currentTask;
       currentTask = this;
@@ -568,5 +607,22 @@ public class TaskQueue implements Dumpable {
       waitingForHeadReset = false;
     }
     executeNextTask();
+  }
+
+  private static String taskTypeToString(@TaskType int taskType) {
+    switch (taskType) {
+      case TaskType.IMMEDIATE:
+        return "IMMEDIATE";
+      case TaskType.HEAD_INVALIDATE:
+        return "HEAD_INVALIDATE";
+      case TaskType.HEAD_RESET:
+        return "HEAD_RESET";
+      case TaskType.USER_FACING:
+        return "USER_FACING";
+      case TaskType.BACKGROUND:
+        return "BACKGROUND";
+      default:
+        return "UNKNOWN";
+    }
   }
 }

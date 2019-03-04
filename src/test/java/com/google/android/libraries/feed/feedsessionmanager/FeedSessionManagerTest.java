@@ -237,10 +237,7 @@ public class FeedSessionManagerTest {
     int featureCnt = 3;
     populateSession(sessionManager, featureCnt, 1, true, null);
 
-    ModelProviderFactory modelProviderFactory =
-        new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider = getModelProvider(sessionManager);
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getRootFeature()).isNotNull();
 
@@ -263,19 +260,70 @@ public class FeedSessionManagerTest {
   }
 
   @Test
+  public void testNoRequestWithContent_populateIsUserFacing() {
+    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+        .thenReturn(RequestBehavior.NO_REQUEST_WITH_CONTENT);
+
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    populateSession(sessionManager, 3, 1, true, null);
+    taskQueue.resetCounts();
+
+    // Population will happen in a user-facing task and no request is sent.
+    ModelProvider modelProvider = getModelProvider(sessionManager);
+    assertThat(modelProvider).isNotNull();
+    assertThat(taskQueue.getImmediateTaskCount()).isEqualTo(0);
+    assertThat(taskQueue.getBackgroundTaskCount()).isEqualTo(0);
+    assertThat(taskQueue.getUserFacingTaskCount()).isEqualTo(1);
+    assertThat(taskQueue.isMakingRequest()).isFalse();
+  }
+
+  @Test
+  public void testRequestWithContent_populateIsImmediate() {
+    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+        .thenReturn(RequestBehavior.REQUEST_WITH_CONTENT);
+
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    populateSession(sessionManager, 3, 1, true, null);
+    taskQueue.resetCounts();
+
+    // Population will happen immediately and a request is sent.
+    ModelProvider modelProvider = getModelProvider(sessionManager);
+    assertThat(modelProvider).isNotNull();
+    assertThat(taskQueue.getImmediateTaskCount()).isEqualTo(1);
+    assertThat(taskQueue.getBackgroundTaskCount()).isEqualTo(0);
+    assertThat(taskQueue.getUserFacingTaskCount()).isEqualTo(0);
+    assertThat(taskQueue.isMakingRequest()).isTrue();
+  }
+
+  @Test
+  public void testRequestWithWait_populateIsUserFacing() {
+    when(schedulerApi.shouldSessionRequestData(any(SessionManagerState.class)))
+        .thenReturn(RequestBehavior.REQUEST_WITH_WAIT);
+
+    FeedSessionManager sessionManager = getInitializedSessionManager();
+    populateSession(sessionManager, 3, 1, true, null);
+    taskQueue.resetCounts();
+
+    // Population will happen in a user-facing task and a request is sent.
+    ModelProvider modelProvider = getModelProvider(sessionManager);
+    assertThat(modelProvider).isNotNull();
+    assertThat(taskQueue.getImmediateTaskCount()).isEqualTo(0);
+    assertThat(taskQueue.getBackgroundTaskCount()).isEqualTo(0);
+    assertThat(taskQueue.getUserFacingTaskCount()).isEqualTo(1);
+    assertThat(taskQueue.isMakingRequest()).isTrue();
+  }
+
+  @Test
   public void testNoCardsError() {
     FeedSessionManager sessionManager = getInitializedSessionManager();
     sessionManager.noCardsError = new ModelError(ErrorType.NO_CARDS_ERROR, null);
     int featureCnt = 2;
     populateSession(sessionManager, featureCnt, 1, true, null);
 
-    ModelProviderFactory modelProviderFactory =
-        new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
     // We can't verify that raiseError was called on ModelProvider since all of that happens in
     // the createNew() call due to the single threaded nature.  We may want to have a test method
     // on the factory to install the observer when creating the ModelProvider.
-    ModelProvider modelProvider = modelProviderFactory.createNew(null);
+    ModelProvider modelProvider = getModelProvider(sessionManager);
 
     // Verify the failed session is correct
     Map<String, Session> sessions = sessionManager.getSessionsMapForTest();
@@ -569,10 +617,7 @@ public class FeedSessionManagerTest {
     sessionManager.initialize();
     populateSession(sessionManager, 5, 1, true, null);
 
-    ModelProviderFactory modelProviderFactory =
-        new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
-    modelProviderFactory.createNew(null);
+    ModelProvider unused = getModelProvider(sessionManager);
     verify(spyFeedStore).switchToEphemeralMode();
   }
 
@@ -586,10 +631,7 @@ public class FeedSessionManagerTest {
     sessionManager.initialize();
     populateSession(sessionManager, 5, 1, true, null);
 
-    ModelProviderFactory modelProviderFactory =
-        new FeedModelProviderFactory(
-            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
-    modelProviderFactory.createNew(null);
+    ModelProvider unused = getModelProvider(sessionManager);
     verify(spyFeedStore).switchToEphemeralMode();
   }
 
@@ -651,6 +693,13 @@ public class FeedSessionManagerTest {
     Result<List<StreamDataOperation>> result = Result.success(operations);
     updateConsumer.accept(result);
     return operationCount;
+  }
+
+  private ModelProvider getModelProvider(FeedSessionManager sessionManager) {
+    ModelProviderFactory modelProviderFactory =
+        new FeedModelProviderFactory(
+            sessionManager, threadUtils, timingUtils, taskQueue, mainThreadRunner, configuration);
+    return modelProviderFactory.createNew(null);
   }
 
   private FeedSessionManager getInitializedSessionManager() {

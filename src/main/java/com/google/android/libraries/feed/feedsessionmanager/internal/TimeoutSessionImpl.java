@@ -64,7 +64,8 @@ public final class TimeoutSessionImpl extends SessionImpl {
     StreamSession ss = Validators.checkNotNull(streamSession);
     Logger.i(
         TAG,
-        "TimeoutSession.updateSession, clearHead %s, legacyHeadContent %s",
+        "TimeoutSession.updateSession, streamSession %s, clearHead %s, legacyHeadContent %s",
+        ss.getStreamToken(),
         clearHead,
         legacyHeadContent);
     if (clearHead) {
@@ -94,6 +95,7 @@ public final class TimeoutSessionImpl extends SessionImpl {
           String lowestChild = Validators.checkNotNull(viewDepthProvider).getChildViewDepth();
           if (lowestChild != null) {
             List<StreamStructure> removeOperations = removeItems(lowestChild, rootChildren);
+            Logger.i(TAG, "Removing %d items", removeOperations.size());
             if (!removeOperations.isEmpty()) {
               removeOperations.addAll(streamStructures);
               streamStructures = removeOperations;
