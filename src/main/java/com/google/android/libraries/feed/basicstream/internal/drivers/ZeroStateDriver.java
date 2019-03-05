@@ -36,9 +36,9 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
   private static final String TAG = "ZeroStateDriver";
 
   private final ContentChangedListener contentChangedListener;
-  private final ModelProvider modelProvider;
   private final SpinnerLogger spinnerLogger;
 
+  private ModelProvider modelProvider;
   private boolean spinnerShown;
   /*@Nullable*/ private ZeroStateViewHolder zeroStateViewHolder;
 
@@ -118,6 +118,16 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
     if (spinnerLogger.isSpinnerActive()) {
       spinnerLogger.spinnerFinished();
     }
+  }
+
+  /**
+   * Updates the model provider.
+   *
+   * <p>This is a hacky way to keep the model providers in sync in the situation where switching
+   * stream drivers would result in the zero state flashing.
+   */
+  void setModelProvider(ModelProvider modelProvider) {
+    this.modelProvider = modelProvider;
   }
 
   @VisibleForTesting

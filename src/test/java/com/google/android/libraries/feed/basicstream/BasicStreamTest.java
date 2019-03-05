@@ -247,6 +247,25 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void
+      testOnSessionStart_doesNotUseNewStreamDriver_ifBothStreamDriversAreShowingZeroState() {
+    StreamDriver newStreamDriver = mock(StreamDriver.class);
+    basicStream.onShow();
+    basicStream.onError(new ModelError(ErrorType.NO_CARDS_ERROR, /* continuationToken= */ null));
+    reset(adapter, streamDriver);
+    when(streamDriver.isZeroStateBeingShown()).thenReturn(true);
+    when(newStreamDriver.isZeroStateBeingShown()).thenReturn(true);
+
+    basicStream.streamDriver = newStreamDriver;
+    basicStream.onSessionStart();
+
+    verify(streamDriver).setModelProviderForZeroState(initialModelProvider);
+    verify(streamDriver, never()).onDestroy();
+    verify(newStreamDriver).onDestroy();
+    verify(adapter, never()).setDriver(any(StreamDriver.class));
+  }
+
+  @Test
   public void testOnSessionFinished() {
     basicStream.onShow();
     reset(streamDriver);
@@ -1065,12 +1084,14 @@ public class BasicStreamTest {
         mock(ActionManager.class),
         CONFIGURATION,
         layoutManager,
-        mock(OfflineIndicatorApi.class));
+        mock(OfflineIndicatorApi.class),
+        streamDriver);
   }
 
   private class BasicStreamForTest extends BasicStream {
 
     private final LinearLayoutManager layoutManager;
+    private StreamDriver streamDriver;
     private boolean streamDriverRestoring;
 
     private ScrollRestorer streamDriverScrollRestorer;
@@ -1093,7 +1114,8 @@ public class BasicStreamTest {
         ActionManager actionManager,
         Configuration configuration,
         LinearLayoutManager layoutManager,
-        OfflineIndicatorApi offlineIndicatorApi) {
+        OfflineIndicatorApi offlineIndicatorApi,
+        StreamDriver streamDriver) {
       super(
           context,
           streamConfiguration,
@@ -1116,6 +1138,7 @@ public class BasicStreamTest {
           mainThreadRunner,
           knownContentApi);
       this.layoutManager = layoutManager;
+      this.streamDriver = streamDriver;
     }
 
     @Override

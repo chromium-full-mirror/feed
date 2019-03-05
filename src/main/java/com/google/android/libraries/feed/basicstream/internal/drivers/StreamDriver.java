@@ -388,6 +388,19 @@ public class StreamDriver
         && !(featureDrivers.get(0) instanceof ZeroStateDriver);
   }
 
+  public boolean isZeroStateBeingShown() {
+    return !featureDrivers.isEmpty() && featureDrivers.get(0) instanceof ZeroStateDriver;
+  }
+
+  public void setModelProviderForZeroState(ModelProvider modelProvider) {
+    if (!isZeroStateBeingShown()) {
+      Logger.wtf(
+          TAG, "setModelProviderForZeroState should only be called when zero state is shown");
+      return;
+    }
+    ((ZeroStateDriver) featureDrivers.get(0)).setModelProvider(modelProvider);
+  }
+
   private void addNoContentCardOrZeroStateIfNecessary(
       @ZeroStateShowReason int zeroStateShowReason) {
     LeafFeatureDriver leafFeatureDriver = null;

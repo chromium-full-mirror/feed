@@ -533,11 +533,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   }
 
   private void updateAdapterAfterSessionStart(ModelProvider modelProvider) {
-    if (streamDriver != null) {
-      streamDriver.onDestroy();
-    }
-
-    streamDriver =
+    StreamDriver newStreamDriver =
         createStreamDriver(
             actionApi,
             actionManager,
@@ -559,10 +555,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             mainThreadRunner);
 
     // If after starting a new session the Stream is still empty, we should show the zero state.
-    if (streamDriver.getLeafFeatureDrivers().isEmpty()) {
-      streamDriver.showZeroState(ZeroStateShowReason.NO_CONTENT);
+    if (newStreamDriver.getLeafFeatureDrivers().isEmpty()) {
+      newStreamDriver.showZeroState(ZeroStateShowReason.NO_CONTENT);
     }
-    adapter.setDriver(streamDriver);
     if (loggingState == LoggingState.STARTING
         && modelProvider.getCurrentState() == State.READY
         && modelProvider.getRootFeature() == null) {
@@ -570,6 +565,22 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       loggingState = LoggingState.LOGGED_NO_CONTENT;
     }
 
+    // If old and new stream driver are both showing the zero state, do not replace the old stream
+    // driver. This prevents the zero state flashing if the old and new stream drivers are both
+    // displaying the same content. The old stream driver will be updated with the new model
+    // provider.
+    if (streamDriver != null
+        && streamDriver.isZeroStateBeingShown()
+        && newStreamDriver.isZeroStateBeingShown()) {
+      streamDriver.setModelProviderForZeroState(modelProvider);
+      newStreamDriver.onDestroy();
+      return;
+    }
+    if (streamDriver != null) {
+      streamDriver.onDestroy();
+    }
+    streamDriver = newStreamDriver;
+    adapter.setDriver(newStreamDriver);
     deepestContentTracker.reset();
   }
 

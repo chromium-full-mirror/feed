@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -182,6 +183,17 @@ public class ZeroStateDriverTest {
     verify(zeroStateViewHolder).showSpinner(true);
     verify(contentChangedListener).onContentChanged();
     verify(modelProvider).triggerRefresh(RequestReason.ZERO_STATE);
+  }
+
+  @Test
+  public void testOnClick_usesNewModelProvider_afterSettingNewModelProvider() {
+    ModelProvider newModelProvider = mock(ModelProvider.class);
+    zeroStateDriver.setModelProvider(newModelProvider);
+    zeroStateDriver.bind(zeroStateViewHolder);
+
+    zeroStateDriver.onClick(new FrameLayout(context));
+
+    verify(newModelProvider).triggerRefresh(RequestReason.ZERO_STATE);
   }
 
   @Test

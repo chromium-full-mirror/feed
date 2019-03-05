@@ -117,6 +117,7 @@ public class StreamDriverTest {
   @Mock private ModelProvider modelProvider;
   @Mock private ContinuationDriver continuationDriver;
   @Mock private NoContentDriver noContentDriver;
+  @Mock private ZeroStateDriver zeroStateDriver;
   @Mock private StreamContentListener contentListener;
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private SnackbarApi snackbarApi;
@@ -154,6 +155,7 @@ public class StreamDriverTest {
 
     when(continuationDriver.getLeafFeatureDriver()).thenReturn(continuationDriver);
     when(noContentDriver.getLeafFeatureDriver()).thenReturn(noContentDriver);
+    when(zeroStateDriver.getLeafFeatureDriver()).thenReturn(zeroStateDriver);
     when(modelProvider.getRootFeature()).thenReturn(streamFeature);
     when(modelProvider.getCurrentState()).thenReturn(State.READY);
     threadUtils = new ThreadUtils();
@@ -795,6 +797,32 @@ public class StreamDriverTest {
         UndoAction.newBuilder().setConfirmationLabel("conf").setUndoLabel("undo label").build());
   }
 
+  @Test
+  public void testIsZeroStateBeingShown_returnsTrue_ifZeroState() {
+    when(streamFeature.getCursor()).thenReturn(EMPTY_MODEL_CURSOR);
+    streamDriver.getLeafFeatureDrivers();
+
+    assertThat(streamDriver.isZeroStateBeingShown()).isTrue();
+  }
+
+  @Test
+  public void testIsZeroStateBeingShown_returnsFalse_ifNoZeroState() {
+    FakeModelCursor cursor = FakeModelCursor.newBuilder().addCard().addToken().build();
+    initializeStreamDriverAndDismissAllFeatureChildren(cursor);
+
+    assertThat(streamDriver.isZeroStateBeingShown()).isFalse();
+  }
+
+  @Test
+  public void testSetModelProvider_setsModelProviderOnTheZeroState() {
+    when(streamFeature.getCursor()).thenReturn(EMPTY_MODEL_CURSOR);
+    streamDriver.getLeafFeatureDrivers();
+
+    streamDriver.setModelProviderForZeroState(modelProvider);
+
+    verify(zeroStateDriver).setModelProvider(modelProvider);
+  }
+
   private void initializeStreamDriverAndDismissAllFeatureChildren(FakeModelCursor fakeModelCursor) {
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -949,6 +977,11 @@ public class StreamDriverTest {
     @Override
     NoContentDriver createNoContentDriver() {
       return noContentDriver;
+    }
+
+    @Override
+    ZeroStateDriver createZeroStateDriver() {
+      return zeroStateDriver;
     }
   }
 
