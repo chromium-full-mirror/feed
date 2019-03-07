@@ -53,15 +53,12 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
-/** Tests of the {@link PietManager}. */
+/** Tests of the {@link PietManagerImpl}. */
 @RunWith(RobolectricTestRunner.class)
-public class PietManagerTest {
+public class PietManagerImplTest {
   @Mock private ActionHandler actionHandler;
   @Mock private EventLogger eventLogger;
-  @Mock private AssetProvider assetProvider;
   @Mock private CustomElementProvider customElementProvider;
-  @Mock Context mockContext1;
-  @Mock Context mockContext2;
 
   @Mock ImageLoader imageLoader;
   @Mock StringFormatter stringFormatter;
@@ -71,7 +68,7 @@ public class PietManagerTest {
   private ViewGroup viewGroup1;
   private ViewGroup viewGroup2;
 
-  private PietManager pietManager;
+  private PietManagerImpl pietManager;
 
   @Before
   public void setUp() throws Exception {
@@ -80,10 +77,11 @@ public class PietManagerTest {
     viewGroup1 = new LinearLayout(context);
     viewGroup2 = new FrameLayout(context);
     pietManager =
-        PietManager.builder()
-            .setDebugBehavior(DebugBehavior.VERBOSE)
-            .setCustomElementProvider(customElementProvider)
-            .build();
+        (PietManagerImpl)
+            PietManager.builder()
+                .setDebugBehavior(DebugBehavior.VERBOSE)
+                .setCustomElementProvider(customElementProvider)
+                .build();
   }
 
   @Test
@@ -98,25 +96,28 @@ public class PietManagerTest {
   public void testGetAdapterParameters() {
     Supplier<ViewGroup> viewGroupProducer1 = Suppliers.of(viewGroup1);
     Supplier<ViewGroup> viewGroupProducer2 = Suppliers.of(viewGroup2);
+    Context context1 = Robolectric.buildActivity(Activity.class).get();
+    Context context2 = Robolectric.buildActivity(Activity.class).get();
+
     AdapterParameters returnParams;
 
     // Get params for a context that does not exist
-    returnParams = pietManager.getAdapterParameters(mockContext1, viewGroupProducer1);
+    returnParams = pietManager.getAdapterParameters(context1, viewGroupProducer1);
     assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer1);
-    assertThat(returnParams.context).isEqualTo(mockContext1);
+    assertThat(returnParams.context).isEqualTo(context1);
 
     // Get params for the same context again (use cached value)
-    returnParams = pietManager.getAdapterParameters(mockContext1, Suppliers.of(null));
+    returnParams = pietManager.getAdapterParameters(context1, Suppliers.of(null));
     assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer1);
 
     // Get params for a different context
-    returnParams = pietManager.getAdapterParameters(mockContext2, viewGroupProducer2);
+    returnParams = pietManager.getAdapterParameters(context2, viewGroupProducer2);
     assertThat(returnParams.parentViewSupplier).isEqualTo(viewGroupProducer2);
   }
 
   @Test
   public void testBuilder_defaults() {
-    PietManager manager = PietManager.builder().build();
+    PietManagerImpl manager = (PietManagerImpl) PietManager.builder().build();
     AdapterParameters parameters = manager.getAdapterParameters(context, Suppliers.of(viewGroup1));
     assertThat(parameters.hostProviders.getCustomElementProvider())
         .isInstanceOf(ThrowingCustomElementProvider.class);
@@ -146,7 +147,7 @@ public class PietManagerTest {
     Locale.setDefault(Locale.forLanguageTag("ar"));
     assertThat(LayoutUtils.isDefaultLocaleRtl()).isTrue();
 
-    PietManager manager = PietManager.builder().build();
+    PietManagerImpl manager = (PietManagerImpl) PietManager.builder().build();
 
     assertThat(manager.assetProvider.isRtL()).isTrue();
 
@@ -161,20 +162,21 @@ public class PietManagerTest {
     boolean isDarkTheme = true;
     HostBindingProvider hostBindingProvider = new HostBindingProvider();
     Clock clock = new FakeClock();
-    PietManager manager =
-        PietManager.builder()
-            .setImageLoader(imageLoader)
-            .setStringFormatter(stringFormatter)
-            .setDefaultCornerRadius(Suppliers.of(123))
-            .setIsDarkTheme(Suppliers.of(isDarkTheme))
-            .setIsRtL(Suppliers.of(isRtL))
-            .setFadeImageThresholdMs(Suppliers.of(456))
-            .setTypefaceProvider(typefaceProvider)
-            .setDebugBehavior(DebugBehavior.VERBOSE)
-            .setCustomElementProvider(customElementProvider)
-            .setHostBindingProvider(hostBindingProvider)
-            .setClock(clock)
-            .build();
+    PietManagerImpl manager =
+        (PietManagerImpl)
+            PietManager.builder()
+                .setImageLoader(imageLoader)
+                .setStringFormatter(stringFormatter)
+                .setDefaultCornerRadius(Suppliers.of(123))
+                .setIsDarkTheme(Suppliers.of(isDarkTheme))
+                .setIsRtL(Suppliers.of(isRtL))
+                .setFadeImageThresholdMs(Suppliers.of(456))
+                .setTypefaceProvider(typefaceProvider)
+                .setDebugBehavior(DebugBehavior.VERBOSE)
+                .setCustomElementProvider(customElementProvider)
+                .setHostBindingProvider(hostBindingProvider)
+                .setClock(clock)
+                .build();
     AdapterParameters parameters = manager.getAdapterParameters(context, Suppliers.of(viewGroup1));
     assertThat(parameters.hostProviders.getCustomElementProvider()).isSameAs(customElementProvider);
     assertThat(parameters.hostProviders.getHostBindingProvider()).isSameAs(hostBindingProvider);

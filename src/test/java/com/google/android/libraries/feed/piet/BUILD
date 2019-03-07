@@ -395,10 +395,10 @@ android_local_test(
 )
 
 android_local_test(
-    name = "PietManagerTest",
+    name = "PietManagerImplTest",
     size = "small",
     timeout = "moderate",
-    srcs = ["PietManagerTest.java"],
+    srcs = ["PietManagerImplTest.java"],
     aapt_version = "aapt2",
     manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
     deps = [

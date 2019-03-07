@@ -15,7 +15,6 @@
 package com.google.android.libraries.feed.piet;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
 import android.view.ViewGroup;
 import com.google.android.libraries.feed.common.functional.Supplier;
 import com.google.android.libraries.feed.common.functional.Suppliers;
@@ -37,68 +36,22 @@ import com.google.android.libraries.feed.piet.host.ThrowingCustomElementProvider
 import com.google.android.libraries.feed.piet.host.TypefaceProvider;
 
 /** Manages a top-level session of Piet. */
-public class PietManager {
+public interface PietManager {
 
-  @VisibleForTesting final AssetProvider assetProvider;
-  private final DebugBehavior debugBehavior;
-  private final CustomElementProvider customElementProvider;
-  private final HostBindingProvider hostBindingProvider;
-  private final Clock clock;
-  @VisibleForTesting /*@Nullable*/ AdapterParameters adapterParameters = null;
-
-  private PietManager(
-      DebugBehavior debugBehavior,
-      AssetProvider assetProvider,
-      CustomElementProvider customElementProvider,
-      HostBindingProvider hostBindingProvider,
-      Clock clock) {
-    this.debugBehavior = debugBehavior;
-    this.assetProvider = assetProvider;
-    this.customElementProvider = customElementProvider;
-    this.hostBindingProvider = hostBindingProvider;
-    this.clock = clock;
-  }
-
-  public FrameAdapter createPietFrameAdapter(
-      Supplier</*@Nullable*/ ViewGroup> cardViewProducer,
-      ActionHandler actionHandler,
-      EventLogger eventLogger,
-      Context context) {
-    AdapterParameters parameters = getAdapterParameters(context, cardViewProducer);
-
-    return new FrameAdapter(context, parameters, actionHandler, eventLogger, debugBehavior);
-  }
-
-  /**
-   * Return the {@link AdapterParameters}. If one doesn't exist this will create a new instance. The
-   * {@code AdapterParameters} is scoped to the {@code Context}.
-   */
-  @VisibleForTesting
-  AdapterParameters getAdapterParameters(
-      Context context, Supplier</*@Nullable*/ ViewGroup> cardViewProducer) {
-    if (adapterParameters == null || adapterParameters.context != context) {
-      adapterParameters =
-          new AdapterParameters(
-              context,
-              cardViewProducer,
-              new HostProviders(assetProvider, customElementProvider, hostBindingProvider),
-              clock);
-    }
-    return adapterParameters;
-  }
-
-  public void purgeRecyclerPools() {
-    if (adapterParameters != null) {
-      adapterParameters.elementAdapterFactory.purgeRecyclerPools();
-    }
-  }
-
-  public static Builder builder() {
+  static Builder builder() {
     return new Builder();
   }
 
+  FrameAdapter createPietFrameAdapter(
+      Supplier</*@Nullable*/ ViewGroup> cardViewProducer,
+      ActionHandler actionHandler,
+      EventLogger eventLogger,
+      Context context);
+
+  void purgeRecyclerPools();
+
   /** Builder for PietManager that provides defaults wherever possible */
-  public static class Builder {
+  class Builder {
     private static final NullImageLoader BLANK_IMAGE_LOADER = new NullImageLoader();
     private static final StringFormatter EMPTY_STRING_FORMATTER = new EmptyStringFormatter();
     private static final Supplier<Integer> CORNER_RADIUS_DEFAULT = Suppliers.of(0);
@@ -198,8 +151,9 @@ public class PietManager {
               isRtLSupplier,
               typefaceProvider);
 
-      return new PietManager(
+      return new PietManagerImpl(
           debugBehavior, assetProvider, customElementProvider, hostBindingProvider, clock);
     }
   }
+
 }
