@@ -38,6 +38,26 @@ android_local_test(
 )
 
 android_local_test(
+    name = "UiSessionRequestLoggerTest",
+    size = "small",
+    timeout = "moderate",
+    srcs = ["UiSessionRequestLoggerTest.java"],
+    aapt_version = "aapt2",
+    manifest_values = DEFAULT_ANDROID_LOCAL_TEST_MANIFEST,
+    deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
+        "//src/main/java/com/google/android/libraries/feed/common/time/testing",
+        "//src/main/java/com/google/android/libraries/feed/host/logging",
+        "//src/main/java/com/google/android/libraries/feed/sharedstream/logging",
+        "//src/main/java/com/google/android/libraries/feed/testing/modelprovider",
+        "@com_google_protobuf_javalite//:protobuf_java_lite",
+        "@com_google_truth_truth//jar",
+        "@org_mockito_mockito_all//jar",
+        "@robolectric//bazel:robolectric",
+    ],
+)
+
+android_local_test(
     name = "VisibilityMonitorTest",
     size = "small",
     timeout = "moderate",

@@ -74,6 +74,7 @@ import com.google.android.libraries.feed.sharedstream.contextmenumanager.Context
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManagerImpl;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.FloatingContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.DeepestContentTracker;
+import com.google.android.libraries.feed.sharedstream.logging.UiSessionRequestLogger;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietCustomElementProvider;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
@@ -117,6 +118,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final MainThreadRunner mainThreadRunner;
   private final KnownContentApi knownContentApi;
   private final ViewLoggingUpdater viewLoggingUpdater;
+  private final UiSessionRequestLogger uiSessionRequestLogger;
 
   private RecyclerView recyclerView;
   private ContextMenuManager contextMenuManager;
@@ -186,6 +188,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             DEFAULT_LOGGING_IMMEDIATE_CONTENT_THRESHOLD_MS);
     this.knownContentApi = knownContentApi;
     viewLoggingUpdater = createViewLoggingUpdater();
+    this.uiSessionRequestLogger = new UiSessionRequestLogger(clock, basicLoggingApi);
 
     this.pietManager =
         createPietManager(
@@ -307,6 +310,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       streamDriver.onDestroy();
     }
     streamOfflineMonitor.onDestroy();
+    uiSessionRequestLogger.onDestroy();
     isDestroyed = true;
   }
 
@@ -660,7 +664,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       modelProvider.unregisterObserver(this);
     }
     modelProvider = modelProviderFactory.createNew(deepestContentTracker);
-    modelProvider.registerObserver(this);
+
+    registerObserversOnModelProvider(modelProvider);
   }
 
   @Override
@@ -700,7 +705,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       }
 
       modelProvider = localModelProvider;
-      modelProvider.registerObserver(this);
+
+      registerObserversOnModelProvider(modelProvider);
     }
 
     if (streamDriver == null) {
@@ -752,6 +758,11 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private String convertStreamSavedInstanceStateToString(
       StreamSavedInstanceState savedInstanceState) {
     return Base64.encodeToString(savedInstanceState.toByteArray(), Base64.DEFAULT);
+  }
+
+  private void registerObserversOnModelProvider(ModelProvider modelProvider) {
+    modelProvider.registerObserver(this);
+    uiSessionRequestLogger.onSessionRequested(modelProvider);
   }
 
   @VisibleForTesting

@@ -41,6 +41,7 @@ public class FakeModelProvider implements ModelProvider {
   private boolean wasRefreshTriggered;
   /*@Nullable*/ private String sessionToken = null;
   @RequestReason private int lastRequestReason = RequestReason.UNKNOWN;
+  /*@Nullable*/ private ModelFeature immediateSessionStartModel;
 
   @Override
   public ModelMutation edit() {
@@ -111,6 +112,11 @@ public class FakeModelProvider implements ModelProvider {
 
   @Override
   public void registerObserver(ModelProviderObserver observer) {
+    if (immediateSessionStartModel != null) {
+      this.rootFeature = immediateSessionStartModel;
+      observer.onSessionStart();
+    }
+
     observers.add(observer);
   }
 
@@ -153,5 +159,9 @@ public class FakeModelProvider implements ModelProvider {
   @RequestReason
   public int getLastRequestReason() {
     return lastRequestReason;
+  }
+
+  public void triggerOnSessionStartImmediately(ModelFeature modelFeature) {
+    immediateSessionStartModel = modelFeature;
   }
 }

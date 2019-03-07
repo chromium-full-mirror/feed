@@ -8,6 +8,7 @@ android_library(
     name = "logging",
     srcs = glob(["*.java"]),
     deps = [
+        "//src/main/java/com/google/android/libraries/feed/api/modelprovider",
         "//src/main/java/com/google/android/libraries/feed/common/logging",
         "//src/main/java/com/google/android/libraries/feed/common/time",
         "//src/main/java/com/google/android/libraries/feed/host/config",

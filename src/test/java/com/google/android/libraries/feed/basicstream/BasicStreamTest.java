@@ -466,6 +466,16 @@ public class BasicStreamTest {
   }
 
   @Test
+  public void testOnDestroy_deregistersSessionListener() {
+    basicStream.onShow();
+
+    basicStream.onDestroy();
+
+    // Once for BasicStream, once for the session listener.
+    verify(initialModelProvider, times(2)).unregisterObserver(any());
+  }
+
+  @Test
   public void testGetSavedInstanceState() {
     basicStream.onShow();
 
