@@ -162,12 +162,12 @@ public class PietViewHolder extends FeedViewHolder implements SwipeableViewHolde
       return;
     }
 
+    frameAdapter.unbindModel();
     actionParser = null;
     loggingListener = null;
     streamActionApi = null;
     swipeAction = null;
     visibilityMonitor.setListener(null);
-    frameAdapter.unbindModel();
     if (scrollListener != null) {
       streamScrollMonitor.removeScrollListener(scrollListener);
     }

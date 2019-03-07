@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.viewholders;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -34,6 +35,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.libraries.feed.api.actionparser.ActionParser;
 import com.google.android.libraries.feed.api.actionparser.ActionSource;
+import com.google.android.libraries.feed.api.actionparser.ActionSourceConverter;
 import com.google.android.libraries.feed.basicstream.internal.actions.StreamActionApiImpl;
 import com.google.android.libraries.feed.basicstream.internal.viewholders.PietViewHolder.PietViewActionScrollListener;
 import com.google.android.libraries.feed.common.functional.Supplier;
@@ -408,6 +410,41 @@ public class PietViewHolderTest {
     verify(loggingListener, never()).onContentClicked();
     verify(actionParser)
         .parseAction(ACTION, streamActionApi, view, VE_LOGGING_TOKEN, ActionSource.VIEW);
+  }
+
+  @Test
+  public void testHideActionsOnUnbind() {
+    pietViewHolder.bind(
+        Frame.getDefaultInstance(),
+        pietSharedStates,
+        streamActionApi,
+        FeedActionPayload.getDefaultInstance(),
+        loggingListener,
+        actionParser);
+
+    doAnswer(
+            invocation -> {
+              actionHandler.handleAction(
+                  Action.getDefaultInstance(),
+                  ActionType.VIEW,
+                  Frame.getDefaultInstance(),
+                  view,
+                  null);
+              return null;
+            })
+        .when(frameAdapter)
+        .unbindModel();
+
+    pietViewHolder.unbind();
+
+    verify(actionParser)
+        .parseAction(
+            Action.getDefaultInstance(),
+            streamActionApi,
+            view,
+            null,
+            ActionSourceConverter.convertPietAction(ActionType.VIEW));
+    // Does not crash
   }
 
   @Test
