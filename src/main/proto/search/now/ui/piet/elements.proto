@@ -135,10 +135,6 @@ message Element {
     // An image container
     ImageElement image_element = 3;
 
-    // Add a spacer line which can be defined as a divider.
-    // Deprecated: use an empty ElementStack instead.
-    SpacerElement spacer_element = 4 [deprecated = true];
-
     // A simple text line
     TextElement text_element = 2;
 
@@ -257,7 +253,7 @@ message Element {
   extensions 10000 to max;
 
   // Deprecated field IDs.
-  reserved 7, 8, 13, 19, 20;
+  reserved 4, 7, 8, 13, 19, 20;
 }
 
 /*
@@ -276,25 +272,6 @@ message ImageElement {
   }
 
   // Styles applied to this ImageElement. If any style_ids cannot be found,
-  // ERR_MISSING_STYLES is raised.
-  // Deprecated: use the StyleIdsStack on Element instead.
-  optional StyleIdsStack style_references = 1 [deprecated = true];
-
-  // Please use CL numbers you own for extension numbers.
-  extensions 10000 to max;
-}
-
-// A SpacerElement represents an empty space. Uses include gaps or dividers
-// within a card. Styles can be set on a spacer, e.g. background_color, but
-// no bindings are supported since it is always empty.
-// Deprecated: use an empty ElementStack instead.
-message SpacerElement {
-  option deprecated = true;
-
-  // Height in DP of this spacer.
-  optional int32 height = 2;
-
-  // Styles applied to this SpacerElement. If any style_ids cannot be found,
   // ERR_MISSING_STYLES is raised.
   // Deprecated: use the StyleIdsStack on Element instead.
   optional StyleIdsStack style_references = 1 [deprecated = true];
