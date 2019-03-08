@@ -92,6 +92,7 @@ import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.Men
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -269,7 +270,7 @@ public class BasicStreamTest {
   public void testOnSessionFinished() {
     basicStream.onShow();
     reset(streamDriver);
-    basicStream.onSessionFinished();
+    basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
     verify(scrollRestorer).abandonRestoringScroll();
     verify(streamDriver).showSpinner();
@@ -689,7 +690,7 @@ public class BasicStreamTest {
     basicStream.onCreate(bundle);
 
     // onSessionFinish indicates the restore has failed.
-    basicStream.onSessionFinished();
+    basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
     basicStream.onShow();
 
@@ -1003,7 +1004,7 @@ public class BasicStreamTest {
     reset(adapter);
 
     basicStream.onSessionStart();
-    basicStream.onSessionFinished();
+    basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
     mainThreadRunner.runAllTasks();
     verify(adapter, never()).setDriver(streamDriver);
@@ -1050,7 +1051,7 @@ public class BasicStreamTest {
     basicStream.onShow();
 
     basicStream.onDestroy();
-    basicStream.onSessionFinished();
+    basicStream.onSessionFinished(UiContext.getDefaultInstance());
 
     // Should only occur once between onDestroy() and onSessionFinished()
     verify(initialModelProvider).unregisterObserver(basicStream);

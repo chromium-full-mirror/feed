@@ -72,6 +72,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.ArrayList;
@@ -289,7 +290,7 @@ public final class FeedSessionManager
     // for REQUEST_WITH_CONTENT which is populate -> request
     if (makeRequest && behavior != REQUEST_WITH_CONTENT) {
       // determine if we make the request before or after populating a session
-      triggerRefresh(null, RequestReason.OPEN_WITHOUT_CONTENT);
+      triggerRefresh(null, RequestReason.OPEN_WITHOUT_CONTENT, UiContext.getDefaultInstance());
     }
 
     int taskType = TaskType.USER_FACING;
@@ -312,7 +313,7 @@ public final class FeedSessionManager
         timeoutTask,
         sessionPopulationTimeoutMs);
     if (makeRequest && behavior == REQUEST_WITH_CONTENT) {
-      triggerRefresh(null, RequestReason.OPEN_WITH_CONTENT);
+      triggerRefresh(null, RequestReason.OPEN_WITH_CONTENT, UiContext.getDefaultInstance());
     }
   }
 
@@ -518,12 +519,14 @@ public final class FeedSessionManager
 
   @Override
   public void triggerRefresh(/*@Nullable*/ StreamSession streamSession) {
-    triggerRefresh(streamSession, RequestReason.HOST_REQUESTED);
+    triggerRefresh(streamSession, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
   }
 
   @Override
   public void triggerRefresh(
-      /*@Nullable*/ StreamSession streamSession, @RequestReason int requestReason) {
+      /*@Nullable*/ StreamSession streamSession,
+      @RequestReason int requestReason,
+      UiContext uiContext) {
     if (!initialized.get()) {
       Logger.i(TAG, "Lazy initialization triggered, triggerRefresh");
       initialize();
@@ -531,11 +534,13 @@ public final class FeedSessionManager
     taskQueue.execute(
         "triggerRefresh(FeedSessionManager)",
         TaskType.HEAD_INVALIDATE, // invalidate because we are requesting a refresh
-        () -> triggerRefreshTask(streamSession, requestReason));
+        () -> triggerRefreshTask(streamSession, requestReason, uiContext));
   }
 
   private void triggerRefreshTask(
-      /*@Nullable*/ StreamSession streamSession, @RequestReason int requestReason) {
+      /*@Nullable*/ StreamSession streamSession,
+      @RequestReason int requestReason,
+      UiContext uiContext) {
     threadUtils.checkNotMainThread();
     requestManager.triggerRefresh(
         requestReason, getCommitter("triggerRefresh", MutationContext.EMPTY_CONTEXT));
@@ -545,7 +550,7 @@ public final class FeedSessionManager
       if (session != null) {
         ModelProvider modelProvider = session.getModelProvider();
         if (modelProvider != null) {
-          invalidateSession(modelProvider, session);
+          invalidateSession(modelProvider, session, uiContext);
         } else {
           Logger.w(TAG, "Session didn't have a ModelProvider %s", streamToken);
         }
@@ -718,10 +723,11 @@ public final class FeedSessionManager
     dumper.dump(sessionManagerMutation);
   }
 
-  private void invalidateSession(ModelProvider modelProvider, Session session) {
+  private void invalidateSession(
+      ModelProvider modelProvider, Session session, UiContext uiContext) {
     threadUtils.checkNotMainThread();
     Logger.i(TAG, "Invalidate session %s", session.getStreamSession().getStreamToken());
-    modelProvider.invalidate();
+    modelProvider.invalidate(uiContext);
   }
 
   // This is only used in tests to verify the contents of the shared state cache.

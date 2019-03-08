@@ -18,6 +18,7 @@ import android.support.annotation.IntDef;
 import com.google.android.libraries.feed.api.common.MutationContext;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
 
@@ -48,10 +49,16 @@ public interface ModelProvider {
   void invalidate();
 
   /**
+   * This is called to invalidate the model. The SessionManager calls this to free all resources
+   * held by this ModelProvider instance.
+   */
+  void invalidate(UiContext uiContext);
+
+  /**
    * This is called to detach the ModelProvider from the SessionManager. The Session will continue
    * to be persisted, but the SessionManager will drop connections to this ModelProvider. The
    * ModelProvider will enter a {@code State.INVALIDATED}. This will not call the {@link
-   * ModelProviderObserver#onSessionFinished()}.
+   * ModelProviderObserver#onSessionFinished(UiContext)}.
    */
   void detachModelProvider();
 
@@ -90,6 +97,16 @@ public interface ModelProvider {
    * @param requestReason The reason for this refresh.
    */
   void triggerRefresh(@RequestReason int requestReason);
+
+  /**
+   * Allow the stream to force a refresh. This will result in the current model being invalidated if
+   * the requested refresh is successful.
+   *
+   * @param requestReason The reason for this refresh.
+   * @param uiContext The {@link UiContext} that caused this mutation. Will be round-tripped to
+   *     {@link ModelProviderObserver#onSessionFinished(UiContext)}
+   */
+  void triggerRefresh(@RequestReason int requestReason, UiContext uiContext);
 
   /** Defines the Lifecycle of the ModelProvider */
   @IntDef({State.INITIALIZING, State.READY, State.INVALIDATED})

@@ -31,6 +31,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.List;
@@ -83,8 +84,10 @@ public interface SessionManager extends Resettable {
    *
    * @param streamSession The session associated with the request.
    * @param requestReason The reason for triggering a refresh.
+   * @param uiContext The UI only context for the refresh.
    */
-  void triggerRefresh(/*@Nullable*/ StreamSession streamSession, @RequestReason int requestReason);
+  void triggerRefresh(
+      /*@Nullable*/ StreamSession streamSession, @RequestReason int requestReason, UiContext uiContext);
 
   /**
    * Returns a List of {@link StreamPayload} for each of the keys. This operation may perform disk

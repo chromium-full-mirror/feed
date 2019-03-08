@@ -15,6 +15,7 @@
 package com.google.android.libraries.feed.infraintegration;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,6 +35,7 @@ import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuil
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,7 +80,7 @@ public class RootOnlyTest {
     ModelProviderObserver changeObserver = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(changeObserver);
     verify(changeObserver).onSessionStart();
-    verify(changeObserver, never()).onSessionFinished();
+    verify(changeObserver, never()).onSessionFinished(any(UiContext.class));
 
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -90,7 +92,7 @@ public class RootOnlyTest {
     assertThat(protocolInfo.hasClearOperation).isTrue();
 
     modelProvider.invalidate();
-    verify(changeObserver).onSessionFinished();
+    verify(changeObserver).onSessionFinished(UiContext.getDefaultInstance());
   }
 
   @Test
@@ -101,7 +103,7 @@ public class RootOnlyTest {
     ModelProvider modelProvider = modelProviderFactory.createNew(null);
     modelProvider.registerObserver(changeObserver);
     verify(changeObserver).onSessionStart();
-    verify(changeObserver, never()).onSessionFinished();
+    verify(changeObserver, never()).onSessionFinished(any(UiContext.class));
 
     WireProtocolResponseBuilder responseBuilder =
         new WireProtocolResponseBuilder().addRootFeature();
@@ -109,7 +111,7 @@ public class RootOnlyTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    verify(changeObserver, never()).onSessionFinished();
+    verify(changeObserver, never()).onSessionFinished(any(UiContext.class));
 
     assertThat(modelProvider).isNotNull();
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.READY);
@@ -121,7 +123,7 @@ public class RootOnlyTest {
     assertThat(protocolInfo.hasClearOperation).isFalse();
 
     modelProvider.invalidate();
-    verify(changeObserver).onSessionFinished();
+    verify(changeObserver).onSessionFinished(UiContext.getDefaultInstance());
   }
 
   @Test
@@ -150,6 +152,6 @@ public class RootOnlyTest {
     requestManager.triggerRefresh(
         RequestReason.OPEN_WITHOUT_CONTENT,
         sessionManager.getUpdateConsumer(MutationContext.EMPTY_CONTEXT));
-    verify(changeObserver).onSessionFinished();
+    verify(changeObserver).onSessionFinished(any(UiContext.class));
   }
 }

@@ -14,6 +14,8 @@
 
 package com.google.android.libraries.feed.api.modelprovider;
 
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
+
 /** Interface used to observe events on the {@link ModelProvider}. */
 public interface ModelProviderObserver {
 
@@ -28,8 +30,11 @@ public interface ModelProviderObserver {
    * This event is triggered when the Session is invalidated. Once this is called, the UI should no
    * longer call this model. The ModelProvider will free all resources assocated with it including
    * invalidating all existing Cursors.
+   *
+   * @param uiContext If the session is being finished because of the UI, then this will be the
+   *     context given by the UI, otherwise it will be {@link UiContext#getDefaultInstance()}.
    */
-  void onSessionFinished();
+  void onSessionFinished(UiContext uiContext);
 
   /**
    * This is called in the event of an error. For example, if we are making a request and it fails

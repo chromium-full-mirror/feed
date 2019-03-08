@@ -16,6 +16,7 @@ package com.google.android.libraries.feed.api.common;
 
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
 /**
  * This tracks the context of a mutation. When a request is made, this will track the reason for the
@@ -27,15 +28,20 @@ public final class MutationContext {
   private final boolean userInitiated;
 
   /** Static used to represent an empty Mutation Context */
-  public static final MutationContext EMPTY_CONTEXT = new MutationContext(null, null, false);
+  public static final MutationContext EMPTY_CONTEXT =
+      new MutationContext(null, null, UiContext.getDefaultInstance(), false);
+
+  private final UiContext uiContext;
 
   private MutationContext(
       /*@Nullable*/ StreamToken continuationToken,
       /*@Nullable*/ StreamSession requestingSession,
+      UiContext uiContext,
       boolean userInitiated) {
     this.continuationToken = continuationToken;
     this.requestingSession = requestingSession;
     this.userInitiated = userInitiated;
+    this.uiContext = uiContext;
   }
 
   /** Returns the continuation token used to make the request. */
@@ -50,6 +56,14 @@ public final class MutationContext {
     return requestingSession;
   }
 
+  /**
+   * Returns the {@link UiContext} which made the request or {@link UiContext#getDefaultInstance()}
+   * if none was present.
+   */
+  public UiContext getUiContext() {
+    return uiContext;
+  }
+
   /** Returns {@code true} if the mutation was user initiated. */
   public boolean isUserInitiated() {
     return userInitiated;
@@ -59,6 +73,7 @@ public final class MutationContext {
   public static final class Builder {
     /*@MonotonicNonNull*/ private StreamToken continuationToken;
     /*@MonotonicNonNull*/ private StreamSession requestingSession;
+    private UiContext uiContext = UiContext.getDefaultInstance();
     private boolean userInitiated = false;
 
     public Builder() {}
@@ -78,8 +93,13 @@ public final class MutationContext {
       return this;
     }
 
+    public Builder setUiContext(UiContext uiContext) {
+      this.uiContext = uiContext;
+      return this;
+    }
+
     public MutationContext build() {
-      return new MutationContext(continuationToken, requestingSession, userInitiated);
+      return new MutationContext(continuationToken, requestingSession, uiContext, userInitiated);
     }
   }
 }

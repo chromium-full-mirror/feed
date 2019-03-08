@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuil
 import com.google.android.libraries.feed.common.testing.WireProtocolResponseBuilder.WireProtocolInfo;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,7 +81,7 @@ public class EmptyStreamTest {
     modelProvider.registerObserver(observer);
     verify(observer).onSessionStart();
     modelProvider.invalidate();
-    verify(observer).onSessionFinished();
+    verify(observer).onSessionFinished(UiContext.getDefaultInstance());
   }
 
   @Test
@@ -93,7 +94,7 @@ public class EmptyStreamTest {
     verify(observer).onSessionStart();
     modelProvider.unregisterObserver(observer);
     modelProvider.invalidate();
-    verify(observer, never()).onSessionFinished();
+    verify(observer, never()).onSessionFinished(UiContext.getDefaultInstance());
   }
 
   @Test

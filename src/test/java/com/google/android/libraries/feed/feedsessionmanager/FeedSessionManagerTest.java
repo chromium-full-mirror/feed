@@ -77,6 +77,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
 import com.google.search.now.feed.client.StreamDataProto.StreamUploadableAction;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ConsistencyTokenProto.ConsistencyToken;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import com.google.search.now.wire.feed.OpaqueActionDataForTestProto.OpaqueActionDataForTest;
@@ -366,7 +367,8 @@ public class FeedSessionManagerTest {
   public void testForceRefresh() {
     StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
-    sessionManager.triggerRefresh(streamSession, RequestReason.UNKNOWN);
+    sessionManager.triggerRefresh(
+        streamSession, RequestReason.UNKNOWN, UiContext.getDefaultInstance());
     verify(requestManager).triggerRefresh(eq(RequestReason.UNKNOWN), resultCapture.capture());
   }
 
@@ -374,7 +376,8 @@ public class FeedSessionManagerTest {
   public void testForceRefresh_scheduledRefresh() {
     StreamSession streamSession = StreamSession.newBuilder().setStreamToken("session:1").build();
     FeedSessionManager sessionManager = getInitializedSessionManager();
-    sessionManager.triggerRefresh(streamSession, RequestReason.HOST_REQUESTED);
+    sessionManager.triggerRefresh(
+        streamSession, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
     verify(requestManager)
         .triggerRefresh(eq(RequestReason.HOST_REQUESTED), resultCapture.capture());
   }

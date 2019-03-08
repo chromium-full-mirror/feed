@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.common.logging.Dumper;
 import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedapplifecyclelistener.FeedLifecycleListener;
 import com.google.android.libraries.feed.host.logging.RequestReason;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
 /**
  * This class will implements Clear All in Jardin. It will run all of the clear operations on a
@@ -88,7 +89,7 @@ public final class ClearAllListener implements FeedLifecycleListener, Dumpable {
   private void clearAllWithRefresh() {
     threadUtils.checkNotMainThread();
     clearAll();
-    sessionManager.triggerRefresh(null, RequestReason.CLEAR_ALL);
+    sessionManager.triggerRefresh(null, RequestReason.CLEAR_ALL, UiContext.getDefaultInstance());
     refreshCount++;
   }
 

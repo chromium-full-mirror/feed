@@ -85,6 +85,7 @@ import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.Scr
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.List;
 
 /**
@@ -641,7 +642,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   }
 
   @Override
-  public void onSessionFinished() {
+  public void onSessionFinished(UiContext uiContext) {
     if (isDestroyed) {
       // This seems to be getting called after onDestroy(), resulting in unregistering from the
       // ModelProvider twice, which causes a crash.

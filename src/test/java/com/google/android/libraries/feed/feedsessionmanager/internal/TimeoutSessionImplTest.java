@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.feedsessionmanager.internal.testing.Abs
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -100,7 +101,7 @@ public class TimeoutSessionImplTest extends AbstractSessionImplTest {
             .setRequestingSession(TEST_SESSION)
             .setContinuationToken(StreamToken.newBuilder().setContentId("token").build())
             .build());
-    verify(modelProvider).invalidate();
+    verify(modelProvider).invalidate(UiContext.getDefaultInstance());
   }
 
   @Test

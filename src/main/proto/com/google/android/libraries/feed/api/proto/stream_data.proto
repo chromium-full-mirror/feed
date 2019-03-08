@@ -73,6 +73,11 @@ message StreamToken {
   optional bytes next_page_token = 3;
 }
 
+// Represents the UI state held in a mutation initiated by the UI.
+message UiContext {
+  extensions 1 to max;
+}
+
 // This represents a shared state item.
 message StreamSharedState {
   optional string content_id = 1;

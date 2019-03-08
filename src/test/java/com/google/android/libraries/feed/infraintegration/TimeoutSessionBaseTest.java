@@ -35,6 +35,7 @@ import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.RequestBehavior;
 import com.google.android.libraries.feed.host.scheduler.SchedulerApi.SessionManagerState;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
@@ -159,7 +160,7 @@ public class TimeoutSessionBaseTest {
           }
 
           @Override
-          public void onSessionFinished() {
+          public void onSessionFinished(UiContext uiContext) {
             System.out.println("onSessionFinished");
           }
 

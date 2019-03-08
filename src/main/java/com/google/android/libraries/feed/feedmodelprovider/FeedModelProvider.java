@@ -64,6 +64,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -239,6 +240,11 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
 
   @Override
   public void triggerRefresh(@RequestReason int requestReason) {
+    triggerRefresh(requestReason, UiContext.getDefaultInstance());
+  }
+
+  @Override
+  public void triggerRefresh(@RequestReason int requestReason, UiContext uiContext) {
     threadUtils.checkMainThread();
     if (streamSession == null) {
       synchronized (lock) {
@@ -247,7 +253,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       }
       return;
     }
-    sessionManager.triggerRefresh(streamSession, requestReason);
+    sessionManager.triggerRefresh(streamSession, requestReason, uiContext);
   }
 
   @Override
@@ -258,7 +264,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       if (currentState == State.READY) {
         observer.onSessionStart();
       } else if (currentState == State.INVALIDATED) {
-        observer.onSessionFinished();
+        observer.onSessionFinished(UiContext.getDefaultInstance());
       }
     }
   }
@@ -316,6 +322,11 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
 
   @Override
   public void invalidate() {
+    invalidate(UiContext.getDefaultInstance());
+  }
+
+  @Override
+  public void invalidate(UiContext uiContext) {
     if (!moveToInvalidateState()) {
       Logger.e(TAG, "unable to invalidate FeedModelProvider");
       return;
@@ -332,7 +343,7 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
         () -> {
           List<ModelProviderObserver> observerList = getObserversToNotify();
           for (ModelProviderObserver observer : observerList) {
-            observer.onSessionFinished();
+            observer.onSessionFinished(uiContext);
           }
         });
   }
@@ -602,7 +613,11 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
           MutationHandler mutationHandler =
               getMutationHandler(change.updateChanges, change.mutationContext);
           processMutation(
-              mutationHandler, change.structureChanges, appendedChildren, removeTracking);
+              mutationHandler,
+              change.structureChanges,
+              appendedChildren,
+              removeTracking,
+              change.mutationContext);
 
           if (removeTracking != null) {
             // Update the UI on the main thread.
@@ -696,7 +711,8 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
             MutationHandler mutationHandler,
             List<StreamStructure> structureChanges,
             Map<String, UpdatableModelChild> appendedChildren,
-            /*@Nullable*/ RemoveTracking<?> removeTracking) {
+            /*@Nullable*/ RemoveTracking<?> removeTracking,
+            /*@Nullable*/ MutationContext mutationContext) {
 
           ElapsedTimeTracker timeTracker = timingUtils.getElapsedTimeTracker(TAG);
           int appends = 0;
@@ -730,7 +746,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
                         () -> {
                           List<ModelProviderObserver> observerList = getObserversToNotify();
                           for (ModelProviderObserver observer : observerList) {
-                            observer.onSessionFinished();
+                            observer.onSessionFinished(
+                                mutationContext == null
+                                    ? UiContext.getDefaultInstance()
+                                    : mutationContext.getUiContext());
                           }
                         });
                     return;

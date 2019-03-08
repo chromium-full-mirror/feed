@@ -28,6 +28,7 @@ import com.google.android.libraries.feed.common.time.TimingUtils;
 import com.google.search.now.feed.client.StreamDataProto.StreamSession;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -72,7 +73,11 @@ public final class TimeoutSessionImpl extends SessionImpl {
       if (!legacyHeadContent) {
         if (shouldInvalidateModuleProvider(mutationContext, ss)) {
           if (modelProvider != null) {
-            modelProvider.invalidate();
+            if (mutationContext == null) {
+              modelProvider.invalidate(UiContext.getDefaultInstance());
+            } else {
+              modelProvider.invalidate(mutationContext.getUiContext());
+            }
             Logger.i(
                 TAG,
                 "Invalidating Model Provider for session %s due to a clear head",

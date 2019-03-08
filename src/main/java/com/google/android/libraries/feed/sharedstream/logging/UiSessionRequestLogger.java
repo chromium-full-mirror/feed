@@ -21,6 +21,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.SessionEvent;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
 /** Logs the initial event after sessions have been requested by the UI. */
 public class UiSessionRequestLogger implements ModelProviderObserver {
@@ -63,7 +64,7 @@ public class UiSessionRequestLogger implements ModelProviderObserver {
   }
 
   @Override
-  public void onSessionFinished() {
+  public void onSessionFinished(UiContext uiContext) {
     if (sessionRequestState == null) {
       Logger.wtf(TAG, "onSessionFinished() called without SessionRequestState.");
       return;

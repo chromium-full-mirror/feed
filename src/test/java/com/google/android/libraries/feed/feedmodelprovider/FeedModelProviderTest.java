@@ -65,6 +65,7 @@ import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure.Operation;
 import com.google.search.now.feed.client.StreamDataProto.StreamToken;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.ui.stream.StreamStructureProto.Card;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.nio.charset.Charset;
@@ -319,7 +320,9 @@ public class FeedModelProviderTest {
     modelProvider.streamSession = mockSession;
     modelProvider.triggerRefresh(RequestReason.OPEN_WITH_CONTENT);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
-    verify(sessionManager).triggerRefresh(mockSession, RequestReason.OPEN_WITH_CONTENT);
+    verify(sessionManager)
+        .triggerRefresh(
+            mockSession, RequestReason.OPEN_WITH_CONTENT, UiContext.getDefaultInstance());
   }
 
   @Test
@@ -329,7 +332,8 @@ public class FeedModelProviderTest {
     modelProvider.streamSession = mockSession;
     modelProvider.triggerRefresh(RequestReason.HOST_REQUESTED);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isFalse();
-    verify(sessionManager).triggerRefresh(mockSession, RequestReason.HOST_REQUESTED);
+    verify(sessionManager)
+        .triggerRefresh(mockSession, RequestReason.HOST_REQUESTED, UiContext.getDefaultInstance());
   }
 
   @Test
@@ -340,7 +344,7 @@ public class FeedModelProviderTest {
     modelProvider.triggerRefresh(RequestReason.HOST_REQUESTED);
     assertThat(modelProvider.getDelayedTriggerRefreshForTest()).isTrue();
     assertThat(modelProvider.getRequestReasonForTest()).isEqualTo(RequestReason.HOST_REQUESTED);
-    verify(sessionManager, never()).triggerRefresh(eq(null), anyInt());
+    verify(sessionManager, never()).triggerRefresh(eq(null), anyInt(), any(UiContext.class));
   }
 
   @Test
@@ -371,7 +375,7 @@ public class FeedModelProviderTest {
     modelProvider.invalidate();
     modelProvider.unregisterObserver(observer);
     fakeMainThreadRunner.runAllTasks();
-    verify(observer, never()).onSessionFinished();
+    verify(observer, never()).onSessionFinished(UiContext.getDefaultInstance());
   }
 
   @Test
@@ -390,12 +394,12 @@ public class FeedModelProviderTest {
     verify(observer2).onSessionStart();
 
     modelProvider.invalidate();
-    verify(observer1).onSessionFinished();
-    verify(observer2).onSessionFinished();
+    verify(observer1).onSessionFinished(UiContext.getDefaultInstance());
+    verify(observer2).onSessionFinished(UiContext.getDefaultInstance());
 
     ModelProviderObserver observer3 = mock(ModelProviderObserver.class);
     modelProvider.registerObserver(observer3);
-    verify(observer3).onSessionFinished();
+    verify(observer3).onSessionFinished(UiContext.getDefaultInstance());
   }
 
   @Test
@@ -412,7 +416,7 @@ public class FeedModelProviderTest {
     String anotherRootId = idGenerators.createRootContentId(100);
     rootStreamFeature = StreamFeature.newBuilder().setContentId(anotherRootId).build();
     modelProvider.edit().addChild(createStreamStructureAndBinding(rootStreamFeature)).commit();
-    verify(observer).onSessionFinished();
+    verify(observer).onSessionFinished(UiContext.getDefaultInstance());
     assertThat(modelProvider.getCurrentState()).isEqualTo(State.INVALIDATED);
   }
 

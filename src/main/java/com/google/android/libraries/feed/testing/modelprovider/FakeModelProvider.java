@@ -25,6 +25,7 @@ import com.google.android.libraries.feed.api.modelprovider.ModelToken;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.common.collect.ImmutableList;
 import com.google.search.now.feed.client.StreamDataProto.StreamSharedState;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import com.google.search.now.wire.feed.ContentIdProto.ContentId;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,7 @@ public class FakeModelProvider implements ModelProvider {
   /*@Nullable*/ private String sessionToken = null;
   @RequestReason private int lastRequestReason = RequestReason.UNKNOWN;
   /*@Nullable*/ private ModelFeature immediateSessionStartModel;
+  /*@Nullable*/ private UiContext triggerRefreshUiContext;
 
   @Override
   public ModelMutation edit() {
@@ -50,6 +52,9 @@ public class FakeModelProvider implements ModelProvider {
 
   @Override
   public void invalidate() {}
+
+  @Override
+  public void invalidate(UiContext uiContext) {}
 
   @Override
   public void detachModelProvider() {}
@@ -82,6 +87,13 @@ public class FakeModelProvider implements ModelProvider {
   public void triggerRefresh(@RequestReason int requestReason) {
     wasRefreshTriggered = true;
     lastRequestReason = requestReason;
+  }
+
+  @Override
+  public void triggerRefresh(@RequestReason int requestReason, UiContext uiContext) {
+    wasRefreshTriggered = true;
+    lastRequestReason = requestReason;
+    triggerRefreshUiContext = uiContext;
   }
 
   @Override
@@ -134,7 +146,7 @@ public class FakeModelProvider implements ModelProvider {
 
   public void triggerOnSessionFinished() {
     for (ModelProviderObserver observer : observers) {
-      observer.onSessionFinished();
+      observer.onSessionFinished(UiContext.getDefaultInstance());
     }
   }
 
