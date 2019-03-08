@@ -16,7 +16,13 @@ package com.google.android.libraries.feed.host.logging;
 
 import android.support.annotation.IntDef;
 
-/** IntDef representing the different types of actions. */
+/**
+ * IntDef representing the different types of actions.
+ *
+ * <p>When adding new values, the value of {@link ActionType#NEXT_VALUE} should be used and
+ * incremented. When removing values, {@link ActionType#NEXT_VALUE} should not be changed, and those
+ * values should not be reused.
+ */
 @IntDef({
   ActionType.UNKNOWN,
   ActionType.OPEN_URL,
@@ -24,7 +30,8 @@ import android.support.annotation.IntDef;
   ActionType.OPEN_URL_NEW_TAB,
   ActionType.OPEN_URL_NEW_WINDOW,
   ActionType.DOWNLOAD,
-  ActionType.LEARN_MORE
+  ActionType.LEARN_MORE,
+  ActionType.NEXT_VALUE
 })
 // LINT.IfChange
 public @interface ActionType {
@@ -35,5 +42,6 @@ public @interface ActionType {
   int OPEN_URL_NEW_WINDOW = 3;
   int DOWNLOAD = 5;
   int LEARN_MORE = 6;
+  int NEXT_VALUE = 7;
 }
 // LINT.ThenChange

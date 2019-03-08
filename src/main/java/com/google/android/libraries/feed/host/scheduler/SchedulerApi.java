@@ -39,6 +39,10 @@ public interface SchedulerApi {
    *       wait for the configured timeout for it to complete. When the response completes, the new
    *       content will be displayed below any content the user has viewed.
    * </ul>
+   *
+   * <p>When adding new values, the value of {@link RequestBehavior#NEXT_VALUE} should be used and
+   * incremented. When removing values, {@link RequestBehavior#NEXT_VALUE} should not be changed,
+   * and those values should not be reused.
    */
   @IntDef({
     RequestBehavior.UNKNOWN,
@@ -47,7 +51,8 @@ public interface SchedulerApi {
     RequestBehavior.REQUEST_WITH_TIMEOUT,
     RequestBehavior.NO_REQUEST_WITH_WAIT,
     RequestBehavior.NO_REQUEST_WITH_CONTENT,
-    RequestBehavior.NO_REQUEST_WITH_TIMEOUT
+    RequestBehavior.NO_REQUEST_WITH_TIMEOUT,
+    RequestBehavior.NEXT_VALUE,
   })
   @interface RequestBehavior {
     int UNKNOWN = 0;
@@ -57,6 +62,7 @@ public interface SchedulerApi {
     int NO_REQUEST_WITH_WAIT = 4;
     int NO_REQUEST_WITH_CONTENT = 5;
     int NO_REQUEST_WITH_TIMEOUT = 6;
+    int NEXT_VALUE = 7;
   }
 
   /** Object which contains the current state of the SessionManager. */

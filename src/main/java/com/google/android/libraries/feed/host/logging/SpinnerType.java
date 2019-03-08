@@ -16,13 +16,20 @@ package com.google.android.libraries.feed.host.logging;
 
 import android.support.annotation.IntDef;
 
-/** IntDef representing the different types of spinners. */
+/**
+ * IntDef representing the different types of spinners.
+ *
+ * <p>When adding new values, the value of {@link SpinnerType#NEXT_VALUE} should be used and
+ * incremented. When removing values, {@link SpinnerType#NEXT_VALUE} should not be changed, and
+ * those values should not be reused.
+ */
 @IntDef({
   SpinnerType.INITIAL_LOAD,
   SpinnerType.ZERO_STATE_REFRESH,
   SpinnerType.MORE_BUTTON,
   SpinnerType.SYNTHETIC_TOKEN,
-  SpinnerType.INFINITE_FEED
+  SpinnerType.INFINITE_FEED,
+  SpinnerType.NEXT_VALUE,
 })
 public @interface SpinnerType {
   // Spinner shown on initial load of the Feed.
@@ -35,4 +42,6 @@ public @interface SpinnerType {
   int SYNTHETIC_TOKEN = 4;
   // Spinner shown when a spinner is shown for loading the infinite feed.
   int INFINITE_FEED = 5;
+  // The next value that should be used when adding additional values to the IntDef.
+  int NEXT_VALUE = 6;
 }

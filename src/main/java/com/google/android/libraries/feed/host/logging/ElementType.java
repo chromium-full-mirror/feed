@@ -16,13 +16,20 @@ package com.google.android.libraries.feed.host.logging;
 
 import android.support.annotation.IntDef;
 
-/** IntDef representing the different types of Elements. */
+/**
+ * IntDef representing the different types of Elements.
+ *
+ * <p>When adding new values, the value of {@link ElementType#NEXT_VALUE} should be used and
+ * incremented. When removing values, {@link ElementType#NEXT_VALUE} should not be changed, and
+ * those values should not be reused.
+ */
 @IntDef({
   ElementType.UNKNOWN,
   ElementType.CARD_LARGE_IMAGE,
   ElementType.CARD_SMALL_IMAGE,
   ElementType.INTEREST_HEADER,
   ElementType.TOOLTIP,
+  ElementType.NEXT_VALUE,
 })
 // LINT.IfChange
 public @interface ElementType {
@@ -31,5 +38,6 @@ public @interface ElementType {
   int CARD_SMALL_IMAGE = 2;
   int INTEREST_HEADER = 3;
   int TOOLTIP = 4;
+  int NEXT_VALUE = 5;
 }
 // LINT.ThenChange

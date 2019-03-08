@@ -16,11 +16,19 @@ package com.google.android.libraries.feed.host.logging;
 
 import android.support.annotation.IntDef;
 
+/**
+ * The reason a zero state is shown.
+ *
+ * <p>When adding new values, the value of {@link ZeroStateShowReason#NEXT_VALUE} should be used and
+ * incremented. When removing values, {@link ZeroStateShowReason#NEXT_VALUE} should not be changed,
+ * and those values should not be reused.
+ */
 @IntDef({
   ZeroStateShowReason.ERROR,
   ZeroStateShowReason.NO_CONTENT,
   ZeroStateShowReason.CONTENT_DISMISSED,
-  ZeroStateShowReason.NO_CONTENT_FROM_CONTINUATION_TOKEN
+  ZeroStateShowReason.NO_CONTENT_FROM_CONTINUATION_TOKEN,
+  ZeroStateShowReason.NEXT_VALUE,
 })
 public @interface ZeroStateShowReason {
 
@@ -39,4 +47,7 @@ public @interface ZeroStateShowReason {
   // no additional content, resulting in no content showing. This shouldn't occur, as a token should
   // at least return another token.
   int NO_CONTENT_FROM_CONTINUATION_TOKEN = 3;
+
+  // The next value that should be used when adding additional values to the IntDef.
+  int NEXT_VALUE = 4;
 }

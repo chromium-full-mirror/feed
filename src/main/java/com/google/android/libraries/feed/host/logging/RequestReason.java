@@ -16,6 +16,13 @@ package com.google.android.libraries.feed.host.logging;
 
 import android.support.annotation.IntDef;
 
+/**
+ * The reason a request is being made.
+ *
+ * <p>When adding new values, the value of {@link RequestReason#NEXT_VALUE} should be used and
+ * incremented. When removing values, {@link RequestReason#NEXT_VALUE} should not be changed, and
+ * those values should not be reused.
+ */
 @IntDef({
   RequestReason.UNKNOWN,
   RequestReason.ZERO_STATE,
@@ -24,7 +31,8 @@ import android.support.annotation.IntDef;
   RequestReason.MANUAL_CONTINUATION,
   RequestReason.AUTOMATIC_CONTINUATION,
   RequestReason.OPEN_WITHOUT_CONTENT,
-  RequestReason.CLEAR_ALL
+  RequestReason.CLEAR_ALL,
+  RequestReason.NEXT_VALUE,
 })
 public @interface RequestReason {
 
@@ -55,4 +63,7 @@ public @interface RequestReason {
 
   // Refresh made because the host requested a clear all.
   int CLEAR_ALL = 7;
+
+  // The next value that should be used when adding additional values to the IntDef.
+  int NEXT_VALUE = 8;
 }

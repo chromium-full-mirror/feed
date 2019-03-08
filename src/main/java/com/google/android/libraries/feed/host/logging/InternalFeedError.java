@@ -19,8 +19,8 @@ import android.support.annotation.IntDef;
 /**
  * Represents internal errors of the Feed libraries.
  *
- * <p>When adding new values, the value of {@link InternalFeedError.NEXT_VALUE} should be used and
- * incremented. When removing values, {@link InternalFeedError.NEXT_VALUE} should not be changed,
+ * <p>When adding new values, the value of {@link InternalFeedError#NEXT_VALUE} should be used and
+ * incremented. When removing values, {@link InternalFeedError#NEXT_VALUE} should not be changed,
  * and those values should not be reused.
  */
 @IntDef({

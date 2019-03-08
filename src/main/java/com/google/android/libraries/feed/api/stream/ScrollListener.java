@@ -34,8 +34,14 @@ public interface ScrollListener {
    */
   void onScrolled(int dx, int dy);
 
-  /** Possible scroll states. */
-  @IntDef({ScrollState.IDLE, ScrollState.DRAGGING, ScrollState.SETTLING})
+  /**
+   * Possible scroll states.
+   *
+   * <p>When adding new values, the value of {@link ScrollState#NEXT_VALUE} should be used and
+   * incremented. When removing values, {@link ScrollState#NEXT_VALUE} should not be changed, and
+   * those values should not be reused.
+   */
+  @IntDef({ScrollState.IDLE, ScrollState.DRAGGING, ScrollState.SETTLING, ScrollState.NEXT_VALUE})
   @interface ScrollState {
     /** Stream is not scrolling */
     int IDLE = 0;
@@ -45,5 +51,8 @@ public interface ScrollListener {
 
     /** Stream is animating to a final position. */
     int SETTLING = 2;
+
+    /** The next value that should be used when adding additional values to the IntDef. */
+    int NEXT_VALUE = 3;
   }
 }

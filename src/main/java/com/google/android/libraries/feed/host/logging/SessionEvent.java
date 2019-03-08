@@ -16,12 +16,19 @@ package com.google.android.libraries.feed.host.logging;
 
 import android.support.annotation.IntDef;
 
-/** IntDef representing the different results of requesting sessions. */
+/**
+ * IntDef representing the different results of requesting sessions.
+ *
+ * <p>When adding new values, the value of {@link SessionEvent#NEXT_VALUE} should be used and
+ * incremented. When removing values, {@link SessionEvent#NEXT_VALUE} should not be changed, and
+ * those values should not be reused.
+ */
 @IntDef({
   SessionEvent.STARTED,
   SessionEvent.FINISHED_IMMEDIATELY,
   SessionEvent.ERROR,
-  SessionEvent.USER_ABANDONED
+  SessionEvent.USER_ABANDONED,
+  SessionEvent.NEXT_VALUE,
 })
 public @interface SessionEvent {
 
@@ -38,4 +45,7 @@ public @interface SessionEvent {
   // Note: some of these events will be dropped, as they will be reported in
   // onDestroy(), which may not be called in all instances.
   int USER_ABANDONED = 3;
+
+  // The next value that should be used when adding additional values to the IntDef.
+  int NEXT_VALUE = 4;
 }
