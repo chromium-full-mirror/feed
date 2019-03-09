@@ -78,6 +78,7 @@ import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorA
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
@@ -150,6 +151,7 @@ public class BasicStreamTest {
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContextMenuManagerImpl contextMenuManager;
   @Mock private ViewLoggingUpdater viewLoggingUpdater;
+  @Mock private TooltipApi tooltipApi;
 
   private FakeKnownContentApi knownContentApi;
   private LinearLayoutManagerWithFakePositioning layoutManager;
@@ -1147,7 +1149,8 @@ public class BasicStreamTest {
           basicLoggingApi,
           offlineIndicatorApi,
           mainThreadRunner,
-          knownContentApi);
+          knownContentApi,
+          tooltipApi);
       this.layoutManager = layoutManager;
       this.streamDriver = streamDriver;
     }
@@ -1185,7 +1188,8 @@ public class BasicStreamTest {
         ContextMenuManager contextMenuManager,
         boolean restoring,
         boolean isInitialLoad,
-        MainThreadRunner mainThreadRunner) {
+        MainThreadRunner mainThreadRunner,
+        TooltipApi tooltipApi) {
       streamDriverScrollRestorer = scrollRestorer;
       streamDriverRestoring = restoring;
       return streamDriver;

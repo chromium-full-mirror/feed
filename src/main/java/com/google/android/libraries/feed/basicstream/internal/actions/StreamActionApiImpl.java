@@ -26,6 +26,9 @@ import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementType;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
+import com.google.android.libraries.feed.host.stream.TooltipCallbackApi;
+import com.google.android.libraries.feed.host.stream.TooltipInfo;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
@@ -53,6 +56,7 @@ public class StreamActionApiImpl implements StreamActionApi {
   private final ClusterPendingDismissHelper clusterPendingDismissHelper;
   private final ViewElementActionHandler viewElementActionHandler;
   private final String contentId;
+  private final TooltipApi tooltipApi;
 
   /*@Nullable*/ private final String sessionToken;
 
@@ -66,7 +70,8 @@ public class StreamActionApiImpl implements StreamActionApi {
       /*@Nullable*/ String sessionToken,
       ClusterPendingDismissHelper clusterPendingDismissHelper,
       ViewElementActionHandler viewElementActionHandler,
-      String contentId) {
+      String contentId,
+      TooltipApi tooltipApi) {
     this.actionApi = actionApi;
     this.actionParser = actionParser;
     this.actionManager = actionManager;
@@ -77,6 +82,7 @@ public class StreamActionApiImpl implements StreamActionApi {
     this.clusterPendingDismissHelper = clusterPendingDismissHelper;
     this.viewElementActionHandler = viewElementActionHandler;
     this.contentId = contentId;
+    this.tooltipApi = tooltipApi;
   }
 
   @Override
@@ -329,5 +335,28 @@ public class StreamActionApiImpl implements StreamActionApi {
   @Override
   public void onElementClick(@ElementType int elementType) {
     basicLoggingApi.onVisualElementClicked(contentLoggingData, elementType);
+  }
+
+  @Override
+  public boolean canShowTooltip() {
+    return true;
+  }
+
+  @Override
+  public void maybeShowTooltip(TooltipInfo tooltipInfo, View view) {
+    tooltipApi.maybeShowHelpUi(
+        tooltipInfo,
+        view,
+        new TooltipCallbackApi() {
+          @Override
+          public void onShow() {
+            // TODO: Log this.
+          }
+
+          @Override
+          public void onHide(int dismissType) {
+            // TODO: Log this.
+          }
+        });
   }
 }

@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.basicstream.internal.actions;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -37,6 +38,9 @@ import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementType;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
+import com.google.android.libraries.feed.host.stream.TooltipCallbackApi;
+import com.google.android.libraries.feed.host.stream.TooltipInfo;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
 import com.google.android.libraries.feed.testing.sharedstream.contextmenumanager.FakeContextMenuManager;
 import com.google.common.collect.ImmutableList;
@@ -136,6 +140,7 @@ public class StreamActionApiImplTest {
   @Mock private ContentLoggingData contentLoggingData;
   @Mock private ClusterPendingDismissHelper clusterPendingDismissHelper;
   @Mock private ViewElementActionHandler viewElementActionHandler;
+  @Mock private TooltipApi tooltipApi;
 
   private FakeContextMenuManager contextMenuManager;
   private StreamActionApiImpl streamActionApi;
@@ -159,7 +164,8 @@ public class StreamActionApiImplTest {
             SESSION_ID,
             clusterPendingDismissHelper,
             viewElementActionHandler,
-            CONTENT_ID);
+            CONTENT_ID,
+            tooltipApi);
   }
 
   @Test
@@ -449,6 +455,13 @@ public class StreamActionApiImplTest {
 
     // Second context menu fails in opening and is not logged.
     verifyZeroInteractions(basicLoggingApi);
+  }
+
+  @Test
+  public void testMaybeShowTooltip() {
+    TooltipInfo info = mock(TooltipInfo.class);
+    streamActionApi.maybeShowTooltip(info, view);
+    verify(tooltipApi).maybeShowHelpUi(eq(info), eq(view), any(TooltipCallbackApi.class));
   }
 
   private void testCommittedDismissWithSnackbar(Type actionType) {

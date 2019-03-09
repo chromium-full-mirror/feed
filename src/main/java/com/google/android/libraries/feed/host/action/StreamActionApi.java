@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.host.action;
 import android.view.View;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.ElementType;
+import com.google.android.libraries.feed.host.stream.TooltipInfo;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
@@ -72,4 +73,13 @@ public interface StreamActionApi extends ActionApi {
 
   /** Called when a click action has been performed. */
   void onElementClick(@ElementType int elementType);
+
+  /** Whether or not show tooltip actions can be handled. */
+  boolean canShowTooltip();
+
+  /**
+   * Called when the show tooltip action has been preformed. Tooltip might not be shown if it does
+   * not meet triggering conditions.
+   */
+  void maybeShowTooltip(TooltipInfo tooltipInfo, View view);
 }

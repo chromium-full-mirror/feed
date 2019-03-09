@@ -17,7 +17,7 @@ package com.google.android.libraries.feed.host.stream;
 import android.support.annotation.StringDef;
 
 /** All the information necessary to render a tooltip. */
-public class TooltipInfo {
+public interface TooltipInfo {
 
   /** The list of features that the tooltip can highlight. */
   @StringDef({FeatureName.UNKNOWN, FeatureName.CARD_MENU_TOOLTIP})
@@ -26,54 +26,25 @@ public class TooltipInfo {
     String CARD_MENU_TOOLTIP = "card_menu_tooltip";
   }
 
-  private final String label;
-  private final String accessibilityLabel;
-  @FeatureName private final String featureName;
-  private final int topInset;
-  private final int bottomInset;
-
-  public TooltipInfo(
-      String label,
-      String accessibilityLabel,
-      @FeatureName String featureName,
-      int topInset,
-      int bottomInset) {
-    this.label = label;
-    this.accessibilityLabel = accessibilityLabel;
-    this.featureName = featureName;
-    this.topInset = topInset;
-    this.bottomInset = bottomInset;
-  }
-
   /** Returns the text to display in the tooltip. */
-  public String getLabel() {
-    return label;
-  }
+  String getLabel();
 
   /** Returns the talkback string to attach to tooltip. */
-  public String getAccessibilityLabel() {
-    return accessibilityLabel;
-  }
+  String getAccessibilityLabel();
 
   /** Returns the Feature that the tooltip should reference. */
   @FeatureName
-  public String getFeatureName() {
-    return featureName;
-  }
+  String getFeatureName();
 
   /**
    * Returns the number of dp units that the tooltip arrow should point to below the center of the
    * top of the view it is referencing.
    */
-  public int getTopInset() {
-    return topInset;
-  }
+  int getTopInset();
 
   /**
    * Returns the number of dp units that the tooltip arrow should point to above the center of the
    * bottom of the view it is referencing.
    */
-  public int getBottomInset() {
-    return bottomInset;
-  }
+  int getBottomInset();
 }

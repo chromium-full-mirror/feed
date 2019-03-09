@@ -34,9 +34,9 @@ import com.google.android.libraries.feed.api.sessionmanager.SessionManager;
 import com.google.android.libraries.feed.api.stream.Stream;
 import com.google.android.libraries.feed.common.concurrent.MainThreadRunner;
 import com.google.android.libraries.feed.common.concurrent.TaskQueue;
-import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.common.time.Clock;
 import com.google.android.libraries.feed.common.time.TimingUtils;
+import com.google.android.libraries.feed.common.time.testing.FakeClock;
 import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.config.Configuration.ConfigKey;
@@ -48,6 +48,7 @@ import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorA
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import org.junit.Before;
@@ -82,6 +83,7 @@ public class FeedStreamScopeTest {
   @Mock private OfflineIndicatorApi offlineIndicatorApi;
   @Mock private KnownContentApi knownContentApi;
   @Mock private TaskQueue taskQueue;
+  @Mock private TooltipApi tooltipApi;
 
   private Context context;
   private MainThreadRunner mainThreadRunner;
@@ -126,7 +128,8 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                knownContentApi)
+                knownContentApi,
+                tooltipApi)
             .build();
     assertThat(streamScope.getStream()).isNotNull();
     assertThat(streamScope.getModelProviderFactory()).isNotNull();
@@ -155,7 +158,8 @@ public class FeedStreamScopeTest {
                 snackbarApi,
                 basicLoggingApi,
                 offlineIndicatorApi,
-                knownContentApi)
+                knownContentApi,
+                tooltipApi)
             .setActionParserFactory(actionParserFactory)
             .setStream(stream)
             .setModelProviderFactory(modelProviderFactory)

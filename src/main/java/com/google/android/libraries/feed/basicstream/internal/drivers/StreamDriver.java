@@ -45,6 +45,7 @@ import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.sharedstream.R;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
@@ -82,6 +83,7 @@ public class StreamDriver
   private final boolean isInitialLoad;
   private final MainThreadRunner mainThreadRunner;
   private final ViewLoggingUpdater viewLoggingUpdater;
+  private final TooltipApi tooltipApi;
 
   private boolean restoring;
   private boolean rootFeatureConsumed;
@@ -108,7 +110,8 @@ public class StreamDriver
       boolean restoring,
       boolean isInitialLoad,
       MainThreadRunner mainThreadRunner,
-      ViewLoggingUpdater viewLoggingUpdater) {
+      ViewLoggingUpdater viewLoggingUpdater,
+      TooltipApi tooltipApi) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -129,6 +132,7 @@ public class StreamDriver
     this.isInitialLoad = isInitialLoad;
     this.mainThreadRunner = mainThreadRunner;
     this.viewLoggingUpdater = viewLoggingUpdater;
+    this.tooltipApi = tooltipApi;
 
     modelProvider.enableRemoveTracking(
         new StreamRemoveTrackingFactory(modelProvider, knownContentApi));
@@ -528,7 +532,8 @@ public class StreamDriver
         contextMenuManager,
         mainThreadRunner,
         configuration,
-        viewLoggingUpdater);
+        viewLoggingUpdater,
+        tooltipApi);
   }
 
   @VisibleForTesting
@@ -549,7 +554,8 @@ public class StreamDriver
         contextMenuManager,
         mainThreadRunner,
         configuration,
-        viewLoggingUpdater);
+        viewLoggingUpdater,
+        tooltipApi);
   }
 
   @VisibleForTesting

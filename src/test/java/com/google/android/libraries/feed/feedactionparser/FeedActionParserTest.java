@@ -17,6 +17,7 @@ package com.google.android.libraries.feed.feedactionparser;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,6 +38,7 @@ import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.ActionType;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.host.stream.TooltipInfo;
 import com.google.common.collect.Lists;
 import com.google.search.now.feed.client.StreamDataProto.StreamDataOperation;
 import com.google.search.now.feed.client.StreamDataProto.StreamStructure;
@@ -46,10 +48,13 @@ import com.google.search.now.ui.action.FeedActionProto.FeedAction;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.ElementType;
 import com.google.search.now.ui.action.FeedActionProto.FeedActionMetadata.Type;
+import com.google.search.now.ui.action.FeedActionProto.Insets;
 import com.google.search.now.ui.action.FeedActionProto.LabelledFeedActionData;
 import com.google.search.now.ui.action.FeedActionProto.NotInterestedInData;
 import com.google.search.now.ui.action.FeedActionProto.OpenContextMenuData;
 import com.google.search.now.ui.action.FeedActionProto.OpenUrlData;
+import com.google.search.now.ui.action.FeedActionProto.TooltipData;
+import com.google.search.now.ui.action.FeedActionProto.TooltipData.FeatureName;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import com.google.search.now.ui.action.PietExtensionsProto.PietFeedActionPayload;
 import com.google.search.now.ui.piet.ActionsProto.Action;
@@ -59,6 +64,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
@@ -735,5 +741,62 @@ public class FeedActionParserTest {
         OPEN_URL_MISSING_URL, streamActionApi, /* view= */ null, ActionSource.CLICK);
 
     verify(basicLoggingApi).onInternalError(InternalFeedError.NO_URL_FOR_OPEN);
+  }
+
+  @Test
+  public void testShowTooltip() {
+    String tooltipLabel = "tooltip";
+    String accessibilityLabel = "tool";
+    int topInsert = 1;
+    int bottomInsert = 3;
+    when(streamActionApi.canShowTooltip()).thenReturn(true);
+    ArgumentCaptor<TooltipInfo> tooltipInfoArgumentCaptor =
+        ArgumentCaptor.forClass(TooltipInfo.class);
+    FeedActionPayload tooltipData =
+        FeedActionPayload.newBuilder()
+            .setExtension(
+                FeedAction.feedActionExtension,
+                FeedAction.newBuilder()
+                    .setMetadata(
+                        FeedActionMetadata.newBuilder()
+                            .setType(Type.SHOW_TOOLTIP)
+                            .setTooltipData(
+                                TooltipData.newBuilder()
+                                    .setLabel(tooltipLabel)
+                                    .setAccessibilityLabel(accessibilityLabel)
+                                    .setFeatureName(FeatureName.CARD_MENU)
+                                    .setInsets(
+                                        Insets.newBuilder()
+                                            .setTop(topInsert)
+                                            .setBottom(bottomInsert)
+                                            .build())))
+                    .build())
+            .build();
+    View view = new View(Robolectric.buildActivity(Activity.class).get());
+    feedActionParser.parseFeedActionPayload(tooltipData, streamActionApi, view, ActionSource.VIEW);
+    verify(streamActionApi).maybeShowTooltip(tooltipInfoArgumentCaptor.capture(), eq(view));
+    TooltipInfo tooltipInfo = tooltipInfoArgumentCaptor.getValue();
+    assertThat(tooltipInfo.getLabel()).isEqualTo(tooltipLabel);
+    assertThat(tooltipInfo.getAccessibilityLabel()).isEqualTo(accessibilityLabel);
+    assertThat(tooltipInfo.getFeatureName()).isEqualTo(TooltipInfo.FeatureName.CARD_MENU_TOOLTIP);
+    assertThat(tooltipInfo.getTopInset()).isEqualTo(topInsert);
+    assertThat(tooltipInfo.getBottomInset()).isEqualTo(bottomInsert);
+  }
+
+  @Test
+  public void testShowTooltip_notSupported() {
+    when(streamActionApi.canShowTooltip()).thenReturn(false);
+
+    FeedActionPayload tooltipData =
+        FeedActionPayload.newBuilder()
+            .setExtension(
+                FeedAction.feedActionExtension,
+                FeedAction.newBuilder()
+                    .setMetadata(FeedActionMetadata.newBuilder().setType(Type.SHOW_TOOLTIP))
+                    .build())
+            .build();
+    View view = new View(Robolectric.buildActivity(Activity.class).get());
+    feedActionParser.parseFeedActionPayload(tooltipData, streamActionApi, view, ActionSource.VIEW);
+    verify(streamActionApi, never()).maybeShowTooltip(any(TooltipInfo.class), any(View.class));
   }
 }

@@ -45,6 +45,7 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.sharedstream.constants.Constants;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
@@ -111,7 +112,8 @@ public class ContentDriver extends LeafFeatureDriver
       ContextMenuManager contextMenuManager,
       MainThreadRunner mainThreadRunner,
       Configuration configuration,
-      ViewLoggingUpdater viewLoggingUpdater) {
+      ViewLoggingUpdater viewLoggingUpdater,
+      TooltipApi tooltipApi) {
     this.mainThreadRunner = mainThreadRunner;
     viewDelayMs =
         configuration.getValueOrDefault(
@@ -142,7 +144,8 @@ public class ContentDriver extends LeafFeatureDriver
             contextMenuManager,
             clusterPendingDismissHelper,
             this,
-            contentId);
+            contentId,
+            tooltipApi);
     this.swipeAction = swipeAction;
     this.streamOfflineMonitor = streamOfflineMonitor;
     contentUrl = representationData.getUri();
@@ -328,7 +331,8 @@ public class ContentDriver extends LeafFeatureDriver
       ContextMenuManager contextMenuManager,
       ClusterPendingDismissHelper clusterPendingDismissHelper,
       ViewElementActionHandler handler,
-      String contentId) {
+      String contentId,
+      TooltipApi tooltipApi) {
     return new StreamActionApiImpl(
         actionApi,
         actionParser,
@@ -339,7 +343,8 @@ public class ContentDriver extends LeafFeatureDriver
         sessionToken,
         clusterPendingDismissHelper,
         handler,
-        contentId);
+        contentId,
+        tooltipApi);
   }
 
   @Override

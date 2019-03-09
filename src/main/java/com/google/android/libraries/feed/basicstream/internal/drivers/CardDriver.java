@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.search.now.ui.action.FeedActionPayloadProto.FeedActionPayload;
@@ -56,6 +57,7 @@ public class CardDriver implements FeatureDriver {
   private final MainThreadRunner mainThreadRunner;
   private final Configuration configuration;
   private final ViewLoggingUpdater viewLoggingUpdater;
+  private final TooltipApi tooltipApi;
 
   /*@Nullable*/ private ContentDriver contentDriver;
 
@@ -73,7 +75,8 @@ public class CardDriver implements FeatureDriver {
       ContextMenuManager contextMenuManager,
       MainThreadRunner mainThreadRunner,
       Configuration configuration,
-      ViewLoggingUpdater viewLoggingUpdater) {
+      ViewLoggingUpdater viewLoggingUpdater,
+      TooltipApi tooltipApi) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -88,6 +91,7 @@ public class CardDriver implements FeatureDriver {
     this.mainThreadRunner = mainThreadRunner;
     this.configuration = configuration;
     this.viewLoggingUpdater = viewLoggingUpdater;
+    this.tooltipApi = tooltipApi;
   }
 
   @Override
@@ -153,6 +157,7 @@ public class CardDriver implements FeatureDriver {
         contextMenuManager,
         mainThreadRunner,
         configuration,
-        viewLoggingUpdater);
+        viewLoggingUpdater,
+        tooltipApi);
   }
 }

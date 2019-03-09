@@ -56,6 +56,7 @@ import com.google.android.libraries.feed.host.logging.InternalFeedError;
 import com.google.android.libraries.feed.host.logging.ZeroStateShowReason;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.SnackbarCallbackApi;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.sharedstream.R;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
@@ -126,6 +127,7 @@ public class StreamDriverTest {
   @Mock private KnownContentApi knownContentApi;
   @Mock private StreamOfflineMonitor streamOfflineMonitor;
   @Mock private PendingDismissCallback pendingDismissCallback;
+  @Mock private TooltipApi tooltipApi;
 
   @Captor private ArgumentCaptor<List<LeafFeatureDriver>> featureDriversCaptor;
 
@@ -928,7 +930,8 @@ public class StreamDriverTest {
           restoring,
           isInitialLoad,
           mainThreadRunner,
-          viewLoggingUpdater);
+          viewLoggingUpdater,
+          tooltipApi);
       childrenCreated = new ArrayList<>();
     }
 

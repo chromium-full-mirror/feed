@@ -51,6 +51,7 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.ContentLoggingData;
 import com.google.android.libraries.feed.host.logging.ElementType;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.logging.LoggingListener;
 import com.google.android.libraries.feed.sharedstream.logging.StreamContentLoggingData;
@@ -163,6 +164,8 @@ public class ContentDriverTest {
   @Mock private ContentChangedListener contentChangedListener;
   @Mock private ActionParser actionParser;
   @Mock private ContextMenuManager contextMenuManager;
+  @Mock private TooltipApi tooltipApi;
+
   @Captor private ArgumentCaptor<Consumer<Boolean>> offlineConsumerCaptor;
   private ContentDriver contentDriver;
   private final FakeClock clock = new FakeClock();
@@ -199,7 +202,8 @@ public class ContentDriverTest {
             contextMenuManager,
             mainThreadRunner,
             configuration,
-            viewLoggingUpdater) {
+            viewLoggingUpdater,
+            tooltipApi) {
           @Override
           StreamActionApiImpl createStreamActionApi(
               ActionApi actionApi,
@@ -211,7 +215,8 @@ public class ContentDriverTest {
               ContextMenuManager contextMenuManager,
               ClusterPendingDismissHelper clusterPendingDismissHelper,
               ViewElementActionHandler handler,
-              String contentId) {
+              String contentId,
+              TooltipApi tooltipApi) {
             return streamActionApi;
           }
         };
@@ -372,7 +377,8 @@ public class ContentDriverTest {
             contextMenuManager,
             mainThreadRunner,
             configuration,
-            viewLoggingUpdater);
+            viewLoggingUpdater,
+            tooltipApi);
 
     contentDriver.bind(pietViewHolder);
 
@@ -410,7 +416,8 @@ public class ContentDriverTest {
             contextMenuManager,
             mainThreadRunner,
             configuration,
-            viewLoggingUpdater);
+            viewLoggingUpdater,
+            tooltipApi);
 
     contentDriver.bind(pietViewHolder);
 
@@ -445,7 +452,8 @@ public class ContentDriverTest {
             contextMenuManager,
             mainThreadRunner,
             configuration,
-            viewLoggingUpdater);
+            viewLoggingUpdater,
+            tooltipApi);
 
     contentDriver.bind(pietViewHolder);
 
@@ -491,7 +499,8 @@ public class ContentDriverTest {
             contextMenuManager,
             mainThreadRunner,
             configuration,
-            viewLoggingUpdater);
+            viewLoggingUpdater,
+            tooltipApi);
 
     contentDriver.bind(pietViewHolder);
 
@@ -646,7 +655,8 @@ public class ContentDriverTest {
             contextMenuManager,
             mainThreadRunner,
             configuration,
-            viewLoggingUpdater);
+            viewLoggingUpdater,
+            tooltipApi);
 
     ArgumentCaptor<Supplier<ContentMetadata>> contentMetadataSupplierCaptor =
         ArgumentCaptor.forClass((Class<Supplier<ContentMetadata>>) (Class) Supplier.class);

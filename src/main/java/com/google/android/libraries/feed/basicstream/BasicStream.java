@@ -66,6 +66,7 @@ import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorA
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.piet.PietManager;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
@@ -119,6 +120,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   private final MainThreadRunner mainThreadRunner;
   private final KnownContentApi knownContentApi;
   private final ViewLoggingUpdater viewLoggingUpdater;
+  private final TooltipApi tooltipApi;
   private final UiSessionRequestLogger uiSessionRequestLogger;
 
   private RecyclerView recyclerView;
@@ -165,7 +167,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       BasicLoggingApi basicLoggingApi,
       OfflineIndicatorApi offlineIndicatorApi,
       MainThreadRunner mainThreadRunner,
-      KnownContentApi knownContentApi) {
+      KnownContentApi knownContentApi,
+      TooltipApi tooltipApi) {
     this.cardConfiguration = cardConfiguration;
     this.clock = clock;
     this.threadUtils = threadUtils;
@@ -190,7 +193,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     this.knownContentApi = knownContentApi;
     viewLoggingUpdater = createViewLoggingUpdater();
     this.uiSessionRequestLogger = new UiSessionRequestLogger(clock, basicLoggingApi);
-
+    this.tooltipApi = tooltipApi;
     this.pietManager =
         createPietManager(
             context,
@@ -557,7 +560,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             contextMenuManager,
             isRestoring,
             /* isInitialLoad= */ false,
-            mainThreadRunner);
+            mainThreadRunner,
+            tooltipApi);
 
     // If after starting a new session the Stream is still empty, we should show the zero state.
     if (newStreamDriver.getLeafFeatureDrivers().isEmpty()) {
@@ -738,7 +742,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               contextMenuManager,
               isRestoring,
               isInitialLoad,
-              mainThreadRunner);
+              mainThreadRunner,
+              tooltipApi);
       if (isInitialLoad && !isRestoring) {
         mainThreadRunner.executeWithDelay(
             TAG + " onShow",
@@ -785,7 +790,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       ContextMenuManager contextMenuManager,
       boolean restoring,
       boolean isInitialLoad,
-      MainThreadRunner mainThreadRunner) {
+      MainThreadRunner mainThreadRunner,
+      TooltipApi tooltipApi) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -805,7 +811,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         restoring,
         isInitialLoad,
         mainThreadRunner,
-        viewLoggingUpdater);
+        viewLoggingUpdater,
+        tooltipApi);
   }
 
   @VisibleForTesting

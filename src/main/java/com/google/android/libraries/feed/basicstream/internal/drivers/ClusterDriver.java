@@ -32,6 +32,7 @@ import com.google.android.libraries.feed.host.action.ActionApi;
 import com.google.android.libraries.feed.host.config.Configuration;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
@@ -55,6 +56,7 @@ public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper
   private final MainThreadRunner mainThreadRunner;
   private final Configuration configuration;
   private final ViewLoggingUpdater viewLoggingUpdater;
+  private final TooltipApi tooltipApi;
 
   /*@Nullable*/ private CardDriver cardDriver;
 
@@ -72,7 +74,8 @@ public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper
       ContextMenuManager contextMenuManager,
       MainThreadRunner mainThreadRunner,
       Configuration configuration,
-      ViewLoggingUpdater viewLoggingUpdater) {
+      ViewLoggingUpdater viewLoggingUpdater,
+      TooltipApi tooltipApi) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -87,6 +90,7 @@ public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper
     this.mainThreadRunner = mainThreadRunner;
     this.configuration = configuration;
     this.viewLoggingUpdater = viewLoggingUpdater;
+    this.tooltipApi = tooltipApi;
   }
 
   @Override
@@ -152,7 +156,8 @@ public class ClusterDriver implements FeatureDriver, ClusterPendingDismissHelper
         contextMenuManager,
         mainThreadRunner,
         configuration,
-        viewLoggingUpdater);
+        viewLoggingUpdater,
+        tooltipApi);
   }
 
   @Override

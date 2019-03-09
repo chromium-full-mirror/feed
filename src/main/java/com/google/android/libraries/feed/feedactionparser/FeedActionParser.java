@@ -33,6 +33,7 @@ import com.google.android.libraries.feed.common.logging.Logger;
 import com.google.android.libraries.feed.feedactionparser.internal.ActionTypeConverter;
 import com.google.android.libraries.feed.feedactionparser.internal.ElementTypeConverter;
 import com.google.android.libraries.feed.feedactionparser.internal.PietFeedActionPayloadRetriever;
+import com.google.android.libraries.feed.feedactionparser.internal.TooltipInfoImpl;
 import com.google.android.libraries.feed.host.action.StreamActionApi;
 import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.InternalFeedError;
@@ -231,6 +232,14 @@ public final class FeedActionParser implements ActionParser {
         }
         streamActionApi.onElementHide(
             ElementTypeConverter.convert(feedActionMetadata.getElementType()));
+        break;
+      case SHOW_TOOLTIP:
+        if (!streamActionApi.canShowTooltip()) {
+          Logger.e(TAG, "Cannot try to show tooltip: StreamActionApi does not support it");
+          break;
+        }
+        streamActionApi.maybeShowTooltip(
+            new TooltipInfoImpl(feedActionMetadata.getTooltipData()), view);
         break;
       default:
         Logger.wtf(TAG, "Haven't implemented host handling of %s", feedActionMetadata.getType());

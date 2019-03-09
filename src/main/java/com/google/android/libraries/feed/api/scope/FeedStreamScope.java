@@ -41,6 +41,7 @@ import com.google.android.libraries.feed.host.offlineindicator.OfflineIndicatorA
 import com.google.android.libraries.feed.host.stream.CardConfiguration;
 import com.google.android.libraries.feed.host.stream.SnackbarApi;
 import com.google.android.libraries.feed.host.stream.StreamConfiguration;
+import com.google.android.libraries.feed.host.stream.TooltipApi;
 import com.google.android.libraries.feed.piet.host.CustomElementProvider;
 import com.google.android.libraries.feed.piet.host.HostBindingProvider;
 import java.util.ArrayList;
@@ -79,7 +80,8 @@ public final class FeedStreamScope {
         SnackbarApi snackbarApi,
         BasicLoggingApi basicLoggingApi,
         OfflineIndicatorApi offlineIndicatorApi,
-        KnownContentApi knownContentApi) {
+        KnownContentApi knownContentApi,
+        TooltipApi tooltipApi) {
       this.context = context;
       this.actionApi = actionApi;
       this.imageLoaderApi = imageLoaderApi;
@@ -100,6 +102,7 @@ public final class FeedStreamScope {
       this.basicLoggingApi = basicLoggingApi;
       this.offlineIndicatorApi = offlineIndicatorApi;
       this.knownContentApi = knownContentApi;
+      this.tooltipApi = tooltipApi;
     }
 
     public Builder setActionParserFactory(ActionParserFactory actionParserFactory) {
@@ -158,7 +161,8 @@ public final class FeedStreamScope {
                 basicLoggingApi,
                 offlineIndicatorApi,
                 mainThreadRunner,
-                knownContentApi);
+                knownContentApi,
+                tooltipApi);
       }
       return new FeedStreamScope(
           Validators.checkNotNull(stream), Validators.checkNotNull(modelProviderFactory));
@@ -188,6 +192,7 @@ public final class FeedStreamScope {
     private final BasicLoggingApi basicLoggingApi;
     private final OfflineIndicatorApi offlineIndicatorApi;
     private final KnownContentApi knownContentApi;
+    private final TooltipApi tooltipApi;
 
     // Optional internal components to override the default implementations.
     /*@MonotonicNonNull*/ private ActionParserFactory actionParserFactory;
