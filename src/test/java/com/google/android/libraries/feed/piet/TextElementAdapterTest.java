@@ -29,6 +29,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build.VERSION_CODES;
+import android.text.Layout;
 import android.text.TextUtils.TruncateAt;
 import android.view.Gravity;
 import android.view.View;
@@ -95,6 +96,11 @@ public class TextElementAdapterTest {
             new FakeClock());
 
     adapter = new TestTextElementAdapter(context, adapterParameters);
+  }
+
+  @Test
+  public void testHyphenationDisabled() {
+    assertThat(adapter.getBaseView().getBreakStrategy()).isEqualTo(Layout.BREAK_STRATEGY_SIMPLE);
   }
 
   @Test

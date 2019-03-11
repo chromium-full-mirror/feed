@@ -21,6 +21,7 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.widget.TextViewCompat;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -46,7 +47,7 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
   private ExtraLineHeight extraLineHeight = ExtraLineHeight.builder().build();
 
   TextElementAdapter(Context context, AdapterParameters parameters) {
-    super(context, parameters, new TextView(context));
+    super(context, parameters, createView(context));
   }
 
   @Override
@@ -420,6 +421,14 @@ abstract class TextElementAdapter extends ElementAdapter<TextView, TextElement> 
     } else {
       textView.setTypeface(Typeface.create(textView.getTypeface(), Typeface.NORMAL));
     }
+  }
+
+  private static TextView createView(Context context) {
+    TextView view = new TextView(context);
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.M) {
+      view.setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE);
+    }
+    return view;
   }
 
   TextElementKey createKey(Font font) {
