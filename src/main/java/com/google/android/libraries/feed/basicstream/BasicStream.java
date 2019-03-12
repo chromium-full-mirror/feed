@@ -83,6 +83,7 @@ import com.google.android.libraries.feed.sharedstream.piet.PietHostBindingProvid
 import com.google.android.libraries.feed.sharedstream.piet.PietImageLoader;
 import com.google.android.libraries.feed.sharedstream.piet.PietStringFormatter;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -145,6 +146,9 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
   /*@MonotonicNonNull*/ private StreamDriver streamDriver;
 
   /*@Nullable*/ private String savedSessionToken;
+  // TODO: instead of using a nullable field, pipe UiContext through the creation of
+  // ModelProviders to onSessionStart().
+  private UiRefreshReason uiRefreshReason = UiRefreshReason.getDefaultInstance();
   private StreamItemAnimator itemAnimator;
 
   public BasicStream(
@@ -561,7 +565,10 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
             isRestoring,
             /* isInitialLoad= */ false,
             mainThreadRunner,
-            tooltipApi);
+            tooltipApi,
+            uiRefreshReason);
+
+    uiRefreshReason = UiRefreshReason.getDefaultInstance();
 
     // If after starting a new session the Stream is still empty, we should show the zero state.
     if (newStreamDriver.getLeafFeatureDrivers().isEmpty()) {
@@ -595,8 +602,6 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
 
   @Override
   public void onSessionStart() {
-    // TODO: When there is a way to roundtrip data from triggerRefresh() ->
-    // onSessionStart(), log appropriately for was from a zero-state refresh.
     threadUtils.checkMainThread();
     ModelProvider localModelProvider =
         checkNotNull(modelProvider, "Model Provider must be set if a session is active");
@@ -668,6 +673,7 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
     if (modelProvider != null) {
       modelProvider.unregisterObserver(this);
     }
+    uiRefreshReason = uiContext.getExtension(UiRefreshReason.uiRefreshReasonExtension);
     modelProvider = modelProviderFactory.createNew(deepestContentTracker);
 
     registerObserversOnModelProvider(modelProvider);
@@ -743,7 +749,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
               isRestoring,
               isInitialLoad,
               mainThreadRunner,
-              tooltipApi);
+              tooltipApi,
+              UiRefreshReason.getDefaultInstance());
       if (isInitialLoad && !isRestoring) {
         mainThreadRunner.executeWithDelay(
             TAG + " onShow",
@@ -791,7 +798,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
       boolean restoring,
       boolean isInitialLoad,
       MainThreadRunner mainThreadRunner,
-      TooltipApi tooltipApi) {
+      TooltipApi tooltipApi,
+      UiRefreshReason uiRefreshReason) {
     return new StreamDriver(
         actionApi,
         actionManager,
@@ -812,7 +820,8 @@ public class BasicStream implements Stream, ModelProviderObserver, OnLayoutChang
         isInitialLoad,
         mainThreadRunner,
         viewLoggingUpdater,
-        tooltipApi);
+        tooltipApi,
+        uiRefreshReason);
   }
 
   @VisibleForTesting

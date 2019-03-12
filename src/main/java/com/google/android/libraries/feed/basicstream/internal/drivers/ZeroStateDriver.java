@@ -30,6 +30,9 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason.Reason;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 
 /** {@link FeatureDriver} for the zero state. */
 public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListener {
@@ -106,7 +109,13 @@ public class ZeroStateDriver extends LeafFeatureDriver implements OnClickListene
     spinnerShown = true;
     zeroStateViewHolder.showSpinner(spinnerShown);
     contentChangedListener.onContentChanged();
-    modelProvider.triggerRefresh(RequestReason.ZERO_STATE);
+    UiContext uiContext =
+        UiContext.newBuilder()
+            .setExtension(
+                UiRefreshReason.uiRefreshReasonExtension,
+                UiRefreshReason.newBuilder().setReason(Reason.ZERO_STATE).build())
+            .build();
+    modelProvider.triggerRefresh(RequestReason.ZERO_STATE, uiContext);
 
     spinnerLogger.spinnerStarted(SpinnerType.ZERO_STATE_REFRESH);
   }

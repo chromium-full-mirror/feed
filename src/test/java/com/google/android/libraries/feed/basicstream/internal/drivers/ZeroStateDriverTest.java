@@ -41,6 +41,9 @@ import com.google.android.libraries.feed.host.logging.BasicLoggingApi;
 import com.google.android.libraries.feed.host.logging.RequestReason;
 import com.google.android.libraries.feed.host.logging.SpinnerType;
 import com.google.android.libraries.feed.sharedstream.logging.SpinnerLogger;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason.Reason;
+import com.google.search.now.feed.client.StreamDataProto.UiContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +56,13 @@ import org.robolectric.RobolectricTestRunner;
 /** Tests for {@link ZeroStateDriver}. */
 @RunWith(RobolectricTestRunner.class)
 public class ZeroStateDriverTest {
+
+  private static final UiContext ZERO_STATE_UI_CONTEXT =
+      UiContext.newBuilder()
+          .setExtension(
+              UiRefreshReason.uiRefreshReasonExtension,
+              UiRefreshReason.newBuilder().setReason(Reason.ZERO_STATE).build())
+          .build();
 
   @Mock private BasicLoggingApi basicLoggingApi;
   @Mock private ContentChangedListener contentChangedListener;
@@ -182,7 +192,7 @@ public class ZeroStateDriverTest {
 
     verify(zeroStateViewHolder).showSpinner(true);
     verify(contentChangedListener).onContentChanged();
-    verify(modelProvider).triggerRefresh(RequestReason.ZERO_STATE);
+    verify(modelProvider).triggerRefresh(RequestReason.ZERO_STATE, ZERO_STATE_UI_CONTEXT);
   }
 
   @Test
@@ -193,7 +203,7 @@ public class ZeroStateDriverTest {
 
     zeroStateDriver.onClick(new FrameLayout(context));
 
-    verify(newModelProvider).triggerRefresh(RequestReason.ZERO_STATE);
+    verify(newModelProvider).triggerRefresh(RequestReason.ZERO_STATE, ZERO_STATE_UI_CONTEXT);
   }
 
   @Test

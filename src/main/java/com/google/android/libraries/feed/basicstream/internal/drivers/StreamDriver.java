@@ -50,6 +50,8 @@ import com.google.android.libraries.feed.sharedstream.R;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason.Reason;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
 import com.google.search.now.ui.action.FeedActionProto.UndoAction;
 import java.util.ArrayList;
@@ -84,6 +86,7 @@ public class StreamDriver
   private final MainThreadRunner mainThreadRunner;
   private final ViewLoggingUpdater viewLoggingUpdater;
   private final TooltipApi tooltipApi;
+  private final UiRefreshReason uiRefreshReason;
 
   private boolean restoring;
   private boolean rootFeatureConsumed;
@@ -111,7 +114,8 @@ public class StreamDriver
       boolean isInitialLoad,
       MainThreadRunner mainThreadRunner,
       ViewLoggingUpdater viewLoggingUpdater,
-      TooltipApi tooltipApi) {
+      TooltipApi tooltipApi,
+      UiRefreshReason uiRefreshReason) {
     this.actionApi = actionApi;
     this.actionManager = actionManager;
     this.actionParserFactory = actionParserFactory;
@@ -133,6 +137,7 @@ public class StreamDriver
     this.mainThreadRunner = mainThreadRunner;
     this.viewLoggingUpdater = viewLoggingUpdater;
     this.tooltipApi = tooltipApi;
+    this.uiRefreshReason = uiRefreshReason;
 
     modelProvider.enableRemoveTracking(
         new StreamRemoveTrackingFactory(modelProvider, knownContentApi));
@@ -144,15 +149,24 @@ public class StreamDriver
    */
   public List<LeafFeatureDriver> getLeafFeatureDrivers() {
     if (modelProvider.getCurrentState() == State.READY && !rootFeatureConsumed) {
+      ChildCreationPayload childCreationPayload;
       rootFeatureConsumed = true;
       ModelFeature rootFeature = modelProvider.getRootFeature();
       if (rootFeature != null) {
-        createAndInsertChildren(rootFeature, modelProvider);
+        childCreationPayload = createAndInsertChildren(rootFeature, modelProvider);
         rootFeature.registerObserver(this);
         modelFeatureChangeObserverRegistered = true;
+        if (uiRefreshReason.getReason().equals(Reason.ZERO_STATE)) {
+          basicLoggingApi.onZeroStateRefreshCompleted(
+              childCreationPayload.contentCount, childCreationPayload.tokenCount);
+        }
       } else {
         basicLoggingApi.onInternalError(InternalFeedError.NO_ROOT_FEATURE);
         Logger.w(TAG, "found null root feature loading Leaf Feature Drivers");
+        if (uiRefreshReason.getReason().equals(Reason.ZERO_STATE)) {
+          basicLoggingApi.onZeroStateRefreshCompleted(
+              /* newContentCount= */ 0, /* newTokenCount= */ 0);
+        }
       }
     }
 
@@ -182,17 +196,17 @@ public class StreamDriver
     scrollRestorer.maybeRestoreScroll();
   }
 
-  private List<FeatureDriver> createAndInsertChildren(
+  private ChildCreationPayload createAndInsertChildren(
       ModelFeature streamFeature, ModelProvider modelProvider) {
     return createAndInsertChildren(streamFeature.getCursor(), modelProvider);
   }
 
-  private List<FeatureDriver> createAndInsertChildren(
+  private ChildCreationPayload createAndInsertChildren(
       ModelCursor streamCursor, ModelProvider modelProvider) {
     return createAndInsertChildrenAtIndex(streamCursor, modelProvider, 0);
   }
 
-  private List<FeatureDriver> createAndInsertChildrenAtIndex(
+  private ChildCreationPayload createAndInsertChildrenAtIndex(
       ModelCursor streamCursor, ModelProvider modelProvider, int insertionIndex) {
 
     Iterable<ModelChild> cursorIterable =
@@ -211,8 +225,7 @@ public class StreamDriver
                 return checkNotNull(next);
               }
             };
-    return createAndInsertChildrenAtIndex(cursorIterable, modelProvider, insertionIndex)
-        .featureDrivers;
+    return createAndInsertChildrenAtIndex(cursorIterable, modelProvider, insertionIndex);
   }
 
   private ChildCreationPayload createAndInsertChildrenAtIndex(

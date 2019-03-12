@@ -42,6 +42,7 @@ android_library(
         "//src/main/proto/com/google/android/libraries/feed/api/proto:client_feed_java_proto_lite",
         "//src/main/proto/com/google/android/libraries/feed/basicstream/internal/proto:stream_saved_instance_state_java_proto_lite",
         "//src/main/proto/com/google/android/libraries/feed/sharedstream/proto:scroll_state_java_proto_lite",
+        "//src/main/proto/com/google/android/libraries/feed/sharedstream/proto:ui_refresh_reason_java_proto_lite",
         "@com_google_code_findbugs_jsr305//jar",
         "@com_google_protobuf_javalite//:protobuf_java_lite",
         "@maven//:com_android_support_recyclerview_v7",

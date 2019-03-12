@@ -89,6 +89,8 @@ import com.google.android.libraries.feed.sharedstream.deepestcontenttracker.Deep
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.piet.PietEventLogger;
 import com.google.android.libraries.feed.sharedstream.proto.ScrollStateProto.ScrollState;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason.Reason;
 import com.google.android.libraries.feed.sharedstream.publicapi.menumeasurer.MenuMeasurer;
 import com.google.android.libraries.feed.sharedstream.scroll.StreamScrollMonitor;
 import com.google.android.libraries.feed.testing.shadows.ShadowRecycledViewPool;
@@ -1070,6 +1072,22 @@ public class BasicStreamTest {
     verify(initialModelProvider).unregisterObserver(basicStream);
   }
 
+  @Test
+  public void onSessionStart_propagatesUiContext() {
+    basicStream.onShow();
+
+    UiRefreshReason uiRefreshReason =
+        UiRefreshReason.newBuilder().setReason(Reason.ZERO_STATE).build();
+    basicStream.onSessionStart();
+    basicStream.onSessionFinished(
+        UiContext.newBuilder()
+            .setExtension(UiRefreshReason.uiRefreshReasonExtension, uiRefreshReason)
+            .build());
+    basicStream.onSessionStart();
+
+    assertThat(basicStream.streamDriverUiRefreshReason).isEqualTo(uiRefreshReason);
+  }
+
   private byte[] decodeSavedInstanceStateString(String savedInstanceState) {
     return Base64.decode(savedInstanceState, Base64.DEFAULT);
   }
@@ -1109,6 +1127,7 @@ public class BasicStreamTest {
 
     private ScrollRestorer streamDriverScrollRestorer;
     private StreamContentChangedListener contentChangedListener;
+    private UiRefreshReason streamDriverUiRefreshReason;
 
     public BasicStreamForTest(
         Context context,
@@ -1189,9 +1208,11 @@ public class BasicStreamTest {
         boolean restoring,
         boolean isInitialLoad,
         MainThreadRunner mainThreadRunner,
-        TooltipApi tooltipApi) {
+        TooltipApi tooltipApi,
+        UiRefreshReason uiRefreshReason) {
       streamDriverScrollRestorer = scrollRestorer;
       streamDriverRestoring = restoring;
+      this.streamDriverUiRefreshReason = uiRefreshReason;
       return streamDriver;
     }
 

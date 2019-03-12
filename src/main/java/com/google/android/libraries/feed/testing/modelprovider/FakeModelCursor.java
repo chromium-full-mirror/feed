@@ -91,6 +91,14 @@ public class FakeModelCursor implements ModelCursor {
       return addChildWithModelFeature(getClusterModelFeatureWithCursor(cursor));
     }
 
+    public Builder addClusters(int count) {
+      for (int i = 0; i < count; i++) {
+        addCluster();
+      }
+
+      return this;
+    }
+
     public Builder addUnboundChild() {
       addChild(FakeModelChild.newBuilder().build());
       return this;

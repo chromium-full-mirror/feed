@@ -61,6 +61,8 @@ import com.google.android.libraries.feed.sharedstream.R;
 import com.google.android.libraries.feed.sharedstream.contextmenumanager.ContextMenuManager;
 import com.google.android.libraries.feed.sharedstream.offlinemonitor.StreamOfflineMonitor;
 import com.google.android.libraries.feed.sharedstream.pendingdismiss.PendingDismissCallback;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason;
+import com.google.android.libraries.feed.sharedstream.proto.UiRefreshReasonProto.UiRefreshReason.Reason;
 import com.google.android.libraries.feed.sharedstream.removetrackingfactory.StreamRemoveTrackingFactory;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelChild;
 import com.google.android.libraries.feed.testing.modelprovider.FakeModelCursor;
@@ -825,6 +827,29 @@ public class StreamDriverTest {
     verify(zeroStateDriver).setModelProvider(modelProvider);
   }
 
+  @Test
+  public void testRefreshFromZeroState_resultsInZeroState_logsNoNewContent() {
+    streamDriver = createStreamDriverFromZeroStateRefresh();
+
+    when(streamFeature.getCursor()).thenReturn(EMPTY_MODEL_CURSOR);
+    streamDriver.getLeafFeatureDrivers();
+
+    verify(basicLoggingApi)
+        .onZeroStateRefreshCompleted(/* newContentCount= */ 0, /* newTokenCount= */ 0);
+  }
+
+  @Test
+  public void testRefreshFromZeroState_addsContent_logsContent() {
+    streamDriver = createStreamDriverFromZeroStateRefresh();
+
+    when(streamFeature.getCursor())
+        .thenReturn(FakeModelCursor.newBuilder().addClusters(10).addToken().build());
+    streamDriver.getLeafFeatureDrivers();
+
+    verify(basicLoggingApi)
+        .onZeroStateRefreshCompleted(/* newContentCount= */ 10, /* newTokenCount= */ 1);
+  }
+
   private void initializeStreamDriverAndDismissAllFeatureChildren(FakeModelCursor fakeModelCursor) {
     when(streamFeature.getCursor()).thenReturn(fakeModelCursor);
 
@@ -849,8 +874,22 @@ public class StreamDriverTest {
     return createStreamDriver(/* restoring= */ true, /* isInitialLoad= */ true);
   }
 
+  private StreamDriverForTest createStreamDriverFromZeroStateRefresh() {
+    return createStreamDriver(
+        /* restoring= */ false,
+        /* isInitialLoad= */ false,
+        UiRefreshReason.newBuilder().setReason(Reason.ZERO_STATE).build());
+  }
+
+  private StreamDriverForTest createStreamDriver(
+      boolean restoring, boolean isInitialLoad, UiRefreshReason uiRefreshReason) {
+    return new StreamDriverForTest(
+        modelProvider, threadUtils, restoring, isInitialLoad, uiRefreshReason);
+  }
+
   private StreamDriverForTest createStreamDriver(boolean restoring, boolean isInitialLoad) {
-    return new StreamDriverForTest(modelProvider, threadUtils, restoring, isInitialLoad);
+    return new StreamDriverForTest(
+        modelProvider, threadUtils, restoring, isInitialLoad, UiRefreshReason.getDefaultInstance());
   }
 
   // TODO: Instead of just checking that the ModelFeature is of the correct type, check
@@ -910,7 +949,8 @@ public class StreamDriverTest {
         ModelProvider modelProvider,
         ThreadUtils threadUtils,
         boolean restoring,
-        boolean isInitialLoad) {
+        boolean isInitialLoad,
+        UiRefreshReason uiRefreshReason) {
       super(
           actionApi,
           actionManager,
@@ -931,7 +971,8 @@ public class StreamDriverTest {
           isInitialLoad,
           mainThreadRunner,
           viewLoggingUpdater,
-          tooltipApi);
+          tooltipApi,
+          uiRefreshReason);
       childrenCreated = new ArrayList<>();
     }
 
