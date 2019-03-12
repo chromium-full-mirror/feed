@@ -861,9 +861,10 @@ public final class FeedModelProvider extends FeedObservable<ModelProviderObserve
       this.insertToken = end < children.size();
       Logger.i(
           TAG,
-          "SyntheticTokenTracker: %d, %d, %b",
+          "SyntheticTokenTracker: %d, %d, %d, %b",
           this.startingPosition,
           this.endPosition,
+          children.size(),
           this.insertToken);
     }
 

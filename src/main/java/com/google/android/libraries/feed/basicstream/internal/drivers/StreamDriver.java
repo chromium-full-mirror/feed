@@ -449,7 +449,10 @@ public class StreamDriver
   private int removeDriver(ModelChild modelChild) {
     FeatureDriver featureDriver = modelChildFeatureDriverMap.get(modelChild);
     if (featureDriver == null) {
-      Logger.w(TAG, "Attempting to remove feature from ModelChild not in map.");
+      Logger.w(
+          TAG,
+          "Attempting to remove feature from ModelChild not in map, %s",
+          modelChild.getContentId());
       return -1;
     }
 

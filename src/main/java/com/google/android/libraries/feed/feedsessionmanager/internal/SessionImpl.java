@@ -225,6 +225,8 @@ public class SessionImpl implements InitializableSession, Dumpable {
       String contentKey = streamStructure.getContentId();
       if (streamStructure.getOperation() == Operation.UPDATE_OR_APPEND) {
         if (contentInSession.contains(contentKey)) {
+          // TODO: This could leave an empty feature if contentKey already exists in
+          // the session with a different parent.
           if (modelMutation != null) {
             // this is an update operation so we can ignore it
             modelMutation.updateChild(streamStructure);

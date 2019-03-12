@@ -96,6 +96,7 @@ public final class ModelChildBinder {
               }
             }
           }
+          // TODO: log an error if any children are still left unbounded.
           timeTracker.stop("", "bindingChildren", "childrenToBind", childrenToBind.size());
           consumer.accept(Result.success(null));
         });

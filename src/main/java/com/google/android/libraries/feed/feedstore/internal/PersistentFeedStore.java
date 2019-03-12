@@ -113,6 +113,8 @@ public final class PersistentFeedStore implements ClearableStore, Dumpable {
       return Result.failure();
     }
 
+    // TODO: This code should be asserting that all requested contentIds have been
+    // provided, otherwise an unbound child could be exposed to the UI.
     for (Map.Entry<String, byte[]> entry : contentResult.getValue().entrySet()) {
       try {
         StreamPayload streamPayload =

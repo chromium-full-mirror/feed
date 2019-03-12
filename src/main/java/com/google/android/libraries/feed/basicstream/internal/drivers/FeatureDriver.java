@@ -14,11 +14,10 @@
 
 package com.google.android.libraries.feed.basicstream.internal.drivers;
 
-import com.google.android.libraries.feed.api.modelprovider.ModelFeature;
 
 /**
  * A FeatureDriver is an object which can generate a {@link LeafFeatureDriver} from a {@link
- * ModelFeature}.
+ * com.google.android.libraries.feed.api.modelprovider.ModelFeature}.
  */
 public interface FeatureDriver {
 
